@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// MAIN WINDOW //-->
+  <template class="MainWindow" parent="AdwApplicationWindow">
+    <property name="title">PkgView</property>
+    <property name="content">
+      <object class="GtkBox" id="window_box">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkHeaderBar">
+          </object>
+        </child>
+        <child>
+          <object class="AdwFlap">
+            <property name="flap">
+              <object class="GtkLabel">
+                <property name="label">SIDEBAR</property>
+              </object>
+            </property>
+            <property name="separator">
+              <object class="GtkSeparator"/>
+            </property>
+            <property name="content">
+              <object class="GtkLabel">
+                <property name="label">CONTENT</property>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
