@@ -3,6 +3,8 @@
   <!--// MAIN WINDOW //-->
   <template class="MainWindow" parent="AdwApplicationWindow">
     <property name="title">PkgView</property>
+    <property name="default_width">800</property>
+    <property name="default_height">500</property>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>

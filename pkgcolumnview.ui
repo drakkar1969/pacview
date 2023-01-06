@@ -17,7 +17,7 @@
             <property name="title">Package</property>
             <property name="resizable">True</property>
             <property name="factory">
-              <object class="GtkSignalListItemFactory">
+              <object class="GtkSignalListItemFactory" id="name_factory">
               </object>
             </property>
           </object>
@@ -27,7 +27,7 @@
             <property name="title">Version</property>
             <property name="resizable">True</property>
             <property name="factory">
-              <object class="GtkSignalListItemFactory">
+              <object class="GtkSignalListItemFactory" id="version_factory">
               </object>
             </property>
           </object>
@@ -37,7 +37,7 @@
             <property name="title">Repository</property>
             <property name="resizable">True</property>
             <property name="factory">
-              <object class="GtkSignalListItemFactory">
+              <object class="GtkSignalListItemFactory" id="repository_factory">
               </object>
             </property>
           </object>
@@ -47,7 +47,7 @@
             <property name="title">Status</property>
             <property name="resizable">True</property>
             <property name="factory">
-              <object class="GtkSignalListItemFactory">
+              <object class="GtkSignalListItemFactory" id="status_factory">
               </object>
             </property>
           </object>
@@ -57,7 +57,7 @@
             <property name="title">Date</property>
             <property name="resizable">True</property>
             <property name="factory">
-              <object class="GtkSignalListItemFactory">
+              <object class="GtkSignalListItemFactory" id="date_factory">
               </object>
             </property>
           </object>
@@ -67,7 +67,7 @@
             <property name="title">Size</property>
             <property name="resizable">True</property>
             <property name="factory">
-              <object class="GtkSignalListItemFactory">
+              <object class="GtkSignalListItemFactory" id="size_factory">
               </object>
             </property>
           </object>

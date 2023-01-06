@@ -4,33 +4,38 @@ import gi, sys
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gio, GObject
+import pyalpm, datetime
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGOBJECT
 #------------------------------------------------------------------------------
 class PkgObject(GObject.Object):
 	#-----------------------------------
-	# Properties
-	#-----------------------------------
-	name = GObject.Property(type=str)
-	ver = GObject.Property(type=str)
-	repo = GObject.Property(type=str)
-	status = GObject.Property(type=str)
-	date = GObject.Property(type=str)
-	size = GObject.Property(type=str)
-
-	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, name="", version="", repository="", status="", date="", size="", *args, **kwargs):
+	def __init__(self, pkg, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.name = name
-		self.ver = version
-		self.repo = repository
-		self.status = status
-		self.date = date
-		self.size = size
+		self.pkg = pkg
+
+	#-----------------------------------
+	# Value getter functions
+	#-----------------------------------
+	def get_status(self):
+		return("dependency" if self.pkg.reason == 1 else "installed")
+
+	def get_date(self):
+		return(str(datetime.datetime.fromtimestamp(self.pkg.installdate)))
+
+	def get_size(self):
+		pkg_size = self.pkg.isize
+
+		for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
+			if pkg_size < 1024.0 or unit == 'PiB':
+				break
+			pkg_size /= 1024.0
+		
+		return(f"{pkg_size:.1f} {unit}")
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -44,6 +49,12 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	#-----------------------------------
 	view = Gtk.Template.Child()
 	store = Gtk.Template.Child()
+	name_factory = Gtk.Template.Child()
+	version_factory = Gtk.Template.Child()
+	repository_factory = Gtk.Template.Child()
+	status_factory = Gtk.Template.Child()
+	date_factory = Gtk.Template.Child()
+	size_factory = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -52,9 +63,18 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		super().__init__(*args, **kwargs)
 
 		# Bind column factories to signals
-		for column in self.view.get_columns():
-			column.get_factory().connect("setup", self.on_item_setup)
-			column.get_factory().connect("bind", self.on_item_bind, column)
+		self.name_factory.connect("setup", self.on_item_setup)
+		self.name_factory.connect("bind", self.on_item_bind_name)
+		self.version_factory.connect("setup", self.on_item_setup)
+		self.version_factory.connect("bind", self.on_item_bind_version)
+		self.repository_factory.connect("setup", self.on_item_setup)
+		self.repository_factory.connect("bind", self.on_item_bind_repository)
+		self.status_factory.connect("setup", self.on_item_setup)
+		self.status_factory.connect("bind", self.on_item_bind_status)
+		self.date_factory.connect("setup", self.on_item_setup)
+		self.date_factory.connect("bind", self.on_item_bind_date)
+		self.size_factory.connect("setup", self.on_item_setup)
+		self.size_factory.connect("bind", self.on_item_bind_size)
 
 	#-----------------------------------
 	# Factory signal handlers
@@ -62,13 +82,23 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	def on_item_setup(self, factory, item):
 		item.set_child(Gtk.Label(halign=Gtk.Align.START))
 
-	def on_item_bind(self, factory, item, column):
-		if column.get_title() == "Package": item.get_child().set_label(item.get_item().name)
-		if column.get_title() == "Version": item.get_child().set_label(item.get_item().ver)
-		if column.get_title() == "Repository": item.get_child().set_label(item.get_item().repo)
-		if column.get_title() == "Status": item.get_child().set_label(item.get_item().status)
-		if column.get_title() == "Date": item.get_child().set_label(item.get_item().date)
-		if column.get_title() == "Size": item.get_child().set_label(item.get_item().size)
+	def on_item_bind_name(self, factory, item):
+		item.get_child().set_label(item.get_item().pkg.name)
+
+	def on_item_bind_version(self, factory, item):
+		item.get_child().set_label(item.get_item().pkg.version)
+
+	def on_item_bind_repository(self, factory, item):
+		item.get_child().set_label(item.get_item().pkg.db.name)
+
+	def on_item_bind_status(self, factory, item):
+		item.get_child().set_label(item.get_item().get_status())
+
+	def on_item_bind_date(self, factory, item):
+		item.get_child().set_label(item.get_item().get_date())
+
+	def on_item_bind_size(self, factory, item):
+		item.get_child().set_label(item.get_item().get_size())
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
@@ -87,6 +117,14 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		handle = pyalpm.Handle("/", "/var/lib/pacman")
+		# # coredb = handle.register_syncdb("core", pyalpm.SIG_DATABASE_OPTIONAL)
+		localdb = handle.get_localdb()
+
+		pkg_objects = [PkgObject(pkg) for pkg in localdb.pkgcache]
+
+		self.pkg_columnview.store.splice(0, 0, pkg_objects)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
