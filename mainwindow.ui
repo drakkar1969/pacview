@@ -3,8 +3,8 @@
   <!--// MAIN WINDOW //-->
   <template class="MainWindow" parent="AdwApplicationWindow">
     <property name="title">PkgView</property>
-    <property name="default_width">800</property>
-    <property name="default_height">500</property>
+    <property name="default_width">1000</property>
+    <property name="default_height">700</property>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
@@ -15,8 +15,119 @@
         <child>
           <object class="AdwFlap">
             <property name="flap">
-              <object class="GtkLabel">
-                <property name="label">SIDEBAR</property>
+              <object class="GtkBox">
+                <property name="width_request">150</property>
+                <property name="orientation">vertical</property>
+                <property name="margin_start">12</property>
+                <property name="margin_end">12</property>
+                <property name="margin_top">12</property>
+                <property name="margin_bottom">12</property>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Repository</property>
+                    <property name="halign">start</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <style>
+                      <class name="heading"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBox" id="repo_listbox">
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">All</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkLabel">
+                    <property name="label">Package Status</property>
+                    <property name="halign">start</property>
+                    <property name="margin_start">6</property>
+                    <property name="margin_end">6</property>
+                    <property name="margin_top">6</property>
+                    <property name="margin_bottom">6</property>
+                    <style>
+                      <class name="heading"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBox" id="status_listbox">
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">All</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">Installed</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">Explicit</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">Dependency</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">Optional</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkListBoxRow">
+                        <property name="child">
+                          <object class="GtkLabel">
+                            <property name="label">Orphan</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </property>
             <property name="separator">
