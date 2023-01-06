@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys
+import gi, sys, os
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gio, GObject
@@ -22,15 +22,25 @@ class PkgObject(GObject.Object):
 	# Value getter functions
 	#-----------------------------------
 	def get_status(self):
-		if self.pkg.reason == 0:
-			return("installed")
-		else:
-			if self.pkg.compute_requiredby() != []: return("dependency")
+		local_pkg = pyalpm.find_satisfier(app.local_db.pkgcache, self.pkg.name)
+		
+		if local_pkg is not None:
+			if local_pkg.reason == 0:
+				return("installed")
 			else:
-				return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
+				if local_pkg.compute_requiredby() != []: return("dependency")
+				else:
+					return("optional" if local_pkg.compute_optionalfor() != [] else "orphan")
+		else:
+			return("")
 
 	def get_date(self):
-		return(str(datetime.datetime.fromtimestamp(self.pkg.installdate)))
+		local_pkg = pyalpm.find_satisfier(app.local_db.pkgcache, self.pkg.name)
+
+		if local_pkg is not None:
+			return(str(datetime.datetime.fromtimestamp(local_pkg.installdate)))
+		else:
+			return("")
 
 	def get_size(self):
 		pkg_size = self.pkg.isize
@@ -132,13 +142,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repolist_allrow)
 		self.status_listbox.select_row(self.statuslist_installedrow)
 
-		handle = pyalpm.Handle("/", "/var/lib/pacman")
-		# # coredb = handle.register_syncdb("core", pyalpm.SIG_DATABASE_OPTIONAL)
-		localdb = handle.get_localdb()
-
-		pkg_objects = [PkgObject(pkg) for pkg in localdb.pkgcache]
-
-		self.pkg_columnview.store.splice(0, 0, pkg_objects)
+		self.pkg_columnview.store.splice(0, 0, app.pkg_objects)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
@@ -153,6 +157,24 @@ class LauncherApp(Adw.Application):
 
 		# Connect signal handlers
 		self.connect("activate", self.on_activate)
+
+		alpm_folder = "/var/lib/pacman"
+
+		db_path = os.path.join(alpm_folder, "sync")
+
+		db_files = list(os.listdir(db_path)) if os.path.exists(db_path) else []
+		db_files = [os.path.basename(db).split(".")[0] for db in db_files]
+
+		alpm_handle = pyalpm.Handle("/", alpm_folder)
+		self.local_db = alpm_handle.get_localdb()
+
+		self.pkg_objects = []
+
+		for db in db_files:
+			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
+
+			if sync_db is not None:
+				self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
 
 	#-----------------------------------
 	# Signal handlers
