@@ -115,6 +115,12 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	repo_listbox = Gtk.Template.Child()
+	repolist_allrow = Gtk.Template.Child()
+
+	status_listbox = Gtk.Template.Child()
+	statuslist_installedrow = Gtk.Template.Child()
+
 	pkg_columnview = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -122,6 +128,9 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		self.repo_listbox.select_row(self.repolist_allrow)
+		self.status_listbox.select_row(self.statuslist_installedrow)
 
 		handle = pyalpm.Handle("/", "/var/lib/pacman")
 		# # coredb = handle.register_syncdb("core", pyalpm.SIG_DATABASE_OPTIONAL)
