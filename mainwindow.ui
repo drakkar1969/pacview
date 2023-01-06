@@ -21,8 +21,7 @@
               <object class="GtkSeparator"/>
             </property>
             <property name="content">
-              <object class="GtkLabel">
-                <property name="label">CONTENT</property>
+              <object class="PkgColumnView" id="pkg_columnview">
               </object>
             </property>
           </object>
