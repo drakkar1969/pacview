@@ -10,10 +10,17 @@
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkHeaderBar">
+            <child type="start">
+              <object class="GtkToggleButton" id="header_sidebar_btn">
+                <property name="icon-name">sidebar-show-symbolic</property>
+                <property name="active">True</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
           <object class="AdwFlap">
+            <property name="reveal-flap" bind-source="header_sidebar_btn" bind-property="active" bind-flags="sync-create|bidirectional"/>
             <property name="flap">
               <object class="GtkBox">
                 <property name="width_request">150</property>
