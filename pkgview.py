@@ -36,19 +36,14 @@ class PkgObject(GObject.Object):
 #-- CLASS: PKGCOLUMNVIEW
 #------------------------------------------------------------------------------
 @Gtk.Template(filename="/home/drakkar/Github/pkgview/pkgcolumnview.ui")
-class PkgColumnView(Gtk.ColumnView):
+class PkgColumnView(Gtk.ScrolledWindow):
 	__gtype_name__ = "PkgColumnView"
 
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	view = Gtk.Template.Child()
 	store = Gtk.Template.Child()
-	col_name = Gtk.Template.Child()
-	col_version = Gtk.Template.Child()
-	col_repository = Gtk.Template.Child()
-	col_status = Gtk.Template.Child()
-	col_date = Gtk.Template.Child()
-	col_size = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -57,7 +52,7 @@ class PkgColumnView(Gtk.ColumnView):
 		super().__init__(*args, **kwargs)
 
 		# Bind column factories to signals
-		for column in self.get_columns():
+		for column in self.view.get_columns():
 			column.get_factory().connect("setup", self.on_item_setup)
 			column.get_factory().connect("bind", self.on_item_bind, column)
 

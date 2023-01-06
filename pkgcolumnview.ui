@@ -1,73 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PACKAGE COLUMNVIEW //-->
-  <template class="PkgColumnView" parent="GtkColumnView">
-    <property name="model">
-      <object class="GtkSingleSelection">
+  <template class="PkgColumnView" parent="GtkScrolledWindow">
+    <property name="vexpand">True</property>
+    <property name="child">
+      <object class="GtkColumnView" id="view">
         <property name="model">
-          <object class="GListStore" id="store"/>
+          <object class="GtkSingleSelection">
+            <property name="model">
+              <object class="GListStore" id="store"/>
+            </property>
+          </object>
         </property>
+        <child>
+          <object class="GtkColumnViewColumn" id="name_column">
+            <property name="title">Package</property>
+            <property name="resizable">True</property>
+            <property name="factory">
+              <object class="GtkSignalListItemFactory">
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkColumnViewColumn" id="version_column">
+            <property name="title">Version</property>
+            <property name="resizable">True</property>
+            <property name="factory">
+              <object class="GtkSignalListItemFactory">
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkColumnViewColumn" id="repository_column">
+            <property name="title">Repository</property>
+            <property name="resizable">True</property>
+            <property name="factory">
+              <object class="GtkSignalListItemFactory">
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkColumnViewColumn" id="status_column">
+            <property name="title">Status</property>
+            <property name="resizable">True</property>
+            <property name="factory">
+              <object class="GtkSignalListItemFactory">
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkColumnViewColumn" id="date_column">
+            <property name="title">Date</property>
+            <property name="resizable">True</property>
+            <property name="factory">
+              <object class="GtkSignalListItemFactory">
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkColumnViewColumn" id="size_column">
+            <property name="title">Size</property>
+            <property name="resizable">True</property>
+            <property name="factory">
+              <object class="GtkSignalListItemFactory">
+              </object>
+            </property>
+          </object>
+        </child>
       </object>
     </property>
-    <child>
-      <object class="GtkColumnViewColumn" id="col_name">
-        <property name="title">Package</property>
-        <property name="resizable">True</property>
-        <property name="factory">
-          <object class="GtkSignalListItemFactory">
-          </object>
-        </property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkColumnViewColumn" id="col_version">
-        <property name="title">Version</property>
-        <property name="resizable">True</property>
-        <property name="factory">
-          <object class="GtkSignalListItemFactory">
-          </object>
-        </property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkColumnViewColumn" id="col_repository">
-        <property name="title">Repository</property>
-        <property name="resizable">True</property>
-        <property name="factory">
-          <object class="GtkSignalListItemFactory">
-          </object>
-        </property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkColumnViewColumn" id="col_status">
-        <property name="title">Status</property>
-        <property name="resizable">True</property>
-        <property name="factory">
-          <object class="GtkSignalListItemFactory">
-          </object>
-        </property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkColumnViewColumn" id="col_date">
-        <property name="title">Date</property>
-        <property name="resizable">True</property>
-        <property name="factory">
-          <object class="GtkSignalListItemFactory">
-          </object>
-        </property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkColumnViewColumn" id="col_size">
-        <property name="title">Size</property>
-        <property name="resizable">True</property>
-        <property name="factory">
-          <object class="GtkSignalListItemFactory">
-          </object>
-        </property>
-      </object>
-    </child>
   </template>
 </interface>
