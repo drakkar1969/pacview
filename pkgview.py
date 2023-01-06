@@ -22,7 +22,12 @@ class PkgObject(GObject.Object):
 	# Value getter functions
 	#-----------------------------------
 	def get_status(self):
-		return("dependency" if self.pkg.reason == 1 else "installed")
+		if self.pkg.reason == 0:
+			return("installed")
+		else:
+			if self.pkg.compute_requiredby() != []: return("dependency")
+			else:
+				return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
 
 	def get_date(self):
 		return(str(datetime.datetime.fromtimestamp(self.pkg.installdate)))
