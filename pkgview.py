@@ -63,13 +63,22 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	# Class widget variables
 	#-----------------------------------
 	view = Gtk.Template.Child()
-	store = Gtk.Template.Child()
+	sort_model = Gtk.Template.Child()
+	model = Gtk.Template.Child()
+
 	name_factory = Gtk.Template.Child()
 	version_factory = Gtk.Template.Child()
 	repository_factory = Gtk.Template.Child()
 	status_factory = Gtk.Template.Child()
 	date_factory = Gtk.Template.Child()
 	size_factory = Gtk.Template.Child()
+
+	name_sorter = Gtk.Template.Child()
+	version_sorter = Gtk.Template.Child()
+	repository_sorter = Gtk.Template.Child()
+	status_sorter = Gtk.Template.Child()
+	date_sorter = Gtk.Template.Child()
+	size_sorter = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -90,6 +99,16 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		self.date_factory.connect("bind", self.on_item_bind_date)
 		self.size_factory.connect("setup", self.on_item_setup_label)
 		self.size_factory.connect("bind", self.on_item_bind_size)
+
+		# Bind column sorters to sort function
+		self.name_sorter.set_sort_func(self.sort_by_name_column)
+		self.version_sorter.set_sort_func(self.sort_by_version_column)
+		self.repository_sorter.set_sort_func(self.sort_by_repository_column)
+		self.status_sorter.set_sort_func(self.sort_by_status_column)
+		self.date_sorter.set_sort_func(self.sort_by_date_column)
+		self.size_sorter.set_sort_func(self.sort_by_size_column)
+
+		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
 
 	#-----------------------------------
 	# Factory signal handlers
@@ -125,6 +144,39 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	def on_item_bind_size(self, factory, item):
 		item.get_child().set_label(item.get_item().get_size())
 
+	#-----------------------------------
+	# Sorter functions
+	#-----------------------------------
+	def sort_by_name_column(self, item_a, item_b, user_data):
+		if item_a.pkg.name < item_b.pkg.name: return(-1)
+		else:
+			if item_a.pkg.name > item_b.pkg.name: return(1)
+			else: return(0)
+
+	def sort_by_version_column(self, item_a, item_b, user_data):
+		return(pyalpm.vercmp(item_a.pkg.version, item_b.pkg.version))
+
+	def sort_by_repository_column(self, item_a, item_b, user_data):
+		if item_a.pkg.db.name < item_b.pkg.db.name: return(-1)
+		else:
+			if item_a.pkg.db.name > item_b.pkg.db.name: return(1)
+			else: return(0)
+
+	def sort_by_status_column(self, item_a, item_b, user_data):
+		status_a,_ = item_a.get_status()
+		status_b,_ = item_b.get_status()
+
+		if status_a < status_b: return(-1)
+		else:
+			if status_a > status_b: return(1)
+			else: return(0)
+
+	def sort_by_date_column(self, item_a, item_b, user_data):
+		return(item_a.pkg.installdate - item_b.pkg.installdate)
+
+	def sort_by_size_column(self, item_a, item_b, user_data):
+		return(item_a.pkg.isize - item_b.pkg.isize)
+
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
 #------------------------------------------------------------------------------
@@ -152,7 +204,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repolist_allrow)
 		self.status_listbox.select_row(self.statuslist_installedrow)
 
-		self.pkg_columnview.store.splice(0, 0, app.pkg_objects)
+		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
@@ -180,11 +232,13 @@ class LauncherApp(Adw.Application):
 
 		self.pkg_objects = []
 
-		for db in db_files:
-			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
+		# for db in db_files:
+		# 	sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
-			if sync_db is not None:
-				self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
+		# 	if sync_db is not None:
+		# 		self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
+
+		self.pkg_objects.extend([PkgObject(pkg) for pkg in self.local_db.pkgcache])
 
 	#-----------------------------------
 	# Signal handlers
