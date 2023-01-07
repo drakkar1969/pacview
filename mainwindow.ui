@@ -50,9 +50,21 @@
                     <child>
                       <object class="GtkListBoxRow" id="repolist_allrow">
                         <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">All</property>
-                            <property name="halign">start</property>
+                          <object class="GtkBox">
+                            <property name="margin_start">6</property>
+                            <property name="margin_end">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon_name">extract-archive-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">All</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>
