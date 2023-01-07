@@ -218,6 +218,13 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repolist_allrow)
 		self.status_listbox.select_row(self.statuslist_installedrow)
 
+		for db in app.db_files:
+			box = Gtk.Box(margin_start=6, margin_end=6, spacing=6)
+			box.append(Gtk.Image(icon_name="extract-archive-symbolic"))
+			box.append(Gtk.Label(label=str.title(db)))
+
+			self.repo_listbox.append(Gtk.ListBoxRow(child=box))
+
 		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
 
 #------------------------------------------------------------------------------
@@ -239,7 +246,7 @@ class LauncherApp(Adw.Application):
 		db_path = os.path.join(alpm_folder, "sync")
 
 		db_files = list(os.listdir(db_path)) if os.path.exists(db_path) else []
-		db_files = [os.path.basename(db).split(".")[0] for db in db_files]
+		self.db_files = [os.path.basename(db).split(".")[0] for db in db_files]
 
 		alpm_handle = pyalpm.Handle("/", alpm_folder)
 		self.local_db = alpm_handle.get_localdb()
