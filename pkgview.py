@@ -10,7 +10,7 @@ import pyalpm, datetime
 #-- CLASS: PKGOBJECT
 #------------------------------------------------------------------------------
 class PkgObject(GObject.Object):
-	pkg = None
+	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT)
 
 	#-----------------------------------
 	# Properties
