@@ -25,8 +25,8 @@
               <object class="GtkBox">
                 <property name="width_request">150</property>
                 <property name="orientation">vertical</property>
-                <property name="margin_start">12</property>
-                <property name="margin_end">12</property>
+                <property name="margin_start">6</property>
+                <property name="margin_end">6</property>
                 <property name="margin_top">12</property>
                 <property name="margin_bottom">12</property>
                 <child>
@@ -44,6 +44,7 @@
                 </child>
                 <child>
                   <object class="GtkListBox" id="repo_listbox">
+                    <property name="margin_bottom">12</property>
                     <style>
                       <class name="navigation-sidebar"/>
                     </style>
@@ -80,7 +81,7 @@
                     <property name="halign">start</property>
                     <property name="margin_start">6</property>
                     <property name="margin_end">6</property>
-                    <property name="margin_top">6</property>
+                    <property name="margin_top">18</property>
                     <property name="margin_bottom">6</property>
                     <style>
                       <class name="heading"/>
