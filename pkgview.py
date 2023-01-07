@@ -30,7 +30,7 @@ class PkgObject(GObject.Object):
 			else:
 				if local_pkg.compute_requiredby() != []: return("dependency", "object-select")
 				else:
-					return("optional", "object-select" if local_pkg.compute_optionalfor() != [] else "orphan", "object-select")
+					return(("optional", "object-select") if local_pkg.compute_optionalfor() != [] else ("orphan", "object-select"))
 		else:
 			return("", "")
 

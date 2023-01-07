@@ -95,9 +95,21 @@
                     <child>
                       <object class="GtkListBoxRow" id="statuslist_allrow">
                         <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">All</property>
-                            <property name="halign">start</property>
+                          <object class="GtkBox">
+                            <property name="margin_start">6</property>
+                            <property name="margin_end">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon_name">extract-archive-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">All</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>
@@ -105,9 +117,21 @@
                     <child>
                       <object class="GtkListBoxRow" id="statuslist_installedrow">
                         <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">Installed</property>
-                            <property name="halign">start</property>
+                          <object class="GtkBox">
+                            <property name="margin_start">6</property>
+                            <property name="margin_end">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon_name">extract-archive-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">Installed</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>
@@ -115,9 +139,21 @@
                     <child>
                       <object class="GtkListBoxRow" id="statuslist_explicitrow">
                         <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">Explicit</property>
-                            <property name="halign">start</property>
+                          <object class="GtkBox">
+                            <property name="margin_start">6</property>
+                            <property name="margin_end">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon_name">extract-archive-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">Explicit</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>
@@ -125,9 +161,21 @@
                     <child>
                       <object class="GtkListBoxRow" id="statuslist_dependencyrow">
                         <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">Dependency</property>
-                            <property name="halign">start</property>
+                          <object class="GtkBox">
+                            <property name="margin_start">6</property>
+                            <property name="margin_end">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon_name">extract-archive-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">Dependency</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>
@@ -135,9 +183,21 @@
                     <child>
                       <object class="GtkListBoxRow" id="statuslist_optionalrow">
                         <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">Optional</property>
-                            <property name="halign">start</property>
+                          <object class="GtkBox">
+                            <property name="margin_start">6</property>
+                            <property name="margin_end">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon_name">extract-archive-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">Optional</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>
@@ -145,9 +205,21 @@
                     <child>
                       <object class="GtkListBoxRow" id="statuslist_orphanrow">
                         <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">Orphan</property>
-                            <property name="halign">start</property>
+                          <object class="GtkBox">
+                            <property name="margin_start">6</property>
+                            <property name="margin_end">6</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon_name">extract-archive-symbolic</property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel">
+                                <property name="label">Orphan</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child>
                           </object>
                         </property>
                       </object>
