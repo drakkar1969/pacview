@@ -26,13 +26,13 @@ class PkgObject(GObject.Object):
 		
 		if local_pkg is not None:
 			if local_pkg.reason == 0:
-				return("installed")
+				return("installed", "object-select")
 			else:
-				if local_pkg.compute_requiredby() != []: return("dependency")
+				if local_pkg.compute_requiredby() != []: return("dependency", "object-select")
 				else:
-					return("optional" if local_pkg.compute_optionalfor() != [] else "orphan")
+					return("optional", "object-select" if local_pkg.compute_optionalfor() != [] else "orphan", "object-select")
 		else:
-			return("")
+			return("", "")
 
 	def get_date(self):
 		local_pkg = pyalpm.find_satisfier(app.local_db.pkgcache, self.pkg.name)
@@ -78,27 +78,35 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		super().__init__(*args, **kwargs)
 
 		# Bind column factories to signals
-		self.name_factory.connect("setup", self.on_item_setup)
+		self.name_factory.connect("setup", self.on_item_setup_iconlabel)
 		self.name_factory.connect("bind", self.on_item_bind_name)
-		self.version_factory.connect("setup", self.on_item_setup)
+		self.version_factory.connect("setup", self.on_item_setup_label)
 		self.version_factory.connect("bind", self.on_item_bind_version)
-		self.repository_factory.connect("setup", self.on_item_setup)
+		self.repository_factory.connect("setup", self.on_item_setup_label)
 		self.repository_factory.connect("bind", self.on_item_bind_repository)
-		self.status_factory.connect("setup", self.on_item_setup)
+		self.status_factory.connect("setup", self.on_item_setup_iconlabel)
 		self.status_factory.connect("bind", self.on_item_bind_status)
-		self.date_factory.connect("setup", self.on_item_setup)
+		self.date_factory.connect("setup", self.on_item_setup_label)
 		self.date_factory.connect("bind", self.on_item_bind_date)
-		self.size_factory.connect("setup", self.on_item_setup)
+		self.size_factory.connect("setup", self.on_item_setup_label)
 		self.size_factory.connect("bind", self.on_item_bind_size)
 
 	#-----------------------------------
 	# Factory signal handlers
 	#-----------------------------------
-	def on_item_setup(self, factory, item):
+	def on_item_setup_label(self, factory, item):
 		item.set_child(Gtk.Label(halign=Gtk.Align.START))
 
+	def on_item_setup_iconlabel(self, factory, item):
+		box = Gtk.Box()
+		box.set_spacing(6)
+		box.append(Gtk.Image())
+		box.append(Gtk.Label(halign=Gtk.Align.START))
+		item.set_child(box)
+
 	def on_item_bind_name(self, factory, item):
-		item.get_child().set_label(item.get_item().pkg.name)
+		item.get_child().get_first_child().set_from_icon_name("package-x-generic-symbolic")
+		item.get_child().get_last_child().set_label(item.get_item().pkg.name)
 
 	def on_item_bind_version(self, factory, item):
 		item.get_child().set_label(item.get_item().pkg.version)
@@ -107,7 +115,9 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		item.get_child().set_label(item.get_item().pkg.db.name)
 
 	def on_item_bind_status(self, factory, item):
-		item.get_child().set_label(item.get_item().get_status())
+		label, icon = item.get_item().get_status()
+		item.get_child().get_first_child().set_from_icon_name(icon)
+		item.get_child().get_last_child().set_label(label)
 
 	def on_item_bind_date(self, factory, item):
 		item.get_child().set_label(item.get_item().get_date())
