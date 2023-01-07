@@ -16,6 +16,7 @@
           <object class="GtkColumnViewColumn" id="name_column">
             <property name="title">Package</property>
             <property name="resizable">True</property>
+            <property name="expand">True</property>
             <property name="factory">
               <object class="GtkSignalListItemFactory" id="name_factory">
               </object>
