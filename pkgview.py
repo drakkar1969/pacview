@@ -10,39 +10,42 @@ import pyalpm, datetime
 #-- CLASS: PKGOBJECT
 #------------------------------------------------------------------------------
 class PkgObject(GObject.Object):
-	#-----------------------------------
-	# Init function
-	#-----------------------------------
-	def __init__(self, pkg, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		self.pkg = pkg
+	pkg = None
 
 	#-----------------------------------
-	# Value getter functions
+	# Properties
 	#-----------------------------------
-	def get_status(self):
-		local_pkg = pyalpm.find_satisfier(app.local_db.pkgcache, self.pkg.name)
-		
-		if local_pkg is not None:
-			if local_pkg.reason == 0:
-				return("installed", "object-select")
+	@GObject.Property(type=str, default="")
+	def name(self):
+		return(self.pkg.name)
+
+	@GObject.Property(type=str, default="")
+	def version(self):
+		return(self.pkg.version)
+
+	@GObject.Property(type=str, default="")
+	def repository(self):
+		return(self.pkg.db.name)
+
+	@GObject.Property(type=str, default="")
+	def status(self):
+		if self.pkg.reason == 0:
+			return("installed")
+		else:
+			if self.pkg.compute_requiredby() != []: return("dependency")
 			else:
-				if local_pkg.compute_requiredby() != []: return("dependency", "object-select")
-				else:
-					return(("optional", "object-select") if local_pkg.compute_optionalfor() != [] else ("orphan", "object-select"))
-		else:
-			return("", "")
+				return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
 
-	def get_date(self):
-		local_pkg = pyalpm.find_satisfier(app.local_db.pkgcache, self.pkg.name)
+	@GObject.Property(type=str, default="")
+	def sdate(self):
+		return(str(datetime.datetime.fromtimestamp(self.pkg.installdate)))
 
-		if local_pkg is not None:
-			return(str(datetime.datetime.fromtimestamp(local_pkg.installdate)))
-		else:
-			return("")
+	@GObject.Property(type=int, default=0)
+	def date(self):
+		return(self.pkg.installdate)
 
-	def get_size(self):
+	@GObject.Property(type=str, default="")
+	def ssize(self):
 		pkg_size = self.pkg.isize
 
 		for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
@@ -51,6 +54,18 @@ class PkgObject(GObject.Object):
 			pkg_size /= 1024.0
 		
 		return(f"{pkg_size:.1f} {unit}")
+
+	@GObject.Property(type=int, default=0)
+	def size(self):
+		return(self.pkg.isize)
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, pkg, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.pkg = pkg
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -125,46 +140,45 @@ class PkgColumnView(Gtk.ScrolledWindow):
 
 	def on_item_bind_name(self, factory, item):
 		item.get_child().get_first_child().set_from_icon_name("package-x-generic-symbolic")
-		item.get_child().get_last_child().set_label(item.get_item().pkg.name)
+		item.get_child().get_last_child().set_label(item.get_item().name)
 
 	def on_item_bind_version(self, factory, item):
-		item.get_child().set_label(item.get_item().pkg.version)
+		item.get_child().set_label(item.get_item().version)
 
 	def on_item_bind_repository(self, factory, item):
-		item.get_child().set_label(item.get_item().pkg.db.name)
+		item.get_child().set_label(item.get_item().repository)
 
 	def on_item_bind_status(self, factory, item):
-		label, icon = item.get_item().get_status()
-		item.get_child().get_first_child().set_from_icon_name(icon)
-		item.get_child().get_last_child().set_label(label)
+		# item.get_child().get_first_child().set_from_icon_name(icon)
+		item.get_child().get_last_child().set_label(item.get_item().status)
 
 	def on_item_bind_date(self, factory, item):
-		item.get_child().set_label(item.get_item().get_date())
+		item.get_child().set_label(item.get_item().sdate)
 
 	def on_item_bind_size(self, factory, item):
-		item.get_child().set_label(item.get_item().get_size())
+		item.get_child().set_label(item.get_item().ssize)
 
 	#-----------------------------------
 	# Sorter functions
 	#-----------------------------------
 	def sort_by_name_column(self, item_a, item_b, user_data):
-		if item_a.pkg.name < item_b.pkg.name: return(-1)
+		if item_a.name < item_b.name: return(-1)
 		else:
-			if item_a.pkg.name > item_b.pkg.name: return(1)
+			if item_a.name > item_b.name: return(1)
 			else: return(0)
 
 	def sort_by_version_column(self, item_a, item_b, user_data):
-		return(pyalpm.vercmp(item_a.pkg.version, item_b.pkg.version))
+		return(pyalpm.vercmp(item_a.version, item_b.version))
 
 	def sort_by_repository_column(self, item_a, item_b, user_data):
-		if item_a.pkg.db.name < item_b.pkg.db.name: return(-1)
+		if item_a.repository < item_b.repository: return(-1)
 		else:
-			if item_a.pkg.db.name > item_b.pkg.db.name: return(1)
+			if item_a.repository > item_b.repository: return(1)
 			else: return(0)
 
 	def sort_by_status_column(self, item_a, item_b, user_data):
-		status_a,_ = item_a.get_status()
-		status_b,_ = item_b.get_status()
+		status_a = item_a.status
+		status_b = item_b.status
 
 		if status_a < status_b: return(-1)
 		else:
@@ -172,10 +186,10 @@ class PkgColumnView(Gtk.ScrolledWindow):
 			else: return(0)
 
 	def sort_by_date_column(self, item_a, item_b, user_data):
-		return(item_a.pkg.installdate - item_b.pkg.installdate)
+		return(item_a.date - item_b.date)
 
 	def sort_by_size_column(self, item_a, item_b, user_data):
-		return(item_a.pkg.isize - item_b.pkg.isize)
+		return(item_a.size - item_b.size)
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
