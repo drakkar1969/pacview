@@ -38,7 +38,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def sdate(self):
-		return(str(datetime.datetime.fromtimestamp(self.pkg.installdate)))
+		return(datetime.datetime.fromtimestamp(self.pkg.installdate).strftime("%Y/%m/%d %H:%M"))
 
 	@GObject.Property(type=int, default=0)
 	def date(self):
