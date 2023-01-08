@@ -84,6 +84,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	view = Gtk.Template.Child()
 	sort_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
+	pkg_filter = Gtk.Template.Child()
 
 	name_factory = Gtk.Template.Child()
 	version_factory = Gtk.Template.Child()
@@ -119,13 +120,16 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		self.size_factory.connect("setup", self.on_item_setup_label)
 		self.size_factory.connect("bind", self.on_item_bind_size)
 
-		# Bind column sorters to sort function
+		# Bind column sorters to sort functions
 		self.name_sorter.set_sort_func(self.sort_by_name_column)
 		self.version_sorter.set_sort_func(self.sort_by_version_column)
 		self.repository_sorter.set_sort_func(self.sort_by_repository_column)
 		self.status_sorter.set_sort_func(self.sort_by_status_column)
 		self.date_sorter.set_sort_func(self.sort_by_date_column)
 		self.size_sorter.set_sort_func(self.sort_by_size_column)
+
+		# Bind filter to filter function
+		self.pkg_filter.set_filter_func(self.filter_pkgs)
 
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
 
@@ -195,6 +199,12 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	def sort_by_size_column(self, item_a, item_b, user_data):
 		return(item_a.size - item_b.size)
 
+	#-----------------------------------
+	# Filter function
+	#-----------------------------------
+	def filter_pkgs(self, item):
+		return(item.reason != -1)
+
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
 #------------------------------------------------------------------------------
@@ -219,9 +229,6 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.repo_listbox.select_row(self.repolist_allrow)
-		self.status_listbox.select_row(self.statuslist_installedrow)
-
 		for db in app.db_names:
 			box = Gtk.Box(margin_start=6, margin_end=6, spacing=6)
 			box.append(Gtk.Image(icon_name="extract-archive-symbolic"))
@@ -230,6 +237,9 @@ class MainWindow(Adw.ApplicationWindow):
 			self.repo_listbox.append(Gtk.ListBoxRow(child=box))
 
 		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
+
+		self.repo_listbox.select_row(self.repolist_allrow)
+		self.status_listbox.select_row(self.statuslist_installedrow)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP

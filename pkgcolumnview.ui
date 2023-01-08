@@ -10,7 +10,15 @@
             <property name="model">
               <object class="GtkSortListModel" id="sort_model">
                 <property name="model">
-                  <object class="GListStore" id="model">
+                  <object class="GtkFilterListModel" id="filter_model">
+                    <property name="filter">
+                      <object class="GtkCustomFilter" id="pkg_filter">
+                      </object>
+                    </property>
+                    <property name="model">
+                      <object class="GListStore" id="model">
+                      </object>
+                    </property>
                   </object>
                 </property>
                 <binding name="sorter">
