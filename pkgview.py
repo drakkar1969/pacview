@@ -121,12 +121,12 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		self.size_factory.connect("bind", self.on_item_bind_size)
 
 		# Bind column sorters to sort functions
-		self.name_sorter.set_sort_func(self.sort_by_name_column)
-		self.version_sorter.set_sort_func(self.sort_by_version_column)
-		self.repository_sorter.set_sort_func(self.sort_by_repository_column)
-		self.status_sorter.set_sort_func(self.sort_by_status_column)
-		self.date_sorter.set_sort_func(self.sort_by_date_column)
-		self.size_sorter.set_sort_func(self.sort_by_size_column)
+		self.name_sorter.set_sort_func(self.sort_by_str, "name")
+		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
+		self.repository_sorter.set_sort_func(self.sort_by_str, "repository")
+		self.status_sorter.set_sort_func(self.sort_by_str, "status")
+		self.date_sorter.set_sort_func(self.sort_by_int, "date")
+		self.size_sorter.set_sort_func(self.sort_by_int, "size")
 
 		# Bind filter to filter function
 		self.pkg_filter.set_filter_func(self.filter_pkgs)
@@ -169,35 +169,20 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	#-----------------------------------
 	# Sorter functions
 	#-----------------------------------
-	def sort_by_name_column(self, item_a, item_b, user_data):
-		if item_a.name < item_b.name: return(-1)
+	def sort_by_str(self, item_a, item_b, prop):
+		prop_a = item_a.get_property(prop)
+		prop_b = item_b.get_property(prop)
+
+		if prop_a < prop_b: return(-1)
 		else:
-			if item_a.name > item_b.name: return(1)
+			if prop_a > prop_b: return(1)
 			else: return(0)
 
-	def sort_by_version_column(self, item_a, item_b, user_data):
-		return(pyalpm.vercmp(item_a.version, item_b.version))
+	def sort_by_ver(self, item_a, item_b, prop):
+		return(pyalpm.vercmp(item_a.get_property(prop), item_b.get_property(prop)))
 
-	def sort_by_repository_column(self, item_a, item_b, user_data):
-		if item_a.repository < item_b.repository: return(-1)
-		else:
-			if item_a.repository > item_b.repository: return(1)
-			else: return(0)
-
-	def sort_by_status_column(self, item_a, item_b, user_data):
-		status_a = item_a.status
-		status_b = item_b.status
-
-		if status_a < status_b: return(-1)
-		else:
-			if status_a > status_b: return(1)
-			else: return(0)
-
-	def sort_by_date_column(self, item_a, item_b, user_data):
-		return(item_a.date - item_b.date)
-
-	def sort_by_size_column(self, item_a, item_b, user_data):
-		return(item_a.size - item_b.size)
+	def sort_by_int(self, item_a, item_b, prop):
+		return(item_a.get_property(prop) - item_b.get_property(prop))
 
 	#-----------------------------------
 	# Filter function
