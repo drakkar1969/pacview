@@ -89,6 +89,9 @@ class PkgObject(GObject.Object):
 class PkgColumnView(Gtk.ScrolledWindow):
 	__gtype_name__ = "PkgColumnView"
 
+	repo_filter = ""
+	status_filter = []
+
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
@@ -199,7 +202,9 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	# Filter function
 	#-----------------------------------
 	def filter_pkgs(self, item):
-		return(True)
+		match_repo = True if self.repo_filter == "" else (item.repository == self.repo_filter)
+		match_status = True if self.status_filter == [] else (item.status in self.status_filter)
+		return(match_repo and match_status)
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
@@ -232,10 +237,33 @@ class MainWindow(Adw.ApplicationWindow):
 
 			self.repo_listbox.append(Gtk.ListBoxRow(child=box))
 
-		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
+		self.repo_listbox.connect("row-selected", self.on_repo_changed)
+		self.status_listbox.connect("row-selected", self.on_status_changed)
 
 		self.repo_listbox.select_row(self.repolist_allrow)
 		self.status_listbox.select_row(self.statuslist_installedrow)
+
+		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
+
+	def on_repo_changed(self, listbox, row):
+		text = row.get_child().get_last_child().get_text().lower()
+
+		self.pkg_columnview.repo_filter = "" if text == "all" else text
+
+		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def on_status_changed(self, listbox, row):
+		text = row.get_child().get_last_child().get_text().lower()
+
+		match text:
+			case "explicit": self.pkg_columnview.status_filter = [0]
+			case "installed": self.pkg_columnview.status_filter = [0, 1, 2, 3]
+			case "dependency": self.pkg_columnview.status_filter = [1]
+			case "optional": self.pkg_columnview.status_filter = [2]
+			case "orphan": self.pkg_columnview.status_filter = [3]
+			case _: self.pkg_columnview.status_filter = []
+
+		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
