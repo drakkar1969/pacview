@@ -43,7 +43,15 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
-		return("package-install")
+		if self.status == -1: return("")
+
+		if self.status == 0:
+			return("package-install")
+		else:
+			# if self.pkg.compute_requiredby() != []: return("dependency")
+			# else:
+			# 	return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
+			return("package-installed-updated")
 
 	@GObject.Property(type=int, default=0)
 	def date(self):
@@ -193,7 +201,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	# Filter function
 	#-----------------------------------
 	def filter_pkgs(self, item):
-		return(item.status != -1)
+		return(True)
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
