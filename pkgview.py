@@ -34,12 +34,12 @@ class PkgObject(GObject.Object):
 		if self.status == -1: return("")
 
 		if self.status == 0:
-			return("installed")
+			return("explicit")
 		else:
-			# if self.pkg.compute_requiredby() != []: return("dependency")
-			# else:
-			# 	return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
-			return("dependency")
+			if self.status == 1:
+				return("dependency")
+			else:
+				return("optional" if self.status == 2 else "orphan")
 
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
@@ -48,10 +48,10 @@ class PkgObject(GObject.Object):
 		if self.status == 0:
 			return("package-install")
 		else:
-			# if self.pkg.compute_requiredby() != []: return("dependency")
-			# else:
-			# 	return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
-			return("package-installed-updated")
+			if self.status == 1:
+				return("package-installed-updated")
+			else:
+				return("package-installed-outdated" if self.status == 2 else "package-purge")
 
 	date = GObject.Property(type=int, default=0)
 
@@ -267,7 +267,7 @@ class LauncherApp(Adw.Application):
 
 		# Build dictionary of names,install reasons of local packages
 		local_db = alpm_handle.get_localdb()
-		local_dict = dict([(pkg.name, [pkg.reason, pkg.installdate]) for pkg in local_db.pkgcache])
+		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
 		# Build list of PkgOBjects from packages in databases
 		for db in self.db_names:
@@ -278,8 +278,17 @@ class LauncherApp(Adw.Application):
 
 		for i, obj in enumerate(self.pkg_objects):
 			if obj.pkg.name in local_dict.keys():
-				self.pkg_objects[i].status = local_dict[obj.pkg.name][0]
-				self.pkg_objects[i].date = local_dict[obj.pkg.name][1]
+				reason = local_dict[obj.pkg.name].reason
+
+				if reason == 0: self.pkg_objects[i].status = 0
+				else:
+					if reason == 1:
+						if local_dict[obj.pkg.name].compute_requiredby() != []:
+							self.pkg_objects[i].status = 1
+						else:
+							self.pkg_objects[i].status = 2 if local_dict[obj.pkg.name].compute_optionalfor() != [] else 3
+
+				self.pkg_objects[i].date = local_dict[obj.pkg.name].installdate
 
 	#-----------------------------------
 	# Signal handlers
