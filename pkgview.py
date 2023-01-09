@@ -14,7 +14,6 @@ class PkgObject(GObject.Object):
 	# Properties
 	#-----------------------------------
 	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
-	reason = GObject.Property(type=int, default=-1)
 
 	@GObject.Property(type=str, default="")
 	def name(self):
@@ -28,11 +27,13 @@ class PkgObject(GObject.Object):
 	def repository(self):
 		return(self.pkg.db.name)
 
-	@GObject.Property(type=str, default="")
-	def status(self):
-		if self.reason == -1: return("")
+	status = GObject.Property(type=int, default=-1)
 
-		if self.reason == 0:
+	@GObject.Property(type=str, default="")
+	def status_string(self):
+		if self.status == -1: return("")
+
+		if self.status == 0:
 			return("installed")
 		else:
 			# if self.pkg.compute_requiredby() != []: return("dependency")
@@ -40,13 +41,17 @@ class PkgObject(GObject.Object):
 			# 	return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
 			return("dependency")
 
+	@GObject.Property(type=int, default=0)
+	def date(self):
+		return(self.pkg.installdate)
+
 	@GObject.Property(type=str, default="")
 	def date_string(self):
 		return(datetime.datetime.fromtimestamp(self.pkg.installdate).strftime("%Y/%m/%d %H:%M") if self.pkg.installdate != 0 else "")
 
 	@GObject.Property(type=int, default=0)
-	def date(self):
-		return(self.pkg.installdate)
+	def size(self):
+		return(self.pkg.isize)
 
 	@GObject.Property(type=str, default="")
 	def size_string(self):
@@ -58,10 +63,6 @@ class PkgObject(GObject.Object):
 			pkg_size /= 1024.0
 		
 		return(f"{pkg_size:.1f} {unit}")
-
-	@GObject.Property(type=int, default=0)
-	def size(self):
-		return(self.pkg.isize)
 
 	#-----------------------------------
 	# Init function
@@ -124,7 +125,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		self.name_sorter.set_sort_func(self.sort_by_str, "name")
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
 		self.repository_sorter.set_sort_func(self.sort_by_str, "repository")
-		self.status_sorter.set_sort_func(self.sort_by_str, "status")
+		self.status_sorter.set_sort_func(self.sort_by_str, "status_string")
 		self.date_sorter.set_sort_func(self.sort_by_int, "date")
 		self.size_sorter.set_sort_func(self.sort_by_int, "size")
 
@@ -158,7 +159,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 
 	def on_item_bind_status(self, factory, item):
 		# item.get_child().get_first_child().set_from_icon_name(icon)
-		item.get_child().get_last_child().set_label(item.get_item().status)
+		item.get_child().get_last_child().set_label(item.get_item().status_string)
 
 	def on_item_bind_date(self, factory, item):
 		item.get_child().set_label(item.get_item().date_string)
@@ -188,7 +189,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	# Filter function
 	#-----------------------------------
 	def filter_pkgs(self, item):
-		return(item.reason != -1)
+		return(item.status != -1)
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
@@ -267,7 +268,7 @@ class LauncherApp(Adw.Application):
 
 		for i, obj in enumerate(self.pkg_objects):
 			if obj.pkg.name in local_dict.keys():
-				self.pkg_objects[i].reason = local_dict[obj.pkg.name]
+				self.pkg_objects[i].status = local_dict[obj.pkg.name]
 
 	#-----------------------------------
 	# Signal handlers
