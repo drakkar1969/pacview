@@ -53,13 +53,11 @@ class PkgObject(GObject.Object):
 			# 	return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
 			return("package-installed-updated")
 
-	@GObject.Property(type=int, default=0)
-	def date(self):
-		return(self.pkg.installdate)
+	date = GObject.Property(type=int, default=0)
 
 	@GObject.Property(type=str, default="")
 	def date_string(self):
-		return(datetime.datetime.fromtimestamp(self.pkg.installdate).strftime("%Y/%m/%d %H:%M") if self.pkg.installdate != 0 else "")
+		return(datetime.datetime.fromtimestamp(self.date).strftime("%Y/%m/%d %H:%M") if self.date != 0 else "")
 
 	@GObject.Property(type=int, default=0)
 	def size(self):
@@ -269,7 +267,7 @@ class LauncherApp(Adw.Application):
 
 		# Build dictionary of names,install reasons of local packages
 		local_db = alpm_handle.get_localdb()
-		local_dict = dict([(pkg.name, pkg.reason) for pkg in local_db.pkgcache])
+		local_dict = dict([(pkg.name, [pkg.reason, pkg.installdate]) for pkg in local_db.pkgcache])
 
 		# Build list of PkgOBjects from packages in databases
 		for db in self.db_names:
@@ -280,7 +278,8 @@ class LauncherApp(Adw.Application):
 
 		for i, obj in enumerate(self.pkg_objects):
 			if obj.pkg.name in local_dict.keys():
-				self.pkg_objects[i].status = local_dict[obj.pkg.name]
+				self.pkg_objects[i].status = local_dict[obj.pkg.name][0]
+				self.pkg_objects[i].date = local_dict[obj.pkg.name][1]
 
 	#-----------------------------------
 	# Signal handlers
