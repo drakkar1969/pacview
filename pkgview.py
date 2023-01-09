@@ -227,7 +227,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		for db in app.db_names:
 			box = Gtk.Box(margin_start=6, margin_end=6, spacing=6)
-			box.append(Gtk.Image(icon_name="extract-archive-symbolic"))
+			box.append(Gtk.Image(icon_name="package-x-generic-symbolic"))
 			box.append(Gtk.Label(label=str.title(db)))
 
 			self.repo_listbox.append(Gtk.ListBoxRow(child=box))
