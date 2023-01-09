@@ -41,6 +41,10 @@ class PkgObject(GObject.Object):
 			# 	return("optional" if self.pkg.compute_optionalfor() != [] else "orphan")
 			return("dependency")
 
+	@GObject.Property(type=str, default="")
+	def status_icon(self):
+		return("package-install")
+
 	@GObject.Property(type=int, default=0)
 	def date(self):
 		return(self.pkg.installdate)
@@ -158,7 +162,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		item.get_child().set_label(item.get_item().repository)
 
 	def on_item_bind_status(self, factory, item):
-		# item.get_child().get_first_child().set_from_icon_name(icon)
+		item.get_child().get_first_child().set_from_icon_name(item.get_item().status_icon)
 		item.get_child().get_last_child().set_label(item.get_item().status_string)
 
 	def on_item_bind_date(self, factory, item):
