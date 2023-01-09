@@ -41,7 +41,7 @@ class PkgObject(GObject.Object):
 			return("dependency")
 
 	@GObject.Property(type=str, default="")
-	def sdate(self):
+	def date_string(self):
 		return(datetime.datetime.fromtimestamp(self.pkg.installdate).strftime("%Y/%m/%d %H:%M") if self.pkg.installdate != 0 else "")
 
 	@GObject.Property(type=int, default=0)
@@ -49,7 +49,7 @@ class PkgObject(GObject.Object):
 		return(self.pkg.installdate)
 
 	@GObject.Property(type=str, default="")
-	def ssize(self):
+	def size_string(self):
 		pkg_size = self.pkg.isize
 
 		for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
@@ -161,10 +161,10 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		item.get_child().get_last_child().set_label(item.get_item().status)
 
 	def on_item_bind_date(self, factory, item):
-		item.get_child().set_label(item.get_item().sdate)
+		item.get_child().set_label(item.get_item().date_string)
 
 	def on_item_bind_size(self, factory, item):
-		item.get_child().set_label(item.get_item().ssize)
+		item.get_child().set_label(item.get_item().size_string)
 
 	#-----------------------------------
 	# Sorter functions
