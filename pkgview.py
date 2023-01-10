@@ -1,10 +1,26 @@
 #!/usr/bin/env python
 
-import gi, sys, os
+import gi, sys, os, datetime
+
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, Gio, GObject
-import pyalpm, datetime
+
+import pyalpm
+
+from enum import IntEnum
+
+#------------------------------------------------------------------------------
+#-- ENUM: PKGSTATUS
+#------------------------------------------------------------------------------
+class PkgStatus(IntEnum):
+	EXPLICIT = 1
+	DEPENDENCY = 2
+	OPTIONAL = 4
+	ORPHAN = 8
+	INSTALLED = 15
+	NONE = 16
+	ALL = 31
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGOBJECT
@@ -27,31 +43,31 @@ class PkgObject(GObject.Object):
 	def repository(self):
 		return(self.pkg.db.name)
 
-	status = GObject.Property(type=int, default=-1)
+	status = GObject.Property(type=int, default=PkgStatus.NONE)
 
 	@GObject.Property(type=str, default="")
 	def status_string(self):
-		if self.status == -1: return("")
+		if self.status == PkgStatus.NONE: return("")
 
-		if self.status == 0:
+		if self.status == PkgStatus.EXPLICIT:
 			return("explicit")
 		else:
-			if self.status == 1:
+			if self.status == PkgStatus.DEPENDENCY:
 				return("dependency")
 			else:
-				return("optional" if self.status == 2 else "orphan")
+				return("optional" if self.status == PkgStatus.OPTIONAL else "orphan")
 
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
-		if self.status == -1: return("")
+		if self.status == PkgStatus.NONE: return("")
 
-		if self.status == 0:
+		if self.status == PkgStatus.EXPLICIT:
 			return("package-install")
 		else:
-			if self.status == 1:
+			if self.status == PkgStatus.DEPENDENCY:
 				return("package-installed-updated")
 			else:
-				return("package-installed-outdated" if self.status == 2 else "package-purge")
+				return("package-installed-outdated" if self.status == PkgStatus.OPTIONAL else "package-purge")
 
 	date = GObject.Property(type=int, default=0)
 
@@ -89,14 +105,10 @@ class PkgObject(GObject.Object):
 class PkgColumnView(Gtk.ScrolledWindow):
 	__gtype_name__ = "PkgColumnView"
 
-	repo_filter = ""
-	status_filter = []
-
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
 	view = Gtk.Template.Child()
-	sort_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 	pkg_filter = Gtk.Template.Child()
 
@@ -113,6 +125,12 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	status_sorter = Gtk.Template.Child()
 	date_sorter = Gtk.Template.Child()
 	size_sorter = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	repo_filter = GObject.Property(type=str, default="")
+	status_filter = GObject.Property(type=int, default=PkgStatus.ALL)
 
 	#-----------------------------------
 	# Init function
@@ -203,7 +221,8 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	#-----------------------------------
 	def filter_pkgs(self, item):
 		match_repo = True if self.repo_filter == "" else (item.repository == self.repo_filter)
-		match_status = True if self.status_filter == [] else (item.status in self.status_filter)
+		match_status = (item.status & self.status_filter)
+
 		return(match_repo and match_status)
 
 #------------------------------------------------------------------------------
@@ -256,12 +275,12 @@ class MainWindow(Adw.ApplicationWindow):
 		text = row.get_child().get_last_child().get_text().lower()
 
 		match text:
-			case "explicit": self.pkg_columnview.status_filter = [0]
-			case "installed": self.pkg_columnview.status_filter = [0, 1, 2, 3]
-			case "dependency": self.pkg_columnview.status_filter = [1]
-			case "optional": self.pkg_columnview.status_filter = [2]
-			case "orphan": self.pkg_columnview.status_filter = [3]
-			case _: self.pkg_columnview.status_filter = []
+			case "explicit": self.pkg_columnview.status_filter = PkgStatus.EXPLICIT
+			case "installed": self.pkg_columnview.status_filter = PkgStatus.INSTALLED
+			case "dependency": self.pkg_columnview.status_filter = PkgStatus.DEPENDENCY
+			case "optional": self.pkg_columnview.status_filter = PkgStatus.OPTIONAL
+			case "orphan": self.pkg_columnview.status_filter = PkgStatus.ORPHAN
+			case _: self.pkg_columnview.status_filter = PkgStatus.ALL
 
 		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
 
@@ -308,13 +327,13 @@ class LauncherApp(Adw.Application):
 			if obj.pkg.name in local_dict.keys():
 				reason = local_dict[obj.pkg.name].reason
 
-				if reason == 0: self.pkg_objects[i].status = 0
+				if reason == 0: self.pkg_objects[i].status = PkgStatus.EXPLICIT
 				else:
 					if reason == 1:
 						if local_dict[obj.pkg.name].compute_requiredby() != []:
-							self.pkg_objects[i].status = 1
+							self.pkg_objects[i].status = PkgStatus.DEPENDENCY
 						else:
-							self.pkg_objects[i].status = 2 if local_dict[obj.pkg.name].compute_optionalfor() != [] else 3
+							self.pkg_objects[i].status = PkgStatus.OPTIONAL if local_dict[obj.pkg.name].compute_optionalfor() != [] else PkgStatus.ORPHAN
 
 				self.pkg_objects[i].date = local_dict[obj.pkg.name].installdate
 
