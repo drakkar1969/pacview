@@ -138,6 +138,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		# Bind filter to filter function
 		self.pkg_filter.set_filter_func(self.filter_pkgs)
 
+		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
 
 	#-----------------------------------
@@ -277,15 +278,18 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		# Add rows to sidebar repository list box
 		for db in app.db_names:
 			self.repo_listbox.append(FilterListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_filter=db))
 
 		self.repo_listbox.connect("row-selected", self.on_repo_changed)
 		self.status_listbox.connect("row-selected", self.on_status_changed)
 
+		# Select rows in sidebar list boxes
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
+		# Add items to package column view
 		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
 
 	def on_repo_changed(self, listbox, row):
