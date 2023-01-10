@@ -134,7 +134,22 @@
               <object class="GtkSeparator"/>
             </property>
             <property name="content">
-              <object class="PkgColumnView" id="pkg_columnview">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkSearchBar" id="search_bar">
+                    <property name="key-capture-widget">pkg_columnview</property>
+                    <child>
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <signal name="search-changed" handler="on_search" swapped="no"/>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="PkgColumnView" id="pkg_columnview">
+                  </object>
+                </child>
               </object>
             </property>
           </object>

@@ -119,6 +119,7 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	#-----------------------------------
 	repo_filter = GObject.Property(type=str, default="")
 	status_filter = GObject.Property(type=int, default=PkgStatus.ALL)
+	search_filter = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
@@ -210,8 +211,9 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	def filter_pkgs(self, item):
 		match_repo = True if self.repo_filter == "" else (item.repository == self.repo_filter)
 		match_status = (item.status & self.status_filter)
+		match_search = True if self.search_filter == "" else (self.search_filter in item.name)
 
-		return(match_repo and match_status)
+		return(match_repo and (match_status and match_search))
 
 #------------------------------------------------------------------------------
 #-- CLASS: FILTERLISTBOXROW
@@ -270,6 +272,9 @@ class MainWindow(Adw.ApplicationWindow):
 	status_listbox = Gtk.Template.Child()
 	status_listbox_installed = Gtk.Template.Child()
 
+	search_bar = Gtk.Template.Child()
+	search_entry = Gtk.Template.Child()
+
 	pkg_columnview = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -296,6 +301,12 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def on_status_changed(self, listbox, row):
 		self.pkg_columnview.status_filter = row.int_filter
+
+		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	@Gtk.Template.Callback()
+	def on_search(self, entry):
+		self.pkg_columnview.search_filter = entry.get_text()
 
 		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
 
