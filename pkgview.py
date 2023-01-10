@@ -292,6 +292,9 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
 
+		# Set initial focus on package column view
+		self.set_focus(self.pkg_columnview.view)
+
 	def on_repo_changed(self, listbox, row):
 		self.pkg_columnview.repo_filter = row.str_filter
 
