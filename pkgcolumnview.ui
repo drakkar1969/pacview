@@ -35,6 +35,8 @@
             <property name="expand">True</property>
             <property name="factory">
               <object class="GtkSignalListItemFactory" id="name_factory">
+                <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
+                <signal name="bind" handler="on_item_bind_name" swapped="no"/>
               </object>
             </property>
             <property name="sorter">
@@ -49,6 +51,8 @@
             <property name="resizable">True</property>
             <property name="factory">
               <object class="GtkSignalListItemFactory" id="version_factory">
+                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                <signal name="bind" handler="on_item_bind_version" swapped="no"/>
               </object>
             </property>
             <property name="sorter">
@@ -63,6 +67,8 @@
             <property name="resizable">True</property>
             <property name="factory">
               <object class="GtkSignalListItemFactory" id="repository_factory">
+                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                <signal name="bind" handler="on_item_bind_repository" swapped="no"/>
               </object>
             </property>
             <property name="sorter">
@@ -77,6 +83,8 @@
             <property name="resizable">True</property>
             <property name="factory">
               <object class="GtkSignalListItemFactory" id="status_factory">
+                <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
+                <signal name="bind" handler="on_item_bind_status" swapped="no"/>
               </object>
             </property>
             <property name="sorter">
@@ -91,6 +99,8 @@
             <property name="resizable">True</property>
             <property name="factory">
               <object class="GtkSignalListItemFactory" id="date_factory">
+                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                <signal name="bind" handler="on_item_bind_date" swapped="no"/>
               </object>
             </property>
             <property name="sorter">
@@ -105,6 +115,8 @@
             <property name="resizable">True</property>
             <property name="factory">
               <object class="GtkSignalListItemFactory" id="size_factory">
+                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                <signal name="bind" handler="on_item_bind_size" swapped="no"/>
               </object>
             </property>
             <property name="sorter">

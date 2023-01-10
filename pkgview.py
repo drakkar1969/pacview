@@ -127,20 +127,6 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Bind column factories to signals
-		self.name_factory.connect("setup", self.on_item_setup_iconlabel)
-		self.name_factory.connect("bind", self.on_item_bind_name)
-		self.version_factory.connect("setup", self.on_item_setup_label)
-		self.version_factory.connect("bind", self.on_item_bind_version)
-		self.repository_factory.connect("setup", self.on_item_setup_label)
-		self.repository_factory.connect("bind", self.on_item_bind_repository)
-		self.status_factory.connect("setup", self.on_item_setup_iconlabel)
-		self.status_factory.connect("bind", self.on_item_bind_status)
-		self.date_factory.connect("setup", self.on_item_setup_label)
-		self.date_factory.connect("bind", self.on_item_bind_date)
-		self.size_factory.connect("setup", self.on_item_setup_label)
-		self.size_factory.connect("bind", self.on_item_bind_size)
-
 		# Bind column sorters to sort functions
 		self.name_sorter.set_sort_func(self.sort_by_str, "name")
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
@@ -157,9 +143,11 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	#-----------------------------------
 	# Factory signal handlers
 	#-----------------------------------
+	@Gtk.Template.Callback()
 	def on_item_setup_label(self, factory, item):
 		item.set_child(Gtk.Label(halign=Gtk.Align.START))
 
+	@Gtk.Template.Callback()
 	def on_item_setup_iconlabel(self, factory, item):
 		box = Gtk.Box()
 		box.set_spacing(6)
@@ -167,23 +155,29 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		box.append(Gtk.Label(halign=Gtk.Align.START))
 		item.set_child(box)
 
+	@Gtk.Template.Callback()
 	def on_item_bind_name(self, factory, item):
 		item.get_child().get_first_child().set_from_icon_name("package-x-generic-symbolic")
 		item.get_child().get_last_child().set_label(item.get_item().name)
 
+	@Gtk.Template.Callback()
 	def on_item_bind_version(self, factory, item):
 		item.get_child().set_label(item.get_item().version)
 
+	@Gtk.Template.Callback()
 	def on_item_bind_repository(self, factory, item):
 		item.get_child().set_label(item.get_item().repository)
 
+	@Gtk.Template.Callback()
 	def on_item_bind_status(self, factory, item):
 		item.get_child().get_first_child().set_from_icon_name(item.get_item().status_icon)
 		item.get_child().get_last_child().set_label(item.get_item().status_string)
 
+	@Gtk.Template.Callback()
 	def on_item_bind_date(self, factory, item):
 		item.get_child().set_label(item.get_item().date_string)
 
+	@Gtk.Template.Callback()
 	def on_item_bind_size(self, factory, item):
 		item.get_child().set_label(item.get_item().size_string)
 
