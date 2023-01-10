@@ -47,27 +47,15 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def status_string(self):
-		if self.status == PkgStatus.NONE: return("")
+		str_dict = { PkgStatus.EXPLICIT: "explicit", PkgStatus.DEPENDENCY: "dependency", PkgStatus.OPTIONAL: "optional", PkgStatus.ORPHAN: "orphan" }
 
-		if self.status == PkgStatus.EXPLICIT:
-			return("explicit")
-		else:
-			if self.status == PkgStatus.DEPENDENCY:
-				return("dependency")
-			else:
-				return("optional" if self.status == PkgStatus.OPTIONAL else "orphan")
+		return(str_dict.get(self.status, ""))
 
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
-		if self.status == PkgStatus.NONE: return("")
+		icon_dict = { PkgStatus.EXPLICIT: "package-install", PkgStatus.DEPENDENCY: "package-installed-updated", PkgStatus.OPTIONAL: "package-installed-outdated", PkgStatus.ORPHAN: "package-purge" }
 
-		if self.status == PkgStatus.EXPLICIT:
-			return("package-install")
-		else:
-			if self.status == PkgStatus.DEPENDENCY:
-				return("package-installed-updated")
-			else:
-				return("package-installed-outdated" if self.status == PkgStatus.OPTIONAL else "package-purge")
+		return(icon_dict.get(self.status, ""))
 
 	date = GObject.Property(type=int, default=0)
 
