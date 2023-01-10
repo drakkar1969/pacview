@@ -226,6 +226,47 @@ class PkgColumnView(Gtk.ScrolledWindow):
 		return(match_repo and match_status)
 
 #------------------------------------------------------------------------------
+#-- CLASS: FILTERLISTBOXROW
+#------------------------------------------------------------------------------
+@Gtk.Template(filename="/home/drakkar/Github/pkgview/filterlistboxrow.ui")
+class FilterListBoxRow(Gtk.ListBoxRow):
+	__gtype_name__ = "FilterListBoxRow"
+
+	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	image = Gtk.Template.Child()
+	label = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	str_filter = GObject.Property(type=str, default="")
+	int_filter = GObject.Property(type=int, default=PkgStatus.ALL)
+
+	@GObject.Property(type=str)
+	def icon_name(self):
+		return(self.image.get_icon_name())
+
+	@icon_name.setter
+	def icon_name(self, value):
+		self.image.set_from_icon_name(value)
+
+	@GObject.Property(type=str)
+	def label_text(self):
+		return(self.label.get_text())
+
+	@label_text.setter
+	def label_text(self, value):
+		self.label.set_text(value)
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+#------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
 #------------------------------------------------------------------------------
 @Gtk.Template(filename="/home/drakkar/Github/pkgview/mainwindow.ui")
@@ -236,10 +277,10 @@ class MainWindow(Adw.ApplicationWindow):
 	# Class widget variables
 	#-----------------------------------
 	repo_listbox = Gtk.Template.Child()
-	repolist_allrow = Gtk.Template.Child()
+	repo_listbox_all = Gtk.Template.Child()
 
 	status_listbox = Gtk.Template.Child()
-	statuslist_installedrow = Gtk.Template.Child()
+	status_listbox_installed = Gtk.Template.Child()
 
 	pkg_columnview = Gtk.Template.Child()
 
@@ -250,37 +291,23 @@ class MainWindow(Adw.ApplicationWindow):
 		super().__init__(*args, **kwargs)
 
 		for db in app.db_names:
-			box = Gtk.Box(margin_start=6, margin_end=6, spacing=6)
-			box.append(Gtk.Image(icon_name="package-x-generic-symbolic"))
-			box.append(Gtk.Label(label=str.title(db)))
-
-			self.repo_listbox.append(Gtk.ListBoxRow(child=box))
+			self.repo_listbox.append(FilterListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_filter=db))
 
 		self.repo_listbox.connect("row-selected", self.on_repo_changed)
 		self.status_listbox.connect("row-selected", self.on_status_changed)
 
-		self.repo_listbox.select_row(self.repolist_allrow)
-		self.status_listbox.select_row(self.statuslist_installedrow)
+		self.repo_listbox.select_row(self.repo_listbox_all)
+		self.status_listbox.select_row(self.status_listbox_installed)
 
 		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
 
 	def on_repo_changed(self, listbox, row):
-		text = row.get_child().get_last_child().get_text().lower()
-
-		self.pkg_columnview.repo_filter = "" if text == "all" else text
+		self.pkg_columnview.repo_filter = row.str_filter
 
 		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	def on_status_changed(self, listbox, row):
-		text = row.get_child().get_last_child().get_text().lower()
-
-		match text:
-			case "explicit": self.pkg_columnview.status_filter = PkgStatus.EXPLICIT
-			case "installed": self.pkg_columnview.status_filter = PkgStatus.INSTALLED
-			case "dependency": self.pkg_columnview.status_filter = PkgStatus.DEPENDENCY
-			case "optional": self.pkg_columnview.status_filter = PkgStatus.OPTIONAL
-			case "orphan": self.pkg_columnview.status_filter = PkgStatus.ORPHAN
-			case _: self.pkg_columnview.status_filter = PkgStatus.ALL
+		self.pkg_columnview.status_filter = row.int_filter
 
 		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
 
