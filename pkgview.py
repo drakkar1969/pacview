@@ -282,9 +282,6 @@ class MainWindow(Adw.ApplicationWindow):
 		for db in app.db_names:
 			self.repo_listbox.append(FilterListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_filter=db))
 
-		self.repo_listbox.connect("row-selected", self.on_repo_changed)
-		self.status_listbox.connect("row-selected", self.on_status_changed)
-
 		# Select rows in sidebar list boxes
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
@@ -295,12 +292,14 @@ class MainWindow(Adw.ApplicationWindow):
 		# Set initial focus on package column view
 		self.set_focus(self.pkg_columnview.view)
 
-	def on_repo_changed(self, listbox, row):
+	@Gtk.Template.Callback()
+	def on_repo_selected(self, listbox, row):
 		self.pkg_columnview.repo_filter = row.str_filter
 
 		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	def on_status_changed(self, listbox, row):
+	@Gtk.Template.Callback()
+	def on_status_selected(self, listbox, row):
 		self.pkg_columnview.status_filter = row.int_filter
 
 		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)

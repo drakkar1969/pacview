@@ -45,6 +45,7 @@
                 <child>
                   <object class="GtkListBox" id="repo_listbox">
                     <property name="margin_bottom">12</property>
+                    <signal name="row-selected" handler="on_repo_selected" swapped="no"/>
                     <style>
                       <class name="navigation-sidebar"/>
                     </style>
@@ -74,6 +75,7 @@
                 </child>
                 <child>
                   <object class="GtkListBox" id="status_listbox">
+                    <signal name="row-selected" handler="on_status_selected" swapped="no"/>
                     <style>
                       <class name="navigation-sidebar"/>
                     </style>
