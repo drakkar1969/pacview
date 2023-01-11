@@ -112,7 +112,11 @@ class PkgColumnView(Gtk.Box):
 	view = Gtk.Template.Child()
 	filter_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
-	pkg_filter = Gtk.Template.Child()
+
+	main_filter = Gtk.Template.Child()
+	repo_filter = Gtk.Template.Child()
+	status_filter = Gtk.Template.Child()
+	search_filter = Gtk.Template.Child()
 
 	name_factory = Gtk.Template.Child()
 	version_factory = Gtk.Template.Child()
@@ -133,9 +137,9 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	repo_filter = GObject.Property(type=str, default="")
-	status_filter = GObject.Property(type=int, default=PkgStatus.ALL)
-	search_filter = GObject.Property(type=str, default="")
+	current_repo = GObject.Property(type=str, default="")
+	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
+	current_search = GObject.Property(type=str, default="")
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
@@ -156,8 +160,10 @@ class PkgColumnView(Gtk.Box):
 		self.date_sorter.set_sort_func(self.sort_by_int, "date")
 		self.size_sorter.set_sort_func(self.sort_by_int, "size")
 
-		# Bind filter to filter function
-		self.pkg_filter.set_filter_func(self.filter_pkgs)
+		# Bind filters to filter functions
+		self.repo_filter.set_filter_func(self.filter_by_repo)
+		self.status_filter.set_filter_func(self.filter_by_status)
+		self.search_filter.set_filter_func(self.filter_by_search)
 
 		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
@@ -225,28 +231,29 @@ class PkgColumnView(Gtk.Box):
 	# Filter signal handlers
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_filter_changed(self, change, user_data):
+	def on_main_filter_changed(self, change, user_data):
 		n_items = self.filter_model.get_n_items()
 		self.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
 
 	#-----------------------------------
-	# Filter function
+	# Filter functions
 	#-----------------------------------
-	def filter_pkgs(self, item):
-		match_repo = True if self.repo_filter == "" else (item.repository == self.repo_filter)
-		match_status = (item.status & self.status_filter)
+	def filter_by_repo(self, item):
+		return(True if self.current_repo == "" else (item.repository == self.current_repo))
 
-		if self.search_filter == "":
-			match_search = True
+	def filter_by_status(self, item):
+		return(item.status & self.current_status)
+
+	def filter_by_search(self, item):
+		if self.current_search == "":
+			return(True)
 		else:
-			match_name = (self.search_filter in item.name) if self.search_by_name else False
-			match_desc = (self.search_filter in item.description.lower()) if self.search_by_desc else False
-			match_deps = ([s for s in item.depends if self.search_filter in s] != []) if self.search_by_deps else False
-			match_optdeps = ([s for s in item.optdepends if self.search_filter in s] != []) if self.search_by_optdeps else False
+			match_name = (self.current_search in item.name) if self.search_by_name else False
+			match_desc = (self.current_search in item.description.lower()) if self.search_by_desc else False
+			match_deps = ([s for s in item.depends if self.current_search in s] != []) if self.search_by_deps else False
+			match_optdeps = ([s for s in item.optdepends if self.current_search in s] != []) if self.search_by_optdeps else False
 
-			match_search = (match_name or match_desc or match_deps or match_optdeps)
-
-		return((match_repo and match_status) and match_search)
+			return(match_name or match_desc or match_deps or match_optdeps)
 
 #------------------------------------------------------------------------------
 #-- CLASS: FILTERLISTBOXROW
@@ -349,8 +356,8 @@ class MainWindow(Adw.ApplicationWindow):
 		# Connect search bar to search entry
 		self.search_bar.connect_entry(self.search_entry)
 
-		# Force view filter update
-		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+		# Force main package filter update
+		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	#-----------------------------------
 	# Action handlers
@@ -365,7 +372,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.pkg_columnview.set_property(prop_name, value)
 
-		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	def on_quit_app(self, action, value, user_data):
 		self.close()
@@ -375,21 +382,21 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
-		self.pkg_columnview.repo_filter = row.str_filter
+		self.pkg_columnview.current_repo = row.str_filter
 
-		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+		self.pkg_columnview.repo_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
-		self.pkg_columnview.status_filter = row.int_filter
+		self.pkg_columnview.current_status = row.int_filter
 
-		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+		self.pkg_columnview.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
 	def on_search(self, entry):
-		self.pkg_columnview.search_filter = entry.get_text()
+		self.pkg_columnview.current_search = entry.get_text()
 
-		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP

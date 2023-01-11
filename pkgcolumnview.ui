@@ -15,8 +15,20 @@
                     <property name="model">
                       <object class="GtkFilterListModel" id="filter_model">
                         <property name="filter">
-                          <object class="GtkCustomFilter" id="pkg_filter">
-                            <signal name="changed" handler="on_filter_changed" swapped="no"/>
+                          <object class="GtkEveryFilter" id="main_filter">
+                            <signal name="changed" handler="on_main_filter_changed" swapped="no"/>
+                            <child>
+                              <object class="GtkCustomFilter" id="repo_filter">
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkCustomFilter" id="status_filter">
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkCustomFilter" id="search_filter">
+                              </object>
+                            </child>
                           </object>
                         </property>
                         <property name="model">
