@@ -29,109 +29,116 @@
             <property name="reveal-flap" bind-source="header_sidebar_btn" bind-property="active" bind-flags="sync-create|bidirectional"/>
             <property name="flap">
               <object class="GtkBox">
-                <property name="width_request">200</property>
-                <property name="orientation">vertical</property>
-                <property name="margin_start">6</property>
-                <property name="margin_end">6</property>
-                <property name="margin_top">12</property>
-                <property name="margin_bottom">12</property>
+                <style>
+                  <class name="background"/>
+                </style>
                 <child>
-                  <object class="GtkLabel">
-                    <property name="label">Repository</property>
-                    <property name="halign">start</property>
+                  <object class="GtkBox">
+                    <property name="width_request">200</property>
+                    <property name="orientation">vertical</property>
                     <property name="margin_start">6</property>
                     <property name="margin_end">6</property>
-                    <property name="margin_top">6</property>
-                    <property name="margin_bottom">6</property>
-                    <style>
-                      <class name="heading"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkListBox" id="repo_listbox">
+                    <property name="margin_top">12</property>
                     <property name="margin_bottom">12</property>
-                    <signal name="row-selected" handler="on_repo_selected" swapped="no"/>
-                    <style>
-                      <class name="navigation-sidebar"/>
-                    </style>
                     <child>
-                      <object class="FilterListBoxRow" id="repo_listbox_all">
-                        <property name="icon_name">package-x-generic-symbolic</property>
-                        <property name="label_text">All</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkSeparator"/>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <property name="label">Package Status</property>
-                    <property name="halign">start</property>
-                    <property name="margin_start">6</property>
-                    <property name="margin_end">6</property>
-                    <property name="margin_top">18</property>
-                    <property name="margin_bottom">6</property>
-                    <style>
-                      <class name="heading"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkListBox" id="status_listbox">
-                    <signal name="row-selected" handler="on_status_selected" swapped="no"/>
-                    <style>
-                      <class name="navigation-sidebar"/>
-                    </style>
-                    <child>
-                      <object class="FilterListBoxRow" id="status_listbox_all">
-                        <property name="icon_name">ymuse-filter-symbolic</property>
-                        <property name="label_text">All</property>
-                        <property name="int_filter">31</property>
+                      <object class="GtkLabel">
+                        <property name="label">Repository</property>
+                        <property name="halign">start</property>
+                        <property name="margin_start">6</property>
+                        <property name="margin_end">6</property>
+                        <property name="margin_top">6</property>
+                        <property name="margin_bottom">6</property>
+                        <style>
+                          <class name="heading"/>
+                        </style>
                       </object>
                     </child>
                     <child>
-                      <object class="FilterListBoxRow" id="status_listbox_installed">
-                        <property name="icon_name">ymuse-filter-symbolic</property>
-                        <property name="label_text">Installed</property>
-                        <property name="int_filter">15</property>
+                      <object class="GtkListBox" id="repo_listbox">
+                        <property name="margin_bottom">12</property>
+                        <signal name="row-selected" handler="on_repo_selected" swapped="no"/>
+                        <style>
+                          <class name="navigation-sidebar"/>
+                        </style>
+                        <child>
+                          <object class="FilterListBoxRow" id="repo_listbox_all">
+                            <property name="icon_name">package-x-generic-symbolic</property>
+                            <property name="label_text">All</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
-                      <object class="FilterListBoxRow" id="status_listbox_explicit">
-                        <property name="icon_name">ymuse-filter-symbolic</property>
-                        <property name="label_text">Explicit</property>
-                        <property name="int_filter">1</property>
+                      <object class="GtkSeparator"/>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label">Package Status</property>
+                        <property name="halign">start</property>
+                        <property name="margin_start">6</property>
+                        <property name="margin_end">6</property>
+                        <property name="margin_top">18</property>
+                        <property name="margin_bottom">6</property>
+                        <style>
+                          <class name="heading"/>
+                        </style>
                       </object>
                     </child>
                     <child>
-                      <object class="FilterListBoxRow" id="status_listbox_dependency">
-                        <property name="icon_name">ymuse-filter-symbolic</property>
-                        <property name="label_text">Dependency</property>
-                        <property name="int_filter">2</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="FilterListBoxRow" id="status_listbox_optional">
-                        <property name="icon_name">ymuse-filter-symbolic</property>
-                        <property name="label_text">Optional</property>
-                        <property name="int_filter">4</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="FilterListBoxRow" id="status_listbox_orphan">
-                        <property name="icon_name">ymuse-filter-symbolic</property>
-                        <property name="label_text">Orphan</property>
-                        <property name="int_filter">8</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="FilterListBoxRow" id="status_listbox_none">
-                        <property name="icon_name">ymuse-filter-symbolic</property>
-                        <property name="label_text">Not Installed</property>
-                        <property name="int_filter">16</property>
+                      <object class="GtkListBox" id="status_listbox">
+                        <signal name="row-selected" handler="on_status_selected" swapped="no"/>
+                        <style>
+                          <class name="navigation-sidebar"/>
+                        </style>
+                        <child>
+                          <object class="FilterListBoxRow" id="status_listbox_all">
+                            <property name="icon_name">ymuse-filter-symbolic</property>
+                            <property name="label_text">All</property>
+                            <property name="int_filter">31</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="FilterListBoxRow" id="status_listbox_installed">
+                            <property name="icon_name">ymuse-filter-symbolic</property>
+                            <property name="label_text">Installed</property>
+                            <property name="int_filter">15</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="FilterListBoxRow" id="status_listbox_explicit">
+                            <property name="icon_name">ymuse-filter-symbolic</property>
+                            <property name="label_text">Explicit</property>
+                            <property name="int_filter">1</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="FilterListBoxRow" id="status_listbox_dependency">
+                            <property name="icon_name">ymuse-filter-symbolic</property>
+                            <property name="label_text">Dependency</property>
+                            <property name="int_filter">2</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="FilterListBoxRow" id="status_listbox_optional">
+                            <property name="icon_name">ymuse-filter-symbolic</property>
+                            <property name="label_text">Optional</property>
+                            <property name="int_filter">4</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="FilterListBoxRow" id="status_listbox_orphan">
+                            <property name="icon_name">ymuse-filter-symbolic</property>
+                            <property name="label_text">Orphan</property>
+                            <property name="int_filter">8</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="FilterListBoxRow" id="status_listbox_none">
+                            <property name="icon_name">ymuse-filter-symbolic</property>
+                            <property name="label_text">Not Installed</property>
+                            <property name="int_filter">16</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
