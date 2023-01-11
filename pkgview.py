@@ -27,10 +27,15 @@ class PkgStatus(IntFlag):
 #------------------------------------------------------------------------------
 class PkgObject(GObject.Object):
 	#-----------------------------------
-	# Properties
+	# Read/write roperties
 	#-----------------------------------
 	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
+	status = GObject.Property(type=int, default=PkgStatus.NONE)
+	date = GObject.Property(type=int, default=0)
 
+	#-----------------------------------
+	# Read-only roperties
+	#-----------------------------------
 	@GObject.Property(type=str, default="")
 	def name(self):
 		return(self.pkg.name)
@@ -47,8 +52,6 @@ class PkgObject(GObject.Object):
 	def repository(self):
 		return(self.pkg.db.name)
 
-	status = GObject.Property(type=int, default=PkgStatus.NONE)
-
 	@GObject.Property(type=str, default="")
 	def status_string(self):
 		str_dict = { PkgStatus.EXPLICIT: "explicit", PkgStatus.DEPENDENCY: "dependency", PkgStatus.OPTIONAL: "optional", PkgStatus.ORPHAN: "orphan" }
@@ -60,8 +63,6 @@ class PkgObject(GObject.Object):
 		icon_dict = { PkgStatus.EXPLICIT: "package-install", PkgStatus.DEPENDENCY: "package-installed-updated", PkgStatus.OPTIONAL: "package-installed-outdated", PkgStatus.ORPHAN: "package-purge" }
 
 		return(icon_dict.get(self.status, ""))
-
-	date = GObject.Property(type=int, default=0)
 
 	@GObject.Property(type=str, default="")
 	def date_string(self):
