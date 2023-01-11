@@ -148,12 +148,23 @@
                   <object class="GtkSearchBar" id="search_bar">
                     <property name="search-mode-enabled" bind-source="header_search_btn" bind-property="active" bind-flags="sync-create|bidirectional"/>
                     <property name="key-capture-widget">pkg_columnview</property>
-                    <child>
-                      <object class="GtkSearchEntry" id="search_entry">
-                        <property name="width-request">400</property>
-                        <signal name="search-changed" handler="on_search" swapped="no"/>
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkSearchEntry" id="search_entry">
+                            <property name="width-request">400</property>
+                            <signal name="search-changed" handler="on_search" swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuButton">
+                            <property name="icon_name">view-more-symbolic</property>
+                            <property name="menu_model">search_menu</property>
+                          </object>
+                        </child>
                       </object>
-                    </child>
+                    </property>
                   </object>
                 </child>
                 <child>
@@ -167,4 +178,18 @@
       </object>
     </property>
   </template>
+
+  <!--// SEARCH MENU //-->
+  <menu id="search_menu">
+    <section>
+      <item>
+        <attribute name="label">Name</attribute>
+        <attribute name="action">win.search-toggle-name</attribute>
+      </item>
+      <item>
+        <attribute name="label">Description</attribute>
+        <attribute name="action">win.search-toggle-desc</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

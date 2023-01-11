@@ -36,6 +36,10 @@ class PkgObject(GObject.Object):
 		return(self.pkg.name)
 
 	@GObject.Property(type=str, default="")
+	def description(self):
+		return(self.pkg.desc)
+
+	@GObject.Property(type=str, default="")
 	def version(self):
 		return(self.pkg.version)
 
@@ -120,6 +124,9 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	repo_filter = GObject.Property(type=str, default="")
 	status_filter = GObject.Property(type=int, default=PkgStatus.ALL)
 	search_filter = GObject.Property(type=str, default="")
+
+	search_by_name = GObject.Property(type=bool, default=True)
+	search_by_desc = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
@@ -206,7 +213,11 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	def filter_pkgs(self, item):
 		match_repo = True if self.repo_filter == "" else (item.repository == self.repo_filter)
 		match_status = (item.status & self.status_filter)
-		match_search = True if self.search_filter == "" else (self.search_filter in item.name)
+
+		if self.search_filter == "":
+			match_search = True
+		else:
+			match_search = (((self.search_filter in item.name) if self.search_by_name else False) or ((self.search_filter in item.description.lower()) if self.search_by_desc else False))
 
 		return(match_repo and (match_status and match_search))
 
@@ -292,6 +303,32 @@ class MainWindow(Adw.ApplicationWindow):
 		# Set initial focus on package column view
 		self.set_focus(self.pkg_columnview.view)
 
+		# Add actions
+		action_list = [
+			( "search-toggle-name", None, "", "true", self.on_search_toggle ),
+			( "search-toggle-desc", None, "", "false", self.on_search_toggle )
+		]
+
+		self.add_action_entries(action_list)
+
+		# Connect search bar to search entry
+		self.search_bar.connect_entry(self.search_entry)
+
+	#-----------------------------------
+	# Action handlers
+	#-----------------------------------
+	def on_search_toggle(self, action, value, user_data):
+		action.set_state(value)
+
+		prop_name = str.replace(action.props.name, "search-toggle-", "search_by_")
+
+		self.pkg_columnview.set_property(prop_name, value)
+
+		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	#-----------------------------------
+	# Signal handlers
+	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
 		self.pkg_columnview.repo_filter = row.str_filter
