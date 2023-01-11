@@ -317,11 +317,17 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add actions
 		action_list = [
-			( "search-toggle-name", None, "", "true", self.on_search_toggle ),
-			( "search-toggle-desc", None, "", "false", self.on_search_toggle )
+			( "search-start", self.on_search_start ),
+			( "search-toggle-name", None, "", "true", self.on_search_params_toggle ),
+			( "search-toggle-desc", None, "", "false", self.on_search_params_toggle ),
+			( "quit-app", self.on_quit_app )
 		]
 
 		self.add_action_entries(action_list)
+
+		# Keyboard shortcuts
+		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
+		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
 		# Connect search bar to search entry
 		self.search_bar.connect_entry(self.search_entry)
@@ -332,7 +338,10 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Action handlers
 	#-----------------------------------
-	def on_search_toggle(self, action, value, user_data):
+	def on_search_start(self, action, value, user_data):
+		self.search_bar.set_search_mode(True)
+
+	def on_search_params_toggle(self, action, value, user_data):
 		action.set_state(value)
 
 		prop_name = str.replace(action.props.name, "search-toggle-", "search_by_")
@@ -340,6 +349,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.set_property(prop_name, value)
 
 		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def on_quit_app(self, action, value, user_data):
+		self.close()
 
 	#-----------------------------------
 	# Signal handlers
