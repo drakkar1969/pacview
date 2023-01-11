@@ -166,7 +166,7 @@
                         </child>
                         <child>
                           <object class="GtkMenuButton">
-                            <property name="icon_name">view-more-symbolic</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="menu_model">search_menu</property>
                           </object>
                         </child>
