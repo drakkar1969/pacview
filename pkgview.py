@@ -27,14 +27,14 @@ class PkgStatus(IntFlag):
 #------------------------------------------------------------------------------
 class PkgObject(GObject.Object):
 	#-----------------------------------
-	# Read/write roperties
+	# Read/write properties
 	#-----------------------------------
 	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
 	status = GObject.Property(type=int, default=PkgStatus.NONE)
 	date = GObject.Property(type=int, default=0)
 
 	#-----------------------------------
-	# Read-only roperties
+	# Read-only properties
 	#-----------------------------------
 	@GObject.Property(type=str, default="")
 	def name(self):
