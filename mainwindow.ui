@@ -190,6 +190,7 @@
   <!--// SEARCH MENU //-->
   <menu id="search_menu">
     <section>
+      <attribute name="label">Search By</attribute>
       <item>
         <attribute name="label">Name</attribute>
         <attribute name="action">win.search-toggle-name</attribute>
