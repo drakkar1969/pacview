@@ -41,10 +41,6 @@ class PkgObject(GObject.Object):
 		return(self.pkg.name)
 
 	@GObject.Property(type=str, default="")
-	def description(self):
-		return(self.pkg.desc)
-
-	@GObject.Property(type=str, default="")
 	def version(self):
 		return(self.pkg.version)
 
@@ -82,6 +78,18 @@ class PkgObject(GObject.Object):
 			pkg_size /= 1024.0
 		
 		return(f"{pkg_size:.1f} {unit}")
+
+	@GObject.Property(type=str, default="")
+	def description(self):
+		return(self.pkg.desc)
+
+	@GObject.Property(type=str, default="")
+	def depends(self):
+		return(self.pkg.depends)
+
+	@GObject.Property(type=str, default="")
+	def optdepends(self):
+		return(self.pkg.optdepends)
 
 	#-----------------------------------
 	# Init function
@@ -131,6 +139,8 @@ class PkgColumnView(Gtk.Box):
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
+	search_by_deps = GObject.Property(type=bool, default=False)
+	search_by_optdeps = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
@@ -229,9 +239,14 @@ class PkgColumnView(Gtk.Box):
 		if self.search_filter == "":
 			match_search = True
 		else:
-			match_search = (((self.search_filter in item.name) if self.search_by_name else False) or ((self.search_filter in item.description.lower()) if self.search_by_desc else False))
+			match_name = (self.search_filter in item.name) if self.search_by_name else False
+			match_desc = (self.search_filter in item.description.lower()) if self.search_by_desc else False
+			match_deps = ([s for s in item.depends if self.search_filter in s] != []) if self.search_by_deps else False
+			match_optdeps = ([s for s in item.optdepends if self.search_filter in s] != []) if self.search_by_optdeps else False
 
-		return(match_repo and (match_status and match_search))
+			match_search = (match_name or match_desc or match_deps or match_optdeps)
+
+		return((match_repo and match_status) and match_search)
 
 #------------------------------------------------------------------------------
 #-- CLASS: FILTERLISTBOXROW
@@ -320,6 +335,8 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-start", self.on_search_start ),
 			( "search-toggle-name", None, "", "true", self.on_search_params_toggle ),
 			( "search-toggle-desc", None, "", "false", self.on_search_params_toggle ),
+			( "search-toggle-deps", None, "", "false", self.on_search_params_toggle ),
+			( "search-toggle-optdeps", None, "", "false", self.on_search_params_toggle ),
 			( "quit-app", self.on_quit_app )
 		]
 

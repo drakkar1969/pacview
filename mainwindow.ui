@@ -197,6 +197,14 @@
         <attribute name="label">Description</attribute>
         <attribute name="action">win.search-toggle-desc</attribute>
       </item>
+      <item>
+        <attribute name="label">Dependencies</attribute>
+        <attribute name="action">win.search-toggle-deps</attribute>
+      </item>
+      <item>
+        <attribute name="label">Optional Dependencies</attribute>
+        <attribute name="action">win.search-toggle-optdeps</attribute>
+      </item>
     </section>
   </menu>
 </interface>
