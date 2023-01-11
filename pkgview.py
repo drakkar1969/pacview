@@ -401,6 +401,7 @@ class LauncherApp(Adw.Application):
 			if sync_db is not None:
 				self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
 
+		# Set status/date/required_by/optional_for for installed packages
 		for i, obj in enumerate(self.pkg_objects):
 			if obj.pkg.name in local_dict.keys():
 				reason = local_dict[obj.pkg.name].reason
