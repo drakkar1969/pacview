@@ -323,20 +323,6 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Add rows to sidebar repository list box
-		for db in app.db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_selection=db))
-
-		# Select rows in sidebar list boxes
-		self.repo_listbox.select_row(self.repo_listbox_all)
-		self.status_listbox.select_row(self.status_listbox_installed)
-
-		# Add items to package column view
-		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
-
-		# Set initial focus on package column view
-		self.set_focus(self.pkg_columnview.view)
-
 		# Add actions
 		action_list = [
 			( "search-toggle", self.on_search_toggle ),
@@ -349,15 +335,29 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.add_action_entries(action_list)
 
-		# Keyboard shortcuts
+		# Add keyboard shortcuts
 		app.set_accels_for_action("win.search-toggle", ["<ctrl>f"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
+
+		# Add rows to sidebar repository list box
+		for db in app.db_names:
+			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_selection=db))
+
+		# Select rows in sidebar list boxes
+		self.repo_listbox.select_row(self.repo_listbox_all)
+		self.status_listbox.select_row(self.status_listbox_installed)
 
 		# Connect search bar to search entry
 		self.search_bar.connect_entry(self.search_entry)
 
+		# Add items to package column view
+		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
+
 		# Force main package filter update
 		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+		# Set initial focus on package column view
+		self.set_focus(self.pkg_columnview.view)
 
 	#-----------------------------------
 	# Action handlers
