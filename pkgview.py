@@ -8,12 +8,12 @@ from gi.repository import Gtk, Adw, Gio, GObject
 
 import pyalpm
 
-from enum import IntEnum
+from enum import IntFlag
 
 #------------------------------------------------------------------------------
-#-- ENUM: PKGSTATUS
+#-- FLAGS: PKGSTATUS
 #------------------------------------------------------------------------------
-class PkgStatus(IntEnum):
+class PkgStatus(IntFlag):
 	EXPLICIT = 1
 	DEPENDENCY = 2
 	OPTIONAL = 4
