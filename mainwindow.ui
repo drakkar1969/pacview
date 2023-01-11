@@ -61,7 +61,7 @@
                           <class name="navigation-sidebar"/>
                         </style>
                         <child>
-                          <object class="FilterListBoxRow" id="repo_listbox_all">
+                          <object class="SidebarListBoxRow" id="repo_listbox_all">
                             <property name="icon_name">package-x-generic-symbolic</property>
                             <property name="label_text">All</property>
                           </object>
@@ -91,52 +91,52 @@
                           <class name="navigation-sidebar"/>
                         </style>
                         <child>
-                          <object class="FilterListBoxRow" id="status_listbox_all">
+                          <object class="SidebarListBoxRow" id="status_listbox_all">
                             <property name="icon_name">view-filter</property>
                             <property name="label_text">All</property>
-                            <property name="int_filter">31</property>
+                            <property name="int_selection">31</property>
                           </object>
                         </child>
                         <child>
-                          <object class="FilterListBoxRow" id="status_listbox_installed">
+                          <object class="SidebarListBoxRow" id="status_listbox_installed">
                             <property name="icon_name">view-filter</property>
                             <property name="label_text">Installed</property>
-                            <property name="int_filter">15</property>
+                            <property name="int_selection">15</property>
                           </object>
                         </child>
                         <child>
-                          <object class="FilterListBoxRow" id="status_listbox_explicit">
+                          <object class="SidebarListBoxRow" id="status_listbox_explicit">
                             <property name="icon_name">view-filter</property>
                             <property name="label_text">Explicit</property>
-                            <property name="int_filter">1</property>
+                            <property name="int_selection">1</property>
                           </object>
                         </child>
                         <child>
-                          <object class="FilterListBoxRow" id="status_listbox_dependency">
+                          <object class="SidebarListBoxRow" id="status_listbox_dependency">
                             <property name="icon_name">view-filter</property>
                             <property name="label_text">Dependency</property>
-                            <property name="int_filter">2</property>
+                            <property name="int_selection">2</property>
                           </object>
                         </child>
                         <child>
-                          <object class="FilterListBoxRow" id="status_listbox_optional">
+                          <object class="SidebarListBoxRow" id="status_listbox_optional">
                             <property name="icon_name">view-filter</property>
                             <property name="label_text">Optional</property>
-                            <property name="int_filter">4</property>
+                            <property name="int_selection">4</property>
                           </object>
                         </child>
                         <child>
-                          <object class="FilterListBoxRow" id="status_listbox_orphan">
+                          <object class="SidebarListBoxRow" id="status_listbox_orphan">
                             <property name="icon_name">view-filter</property>
                             <property name="label_text">Orphan</property>
-                            <property name="int_filter">8</property>
+                            <property name="int_selection">8</property>
                           </object>
                         </child>
                         <child>
-                          <object class="FilterListBoxRow" id="status_listbox_none">
+                          <object class="SidebarListBoxRow" id="status_listbox_none">
                             <property name="icon_name">view-filter</property>
                             <property name="label_text">Not Installed</property>
-                            <property name="int_filter">16</property>
+                            <property name="int_selection">16</property>
                           </object>
                         </child>
                       </object>

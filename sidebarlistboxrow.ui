@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// FILTER LISTBOXROW //-->
-  <template class="FilterListBoxRow" parent="GtkListBoxRow">
+  <!--// SIDEBAR LISTBOXROW //-->
+  <template class="SidebarListBoxRow" parent="GtkListBoxRow">
     <property name="child">
       <object class="GtkBox">
         <property name="margin_start">6</property>

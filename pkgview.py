@@ -256,11 +256,11 @@ class PkgColumnView(Gtk.Box):
 			return(match_name or match_desc or match_deps or match_optdeps)
 
 #------------------------------------------------------------------------------
-#-- CLASS: FILTERLISTBOXROW
+#-- CLASS: SIDEBARLISTBOXROW
 #------------------------------------------------------------------------------
-@Gtk.Template(filename="/home/drakkar/Github/pkgview/filterlistboxrow.ui")
-class FilterListBoxRow(Gtk.ListBoxRow):
-	__gtype_name__ = "FilterListBoxRow"
+@Gtk.Template(filename="/home/drakkar/Github/pkgview/sidebarlistboxrow.ui")
+class SidebarListBoxRow(Gtk.ListBoxRow):
+	__gtype_name__ = "SidebarListBoxRow"
 
 	#-----------------------------------
 	# Class widget variables
@@ -271,8 +271,8 @@ class FilterListBoxRow(Gtk.ListBoxRow):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	str_filter = GObject.Property(type=str, default="")
-	int_filter = GObject.Property(type=int, default=PkgStatus.ALL)
+	str_selection = GObject.Property(type=str, default="")
+	int_selection = GObject.Property(type=int, default=PkgStatus.ALL)
 
 	@GObject.Property(type=str)
 	def icon_name(self):
@@ -325,7 +325,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add rows to sidebar repository list box
 		for db in app.db_names:
-			self.repo_listbox.append(FilterListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_filter=db))
+			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_selection=db))
 
 		# Select rows in sidebar list boxes
 		self.repo_listbox.select_row(self.repo_listbox_all)
@@ -382,13 +382,13 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
-		self.pkg_columnview.current_repo = row.str_filter
+		self.pkg_columnview.current_repo = row.str_selection
 
 		self.pkg_columnview.repo_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
-		self.pkg_columnview.current_status = row.int_filter
+		self.pkg_columnview.current_status = row.int_selection
 
 		self.pkg_columnview.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
