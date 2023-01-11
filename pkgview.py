@@ -94,13 +94,14 @@ class PkgObject(GObject.Object):
 #-- CLASS: PKGCOLUMNVIEW
 #------------------------------------------------------------------------------
 @Gtk.Template(filename="/home/drakkar/Github/pkgview/pkgcolumnview.ui")
-class PkgColumnView(Gtk.ScrolledWindow):
+class PkgColumnView(Gtk.Box):
 	__gtype_name__ = "PkgColumnView"
 
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
 	view = Gtk.Template.Child()
+	filter_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 	pkg_filter = Gtk.Template.Child()
 
@@ -117,6 +118,8 @@ class PkgColumnView(Gtk.ScrolledWindow):
 	status_sorter = Gtk.Template.Child()
 	date_sorter = Gtk.Template.Child()
 	size_sorter = Gtk.Template.Child()
+
+	status_bar = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -206,6 +209,14 @@ class PkgColumnView(Gtk.ScrolledWindow):
 
 	def sort_by_int(self, item_a, item_b, prop):
 		return(item_a.get_property(prop) - item_b.get_property(prop))
+
+	#-----------------------------------
+	# Filter signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_filter_changed(self, change, user_data):
+		n_items = self.filter_model.get_n_items()
+		self.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
 
 	#-----------------------------------
 	# Filter function
@@ -313,6 +324,9 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Connect search bar to search entry
 		self.search_bar.connect_entry(self.search_entry)
+
+		# Force view filter update
+		self.pkg_columnview.pkg_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	#-----------------------------------
 	# Action handlers

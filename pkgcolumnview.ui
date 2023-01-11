@@ -1,131 +1,141 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PACKAGE COLUMNVIEW //-->
-  <template class="PkgColumnView" parent="GtkScrolledWindow">
-    <property name="vexpand">True</property>
-    <property name="child">
-      <object class="GtkColumnView" id="view">
-        <property name="model">
-          <object class="GtkSingleSelection" id="selection">
+  <template class="PkgColumnView" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="vexpand">True</property>
+        <property name="child">
+          <object class="GtkColumnView" id="view">
             <property name="model">
-              <object class="GtkSortListModel" id="sort_model">
+              <object class="GtkSingleSelection" id="selection">
                 <property name="model">
-                  <object class="GtkFilterListModel" id="filter_model">
-                    <property name="filter">
-                      <object class="GtkCustomFilter" id="pkg_filter">
-                      </object>
-                    </property>
+                  <object class="GtkSortListModel" id="sort_model">
                     <property name="model">
-                      <object class="GListStore" id="model">
+                      <object class="GtkFilterListModel" id="filter_model">
+                        <property name="filter">
+                          <object class="GtkCustomFilter" id="pkg_filter">
+                            <signal name="changed" handler="on_filter_changed" swapped="no"/>
+                          </object>
+                        </property>
+                        <property name="model">
+                          <object class="GListStore" id="model">
+                          </object>
+                        </property>
                       </object>
                     </property>
+                    <binding name="sorter">
+                      <lookup name="sorter">view</lookup>
+                    </binding>
                   </object>
                 </property>
-                <binding name="sorter">
-                  <lookup name="sorter">view</lookup>
-                </binding>
               </object>
             </property>
+            <child>
+              <object class="GtkColumnViewColumn" id="name_column">
+                <property name="title">Package</property>
+                <property name="resizable">True</property>
+                <property name="expand">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="name_factory">
+                    <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
+                    <signal name="bind" handler="on_item_bind_name" swapped="no"/>
+                  </object>
+                </property>
+                <property name="sorter">
+                  <object class="GtkCustomSorter" id="name_sorter">
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="version_column">
+                <property name="title">Version</property>
+                <property name="resizable">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="version_factory">
+                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                    <signal name="bind" handler="on_item_bind_version" swapped="no"/>
+                  </object>
+                </property>
+                <property name="sorter">
+                  <object class="GtkCustomSorter" id="version_sorter">
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="repository_column">
+                <property name="title">Repository</property>
+                <property name="resizable">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="repository_factory">
+                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                    <signal name="bind" handler="on_item_bind_repository" swapped="no"/>
+                  </object>
+                </property>
+                <property name="sorter">
+                  <object class="GtkCustomSorter" id="repository_sorter">
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="status_column">
+                <property name="title">Status</property>
+                <property name="resizable">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="status_factory">
+                    <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
+                    <signal name="bind" handler="on_item_bind_status" swapped="no"/>
+                  </object>
+                </property>
+                <property name="sorter">
+                  <object class="GtkCustomSorter" id="status_sorter">
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="date_column">
+                <property name="title">Date</property>
+                <property name="resizable">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="date_factory">
+                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                    <signal name="bind" handler="on_item_bind_date" swapped="no"/>
+                  </object>
+                </property>
+                <property name="sorter">
+                  <object class="GtkCustomSorter" id="date_sorter">
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="size_column">
+                <property name="title">Size</property>
+                <property name="resizable">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="size_factory">
+                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                    <signal name="bind" handler="on_item_bind_size" swapped="no"/>
+                  </object>
+                </property>
+                <property name="sorter">
+                  <object class="GtkCustomSorter" id="size_sorter">
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </property>
-        <child>
-          <object class="GtkColumnViewColumn" id="name_column">
-            <property name="title">Package</property>
-            <property name="resizable">True</property>
-            <property name="expand">True</property>
-            <property name="factory">
-              <object class="GtkSignalListItemFactory" id="name_factory">
-                <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
-                <signal name="bind" handler="on_item_bind_name" swapped="no"/>
-              </object>
-            </property>
-            <property name="sorter">
-              <object class="GtkCustomSorter" id="name_sorter">
-              </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkColumnViewColumn" id="version_column">
-            <property name="title">Version</property>
-            <property name="resizable">True</property>
-            <property name="factory">
-              <object class="GtkSignalListItemFactory" id="version_factory">
-                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                <signal name="bind" handler="on_item_bind_version" swapped="no"/>
-              </object>
-            </property>
-            <property name="sorter">
-              <object class="GtkCustomSorter" id="version_sorter">
-              </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkColumnViewColumn" id="repository_column">
-            <property name="title">Repository</property>
-            <property name="resizable">True</property>
-            <property name="factory">
-              <object class="GtkSignalListItemFactory" id="repository_factory">
-                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                <signal name="bind" handler="on_item_bind_repository" swapped="no"/>
-              </object>
-            </property>
-            <property name="sorter">
-              <object class="GtkCustomSorter" id="repository_sorter">
-              </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkColumnViewColumn" id="status_column">
-            <property name="title">Status</property>
-            <property name="resizable">True</property>
-            <property name="factory">
-              <object class="GtkSignalListItemFactory" id="status_factory">
-                <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
-                <signal name="bind" handler="on_item_bind_status" swapped="no"/>
-              </object>
-            </property>
-            <property name="sorter">
-              <object class="GtkCustomSorter" id="status_sorter">
-              </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkColumnViewColumn" id="date_column">
-            <property name="title">Date</property>
-            <property name="resizable">True</property>
-            <property name="factory">
-              <object class="GtkSignalListItemFactory" id="date_factory">
-                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                <signal name="bind" handler="on_item_bind_date" swapped="no"/>
-              </object>
-            </property>
-            <property name="sorter">
-              <object class="GtkCustomSorter" id="date_sorter">
-              </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkColumnViewColumn" id="size_column">
-            <property name="title">Size</property>
-            <property name="resizable">True</property>
-            <property name="factory">
-              <object class="GtkSignalListItemFactory" id="size_factory">
-                <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                <signal name="bind" handler="on_item_bind_size" swapped="no"/>
-              </object>
-            </property>
-            <property name="sorter">
-              <object class="GtkCustomSorter" id="size_sorter">
-              </object>
-            </property>
-          </object>
-        </child>
       </object>
-    </property>
+    </child>
+    <child>
+      <object class="GtkStatusbar" id="status_bar">
+      </object>
+    </child>
   </template>
 </interface>
