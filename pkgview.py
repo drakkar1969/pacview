@@ -332,7 +332,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add actions
 		action_list = [
-			( "search-start", self.on_search_start ),
+			( "search-toggle", self.on_search_toggle ),
 			( "search-toggle-name", None, "", "true", self.on_search_params_toggle ),
 			( "search-toggle-desc", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-deps", None, "", "false", self.on_search_params_toggle ),
@@ -343,7 +343,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action_entries(action_list)
 
 		# Keyboard shortcuts
-		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
+		app.set_accels_for_action("win.search-toggle", ["<ctrl>f"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
 		# Connect search bar to search entry
@@ -355,8 +355,8 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Action handlers
 	#-----------------------------------
-	def on_search_start(self, action, value, user_data):
-		self.search_bar.set_search_mode(True)
+	def on_search_toggle(self, action, value, user_data):
+		self.search_bar.set_search_mode(not self.search_bar.get_search_mode())
 
 	def on_search_params_toggle(self, action, value, user_data):
 		action.set_state(value)
