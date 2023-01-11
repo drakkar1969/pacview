@@ -161,6 +161,7 @@
                         <child>
                           <object class="GtkSearchEntry" id="search_entry">
                             <property name="width-request">400</property>
+                            <property name="placeholder-text">Search for packages</property>
                             <signal name="search-changed" handler="on_search" swapped="no"/>
                           </object>
                         </child>
