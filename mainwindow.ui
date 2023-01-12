@@ -176,8 +176,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="PkgColumnView" id="pkg_columnview">
-                  </object>
+                  <object class="PkgColumnView" id="pkg_columnview"/>
                 </child>
               </object>
             </property>

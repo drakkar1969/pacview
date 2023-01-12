@@ -8,8 +8,7 @@
         <property name="margin_end">6</property>
         <property name="spacing">6</property>
         <child>
-          <object class="GtkImage" id="image">
-          </object>
+          <object class="GtkImage" id="image"/>
         </child>
         <child>
           <object class="GtkLabel" id="label">

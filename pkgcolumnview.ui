@@ -18,22 +18,18 @@
                           <object class="GtkEveryFilter" id="main_filter">
                             <signal name="changed" handler="on_main_filter_changed" swapped="no"/>
                             <child>
-                              <object class="GtkCustomFilter" id="repo_filter">
-                              </object>
+                              <object class="GtkCustomFilter" id="repo_filter"/>
                             </child>
                             <child>
-                              <object class="GtkCustomFilter" id="status_filter">
-                              </object>
+                              <object class="GtkCustomFilter" id="status_filter"/>
                             </child>
                             <child>
-                              <object class="GtkCustomFilter" id="search_filter">
-                              </object>
+                              <object class="GtkCustomFilter" id="search_filter"/>
                             </child>
                           </object>
                         </property>
                         <property name="model">
-                          <object class="GListStore" id="model">
-                          </object>
+                          <object class="GListStore" id="model"/>
                         </property>
                       </object>
                     </property>
@@ -56,8 +52,7 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="name_sorter">
-                  </object>
+                  <object class="GtkCustomSorter" id="name_sorter"/>
                 </property>
               </object>
             </child>
@@ -72,8 +67,7 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="version_sorter">
-                  </object>
+                  <object class="GtkCustomSorter" id="version_sorter"/>
                 </property>
               </object>
             </child>
@@ -88,8 +82,7 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="repository_sorter">
-                  </object>
+                  <object class="GtkCustomSorter" id="repository_sorter"/>
                 </property>
               </object>
             </child>
@@ -104,8 +97,7 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="status_sorter">
-                  </object>
+                  <object class="GtkCustomSorter" id="status_sorter"/>
                 </property>
               </object>
             </child>
@@ -120,8 +112,7 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="date_sorter">
-                  </object>
+                  <object class="GtkCustomSorter" id="date_sorter"/>
                 </property>
               </object>
             </child>
@@ -136,8 +127,7 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="size_sorter">
-                  </object>
+                  <object class="GtkCustomSorter" id="size_sorter"/>
                 </property>
               </object>
             </child>
@@ -146,8 +136,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkStatusbar" id="status_bar">
-      </object>
+      <object class="GtkStatusbar" id="status_bar"/>
     </child>
   </template>
 </interface>
