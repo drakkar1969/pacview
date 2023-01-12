@@ -152,6 +152,7 @@ class PkgColumnView(Gtk.Box):
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
+	search_by_group = GObject.Property(type=bool, default=False)
 	search_by_deps = GObject.Property(type=bool, default=False)
 	search_by_optdeps = GObject.Property(type=bool, default=False)
 
@@ -264,10 +265,11 @@ class PkgColumnView(Gtk.Box):
 		else:
 			match_name = (self.current_search in item.name) if self.search_by_name else False
 			match_desc = (self.current_search in item.description.lower()) if self.search_by_desc else False
+			match_group = (self.current_search in item.group.lower()) if self.search_by_group else False
 			match_deps = ([s for s in item.depends if self.current_search in s] != []) if self.search_by_deps else False
 			match_optdeps = ([s for s in item.optdepends if self.current_search in s] != []) if self.search_by_optdeps else False
 
-			return(match_name or match_desc or match_deps or match_optdeps)
+			return(match_name or match_desc or match_group or match_deps or match_optdeps)
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
@@ -342,6 +344,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-toggle", self.on_search_toggle ),
 			( "search-toggle-name", None, "", "true", self.on_search_params_toggle ),
 			( "search-toggle-desc", None, "", "false", self.on_search_params_toggle ),
+			( "search-toggle-group", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-deps", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-optdeps", None, "", "false", self.on_search_params_toggle ),
 			( "refresh-dbs", self.on_refresh_dbs ),

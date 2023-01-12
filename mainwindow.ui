@@ -222,6 +222,10 @@
         <attribute name="action">win.search-toggle-desc</attribute>
       </item>
       <item>
+        <attribute name="label">Group</attribute>
+        <attribute name="action">win.search-toggle-group</attribute>
+      </item>
+      <item>
         <attribute name="label">Dependencies</attribute>
         <attribute name="action">win.search-toggle-deps</attribute>
       </item>
