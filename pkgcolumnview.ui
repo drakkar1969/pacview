@@ -131,6 +131,21 @@
                 </property>
               </object>
             </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="group_column">
+                <property name="title">Group</property>
+                <property name="resizable">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="group_factory">
+                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
+                    <signal name="bind" handler="on_item_bind_group" swapped="no"/>
+                  </object>
+                </property>
+                <property name="sorter">
+                  <object class="GtkCustomSorter" id="group_sorter"/>
+                </property>
+              </object>
+            </child>
           </object>
         </property>
       </object>

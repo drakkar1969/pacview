@@ -80,6 +80,13 @@ class PkgObject(GObject.Object):
 		return(f"{pkg_size:.1f} {unit}")
 
 	@GObject.Property(type=str, default="")
+	def group(self):
+		if len(self.pkg.groups) == 0:
+			return("")
+		else:
+			return(self.pkg.groups[0] if len(self.pkg.groups) == 1 else ', '.join(sorted(self.pkg.groups)))
+
+	@GObject.Property(type=str, default="")
 	def description(self):
 		return(self.pkg.desc)
 
@@ -124,6 +131,7 @@ class PkgColumnView(Gtk.Box):
 	status_factory = Gtk.Template.Child()
 	date_factory = Gtk.Template.Child()
 	size_factory = Gtk.Template.Child()
+	group_factory = Gtk.Template.Child()
 
 	name_sorter = Gtk.Template.Child()
 	version_sorter = Gtk.Template.Child()
@@ -131,6 +139,7 @@ class PkgColumnView(Gtk.Box):
 	status_sorter = Gtk.Template.Child()
 	date_sorter = Gtk.Template.Child()
 	size_sorter = Gtk.Template.Child()
+	group_sorter = Gtk.Template.Child()
 
 	status_bar = Gtk.Template.Child()
 
@@ -159,6 +168,7 @@ class PkgColumnView(Gtk.Box):
 		self.status_sorter.set_sort_func(self.sort_by_str, "status_string")
 		self.date_sorter.set_sort_func(self.sort_by_int, "date")
 		self.size_sorter.set_sort_func(self.sort_by_int, "size")
+		self.group_sorter.set_sort_func(self.sort_by_str, "group")
 
 		# Bind filters to filter functions
 		self.repo_filter.set_filter_func(self.filter_by_repo)
@@ -208,6 +218,10 @@ class PkgColumnView(Gtk.Box):
 	@Gtk.Template.Callback()
 	def on_item_bind_size(self, factory, item):
 		item.get_child().set_label(item.get_item().size_string)
+
+	@Gtk.Template.Callback()
+	def on_item_bind_group(self, factory, item):
+		item.get_child().set_label(item.get_item().group)
 
 	#-----------------------------------
 	# Sorter functions
