@@ -386,6 +386,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	def on_refresh_dbs(self, action, value, user_data):
+		self.pkg_columnview.status_bar.push(0, "Refreshing package list...")
+		
 		app.populate_pkg_objects()
 		self.populate_sidebar_repos()
 
