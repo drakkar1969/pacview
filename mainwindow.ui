@@ -204,7 +204,7 @@
     <section>
       <item>
         <attribute name="label">About</attribute>
-        <!-- <attribute name="action">win.search-toggle-desc</attribute> -->
+        <attribute name="action">win.show-about</attribute>
       </item>
     </section>
   </menu>

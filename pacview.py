@@ -330,6 +330,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-toggle-desc", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-deps", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-optdeps", None, "", "false", self.on_search_params_toggle ),
+			( "show-about", self.on_show_about ),
 			( "quit-app", self.on_quit_app )
 		]
 
@@ -373,6 +374,20 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.set_property(prop_name, value)
 
 		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def on_show_about(self, action, value, user_data):
+		about_window = Adw.AboutWindow(
+			application_name="PacView",
+			application_icon="software-properties",
+			developer_name="draKKar1969",
+			version="0.0.5",
+			website="https://github.com/drakkar1969/pacview",
+			developers=["draKKar1969"],
+			designers=["draKKar1969"],
+			license_type=Gtk.License.GPL_3_0,
+			transient_for=self)
+
+		about_window.show()
 
 	def on_quit_app(self, action, value, user_data):
 		self.close()
