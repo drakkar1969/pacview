@@ -2,7 +2,7 @@
 <interface>
   <!--// MAIN WINDOW //-->
   <template class="MainWindow" parent="AdwApplicationWindow">
-    <property name="title">PkgView</property>
+    <property name="title">PacView</property>
     <property name="default_width">1200</property>
     <property name="default_height">700</property>
     <property name="content">

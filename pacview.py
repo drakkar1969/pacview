@@ -102,7 +102,7 @@ class PkgObject(GObject.Object):
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
 #------------------------------------------------------------------------------
-@Gtk.Template(filename="/home/drakkar/Github/pkgview/pkgcolumnview.ui")
+@Gtk.Template(filename="/home/drakkar/Github/pacview/pkgcolumnview.ui")
 class PkgColumnView(Gtk.Box):
 	__gtype_name__ = "PkgColumnView"
 
@@ -258,7 +258,7 @@ class PkgColumnView(Gtk.Box):
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
 #------------------------------------------------------------------------------
-@Gtk.Template(filename="/home/drakkar/Github/pkgview/sidebarlistboxrow.ui")
+@Gtk.Template(filename="/home/drakkar/Github/pacview/sidebarlistboxrow.ui")
 class SidebarListBoxRow(Gtk.ListBoxRow):
 	__gtype_name__ = "SidebarListBoxRow"
 
@@ -299,7 +299,7 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
 #------------------------------------------------------------------------------
-@Gtk.Template(filename="/home/drakkar/Github/pkgview/mainwindow.ui")
+@Gtk.Template(filename="/home/drakkar/Github/pacview/mainwindow.ui")
 class MainWindow(Adw.ApplicationWindow):
 	__gtype_name__ = "MainWindow"
 
@@ -462,5 +462,5 @@ class LauncherApp(Adw.Application):
 #------------------------------------------------------------------------------
 #-- MAIN APP
 #------------------------------------------------------------------------------
-app = LauncherApp(application_id="com.github.PkgView")
+app = LauncherApp(application_id="com.github.PacView")
 app.run(sys.argv)
