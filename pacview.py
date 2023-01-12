@@ -341,8 +341,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
 		# Add rows to sidebar repository list box
-		for db in app.db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_selection=db))
+		self.populate_sidebar_repos()
 
 		# Select rows in sidebar list boxes
 		self.repo_listbox.select_row(self.repo_listbox_all)
@@ -354,11 +353,20 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
 
-		# Force main package filter update
 		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 		# Set initial focus on package column view
 		self.set_focus(self.pkg_columnview.view)
+
+	#-----------------------------------
+	# Functions
+	#-----------------------------------
+	def populate_sidebar_repos(self):
+		while(row := self.repo_listbox.get_row_at_index(1)):
+			if row != self.repo_listbox_all: self.repo_listbox.remove(row)
+
+		for db in app.db_names:
+			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_selection=db))
 
 	#-----------------------------------
 	# Action handlers
@@ -417,6 +425,11 @@ class MainWindow(Adw.ApplicationWindow):
 #-- CLASS: LAUNCHERAPP
 #------------------------------------------------------------------------------
 class LauncherApp(Adw.Application):
+	#-----------------------------------
+	# Variables
+	#-----------------------------------
+	db_names = []
+	pkg_objects = []
 
 	#-----------------------------------
 	# Init function
@@ -427,6 +440,9 @@ class LauncherApp(Adw.Application):
 		# Connect signal handlers
 		self.connect("activate", self.on_activate)
 
+		self.populate_pkg_objects()
+
+	def populate_pkg_objects(self):
 		# Get path to pacman databases
 		alpm_folder = "/var/lib/pacman"
 
@@ -439,7 +455,7 @@ class LauncherApp(Adw.Application):
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", alpm_folder)
 
-		self.pkg_objects = []
+		self.pkg_objects.clear()
 
 		# Build dictionary of names,install reasons of local packages
 		local_db = alpm_handle.get_localdb()
