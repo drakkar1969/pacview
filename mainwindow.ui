@@ -17,6 +17,13 @@
               </object>
             </child>
             <child type="end">
+              <object class="GtkMenuButton">
+                <property name="icon_name">open-menu-symbolic</property>
+                <property name="primary">True</property>
+                <property name="menu_model">primary_menu</property>
+              </object>
+            </child>
+            <child type="end">
               <object class="GtkToggleButton" id="header_search_btn">
                 <property name="icon-name">edit-find</property>
                 <property name="active">False</property>
@@ -185,6 +192,22 @@
       </object>
     </property>
   </template>
+
+  <!--// PRIMARY MENU //-->
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="label">Refresh</attribute>
+        <!-- <attribute name="action">win.search-toggle-name</attribute> -->
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">About</attribute>
+        <!-- <attribute name="action">win.search-toggle-desc</attribute> -->
+      </item>
+    </section>
+  </menu>
 
   <!--// SEARCH MENU //-->
   <menu id="search_menu">
