@@ -198,7 +198,7 @@
     <section>
       <item>
         <attribute name="label">Refresh</attribute>
-        <!-- <attribute name="action">win.search-toggle-name</attribute> -->
+        <attribute name="action">win.refresh-dbs</attribute>
       </item>
     </section>
     <section>

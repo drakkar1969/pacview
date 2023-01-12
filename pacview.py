@@ -330,6 +330,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-toggle-desc", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-deps", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-optdeps", None, "", "false", self.on_search_params_toggle ),
+			( "refresh-dbs", self.on_refresh_dbs ),
 			( "show-about", self.on_show_about ),
 			( "quit-app", self.on_quit_app )
 		]
@@ -351,7 +352,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.search_bar.connect_entry(self.search_entry)
 
 		# Add items to package column view
-		self.pkg_columnview.model.splice(0, 0, app.pkg_objects)
+		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
 		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
 
@@ -382,6 +383,14 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.set_property(prop_name, value)
 
 		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def on_refresh_dbs(self, action, value, user_data):
+		app.populate_pkg_objects()
+		self.populate_sidebar_repos()
+
+		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
+
+		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	def on_show_about(self, action, value, user_data):
 		about_window = Adw.AboutWindow(
