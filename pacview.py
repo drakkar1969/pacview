@@ -459,7 +459,7 @@ class LauncherApp(Adw.Application):
 
 		# Build list of database names
 		db_files = list(os.listdir(db_path)) if os.path.exists(db_path) else []
-		self.db_names = [os.path.basename(db).split(".")[0] for db in db_files]
+		self.db_names = [os.path.basename(db).split(".")[0] for db in db_files if db.endswith(".db")]
 
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", alpm_folder)
