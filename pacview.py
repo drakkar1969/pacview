@@ -339,6 +339,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.search-toggle", ["<ctrl>f"])
+		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
 		# Add rows to sidebar repository list box
