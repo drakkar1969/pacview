@@ -184,14 +184,14 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_item_setup_label(self, factory, item):
-		item.set_child(Gtk.Label(halign=Gtk.Align.START))
+		item.set_child(Gtk.Label(xalign=0))
 
 	@Gtk.Template.Callback()
 	def on_item_setup_iconlabel(self, factory, item):
 		box = Gtk.Box()
 		box.set_spacing(6)
 		box.append(Gtk.Image())
-		box.append(Gtk.Label(halign=Gtk.Align.START))
+		box.append(Gtk.Label(xalign=0))
 		item.set_child(box)
 
 	@Gtk.Template.Callback()

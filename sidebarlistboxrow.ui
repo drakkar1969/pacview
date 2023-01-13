@@ -12,7 +12,7 @@
         </child>
         <child>
           <object class="GtkLabel" id="label">
-            <property name="halign">start</property>
+            <property name="xalign">0</property>
           </object>
         </child>
       </object>
