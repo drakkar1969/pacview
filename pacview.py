@@ -347,6 +347,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-toggle-group", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-deps", None, "", "false", self.on_search_params_toggle ),
 			( "search-toggle-optdeps", None, "", "false", self.on_search_params_toggle ),
+			( "search-stop", self.on_search_stop ),
 			( "refresh-dbs", self.on_refresh_dbs ),
 			( "show-about", self.on_show_about ),
 			( "quit-app", self.on_quit_app )
@@ -356,6 +357,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.search-toggle", ["<ctrl>f"])
+		app.set_accels_for_action("win.search-stop", ["Escape"])
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
@@ -401,6 +403,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.set_property(prop_name, value)
 
 		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def on_search_stop(self, action, value, user_data):
+		self.search_bar.set_search_mode(False)
 
 	def on_refresh_dbs(self, action, value, user_data):
 		self.pkg_columnview.status_bar.push(0, "Refreshing package list...")
