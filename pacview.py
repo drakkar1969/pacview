@@ -291,11 +291,11 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add actions
 		action_list = [
 			( "search-toggle", self.on_search_toggle ),
-			( "search-toggle-name", None, "", "true", self.on_search_params_toggle ),
-			( "search-toggle-desc", None, "", "false", self.on_search_params_toggle ),
-			( "search-toggle-group", None, "", "false", self.on_search_params_toggle ),
-			( "search-toggle-deps", None, "", "false", self.on_search_params_toggle ),
-			( "search-toggle-optdeps", None, "", "false", self.on_search_params_toggle ),
+			( "search-by-name", None, "", "true", self.on_search_params_changed ),
+			( "search-by-desc", None, "", "false", self.on_search_params_changed ),
+			( "search-by-group", None, "", "false", self.on_search_params_changed ),
+			( "search-by-deps", None, "", "false", self.on_search_params_changed ),
+			( "search-by-optdeps", None, "", "false", self.on_search_params_changed ),
 			( "search-stop", self.on_search_stop ),
 			( "refresh-dbs", self.on_refresh_dbs ),
 			( "show-about", self.on_show_about ),
@@ -344,10 +344,10 @@ class MainWindow(Adw.ApplicationWindow):
 	def on_search_toggle(self, action, value, user_data):
 		self.search_bar.set_search_mode(not self.search_bar.get_search_mode())
 
-	def on_search_params_toggle(self, action, value, user_data):
+	def on_search_params_changed(self, action, value, user_data):
 		action.set_state(value)
 
-		prop_name = str.replace(action.props.name, "search-toggle-", "search_by_")
+		prop_name = str.replace(action.props.name, "-", "_")
 
 		self.pkg_columnview.set_property(prop_name, value)
 

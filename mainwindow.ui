@@ -216,23 +216,23 @@
       <attribute name="label">Search By</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">win.search-toggle-name</attribute>
+        <attribute name="action">win.search-by-name</attribute>
       </item>
       <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">win.search-toggle-desc</attribute>
+        <attribute name="action">win.search-by-desc</attribute>
       </item>
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">win.search-toggle-group</attribute>
+        <attribute name="action">win.search-by-group</attribute>
       </item>
       <item>
         <attribute name="label">Dependencies</attribute>
-        <attribute name="action">win.search-toggle-deps</attribute>
+        <attribute name="action">win.search-by-deps</attribute>
       </item>
       <item>
         <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">win.search-toggle-optdeps</attribute>
+        <attribute name="action">win.search-by-optdeps</attribute>
       </item>
     </section>
   </menu>
