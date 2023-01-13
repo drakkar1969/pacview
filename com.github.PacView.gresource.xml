@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView">
-    <file compressed="true">ui/column-name.ui</file>
-    <file compressed="true">ui/column-version.ui</file>
-    <file compressed="true">ui/column-repository.ui</file>
-    <file compressed="true">ui/column-status.ui</file>
-    <file compressed="true">ui/column-date.ui</file>
-    <file compressed="true">ui/column-size.ui</file>
-    <file compressed="true">ui/column-group.ui</file>
+    <file compressed="true">ui/column-name-item.ui</file>
+    <file compressed="true">ui/column-version-item.ui</file>
+    <file compressed="true">ui/column-repository-item.ui</file>
+    <file compressed="true">ui/column-status-item.ui</file>
+    <file compressed="true">ui/column-date-item.ui</file>
+    <file compressed="true">ui/column-size-item.ui</file>
+    <file compressed="true">ui/column-group-item.ui</file>
     <file compressed="true">ui/mainwindow.ui</file>
     <file compressed="true">ui/pkgcolumnview.ui</file>
     <file compressed="true">ui/sidebarlistboxrow.ui</file>

@@ -47,7 +47,7 @@
                 <property name="expand">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="name_factory">
-                    <property name="resource">/com/github/PacView/ui/column-name.ui</property>
+                    <property name="resource">/com/github/PacView/ui/column-name-item.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -61,7 +61,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="version_factory">
-                    <property name="resource">/com/github/PacView/ui/column-version.ui</property>
+                    <property name="resource">/com/github/PacView/ui/column-version-item.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -75,7 +75,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="repository_factory">
-                    <property name="resource">/com/github/PacView/ui/column-repository.ui</property>
+                    <property name="resource">/com/github/PacView/ui/column-repository-item.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -89,7 +89,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="status_factory">
-                    <property name="resource">/com/github/PacView/ui/column-status.ui</property>
+                    <property name="resource">/com/github/PacView/ui/column-status-item.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -103,7 +103,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="date_factory">
-                    <property name="resource">/com/github/PacView/ui/column-date.ui</property>
+                    <property name="resource">/com/github/PacView/ui/column-date-item.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -117,7 +117,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="size_factory">
-                    <property name="resource">/com/github/PacView/ui/column-size.ui</property>
+                    <property name="resource">/com/github/PacView/ui/column-size-item.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -131,7 +131,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="group_factory">
-                    <property name="resource">/com/github/PacView/ui/column-group.ui</property>
+                    <property name="resource">/com/github/PacView/ui/column-group-item.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
