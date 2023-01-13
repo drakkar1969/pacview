@@ -184,8 +184,8 @@ class PkgColumnView(Gtk.Box):
 	# Sorter functions
 	#-----------------------------------
 	def sort_by_str(self, item_a, item_b, prop):
-		prop_a = item_a.get_property(prop)
-		prop_b = item_b.get_property(prop)
+		prop_a = item_a.get_property(prop).lower()
+		prop_b = item_b.get_property(prop).lower()
 
 		if prop_a < prop_b: return(-1)
 		else:
@@ -210,7 +210,7 @@ class PkgColumnView(Gtk.Box):
 	# Filter functions
 	#-----------------------------------
 	def filter_by_repo(self, item):
-		return(True if self.current_repo == "" else (item.repository == self.current_repo))
+		return(True if self.current_repo == "" else (item.repository.lower() == self.current_repo))
 
 	def filter_by_status(self, item):
 		return(item.status & self.current_status)
@@ -407,7 +407,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	@Gtk.Template.Callback()
 	def on_search(self, entry):
-		self.pkg_columnview.current_search = entry.get_text()
+		self.pkg_columnview.current_search = entry.get_text().lower()
 
 		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
