@@ -26,6 +26,8 @@ class PkgStatus(IntFlag):
 #-- CLASS: PKGOBJECT
 #------------------------------------------------------------------------------
 class PkgObject(GObject.Object):
+	__gtype_name__ = "PkgObject"
+
 	#-----------------------------------
 	# Read/write properties
 	#-----------------------------------
@@ -170,51 +172,6 @@ class PkgColumnView(Gtk.Box):
 
 		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
-
-	#-----------------------------------
-	# Factory signal handlers
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_item_setup_label(self, factory, item):
-		item.set_child(Gtk.Label(xalign=0))
-
-	@Gtk.Template.Callback()
-	def on_item_setup_iconlabel(self, factory, item):
-		box = Gtk.Box()
-		box.set_spacing(6)
-		box.append(Gtk.Image())
-		box.append(Gtk.Label(xalign=0))
-		item.set_child(box)
-
-	@Gtk.Template.Callback()
-	def on_item_bind_name(self, factory, item):
-		item.get_child().get_first_child().set_from_icon_name("package-x-generic-symbolic")
-		item.get_child().get_last_child().set_label(item.get_item().name)
-
-	@Gtk.Template.Callback()
-	def on_item_bind_version(self, factory, item):
-		item.get_child().set_label(item.get_item().version)
-
-	@Gtk.Template.Callback()
-	def on_item_bind_repository(self, factory, item):
-		item.get_child().set_label(item.get_item().repository)
-
-	@Gtk.Template.Callback()
-	def on_item_bind_status(self, factory, item):
-		item.get_child().get_first_child().set_from_icon_name(item.get_item().status_icon)
-		item.get_child().get_last_child().set_label(item.get_item().status_string)
-
-	@Gtk.Template.Callback()
-	def on_item_bind_date(self, factory, item):
-		item.get_child().set_label(item.get_item().date_string)
-
-	@Gtk.Template.Callback()
-	def on_item_bind_size(self, factory, item):
-		item.get_child().set_label(item.get_item().size_string)
-
-	@Gtk.Template.Callback()
-	def on_item_bind_group(self, factory, item):
-		item.get_child().set_label(item.get_item().group)
 
 	#-----------------------------------
 	# Sorter functions

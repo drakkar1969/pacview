@@ -46,9 +46,34 @@
                 <property name="resizable">True</property>
                 <property name="expand">True</property>
                 <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="name_factory">
-                    <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
-                    <signal name="bind" handler="on_item_bind_name" swapped="no"/>
+                  <object class="GtkBuilderListItemFactory" id="name_factory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkImage">
+            <property name="icon_name">package-x-generic-symbolic</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="name" type="PkgObject">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -61,9 +86,24 @@
                 <property name="title">Version</property>
                 <property name="resizable">True</property>
                 <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="version_factory">
-                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                    <signal name="bind" handler="on_item_bind_version" swapped="no"/>
+                  <object class="GtkBuilderListItemFactory" id="version_factory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="version" type="PkgObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -76,9 +116,24 @@
                 <property name="title">Repository</property>
                 <property name="resizable">True</property>
                 <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="repository_factory">
-                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                    <signal name="bind" handler="on_item_bind_repository" swapped="no"/>
+                  <object class="GtkBuilderListItemFactory" id="repository_factory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="repository" type="PkgObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -91,9 +146,38 @@
                 <property name="title">Status</property>
                 <property name="resizable">True</property>
                 <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="status_factory">
-                    <signal name="setup" handler="on_item_setup_iconlabel" swapped="no"/>
-                    <signal name="bind" handler="on_item_bind_status" swapped="no"/>
+                  <object class="GtkBuilderListItemFactory" id="status_factory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkImage">
+            <binding name="icon_name">
+              <lookup name="status_icon" type="PkgObject">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="status_string" type="PkgObject">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -106,9 +190,24 @@
                 <property name="title">Date</property>
                 <property name="resizable">True</property>
                 <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="date_factory">
-                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                    <signal name="bind" handler="on_item_bind_date" swapped="no"/>
+                  <object class="GtkBuilderListItemFactory" id="date_factory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="date_string" type="PkgObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -121,9 +220,24 @@
                 <property name="title">Size</property>
                 <property name="resizable">True</property>
                 <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="size_factory">
-                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                    <signal name="bind" handler="on_item_bind_size" swapped="no"/>
+                  <object class="GtkBuilderListItemFactory" id="size_factory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="size_string" type="PkgObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -136,9 +250,24 @@
                 <property name="title">Group</property>
                 <property name="resizable">True</property>
                 <property name="factory">
-                  <object class="GtkSignalListItemFactory" id="group_factory">
-                    <signal name="setup" handler="on_item_setup_label" swapped="no"/>
-                    <signal name="bind" handler="on_item_bind_group" swapped="no"/>
+                  <object class="GtkBuilderListItemFactory" id="group_factory">
+                    <property name="bytes"><![CDATA[
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="group" type="PkgObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>
+                    ]]></property>
                   </object>
                 </property>
                 <property name="sorter">
