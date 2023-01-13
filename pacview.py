@@ -125,14 +125,6 @@ class PkgColumnView(Gtk.Box):
 	status_filter = Gtk.Template.Child()
 	search_filter = Gtk.Template.Child()
 
-	name_factory = Gtk.Template.Child()
-	version_factory = Gtk.Template.Child()
-	repository_factory = Gtk.Template.Child()
-	status_factory = Gtk.Template.Child()
-	date_factory = Gtk.Template.Child()
-	size_factory = Gtk.Template.Child()
-	group_factory = Gtk.Template.Child()
-
 	name_sorter = Gtk.Template.Child()
 	version_sorter = Gtk.Template.Child()
 	repository_sorter = Gtk.Template.Child()
