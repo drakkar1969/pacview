@@ -10,6 +10,13 @@ import pyalpm
 
 from enum import IntFlag
 
+# Global path variable
+app_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
+
+# Global gresource file
+gresource = Gio.Resource.load(os.path.join(app_dir, "com.github.PacView.gresource"))
+gresource._register()
+
 #------------------------------------------------------------------------------
 #-- FLAGS: PKGSTATUS
 #------------------------------------------------------------------------------
@@ -111,7 +118,7 @@ class PkgObject(GObject.Object):
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
 #------------------------------------------------------------------------------
-@Gtk.Template(filename="/home/drakkar/Github/pacview/pkgcolumnview.ui")
+@Gtk.Template(resource_path="/com/github/PacView/ui/pkgcolumnview.ui")
 class PkgColumnView(Gtk.Box):
 	__gtype_name__ = "PkgColumnView"
 
@@ -223,7 +230,7 @@ class PkgColumnView(Gtk.Box):
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
 #------------------------------------------------------------------------------
-@Gtk.Template(filename="/home/drakkar/Github/pacview/sidebarlistboxrow.ui")
+@Gtk.Template(resource_path="/com/github/PacView/ui/sidebarlistboxrow.ui")
 class SidebarListBoxRow(Gtk.ListBoxRow):
 	__gtype_name__ = "SidebarListBoxRow"
 
@@ -264,7 +271,7 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
 #------------------------------------------------------------------------------
-@Gtk.Template(filename="/home/drakkar/Github/pacview/mainwindow.ui")
+@Gtk.Template(resource_path="/com/github/PacView/ui/mainwindow.ui")
 class MainWindow(Adw.ApplicationWindow):
 	__gtype_name__ = "MainWindow"
 
