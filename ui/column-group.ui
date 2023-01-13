@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListItem">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="group" type="PkgObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>

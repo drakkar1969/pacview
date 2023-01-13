@@ -47,33 +47,7 @@
                 <property name="expand">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="name_factory">
-                    <property name="bytes"><![CDATA[
-<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <template class="GtkListItem">
-    <property name="child">
-      <object class="GtkBox">
-        <property name="spacing">6</property>
-        <child>
-          <object class="GtkImage">
-            <property name="icon_name">package-x-generic-symbolic</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <binding name="label">
-              <lookup name="name" type="PkgObject">
-                <lookup name="item">GtkListItem</lookup>
-              </lookup>
-            </binding>
-            <property name="xalign">0</property>
-          </object>
-        </child>
-      </object>
-    </property>
-  </template>
-</interface>
-                    ]]></property>
+                    <property name="resource">/com/github/PacView/ui/column-name.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -87,23 +61,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="version_factory">
-                    <property name="bytes"><![CDATA[
-<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <template class="GtkListItem">
-    <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="version" type="PkgObject">
-            <lookup name="item">GtkListItem</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
-      </object>
-    </property>
-  </template>
-</interface>
-                    ]]></property>
+                    <property name="resource">/com/github/PacView/ui/column-version.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -117,23 +75,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="repository_factory">
-                    <property name="bytes"><![CDATA[
-<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <template class="GtkListItem">
-    <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="repository" type="PkgObject">
-            <lookup name="item">GtkListItem</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
-      </object>
-    </property>
-  </template>
-</interface>
-                    ]]></property>
+                    <property name="resource">/com/github/PacView/ui/column-repository.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -147,37 +89,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="status_factory">
-                    <property name="bytes"><![CDATA[
-<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <template class="GtkListItem">
-    <property name="child">
-      <object class="GtkBox">
-        <property name="spacing">6</property>
-        <child>
-          <object class="GtkImage">
-            <binding name="icon_name">
-              <lookup name="status_icon" type="PkgObject">
-                <lookup name="item">GtkListItem</lookup>
-              </lookup>
-            </binding>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <binding name="label">
-              <lookup name="status_string" type="PkgObject">
-                <lookup name="item">GtkListItem</lookup>
-              </lookup>
-            </binding>
-            <property name="xalign">0</property>
-          </object>
-        </child>
-      </object>
-    </property>
-  </template>
-</interface>
-                    ]]></property>
+                    <property name="resource">/com/github/PacView/ui/column-status.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -191,23 +103,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="date_factory">
-                    <property name="bytes"><![CDATA[
-<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <template class="GtkListItem">
-    <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="date_string" type="PkgObject">
-            <lookup name="item">GtkListItem</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
-      </object>
-    </property>
-  </template>
-</interface>
-                    ]]></property>
+                    <property name="resource">/com/github/PacView/ui/column-date.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -221,23 +117,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="size_factory">
-                    <property name="bytes"><![CDATA[
-<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <template class="GtkListItem">
-    <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="size_string" type="PkgObject">
-            <lookup name="item">GtkListItem</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
-      </object>
-    </property>
-  </template>
-</interface>
-                    ]]></property>
+                    <property name="resource">/com/github/PacView/ui/column-size.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
@@ -251,23 +131,7 @@
                 <property name="resizable">True</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="group_factory">
-                    <property name="bytes"><![CDATA[
-<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <template class="GtkListItem">
-    <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="group" type="PkgObject">
-            <lookup name="item">GtkListItem</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
-      </object>
-    </property>
-  </template>
-</interface>
-                    ]]></property>
+                    <property name="resource">/com/github/PacView/ui/column-group.ui</property>
                   </object>
                 </property>
                 <property name="sorter">
