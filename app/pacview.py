@@ -40,7 +40,7 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
 	status = GObject.Property(type=int, default=PkgStatus.NONE)
-	date = GObject.Property(type=int, default=0)
+	install_date = GObject.Property(type=int, default=0)
 
 	#-----------------------------------
 	# Read-only properties
@@ -70,8 +70,8 @@ class PkgObject(GObject.Object):
 		return(icon_dict.get(self.status, ""))
 
 	@GObject.Property(type=str, default="")
-	def date_string(self):
-		return(datetime.datetime.fromtimestamp(self.date).strftime("%Y/%m/%d %H:%M") if self.date != 0 else "")
+	def install_date_string(self):
+		return(self.int_to_datestr(self.install_date))
 
 	@GObject.Property(type=int, default=0)
 	def size(self):
@@ -79,14 +79,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def size_string(self):
-		pkg_size = self.pkg.isize
-
-		for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
-			if pkg_size < 1024.0 or unit == 'PiB':
-				break
-			pkg_size /= 1024.0
-		
-		return(f"{pkg_size:.1f} {unit}")
+		return(self.int_to_sizestr(self.pkg.isize))
 
 	@GObject.Property(type=str, default="")
 	def group(self):
@@ -96,21 +89,59 @@ class PkgObject(GObject.Object):
 	def description(self):
 		return(self.pkg.desc)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def depends(self):
 		return(self.pkg.depends)
 
 	@GObject.Property(type=str, default="")
+	def depends_string(self):
+		return(self.pkglist_to_linklist(self.pkg.depends))
+
+	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def optdepends(self):
 		return(self.pkg.optdepends)
 
 	@GObject.Property(type=str, default="")
+	def optdepends_string(self):
+		return(self.pkglist_to_linklist(self.pkg.optdepends))
+
+	@GObject.Property(type=str, default="")
 	def url(self):
-		return(f'<a href="{self.pkg.url}">{self.pkg.url}</a>')
+		return(self.url_to_link(self.pkg.url))
 
 	@GObject.Property(type=str, default="")
 	def licenses(self):
 		return(', '.join(sorted(self.pkg.licenses)))
+
+	@GObject.Property(type=str, default="")
+	def provides(self):
+		return(self.pkglist_to_linklist(self.pkg.provides))
+
+	@GObject.Property(type=str, default="")
+	def required_by(self):
+		if self.pkg.name in app.local_dict.keys():
+			return(self.pkglist_to_linklist(app.local_dict[self.pkg.name].compute_requiredby()))
+		else:
+			return(self.pkglist_to_linklist(self.pkg.compute_requiredby()))
+
+	@GObject.Property(type=str, default="")
+	def optional_for(self):
+		if self.pkg.name in app.local_dict.keys():
+			return(self.pkglist_to_linklist(app.local_dict[self.pkg.name].compute_optionalfor()))
+		else:
+			return(self.pkglist_to_linklist(self.pkg.compute_optionalfor()))
+
+	@GObject.Property(type=str, default="")
+	def architecture(self):
+		return(self.pkg.arch)
+
+	@GObject.Property(type=str, default="")
+	def maintainer(self):
+		return(self.pkg.packager.replace('<', '[').replace('>', ']'))
+
+	@GObject.Property(type=str, default="")
+	def build_date_string(self):
+		return(self.int_to_datestr_long(self.pkg.builddate))
 
 	#-----------------------------------
 	# Init function
@@ -119,6 +150,48 @@ class PkgObject(GObject.Object):
 		super().__init__(*args, **kwargs)
 
 		self.pkg = pkg
+
+	#-----------------------------------
+	# Helper functions
+	#-----------------------------------
+	def int_to_datestr(self, value):
+		return(datetime.datetime.fromtimestamp(value).strftime("%Y/%m/%d %H:%M") if value != 0 else "")
+
+	def int_to_datestr_long(self, value):
+		return(datetime.datetime.fromtimestamp(value).strftime("%a %d %b %Y %H:%M:%S") if value != 0 else "")
+
+	def int_to_sizestr(self, value):
+		pkg_size = value
+
+		for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
+			if pkg_size < 1024.0 or unit == 'PiB':
+				break
+			pkg_size /= 1024.0
+		
+		return(f"{pkg_size:.1f} {unit}")
+
+	def url_to_link(self, url):
+		return(f'<a href="{url}">{url}</a>')
+
+	def pkglist_to_linklist(self, pkglist):
+		def link(string):
+			pkg = string
+			desc = ""
+			ver = ""
+
+			if ':' in pkg:
+				pkg, desc = pkg.split(':', 1)
+				desc = ':'+desc
+
+			for delim in ['>=', '<=', '=', '>', '<']:
+				if delim in pkg:
+					pkg, ver = pkg.split(delim, 1)
+					ver = delim+ver
+					break
+
+			return(f'<a href="{pkg}">{pkg}</a>{ver}{desc}')
+
+		return('\n'.join([link(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
@@ -166,12 +239,22 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 	def display_properties(self, pkg_object):
 		self.model.remove_all()
 
-		self.model.append(PkgProperty("Package", pkg_object.name))
+		self.model.append(PkgProperty("Package", f'<b>{pkg_object.name}</b>'))
 		self.model.append(PkgProperty("Version", pkg_object.version))
 		self.model.append(PkgProperty("Description", pkg_object.description))
 		self.model.append(PkgProperty("URL", pkg_object.url))
 		self.model.append(PkgProperty("Licenses", pkg_object.licenses))
+		self.model.append(PkgProperty("Status", pkg_object.status_string if (pkg_object.status & PkgStatus.INSTALLED) else "not installed"))
 		self.model.append(PkgProperty("Repository", pkg_object.repository))
+		if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
+		if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
+		self.model.append(PkgProperty("Dependencies", pkg_object.depends_string))
+		if pkg_object.optdepends_string != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends_string))
+		self.model.append(PkgProperty("Required By", pkg_object.required_by))
+		if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
+		self.model.append(PkgProperty("Architecture", pkg_object.architecture))
+		self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
+		self.model.append(PkgProperty("Build Date", pkg_object.build_date_string))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -228,7 +311,7 @@ class PkgColumnView(Gtk.Box):
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
 		self.repository_sorter.set_sort_func(self.sort_by_str, "repository")
 		self.status_sorter.set_sort_func(self.sort_by_str, "status_string")
-		self.date_sorter.set_sort_func(self.sort_by_int, "date")
+		self.date_sorter.set_sort_func(self.sort_by_int, "install_date")
 		self.size_sorter.set_sort_func(self.sort_by_int, "size")
 		self.group_sorter.set_sort_func(self.sort_by_str, "group")
 
@@ -554,7 +637,7 @@ class LauncherApp(Adw.Application):
 
 		# Build dictionary of names,install reasons of local packages
 		local_db = alpm_handle.get_localdb()
-		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
+		self.local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
 		# Build list of PkgOBjects from packages in databases
 		for db in self.db_names:
@@ -563,20 +646,20 @@ class LauncherApp(Adw.Application):
 			if sync_db is not None:
 				self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
 
-		# Set status/date/required_by/optional_for for installed packages
+		# Set status/install date for installed packages
 		for i, obj in enumerate(self.pkg_objects):
-			if obj.pkg.name in local_dict.keys():
-				reason = local_dict[obj.pkg.name].reason
+			if obj.pkg.name in self.local_dict.keys():
+				reason = self.local_dict[obj.pkg.name].reason
 
 				if reason == 0: self.pkg_objects[i].status = PkgStatus.EXPLICIT
 				else:
 					if reason == 1:
-						if local_dict[obj.pkg.name].compute_requiredby() != []:
+						if self.local_dict[obj.pkg.name].compute_requiredby() != []:
 							self.pkg_objects[i].status = PkgStatus.DEPENDENCY
 						else:
-							self.pkg_objects[i].status = PkgStatus.OPTIONAL if local_dict[obj.pkg.name].compute_optionalfor() != [] else PkgStatus.ORPHAN
+							self.pkg_objects[i].status = PkgStatus.OPTIONAL if self.local_dict[obj.pkg.name].compute_optionalfor() != [] else PkgStatus.ORPHAN
 
-				self.pkg_objects[i].date = local_dict[obj.pkg.name].installdate
+				self.pkg_objects[i].install_date = self.local_dict[obj.pkg.name].installdate
 
 	#-----------------------------------
 	# Signal handlers
