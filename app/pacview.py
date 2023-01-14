@@ -204,6 +204,7 @@ class PkgColumnView(Gtk.Box):
 	@Gtk.Template.Callback()
 	def on_main_filter_changed(self, change, user_data):
 		n_items = self.filter_model.get_n_items()
+		self.status_bar.pop(0)
 		self.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
 
 	#-----------------------------------
@@ -364,6 +365,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.search_bar.set_search_mode(False)
 
 	def on_refresh_dbs(self, action, value, user_data):
+		self.status_bar.pop(0)
 		self.pkg_columnview.status_bar.push(0, "Refreshing package list...")
 		
 		app.populate_pkg_objects()
