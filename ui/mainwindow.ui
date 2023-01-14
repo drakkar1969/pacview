@@ -165,7 +165,9 @@
                     <property name="show-close-button">True</property>
                     <property name="child">
                       <object class="GtkBox">
-                        <property name="spacing">6</property>
+                        <style>
+                          <class name="linked"/>
+                        </style>
                         <child>
                           <object class="GtkSearchEntry" id="search_entry">
                             <property name="width-request">400</property>
