@@ -187,7 +187,17 @@
               <object class="GtkSeparator"/>
             </property>
             <property name="content">
-              <object class="PkgColumnView" id="pkg_columnview"/>
+              <object class="GtkBox">
+                <child>
+                  <object class="PkgColumnView" id="pkg_columnview"/>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="PkgInfoGrid" id="pkg_infogrid"/>
+                </child>
+              </object>
             </property>
           </object>
         </child>

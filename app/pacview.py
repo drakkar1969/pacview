@@ -104,6 +104,14 @@ class PkgObject(GObject.Object):
 	def optdepends(self):
 		return(self.pkg.optdepends)
 
+	@GObject.Property(type=str, default="")
+	def url(self):
+		return(f'<a href="{self.pkg.url}">{self.pkg.url}</a>')
+
+	@GObject.Property(type=str, default="")
+	def licenses(self):
+		return(', '.join(sorted(self.pkg.licenses)))
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -111,6 +119,59 @@ class PkgObject(GObject.Object):
 		super().__init__(*args, **kwargs)
 
 		self.pkg = pkg
+
+#------------------------------------------------------------------------------
+#-- CLASS: PKGPROPERTY
+#------------------------------------------------------------------------------
+class PkgProperty(GObject.Object):
+	__gtype_name__ = "PkgProperty"
+
+	#-----------------------------------
+	# Read/write properties
+	#-----------------------------------
+	prop_name = GObject.Property(type=str, default="")
+	prop_value = GObject.Property(type=str, default="")
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, name, value, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.prop_name = name
+		self.prop_value = value
+
+#------------------------------------------------------------------------------
+#-- CLASS: PKGINFOGRID
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/pkginfogrid.ui")
+class PkgInfoGrid(Gtk.ScrolledWindow):
+	__gtype_name__ = "PkgInfoGrid"
+
+	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	grid = Gtk.Template.Child()
+	model = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+	#-----------------------------------
+	# Display function
+	#-----------------------------------
+	def display_properties(self, pkg_object):
+		self.model.remove_all()
+
+		self.model.append(PkgProperty("Package", pkg_object.name))
+		self.model.append(PkgProperty("Version", pkg_object.version))
+		self.model.append(PkgProperty("Description", pkg_object.description))
+		self.model.append(PkgProperty("URL", pkg_object.url))
+		self.model.append(PkgProperty("Licenses", pkg_object.licenses))
+		self.model.append(PkgProperty("Repository", pkg_object.repository))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -144,6 +205,8 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
+	property_grid = GObject.Property(type=PkgInfoGrid, default=None)
+
 	current_repo = GObject.Property(type=str, default="")
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
 	current_search = GObject.Property(type=str, default="")
@@ -225,6 +288,13 @@ class PkgColumnView(Gtk.Box):
 
 			return(match_name or match_desc or match_group or match_deps or match_optdeps)
 
+	#-----------------------------------
+	# Selection signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_row_selected(self, selection, prop_name):
+		self.property_grid.display_properties(selection.get_selected_item())
+
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
 #------------------------------------------------------------------------------
@@ -289,6 +359,7 @@ class MainWindow(Adw.ApplicationWindow):
 	status_listbox_installed = Gtk.Template.Child()
 
 	pkg_columnview = Gtk.Template.Child()
+	pkg_infogrid = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -337,6 +408,9 @@ class MainWindow(Adw.ApplicationWindow):
 			lambda binding, value: self.header_search_box if value == True else self.header_title,
 			lambda binding, value: (value == self.header_search_box)
 		)
+
+		# Set package column view property grid
+		self.pkg_columnview.property_grid = self.pkg_infogrid
 
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)

@@ -5,11 +5,13 @@
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkScrolledWindow">
+        <property name="hexpand">True</property>
         <property name="vexpand">True</property>
         <property name="child">
           <object class="GtkColumnView" id="view">
             <property name="model">
               <object class="GtkSingleSelection" id="selection">
+                <signal name="notify::selected-item" handler="on_row_selected" swapped="no"/>
                 <property name="model">
                   <object class="GtkSortListModel" id="sort_model">
                     <property name="model">

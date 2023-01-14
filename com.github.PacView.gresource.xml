@@ -8,8 +8,11 @@
     <file compressed="true">ui/column-date-item.ui</file>
     <file compressed="true">ui/column-size-item.ui</file>
     <file compressed="true">ui/column-group-item.ui</file>
+    <file compressed="true">ui/property-name-item.ui</file>
+    <file compressed="true">ui/property-value-item.ui</file>
     <file compressed="true">ui/mainwindow.ui</file>
     <file compressed="true">ui/pkgcolumnview.ui</file>
+    <file compressed="true">ui/pkginfogrid.ui</file>
     <file compressed="true">ui/sidebarlistboxrow.ui</file>
   </gresource>
 </gresources>
