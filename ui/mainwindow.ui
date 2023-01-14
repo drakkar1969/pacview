@@ -8,7 +8,7 @@
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
         <child>
-          <object class="AdwHeaderBar">
+          <object class="AdwHeaderBar" id="header_bar">
             <property name="title-widget">
               <object class="GtkStack" id="header_stack">
                 <child>
@@ -31,7 +31,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkMenuButton">
+                      <object class="GtkMenuButton" id="header_search_filter_btn">
                         <property name="icon_name">view-filter</property>
                         <property name="menu_model">search_menu</property>
                       </object>
@@ -47,7 +47,7 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkMenuButton">
+              <object class="GtkMenuButton" id="header_mainmenu_btn">
                 <property name="icon_name">open-menu-symbolic</property>
                 <property name="primary">True</property>
                 <property name="menu_model">primary_menu</property>
@@ -62,15 +62,15 @@
           </object>
         </child>
         <child>
-          <object class="AdwFlap">
+          <object class="AdwFlap" id="flap">
             <property name="reveal-flap" bind-source="header_sidebar_btn" bind-property="active" bind-flags="sync-create|bidirectional"/>
             <property name="flap">
-              <object class="GtkBox">
+              <object class="GtkBox" id="flap_box">
                 <style>
                   <class name="background"/>
                 </style>
                 <child>
-                  <object class="GtkBox">
+                  <object class="GtkBox" id="sidebar_box">
                     <property name="width_request">200</property>
                     <property name="orientation">vertical</property>
                     <property name="margin_start">6</property>
@@ -78,7 +78,7 @@
                     <property name="margin_top">12</property>
                     <property name="margin_bottom">12</property>
                     <child>
-                      <object class="GtkLabel">
+                      <object class="GtkLabel" id="repo_label">
                         <property name="label">Repository</property>
                         <property name="xalign">0</property>
                         <property name="margin_start">6</property>
@@ -109,7 +109,7 @@
                       <object class="GtkSeparator"/>
                     </child>
                     <child>
-                      <object class="GtkLabel">
+                      <object class="GtkLabel" id="status_label">
                         <property name="label">Package Status</property>
                         <property name="xalign">0</property>
                         <property name="margin_start">6</property>
