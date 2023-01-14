@@ -57,6 +57,7 @@
               <object class="GtkToggleButton" id="header_search_btn">
                 <property name="icon-name">edit-find</property>
                 <property name="active">False</property>
+                <signal name="toggled" handler="on_search_btn_toggled" swapped="no"/>
               </object>
             </child>
           </object>

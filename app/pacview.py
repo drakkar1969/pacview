@@ -328,6 +328,16 @@ class MainWindow(Adw.ApplicationWindow):
 		# Connect hedaer search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
 
+		# Bind header search button state to search entry visibility
+		self.header_search_btn.bind_property(
+			"active",
+			self.header_stack,
+			"visible-child",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
+			lambda binding, value: self.header_search_box if value == True else self.header_title,
+			lambda binding, value: (value == self.header_search_box)
+		)
+
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
@@ -410,7 +420,6 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
 		self.header_stack.set_visible_child(self.header_search_box)
-		self.header_search_btn.set_active(True)
 
 		self.set_focus(self.header_search_entry)
 
@@ -425,7 +434,13 @@ class MainWindow(Adw.ApplicationWindow):
 		entry.set_text("")
 
 		self.header_stack.set_visible_child(self.header_title)
-		self.header_search_btn.set_active(False)
+
+	@Gtk.Template.Callback()
+	def on_search_btn_toggled(self, button):
+		if button.get_active():
+			self.header_search_entry.emit("search-started")
+		else:
+			self.header_search_entry.emit("stop-search")
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
