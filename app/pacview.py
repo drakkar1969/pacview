@@ -90,10 +90,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def group(self):
-		if len(self.pkg.groups) == 0:
-			return("")
-		else:
-			return(self.pkg.groups[0] if len(self.pkg.groups) == 1 else ', '.join(sorted(self.pkg.groups)))
+		return(', '.join(sorted(self.pkg.groups)))
 
 	@GObject.Property(type=str, default="")
 	def description(self):
