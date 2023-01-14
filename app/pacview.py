@@ -276,14 +276,17 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	header_stack = Gtk.Template.Child()
+	header_title = Gtk.Template.Child()
+	header_search_box = Gtk.Template.Child()
+	header_search_entry = Gtk.Template.Child()
+	header_search_btn = Gtk.Template.Child()
+
 	repo_listbox = Gtk.Template.Child()
 	repo_listbox_all = Gtk.Template.Child()
 
 	status_listbox = Gtk.Template.Child()
 	status_listbox_installed = Gtk.Template.Child()
-
-	search_bar = Gtk.Template.Child()
-	search_entry = Gtk.Template.Child()
 
 	pkg_columnview = Gtk.Template.Child()
 
@@ -295,22 +298,22 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add actions
 		action_list = [
-			( "search-toggle", self.on_search_toggle ),
-			( "search-by-name", None, "", "true", self.on_search_params_changed ),
-			( "search-by-desc", None, "", "false", self.on_search_params_changed ),
-			( "search-by-group", None, "", "false", self.on_search_params_changed ),
-			( "search-by-deps", None, "", "false", self.on_search_params_changed ),
-			( "search-by-optdeps", None, "", "false", self.on_search_params_changed ),
-			( "search-stop", self.on_search_stop ),
-			( "refresh-dbs", self.on_refresh_dbs ),
-			( "show-about", self.on_show_about ),
-			( "quit-app", self.on_quit_app )
+			( "search-start", self.search_start_action ),
+			( "search-by-name", None, "", "true", self.search_params_action ),
+			( "search-by-desc", None, "", "false", self.search_params_action ),
+			( "search-by-group", None, "", "false", self.search_params_action ),
+			( "search-by-deps", None, "", "false", self.search_params_action ),
+			( "search-by-optdeps", None, "", "false", self.search_params_action ),
+			( "search-stop", self.search_stop_action ),
+			( "refresh-dbs", self.refresh_dbs_action ),
+			( "show-about", self.show_about_action ),
+			( "quit-app", self.quit_app_action )
 		]
 
 		self.add_action_entries(action_list)
 
 		# Add keyboard shortcuts
-		app.set_accels_for_action("win.search-toggle", ["<ctrl>f"])
+		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
@@ -322,8 +325,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
-		# Connect search bar to search entry
-		self.search_bar.connect_entry(self.search_entry)
+		# Connect hedaer search entry to package column view
+		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
 
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
@@ -346,10 +349,10 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Action handlers
 	#-----------------------------------
-	def on_search_toggle(self, action, value, user_data):
-		self.search_bar.set_search_mode(not self.search_bar.get_search_mode())
+	def search_start_action(self, action, value, user_data):
+		self.header_search_entry.emit("search-started")
 
-	def on_search_params_changed(self, action, value, user_data):
+	def search_params_action(self, action, value, user_data):
 		action.set_state(value)
 
 		prop_name = str.replace(action.props.name, "-", "_")
@@ -358,10 +361,10 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	def on_search_stop(self, action, value, user_data):
-		self.search_bar.set_search_mode(False)
+	def search_stop_action(self, action, value, user_data):
+		self.header_search_entry.emit("stop-search")
 
-	def on_refresh_dbs(self, action, value, user_data):
+	def refresh_dbs_action(self, action, value, user_data):
 		self.status_bar.pop(0)
 		self.pkg_columnview.status_bar.push(0, "Refreshing package list...")
 		
@@ -372,7 +375,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	def on_show_about(self, action, value, user_data):
+	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(
 			application_name="PacView",
 			application_icon="software-properties",
@@ -386,7 +389,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		about_window.show()
 
-	def on_quit_app(self, action, value, user_data):
+	def quit_app_action(self, action, value, user_data):
 		self.close()
 
 	#-----------------------------------
@@ -405,10 +408,24 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
-	def on_search(self, entry):
+	def on_search_started(self, entry):
+		self.header_stack.set_visible_child(self.header_search_box)
+		self.header_search_btn.set_active(True)
+
+		self.set_focus(self.header_search_entry)
+
+	@Gtk.Template.Callback()
+	def on_search_changed(self, entry):
 		self.pkg_columnview.current_search = entry.get_text().lower()
 
 		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	@Gtk.Template.Callback()
+	def on_search_stopped(self, entry):
+		entry.set_text("")
+
+		self.header_stack.set_visible_child(self.header_title)
+		self.header_search_btn.set_active(False)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP

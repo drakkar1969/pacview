@@ -2,14 +2,44 @@
 <interface>
   <!--// MAIN WINDOW //-->
   <template class="MainWindow" parent="AdwApplicationWindow">
-    <property name="title">PacView</property>
     <property name="default_width">1400</property>
     <property name="default_height">700</property>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkHeaderBar">
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="GtkStack" id="header_stack">
+                <child>
+                  <object class="AdwWindowTitle" id="header_title">
+                    <property name="title">PacView</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="header_search_box">
+                    <style>
+                      <class name="linked"/>
+                    </style>
+                    <child>
+                      <object class="GtkSearchEntry" id="header_search_entry">
+                        <property name="width-request">400</property>
+                        <property name="placeholder-text">Search for packages</property>
+                        <signal name="search-started" handler="on_search_started" swapped="no"/>
+                        <signal name="search-changed" handler="on_search_changed" swapped="no"/>
+                        <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuButton">
+                        <property name="icon_name">view-filter</property>
+                        <property name="menu_model">search_menu</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
             <child type="start">
               <object class="GtkToggleButton" id="header_sidebar_btn">
                 <property name="icon-name">sidebar-show-symbolic</property>
@@ -156,39 +186,7 @@
               <object class="GtkSeparator"/>
             </property>
             <property name="content">
-              <object class="GtkBox">
-                <property name="orientation">vertical</property>
-                <child>
-                  <object class="GtkSearchBar" id="search_bar">
-                    <property name="search-mode-enabled" bind-source="header_search_btn" bind-property="active" bind-flags="sync-create|bidirectional"/>
-                    <property name="key-capture-widget">pkg_columnview</property>
-                    <property name="show-close-button">True</property>
-                    <property name="child">
-                      <object class="GtkBox">
-                        <style>
-                          <class name="linked"/>
-                        </style>
-                        <child>
-                          <object class="GtkSearchEntry" id="search_entry">
-                            <property name="width-request">400</property>
-                            <property name="placeholder-text">Search for packages</property>
-                            <signal name="search-changed" handler="on_search" swapped="no"/>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkMenuButton">
-                            <property name="icon_name">view-filter</property>
-                            <property name="menu_model">search_menu</property>
-                          </object>
-                        </child>
-                      </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="PkgColumnView" id="pkg_columnview"/>
-                </child>
-              </object>
+              <object class="PkgColumnView" id="pkg_columnview"/>
             </property>
           </object>
         </child>
