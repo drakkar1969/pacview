@@ -202,6 +202,12 @@
             </property>
           </object>
         </child>
+        <child>
+          <object class="GtkStatusbar" id="status_bar">
+            <property name="margin_top">2</property>
+            <property name="margin_bottom">2</property>
+          </object>
+        </child>
       </object>
     </property>
   </template>

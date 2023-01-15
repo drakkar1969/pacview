@@ -306,12 +306,11 @@ class PkgColumnView(Gtk.Box):
 	size_sorter = Gtk.Template.Child()
 	group_sorter = Gtk.Template.Child()
 
-	status_bar = Gtk.Template.Child()
-
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
 	property_grid = GObject.Property(type=PkgInfoGrid, default=None)
+	status_bar = GObject.Property(type=Gtk.Statusbar, default=None)
 
 	current_repo = GObject.Property(type=str, default="")
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
@@ -370,8 +369,10 @@ class PkgColumnView(Gtk.Box):
 	@Gtk.Template.Callback()
 	def on_main_filter_changed(self, change, user_data):
 		n_items = self.filter_model.get_n_items()
-		self.status_bar.pop(0)
-		self.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
+
+		if self.status_bar is not None:
+			self.status_bar.pop(0)
+			self.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
 
 	#-----------------------------------
 	# Filter functions
@@ -399,7 +400,8 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_row_selected(self, selection, prop_name):
-		self.property_grid.display_properties(selection.get_selected_item())
+		if self.property_grid is not None and selection.get_selected_item() is not None:
+			self.property_grid.display_properties(selection.get_selected_item())
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
@@ -467,11 +469,19 @@ class MainWindow(Adw.ApplicationWindow):
 	pkg_columnview = Gtk.Template.Child()
 	pkg_infogrid = Gtk.Template.Child()
 
+	status_bar = Gtk.Template.Child()
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Set package column view property grid
+		self.pkg_columnview.property_grid = self.pkg_infogrid
+
+		# Set package column view status bar
+		self.pkg_columnview.status_bar = self.status_bar
 
 		# Add actions
 		action_list = [
@@ -502,7 +512,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
-		# Connect hedaer search entry to package column view
+		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
 
 		# Bind header search button state to search entry visibility
@@ -514,9 +524,6 @@ class MainWindow(Adw.ApplicationWindow):
 			lambda binding, value: self.header_search_box if value == True else self.header_title,
 			lambda binding, value: (value == self.header_search_box)
 		)
-
-		# Set package column view property grid
-		self.pkg_columnview.property_grid = self.pkg_infogrid
 
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
@@ -556,7 +563,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def refresh_dbs_action(self, action, value, user_data):
 		self.status_bar.pop(0)
-		self.pkg_columnview.status_bar.push(0, "Refreshing package list...")
+		self.status_bar.push(0, "Refreshing package list...")
 		
 		app.populate_pkg_objects()
 		self.populate_sidebar_repos()
