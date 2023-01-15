@@ -2,7 +2,6 @@
 <interface>
   <!--// PACKAGE INFOGRID //-->
   <template class="PkgInfoGrid" parent="GtkScrolledWindow">
-    <property name="width-request">400</property>
     <property name="vexpand">True</property>
     <property name="child">
       <object class="GtkColumnView" id="grid">

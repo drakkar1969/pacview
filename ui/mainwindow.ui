@@ -187,17 +187,21 @@
               <object class="GtkSeparator"/>
             </property>
             <property name="content">
-              <object class="GtkBox">
+              <object class="GtkPaned">
                 <property name="orientation">vertical</property>
-                <child>
-                  <object class="PkgColumnView" id="pkg_columnview"/>
-                </child>
-                <child>
-                  <object class="GtkSeparator"/>
-                </child>
-                <child>
-                  <object class="PkgInfoGrid" id="pkg_infogrid"/>
-                </child>
+                <property name="wide-handle">True</property>
+                <property name="shrink-start-child">False</property>
+                <property name="start-child">
+                  <object class="PkgColumnView" id="pkg_columnview">
+                    <property name="height-request">350</property>
+                  </object>
+                </property>
+                <property name="end-child">
+                  <object class="PkgInfoGrid" id="pkg_infogrid">
+                    <property name="width-request">400</property>
+                    <property name="height-request">350</property>
+                  </object>
+                </property>
               </object>
             </property>
           </object>
