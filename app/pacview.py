@@ -36,14 +36,18 @@ class PkgObject(GObject.Object):
 	__gtype_name__ = "PkgObject"
 
 	#-----------------------------------
-	# Read/write properties
+	# Internal pyalpm package properties
 	#-----------------------------------
 	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
-	status = GObject.Property(type=int, default=PkgStatus.NONE)
-	install_date = GObject.Property(type=int, default=0)
+	local_pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
 
 	#-----------------------------------
-	# Read-only properties
+	# Status enum property
+	#-----------------------------------
+	status_enum = GObject.Property(type=int, default=PkgStatus.NONE)
+
+	#-----------------------------------
+	# External read-only properties
 	#-----------------------------------
 	@GObject.Property(type=str, default="")
 	def name(self):
@@ -54,56 +58,8 @@ class PkgObject(GObject.Object):
 		return(self.pkg.version)
 
 	@GObject.Property(type=str, default="")
-	def repository(self):
-		return(self.pkg.db.name)
-
-	@GObject.Property(type=str, default="")
-	def status_string(self):
-		str_dict = { PkgStatus.EXPLICIT: "explicit", PkgStatus.DEPENDENCY: "dependency", PkgStatus.OPTIONAL: "optional", PkgStatus.ORPHAN: "orphan" }
-
-		return(str_dict.get(self.status, ""))
-
-	@GObject.Property(type=str, default="")
-	def status_icon(self):
-		icon_dict = { PkgStatus.EXPLICIT: "package-install", PkgStatus.DEPENDENCY: "package-installed-updated", PkgStatus.OPTIONAL: "package-installed-outdated", PkgStatus.ORPHAN: "package-purge" }
-
-		return(icon_dict.get(self.status, ""))
-
-	@GObject.Property(type=str, default="")
-	def install_date_string(self):
-		return(self.int_to_datestr(self.install_date))
-
-	@GObject.Property(type=int, default=0)
-	def size(self):
-		return(self.pkg.isize)
-
-	@GObject.Property(type=str, default="")
-	def size_string(self):
-		return(self.int_to_sizestr(self.pkg.isize))
-
-	@GObject.Property(type=str, default="")
-	def group(self):
-		return(', '.join(sorted(self.pkg.groups)))
-
-	@GObject.Property(type=str, default="")
 	def description(self):
 		return(self.pkg.desc)
-
-	@GObject.Property(type=GObject.TYPE_STRV, default=[])
-	def depends(self):
-		return(self.pkg.depends)
-
-	@GObject.Property(type=str, default="")
-	def depends_string(self):
-		return(self.pkglist_to_linklist(self.pkg.depends))
-
-	@GObject.Property(type=GObject.TYPE_STRV, default=[])
-	def optdepends(self):
-		return(self.pkg.optdepends)
-
-	@GObject.Property(type=str, default="")
-	def optdepends_string(self):
-		return(self.pkglist_to_linklist(self.pkg.optdepends))
 
 	@GObject.Property(type=str, default="")
 	def url(self):
@@ -114,22 +70,60 @@ class PkgObject(GObject.Object):
 		return(', '.join(sorted(self.pkg.licenses)))
 
 	@GObject.Property(type=str, default="")
+	def status(self):
+		str_dict = { PkgStatus.EXPLICIT: "explicit", PkgStatus.DEPENDENCY: "dependency", PkgStatus.OPTIONAL: "optional", PkgStatus.ORPHAN: "orphan" }
+
+		return(str_dict.get(self.status_enum, ""))
+
+	@GObject.Property(type=str, default="")
+	def status_icon(self):
+		icon_dict = { PkgStatus.EXPLICIT: "package-install", PkgStatus.DEPENDENCY: "package-installed-updated", PkgStatus.OPTIONAL: "package-installed-outdated", PkgStatus.ORPHAN: "package-purge" }
+
+		return(icon_dict.get(self.status_enum, ""))
+
+	@GObject.Property(type=str, default="")
+	def repository(self):
+		return(self.pkg.db.name)
+
+	@GObject.Property(type=str, default="")
+	def group(self):
+		return(', '.join(sorted(self.pkg.groups)))
+
+	@GObject.Property(type=str, default="")
 	def provides(self):
 		return(self.pkglist_to_linklist(self.pkg.provides))
 
+	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	def depends_list(self):
+		return(self.pkg.depends)
+
+	@GObject.Property(type=str, default="")
+	def depends(self):
+		return(self.pkglist_to_linklist(self.pkg.depends))
+
+	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	def optdepends_list(self):
+		return(self.pkg.optdepends)
+
+	@GObject.Property(type=str, default="")
+	def optdepends(self):
+		return(self.pkglist_to_linklist(self.pkg.optdepends))
+
 	@GObject.Property(type=str, default="")
 	def required_by(self):
-		if self.pkg.name in app.local_dict.keys():
-			return(self.pkglist_to_linklist(app.local_dict[self.pkg.name].compute_requiredby()))
-		else:
-			return(self.pkglist_to_linklist(self.pkg.compute_requiredby()))
+		return(self.pkglist_to_linklist(self.local_pkg.compute_requiredby() if self.local_pkg is not None else self.pkg.compute_requiredby()))
 
 	@GObject.Property(type=str, default="")
 	def optional_for(self):
-		if self.pkg.name in app.local_dict.keys():
-			return(self.pkglist_to_linklist(app.local_dict[self.pkg.name].compute_optionalfor()))
-		else:
-			return(self.pkglist_to_linklist(self.pkg.compute_optionalfor()))
+		return(self.pkglist_to_linklist(self.local_pkg.compute_optionalfor() if self.local_pkg is not None else self.pkg.compute_optionalfor()))
+
+	@GObject.Property(type=str, default="")
+	def conflicts(self):
+		return(self.pkglist_to_linklist(self.pkg.conflicts))
+
+	@GObject.Property(type=str, default="")
+	def replaces(self):
+		return(self.pkglist_to_linklist(self.pkg.replaces))
 
 	@GObject.Property(type=str, default="")
 	def architecture(self):
@@ -140,8 +134,32 @@ class PkgObject(GObject.Object):
 		return(self.pkg.packager.replace('<', '[').replace('>', ']'))
 
 	@GObject.Property(type=str, default="")
-	def build_date_string(self):
+	def build_date_long(self):
 		return(self.int_to_datestr_long(self.pkg.builddate))
+
+	@GObject.Property(type=int, default=0)
+	def install_date_raw(self):
+		return(self.local_pkg.installdate if self.local_pkg is not None else self.pkg.installdate)
+
+	@GObject.Property(type=str, default="")
+	def install_date_short(self):
+		return(self.int_to_datestr_short(self.install_date_raw))
+
+	@GObject.Property(type=str, default="")
+	def install_date_long(self):
+		return(self.int_to_datestr_long(self.install_date_raw))
+
+	@GObject.Property(type=str, default="")
+	def download_size(self):
+		return(self.int_to_sizestr(self.pkg.size) if self.local_pkg is None else "")
+
+	@GObject.Property(type=int, default=0)
+	def install_size_raw(self):
+		return(self.pkg.isize)
+
+	@GObject.Property(type=str, default="")
+	def install_size(self):
+		return(self.int_to_sizestr(self.pkg.isize))
 
 	#-----------------------------------
 	# Init function
@@ -154,7 +172,7 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Helper functions
 	#-----------------------------------
-	def int_to_datestr(self, value):
+	def int_to_datestr_short(self, value):
 		return(datetime.datetime.fromtimestamp(value).strftime("%Y/%m/%d %H:%M") if value != 0 else "")
 
 	def int_to_datestr_long(self, value):
@@ -244,17 +262,22 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 		self.model.append(PkgProperty("Description", pkg_object.description))
 		self.model.append(PkgProperty("URL", pkg_object.url))
 		self.model.append(PkgProperty("Licenses", pkg_object.licenses))
-		self.model.append(PkgProperty("Status", pkg_object.status_string if (pkg_object.status & PkgStatus.INSTALLED) else "not installed"))
+		self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
 		self.model.append(PkgProperty("Repository", pkg_object.repository))
 		if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
 		if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
-		self.model.append(PkgProperty("Dependencies", pkg_object.depends_string))
-		if pkg_object.optdepends_string != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends_string))
+		self.model.append(PkgProperty("Dependencies", pkg_object.depends))
+		if pkg_object.optdepends != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends))
 		self.model.append(PkgProperty("Required By", pkg_object.required_by))
 		if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
+		if pkg_object.conflicts != "None": self.model.append(PkgProperty("Conflicts With", pkg_object.conflicts))
+		if pkg_object.replaces != "None": self.model.append(PkgProperty("Replaces", pkg_object.replaces))
 		self.model.append(PkgProperty("Architecture", pkg_object.architecture))
 		self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
-		self.model.append(PkgProperty("Build Date", pkg_object.build_date_string))
+		self.model.append(PkgProperty("Build Date", pkg_object.build_date_long))
+		if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
+		if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
+		self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -310,9 +333,9 @@ class PkgColumnView(Gtk.Box):
 		self.name_sorter.set_sort_func(self.sort_by_str, "name")
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
 		self.repository_sorter.set_sort_func(self.sort_by_str, "repository")
-		self.status_sorter.set_sort_func(self.sort_by_str, "status_string")
-		self.date_sorter.set_sort_func(self.sort_by_int, "install_date")
-		self.size_sorter.set_sort_func(self.sort_by_int, "size")
+		self.status_sorter.set_sort_func(self.sort_by_str, "status")
+		self.date_sorter.set_sort_func(self.sort_by_int, "install_date_raw")
+		self.size_sorter.set_sort_func(self.sort_by_int, "install_size_raw")
 		self.group_sorter.set_sort_func(self.sort_by_str, "group")
 
 		# Bind filters to filter functions
@@ -357,7 +380,7 @@ class PkgColumnView(Gtk.Box):
 		return(True if self.current_repo == "" else (item.repository.lower() == self.current_repo))
 
 	def filter_by_status(self, item):
-		return(item.status & self.current_status)
+		return(item.status_enum & self.current_status)
 
 	def filter_by_search(self, item):
 		if self.current_search == "":
@@ -366,8 +389,8 @@ class PkgColumnView(Gtk.Box):
 			match_name = (self.current_search in item.name) if self.search_by_name else False
 			match_desc = (self.current_search in item.description.lower()) if self.search_by_desc else False
 			match_group = (self.current_search in item.group.lower()) if self.search_by_group else False
-			match_deps = ([s for s in item.depends if self.current_search in s] != []) if self.search_by_deps else False
-			match_optdeps = ([s for s in item.optdepends if self.current_search in s] != []) if self.search_by_optdeps else False
+			match_deps = ([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False
+			match_optdeps = ([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False
 
 			return(match_name or match_desc or match_group or match_deps or match_optdeps)
 
@@ -637,7 +660,7 @@ class LauncherApp(Adw.Application):
 
 		# Build dictionary of names,install reasons of local packages
 		local_db = alpm_handle.get_localdb()
-		self.local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
+		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
 		# Build list of PkgOBjects from packages in databases
 		for db in self.db_names:
@@ -646,20 +669,20 @@ class LauncherApp(Adw.Application):
 			if sync_db is not None:
 				self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
 
-		# Set status/install date for installed packages
+		# Set status for installed packages
 		for i, obj in enumerate(self.pkg_objects):
-			if obj.pkg.name in self.local_dict.keys():
-				reason = self.local_dict[obj.pkg.name].reason
+			if obj.pkg.name in local_dict.keys():
+				self.pkg_objects[i].local_pkg = local_dict[obj.pkg.name]
 
-				if reason == 0: self.pkg_objects[i].status = PkgStatus.EXPLICIT
+				reason = local_dict[obj.pkg.name].reason
+
+				if reason == 0: self.pkg_objects[i].status_enum = PkgStatus.EXPLICIT
 				else:
 					if reason == 1:
-						if self.local_dict[obj.pkg.name].compute_requiredby() != []:
-							self.pkg_objects[i].status = PkgStatus.DEPENDENCY
+						if local_dict[obj.pkg.name].compute_requiredby() != []:
+							self.pkg_objects[i].status_enum = PkgStatus.DEPENDENCY
 						else:
-							self.pkg_objects[i].status = PkgStatus.OPTIONAL if self.local_dict[obj.pkg.name].compute_optionalfor() != [] else PkgStatus.ORPHAN
-
-				self.pkg_objects[i].install_date = self.local_dict[obj.pkg.name].installdate
+							self.pkg_objects[i].status_enum = PkgStatus.OPTIONAL if local_dict[obj.pkg.name].compute_optionalfor() != [] else PkgStatus.ORPHAN
 
 	#-----------------------------------
 	# Signal handlers

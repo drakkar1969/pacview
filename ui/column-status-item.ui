@@ -16,7 +16,7 @@
         <child>
           <object class="GtkLabel">
             <binding name="label">
-              <lookup name="status_string" type="PkgObject">
+              <lookup name="status" type="PkgObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
