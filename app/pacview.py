@@ -266,7 +266,7 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 	def display_properties(self, pkg_object):
 		self.model.remove_all()
 
-		self.model.append(PkgProperty("Package", f'<b>{pkg_object.name}</b>'))
+		self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
 		self.model.append(PkgProperty("Version", pkg_object.version))
 		self.model.append(PkgProperty("Description", pkg_object.description))
 		self.model.append(PkgProperty("URL", pkg_object.url))
