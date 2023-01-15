@@ -54,6 +54,12 @@
               </object>
             </child>
             <child type="end">
+              <object class="GtkToggleButton" id="header_grid_btn">
+                <property name="icon-name">view-bottom-pane-symbolic</property>
+                <property name="active" bind-source="pkg_infogrid" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+              </object>
+            </child>
+            <child type="end">
               <object class="GtkToggleButton" id="header_search_btn">
                 <property name="icon-name">edit-find</property>
                 <property name="active">False</property>
