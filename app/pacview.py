@@ -438,7 +438,7 @@ class PkgColumnView(Gtk.Box):
 	# Selection signal handlers
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_row_selected(self, selection, prop_name):
+	def on_row_selected(self, selection, position, n_items):
 		if self.main_window and self.main_window.pkg_infogrid:
 			if selection.get_selected_item() is not None:
 				self.main_window.pkg_infogrid.display_properties(selection.get_selected_item())
@@ -522,6 +522,19 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.main_window = self
 		self.pkg_infogrid.main_window = self
 
+		# Connect header search entry to package column view
+		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
+
+		# Bind header search button state to search entry visibility
+		self.header_search_btn.bind_property(
+			"active",
+			self.header_stack,
+			"visible-child",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
+			lambda binding, value: self.header_search_box if value == True else self.header_title,
+			lambda binding, value: (value == self.header_search_box)
+		)
+
 		# Add actions
 		action_list = [
 			( "search-start", self.search_start_action ),
@@ -551,23 +564,13 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
-		# Connect header search entry to package column view
-		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
-
-		# Bind header search button state to search entry visibility
-		self.header_search_btn.bind_property(
-			"active",
-			self.header_stack,
-			"visible-child",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
-			lambda binding, value: self.header_search_box if value == True else self.header_title,
-			lambda binding, value: (value == self.header_search_box)
-		)
-
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
 		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+		# Display first item properties in package info grid
+		self.pkg_infogrid.display_properties(self.pkg_columnview.selection.get_selected_item())
 
 		# Set initial focus on package column view
 		self.set_focus(self.pkg_columnview.view)
