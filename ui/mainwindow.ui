@@ -188,6 +188,7 @@
             </property>
             <property name="content">
               <object class="GtkBox">
+                <property name="orientation">vertical</property>
                 <child>
                   <object class="PkgColumnView" id="pkg_columnview"/>
                 </child>
