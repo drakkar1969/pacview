@@ -4,7 +4,7 @@ import gi, sys, os, datetime
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio, GObject
+from gi.repository import Gtk, Adw, Gio, GObject, GLib
 
 import pyalpm
 
@@ -131,7 +131,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def maintainer(self):
-		return(self.pkg.packager.replace('<', '[').replace('>', ']'))
+		return(GLib.markup_escape_text(self.pkg.packager))
 
 	@GObject.Property(type=str, default="")
 	def build_date_long(self):
@@ -206,6 +206,10 @@ class PkgObject(GObject.Object):
 					pkg, ver = pkg.split(delim, 1)
 					ver = delim+ver
 					break
+
+			pkg = GLib.markup_escape_text(pkg)
+			desc = GLib.markup_escape_text(desc)
+			ver = GLib.markup_escape_text(ver)
 
 			return(f'<a href="{pkg}">{pkg}</a>{ver}{desc}')
 
