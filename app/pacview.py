@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-import gi, sys, os, datetime
+import gi, sys, os, datetime, urllib.parse
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio, GObject, GLib
+from gi.repository import Gtk, Adw, Gio, GObject, GLib, Pango
 
 import pyalpm
 
@@ -211,7 +211,7 @@ class PkgObject(GObject.Object):
 			desc = GLib.markup_escape_text(desc)
 			ver = GLib.markup_escape_text(ver)
 
-			return(f'<a href="{pkg}">{pkg}</a>{ver}{desc}')
+			return(f'<a href="pkg://{pkg}">{pkg}</a>{ver}{desc}')
 
 		return('\n'.join([link(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
 
@@ -282,6 +282,27 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 		if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
 		if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
 		self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
+
+	#-----------------------------------
+	# Factory signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_setup_value(self, factory, item):
+		label = Gtk.Label(halign=Gtk.Align.START, wrap_mode=Pango.WrapMode.WORD, wrap=True, width_chars=30, max_width_chars=30, xalign=0, use_markup=True)
+		label.connect("activate-link", self.on_link_activated)
+		item.set_child(label)
+
+	@Gtk.Template.Callback()
+	def on_bind_value(self, factory, item):
+		item.get_child().set_label(item.get_item().prop_value)
+
+	#-----------------------------------
+	# Link signal handler
+	#-----------------------------------
+	def on_link_activated(self, label, url):
+		parse_url = urllib.parse.urlsplit(url)
+
+		return(True if parse_url.scheme == "pkg" else False)
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW

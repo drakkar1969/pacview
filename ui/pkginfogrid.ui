@@ -32,8 +32,9 @@
             <property name="resizable">True</property>
             <property name="expand">True</property>
             <property name="factory">
-              <object class="GtkBuilderListItemFactory" id="value_factory">
-                <property name="resource">/com/github/PacView/ui/property-value-item.ui</property>
+              <object class="GtkSignalListItemFactory" id="value_factory">
+                <signal name="setup" handler="on_setup_value" swapped="no"/>
+                <signal name="bind" handler="on_bind_value" swapped="no"/>
               </object>
             </property>
           </object>
