@@ -682,8 +682,17 @@ class LauncherApp(Adw.Application):
 		db_path = os.path.join(alpm_folder, "sync")
 
 		# Build list of database names
+		self.default_db_names = ["core", "extra", "community", "multilib"]
+
 		db_files = list(os.listdir(db_path)) if os.path.exists(db_path) else []
-		self.db_names = [os.path.basename(db).split(".")[0] for db in db_files if db.endswith(".db")]
+		db_names = [os.path.basename(db).split(".")[0] for db in db_files if db.endswith(".db")]
+
+		for name in self.default_db_names:
+			if name in db_names:
+				self.db_names.append(name)
+				db_names.remove(name)
+
+		self.db_names.extend(sorted(db_names))
 
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", alpm_folder)
