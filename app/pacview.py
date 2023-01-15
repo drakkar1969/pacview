@@ -213,7 +213,7 @@ class PkgObject(GObject.Object):
 
 			return(f'<a href="pkg://{pkg}">{pkg}</a>{ver}{desc}')
 
-		return('\n'.join([link(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
+		return('   '.join([link(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
