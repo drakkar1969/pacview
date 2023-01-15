@@ -250,6 +250,11 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 	model = Gtk.Template.Child()
 
 	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	main_window = GObject.Property(type=Gtk.Window, default=None)
+
+	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
@@ -302,7 +307,15 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 	def on_link_activated(self, label, url):
 		parse_url = urllib.parse.urlsplit(url)
 
-		return(True if parse_url.scheme == "pkg" else False)
+		if parse_url.scheme != "pkg": return(False)
+
+		if self.main_window and self.main_window.pkg_columnview:
+			pkg_dict = dict([(pkg.name, pkg) for pkg in self.main_window.pkg_columnview.model])
+
+			if parse_url.netloc in pkg_dict.keys():
+				self.display_properties(pkg_dict[parse_url.netloc])
+
+		return(True)
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -315,6 +328,8 @@ class PkgColumnView(Gtk.Box):
 	# Class widget variables
 	#-----------------------------------
 	view = Gtk.Template.Child()
+	selection = Gtk.Template.Child()
+	sort_model = Gtk.Template.Child()
 	filter_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 
@@ -334,8 +349,7 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	property_grid = GObject.Property(type=PkgInfoGrid, default=None)
-	status_bar = GObject.Property(type=Gtk.Statusbar, default=None)
+	main_window = GObject.Property(type=Gtk.Window, default=None)
 
 	current_repo = GObject.Property(type=str, default="")
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
@@ -395,9 +409,9 @@ class PkgColumnView(Gtk.Box):
 	def on_main_filter_changed(self, change, user_data):
 		n_items = self.filter_model.get_n_items()
 
-		if self.status_bar is not None:
-			self.status_bar.pop(0)
-			self.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
+		if self.main_window and self.main_window.status_bar:
+			self.main_window.status_bar.pop(0)
+			self.main_window.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
 
 	#-----------------------------------
 	# Filter functions
@@ -425,8 +439,9 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_row_selected(self, selection, prop_name):
-		if self.property_grid is not None and selection.get_selected_item() is not None:
-			self.property_grid.display_properties(selection.get_selected_item())
+		if self.main_window and self.main_window.pkg_infogrid:
+			if selection.get_selected_item() is not None:
+				self.main_window.pkg_infogrid.display_properties(selection.get_selected_item())
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
@@ -489,6 +504,7 @@ class MainWindow(Adw.ApplicationWindow):
 	repo_listbox_all = Gtk.Template.Child()
 
 	status_listbox = Gtk.Template.Child()
+	status_listbox_all = Gtk.Template.Child()
 	status_listbox_installed = Gtk.Template.Child()
 
 	pkg_columnview = Gtk.Template.Child()
@@ -502,11 +518,9 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Set package column view property grid
-		self.pkg_columnview.property_grid = self.pkg_infogrid
-
-		# Set package column view status bar
-		self.pkg_columnview.status_bar = self.status_bar
+		# Set main window in package column view and info grid
+		self.pkg_columnview.main_window = self
+		self.pkg_infogrid.main_window = self
 
 		# Add actions
 		action_list = [
