@@ -161,6 +161,10 @@ class PkgObject(GObject.Object):
 	def install_size(self):
 		return(self.int_to_sizestr(self.pkg.isize))
 
+	@GObject.Property(type=str, default="")
+	def install_script(self):
+		return("Yes" if self.pkg.has_scriptlet else "No")
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -287,6 +291,7 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 		if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
 		if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
 		self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
+		self.model.append(PkgProperty("Install Script", pkg_object.install_script))
 
 	#-----------------------------------
 	# Factory signal handlers
