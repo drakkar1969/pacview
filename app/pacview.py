@@ -409,9 +409,8 @@ class PkgColumnView(Gtk.Box):
 	def on_main_filter_changed(self, change, user_data):
 		n_items = self.filter_model.get_n_items()
 
-		if self.main_window and self.main_window.status_bar:
-			self.main_window.status_bar.pop(0)
-			self.main_window.status_bar.push(0, f'{n_items} matching package{"s" if n_items != 1 else ""}')
+		if self.main_window and self.main_window.count_label:
+			self.main_window.count_label.set_text(f'{n_items} matching package{"s" if n_items != 1 else ""}')
 
 	#-----------------------------------
 	# Filter functions
@@ -510,7 +509,7 @@ class MainWindow(Adw.ApplicationWindow):
 	pkg_columnview = Gtk.Template.Child()
 	pkg_infogrid = Gtk.Template.Child()
 
-	status_bar = Gtk.Template.Child()
+	count_label = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -604,8 +603,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search_entry.emit("stop-search")
 
 	def refresh_dbs_action(self, action, value, user_data):
-		self.status_bar.pop(0)
-		self.status_bar.push(0, "Refreshing package list...")
+		self.count_label.set_text("Refreshing package list...")
 		
 		app.populate_pkg_objects()
 		self.populate_sidebar_repos()
