@@ -714,9 +714,10 @@ class LauncherApp(Adw.Application):
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", alpm_folder)
 
+		# Clear list of PkgOBjects
 		self.pkg_objects.clear()
 
-		# Build dictionary of names,install reasons of local packages
+		# Build dictionary of local packages
 		local_db = alpm_handle.get_localdb()
 		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
