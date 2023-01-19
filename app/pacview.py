@@ -607,8 +607,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search_entry.emit("stop-search")
 
 	def refresh_dbs_action(self, action, value, user_data):
-		self.count_label.set_text("Refreshing package list...")
-		
 		app.populate_pkg_objects()
 		self.populate_sidebar_repos()
 
