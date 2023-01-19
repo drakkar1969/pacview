@@ -529,10 +529,10 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search_btn.bind_property(
 			"active",
 			self.header_stack,
-			"visible-child",
+			"visible-child-name",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
-			lambda binding, value: self.header_search_box if value == True else self.header_title,
-			lambda binding, value: (value == self.header_search_box)
+			lambda binding, value: "search" if value == True else "title",
+			lambda binding, value: (value == "search")
 		)
 
 		# Add actions
@@ -648,7 +648,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
-		self.header_stack.set_visible_child(self.header_search_box)
+		self.header_stack.set_visible_child_name("search")
 
 		self.set_focus(self.header_search_entry)
 
@@ -662,7 +662,7 @@ class MainWindow(Adw.ApplicationWindow):
 	def on_search_stopped(self, entry):
 		entry.set_text("")
 
-		self.header_stack.set_visible_child(self.header_title)
+		self.header_stack.set_visible_child_name("title")
 
 	@Gtk.Template.Callback()
 	def on_search_btn_toggled(self, button):

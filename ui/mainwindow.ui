@@ -12,30 +12,40 @@
             <property name="title-widget">
               <object class="GtkStack" id="header_stack">
                 <child>
-                  <object class="AdwWindowTitle" id="header_title">
-                    <property name="title">PacView</property>
+                  <object class="GtkStackPage">
+                    <property name="name">title</property>
+                    <property name="child">
+                      <object class="AdwWindowTitle" id="header_title">
+                        <property name="title">PacView</property>
+                      </object>
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkBox" id="header_search_box">
-                    <style>
-                      <class name="linked"/>
-                    </style>
-                    <child>
-                      <object class="GtkSearchEntry" id="header_search_entry">
-                        <property name="width-request">400</property>
-                        <property name="placeholder-text">Search for packages</property>
-                        <signal name="search-started" handler="on_search_started" swapped="no"/>
-                        <signal name="search-changed" handler="on_search_changed" swapped="no"/>
-                        <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
+                  <object class="GtkStackPage">
+                    <property name="name">search</property>
+                    <property name="child">
+                      <object class="GtkBox" id="header_search_box">
+                        <style>
+                          <class name="linked"/>
+                        </style>
+                        <child>
+                          <object class="GtkSearchEntry" id="header_search_entry">
+                            <property name="width-request">400</property>
+                            <property name="placeholder-text">Search for packages</property>
+                            <signal name="search-started" handler="on_search_started" swapped="no"/>
+                            <signal name="search-changed" handler="on_search_changed" swapped="no"/>
+                            <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkMenuButton" id="header_search_filter_btn">
+                            <property name="icon_name">view-filter</property>
+                            <property name="menu_model">search_menu</property>
+                          </object>
+                        </child>
                       </object>
-                    </child>
-                    <child>
-                      <object class="GtkMenuButton" id="header_search_filter_btn">
-                        <property name="icon_name">view-filter</property>
-                        <property name="menu_model">search_menu</property>
-                      </object>
-                    </child>
+                    </property>
                   </object>
                 </child>
               </object>
