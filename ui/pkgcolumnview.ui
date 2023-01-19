@@ -18,7 +18,6 @@
                       <object class="GtkFilterListModel" id="filter_model">
                         <property name="filter">
                           <object class="GtkEveryFilter" id="main_filter">
-                            <signal name="changed" handler="on_main_filter_changed" swapped="no"/>
                             <child>
                               <object class="GtkCustomFilter" id="repo_filter"/>
                             </child>

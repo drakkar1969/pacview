@@ -403,16 +403,6 @@ class PkgColumnView(Gtk.Box):
 		return(item_a.get_property(prop) - item_b.get_property(prop))
 
 	#-----------------------------------
-	# Filter signal handlers
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_main_filter_changed(self, change, user_data):
-		n_items = self.filter_model.get_n_items()
-
-		if self.main_window and self.main_window.count_label:
-			self.main_window.count_label.set_text(f'{n_items} matching package{"s" if n_items != 1 else ""}')
-
-	#-----------------------------------
 	# Filter functions
 	#-----------------------------------
 	def filter_by_repo(self, item):
@@ -532,6 +522,15 @@ class MainWindow(Adw.ApplicationWindow):
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
 			lambda binding, value: "search" if value == True else "title",
 			lambda binding, value: (value == "search")
+		)
+
+		# Bind package column view count to status label text
+		self.pkg_columnview.filter_model.bind_property(
+			"n-items",
+			self.count_label,
+			"label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
 		)
 
 		# Add actions
