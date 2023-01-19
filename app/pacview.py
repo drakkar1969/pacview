@@ -66,6 +66,10 @@ class PkgObject(GObject.Object):
 		return(self.url_to_link(self.pkg.url))
 
 	@GObject.Property(type=str, default="")
+	def package_url(self):
+		return(self.url_to_link(f'https://www.archlinux.org/packages/{self.repository}/{self.architecture}/{self.name}'))
+
+	@GObject.Property(type=str, default="")
 	def licenses(self):
 		return(', '.join(sorted(self.pkg.licenses)))
 
@@ -274,6 +278,7 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 		self.model.append(PkgProperty("Version", pkg_object.version))
 		self.model.append(PkgProperty("Description", pkg_object.description))
 		self.model.append(PkgProperty("URL", pkg_object.url))
+		if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
 		self.model.append(PkgProperty("Licenses", pkg_object.licenses))
 		self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
 		self.model.append(PkgProperty("Repository", pkg_object.repository))
