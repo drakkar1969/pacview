@@ -484,8 +484,7 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	str_selection = GObject.Property(type=str, default="")
-	int_selection = GObject.Property(type=int, default=PkgStatus.ALL)
+	str_id = GObject.Property(type=str, default="")
 
 	@GObject.Property(type=str)
 	def icon_name(self):
@@ -619,7 +618,7 @@ class MainWindow(Adw.ApplicationWindow):
 			if row != self.repo_listbox_all: self.repo_listbox.remove(row)
 
 		for db in app.db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_selection=db))
+			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_id=db))
 
 	#-----------------------------------
 	# Action handlers
@@ -669,11 +668,11 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
-		self.pkg_columnview.current_repo = row.str_selection
+		self.pkg_columnview.current_repo = row.str_id
 
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
-		self.pkg_columnview.current_status = row.int_selection
+		self.pkg_columnview.current_status = PkgStatus(int(row.str_id))
 
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
