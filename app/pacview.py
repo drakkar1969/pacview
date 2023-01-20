@@ -604,14 +604,12 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add rows to sidebar repository list box
 		self.populate_sidebar_repos()
 
-		# Select rows in sidebar list boxes
-		self.repo_listbox.select_row(self.repo_listbox_all)
-		self.status_listbox.select_row(self.status_listbox_installed)
-
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
-		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
+		# Select rows in sidebar list boxes (apply repo/status filter)
+		self.repo_listbox.select_row(self.repo_listbox_all)
+		self.status_listbox.select_row(self.status_listbox_installed)
 
 		# Display first item properties in package info grid
 		self.pkg_infogrid.display_properties(self.pkg_columnview.selection.get_selected_item())
