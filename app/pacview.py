@@ -377,6 +377,10 @@ class PkgColumnView(Gtk.Box):
 
 		self.selection.set_selected(0)
 
+		if self.main_window and self.main_window.pkg_infogrid:
+			if self.selection.get_selected_item() is not None:
+				self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
+
 	@GObject.Property(type=int, default=PkgStatus.ALL)
 	def current_status(self):
 		return(self._current_status)
@@ -389,6 +393,10 @@ class PkgColumnView(Gtk.Box):
 
 		self.selection.set_selected(0)
 
+		if self.main_window and self.main_window.pkg_infogrid:
+			if self.selection.get_selected_item() is not None:
+				self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
+
 	@GObject.Property(type=str, default="")
 	def current_search(self):
 		return(self._current_search)
@@ -400,6 +408,10 @@ class PkgColumnView(Gtk.Box):
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 		self.selection.set_selected(0)
+
+		if self.main_window and self.main_window.pkg_infogrid:
+			if self.selection.get_selected_item() is not None:
+				self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
@@ -610,9 +622,6 @@ class MainWindow(Adw.ApplicationWindow):
 		# Select rows in sidebar list boxes (apply repo/status filter)
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
-
-		# Display first item properties in package info grid
-		self.pkg_infogrid.display_properties(self.pkg_columnview.selection.get_selected_item())
 
 		# Set initial focus on package column view
 		self.set_focus(self.pkg_columnview.view)
