@@ -262,42 +262,48 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 	#-----------------------------------
 	main_window = GObject.Property(type=Gtk.Window, default=None)
 
+	_pkg_object = None
+
+	@GObject.Property(type=PkgObject, default=None)
+	def pkg_object(self):
+		return(self._pkg_object)
+
+	@pkg_object.setter
+	def pkg_object(self, value):
+		self._pkg_object = value
+
+		self.model.remove_all()
+
+		if value is not None:
+			self.model.append(PkgProperty("Name", f'<b>{value.name}</b>'))
+			self.model.append(PkgProperty("Version", value.version))
+			self.model.append(PkgProperty("Description", value.description))
+			self.model.append(PkgProperty("URL", value.url))
+			if value.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", value.package_url))
+			self.model.append(PkgProperty("Licenses", value.licenses))
+			self.model.append(PkgProperty("Status", value.status if (value.status_enum & PkgStatus.INSTALLED) else "not installed"))
+			self.model.append(PkgProperty("Repository", value.repository))
+			if value.group != "":self.model.append(PkgProperty("Groups", value.group))
+			if value.provides != "None": self.model.append(PkgProperty("Provides", value.provides))
+			self.model.append(PkgProperty("Dependencies", value.depends))
+			if value.optdepends != "None": self.model.append(PkgProperty("Optional", value.optdepends))
+			self.model.append(PkgProperty("Required By", value.required_by))
+			if value.optional_for != "None": self.model.append(PkgProperty("Optional For", value.optional_for))
+			if value.conflicts != "None": self.model.append(PkgProperty("Conflicts With", value.conflicts))
+			if value.replaces != "None": self.model.append(PkgProperty("Replaces", value.replaces))
+			self.model.append(PkgProperty("Architecture", value.architecture))
+			self.model.append(PkgProperty("Maintainer", value.maintainer))
+			self.model.append(PkgProperty("Build Date", value.build_date_long))
+			if value.install_date_long != "": self.model.append(PkgProperty("Install Date", value.install_date_long))
+			if value.download_size != "": self.model.append(PkgProperty("Download Size", value.download_size))
+			self.model.append(PkgProperty("Installed Size", value.install_size))
+			self.model.append(PkgProperty("Install Script", value.install_script))
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-	#-----------------------------------
-	# Display function
-	#-----------------------------------
-	def display_properties(self, pkg_object):
-		self.model.remove_all()
-
-		if pkg_object is not None:
-			self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
-			self.model.append(PkgProperty("Version", pkg_object.version))
-			self.model.append(PkgProperty("Description", pkg_object.description))
-			self.model.append(PkgProperty("URL", pkg_object.url))
-			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
-			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
-			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
-			self.model.append(PkgProperty("Repository", pkg_object.repository))
-			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
-			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
-			self.model.append(PkgProperty("Dependencies", pkg_object.depends))
-			if pkg_object.optdepends != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends))
-			self.model.append(PkgProperty("Required By", pkg_object.required_by))
-			if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
-			if pkg_object.conflicts != "None": self.model.append(PkgProperty("Conflicts With", pkg_object.conflicts))
-			if pkg_object.replaces != "None": self.model.append(PkgProperty("Replaces", pkg_object.replaces))
-			self.model.append(PkgProperty("Architecture", pkg_object.architecture))
-			self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
-			self.model.append(PkgProperty("Build Date", pkg_object.build_date_long))
-			if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
-			if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
-			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
-			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
 
 	#-----------------------------------
 	# Factory signal handlers
@@ -324,7 +330,7 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 			pkg_dict = dict([(pkg.name, pkg) for pkg in self.main_window.pkg_columnview.model])
 
 			if parse_url.netloc in pkg_dict.keys():
-				self.display_properties(pkg_dict[parse_url.netloc])
+				self.pkg_object = pkg_dict[parse_url.netloc]
 
 		return(True)
 
@@ -360,8 +366,6 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	main_window = GObject.Property(type=Gtk.Window, default=None)
-
 	_current_repo = ""
 	_current_status = PkgStatus.ALL
 	_current_search = ""
@@ -378,9 +382,6 @@ class PkgColumnView(Gtk.Box):
 
 		self.selection.set_selected(0)
 
-		if self.main_window and self.main_window.pkg_infogrid:
-			self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
-
 	@GObject.Property(type=int, default=PkgStatus.ALL)
 	def current_status(self):
 		return(self._current_status)
@@ -393,9 +394,6 @@ class PkgColumnView(Gtk.Box):
 
 		self.selection.set_selected(0)
 
-		if self.main_window and self.main_window.pkg_infogrid:
-			self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
-
 	@GObject.Property(type=str, default="")
 	def current_search(self):
 		return(self._current_search)
@@ -407,9 +405,6 @@ class PkgColumnView(Gtk.Box):
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 		self.selection.set_selected(0)
-
-		if self.main_window and self.main_window.pkg_infogrid:
-			self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
@@ -478,14 +473,6 @@ class PkgColumnView(Gtk.Box):
 			match_optdeps = ([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False
 
 			return(match_name or match_desc or match_group or match_deps or match_optdeps)
-
-	#-----------------------------------
-	# Selection signal handlers
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_row_selected(self, selection, position, n_items):
-		if self.main_window and self.main_window.pkg_infogrid:
-			self.main_window.pkg_infogrid.display_properties(selection.get_selected_item())
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
@@ -562,8 +549,7 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Set main window in package column view and info grid
-		self.pkg_columnview.main_window = self
+		# Set main window in package info grid
 		self.pkg_infogrid.main_window = self
 
 		# Connect header search entry to package column view
@@ -577,6 +563,14 @@ class MainWindow(Adw.ApplicationWindow):
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
 			lambda binding, value: "search" if value == True else "title",
 			lambda binding, value: (value == "search")
+		)
+
+		# Bind package column view selected item to info grid
+		self.pkg_columnview.selection.bind_property(
+			"selected-item",
+			self.pkg_infogrid,
+			"pkg_object",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		# Bind package column view count to status label text
