@@ -11,7 +11,9 @@
         <property name="model">
           <object class="GtkNoSelection" id="selection">
             <property name="model">
-              <object class="GListStore" id="model"/>
+              <object class="GListStore" id="model">
+                <property name="item-type">PkgProperty</property>
+              </object>
             </property>
           </object>
         </property>
