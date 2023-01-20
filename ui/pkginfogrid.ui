@@ -5,6 +5,7 @@
     <property name="orientation">vertical</property>
     <child>
       <object class="GtkScrolledWindow">
+        <property name="hexpand">True</property>
         <property name="vexpand">True</property>
         <property name="child">
           <object class="GtkColumnView" id="grid">
@@ -46,6 +47,42 @@
             </child>
           </object>
         </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkSeparator"/>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin_start">6</property>
+        <property name="margin_end">6</property>
+        <property name="margin_top">6</property>
+        <property name="margin_bottom">6</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <child>
+              <object class="AdwSplitButton">
+                <property name="sensitive">False</property>
+                <property name="icon_name">go-previous</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSplitButton">
+                <property name="sensitive">False</property>
+                <property name="icon_name">go-next</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </template>
