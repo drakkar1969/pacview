@@ -274,29 +274,30 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 	def display_properties(self, pkg_object):
 		self.model.remove_all()
 
-		self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
-		self.model.append(PkgProperty("Version", pkg_object.version))
-		self.model.append(PkgProperty("Description", pkg_object.description))
-		self.model.append(PkgProperty("URL", pkg_object.url))
-		if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
-		self.model.append(PkgProperty("Licenses", pkg_object.licenses))
-		self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
-		self.model.append(PkgProperty("Repository", pkg_object.repository))
-		if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
-		if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
-		self.model.append(PkgProperty("Dependencies", pkg_object.depends))
-		if pkg_object.optdepends != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends))
-		self.model.append(PkgProperty("Required By", pkg_object.required_by))
-		if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
-		if pkg_object.conflicts != "None": self.model.append(PkgProperty("Conflicts With", pkg_object.conflicts))
-		if pkg_object.replaces != "None": self.model.append(PkgProperty("Replaces", pkg_object.replaces))
-		self.model.append(PkgProperty("Architecture", pkg_object.architecture))
-		self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
-		self.model.append(PkgProperty("Build Date", pkg_object.build_date_long))
-		if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
-		if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
-		self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
-		self.model.append(PkgProperty("Install Script", pkg_object.install_script))
+		if pkg_object is not None:
+			self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
+			self.model.append(PkgProperty("Version", pkg_object.version))
+			self.model.append(PkgProperty("Description", pkg_object.description))
+			self.model.append(PkgProperty("URL", pkg_object.url))
+			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
+			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
+			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
+			self.model.append(PkgProperty("Repository", pkg_object.repository))
+			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
+			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
+			self.model.append(PkgProperty("Dependencies", pkg_object.depends))
+			if pkg_object.optdepends != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends))
+			self.model.append(PkgProperty("Required By", pkg_object.required_by))
+			if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
+			if pkg_object.conflicts != "None": self.model.append(PkgProperty("Conflicts With", pkg_object.conflicts))
+			if pkg_object.replaces != "None": self.model.append(PkgProperty("Replaces", pkg_object.replaces))
+			self.model.append(PkgProperty("Architecture", pkg_object.architecture))
+			self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
+			self.model.append(PkgProperty("Build Date", pkg_object.build_date_long))
+			if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
+			if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
+			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
+			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
 
 	#-----------------------------------
 	# Factory signal handlers
@@ -378,8 +379,7 @@ class PkgColumnView(Gtk.Box):
 		self.selection.set_selected(0)
 
 		if self.main_window and self.main_window.pkg_infogrid:
-			if self.selection.get_selected_item() is not None:
-				self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
+			self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
 
 	@GObject.Property(type=int, default=PkgStatus.ALL)
 	def current_status(self):
@@ -394,8 +394,7 @@ class PkgColumnView(Gtk.Box):
 		self.selection.set_selected(0)
 
 		if self.main_window and self.main_window.pkg_infogrid:
-			if self.selection.get_selected_item() is not None:
-				self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
+			self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
 
 	@GObject.Property(type=str, default="")
 	def current_search(self):
@@ -410,8 +409,7 @@ class PkgColumnView(Gtk.Box):
 		self.selection.set_selected(0)
 
 		if self.main_window and self.main_window.pkg_infogrid:
-			if self.selection.get_selected_item() is not None:
-				self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
+			self.main_window.pkg_infogrid.display_properties(self.selection.get_selected_item())
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
@@ -487,8 +485,7 @@ class PkgColumnView(Gtk.Box):
 	@Gtk.Template.Callback()
 	def on_row_selected(self, selection, position, n_items):
 		if self.main_window and self.main_window.pkg_infogrid:
-			if selection.get_selected_item() is not None:
-				self.main_window.pkg_infogrid.display_properties(selection.get_selected_item())
+			self.main_window.pkg_infogrid.display_properties(selection.get_selected_item())
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
