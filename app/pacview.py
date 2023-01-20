@@ -375,6 +375,8 @@ class PkgColumnView(Gtk.Box):
 
 		self.repo_filter.changed(Gtk.FilterChange.DIFFERENT)
 
+		self.selection.set_selected(0)
+
 	@GObject.Property(type=int, default=PkgStatus.ALL)
 	def current_status(self):
 		return(self._current_status)
@@ -385,6 +387,8 @@ class PkgColumnView(Gtk.Box):
 
 		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
+		self.selection.set_selected(0)
+
 	@GObject.Property(type=str, default="")
 	def current_search(self):
 		return(self._current_search)
@@ -394,6 +398,8 @@ class PkgColumnView(Gtk.Box):
 		self._current_search = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+		self.selection.set_selected(0)
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
