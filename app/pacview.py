@@ -94,6 +94,10 @@ class PkgObject(GObject.Object):
 		return(', '.join(sorted(self.pkg.groups)))
 
 	@GObject.Property(type=str, default="")
+	def provides_list(self):
+		return(self.pkg.provides)
+
+	@GObject.Property(type=str, default="")
 	def provides(self):
 		return(self.pkglist_to_linklist(self.pkg.provides))
 
@@ -331,6 +335,11 @@ class PkgInfoGrid(Gtk.ScrolledWindow):
 
 			if parse_url.netloc in pkg_dict.keys():
 				self.pkg_object = pkg_dict[parse_url.netloc]
+			else:
+				for pkg in pkg_dict.values():
+					if [s for s in pkg.provides_list if parse_url.netloc in s] != []:
+						self.pkg_object = pkg
+						break
 
 		return(True)
 
