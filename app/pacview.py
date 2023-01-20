@@ -252,7 +252,7 @@ class PkgProperty(GObject.Object):
 #-- CLASS: PKGINFOGRID
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkginfogrid.ui")
-class PkgInfoGrid(Gtk.ScrolledWindow):
+class PkgInfoGrid(Gtk.Box):
 	__gtype_name__ = "PkgInfoGrid"
 
 	#-----------------------------------

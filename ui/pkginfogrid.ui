@@ -1,47 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PACKAGE INFOGRID //-->
-  <template class="PkgInfoGrid" parent="GtkScrolledWindow">
-    <property name="vexpand">True</property>
-    <property name="child">
-      <object class="GtkColumnView" id="grid">
-        <property name="show-row-separators">True</property>
-        <property name="show-column-separators">True</property>
-        <property name="reorderable">False</property>
-        <property name="model">
-          <object class="GtkNoSelection" id="selection">
+  <template class="PkgInfoGrid" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="vexpand">True</property>
+        <property name="child">
+          <object class="GtkColumnView" id="grid">
+            <property name="show-row-separators">True</property>
+            <property name="show-column-separators">True</property>
+            <property name="reorderable">False</property>
             <property name="model">
-              <object class="GListStore" id="model">
-                <property name="item-type">PkgProperty</property>
+              <object class="GtkNoSelection" id="selection">
+                <property name="model">
+                  <object class="GListStore" id="model">
+                    <property name="item-type">PkgProperty</property>
+                  </object>
+                </property>
               </object>
             </property>
+            <child>
+              <object class="GtkColumnViewColumn" id="name_column">
+                <property name="title">Property</property>
+                <property name="resizable">False</property>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory" id="name_factory">
+                    <property name="resource">/com/github/PacView/ui/property-name-item.ui</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkColumnViewColumn" id="value_column">
+                <property name="title">Value</property>
+                <property name="resizable">False</property>
+                <property name="expand">True</property>
+                <property name="factory">
+                  <object class="GtkSignalListItemFactory" id="value_factory">
+                    <signal name="setup" handler="on_setup_value" swapped="no"/>
+                    <signal name="bind" handler="on_bind_value" swapped="no"/>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </property>
-        <child>
-          <object class="GtkColumnViewColumn" id="name_column">
-            <property name="title">Property</property>
-            <property name="resizable">False</property>
-            <property name="factory">
-              <object class="GtkBuilderListItemFactory" id="name_factory">
-                <property name="resource">/com/github/PacView/ui/property-name-item.ui</property>
-              </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkColumnViewColumn" id="value_column">
-            <property name="title">Value</property>
-            <property name="resizable">False</property>
-            <property name="expand">True</property>
-            <property name="factory">
-              <object class="GtkSignalListItemFactory" id="value_factory">
-                <signal name="setup" handler="on_setup_value" swapped="no"/>
-                <signal name="bind" handler="on_bind_value" swapped="no"/>
-              </object>
-            </property>
-          </object>
-        </child>
       </object>
-    </property>
+    </child>
   </template>
 </interface>
