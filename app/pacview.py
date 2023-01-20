@@ -361,9 +361,39 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	main_window = GObject.Property(type=Gtk.Window, default=None)
 
-	current_repo = GObject.Property(type=str, default="")
-	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
-	current_search = GObject.Property(type=str, default="")
+	_current_repo = ""
+	_current_status = PkgStatus.ALL
+	_current_search = ""
+
+	@GObject.Property(type=str, default="")
+	def current_repo(self):
+		return(self._current_repo)
+
+	@current_repo.setter
+	def current_repo(self, value):
+		self._current_repo = value
+
+		self.repo_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	@GObject.Property(type=int, default=PkgStatus.ALL)
+	def current_status(self):
+		return(self._current_status)
+
+	@current_status.setter
+	def current_status(self, value):
+		self._current_status = value
+
+		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	@GObject.Property(type=str, default="")
+	def current_search(self):
+		return(self._current_search)
+
+	@current_search.setter
+	def current_search(self, value):
+		self._current_search = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
@@ -643,13 +673,9 @@ class MainWindow(Adw.ApplicationWindow):
 	def on_repo_selected(self, listbox, row):
 		self.pkg_columnview.current_repo = row.str_selection
 
-		self.pkg_columnview.repo_filter.changed(Gtk.FilterChange.DIFFERENT)
-
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
 		self.pkg_columnview.current_status = row.int_selection
-
-		self.pkg_columnview.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
@@ -660,8 +686,6 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_search_changed(self, entry):
 		self.pkg_columnview.current_search = entry.get_text().lower()
-
-		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
 	def on_search_stopped(self, entry):
