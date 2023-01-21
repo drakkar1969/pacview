@@ -250,7 +250,13 @@
     </section>
     <section>
       <item>
-        <attribute name="label">About</attribute>
+        <attribute name="label">Keyboard Shortcuts</attribute>
+        <attribute name="action">win.show-help-overlay</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">About PacView</attribute>
         <attribute name="action">win.show-about</attribute>
       </item>
     </section>

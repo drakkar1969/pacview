@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView">
+    <file compressed="true">gtk/help-overlay.ui</file>
     <file compressed="true">ui/column-name-item.ui</file>
     <file compressed="true">ui/column-version-item.ui</file>
     <file compressed="true">ui/column-repository-item.ui</file>
