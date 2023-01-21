@@ -2,6 +2,7 @@
 <interface>
   <!--// PACKAGE INFOVIEW //-->
   <template class="PkgInfoView" parent="GtkBox">
+    <property name="orientation">vertical</property>
     <child>
       <object class="GtkScrolledWindow">
         <property name="hexpand">True</property>
@@ -53,37 +54,31 @@
     </child>
     <child>
       <object class="GtkBox">
-        <property name="orientation">vertical</property>
         <property name="margin_start">6</property>
         <property name="margin_end">6</property>
         <property name="margin_top">6</property>
         <property name="margin_bottom">6</property>
         <property name="spacing">12</property>
         <child>
-          <object class="GtkBox">
-            <property name="spacing">12</property>
-            <child>
-              <object class="GtkButton" id="prev_button">
-                <property name="sensitive">False</property>
-                <property name="icon_name">go-previous</property>
-                <property name="tooltip-text">Previous</property>
-                <property name="action_name">win.view-prev-package</property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkButton" id="next_button">
-                <property name="sensitive">False</property>
-                <property name="icon_name">go-next</property>
-                <property name="tooltip-text">Next</property>
-                <property name="action_name">win.view-next-package</property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
+          <object class="GtkButton" id="prev_button">
+            <property name="sensitive">False</property>
+            <property name="icon_name">go-previous</property>
+            <property name="tooltip-text">Previous</property>
+            <property name="action_name">win.view-prev-package</property>
+            <style>
+              <class name="flat"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="next_button">
+            <property name="sensitive">False</property>
+            <property name="icon_name">go-next</property>
+            <property name="tooltip-text">Next</property>
+            <property name="action_name">win.view-next-package</property>
+            <style>
+              <class name="flat"/>
+            </style>
           </object>
         </child>
         <child>
