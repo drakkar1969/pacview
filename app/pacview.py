@@ -249,11 +249,11 @@ class PkgProperty(GObject.Object):
 		self.prop_value = value
 
 #------------------------------------------------------------------------------
-#-- CLASS: PKGINFOGRID
+#-- CLASS: PKGINFOVIEW
 #------------------------------------------------------------------------------
-@Gtk.Template(resource_path="/com/github/PacView/ui/pkginfogrid.ui")
-class PkgInfoGrid(Gtk.Box):
-	__gtype_name__ = "PkgInfoGrid"
+@Gtk.Template(resource_path="/com/github/PacView/ui/pkginfoview.ui")
+class PkgInfoView(Gtk.Box):
+	__gtype_name__ = "PkgInfoView"
 
 	#-----------------------------------
 	# Class widget variables
@@ -552,7 +552,7 @@ class MainWindow(Adw.ApplicationWindow):
 	header_search_entry = Gtk.Template.Child()
 
 	header_sidebar_btn = Gtk.Template.Child()
-	header_grid_btn = Gtk.Template.Child()
+	header_infoview_btn = Gtk.Template.Child()
 	header_search_btn = Gtk.Template.Child()
 
 	repo_listbox = Gtk.Template.Child()
@@ -563,7 +563,7 @@ class MainWindow(Adw.ApplicationWindow):
 	status_listbox_installed = Gtk.Template.Child()
 
 	pkg_columnview = Gtk.Template.Child()
-	pkg_infogrid = Gtk.Template.Child()
+	pkg_infoview = Gtk.Template.Child()
 
 	count_label = Gtk.Template.Child()
 
@@ -586,10 +586,10 @@ class MainWindow(Adw.ApplicationWindow):
 			lambda binding, value: (value == "search")
 		)
 
-		# Bind package column view selected item to info grid
+		# Bind package column view selected item to info view
 		self.pkg_columnview.selection.bind_property(
 			"selected-item",
-			self.pkg_infogrid,
+			self.pkg_infoview,
 			"pkg_object",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
@@ -606,7 +606,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add actions
 		action_list = [
 			( "toggle-sidebar", None, "", "true", self.toggle_sidebar_action ),
-			( "toggle-infogrid", None, "", "true", self.toggle_infogrid_action ),
+			( "toggle-infoview", None, "", "true", self.toggle_infoview_action ),
 			( "search-start", self.search_start_action ),
 			( "search-by-name", None, "", "true", self.search_params_action ),
 			( "search-by-desc", None, "", "false", self.search_params_action ),
@@ -625,7 +625,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.toggle-sidebar", ["<ctrl>b"])
-		app.set_accels_for_action("win.toggle-infogrid", ["<ctrl>i"])
+		app.set_accels_for_action("win.toggle-infoview", ["<ctrl>i"])
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
@@ -665,10 +665,10 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.header_sidebar_btn.set_active(value)
 
-	def toggle_infogrid_action(self, action, value, user_data):
+	def toggle_infoview_action(self, action, value, user_data):
 		action.set_state(value)
 
-		self.header_grid_btn.set_active(value)
+		self.header_infoview_btn.set_active(value)
 
 	def search_start_action(self, action, value, user_data):
 		self.header_search_entry.emit("search-started")
@@ -686,14 +686,14 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search_entry.emit("stop-search")
 
 	def view_prev_package_action(self, action, value, user_data):
-		self.pkg_infogrid._pkg_index -=1
+		self.pkg_infoview._pkg_index -=1
 
-		self.pkg_infogrid.display_package(self.pkg_infogrid._pkg_list[self.pkg_infogrid._pkg_index])
+		self.pkg_infoview.display_package(self.pkg_infoview._pkg_list[self.pkg_infoview._pkg_index])
 
 	def view_next_package_action(self, action, value, user_data):
-		self.pkg_infogrid._pkg_index +=1
+		self.pkg_infoview._pkg_index +=1
 
-		self.pkg_infogrid.display_package(self.pkg_infogrid._pkg_list[self.pkg_infogrid._pkg_index])
+		self.pkg_infoview.display_package(self.pkg_infoview._pkg_list[self.pkg_infoview._pkg_index])
 
 	def refresh_dbs_action(self, action, value, user_data):
 		app.populate_pkg_objects()

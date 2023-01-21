@@ -66,10 +66,10 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkToggleButton" id="header_grid_btn">
+              <object class="GtkToggleButton" id="header_infoview_btn">
                 <property name="icon-name">view-bottom-pane-symbolic</property>
                 <property name="tooltip-text">Toggle Info Pane</property>
-                <property name="active" bind-source="pkg_infogrid" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+                <property name="active" bind-source="pkg_infoview" bind-property="visible" bind-flags="sync-create|bidirectional"/>
               </object>
             </child>
             <child type="end">
@@ -217,7 +217,7 @@
                   </object>
                 </property>
                 <property name="end-child">
-                  <object class="PkgInfoGrid" id="pkg_infogrid">
+                  <object class="PkgInfoView" id="pkg_infoview">
                     <property name="height-request">140</property>
                   </object>
                 </property>
@@ -255,7 +255,7 @@
       </item>
       <item>
         <attribute name="label">View Info Pane</attribute>
-        <attribute name="action">win.toggle-infogrid</attribute>
+        <attribute name="action">win.toggle-infoview</attribute>
       </item>
     </section>
     <section>
