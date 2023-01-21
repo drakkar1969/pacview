@@ -64,18 +64,20 @@
           <object class="GtkBox">
             <property name="spacing">12</property>
             <child>
-              <object class="AdwSplitButton">
+              <object class="GtkButton" id="prev_button">
                 <property name="sensitive">False</property>
                 <property name="icon_name">go-previous</property>
+                <signal name="clicked" handler="on_prev_btn_clicked" swapped="no"/>
                 <style>
                   <class name="flat"/>
                 </style>
               </object>
             </child>
             <child>
-              <object class="AdwSplitButton">
+              <object class="GtkButton" id="next_button">
                 <property name="sensitive">False</property>
                 <property name="icon_name">go-next</property>
+                <signal name="clicked" handler="on_next_btn_clicked" swapped="no"/>
                 <style>
                   <class name="flat"/>
                 </style>

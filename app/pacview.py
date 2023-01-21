@@ -258,50 +258,60 @@ class PkgInfoGrid(Gtk.Box):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
-	grid = Gtk.Template.Child()
 	model = Gtk.Template.Child()
+
+	prev_button = Gtk.Template.Child()
+	next_button = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
 	main_window = GObject.Property(type=Gtk.Window, default=None)
 
-	_pkg_object = None
+	_pkg_list = []
+	_pkg_index = -1
 
 	@GObject.Property(type=PkgObject, default=None)
 	def pkg_object(self):
-		return(self._pkg_object)
+		return(self._pkg_list[0] if len(self._pkg_list) > 0 else None)
 
 	@pkg_object.setter
 	def pkg_object(self, value):
-		self._pkg_object = value
+		self._pkg_list = [value]
+		self._pkg_index = 0
+
+		self.display_package(value)
+
+	def display_package(self, pkg_object):
+		self.prev_button.set_sensitive(self._pkg_index > 0)
+		self.next_button.set_sensitive(self._pkg_index < len(self._pkg_list) - 1)
 
 		self.model.remove_all()
 
-		if value is not None:
-			self.model.append(PkgProperty("Name", f'<b>{value.name}</b>'))
-			self.model.append(PkgProperty("Version", value.version))
-			self.model.append(PkgProperty("Description", value.description))
-			self.model.append(PkgProperty("URL", value.url))
-			if value.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", value.package_url))
-			self.model.append(PkgProperty("Licenses", value.licenses))
-			self.model.append(PkgProperty("Status", value.status if (value.status_enum & PkgStatus.INSTALLED) else "not installed"))
-			self.model.append(PkgProperty("Repository", value.repository))
-			if value.group != "":self.model.append(PkgProperty("Groups", value.group))
-			if value.provides != "None": self.model.append(PkgProperty("Provides", value.provides))
-			self.model.append(PkgProperty("Dependencies", value.depends))
-			if value.optdepends != "None": self.model.append(PkgProperty("Optional", value.optdepends))
-			self.model.append(PkgProperty("Required By", value.required_by))
-			if value.optional_for != "None": self.model.append(PkgProperty("Optional For", value.optional_for))
-			if value.conflicts != "None": self.model.append(PkgProperty("Conflicts With", value.conflicts))
-			if value.replaces != "None": self.model.append(PkgProperty("Replaces", value.replaces))
-			self.model.append(PkgProperty("Architecture", value.architecture))
-			self.model.append(PkgProperty("Maintainer", value.maintainer))
-			self.model.append(PkgProperty("Build Date", value.build_date_long))
-			if value.install_date_long != "": self.model.append(PkgProperty("Install Date", value.install_date_long))
-			if value.download_size != "": self.model.append(PkgProperty("Download Size", value.download_size))
-			self.model.append(PkgProperty("Installed Size", value.install_size))
-			self.model.append(PkgProperty("Install Script", value.install_script))
+		if pkg_object is not None:
+			self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
+			self.model.append(PkgProperty("Version", pkg_object.version))
+			self.model.append(PkgProperty("Description", pkg_object.description))
+			self.model.append(PkgProperty("URL", pkg_object.url))
+			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
+			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
+			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
+			self.model.append(PkgProperty("Repository", pkg_object.repository))
+			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
+			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
+			self.model.append(PkgProperty("Dependencies", pkg_object.depends))
+			if pkg_object.optdepends != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends))
+			self.model.append(PkgProperty("Required By", pkg_object.required_by))
+			if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
+			if pkg_object.conflicts != "None": self.model.append(PkgProperty("Conflicts With", pkg_object.conflicts))
+			if pkg_object.replaces != "None": self.model.append(PkgProperty("Replaces", pkg_object.replaces))
+			self.model.append(PkgProperty("Architecture", pkg_object.architecture))
+			self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
+			self.model.append(PkgProperty("Build Date", pkg_object.build_date_long))
+			if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
+			if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
+			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
+			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
 
 	#-----------------------------------
 	# Init function
@@ -331,17 +341,44 @@ class PkgInfoGrid(Gtk.Box):
 		if parse_url.scheme != "pkg": return(False)
 
 		if self.main_window and self.main_window.pkg_columnview:
+			pkg_name = parse_url.netloc
+
 			pkg_dict = dict([(pkg.name, pkg) for pkg in self.main_window.pkg_columnview.model])
 
-			if parse_url.netloc in pkg_dict.keys():
-				self.pkg_object = pkg_dict[parse_url.netloc]
+			new_pkg = None
+
+			if pkg_name in pkg_dict.keys():
+				new_pkg = pkg_dict[pkg_name]
 			else:
 				for pkg in pkg_dict.values():
-					if [s for s in pkg.provides_list if parse_url.netloc in s] != []:
-						self.pkg_object = pkg
+					if [s for s in pkg.provides_list if pkg_name in s] != []:
+						new_pkg = pkg
 						break
 
+			if new_pkg is not None:
+				self._pkg_list.append(new_pkg)
+				self._pkg_index += 1
+
+				self._pkg_list = self._pkg_list[:self._pkg_index+1]
+
+				self.display_package(new_pkg)
+
 		return(True)
+
+	#-----------------------------------
+	# Button signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_prev_btn_clicked(self, button):
+		self._pkg_index -=1
+
+		self.display_package(self._pkg_list[self._pkg_index])
+
+	@Gtk.Template.Callback()
+	def on_next_btn_clicked(self, button):
+		self._pkg_index +=1
+
+		self.display_package(self._pkg_list[self._pkg_index])
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
