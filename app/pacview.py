@@ -311,6 +311,16 @@ class PkgInfoView(Gtk.Box):
 			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
 			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
 
+	def display_prev_package(self):
+		self._pkg_index -=1
+
+		self.display_package(self._pkg_list[self._pkg_index])
+
+	def display_next_package(self):
+		self._pkg_index +=1
+
+		self.display_package(self._pkg_list[self._pkg_index])
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -686,14 +696,10 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search_entry.emit("stop-search")
 
 	def view_prev_package_action(self, action, value, user_data):
-		self.pkg_infoview._pkg_index -=1
-
-		self.pkg_infoview.display_package(self.pkg_infoview._pkg_list[self.pkg_infoview._pkg_index])
+		self.pkg_infoview.display_prev_package()
 
 	def view_next_package_action(self, action, value, user_data):
-		self.pkg_infoview._pkg_index +=1
-
-		self.pkg_infoview.display_package(self.pkg_infoview._pkg_list[self.pkg_infoview._pkg_index])
+		self.pkg_infoview.display_next_package()
 
 	def refresh_dbs_action(self, action, value, user_data):
 		app.populate_pkg_objects()
