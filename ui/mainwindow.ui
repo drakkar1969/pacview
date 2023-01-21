@@ -54,18 +54,21 @@
               <object class="GtkToggleButton" id="header_sidebar_btn">
                 <property name="icon-name">sidebar-show-symbolic</property>
                 <property name="active">True</property>
+                <property name="tooltip-text">Toggle Sidebar</property>
               </object>
             </child>
             <child type="end">
               <object class="GtkMenuButton" id="header_mainmenu_btn">
                 <property name="icon_name">open-menu-symbolic</property>
                 <property name="primary">True</property>
+                <property name="tooltip-text">Main Menu</property>
                 <property name="menu_model">primary_menu</property>
               </object>
             </child>
             <child type="end">
               <object class="GtkToggleButton" id="header_grid_btn">
                 <property name="icon-name">view-bottom-pane-symbolic</property>
+                <property name="tooltip-text">Toggle Info Pane</property>
                 <property name="active" bind-source="pkg_infogrid" bind-property="visible" bind-flags="sync-create|bidirectional"/>
               </object>
             </child>
@@ -73,6 +76,7 @@
               <object class="GtkToggleButton" id="header_search_btn">
                 <property name="icon-name">edit-find</property>
                 <property name="active">False</property>
+                <property name="tooltip-text">Toggle Search</property>
                 <signal name="toggled" handler="on_search_btn_toggled" swapped="no"/>
               </object>
             </child>
