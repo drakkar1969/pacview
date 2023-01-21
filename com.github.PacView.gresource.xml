@@ -12,6 +12,7 @@
     <file compressed="true">ui/property-name-item.ui</file>
     <file compressed="true">ui/mainwindow.ui</file>
     <file compressed="true">ui/pkgcolumnview.ui</file>
+    <file compressed="true">ui/pkgdetailswindow.ui</file>
     <file compressed="true">ui/pkginfoview.ui</file>
     <file compressed="true">ui/sidebarlistboxrow.ui</file>
   </gresource>

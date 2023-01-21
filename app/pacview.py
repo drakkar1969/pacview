@@ -175,7 +175,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def files_list(self):
-		return(self.local_pkg.files if self.local_pkg is not None else [])
+		return([f[0] for f in self.local_pkg.files] if self.local_pkg is not None else [])
 
 	#-----------------------------------
 	# Init function
@@ -253,6 +253,39 @@ class PkgProperty(GObject.Object):
 		self.prop_value = value
 
 #------------------------------------------------------------------------------
+#-- CLASS: PKGDETAILSWINDOW
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/pkgdetailswindow.ui")
+class PkgDetailsWindow(Adw.PreferencesWindow):
+	__gtype_name__ = "PkgDetailsWindow"
+
+	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	files_label = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	_pkg_object = None
+
+	@GObject.Property(type=PkgObject, default=None)
+	def pkg_object(self):
+		return(self._pkg_object)
+
+	@pkg_object.setter
+	def pkg_object(self, value):
+		self._pkg_object = value
+
+		self.files_label.set_text('\n'.join(self.pkg_object.files_list))
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+#------------------------------------------------------------------------------
 #-- CLASS: PKGINFOVIEW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkginfoview.ui")
@@ -266,6 +299,8 @@ class PkgInfoView(Gtk.Box):
 
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
+
+	pkg_detailswindow = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -283,47 +318,6 @@ class PkgInfoView(Gtk.Box):
 		self._pkg_index = 0
 
 		self.display_package(value)
-
-	def display_package(self, pkg_object):
-		self.prev_button.set_sensitive(self._pkg_index > 0)
-		self.next_button.set_sensitive(self._pkg_index < len(self._pkg_list) - 1)
-
-		self.model.remove_all()
-
-		if pkg_object is not None:
-			self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
-			self.model.append(PkgProperty("Version", pkg_object.version))
-			self.model.append(PkgProperty("Description", pkg_object.description))
-			self.model.append(PkgProperty("URL", pkg_object.url))
-			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
-			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
-			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
-			self.model.append(PkgProperty("Repository", pkg_object.repository))
-			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
-			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
-			self.model.append(PkgProperty("Dependencies", pkg_object.depends))
-			if pkg_object.optdepends != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends))
-			self.model.append(PkgProperty("Required By", pkg_object.required_by))
-			if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
-			if pkg_object.conflicts != "None": self.model.append(PkgProperty("Conflicts With", pkg_object.conflicts))
-			if pkg_object.replaces != "None": self.model.append(PkgProperty("Replaces", pkg_object.replaces))
-			self.model.append(PkgProperty("Architecture", pkg_object.architecture))
-			self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
-			self.model.append(PkgProperty("Build Date", pkg_object.build_date_long))
-			if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
-			if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
-			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
-			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
-
-	def display_prev_package(self):
-		self._pkg_index -=1
-
-		self.display_package(self._pkg_list[self._pkg_index])
-
-	def display_next_package(self):
-		self._pkg_index +=1
-
-		self.display_package(self._pkg_list[self._pkg_index])
 
 	#-----------------------------------
 	# Init function
@@ -375,6 +369,58 @@ class PkgInfoView(Gtk.Box):
 			self.display_package(new_pkg)
 
 		return(True)
+
+	#-----------------------------------
+	# Display functions
+	#-----------------------------------
+	def display_package(self, pkg_object):
+		self.prev_button.set_sensitive(self._pkg_index > 0)
+		self.next_button.set_sensitive(self._pkg_index < len(self._pkg_list) - 1)
+
+		self.model.remove_all()
+
+		if pkg_object is not None:
+			self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
+			self.model.append(PkgProperty("Version", pkg_object.version))
+			self.model.append(PkgProperty("Description", pkg_object.description))
+			self.model.append(PkgProperty("URL", pkg_object.url))
+			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
+			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
+			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
+			self.model.append(PkgProperty("Repository", pkg_object.repository))
+			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
+			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
+			self.model.append(PkgProperty("Dependencies", pkg_object.depends))
+			if pkg_object.optdepends != "None": self.model.append(PkgProperty("Optional", pkg_object.optdepends))
+			self.model.append(PkgProperty("Required By", pkg_object.required_by))
+			if pkg_object.optional_for != "None": self.model.append(PkgProperty("Optional For", pkg_object.optional_for))
+			if pkg_object.conflicts != "None": self.model.append(PkgProperty("Conflicts With", pkg_object.conflicts))
+			if pkg_object.replaces != "None": self.model.append(PkgProperty("Replaces", pkg_object.replaces))
+			self.model.append(PkgProperty("Architecture", pkg_object.architecture))
+			self.model.append(PkgProperty("Maintainer", pkg_object.maintainer))
+			self.model.append(PkgProperty("Build Date", pkg_object.build_date_long))
+			if pkg_object.install_date_long != "": self.model.append(PkgProperty("Install Date", pkg_object.install_date_long))
+			if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
+			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
+			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
+
+	def display_prev_package(self):
+		self._pkg_index -=1
+
+		self.display_package(self._pkg_list[self._pkg_index])
+
+	def display_next_package(self):
+		self._pkg_index +=1
+
+		self.display_package(self._pkg_list[self._pkg_index])
+
+	#-----------------------------------
+	# Details window function
+	#-----------------------------------
+	def show_details(self):
+		self.pkg_detailswindow.pkg_object = self._pkg_list[self._pkg_index]
+
+		self.pkg_detailswindow.show()
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -631,6 +677,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
 			( "refresh-dbs", self.refresh_dbs_action ),
+			( "show-details-window", self.show_details_window_action ),
 			( "show-about", self.show_about_action ),
 			( "quit-app", self.quit_app_action )
 		]
@@ -712,6 +759,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
 		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def show_details_window_action(self, action, value, user_data):
+		self.pkg_infoview.show_details()
 
 	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(
