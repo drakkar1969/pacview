@@ -2,7 +2,6 @@
 <interface>
   <!--// PACKAGE INFOVIEW //-->
   <template class="PkgInfoView" parent="GtkBox">
-    <property name="orientation">vertical</property>
     <child>
       <object class="GtkScrolledWindow">
         <property name="hexpand">True</property>
