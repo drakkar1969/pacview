@@ -635,6 +635,9 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		# Set package details window parent
+		self.pkg_infoview.pkg_detailswindow.set_transient_for(self)
+
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
 
