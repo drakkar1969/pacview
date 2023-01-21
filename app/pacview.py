@@ -353,10 +353,10 @@ class PkgInfoGrid(Gtk.Box):
 					break
 
 		if new_pkg is not None:
-			self._pkg_list.append(new_pkg)
-			self._pkg_index += 1
-
 			self._pkg_list = self._pkg_list[:self._pkg_index+1]
+			self._pkg_list.append(new_pkg)
+
+			self._pkg_index += 1
 
 			self.display_package(new_pkg)
 
