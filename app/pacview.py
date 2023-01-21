@@ -262,6 +262,7 @@ class PkgDetailsWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	file_count_label = Gtk.Template.Child()
 	files_label = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -277,6 +278,7 @@ class PkgDetailsWindow(Adw.PreferencesWindow):
 	def pkg_object(self, value):
 		self._pkg_object = value
 
+		self.file_count_label.set_text(f'{len(self.pkg_object.files_list)} files in package')
 		self.files_label.set_text('\n'.join(self.pkg_object.files_list))
 
 	#-----------------------------------
