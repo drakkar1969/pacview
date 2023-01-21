@@ -83,6 +83,12 @@
                 <property name="title">Next Package</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Return</property>
+                <property name="title">Show Package Details</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
