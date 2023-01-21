@@ -266,8 +266,6 @@ class PkgInfoGrid(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	main_window = GObject.Property(type=Gtk.Window, default=None)
-
 	_pkg_list = []
 	_pkg_index = -1
 
@@ -340,28 +338,27 @@ class PkgInfoGrid(Gtk.Box):
 
 		if parse_url.scheme != "pkg": return(False)
 
-		if self.main_window and self.main_window.pkg_columnview:
-			pkg_name = parse_url.netloc
+		pkg_name = parse_url.netloc
 
-			pkg_dict = dict([(pkg.name, pkg) for pkg in self.main_window.pkg_columnview.model])
+		pkg_dict = dict([(pkg.name, pkg) for pkg in app.pkg_objects])
 
-			new_pkg = None
+		new_pkg = None
 
-			if pkg_name in pkg_dict.keys():
-				new_pkg = pkg_dict[pkg_name]
-			else:
-				for pkg in pkg_dict.values():
-					if [s for s in pkg.provides_list if pkg_name in s] != []:
-						new_pkg = pkg
-						break
+		if pkg_name in pkg_dict.keys():
+			new_pkg = pkg_dict[pkg_name]
+		else:
+			for pkg in pkg_dict.values():
+				if [s for s in pkg.provides_list if pkg_name in s] != []:
+					new_pkg = pkg
+					break
 
-			if new_pkg is not None:
-				self._pkg_list.append(new_pkg)
-				self._pkg_index += 1
+		if new_pkg is not None:
+			self._pkg_list.append(new_pkg)
+			self._pkg_index += 1
 
-				self._pkg_list = self._pkg_list[:self._pkg_index+1]
+			self._pkg_list = self._pkg_list[:self._pkg_index+1]
 
-				self.display_package(new_pkg)
+			self.display_package(new_pkg)
 
 		return(True)
 
@@ -587,9 +584,6 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		# Set main window in package info grid
-		self.pkg_infogrid.main_window = self
 
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
