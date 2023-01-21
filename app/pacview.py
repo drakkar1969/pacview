@@ -93,7 +93,7 @@ class PkgObject(GObject.Object):
 	def group(self):
 		return(', '.join(sorted(self.pkg.groups)))
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def provides_list(self):
 		return(self.pkg.provides)
 
@@ -172,6 +172,10 @@ class PkgObject(GObject.Object):
 	@GObject.Property(type=str, default="")
 	def install_script(self):
 		return("Yes" if self.pkg.has_scriptlet else "No")
+
+	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	def files_list(self):
+		return(self.local_pkg.files if self.local_pkg is not None else [])
 
 	#-----------------------------------
 	# Init function
