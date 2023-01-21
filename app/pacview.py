@@ -362,21 +362,6 @@ class PkgInfoGrid(Gtk.Box):
 
 		return(True)
 
-	#-----------------------------------
-	# Button signal handlers
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_prev_btn_clicked(self, button):
-		self._pkg_index -=1
-
-		self.display_package(self._pkg_list[self._pkg_index])
-
-	@Gtk.Template.Callback()
-	def on_next_btn_clicked(self, button):
-		self._pkg_index +=1
-
-		self.display_package(self._pkg_list[self._pkg_index])
-
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
 #------------------------------------------------------------------------------
@@ -624,6 +609,8 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-by-deps", None, "", "false", self.search_params_action ),
 			( "search-by-optdeps", None, "", "false", self.search_params_action ),
 			( "search-stop", self.search_stop_action ),
+			( "view-prev-package", self.view_prev_package_action ),
+			( "view-next-package", self.view_next_package_action ),
 			( "refresh-dbs", self.refresh_dbs_action ),
 			( "show-about", self.show_about_action ),
 			( "quit-app", self.quit_app_action )
@@ -634,6 +621,8 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
+		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
+		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
@@ -677,6 +666,16 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def search_stop_action(self, action, value, user_data):
 		self.header_search_entry.emit("stop-search")
+
+	def view_prev_package_action(self, action, value, user_data):
+		self.pkg_infogrid._pkg_index -=1
+
+		self.pkg_infogrid.display_package(self.pkg_infogrid._pkg_list[self.pkg_infogrid._pkg_index])
+
+	def view_next_package_action(self, action, value, user_data):
+		self.pkg_infogrid._pkg_index +=1
+
+		self.pkg_infogrid.display_package(self.pkg_infogrid._pkg_list[self.pkg_infogrid._pkg_index])
 
 	def refresh_dbs_action(self, action, value, user_data):
 		app.populate_pkg_objects()
