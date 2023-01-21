@@ -62,7 +62,7 @@
         <child>
           <object class="GtkButton" id="prev_button">
             <property name="sensitive">False</property>
-            <property name="icon_name">go-previous</property>
+            <property name="icon_name">go-previous-symbolic</property>
             <property name="tooltip-text">Previous</property>
             <property name="action_name">win.view-prev-package</property>
             <style>
@@ -73,7 +73,7 @@
         <child>
           <object class="GtkButton" id="next_button">
             <property name="sensitive">False</property>
-            <property name="icon_name">go-next</property>
+            <property name="icon_name">go-next-symbolic</property>
             <property name="tooltip-text">Next</property>
             <property name="action_name">win.view-next-package</property>
             <style>
@@ -86,7 +86,7 @@
             <property name="tooltip-text">Next</property>
             <property name="child">
               <object class="AdwButtonContent">
-                <property name="icon_name">help-about</property>
+                <property name="icon_name">help-info-symbolic</property>
                 <property name="label">Details</property>
               </object>
             </property>

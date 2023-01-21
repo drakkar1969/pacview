@@ -9,7 +9,7 @@
     <property name="search_enabled">False</property>
     <child>
       <object class="AdwPreferencesPage">
-        <property name="icon_name">gtk-file</property>
+        <property name="icon_name">folder-documents-symbolic</property>
         <property name="title">Files</property>
         <child>
           <object class="GtkBox">

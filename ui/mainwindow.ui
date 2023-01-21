@@ -40,7 +40,7 @@
                         </child>
                         <child>
                           <object class="GtkMenuButton" id="header_search_filter_btn">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="menu_model">search_menu</property>
                           </object>
                         </child>
@@ -74,7 +74,7 @@
             </child>
             <child type="end">
               <object class="GtkToggleButton" id="header_search_btn">
-                <property name="icon-name">edit-find</property>
+                <property name="icon-name">edit-find-symbolic</property>
                 <property name="active">False</property>
                 <property name="tooltip-text">Toggle Search</property>
                 <signal name="toggled" handler="on_search_btn_toggled" swapped="no"/>
@@ -150,49 +150,49 @@
                         </style>
                         <child>
                           <object class="SidebarListBoxRow" id="status_listbox_all">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="label_text">All</property>
                             <property name="str_id">31</property>
                           </object>
                         </child>
                         <child>
                           <object class="SidebarListBoxRow" id="status_listbox_installed">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="label_text">Installed</property>
                             <property name="str_id">15</property>
                           </object>
                         </child>
                         <child>
                           <object class="SidebarListBoxRow" id="status_listbox_explicit">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="label_text">Explicit</property>
                             <property name="str_id">1</property>
                           </object>
                         </child>
                         <child>
                           <object class="SidebarListBoxRow" id="status_listbox_dependency">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="label_text">Dependency</property>
                             <property name="str_id">2</property>
                           </object>
                         </child>
                         <child>
                           <object class="SidebarListBoxRow" id="status_listbox_optional">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="label_text">Optional</property>
                             <property name="str_id">4</property>
                           </object>
                         </child>
                         <child>
                           <object class="SidebarListBoxRow" id="status_listbox_orphan">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="label_text">Orphan</property>
                             <property name="str_id">8</property>
                           </object>
                         </child>
                         <child>
                           <object class="SidebarListBoxRow" id="status_listbox_none">
-                            <property name="icon_name">view-filter</property>
+                            <property name="icon_name">ymuse-filter-symbolic</property>
                             <property name="label_text">Not Installed</property>
                             <property name="str_id">16</property>
                           </object>
