@@ -631,6 +631,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
+		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
 		# Add rows to sidebar repository list box
