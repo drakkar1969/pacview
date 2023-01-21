@@ -256,12 +256,13 @@ class PkgProperty(GObject.Object):
 #-- CLASS: PKGDETAILSWINDOW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkgdetailswindow.ui")
-class PkgDetailsWindow(Adw.PreferencesWindow):
+class PkgDetailsWindow(Adw.Window):
 	__gtype_name__ = "PkgDetailsWindow"
 
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	pkg_label = Gtk.Template.Child()
 	file_count_label = Gtk.Template.Child()
 	files_label = Gtk.Template.Child()
 
@@ -278,7 +279,9 @@ class PkgDetailsWindow(Adw.PreferencesWindow):
 	def pkg_object(self, value):
 		self._pkg_object = value
 
-		self.file_count_label.set_text(f'{len(self.pkg_object.files_list)} files in package')
+		self.pkg_label.set_text(value.name)
+
+		self.file_count_label.set_text(f'{len(self.pkg_object.files_list)} files')
 		self.files_label.set_text('\n'.join(self.pkg_object.files_list))
 
 	#-----------------------------------

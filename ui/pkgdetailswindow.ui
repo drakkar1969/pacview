@@ -1,12 +1,93 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PACKAGE DETAILS WINDOW //-->
-  <template class="PkgDetailsWindow" parent="AdwPreferencesWindow">
+  <template class="PkgDetailsWindow" parent="AdwWindow">
     <property name="default_width">500</property>
     <property name="default_height">600</property>
     <property name="modal">True</property>
     <property name="hide_on_close">True</property>
-    <property name="search_enabled">False</property>
+    <property name="title"></property>
+    <property name="content">
+      <object class="GtkBox" id="window_box">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="AdwHeaderBar" id="header_bar">
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin_start">24</property>
+            <property name="margin_end">24</property>
+            <property name="margin_top">24</property>
+            <property name="margin_bottom">24</property>
+            <property name="spacing">16</property>
+            <child>
+              <object class="GtkImage" id="pkg_image">
+                <property name="icon-name">package-x-generic-symbolic</property>
+                <property name="icon-size">large</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="pkg_label">
+                <style>
+                  <class name="title-3"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">16</property>
+                <style>
+                  <class name="card"/>
+                </style>
+                <child>
+                  <object class="GtkBox">
+                    <property name="margin_start">16</property>
+                    <property name="margin_end">16</property>
+                    <property name="margin_top">16</property>
+                    <property name="spacing">16</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">folder-documents-symbolic</property>
+                        <!-- <property name="icon-size">large</property> -->
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="file_count_label">
+                        <property name="xalign">0</property>
+                        <property name="yalign">0.5</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="margin_bottom">16</property>
+                    <property name="child">
+                      <object class="GtkLabel" id="files_label">
+                        <property name="margin_start">16</property>
+                        <property name="margin_end">16</property>
+                        <property name="xalign">0</property>
+                        <property name="yalign">0</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+    <!-- <property name="search_enabled">False</property>
     <child>
       <object class="AdwPreferencesPage">
         <property name="icon_name">folder-documents-symbolic</property>
@@ -34,22 +115,6 @@
                 </style>
               </object>
             </child>
-            <child>
-              <object class="GtkScrolledWindow">
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
-                <property name="hscrollbar-policy">never</property>
-                <property name="margin_bottom">16</property>
-                <property name="child">
-                  <object class="GtkLabel" id="files_label">
-                    <property name="margin_start">16</property>
-                    <property name="margin_end">16</property>
-                    <property name="xalign">0</property>
-                    <property name="yalign">0</property>
-                  </object>
-                </property>
-              </object>
-            </child>
           </object>
         </child>
       </object>
@@ -58,6 +123,6 @@
       <object class="AdwPreferencesPage">
         <property name="title">Tree</property>
       </object>
-    </child>
+    </child> -->
   </template>
 </interface>
