@@ -88,6 +88,9 @@ class PkgDetailsWindow(Adw.Window):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		# Set tree label font
+		self.tree_label.set_attributes(Pango.AttrList.from_string('0 -1 font-desc "Source Code Pro 11"'))
+
 	#-----------------------------------
 	# Button signal handler
 	#-----------------------------------
