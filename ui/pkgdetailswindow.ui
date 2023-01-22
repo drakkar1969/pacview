@@ -81,7 +81,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkToggleButton" id="tree_button">
+                  <object class="GtkToggleButton" id="log_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
@@ -95,12 +95,12 @@
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkImage">
-                            <property name="icon-name">folder-documents-symbolic</property>
+                            <property name="icon-name">org.gnome.Settings-file-history-symbolic</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkLabel">
-                            <property name="label">Tree</property>
+                            <property name="label">Log</property>
                           </object>
                         </child>
                       </object>
@@ -136,7 +136,7 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="file_count_label">
+                              <object class="GtkLabel" id="file_header_label">
                                 <property name="xalign">0</property>
                                 <property name="yalign">0.5</property>
                                 <style>
@@ -179,14 +179,67 @@
                 </child>
                 <child>
                   <object class="AdwViewStackPage">
-                    <property name="name">tree</property>
+                    <property name="name">log</property>
                     <property name="child">
-                      <object class="GtkBox" id="tree_box">
+                      <object class="GtkBox" id="log_box">
                         <property name="orientation">vertical</property>
                         <property name="spacing">16</property>
                         <style>
                           <class name="card"/>
                         </style>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="margin_start">16</property>
+                            <property name="margin_end">16</property>
+                            <property name="margin_top">16</property>
+                            <property name="spacing">16</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">org.gnome.Settings-file-history-symbolic</property>
+                                <style>
+                                  <class name="bubble"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="log_header_label">
+                                <property name="xalign">0</property>
+                                <property name="yalign">0.5</property>
+                                <property name="label">Log Messages</property>
+                                <style>
+                                  <class name="title-3"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
+                            <property name="margin_bottom">16</property>
+                            <property name="child">
+                              <object class="GtkListView" id="log_view">
+                                <property name="margin_start">16</property>
+                                <property name="margin_end">16</property>
+                                <property name="model">
+                                  <object class="GtkNoSelection">
+                                    <property name="model">
+                                      <object class="GListStore" id="log_model">
+                                        <property name="item-type">GtkStringObject</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </property>
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory" id="files_factory">
+                                    <property name="resource">/com/github/PacView/ui/file-item.ui</property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </property>
+                          </object>
+                        </child>
                       </object>
                     </property>
                   </object>

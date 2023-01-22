@@ -31,9 +31,11 @@ class PkgDetailsWindow(Adw.Window):
 
 	content_stack = Gtk.Template.Child()
 
-	file_count_label = Gtk.Template.Child()
+	file_header_label = Gtk.Template.Child()
 	files_view = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
+
+	log_model = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -51,7 +53,7 @@ class PkgDetailsWindow(Adw.Window):
 		if value is not None:
 			self.pkg_label.set_text(value.name)
 
-			self.file_count_label.set_text(f'Files ({len(value.files_list)})')
+			self.file_header_label.set_text(f'Files ({len(value.files_list)})')
 			self.files_model.splice(0, 0, [Gtk.StringObject.new(f) for f in value.files_list])
 
 	#-----------------------------------
