@@ -57,7 +57,7 @@ class PkgDetailsWindow(Adw.Window):
 
 			# Populate file list
 			self.file_header_label.set_text(f'Files ({len(value.files_list)})')
-			self.files_model.splice(0, 0, [Gtk.StringObject.new(f) for f in value.files_list])
+			self.files_model.splice(0, 0, value.files_list)
 
 			# Populate dependency tree
 			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (value.status_enum & PkgStatus.INSTALLED) else " -s"} {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -69,7 +69,7 @@ class PkgDetailsWindow(Adw.Window):
 
 			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
 
-			self.log_model.splice(0, 0, [Gtk.StringObject.new(f) for f in log_lines])
+			self.log_model.splice(0, 0, log_lines)
 
 	#-----------------------------------
 	# Init function
