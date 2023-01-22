@@ -80,7 +80,7 @@ class PkgInfoView(Gtk.Box):
 
 	@GObject.Property(type=PkgObject, default=None)
 	def pkg_object(self):
-		return(self._pkg_list[0] if len(self._pkg_list) > 0 else None)
+		return(self._pkg_list[self._pkg_index] if (self._pkg_index >= 0 and self._pkg_index < len(self._pkg_list)) else None)
 
 	@pkg_object.setter
 	def pkg_object(self, value):
@@ -177,13 +177,13 @@ class PkgInfoView(Gtk.Box):
 			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
 
 	def display_prev_package(self):
-		if self.prev_button.get_sensitive() == True:
+		if self._pkg_index > 0:
 			self._pkg_index -=1
 
 			self.display_package(self._pkg_list[self._pkg_index])
 
 	def display_next_package(self):
-		if self.next_button.get_sensitive() == True:
+		if self._pkg_index < len(self._pkg_list) - 1:
 			self._pkg_index +=1
 
 			self.display_package(self._pkg_list[self._pkg_index])
@@ -192,7 +192,7 @@ class PkgInfoView(Gtk.Box):
 	# Details window function
 	#-----------------------------------
 	def show_details(self):
-		if self.details_button.get_sensitive() == True:
+		if self._pkg_index >= 0 and self._pkg_index < len(self._pkg_list) and self._pkg_list[self._pkg_index] is not None:
 			pkg_detailswindow = PkgDetailsWindow()
 			pkg_detailswindow.set_transient_for(self.get_root())
 
