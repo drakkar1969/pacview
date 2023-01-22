@@ -44,7 +44,7 @@
                 <child>
                   <object class="GtkLabel" id="pkg_label">
                     <style>
-                      <class name="title-3"/>
+                      <class name="title-2"/>
                     </style>
                   </object>
                 </child>
