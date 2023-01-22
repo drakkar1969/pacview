@@ -62,9 +62,7 @@ class PkgDetailsWindow(Adw.Window):
 			# Populate dependency tree
 			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (value.status_enum & PkgStatus.INSTALLED) else " -s"} {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			dep_tree = str(pkg_tree.stdout, 'utf-8')
-
-			self.tree_label.set_label(re.sub(" provides.+", "", dep_tree))
+			self.tree_label.set_label(re.sub(" provides.+", "", str(pkg_tree.stdout, 'utf-8')))
 
 			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
