@@ -104,7 +104,7 @@ class PkgDetailsWindow(Adw.Window):
 #-- CLASS: PKGINFOVIEW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkginfoview.ui")
-class PkgInfoView(Gtk.Box):
+class PkgInfoView(Gtk.Overlay):
 	__gtype_name__ = "PkgInfoView"
 
 	#-----------------------------------

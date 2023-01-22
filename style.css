@@ -15,3 +15,7 @@ headerbar.transparent {
 	background: none;
 	box-shadow: none;
 }
+
+box.rounded {
+	border-radius: 8px;
+}

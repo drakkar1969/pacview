@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PACKAGE INFOVIEW //-->
-  <template class="PkgInfoView" parent="GtkBox">
-    <property name="orientation">vertical</property>
+  <template class="PkgInfoView" parent="GtkOverlay">
+    <!-- <property name="orientation">vertical</property> -->
     <child>
       <object class="GtkScrolledWindow">
         <property name="hexpand">True</property>
@@ -49,51 +49,53 @@
         </property>
       </object>
     </child>
-    <child>
+    <!-- <child>
       <object class="GtkSeparator"/>
-    </child>
-    <child>
+    </child> -->
+    <child type="overlay">
       <object class="GtkBox">
-        <property name="margin_start">6</property>
-        <property name="margin_end">6</property>
-        <property name="margin_top">6</property>
-        <property name="margin_bottom">6</property>
-        <property name="spacing">12</property>
+        <property name="halign">end</property>
+        <property name="valign">end</property>
+        <property name="margin_start">8</property>
+        <property name="margin_end">8</property>
+        <property name="margin_top">8</property>
+        <property name="margin_bottom">8</property>
+        <style>
+          <class name="osd"/>
+          <class name="rounded"/>
+        </style>
         <child>
-          <object class="GtkButton" id="prev_button">
-            <property name="sensitive">False</property>
-            <property name="icon_name">go-previous-symbolic</property>
-            <property name="tooltip-text">Previous</property>
-            <property name="action_name">win.view-prev-package</property>
-            <style>
-              <class name="flat"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="next_button">
-            <property name="sensitive">False</property>
-            <property name="icon_name">go-next-symbolic</property>
-            <property name="tooltip-text">Next</property>
-            <property name="action_name">win.view-next-package</property>
-            <style>
-              <class name="flat"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="details_button">
-            <property name="tooltip-text">Show Package Details</property>
-            <property name="child">
-              <object class="AdwButtonContent">
-                <property name="icon_name">help-info-symbolic</property>
-                <property name="label">Details</property>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin_start">4</property>
+            <property name="margin_end">4</property>
+            <property name="margin_top">4</property>
+            <property name="margin_bottom">4</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkButton" id="prev_button">
+                <property name="sensitive">False</property>
+                <property name="icon_name">go-up-symbolic</property>
+                <property name="tooltip-text">Previous</property>
+                <property name="action_name">win.view-prev-package</property>
               </object>
-            </property>
-            <property name="action_name">win.show-details-window</property>
-            <style>
-              <class name="flat"/>
-            </style>
+            </child>
+            <child>
+              <object class="GtkButton" id="next_button">
+                <property name="sensitive">False</property>
+                <property name="icon_name">go-down-symbolic</property>
+                <property name="tooltip-text">Next</property>
+                <property name="action_name">win.view-next-package</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="details_button">
+                <property name="sensitive">False</property>
+                <property name="icon_name">help-info-symbolic</property>
+                <property name="tooltip-text">Show Package Details</property>
+                <property name="action_name">win.show-details-window</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
