@@ -177,25 +177,28 @@ class PkgInfoView(Gtk.Box):
 			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
 
 	def display_prev_package(self):
-		self._pkg_index -=1
+		if self.prev_button.get_sensitive() == True:
+			self._pkg_index -=1
 
-		self.display_package(self._pkg_list[self._pkg_index])
+			self.display_package(self._pkg_list[self._pkg_index])
 
 	def display_next_package(self):
-		self._pkg_index +=1
+		if self.next_button.get_sensitive() == True:
+			self._pkg_index +=1
 
-		self.display_package(self._pkg_list[self._pkg_index])
+			self.display_package(self._pkg_list[self._pkg_index])
 
 	#-----------------------------------
 	# Details window function
 	#-----------------------------------
 	def show_details(self):
-		pkg_detailswindow = PkgDetailsWindow()
-		pkg_detailswindow.set_transient_for(self.get_root())
+		if self.details_button.get_sensitive() == True:
+			pkg_detailswindow = PkgDetailsWindow()
+			pkg_detailswindow.set_transient_for(self.get_root())
 
-		pkg_detailswindow.pkg_object = self._pkg_list[self._pkg_index]
+			pkg_detailswindow.pkg_object = self._pkg_list[self._pkg_index]
 
-		pkg_detailswindow.show()
+			pkg_detailswindow.show()
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
