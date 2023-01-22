@@ -52,6 +52,7 @@
             </child>
             <child>
               <object class="GtkBox" id="button_box">
+                <property name="homogeneous">True</property>
                 <property name="spacing">12</property>
                 <child>
                   <object class="GtkToggleButton" id="file_button">
