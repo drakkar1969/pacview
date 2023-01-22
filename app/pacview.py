@@ -29,6 +29,8 @@ class PkgDetailsWindow(Adw.Window):
 	#-----------------------------------
 	pkg_label = Gtk.Template.Child()
 
+	content_stack = Gtk.Template.Child()
+
 	file_count_label = Gtk.Template.Child()
 	files_view = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
@@ -57,6 +59,15 @@ class PkgDetailsWindow(Adw.Window):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+	#-----------------------------------
+	# Button signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_button_toggled(self, button):
+		if button.get_active() == True:
+			page_id = button.get_child().get_last_child().get_label().lower()
+			self.content_stack.set_visible_child_name(page_id)
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGINFOVIEW

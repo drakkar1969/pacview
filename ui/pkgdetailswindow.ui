@@ -57,6 +57,7 @@
                   <object class="GtkToggleButton" id="file_button">
                     <property name="hexpand">True</property>
                     <property name="active">True</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                     <child>
                       <object class="GtkBox">
                         <property name="orientation">vertical</property>
@@ -83,6 +84,7 @@
                   <object class="GtkToggleButton" id="tree_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                     <child>
                       <object class="GtkBox">
                         <property name="orientation">vertical</property>
