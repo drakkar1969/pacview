@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse
+import gi, sys, os, urllib.parse, subprocess, shlex
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -32,7 +32,6 @@ class PkgDetailsWindow(Adw.Window):
 	content_stack = Gtk.Template.Child()
 
 	file_header_label = Gtk.Template.Child()
-	files_view = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
 
 	log_model = Gtk.Template.Child()
@@ -55,6 +54,12 @@ class PkgDetailsWindow(Adw.Window):
 
 			self.file_header_label.set_text(f'Files ({len(value.files_list)})')
 			self.files_model.splice(0, 0, [Gtk.StringObject.new(f) for f in value.files_list])
+
+			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+			log_lines = [l for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
+
+			self.log_model.splice(0, 0, [Gtk.StringObject.new(f) for f in log_lines])
 
 	#-----------------------------------
 	# Init function

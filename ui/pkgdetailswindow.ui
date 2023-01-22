@@ -231,11 +231,11 @@
                                     </property>
                                   </object>
                                 </property>
-                                <!-- <property name="factory">
-                                  <object class="GtkBuilderListItemFactory" id="files_factory">
-                                    <property name="resource">/com/github/PacView/ui/file-item.ui</property>
+                                <property name="factory">
+                                  <object class="GtkBuilderListItemFactory" id="log_factory">
+                                    <property name="resource">/com/github/PacView/ui/details-log-item.ui</property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </property>
                           </object>
