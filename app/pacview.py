@@ -70,6 +70,7 @@ class PkgInfoView(Gtk.Box):
 
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
+	details_button = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -145,6 +146,8 @@ class PkgInfoView(Gtk.Box):
 	def display_package(self, pkg_object):
 		self.prev_button.set_sensitive(self._pkg_index > 0)
 		self.next_button.set_sensitive(self._pkg_index < len(self._pkg_list) - 1)
+
+		self.details_button.set_sensitive(pkg_object is not None)
 
 		self.model.remove_all()
 
