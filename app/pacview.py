@@ -44,10 +44,11 @@ class PkgDetailsWindow(Adw.Window):
 	def pkg_object(self, value):
 		self._pkg_object = value
 
-		self.pkg_label.set_text(value.name)
+		if value is not None:
+			self.pkg_label.set_text(value.name)
 
-		self.file_count_label.set_text(f'Files ({len(self.pkg_object.files_list)})')
-		self.files_label.set_text('\n'.join(self.pkg_object.files_list))
+			self.file_count_label.set_text(f'Files ({len(self.pkg_object.files_list)})')
+			self.files_label.set_text('\n'.join(self.pkg_object.files_list))
 
 	#-----------------------------------
 	# Init function
