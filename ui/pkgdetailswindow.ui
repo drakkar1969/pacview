@@ -166,7 +166,7 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory" id="files_factory">
-                                    <property name="resource">/com/github/PacView/ui/file-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details-file-item.ui</property>
                                   </object>
                                 </property>
                               </object>
