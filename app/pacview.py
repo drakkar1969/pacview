@@ -69,7 +69,7 @@ class PkgDetailsWindow(Adw.Window):
 			self.files_model.splice(0, 0, [Gtk.StringObject.new(f) for f in value.files_list])
 
 			# Populate dependency tree
-			pkg_tree = subprocess.run(shlex.split(f'pactree {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_tree = subprocess.run(shlex.split(f'pactree{" -s" if value.local_pkg is None else ""} {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			dep_tree = str(pkg_tree.stdout, 'utf-8')
 
