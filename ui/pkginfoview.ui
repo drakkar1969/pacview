@@ -83,7 +83,7 @@
         </child>
         <child>
           <object class="GtkButton" id="details_button">
-            <property name="tooltip-text">Next</property>
+            <property name="tooltip-text">Show Package Details</property>
             <property name="child">
               <object class="AdwButtonContent">
                 <property name="icon_name">help-info-symbolic</property>
