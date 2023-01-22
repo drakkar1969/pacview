@@ -474,15 +474,11 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
-		# Add rows to sidebar repository list box
-		self.populate_sidebar_repos()
-
 		# Add items to package column view
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
-		# Select rows in sidebar list boxes (apply repo/status filter)
-		self.repo_listbox.select_row(self.repo_listbox_all)
-		self.status_listbox.select_row(self.status_listbox_installed)
+		# Initialize sidebar listboxes
+		self.init_sidebar()
 
 		# Set initial focus on package column view
 		self.set_focus(self.pkg_columnview.view)
@@ -490,12 +486,17 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Functions
 	#-----------------------------------
-	def populate_sidebar_repos(self):
+	def init_sidebar(self):
+		# Add rows to sidebar repository list box
 		while(row := self.repo_listbox.get_row_at_index(1)):
 			if row != self.repo_listbox_all: self.repo_listbox.remove(row)
 
 		for db in app.db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_id=db))
+
+		# Select initial repo/status
+		self.repo_listbox.select_row(self.repo_listbox_all)
+		self.status_listbox.select_row(self.status_listbox_installed)
 
 	#-----------------------------------
 	# Action handlers
@@ -533,11 +534,11 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def refresh_dbs_action(self, action, value, user_data):
 		app.populate_pkg_objects()
-		self.populate_sidebar_repos()
+		self.init_sidebar()
 
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
-		self.pkg_columnview.main_filter.changed(Gtk.FilterChange.DIFFERENT)
+		self.header_search_entry.emit("stop-search")
 
 	def show_details_window_action(self, action, value, user_data):
 		self.pkg_infoview.show_details()
@@ -564,11 +565,13 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
-		self.pkg_columnview.current_repo = row.str_id
+		if row is not None:
+			self.pkg_columnview.current_repo = row.str_id
 
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
-		self.pkg_columnview.current_status = PkgStatus(int(row.str_id))
+		if row is not None:
+			self.pkg_columnview.current_status = PkgStatus(int(row.str_id))
 
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
@@ -622,6 +625,7 @@ class LauncherApp(Adw.Application):
 
 		# Build list of database names
 		self.default_db_names = ["core", "extra", "community", "multilib"]
+		self.db_names = []
 
 		db_files = list(os.listdir(db_path)) if os.path.exists(db_path) else []
 		db_names = [os.path.basename(db).split(".")[0] for db in db_files if db.endswith(".db")]
