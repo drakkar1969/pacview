@@ -281,7 +281,7 @@ class PkgDetailsWindow(Adw.Window):
 
 		self.pkg_label.set_text(value.name)
 
-		self.file_count_label.set_text(f'{len(self.pkg_object.files_list)} files')
+		self.file_count_label.set_text(f'Files ({len(self.pkg_object.files_list)})')
 		self.files_label.set_text('\n'.join(self.pkg_object.files_list))
 
 	#-----------------------------------

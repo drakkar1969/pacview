@@ -1,0 +1,17 @@
+.bubble {
+	border-radius: 50%;
+	background: @insensitive_fg_color;
+	color: @accent_fg_color;
+	min-width: 30px;
+	min-height: 30px;
+}
+
+.bubble.large {
+	min-width: 70px;
+	min-height: 70px;
+}
+
+headerbar.transparent {
+	background: none;
+	box-shadow: none;
+}
