@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex
+import gi, sys, os, urllib.parse, subprocess, shlex, re
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -34,6 +34,8 @@ class PkgDetailsWindow(Adw.Window):
 	file_header_label = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
 
+	tree_label = Gtk.Template.Child()
+
 	log_model = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -59,11 +61,21 @@ class PkgDetailsWindow(Adw.Window):
 		self._pkg_object = value
 
 		if value is not None:
+			# Set package name
 			self.pkg_label.set_text(value.name)
 
+			# Populate file list
 			self.file_header_label.set_text(f'Files ({len(value.files_list)})')
 			self.files_model.splice(0, 0, [Gtk.StringObject.new(f) for f in value.files_list])
 
+			# Populate dependency tree
+			pkg_tree = subprocess.run(shlex.split(f'pactree {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+			dep_tree = str(pkg_tree.stdout, 'utf-8')
+
+			self.tree_label.set_label(re.sub(" provides.+", "", dep_tree))
+
+			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			log_lines = [log_conv(l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
