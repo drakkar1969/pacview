@@ -99,9 +99,4 @@
       </object>
     </child>
   </template>
-
-
-  <!--// PACKAGE DETAILS WINDOW //-->
-  <object class="PkgDetailsWindow" id="pkg_detailswindow">
-  </object>
 </interface>

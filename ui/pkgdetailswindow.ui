@@ -5,7 +5,6 @@
     <property name="default_width">600</property>
     <property name="default_height">700</property>
     <property name="modal">True</property>
-    <property name="hide_on_close">True</property>
     <property name="title"></property>
     <property name="content">
       <object class="GtkBox" id="window_box">
@@ -149,6 +148,7 @@
                           <object class="GtkScrolledWindow">
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
+                            <property name="hscrollbar-policy">never</property>
                             <property name="margin_bottom">16</property>
                             <property name="child">
                               <object class="GtkLabel" id="files_label">

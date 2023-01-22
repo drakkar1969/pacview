@@ -305,8 +305,6 @@ class PkgInfoView(Gtk.Box):
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
 
-	pkg_detailswindow = Gtk.Template.Child()
-
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
@@ -423,9 +421,12 @@ class PkgInfoView(Gtk.Box):
 	# Details window function
 	#-----------------------------------
 	def show_details(self):
-		self.pkg_detailswindow.pkg_object = self._pkg_list[self._pkg_index]
+		pkg_detailswindow = PkgDetailsWindow()
+		pkg_detailswindow.set_transient_for(self.get_root())
 
-		self.pkg_detailswindow.show()
+		pkg_detailswindow.pkg_object = self._pkg_list[self._pkg_index]
+
+		pkg_detailswindow.show()
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -637,9 +638,6 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		# Set package details window parent
-		self.pkg_infoview.pkg_detailswindow.set_transient_for(self)
 
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
