@@ -49,15 +49,6 @@ class PkgDetailsWindow(Adw.Window):
 
 	@pkg_object.setter
 	def pkg_object(self, value):
-		def log_conv(line):
-			datetime,action = line.split("] [ALPM] ", 1)
-
-			datetime,_ = datetime.split('+', 1)
-			datetime = datetime.replace("[", "")
-			datetime = datetime.replace("T", " ")
-
-			return(f'{datetime} : {action}')
-
 		self._pkg_object = value
 
 		if value is not None:
@@ -78,7 +69,7 @@ class PkgDetailsWindow(Adw.Window):
 			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			log_lines = [log_conv(l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
+			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
 
 			self.log_model.splice(0, 0, [Gtk.StringObject.new(f) for f in log_lines])
 
