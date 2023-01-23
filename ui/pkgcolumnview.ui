@@ -18,7 +18,11 @@
                         <property name="filter">
                           <object class="GtkEveryFilter" id="main_filter">
                             <child>
-                              <object class="GtkCustomFilter" id="repo_filter"/>
+                              <object class="GtkStringFilter" id="repo_filter">
+                                <property name="expression">
+                                  <lookup name="repository" type="PkgObject"/>
+                                </property>
+                              </object>
                             </child>
                             <child>
                               <object class="GtkCustomFilter" id="status_filter"/>

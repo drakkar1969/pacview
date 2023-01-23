@@ -257,19 +257,8 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	_current_repo = ""
 	_current_status = PkgStatus.ALL
 	_current_search = ""
-
-	@GObject.Property(type=str, default="")
-	def current_repo(self):
-		return(self._current_repo)
-
-	@current_repo.setter
-	def current_repo(self, value):
-		self._current_repo = value
-
-		self.repo_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@GObject.Property(type=int, default=PkgStatus.ALL)
 	def current_status(self):
@@ -307,7 +296,6 @@ class PkgColumnView(Gtk.Box):
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
 
 		# Bind filters to filter functions
-		self.repo_filter.set_filter_func(self.filter_by_repo)
 		self.status_filter.set_filter_func(self.filter_by_status)
 		self.search_filter.set_filter_func(self.filter_by_search)
 
@@ -323,9 +311,6 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Filter functions
 	#-----------------------------------
-	def filter_by_repo(self, item):
-		return(True if self.current_repo == "" else (item.repository.lower() == self.current_repo))
-
 	def filter_by_status(self, item):
 		return(item.status_enum & self.current_status)
 
@@ -573,7 +558,7 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
 		if row is not None:
-			self.pkg_columnview.current_repo = row.str_id
+			self.pkg_columnview.repo_filter.set_search(row.str_id)
 
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
