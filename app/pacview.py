@@ -224,7 +224,7 @@ class PkgInfoView(Gtk.Overlay):
 	#-----------------------------------
 	# Details window function
 	#-----------------------------------
-	def show_details(self):
+	def show_package_details(self):
 		if self._pkg_index >= 0 and self._pkg_index < len(self._pkg_list) and self._pkg_list[self._pkg_index] is not None:
 			pkg_detailswindow = PkgDetailsWindow()
 			pkg_detailswindow.set_transient_for(self.get_root())
@@ -487,8 +487,8 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-stop", self.search_stop_action ),
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
-			( "refresh-dbs", self.refresh_dbs_action ),
 			( "show-details-window", self.show_details_window_action ),
+			( "refresh-dbs", self.refresh_dbs_action ),
 			( "show-about", self.show_about_action ),
 			( "quit-app", self.quit_app_action )
 		]
@@ -502,8 +502,8 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-stop", ["Escape"])
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
-		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
+		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
@@ -565,16 +565,16 @@ class MainWindow(Adw.ApplicationWindow):
 	def view_next_package_action(self, action, value, user_data):
 		self.pkg_infoview.display_next_package()
 
+	def show_details_window_action(self, action, value, user_data):
+		self.pkg_infoview.show_package_details()
+
 	def refresh_dbs_action(self, action, value, user_data):
 		app.populate_pkg_objects()
-		self.init_sidebar()
 
 		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
 
+		self.init_sidebar()
 		self.header_search_entry.emit("stop-search")
-
-	def show_details_window_action(self, action, value, user_data):
-		self.pkg_infoview.show_details()
 
 	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(
