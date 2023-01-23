@@ -682,17 +682,18 @@ class LauncherApp(Adw.Application):
 		# Set status for installed packages
 		for i, obj in enumerate(self.pkg_objects):
 			if obj.pkg.name in local_dict.keys():
-				self.pkg_objects[i].local_pkg = local_dict[obj.pkg.name]
+				local_pkg = local_dict[obj.pkg.name]
+				reason = local_pkg.reason
 
-				reason = local_dict[obj.pkg.name].reason
+				self.pkg_objects[i].local_pkg = local_pkg
 
 				if reason == 0: self.pkg_objects[i].status_enum = PkgStatus.EXPLICIT
 				else:
 					if reason == 1:
-						if local_dict[obj.pkg.name].compute_requiredby() != []:
+						if local_pkg.compute_requiredby() != []:
 							self.pkg_objects[i].status_enum = PkgStatus.DEPENDENCY
 						else:
-							self.pkg_objects[i].status_enum = PkgStatus.OPTIONAL if local_dict[obj.pkg.name].compute_optionalfor() != [] else PkgStatus.ORPHAN
+							self.pkg_objects[i].status_enum = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
 
 	#-----------------------------------
 	# Signal handlers
