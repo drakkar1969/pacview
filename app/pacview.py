@@ -245,22 +245,14 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	view = Gtk.Template.Child()
 	selection = Gtk.Template.Child()
-	sort_model = Gtk.Template.Child()
 	filter_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 
-	main_filter = Gtk.Template.Child()
 	repo_filter = Gtk.Template.Child()
 	status_filter = Gtk.Template.Child()
 	search_filter = Gtk.Template.Child()
 
-	name_sorter = Gtk.Template.Child()
 	version_sorter = Gtk.Template.Child()
-	repository_sorter = Gtk.Template.Child()
-	status_sorter = Gtk.Template.Child()
-	date_sorter = Gtk.Template.Child()
-	size_sorter = Gtk.Template.Child()
-	group_sorter = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -312,13 +304,7 @@ class PkgColumnView(Gtk.Box):
 		super().__init__(*args, **kwargs)
 
 		# Bind column sorters to sort functions
-		self.name_sorter.set_sort_func(self.sort_by_str, "name")
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
-		self.repository_sorter.set_sort_func(self.sort_by_str, "repository")
-		self.status_sorter.set_sort_func(self.sort_by_str, "status")
-		self.date_sorter.set_sort_func(self.sort_by_int, "install_date_raw")
-		self.size_sorter.set_sort_func(self.sort_by_int, "install_size_raw")
-		self.group_sorter.set_sort_func(self.sort_by_str, "group")
 
 		# Bind filters to filter functions
 		self.repo_filter.set_filter_func(self.filter_by_repo)
@@ -331,20 +317,8 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Sorter functions
 	#-----------------------------------
-	def sort_by_str(self, item_a, item_b, prop):
-		prop_a = item_a.get_property(prop).lower()
-		prop_b = item_b.get_property(prop).lower()
-
-		if prop_a < prop_b: return(-1)
-		else:
-			if prop_a > prop_b: return(1)
-			else: return(0)
-
 	def sort_by_ver(self, item_a, item_b, prop):
 		return(pyalpm.vercmp(item_a.get_property(prop), item_b.get_property(prop)))
-
-	def sort_by_int(self, item_a, item_b, prop):
-		return(item_a.get_property(prop) - item_b.get_property(prop))
 
 	#-----------------------------------
 	# Filter functions

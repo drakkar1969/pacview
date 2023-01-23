@@ -53,7 +53,11 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="name_sorter"/>
+                  <object class="GtkStringSorter" id="name_sorter">
+                    <property name="expression">
+                      <lookup name="name" type="PkgObject"/>
+                    </property>
+                  </object>
                 </property>
               </object>
             </child>
@@ -81,7 +85,11 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="repository_sorter"/>
+                  <object class="GtkStringSorter" id="repository_sorter">
+                    <property name="expression">
+                      <lookup name="repository" type="PkgObject"/>
+                    </property>
+                  </object>
                 </property>
               </object>
             </child>
@@ -95,7 +103,11 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="status_sorter"/>
+                  <object class="GtkStringSorter" id="status_sorter">
+                    <property name="expression">
+                      <lookup name="status" type="PkgObject"/>
+                    </property>
+                  </object>
                 </property>
               </object>
             </child>
@@ -109,7 +121,11 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="date_sorter"/>
+                  <object class="GtkNumericSorter" id="date_sorter">
+                    <property name="expression">
+                      <lookup name="install_date_raw" type="PkgObject"/>
+                    </property>
+                  </object>
                 </property>
               </object>
             </child>
@@ -123,7 +139,11 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="size_sorter"/>
+                  <object class="GtkNumericSorter" id="size_sorter">
+                    <property name="expression">
+                      <lookup name="install_size_raw" type="PkgObject"/>
+                    </property>
+                  </object>
                 </property>
               </object>
             </child>
@@ -137,7 +157,11 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="group_sorter"/>
+                  <object class="GtkStringSorter" id="group_sorter">
+                    <property name="expression">
+                      <lookup name="group" type="PkgObject"/>
+                    </property>
+                  </object>
                 </property>
               </object>
             </child>
