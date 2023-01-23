@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re
+import gi, sys, os, urllib.parse, subprocess, shlex, re, glob
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -651,20 +651,16 @@ class LauncherApp(Adw.Application):
 		self.populate_pkg_objects()
 
 	def populate_pkg_objects(self):
-		# Get path to pacman databases
+		# Path to pacman databases
 		alpm_folder = "/var/lib/pacman"
 
-		db_path = os.path.join(alpm_folder, "sync")
-
-		# Build list of database names
+		# Default database names
 		self.default_db_names = ["core", "extra", "community", "multilib"]
-		self.db_names = []
 
-		db_files = list(os.listdir(db_path)) if os.path.exists(db_path) else []
-		db_names = [os.path.basename(db).split(".")[0] for db in db_files if db.endswith(".db")]
+		# Build list of configured database names
+		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-		self.db_names.extend([n for n in self.default_db_names if n in db_names])
-		self.db_names.extend([n for n in db_names if n not in self.default_db_names])
+		self.db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
 
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", alpm_folder)
