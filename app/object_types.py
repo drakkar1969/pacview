@@ -90,7 +90,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def provides(self):
-		return(self.pkglist_to_linklist(self.pkg.provides))
+		return(self.pkglist_to_linkstr(self.pkg.provides))
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def depends_list(self):
@@ -98,7 +98,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def depends(self):
-		return(self.pkglist_to_linklist(self.pkg.depends))
+		return(self.pkglist_to_linkstr(self.pkg.depends))
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def optdepends_list(self):
@@ -106,23 +106,23 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def optdepends(self):
-		return(self.pkglist_to_linklist(self.pkg.optdepends))
+		return(self.pkglist_to_linkstr(self.pkg.optdepends))
 
 	@GObject.Property(type=str, default="")
 	def required_by(self):
-		return(self.pkglist_to_linklist(self.local_pkg.compute_requiredby() if self.local_pkg is not None else self.pkg.compute_requiredby()))
+		return(self.pkglist_to_linkstr(self.local_pkg.compute_requiredby() if self.local_pkg is not None else self.pkg.compute_requiredby()))
 
 	@GObject.Property(type=str, default="")
 	def optional_for(self):
-		return(self.pkglist_to_linklist(self.local_pkg.compute_optionalfor() if self.local_pkg is not None else self.pkg.compute_optionalfor()))
+		return(self.pkglist_to_linkstr(self.local_pkg.compute_optionalfor() if self.local_pkg is not None else self.pkg.compute_optionalfor()))
 
 	@GObject.Property(type=str, default="")
 	def conflicts(self):
-		return(self.pkglist_to_linklist(self.pkg.conflicts))
+		return(self.pkglist_to_linkstr(self.pkg.conflicts))
 
 	@GObject.Property(type=str, default="")
 	def replaces(self):
-		return(self.pkglist_to_linklist(self.pkg.replaces))
+		return(self.pkglist_to_linkstr(self.pkg.replaces))
 
 	@GObject.Property(type=str, default="")
 	def architecture(self):
@@ -198,7 +198,7 @@ class PkgObject(GObject.Object):
 	def url_to_link(self, url):
 		return(f'<a href="{url}">{url}</a>')
 
-	def pkglist_to_linklist(self, pkglist):
+	def pkglist_to_linkstr(self, pkglist):
 		def link(string):
 			pkg = string
 			desc = ""
