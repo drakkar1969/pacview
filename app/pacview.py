@@ -163,7 +163,7 @@ class PkgInfoView(Gtk.Overlay):
 					new_pkg = pkg
 					break
 
-		if new_pkg is not None:
+		if new_pkg is not None and new_pkg is not self._pkg_list[self._pkg_index]:
 			self._pkg_list = self._pkg_list[:self._pkg_index+1]
 			self._pkg_list.append(new_pkg)
 
