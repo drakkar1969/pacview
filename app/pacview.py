@@ -506,9 +506,7 @@ class MainWindow(Adw.ApplicationWindow):
 	def search_params_action(self, action, value, user_data):
 		action.set_state(value)
 
-		prop_name = str.replace(action.props.name, "-", "_")
-
-		self.column_view.set_property(prop_name, value)
+		self.column_view.set_property(action.props.name, value)
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
