@@ -101,6 +101,7 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	model = Gtk.Template.Child()
 
+	overlay_toolbar = Gtk.Template.Child()
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
 
@@ -120,6 +121,8 @@ class PkgInfoPane(Gtk.Overlay):
 		self._pkg_index = 0
 
 		self.display_package(value)
+
+		self.overlay_toolbar.set_visible(False)
 
 	#-----------------------------------
 	# Init function
@@ -169,6 +172,8 @@ class PkgInfoPane(Gtk.Overlay):
 			self._pkg_index += 1
 
 			self.display_package(new_pkg)
+
+			self.overlay_toolbar.set_visible(True)
 
 		return(True)
 
