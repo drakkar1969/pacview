@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PACKAGE INFOVIEW //-->
-  <template class="PkgInfoView" parent="GtkOverlay">
+  <template class="PkgInfoPane" parent="GtkOverlay">
     <!-- <property name="orientation">vertical</property> -->
     <child>
       <object class="GtkScrolledWindow">

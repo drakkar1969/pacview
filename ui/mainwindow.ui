@@ -69,7 +69,7 @@
               <object class="GtkToggleButton" id="header_infoview_btn">
                 <property name="icon-name">view-bottom-pane-symbolic</property>
                 <property name="tooltip-text">Toggle Info Pane</property>
-                <property name="active" bind-source="pkg_infoview" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+                <property name="active" bind-source="info_pane" bind-property="visible" bind-flags="sync-create|bidirectional"/>
               </object>
             </child>
             <child type="end">
@@ -217,7 +217,7 @@
                   </object>
                 </property>
                 <property name="end-child">
-                  <object class="PkgInfoView" id="pkg_infoview">
+                  <object class="PkgInfoPane" id="info_pane">
                     <property name="height-request">140</property>
                   </object>
                 </property>

@@ -90,11 +90,11 @@ class PkgDetailsWindow(Adw.Window):
 			self.content_stack.set_visible_child_name(page_id)
 
 #------------------------------------------------------------------------------
-#-- CLASS: PKGINFOVIEW
+#-- CLASS: PKGINFOPANE
 #------------------------------------------------------------------------------
-@Gtk.Template(resource_path="/com/github/PacView/ui/pkginfoview.ui")
-class PkgInfoView(Gtk.Overlay):
-	__gtype_name__ = "PkgInfoView"
+@Gtk.Template(resource_path="/com/github/PacView/ui/pkginfopane.ui")
+class PkgInfoPane(Gtk.Overlay):
+	__gtype_name__ = "PkgInfoPane"
 
 	#-----------------------------------
 	# Class widget variables
@@ -393,7 +393,7 @@ class MainWindow(Adw.ApplicationWindow):
 	status_listbox_installed = Gtk.Template.Child()
 
 	column_view = Gtk.Template.Child()
-	pkg_infoview = Gtk.Template.Child()
+	info_pane = Gtk.Template.Child()
 
 	count_label = Gtk.Template.Child()
 
@@ -419,7 +419,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Bind package column view selected item to info view
 		self.column_view.selection.bind_property(
 			"selected-item",
-			self.pkg_infoview,
+			self.info_pane,
 			"pkg_object",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
@@ -519,13 +519,13 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search_entry.emit("stop-search")
 
 	def view_prev_package_action(self, action, value, user_data):
-		self.pkg_infoview.display_prev_package()
+		self.info_pane.display_prev_package()
 
 	def view_next_package_action(self, action, value, user_data):
-		self.pkg_infoview.display_next_package()
+		self.info_pane.display_next_package()
 
 	def show_details_window_action(self, action, value, user_data):
-		self.pkg_infoview.show_package_details()
+		self.info_pane.show_package_details()
 
 	def refresh_dbs_action(self, action, value, user_data):
 		app.populate_pkg_objects()
