@@ -66,7 +66,6 @@
         </style>
         <child>
           <object class="GtkBox">
-            <property name="orientation">vertical</property>
             <property name="margin_start">4</property>
             <property name="margin_end">4</property>
             <property name="margin_top">4</property>
@@ -75,7 +74,7 @@
             <child>
               <object class="GtkButton" id="prev_button">
                 <property name="sensitive">False</property>
-                <property name="icon_name">go-up-symbolic</property>
+                <property name="icon_name">go-previous-symbolic</property>
                 <property name="tooltip-text">Previous</property>
                 <property name="action_name">win.view-prev-package</property>
               </object>
@@ -83,7 +82,7 @@
             <child>
               <object class="GtkButton" id="next_button">
                 <property name="sensitive">False</property>
-                <property name="icon_name">go-down-symbolic</property>
+                <property name="icon_name">go-next-symbolic</property>
                 <property name="tooltip-text">Next</property>
                 <property name="action_name">win.view-next-package</property>
               </object>
