@@ -6,7 +6,7 @@
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">
-            <property name="icon-name">org.gnome.Settings-file-history-symbolic</property>
+            <property name="icon-name">accessories-text-editor-symbolic</property>
           </object>
         </child>
         <child>

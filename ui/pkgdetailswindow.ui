@@ -53,7 +53,7 @@
             <child>
               <object class="GtkBox" id="button_box">
                 <property name="homogeneous">True</property>
-                <property name="spacing">12</property>
+                <property name="spacing">8</property>
                 <child>
                   <object class="GtkToggleButton" id="file_button">
                     <property name="hexpand">True</property>
@@ -123,7 +123,7 @@
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkImage">
-                            <property name="icon-name">org.gnome.Settings-file-history-symbolic</property>
+                            <property name="icon-name">accessories-text-editor-symbolic</property>
                           </object>
                         </child>
                         <child>
@@ -150,7 +150,7 @@
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkImage">
-                            <property name="icon-name">deja-dup-symbolic</property>
+                            <property name="icon-name">xapp-prefs-plugins-symbolic</property>
                           </object>
                         </child>
                         <child>
@@ -303,7 +303,7 @@
                             <property name="spacing">16</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">org.gnome.Settings-file-history-symbolic</property>
+                                <property name="icon-name">accessories-text-editor-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>
@@ -368,7 +368,7 @@
                             <property name="spacing">16</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">deja-dup-symbolic</property>
+                                <property name="icon-name">xapp-prefs-plugins-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>

@@ -6,7 +6,7 @@
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">
-            <property name="icon-name">deja-dup-symbolic</property>
+            <property name="icon-name">xapp-prefs-plugins-symbolic</property>
           </object>
         </child>
         <child>
