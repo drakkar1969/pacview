@@ -78,7 +78,7 @@
                 <property name="icon-name">edit-find-symbolic</property>
                 <property name="active">False</property>
                 <property name="tooltip-text">Toggle Search</property>
-                <signal name="toggled" handler="on_search_btn_toggled" swapped="no"/>
+                <property name="action-name">win.search-toggle</property>
               </object>
             </child>
           </object>

@@ -435,12 +435,13 @@ class MainWindow(Adw.ApplicationWindow):
 			( "toggle-sidebar", None, "", "true", self.toggle_sidebar_action ),
 			( "toggle-infopane", None, "", "true", self.toggle_infopane_action ),
 			( "search-start", self.search_start_action ),
+			( "search-stop", self.search_stop_action ),
+			( "search-toggle", None, "", "false", self.search_toggle_action ),
 			( "search-by-name", None, "", "true", self.search_params_action ),
 			( "search-by-desc", None, "", "false", self.search_params_action ),
 			( "search-by-group", None, "", "false", self.search_params_action ),
 			( "search-by-deps", None, "", "false", self.search_params_action ),
 			( "search-by-optdeps", None, "", "false", self.search_params_action ),
-			( "search-stop", self.search_stop_action ),
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
 			( "show-details-window", self.show_details_window_action ),
@@ -503,15 +504,23 @@ class MainWindow(Adw.ApplicationWindow):
 	def search_start_action(self, action, value, user_data):
 		self.header_search_entry.emit("search-started")
 
+	def search_stop_action(self, action, value, user_data):
+		self.header_search_entry.emit("stop-search")
+
+	def search_toggle_action(self, action, value, user_data):
+		action.set_state(value)
+
+		if value.get_boolean():
+			self.header_search_entry.emit("search-started")
+		else:
+			self.header_search_entry.emit("stop-search")
+
 	def search_params_action(self, action, value, user_data):
 		action.set_state(value)
 
 		self.column_view.set_property(action.props.name, value)
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	def search_stop_action(self, action, value, user_data):
-		self.header_search_entry.emit("stop-search")
 
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()
@@ -575,13 +584,6 @@ class MainWindow(Adw.ApplicationWindow):
 		entry.set_text("")
 
 		self.header_stack.set_visible_child_name("title")
-
-	@Gtk.Template.Callback()
-	def on_search_btn_toggled(self, button):
-		if button.get_active():
-			self.header_search_entry.emit("search-started")
-		else:
-			self.header_search_entry.emit("stop-search")
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
