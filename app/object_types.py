@@ -186,6 +186,8 @@ class PkgObject(GObject.Object):
 		return(datetime.datetime.fromtimestamp(value).strftime("%a %d %b %Y %H:%M:%S") if value != 0 else "")
 
 	def int_to_sizestr(self, value):
+		if value == 0: return "0 B"
+		
 		pkg_size = value
 
 		for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB']:
