@@ -60,7 +60,7 @@ class PkgDetailsWindow(Adw.Window):
 			self.files_model.splice(0, 0, value.files_list)
 
 			# Populate dependency tree
-			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (value.status_enum & PkgStatus.INSTALLED) else " -s"} {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (value.status_flags & PkgStatus.INSTALLED) else " -s"} {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			self.tree_label.set_label(re.sub(" provides.+", "", str(pkg_tree.stdout, 'utf-8')))
 
@@ -191,7 +191,7 @@ class PkgInfoPane(Gtk.Overlay):
 			self.model.append(PkgProperty("URL", pkg_object.url))
 			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
 			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
-			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_enum & PkgStatus.INSTALLED) else "not installed"))
+			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed"))
 			self.model.append(PkgProperty("Repository", pkg_object.repository))
 			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
 			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
@@ -312,7 +312,7 @@ class PkgColumnView(Gtk.Box):
 	# Filter functions
 	#-----------------------------------
 	def filter_by_status(self, item):
-		return(item.status_enum & self.current_status)
+		return(item.status_flags & self.current_status)
 
 	def filter_by_search(self, item):
 		if self.current_search == "":
@@ -641,13 +641,13 @@ class LauncherApp(Adw.Application):
 
 				self.pkg_objects[i].local_pkg = local_pkg
 
-				if reason == 0: self.pkg_objects[i].status_enum = PkgStatus.EXPLICIT
+				if reason == 0: self.pkg_objects[i].status_flags = PkgStatus.EXPLICIT
 				else:
 					if reason == 1:
 						if local_pkg.compute_requiredby() != []:
-							self.pkg_objects[i].status_enum = PkgStatus.DEPENDENCY
+							self.pkg_objects[i].status_flags = PkgStatus.DEPENDENCY
 						else:
-							self.pkg_objects[i].status_enum = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+							self.pkg_objects[i].status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
 
 	#-----------------------------------
 	# Signal handlers

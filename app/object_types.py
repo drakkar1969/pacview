@@ -33,9 +33,9 @@ class PkgObject(GObject.Object):
 	local_pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
 
 	#-----------------------------------
-	# Status enum property
+	# Status flags property
 	#-----------------------------------
-	status_enum = GObject.Property(type=int, default=PkgStatus.NONE)
+	status_flags = GObject.Property(type=int, default=PkgStatus.NONE)
 
 	#-----------------------------------
 	# External read-only properties
@@ -68,13 +68,13 @@ class PkgObject(GObject.Object):
 	def status(self):
 		str_dict = { PkgStatus.EXPLICIT: "explicit", PkgStatus.DEPENDENCY: "dependency", PkgStatus.OPTIONAL: "optional", PkgStatus.ORPHAN: "orphan" }
 
-		return(str_dict.get(self.status_enum, ""))
+		return(str_dict.get(self.status_flags, ""))
 
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
 		icon_dict = { PkgStatus.EXPLICIT: "package-install", PkgStatus.DEPENDENCY: "package-installed-updated", PkgStatus.OPTIONAL: "package-installed-outdated", PkgStatus.ORPHAN: "package-purge" }
 
-		return(icon_dict.get(self.status_enum, ""))
+		return(icon_dict.get(self.status_flags, ""))
 
 	@GObject.Property(type=str, default="")
 	def repository(self):
