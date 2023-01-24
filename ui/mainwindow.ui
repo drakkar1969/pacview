@@ -212,7 +212,7 @@
                 <property name="wide-handle">True</property>
                 <property name="shrink-start-child">False</property>
                 <property name="start-child">
-                  <object class="PkgColumnView" id="pkg_columnview">
+                  <object class="PkgColumnView" id="column_view">
                     <property name="height-request">150</property>
                   </object>
                 </property>

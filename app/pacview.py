@@ -392,7 +392,7 @@ class MainWindow(Adw.ApplicationWindow):
 	status_listbox_all = Gtk.Template.Child()
 	status_listbox_installed = Gtk.Template.Child()
 
-	pkg_columnview = Gtk.Template.Child()
+	column_view = Gtk.Template.Child()
 	pkg_infoview = Gtk.Template.Child()
 
 	count_label = Gtk.Template.Child()
@@ -404,7 +404,7 @@ class MainWindow(Adw.ApplicationWindow):
 		super().__init__(*args, **kwargs)
 
 		# Connect header search entry to package column view
-		self.header_search_entry.set_key_capture_widget(self.pkg_columnview)
+		self.header_search_entry.set_key_capture_widget(self.column_view)
 
 		# Bind header search button state to search entry visibility
 		self.header_search_btn.bind_property(
@@ -417,7 +417,7 @@ class MainWindow(Adw.ApplicationWindow):
 		)
 
 		# Bind package column view selected item to info view
-		self.pkg_columnview.selection.bind_property(
+		self.column_view.selection.bind_property(
 			"selected-item",
 			self.pkg_infoview,
 			"pkg_object",
@@ -425,7 +425,7 @@ class MainWindow(Adw.ApplicationWindow):
 		)
 
 		# Bind package column view count to status label text
-		self.pkg_columnview.filter_model.bind_property(
+		self.column_view.filter_model.bind_property(
 			"n-items",
 			self.count_label,
 			"label",
@@ -467,13 +467,13 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
 		# Add items to package column view
-		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
+		self.column_view.model.splice(0, len(self.column_view.model), app.pkg_objects)
 
 		# Initialize sidebar listboxes
 		self.init_sidebar()
 
 		# Set initial focus on package column view
-		self.set_focus(self.pkg_columnview.view)
+		self.set_focus(self.column_view.view)
 
 	#-----------------------------------
 	# Functions
@@ -511,9 +511,9 @@ class MainWindow(Adw.ApplicationWindow):
 
 		prop_name = str.replace(action.props.name, "-", "_")
 
-		self.pkg_columnview.set_property(prop_name, value)
+		self.column_view.set_property(prop_name, value)
 
-		self.pkg_columnview.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	def search_stop_action(self, action, value, user_data):
 		self.header_search_entry.emit("stop-search")
@@ -530,7 +530,7 @@ class MainWindow(Adw.ApplicationWindow):
 	def refresh_dbs_action(self, action, value, user_data):
 		app.populate_pkg_objects()
 
-		self.pkg_columnview.model.splice(0, len(self.pkg_columnview.model), app.pkg_objects)
+		self.column_view.model.splice(0, len(self.column_view.model), app.pkg_objects)
 
 		self.init_sidebar()
 		self.header_search_entry.emit("stop-search")
@@ -558,12 +558,12 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
 		if row is not None:
-			self.pkg_columnview.repo_filter.set_search(row.str_id)
+			self.column_view.repo_filter.set_search(row.str_id)
 
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
 		if row is not None:
-			self.pkg_columnview.current_status = PkgStatus(int(row.str_id))
+			self.column_view.current_status = PkgStatus(int(row.str_id))
 
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
@@ -573,7 +573,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	@Gtk.Template.Callback()
 	def on_search_changed(self, entry):
-		self.pkg_columnview.current_search = entry.get_text().lower()
+		self.column_view.current_search = entry.get_text().lower()
 
 	@Gtk.Template.Callback()
 	def on_search_stopped(self, entry):
