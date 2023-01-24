@@ -135,6 +135,33 @@
                     </child>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkToggleButton" id="cache_button">
+                    <property name="hexpand">True</property>
+                    <property name="group">file_button</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
+                    <child>
+                      <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="margin_start">16</property>
+                        <property name="margin_end">16</property>
+                        <property name="margin_top">6</property>
+                        <property name="margin_bottom">6</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkImage">
+                            <property name="icon-name">deja-dup-symbolic</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label">Cache</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
@@ -313,6 +340,71 @@
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory" id="log_factory">
                                     <property name="resource">/com/github/PacView/ui/details-log-item.ui</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage">
+                    <property name="name">cache</property>
+                    <property name="child">
+                      <object class="GtkBox" id="cache_box">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">16</property>
+                        <style>
+                          <class name="card"/>
+                        </style>
+                        <child>
+                          <object class="GtkBox">
+                            <property name="margin_start">16</property>
+                            <property name="margin_end">16</property>
+                            <property name="margin_top">16</property>
+                            <property name="spacing">16</property>
+                            <child>
+                              <object class="GtkImage">
+                                <property name="icon-name">deja-dup-symbolic</property>
+                                <style>
+                                  <class name="bubble"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="cache_header_label">
+                                <property name="xalign">0</property>
+                                <property name="yalign">0.5</property>
+                                <property name="label">Cache</property>
+                                <style>
+                                  <class name="title-3"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
+                            <property name="margin_bottom">16</property>
+                            <property name="child">
+                              <object class="GtkListView" id="cache_view">
+                                <property name="margin_start">16</property>
+                                <property name="margin_end">16</property>
+                                <property name="model">
+                                  <object class="GtkNoSelection">
+                                    <property name="model">
+                                      <object class="GtkStringList" id="cache_model"/>
+                                    </property>
+                                  </object>
+                                </property>
+                                <property name="factory">
+                                  <object class="GtkBuilderListItemFactory" id="cache_factory">
+                                    <property name="resource">/com/github/PacView/ui/details-cache-item.ui</property>
                                   </object>
                                 </property>
                               </object>

@@ -38,6 +38,8 @@ class PkgDetailsWindow(Adw.Window):
 
 	log_model = Gtk.Template.Child()
 
+	cache_model = Gtk.Template.Child()
+
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
@@ -70,6 +72,13 @@ class PkgDetailsWindow(Adw.Window):
 			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
 
 			self.log_model.splice(0, 0, log_lines)
+
+			# Populate cache
+			pkg_cache = subprocess.run(shlex.split(f'paccache -vdk0 {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+			cache_lines = [l for l in str(pkg_cache.stdout, 'utf-8').split('\n') if (l != "" and l.startswith("==>") == False and l.endswith(".sig") == False)]
+
+			self.cache_model.splice(0, 0, cache_lines)
 
 	#-----------------------------------
 	# Init function

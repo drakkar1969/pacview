@@ -10,6 +10,7 @@
     <file compressed="true">ui/column-date-item.ui</file>
     <file compressed="true">ui/column-size-item.ui</file>
     <file compressed="true">ui/column-group-item.ui</file>
+    <file compressed="true">ui/details-cache-item.ui</file>
     <file compressed="true">ui/details-file-item.ui</file>
     <file compressed="true">ui/details-log-item.ui</file>
     <file compressed="true">ui/property-name-item.ui</file>
