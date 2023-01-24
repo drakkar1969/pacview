@@ -377,8 +377,6 @@ class MainWindow(Adw.ApplicationWindow):
 	# Class widget variables
 	#-----------------------------------
 	header_stack = Gtk.Template.Child()
-	header_title = Gtk.Template.Child()
-	header_search_box = Gtk.Template.Child()
 	header_search_entry = Gtk.Template.Child()
 
 	header_sidebar_btn = Gtk.Template.Child()
@@ -389,7 +387,6 @@ class MainWindow(Adw.ApplicationWindow):
 	repo_listbox_all = Gtk.Template.Child()
 
 	status_listbox = Gtk.Template.Child()
-	status_listbox_all = Gtk.Template.Child()
 	status_listbox_installed = Gtk.Template.Child()
 
 	column_view = Gtk.Template.Child()
