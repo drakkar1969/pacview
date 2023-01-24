@@ -257,28 +257,8 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	_current_status = PkgStatus.ALL
-	_current_search = ""
-
-	@GObject.Property(type=int, default=PkgStatus.ALL)
-	def current_status(self):
-		return(self._current_status)
-
-	@current_status.setter
-	def current_status(self, value):
-		self._current_status = value
-
-		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	@GObject.Property(type=str, default="")
-	def current_search(self):
-		return(self._current_search)
-
-	@current_search.setter
-	def current_search(self, value):
-		self._current_search = value
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
+	current_search = GObject.Property(type=str, default="")
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
@@ -569,6 +549,8 @@ class MainWindow(Adw.ApplicationWindow):
 		if row is not None:
 			self.column_view.current_status = PkgStatus(int(row.str_id))
 
+			self.column_view.status_filter.changed(Gtk.FilterChange.DIFFERENT)
+
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
 		self.header_stack.set_visible_child_name("search")
@@ -578,6 +560,8 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_search_changed(self, entry):
 		self.column_view.current_search = entry.get_text().lower()
+
+		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
 	def on_search_stopped(self, entry):
