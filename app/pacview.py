@@ -4,7 +4,7 @@ import gi, sys, os, urllib.parse, subprocess, shlex, re
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio, GObject, Pango
+from gi.repository import Gtk, Adw, Gio, GObject, Pango, Gdk
 
 import pyalpm
 
@@ -88,6 +88,17 @@ class PkgDetailsWindow(Adw.Window):
 
 		# Set tree label font
 		self.tree_label.set_attributes(Pango.AttrList.from_string('0 -1 font-desc "Source Code Pro 11"'))
+
+		# Add key press controller
+		key_controller = Gtk.EventControllerKey()
+		key_controller.connect('key-pressed', self.on_key_pressed)
+		self.add_controller(key_controller)
+
+	#-----------------------------------
+	# Key press signal handler
+	#-----------------------------------
+	def on_key_pressed(self, keyval, keycode, state, user_data):
+		if keycode == Gdk.KEY_Escape: self.close()
 
 	#-----------------------------------
 	# Button signal handler
