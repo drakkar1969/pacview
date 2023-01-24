@@ -255,7 +255,7 @@
       </item>
       <item>
         <attribute name="label">View Info Pane</attribute>
-        <attribute name="action">win.toggle-infoview</attribute>
+        <attribute name="action">win.toggle-infopane</attribute>
       </item>
     </section>
     <section>
