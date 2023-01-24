@@ -266,6 +266,8 @@ class PkgColumnView(Gtk.Box):
 	search_by_deps = GObject.Property(type=bool, default=False)
 	search_by_optdeps = GObject.Property(type=bool, default=False)
 
+	search_params = GObject.Property(type=GObject.TYPE_STRV, default=["name"])
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -373,6 +375,7 @@ class MainWindow(Adw.ApplicationWindow):
 	info_pane = Gtk.Template.Child()
 
 	count_label = Gtk.Template.Child()
+	search_params_label = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -455,6 +458,9 @@ class MainWindow(Adw.ApplicationWindow):
 		# Initialize sidebar listboxes
 		self.init_sidebar()
 
+		# Set status bar search by text
+		self.init_search_by_label()
+
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
 
@@ -472,6 +478,9 @@ class MainWindow(Adw.ApplicationWindow):
 		# Select initial repo/status
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
+
+	def init_search_by_label(self):
+		self.search_params_label.set_text(f'Search by: {", ".join(self.column_view.search_params) if self.column_view.search_params != [] else "(none)"}')
 
 	#-----------------------------------
 	# Action handlers
@@ -506,6 +515,10 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.set_property(action.props.name, value)
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+		self.column_view.search_params = [n for n in ["name", "desc", "group", "deps", "optdeps"] if self.column_view.get_property(f'search_by_{n}') == True]
+
+		self.init_search_by_label()
 
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()

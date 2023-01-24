@@ -229,11 +229,23 @@
           <object class="GtkSeparator"/>
         </child>
         <child>
-          <object class="GtkLabel" id="count_label">
-            <property name="xalign">0</property>
+          <object class="GtkBox">
             <property name="margin_start">12</property>
+            <property name="margin_end">12</property>
             <property name="margin_top">6</property>
             <property name="margin_bottom">6</property>
+            <child>
+              <object class="GtkLabel" id="count_label">
+                <property name="hexpand">True</property>
+                <property name="xalign">0</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="search_params_label">
+                <property name="hexpand">True</property>
+                <property name="xalign">1</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
