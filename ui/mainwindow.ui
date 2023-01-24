@@ -66,7 +66,7 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkToggleButton" id="header_infoview_btn">
+              <object class="GtkToggleButton" id="header_infopane_btn">
                 <property name="icon-name">view-bottom-pane-symbolic</property>
                 <property name="tooltip-text">Toggle Info Pane</property>
                 <property name="active" bind-source="info_pane" bind-property="visible" bind-flags="sync-create|bidirectional"/>

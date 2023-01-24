@@ -380,7 +380,7 @@ class MainWindow(Adw.ApplicationWindow):
 	header_search_entry = Gtk.Template.Child()
 
 	header_sidebar_btn = Gtk.Template.Child()
-	header_infoview_btn = Gtk.Template.Child()
+	header_infopane_btn = Gtk.Template.Child()
 	header_search_btn = Gtk.Template.Child()
 
 	repo_listbox = Gtk.Template.Child()
@@ -413,7 +413,7 @@ class MainWindow(Adw.ApplicationWindow):
 			lambda binding, value: (value == "search")
 		)
 
-		# Bind package column view selected item to info view
+		# Bind package column view selected item to info pane
 		self.column_view.selection.bind_property(
 			"selected-item",
 			self.info_pane,
@@ -433,7 +433,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add actions
 		action_list = [
 			( "toggle-sidebar", None, "", "true", self.toggle_sidebar_action ),
-			( "toggle-infoview", None, "", "true", self.toggle_infoview_action ),
+			( "toggle-infopane", None, "", "true", self.toggle_infopane_action ),
 			( "search-start", self.search_start_action ),
 			( "search-by-name", None, "", "true", self.search_params_action ),
 			( "search-by-desc", None, "", "false", self.search_params_action ),
@@ -453,7 +453,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.toggle-sidebar", ["<ctrl>b"])
-		app.set_accels_for_action("win.toggle-infoview", ["<ctrl>i"])
+		app.set_accels_for_action("win.toggle-infopane", ["<ctrl>i"])
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
@@ -495,10 +495,10 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.header_sidebar_btn.set_active(value)
 
-	def toggle_infoview_action(self, action, value, user_data):
+	def toggle_infopane_action(self, action, value, user_data):
 		action.set_state(value)
 
-		self.header_infoview_btn.set_active(value)
+		self.header_infopane_btn.set_active(value)
 
 	def search_start_action(self, action, value, user_data):
 		self.header_search_entry.emit("search-started")
