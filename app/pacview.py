@@ -103,7 +103,6 @@ class PkgInfoPane(Gtk.Overlay):
 
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
-	details_button = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -179,8 +178,6 @@ class PkgInfoPane(Gtk.Overlay):
 	def display_package(self, pkg_object):
 		self.prev_button.set_sensitive(self._pkg_index > 0)
 		self.next_button.set_sensitive(self._pkg_index < len(self._pkg_list) - 1)
-
-		self.details_button.set_sensitive(pkg_object is not None)
 
 		self.model.remove_all()
 
@@ -364,6 +361,7 @@ class MainWindow(Adw.ApplicationWindow):
 	header_sidebar_btn = Gtk.Template.Child()
 	header_infopane_btn = Gtk.Template.Child()
 	header_search_btn = Gtk.Template.Child()
+	header_details_btn = Gtk.Template.Child()
 
 	repo_listbox = Gtk.Template.Child()
 	repo_listbox_all = Gtk.Template.Child()
@@ -402,6 +400,15 @@ class MainWindow(Adw.ApplicationWindow):
 			self.info_pane,
 			"pkg_object",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		# Bind info pane package to details button enabled state
+		self.info_pane.bind_property(
+			"pkg_object",
+			self.header_details_btn,
+			"sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: True if value is not None else False
 		)
 
 		# Bind package column view count to status label text

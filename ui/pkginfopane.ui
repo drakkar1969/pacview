@@ -87,14 +87,6 @@
                 <property name="action_name">win.view-next-package</property>
               </object>
             </child>
-            <child>
-              <object class="GtkButton" id="details_button">
-                <property name="sensitive">False</property>
-                <property name="icon_name">help-info-symbolic</property>
-                <property name="tooltip-text">Show Package Details</property>
-                <property name="action_name">win.show-details-window</property>
-              </object>
-            </child>
           </object>
         </child>
       </object>
