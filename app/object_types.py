@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, os, datetime
+import gi, os, datetime, re
 
 from gi.repository import GObject, GLib
 
@@ -211,28 +211,12 @@ class PkgObject(GObject.Object):
 		return(f'<a href="{url}">{url}</a>')
 
 	def pkglist_to_linkstr(self, pkglist):
-		def link(string):
-			pkg = string
-			desc = ""
-			ver = ""
+		def linkify(s):
+			expr = re.compile("([a-zA-Z0-9@._+-]+)([=<>]?[^:]+)?(:.+)?")
+			
+			return(expr.sub(lambda x: f'<a href="pkg://{x.group(1)}">{x.group(1)}</a>{GLib.markup_escape_text(x.group(2)) if x.group(2) is not None else ""}{GLib.markup_escape_text(x.group(3)) if x.group(3) is not None else ""}', s))
 
-			if ':' in pkg:
-				pkg, desc = pkg.split(':', 1)
-				desc = ':'+desc
-
-			for delim in ['>=', '<=', '=', '>', '<']:
-				if delim in pkg:
-					pkg, ver = pkg.split(delim, 1)
-					ver = delim+ver
-					break
-
-			pkg = GLib.markup_escape_text(pkg)
-			desc = GLib.markup_escape_text(desc)
-			ver = GLib.markup_escape_text(ver)
-
-			return(f'<a href="pkg://{pkg}">{pkg}</a>{ver}{desc}')
-
-		return('   '.join([link(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
+		return('   '.join([linkify(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
