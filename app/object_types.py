@@ -66,15 +66,25 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def status(self):
-		str_dict = { PkgStatus.EXPLICIT: "explicit", PkgStatus.DEPENDENCY: "dependency", PkgStatus.OPTIONAL: "optional", PkgStatus.ORPHAN: "orphan" }
+		str_dict = {
+			PkgStatus.EXPLICIT: "explicit",
+			PkgStatus.DEPENDENCY: "dependency",
+			PkgStatus.OPTIONAL: "optional",
+			PkgStatus.ORPHAN: "orphan"
+		}
 
 		return(str_dict.get(self.status_flags, ""))
 
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
-		icon_dict = { PkgStatus.EXPLICIT: "package-install", PkgStatus.DEPENDENCY: "package-installed-updated", PkgStatus.OPTIONAL: "package-installed-outdated", PkgStatus.ORPHAN: "package-purge" }
+		icon_dict = {
+			PkgStatus.EXPLICIT: "/com/github/PacView/icons/pkg-explicit.svg",
+			PkgStatus.DEPENDENCY: "/com/github/PacView/icons/pkg-dependency.svg",
+			PkgStatus.OPTIONAL: "/com/github/PacView/icons/pkg-optional.svg",
+			PkgStatus.ORPHAN: "/com/github/PacView/icons/pkg-orphan.svg"
+		}
 
-		return(icon_dict.get(self.status_flags, ""))
+		return(icon_dict.get(self.status_flags, None))
 
 	@GObject.Property(type=str, default="")
 	def repository(self):
@@ -235,12 +245,14 @@ class PkgProperty(GObject.Object):
 	#-----------------------------------
 	prop_name = GObject.Property(type=str, default="")
 	prop_value = GObject.Property(type=str, default="")
+	prop_icon = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, name, value, *args, **kwargs):
+	def __init__(self, name, value, icon=None, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		self.prop_name = name
 		self.prop_value = value
+		self.prop_icon = icon

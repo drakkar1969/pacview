@@ -6,7 +6,7 @@
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">
-            <binding name="icon_name">
+            <binding name="resource">
               <lookup name="status_icon" type="PkgObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>

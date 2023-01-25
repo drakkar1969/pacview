@@ -55,7 +55,7 @@ class PkgDetailsWindow(Adw.Window):
 
 		if value is not None:
 			# Set package name
-			self.pkg_label.set_text(value.name)
+			self.pkg_label.set_text(f'{value.repository}/{value.name}')
 
 			# Populate file list
 			self.file_header_label.set_text(f'Files ({len(value.files_list)})')
@@ -151,13 +151,26 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_setup_value(self, factory, item):
+		image = Gtk.Image()
+
 		label = Gtk.Label(halign=Gtk.Align.START, wrap_mode=Pango.WrapMode.WORD, wrap=True, width_chars=30, max_width_chars=30, xalign=0, use_markup=True)
 		label.connect("activate-link", self.on_link_activated)
-		item.set_child(label)
+
+		box = Gtk.Box(spacing=6)
+		box.append(image)
+		box.append(label)
+
+		item.set_child(box)
 
 	@Gtk.Template.Callback()
 	def on_bind_value(self, factory, item):
-		item.get_child().set_label(item.get_item().prop_value)
+		if item.get_item().prop_icon is not None:
+			item.get_child().get_first_child().set_visible(True)
+			item.get_child().get_first_child().set_from_resource(item.get_item().prop_icon)
+		else:
+			item.get_child().get_first_child().set_visible(False)
+
+		item.get_child().get_last_child().set_label(item.get_item().prop_value)
 
 	#-----------------------------------
 	# Link signal handler
@@ -209,7 +222,7 @@ class PkgInfoPane(Gtk.Overlay):
 			self.model.append(PkgProperty("URL", pkg_object.url))
 			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
 			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
-			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed"))
+			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed", pkg_object.status_icon))
 			self.model.append(PkgProperty("Repository", pkg_object.repository))
 			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
 			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
