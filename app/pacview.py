@@ -71,7 +71,7 @@ class PkgDetailsWindow(Adw.Window):
 
 			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
 
-			self.log_model.splice(0, 0, log_lines)
+			self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
 			# Populate cache
 			pkg_cache = subprocess.run(shlex.split(f'paccache -vdk0 {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
