@@ -233,7 +233,7 @@
                 </property>
                 <property name="end-child">
                   <object class="PkgInfoPane" id="info_pane">
-                    <property name="height-request">140</property>
+                    <property name="height-request">130</property>
                   </object>
                 </property>
               </object>
