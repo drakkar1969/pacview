@@ -69,8 +69,8 @@
                         <property name="orientation">vertical</property>
                         <property name="margin_start">16</property>
                         <property name="margin_end">16</property>
-                        <property name="margin_top">6</property>
-                        <property name="margin_bottom">6</property>
+                        <property name="margin_top">4</property>
+                        <property name="margin_bottom">4</property>
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkImage">
@@ -96,8 +96,8 @@
                         <property name="orientation">vertical</property>
                         <property name="margin_start">16</property>
                         <property name="margin_end">16</property>
-                        <property name="margin_top">6</property>
-                        <property name="margin_bottom">6</property>
+                        <property name="margin_top">4</property>
+                        <property name="margin_bottom">4</property>
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkImage">
@@ -123,8 +123,8 @@
                         <property name="orientation">vertical</property>
                         <property name="margin_start">16</property>
                         <property name="margin_end">16</property>
-                        <property name="margin_top">6</property>
-                        <property name="margin_bottom">6</property>
+                        <property name="margin_top">4</property>
+                        <property name="margin_bottom">4</property>
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkImage">
@@ -150,8 +150,8 @@
                         <property name="orientation">vertical</property>
                         <property name="margin_start">16</property>
                         <property name="margin_end">16</property>
-                        <property name="margin_top">6</property>
-                        <property name="margin_bottom">6</property>
+                        <property name="margin_top">4</property>
+                        <property name="margin_bottom">4</property>
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkImage">
