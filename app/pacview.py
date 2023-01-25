@@ -164,11 +164,11 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@Gtk.Template.Callback()
 	def on_bind_value(self, factory, item):
-		if item.get_item().prop_icon is not None:
-			item.get_child().get_first_child().set_visible(True)
-			item.get_child().get_first_child().set_from_resource(item.get_item().prop_icon)
-		else:
-			item.get_child().get_first_child().set_visible(False)
+		image = item.get_child().get_first_child()
+		icon = item.get_item().prop_icon
+
+		image.set_visible(True if icon is not None else False)
+		image.set_from_resource(icon)
 
 		item.get_child().get_last_child().set_label(item.get_item().prop_value)
 
