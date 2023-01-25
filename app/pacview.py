@@ -89,16 +89,12 @@ class PkgDetailsWindow(Adw.Window):
 		# Set tree label font
 		self.tree_label.set_attributes(Pango.AttrList.from_string('0 -1 font-desc "Source Code Pro 11"'))
 
-		# Add key press controller
-		key_controller = Gtk.EventControllerKey()
-		key_controller.connect('key-pressed', self.on_key_pressed)
-		self.add_controller(key_controller)
-
 	#-----------------------------------
 	# Key press signal handler
 	#-----------------------------------
-	def on_key_pressed(self, keyval, keycode, state, user_data):
-		if keycode == Gdk.KEY_Escape: self.close()
+	@Gtk.Template.Callback()
+	def on_key_pressed(self, keyval, keycode, user_data, state):
+		if keycode == Gdk.KEY_Escape and state == 0: self.close()
 
 	#-----------------------------------
 	# Button signal handler

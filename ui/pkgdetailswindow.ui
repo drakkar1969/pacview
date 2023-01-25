@@ -6,6 +6,11 @@
     <property name="default_height">700</property>
     <property name="modal">True</property>
     <property name="title"></property>
+    <child>
+      <object class="GtkEventControllerKey">
+        <signal name="key-pressed" handler="on_key_pressed" swapped="no"/>
+      </object>
+    </child>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
