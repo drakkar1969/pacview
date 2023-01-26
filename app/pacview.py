@@ -297,6 +297,7 @@ class PkgColumnView(Gtk.Box):
 	search_by_group = GObject.Property(type=bool, default=False)
 	search_by_deps = GObject.Property(type=bool, default=False)
 	search_by_optdeps = GObject.Property(type=bool, default=False)
+	search_by_provides = GObject.Property(type=bool, default=False)
 
 	search_params = GObject.Property(type=GObject.TYPE_STRV, default=["name"])
 
@@ -337,8 +338,9 @@ class PkgColumnView(Gtk.Box):
 			match_group = (self.current_search in item.group.lower()) if self.search_by_group else False
 			match_deps = ([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False
 			match_optdeps = ([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False
+			match_provides = ([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False
 
-			return(match_name or match_desc or match_group or match_deps or match_optdeps)
+			return(match_name or match_desc or match_group or match_deps or match_optdeps or match_provides)
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
@@ -467,6 +469,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-by-group", None, "", "false", self.search_params_action ),
 			( "search-by-deps", None, "", "false", self.search_params_action ),
 			( "search-by-optdeps", None, "", "false", self.search_params_action ),
+			( "search-by-provides", None, "", "false", self.search_params_action ),
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
 			( "show-details-window", self.show_details_window_action ),
@@ -487,6 +490,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
 		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
 		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
+		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
@@ -558,7 +562,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.column_view.search_params = [n for n in ["name", "desc", "group", "deps", "optdeps"] if self.column_view.get_property(f'search_by_{n}') == True]
+		self.column_view.search_params = [n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True]
 
 		self.init_search_by_label()
 
