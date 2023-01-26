@@ -143,7 +143,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def maintainer(self):
-		return(GLib.markup_escape_text(self.pkg.packager))
+		return(self.email_to_link(self.pkg.packager))
 
 	@GObject.Property(type=str, default="")
 	def build_date_long(self):
@@ -220,6 +220,11 @@ class PkgObject(GObject.Object):
 			return(expr.sub(lambda x: f'<a href="pkg://{x.group(1)}">{x.group(1)}</a>{GLib.markup_escape_text(x.group(2)) if x.group(2) is not None else ""}{GLib.markup_escape_text(x.group(3)) if x.group(3) is not None else ""}', s))
 
 		return('   '.join([linkify(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
+
+	def email_to_link(self, email):
+		expr = re.compile("([^<]+)<?([^>]+)?>?(.+)?")
+
+		return(expr.sub(lambda x: GLib.markup_escape_text(x.group(1))+(("(<a href='mailto:"+x.group(2)+"'>"+x.group(2)+"</a>)") if x.group(2) is not None else "")+(x.group(3) if x.group(3) is not None else ""), email))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
