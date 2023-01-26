@@ -232,7 +232,7 @@ class PkgProperty(GObject.Object):
 	#-----------------------------------
 	prop_name = GObject.Property(type=str, default="")
 	prop_value = GObject.Property(type=str, default="")
-	prop_icon = GObject.Property(type=str, default="")
+	prop_icon = GObject.Property(type=str, default=None)
 
 	#-----------------------------------
 	# Init function
