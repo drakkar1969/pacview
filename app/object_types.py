@@ -58,7 +58,10 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def package_url(self):
-		return(self.url_to_link(f'https://www.archlinux.org/packages/{self.repository}/{self.architecture}/{self.name}'))
+		if self.pkg.db.name == "local":
+			return(self.url_to_link(f'https://aur.archlinux.org/packages/{self.name}'))
+		else:
+			return(self.url_to_link(f'https://www.archlinux.org/packages/{self.repository}/{self.architecture}/{self.name}'))
 
 	@GObject.Property(type=str, default="")
 	def licenses(self):
@@ -88,7 +91,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def repository(self):
-		return(self.pkg.db.name)
+		return(self.pkg.db.name if self.pkg.db.name != "local" else "AUR")
 
 	@GObject.Property(type=str, default="")
 	def group(self):

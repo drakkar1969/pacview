@@ -220,7 +220,7 @@ class PkgInfoPane(Gtk.Overlay):
 			self.model.append(PkgProperty("Version", pkg_object.version))
 			self.model.append(PkgProperty("Description", pkg_object.description))
 			self.model.append(PkgProperty("URL", pkg_object.url))
-			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
+			if pkg_object.repository in app.default_db_names or pkg_object.repository == "AUR": self.model.append(PkgProperty("Package URL", pkg_object.package_url))
 			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
 			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed", pkg_object.status_icon))
 			self.model.append(PkgProperty("Repository", pkg_object.repository))
@@ -514,7 +514,7 @@ class MainWindow(Adw.ApplicationWindow):
 			if row != self.repo_listbox_all: self.repo_listbox.remove(row)
 
 		for db in app.db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=str.title(db), str_id=db))
+			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=db if db.isupper() else str.title(db), str_id=db))
 
 		# Select initial repo/status
 		self.repo_listbox.select_row(self.repo_listbox_all)
@@ -660,6 +660,7 @@ class LauncherApp(Adw.Application):
 		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		self.db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
+		self.db_names.append("AUR")
 
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", alpm_folder)
@@ -667,16 +668,24 @@ class LauncherApp(Adw.Application):
 		# Clear list of PkgOBjects
 		self.pkg_objects.clear()
 
-		# Build dictionary of local packages
-		local_db = alpm_handle.get_localdb()
-		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
-
-		# Build list of PkgOBjects from packages in databases
+		# Get list of PkgOBjects from sync databases
 		for db in self.db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
 				self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
+
+		# Get local database
+		local_db = alpm_handle.get_localdb()
+
+		# Build dictionary of sync packages
+		sync_dict = dict([(pkg.name, pkg.pkg) for pkg in self.pkg_objects])
+
+		# Add foreign packages to list of PkgObjects
+		self.pkg_objects.extend([PkgObject(pkg) for pkg in local_db.pkgcache if pkg.name not in sync_dict.keys()])
+
+		# Build dictionary of local packages
+		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
 		# Set status for installed packages
 		for i, obj in enumerate(self.pkg_objects):
@@ -693,7 +702,6 @@ class LauncherApp(Adw.Application):
 							self.pkg_objects[i].status_flags = PkgStatus.DEPENDENCY
 						else:
 							self.pkg_objects[i].status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
-
 	#-----------------------------------
 	# Signal handlers
 	#-----------------------------------

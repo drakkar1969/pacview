@@ -22,6 +22,7 @@
                                 <property name="expression">
                                   <lookup name="repository" type="PkgObject"/>
                                 </property>
+                                <property name="match-mode">exact</property>
                               </object>
                             </child>
                             <child>
