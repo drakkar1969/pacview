@@ -153,7 +153,7 @@ class PkgInfoPane(Gtk.Overlay):
 	def on_setup_value(self, factory, item):
 		image = Gtk.Image()
 
-		label = Gtk.Label(halign=Gtk.Align.START, wrap_mode=Pango.WrapMode.WORD, wrap=True, xalign=0, use_markup=True)
+		label = Gtk.Label(halign=Gtk.Align.START, wrap_mode=Pango.WrapMode.WORD, wrap=True, xalign=0, use_markup=True, selectable=True)
 		label.connect("activate-link", self.on_link_activated)
 
 		box = Gtk.Box(spacing=6)
