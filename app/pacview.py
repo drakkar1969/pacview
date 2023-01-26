@@ -257,12 +257,12 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	def show_package_details(self):
 		if self._pkg_index >= 0 and self._pkg_index < len(self._pkg_list) and self._pkg_list[self._pkg_index] is not None:
-			pkg_detailswindow = PkgDetailsWindow()
-			pkg_detailswindow.set_transient_for(self.get_root())
+			details_window = PkgDetailsWindow()
+			details_window.set_transient_for(self.get_root())
 
-			pkg_detailswindow.pkg_object = self._pkg_list[self._pkg_index]
+			details_window.pkg_object = self._pkg_list[self._pkg_index]
 
-			pkg_detailswindow.show()
+			details_window.show()
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
