@@ -167,7 +167,7 @@ class PkgInfoPane(Gtk.Overlay):
 		image = item.get_child().get_first_child()
 		icon = item.get_item().prop_icon
 
-		image.set_visible(True if icon is not None else False)
+		image.set_visible(icon is not None)
 		image.set_from_resource(icon)
 
 		item.get_child().get_last_child().set_label(item.get_item().prop_value)
@@ -442,7 +442,7 @@ class MainWindow(Adw.ApplicationWindow):
 			self.header_details_btn,
 			"sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: True if value is not None else False
+			lambda binding, value: value is not None
 		)
 
 		# Bind package column view count to status label text
