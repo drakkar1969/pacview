@@ -46,7 +46,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def version(self):
-		return(self.pkg.version)
+		return(self.local_pkg.version if self.local_pkg is not None else self.pkg.version)
 
 	@GObject.Property(type=str, default="")
 	def description(self):
