@@ -708,6 +708,7 @@ class LauncherApp(Adw.Application):
 							self.pkg_objects[i].status_flags = PkgStatus.DEPENDENCY
 						else:
 							self.pkg_objects[i].status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+
 	#-----------------------------------
 	# Signal handlers
 	#-----------------------------------
