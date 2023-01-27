@@ -643,16 +643,12 @@ class MainWindow(Adw.ApplicationWindow):
 		total_size = 0
 
 		for db in app.db_names:
-			count = len([pkg for pkg in app.pkg_objects if (pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED))])
+			pkg_list = [pkg for pkg in app.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
 
+			count = len(pkg_list)
 			total_count += count
 
-			size = 0
-			
-			for pkg in app.pkg_objects:
-				if (pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)):
-					size += pkg.install_size_raw
-
+			size = sum([pkg.install_size_raw for pkg in pkg_list])
 			total_size += size
 
 			stats_window.model.append(StatsItem(
