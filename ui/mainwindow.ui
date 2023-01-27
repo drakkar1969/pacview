@@ -277,6 +277,12 @@
     </section>
     <section>
       <item>
+        <attribute name="label">Show Statistics</attribute>
+        <attribute name="action">win.show-stats-window</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="label">View Sidebar</attribute>
         <attribute name="action">win.toggle-sidebar</attribute>
       </item>

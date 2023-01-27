@@ -8,7 +8,7 @@ from gi.repository import Gtk, Adw, Gio, GObject, Pango, Gdk
 
 import pyalpm
 
-from object_types import PkgStatus, PkgObject, PkgProperty
+from object_types import PkgStatus, PkgObject, PkgProperty, StatsItem
 
 # Global path variable
 app_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -16,6 +16,56 @@ app_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 # Global gresource file
 gresource = Gio.Resource.load(os.path.join(app_dir, "com.github.PacView.gresource"))
 gresource._register()
+
+#------------------------------------------------------------------------------
+#-- CLASS: STATSWINDOW
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/statswindow.ui")
+class StatsWindow(Adw.Window):
+	__gtype_name__ = "StatsWindow"
+
+	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	model = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+	#-----------------------------------
+	# Key press signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_key_pressed(self, keyval, keycode, user_data, state):
+		if keycode == Gdk.KEY_Escape and state == 0: self.close()
+
+	#-----------------------------------
+	# Factory signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_setup_left(self, factory, item):
+		label = Gtk.Label(halign=Gtk.Align.START, xalign=0, use_markup=True)
+		item.set_child(label)
+
+	@Gtk.Template.Callback()
+	def on_setup_right(self, factory, item):
+		label = Gtk.Label(halign=Gtk.Align.END, xalign=1, use_markup=True)
+		item.set_child(label)
+
+	@Gtk.Template.Callback()
+	def on_bind_repository(self, factory, item):
+		item.get_child().set_label(item.get_item().repository)
+
+	@Gtk.Template.Callback()
+	def on_bind_count(self, factory, item):
+		item.get_child().set_label(item.get_item().count)
+
+	@Gtk.Template.Callback()
+	def on_bind_size(self, factory, item):
+		item.get_child().set_label(item.get_item().size)
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGDETAILSWINDOW
@@ -474,6 +524,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "view-next-package", self.view_next_package_action ),
 			( "show-details-window", self.show_details_window_action ),
 			( "refresh-dbs", self.refresh_dbs_action ),
+			( "show-stats-window", self.show_stats_window_action ),
 			( "show-about", self.show_about_action ),
 			( "quit-app", self.quit_app_action )
 		]
@@ -495,6 +546,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
+		app.set_accels_for_action("win.show-stats-window", ["<ctrl>S"])
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
@@ -582,6 +634,40 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.init_sidebar()
 		self.header_search_entry.emit("stop-search")
+
+	def show_stats_window_action(self, action, value, user_data):
+		stats_window = StatsWindow()
+		stats_window.set_transient_for(self)
+
+		total_count = 0
+		total_size = 0
+
+		for db in app.db_names:
+			count = len([pkg for pkg in app.pkg_objects if (pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED))])
+
+			total_count += count
+
+			size = 0
+			
+			for pkg in app.pkg_objects:
+				if (pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)):
+					size += pkg.install_size_raw
+
+			total_size += size
+
+			stats_window.model.append(StatsItem(
+				db if db.isupper() else str.title(db),
+				count,
+				f'{size/(1024.0*1024.0):.0f} MiB'
+			))
+
+		stats_window.model.append(StatsItem(
+			"<b>Total</b>",
+			f'<b>{total_count}</b>',
+			f'<b>{total_size/(1024.0*1024.0):.0f} MiB</b>'
+		))
+
+		stats_window.show()
 
 	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(

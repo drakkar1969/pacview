@@ -248,3 +248,26 @@ class PkgProperty(GObject.Object):
 		self.prop_name = name
 		self.prop_value = value
 		self.prop_icon = icon
+
+#------------------------------------------------------------------------------
+#-- CLASS: STATSITEM
+#------------------------------------------------------------------------------
+class StatsItem(GObject.Object):
+	__gtype_name__ = "StatsItem"
+
+	#-----------------------------------
+	# Read/write properties
+	#-----------------------------------
+	repository = GObject.Property(type=str, default="")
+	count = GObject.Property(type=str, default="")
+	size = GObject.Property(type=str, default="")
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, repository, count, size, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.repository = repository
+		self.count = count
+		self.size = size

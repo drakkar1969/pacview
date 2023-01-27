@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// STATS WINDOW //-->
+  <template class="StatsWindow" parent="AdwWindow">
+    <property name="default-width">400</property>
+    <property name="modal">True</property>
+    <property name="title">Statistics</property>
+    <child>
+      <object class="GtkEventControllerKey">
+        <signal name="key-pressed" handler="on_key_pressed" swapped="no"/>
+      </object>
+    </child>
+    <property name="content">
+      <object class="GtkBox" id="window_box">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="AdwHeaderBar" id="header_bar">
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="view_box">
+            <property name="margin_start">24</property>
+            <property name="margin_end">24</property>
+            <property name="margin_top">24</property>
+            <property name="margin_bottom">24</property>
+            <style>
+              <class name="card"/>
+            </style>
+            <child>
+              <object class="GtkColumnView" id="view">
+                <property name="hexpand">True</property>
+                <property name="margin_start">16</property>
+                <property name="margin_end">16</property>
+                <property name="margin_top">16</property>
+                <property name="margin_bottom">16</property>
+                <property name="model">
+                  <object class="GtkNoSelection" id="selection">
+                    <property name="model">
+                      <object class="GListStore" id="model"/>
+                    </property>
+                  </object>
+                </property>
+                <child>
+                  <object class="GtkColumnViewColumn" id="repository_column">
+                    <property name="title">Repository</property>
+                    <property name="expand">True</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="repository_factory">
+                        <signal name="setup" handler="on_setup_left" swapped="no"/>
+                        <signal name="bind" handler="on_bind_repository" swapped="no"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="count_column">
+                    <property name="title">Packages</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="count_factory">
+                        <signal name="setup" handler="on_setup_right" swapped="no"/>
+                        <signal name="bind" handler="on_bind_count" swapped="no"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="size_column">
+                    <property name="title">Installed Size</property>
+                    <property name="factory">
+                      <object class="GtkSignalListItemFactory" id="size_factory">
+                        <signal name="setup" handler="on_setup_right" swapped="no"/>
+                        <signal name="bind" handler="on_bind_size" swapped="no"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
