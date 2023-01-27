@@ -218,7 +218,7 @@ class PkgObject(GObject.Object):
 	def pkglist_to_linkstr(self, pkglist):
 		def linkify(s):
 			expr = re.compile("([a-zA-Z0-9@._+-]+)([=<>]?[^:]+)?(:.+)?")
-			
+
 			return(expr.sub(lambda x: f'<a href="pkg://{x.group(1)}">{x.group(1)}</a>{GLib.markup_escape_text(x.group(2)) if x.group(2) is not None else ""}{GLib.markup_escape_text(x.group(3)) if x.group(3) is not None else ""}', s))
 
 		return('   '.join([linkify(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
