@@ -703,11 +703,10 @@ class LauncherApp(Adw.Application):
 
 				if reason == 0: self.pkg_objects[i].status_flags = PkgStatus.EXPLICIT
 				else:
-					if reason == 1:
-						if local_pkg.compute_requiredby() != []:
-							self.pkg_objects[i].status_flags = PkgStatus.DEPENDENCY
-						else:
-							self.pkg_objects[i].status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+					if local_pkg.compute_requiredby() != []:
+						self.pkg_objects[i].status_flags = PkgStatus.DEPENDENCY
+					else:
+						self.pkg_objects[i].status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
 
 	#-----------------------------------
 	# Signal handlers
