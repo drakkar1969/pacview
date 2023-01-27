@@ -222,9 +222,9 @@ class PkgObject(GObject.Object):
 		return('   '.join([linkify(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
 
 	def email_to_link(self, email):
-		expr = re.compile("([^<]+)<?([^>]+)?>?(.+)?")
+		expr = re.compile("([^<]+)<?([^>]+)?>?")
 
-		return(expr.sub(lambda x: GLib.markup_escape_text(x.group(1))+(("(<a href='mailto:"+x.group(2)+"'>"+x.group(2)+"</a>)") if x.group(2) is not None else "")+(x.group(3) if x.group(3) is not None else ""), email))
+		return(expr.sub(r"\1<a href='mailto:\2'>\2</a>", email))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
