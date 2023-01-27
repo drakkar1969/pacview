@@ -47,12 +47,12 @@ class StatsWindow(Adw.Window):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_setup_left(self, factory, item):
-		label = Gtk.Label(halign=Gtk.Align.START, xalign=0, use_markup=True)
+		label = Gtk.Label(xalign=0, use_markup=True)
 		item.set_child(label)
 
 	@Gtk.Template.Callback()
 	def on_setup_right(self, factory, item):
-		label = Gtk.Label(halign=Gtk.Align.END, xalign=1, use_markup=True)
+		label = Gtk.Label(xalign=1, use_markup=True)
 		item.set_child(label)
 
 	@Gtk.Template.Callback()
