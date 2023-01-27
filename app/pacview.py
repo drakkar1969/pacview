@@ -270,7 +270,7 @@ class PkgInfoPane(Gtk.Overlay):
 			self.model.append(PkgProperty("Version", pkg_object.version))
 			self.model.append(PkgProperty("Description", pkg_object.description))
 			self.model.append(PkgProperty("URL", pkg_object.url))
-			if pkg_object.repository in app.default_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
+			if pkg_object.repository in app.sync_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
 			if pkg_object.repository == "AUR": self.model.append(PkgProperty("AUR URL", pkg_object.package_url))
 			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
 			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed", pkg_object.status_icon))
@@ -721,12 +721,6 @@ class MainWindow(Adw.ApplicationWindow):
 #------------------------------------------------------------------------------
 class LauncherApp(Adw.Application):
 	#-----------------------------------
-	# Variables
-	#-----------------------------------
-	db_names = []
-	pkg_objects = []
-
-	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, **kwargs):
@@ -738,57 +732,58 @@ class LauncherApp(Adw.Application):
 		self.populate_pkg_objects()
 
 	def populate_pkg_objects(self):
-		# Path to pacman databases
-		alpm_folder = "/var/lib/pacman"
+		# Clear PkgOBject list
+		self.pkg_objects = []
 
-		# Default database names
-		self.default_db_names = ["core", "extra", "community", "multilib"]
+		# Get pyalpm handle
+		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
 
-		# Build list of configured database names
+		# Define sync database names
+		self.sync_db_names = ["core", "extra", "community", "multilib"]
+
+		# Get list of configured database names
 		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		self.db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
-		self.db_names.append("AUR")
 
-		# Get pyalpm handle
-		alpm_handle = pyalpm.Handle("/", alpm_folder)
+		# Package dict
+		self.db_dict = {}
 
-		# Clear list of PkgOBjects
-		self.pkg_objects.clear()
-
-		# Get list of PkgOBjects from sync databases
+		# Add sync packages
 		for db in self.db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
-				self.pkg_objects.extend([PkgObject(pkg) for pkg in sync_db.pkgcache])
+				self.db_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
 
-		# Get local database
+		# Add local packages
 		local_db = alpm_handle.get_localdb()
-
-		# Build dictionary of sync packages
-		sync_dict = dict([(pkg.name, pkg.pkg) for pkg in self.pkg_objects])
-
-		# Add foreign packages to list of PkgObjects
-		self.pkg_objects.extend([PkgObject(pkg) for pkg in local_db.pkgcache if pkg.name not in sync_dict.keys()])
-
-		# Build dictionary of local packages
 		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
-		# Set status for installed packages
-		for i, obj in enumerate(self.pkg_objects):
-			if obj.pkg.name in local_dict.keys():
-				local_pkg = local_dict[obj.pkg.name]
-				reason = local_pkg.reason
+		self.db_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in self.db_dict.keys()]))
 
-				self.pkg_objects[i].local_pkg = local_pkg
+		# Populate PkgObject list
+		def get_local_data(name):
+			if name in local_dict.keys():
+				local_pkg = local_dict[name]
 
-				if reason == 0: self.pkg_objects[i].status_flags = PkgStatus.EXPLICIT
+				status_flags = PkgStatus.NONE
+
+				if local_pkg.reason == 0: status_flags = PkgStatus.EXPLICIT
 				else:
 					if local_pkg.compute_requiredby() != []:
-						self.pkg_objects[i].status_flags = PkgStatus.DEPENDENCY
+						status_flags = PkgStatus.DEPENDENCY
 					else:
-						self.pkg_objects[i].status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+						status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+
+				return(local_pkg, status_flags)
+
+			return(None, PkgStatus.NONE)
+
+		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in self.db_dict.values()]
+
+		# Add AUR to database names
+		self.db_names.append("AUR")
 
 	#-----------------------------------
 	# Signal handlers

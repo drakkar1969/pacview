@@ -184,10 +184,12 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, pkg, *args, **kwargs):
+	def __init__(self, pkg, local_data, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		self.pkg = pkg
+		self.local_pkg = local_data[0]
+		self.status_flags = local_data[1]
 
 	#-----------------------------------
 	# Helper functions
