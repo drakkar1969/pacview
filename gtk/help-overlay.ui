@@ -34,6 +34,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F1</property>
+                <property name="title">Show About Window</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;Q</property>
                 <property name="title">Quit</property>
               </object>
@@ -47,6 +53,12 @@
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">F5</property>
                 <property name="title">Refresh</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Return</property>
+                <property name="title">Show Package Details</property>
               </object>
             </child>
           </object>
@@ -66,6 +78,42 @@
                 <property name="title">Exit Search</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;1</property>
+                <property name="title">Toggle Search By Name</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;2</property>
+                <property name="title">Toggle Search By Description</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;3</property>
+                <property name="title">Toggle Search By Group</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;4</property>
+                <property name="title">Toggle Search By Dependencies</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;5</property>
+                <property name="title">Toggle Search By Optional</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;6</property>
+                <property name="title">Toggle Search By Provides</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
@@ -81,12 +129,6 @@
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;Right</property>
                 <property name="title">Next Package</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">Return</property>
-                <property name="title">Show Package Details</property>
               </object>
             </child>
           </object>
