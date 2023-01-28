@@ -640,7 +640,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.init_sidebar()
 
 		# Set status bar search status
-		self.init_status_search_label(["name"])
+		self.set_status_search_label()
 
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
@@ -660,7 +660,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
-	def init_status_search_label(self, param_list):
+	def set_status_search_label(self):
+		param_list = [n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True]
+
 		self.status_search_label.set_text(f'Search by: {", ".join(param_list) if param_list != [] else "(none)"}')
 
 	#-----------------------------------
@@ -697,7 +699,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.init_status_search_label([n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True])
+		self.set_status_search_label()
 
 	def reset_search_params_action(self, action, value, user_data):
 		self.lookup_action("search-by-name").set_state(GLib.Variant.new_boolean(True))
@@ -716,7 +718,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.init_status_search_label(["name"])
+		self.set_status_search_label()
 
 	def show_column_action(self, action, value, user_data):
 		action.set_state(value)
