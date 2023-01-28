@@ -181,6 +181,14 @@ class PkgObject(GObject.Object):
 	def files_list(self):
 		return([f[0] for f in self.local_pkg.files] if self.local_pkg is not None else [])
 
+	@GObject.Property(type=str, default="")
+	def sha256sum(self):
+		return(self.pkg.sha256sum if self.pkg.sha256sum is not None else "None")
+
+	@GObject.Property(type=str, default="")
+	def md5sum(self):
+		return(self.pkg.md5sum if self.pkg.md5sum is not None else "None")
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------

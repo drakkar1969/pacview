@@ -329,6 +329,8 @@ class PkgInfoPane(Gtk.Overlay):
 			if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
 			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
 			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
+			self.model.append(PkgProperty("SHA256 Sum", pkg_object.sha256sum))
+			self.model.append(PkgProperty("MD5 Sum", pkg_object.md5sum))
 
 	def display_prev_package(self):
 		if self._pkg_index > 0:
