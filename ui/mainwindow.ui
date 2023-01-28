@@ -222,9 +222,10 @@
               <object class="GtkSeparator"/>
             </property>
             <property name="content">
-              <object class="GtkPaned">
+              <object class="GtkPaned" id="pane">
                 <property name="orientation">vertical</property>
                 <property name="wide-handle">True</property>
+                <property name="position">360</property>
                 <property name="shrink-start-child">False</property>
                 <property name="start-child">
                   <object class="PkgColumnView" id="column_view">
@@ -233,7 +234,6 @@
                 </property>
                 <property name="end-child">
                   <object class="PkgInfoPane" id="info_pane">
-                    <property name="height-request">130</property>
                   </object>
                 </property>
               </object>

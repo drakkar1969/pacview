@@ -10,5 +10,8 @@
     <key name="maximized" type="b">
       <default>false</default>
     </key>
+    <key name="pane-position" type="i">
+      <default>360</default>
+    </key>
   </schema>
 </schemalist>

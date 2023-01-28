@@ -514,6 +514,8 @@ class MainWindow(Adw.ApplicationWindow):
 	status_listbox = Gtk.Template.Child()
 	status_listbox_installed = Gtk.Template.Child()
 
+	pane = Gtk.Template.Child()
+
 	column_view = Gtk.Template.Child()
 	info_pane = Gtk.Template.Child()
 
@@ -532,6 +534,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.settings.bind("width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("pane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
 
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.column_view)
