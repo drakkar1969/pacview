@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -633,9 +633,6 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
-		# Add items to package column view
-		self.column_view.model.splice(0, len(self.column_view.model), app.pkg_objects)
-
 		# Initialize sidebar listboxes
 		self.init_sidebar()
 
@@ -653,7 +650,7 @@ class MainWindow(Adw.ApplicationWindow):
 		while(row := self.repo_listbox.get_row_at_index(1)):
 			if row != self.repo_listbox_all: self.repo_listbox.remove(row)
 
-		for db in app.db_names:
+		for db in app.pacman_db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=db if db.isupper() else str.title(db), str_id=db))
 
 		# Select initial repo/status
@@ -727,9 +724,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.info_pane.show_package_details()
 
 	def refresh_dbs_action(self, action, value, user_data):
+		app.init_databases()
 		app.populate_pkg_objects()
-
-		self.column_view.model.splice(0, len(self.column_view.model), app.pkg_objects)
 
 		self.init_sidebar()
 		self.header_search_entry.emit("stop-search")
@@ -741,7 +737,7 @@ class MainWindow(Adw.ApplicationWindow):
 		total_count = 0
 		total_size = 0
 
-		for db in app.db_names:
+		for db in app.pacman_db_names:
 			pkg_list = [pkg for pkg in app.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
 
 			count = len(pkg_list)
@@ -837,40 +833,50 @@ class LauncherApp(Adw.Application):
 		# Connect signal handlers
 		self.connect("activate", self.on_activate)
 
-		self.populate_pkg_objects()
+		self.init_databases()
 
-	def populate_pkg_objects(self):
-		# Clear PkgOBject list
-		self.pkg_objects = []
-
-		# Get pyalpm handle
-		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
-
+	def init_databases(self):
 		# Define sync database names
 		self.sync_db_names = ["core", "extra", "community", "multilib"]
 
 		# Get list of configured database names
 		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-		self.db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
+		self.pacman_db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
+
+		# Add AUR to configured database names
+		self.pacman_db_names.append("AUR")
+
+	#-----------------------------------
+	# Signal handlers
+	#-----------------------------------
+	def on_activate(self, app):
+		self.main_window = MainWindow(application=app)
+		self.main_window.present()
+
+		self.populate_pkg_objects()
+
+	def populate_pkg_objects(self):
+		# Get pyalpm handle
+		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
 
 		# Package dict
-		self.all_pkg_dict = {}
+		all_pkg_dict = {}
 
 		# Add sync packages
-		for db in self.db_names:
+		for db in self.pacman_db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
-				self.all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
+				all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
 
 		# Add local packages
 		local_db = alpm_handle.get_localdb()
 		local_pkg_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
-		self.all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in self.all_pkg_dict.keys()]))
+		all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in all_pkg_dict.keys()]))
 
-		# Populate PkgObject list
+		# Create list of package objects
 		def get_local_data(name):
 			if name in local_pkg_dict.keys():
 				local_pkg = local_pkg_dict[name]
@@ -888,17 +894,9 @@ class LauncherApp(Adw.Application):
 
 			return(None, PkgStatus.NONE)
 
-		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in self.all_pkg_dict.values()]
+		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in all_pkg_dict.values()]
 
-		# Add AUR to database names
-		self.db_names.append("AUR")
-
-	#-----------------------------------
-	# Signal handlers
-	#-----------------------------------
-	def on_activate(self, app):
-		self.main_window = MainWindow(application=app)
-		self.main_window.present()
+		self.main_window.column_view.model.splice(0, len(self.main_window.column_view.model), app.pkg_objects)
 
 #------------------------------------------------------------------------------
 #-- MAIN APP
