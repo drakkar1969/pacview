@@ -402,6 +402,14 @@ class PkgColumnView(Gtk.Box):
 
 	version_sorter = Gtk.Template.Child()
 
+	package_column = Gtk.Template.Child()
+	version_column = Gtk.Template.Child()
+	repository_column = Gtk.Template.Child()
+	status_column = Gtk.Template.Child()
+	date_column = Gtk.Template.Child()
+	size_column = Gtk.Template.Child()
+	group_column = Gtk.Template.Child()
+
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
@@ -601,14 +609,6 @@ class MainWindow(Adw.ApplicationWindow):
 
 			( "search-reset-params", self.reset_search_params_action ),
 
-			( "show-column-package", None, "", "true", self.show_column_action ),
-			( "show-column-version", None, "", "true", self.show_column_action ),
-			( "show-column-repository", None, "", "true", self.show_column_action ),
-			( "show-column-status", None, "", "true", self.show_column_action ),
-			( "show-column-date", None, "", "true", self.show_column_action ),
-			( "show-column-size", None, "", "true", self.show_column_action ),
-			( "show-column-group", None, "", "true", self.show_column_action ),
-
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
 			( "show-details-window", self.show_details_window_action ),
@@ -622,7 +622,15 @@ class MainWindow(Adw.ApplicationWindow):
 		]
 
 		self.add_action_entries(action_list)
-		self.lookup_action("show-column-package").set_enabled(False)
+
+		# Add property actions
+		self.add_action(Gio.PropertyAction.new("show-column-package", self.column_view.package_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-version", self.column_view.version_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-repository", self.column_view.repository_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-status", self.column_view.status_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-date", self.column_view.date_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-size", self.column_view.size_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-group", self.column_view.group_column, "visible"))
 
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.toggle-sidebar", ["<ctrl>b"])
@@ -724,13 +732,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 		self.set_status_search_label()
-
-	def show_column_action(self, action, value, user_data):
-		action.set_state(value)
-
-		for col in self.column_view.view.get_columns():
-			if col.get_title() == action.props.name.replace("show-column-", "").title():
-				col.set_visible(value.get_boolean())
 
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()
