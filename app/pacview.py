@@ -548,9 +548,12 @@ class MainWindow(Adw.ApplicationWindow):
 		self.settings.bind("window-width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("window-height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("window-maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("sidebar-visible", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("infopane-visible", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-sidebar", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-infopane", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("infopane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
+
+		self.add_action(self.settings.create_action("show-sidebar"))
+		self.add_action(self.settings.create_action("show-infopane"))
 
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.column_view)
@@ -621,9 +624,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action_entries(action_list)
 
 		# Add property actions
-		self.add_action(Gio.PropertyAction.new("toggle-sidebar", self.header_sidebar_btn, "active"))
-		self.add_action(Gio.PropertyAction.new("toggle-infopane", self.header_infopane_btn, "active"))
-
 		self.add_action(Gio.PropertyAction.new("show-column-package", self.column_view.package_column, "visible"))
 		self.add_action(Gio.PropertyAction.new("show-column-version", self.column_view.version_column, "visible"))
 		self.add_action(Gio.PropertyAction.new("show-column-repository", self.column_view.repository_column, "visible"))
@@ -633,8 +633,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action(Gio.PropertyAction.new("show-column-group", self.column_view.group_column, "visible"))
 
 		# Add keyboard shortcuts
-		app.set_accels_for_action("win.toggle-sidebar", ["<ctrl>b"])
-		app.set_accels_for_action("win.toggle-infopane", ["<ctrl>i"])
+		app.set_accels_for_action("win.show-sidebar", ["<ctrl>b"])
+		app.set_accels_for_action("win.show-infopane", ["<ctrl>i"])
 
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])

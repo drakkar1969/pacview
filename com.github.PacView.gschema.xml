@@ -10,10 +10,10 @@
     <key name="window-maximized" type="b">
       <default>false</default>
     </key>
-    <key name="sidebar-visible" type="b">
+    <key name="show-sidebar" type="b">
       <default>true</default>
     </key>
-    <key name="infopane-visible" type="b">
+    <key name="show-infopane" type="b">
       <default>true</default>
     </key>
     <key name="infopane-position" type="i">
