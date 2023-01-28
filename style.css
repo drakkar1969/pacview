@@ -24,8 +24,15 @@ button.inline-button {
 	min-height: 0;
 	min-width: 0;
 	padding: 0;
+	opacity: 0.7;
 }
 
 button.inline-button:hover {
 	background: none;
+	opacity: 1;
+}
+
+button.inline-button:active {
+	background: none;
+	opacity: 0.8;
 }
