@@ -593,9 +593,6 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add actions
 		action_list = [
-			( "toggle-sidebar", None, "", "true", self.toggle_sidebar_action ),
-			( "toggle-infopane", None, "", "true", self.toggle_infopane_action ),
-			
 			( "search-start", self.start_search_action ),
 			( "search-stop", self.stop_search_action ),
 			( "search-toggle", None, "", "false", self.toggle_search_action ),
@@ -624,6 +621,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action_entries(action_list)
 
 		# Add property actions
+		self.add_action(Gio.PropertyAction.new("toggle-sidebar", self.header_sidebar_btn, "active"))
+		self.add_action(Gio.PropertyAction.new("toggle-infopane", self.header_infopane_btn, "active"))
+
 		self.add_action(Gio.PropertyAction.new("show-column-package", self.column_view.package_column, "visible"))
 		self.add_action(Gio.PropertyAction.new("show-column-version", self.column_view.version_column, "visible"))
 		self.add_action(Gio.PropertyAction.new("show-column-repository", self.column_view.repository_column, "visible"))
@@ -691,16 +691,6 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Action handlers
 	#-----------------------------------
-	def toggle_sidebar_action(self, action, value, user_data):
-		action.set_state(value)
-
-		self.header_sidebar_btn.set_active(value)
-
-	def toggle_infopane_action(self, action, value, user_data):
-		action.set_state(value)
-
-		self.header_infopane_btn.set_active(value)
-
 	def start_search_action(self, action, value, user_data):
 		self.header_search_entry.emit("search-started")
 
