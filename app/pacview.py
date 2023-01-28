@@ -702,19 +702,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.set_status_search_label()
 
 	def reset_search_params_action(self, action, value, user_data):
-		self.lookup_action("search-by-name").set_state(GLib.Variant.new_boolean(True))
-		self.lookup_action("search-by-desc").set_state(GLib.Variant.new_boolean(False))
-		self.lookup_action("search-by-group").set_state(GLib.Variant.new_boolean(False))
-		self.lookup_action("search-by-deps").set_state(GLib.Variant.new_boolean(False))
-		self.lookup_action("search-by-optdeps").set_state(GLib.Variant.new_boolean(False))
-		self.lookup_action("search-by-provides").set_state(GLib.Variant.new_boolean(False))
-
-		self.column_view.search_by_name = True
-		self.column_view.search_by_desc = False
-		self.column_view.search_by_group = False
-		self.column_view.search_by_deps = False
-		self.column_view.search_by_optdeps = False
-		self.column_view.search_by_provides = False
+		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
+			self.lookup_action(f'search-by-{n}').set_state(GLib.Variant.new_boolean(n == "name"))
+			self.column_view.set_property(f'search_by_{n}', n == "name")
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
