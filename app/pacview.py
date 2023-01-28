@@ -633,7 +633,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Initialize sidebar listboxes
 		self.init_sidebar()
 
-		# Set status bar search by text
+		# Set status bar search status
 		self.init_status_search_label(["name"])
 
 		# Set initial focus on package column view
