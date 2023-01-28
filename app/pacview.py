@@ -609,21 +609,27 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.toggle-sidebar", ["<ctrl>b"])
 		app.set_accels_for_action("win.toggle-infopane", ["<ctrl>i"])
+
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
+
 		app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
 		app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
 		app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
 		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
 		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
 		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
+
 		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
+
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
+
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.show-stats-window", ["<alt>S"])
 		app.set_accels_for_action("win.copy-package-list", ["<alt>L"])
+		
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
