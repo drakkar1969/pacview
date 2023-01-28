@@ -531,12 +531,12 @@ class MainWindow(Adw.ApplicationWindow):
 		# Bind gsettings
 		self.settings = Gio.Settings(schema_id="com.github.PacView")
 
-		self.settings.bind("width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("pane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("window-width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("window-height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("window-maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("sidebar-visible", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("infopane-visible", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("infopane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
 
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.column_view)
