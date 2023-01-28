@@ -260,15 +260,21 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@Gtk.Template.Callback()
 	def on_bind_value(self, factory, item):
-		image = item.get_child().get_first_child()
-		icon = item.get_item().prop_icon
+		child = item.get_child()
+		obj = item.get_item()
+		
+		image = child.get_first_child()
+		button = child.get_first_child().get_next_sibling()
+		label = child.get_last_child()
+
+		icon = obj.prop_icon
 
 		image.set_visible(icon is not None and icon != "")
 		image.set_from_resource(icon)
 
-		item.get_child().get_last_child().set_label(item.get_item().prop_value)
+		label.set_label(obj.prop_value)
 
-		item.get_child().get_first_child().get_next_sibling().set_visible(item.get_item().prop_copy)
+		button.set_visible(obj.prop_copy)
 
 	#-----------------------------------
 	# Link signal handler
