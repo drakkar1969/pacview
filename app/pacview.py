@@ -68,6 +68,46 @@ class StatsWindow(Adw.Window):
 		item.get_child().set_label(item.get_item().size)
 
 #------------------------------------------------------------------------------
+#-- CLASS: VTOGGLEBUTTON
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/vtogglebutton.ui")
+class VToggleButton(Gtk.ToggleButton):
+	__gtype_name__ = "VToggleButton"
+
+	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	image = Gtk.Template.Child()
+	label = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	str_id = GObject.Property(type=str, default="")
+
+	@GObject.Property(type=str)
+	def icon(self):
+		return(self.image.get_icon_name())
+
+	@icon.setter
+	def icon(self, value):
+		self.image.set_from_icon_name(value)
+
+	@GObject.Property(type=str)
+	def text(self):
+		return(self.label.get_text())
+
+	@text.setter
+	def text(self, value):
+		self.label.set_text(value)
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+#------------------------------------------------------------------------------
 #-- CLASS: PKGDETAILSWINDOW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkgdetailswindow.ui")
@@ -152,8 +192,7 @@ class PkgDetailsWindow(Adw.Window):
 	@Gtk.Template.Callback()
 	def on_button_toggled(self, button):
 		if button.get_active() == True:
-			page_id = button.get_child().get_last_child().get_label().lower()
-			self.content_stack.set_visible_child_name(page_id)
+			self.content_stack.set_visible_child_name(button.str_id)
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGINFOPANE
