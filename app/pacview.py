@@ -535,6 +535,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.settings.bind("height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("pane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("sidebar-visible", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("infopane-visible", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
 
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.column_view)
