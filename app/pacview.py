@@ -4,7 +4,7 @@ import gi, sys, os, urllib.parse, subprocess, shlex, re
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw, Gio, GObject, Pango, Gdk
+from gi.repository import Gtk, Adw, Gio, GObject, Pango, Gdk, GLib
 
 import pyalpm
 
@@ -409,8 +409,6 @@ class PkgColumnView(Gtk.Box):
 	search_by_optdeps = GObject.Property(type=bool, default=False)
 	search_by_provides = GObject.Property(type=bool, default=False)
 
-	search_params = GObject.Property(type=GObject.TYPE_STRV, default=["name"])
-
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -572,16 +570,18 @@ class MainWindow(Adw.ApplicationWindow):
 			( "toggle-sidebar", None, "", "true", self.toggle_sidebar_action ),
 			( "toggle-infopane", None, "", "true", self.toggle_infopane_action ),
 			
-			( "search-start", self.search_start_action ),
-			( "search-stop", self.search_stop_action ),
-			( "search-toggle", None, "", "false", self.search_toggle_action ),
+			( "search-start", self.start_search_action ),
+			( "search-stop", self.stop_search_action ),
+			( "search-toggle", None, "", "false", self.toggle_search_action ),
 
-			( "search-by-name", None, "", "true", self.search_params_action ),
-			( "search-by-desc", None, "", "false", self.search_params_action ),
-			( "search-by-group", None, "", "false", self.search_params_action ),
-			( "search-by-deps", None, "", "false", self.search_params_action ),
-			( "search-by-optdeps", None, "", "false", self.search_params_action ),
-			( "search-by-provides", None, "", "false", self.search_params_action ),
+			( "search-by-name", None, "", "true", self.change_search_params_action ),
+			( "search-by-desc", None, "", "false", self.change_search_params_action ),
+			( "search-by-group", None, "", "false", self.change_search_params_action ),
+			( "search-by-deps", None, "", "false", self.change_search_params_action ),
+			( "search-by-optdeps", None, "", "false", self.change_search_params_action ),
+			( "search-by-provides", None, "", "false", self.change_search_params_action ),
+
+			( "search-reset-params", self.reset_search_params_action ),
 
 			( "show-column-package", None, "", "true", self.show_column_action ),
 			( "show-column-version", None, "", "true", self.show_column_action ),
@@ -617,6 +617,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
 		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
 		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
+		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
@@ -633,7 +634,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.init_sidebar()
 
 		# Set status bar search by text
-		self.init_search_by_label()
+		self.init_search_by_label(["name"])
 
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
@@ -653,8 +654,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
-	def init_search_by_label(self):
-		self.search_params_label.set_text(f'Search by: {", ".join(self.column_view.search_params) if self.column_view.search_params != [] else "(none)"}')
+	def init_search_by_label(self, param_list):
+		self.search_params_label.set_text(f'Search by: {", ".join(param_list) if param_list != [] else "(none)"}')
 
 	#-----------------------------------
 	# Action handlers
@@ -669,13 +670,13 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.header_infopane_btn.set_active(value)
 
-	def search_start_action(self, action, value, user_data):
+	def start_search_action(self, action, value, user_data):
 		self.header_search_entry.emit("search-started")
 
-	def search_stop_action(self, action, value, user_data):
+	def stop_search_action(self, action, value, user_data):
 		self.header_search_entry.emit("stop-search")
 
-	def search_toggle_action(self, action, value, user_data):
+	def toggle_search_action(self, action, value, user_data):
 		action.set_state(value)
 
 		if value.get_boolean():
@@ -683,16 +684,33 @@ class MainWindow(Adw.ApplicationWindow):
 		else:
 			self.header_search_entry.emit("stop-search")
 
-	def search_params_action(self, action, value, user_data):
+	def change_search_params_action(self, action, value, user_data):
 		action.set_state(value)
 
 		self.column_view.set_property(action.props.name, value)
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.column_view.search_params = [n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True]
+		self.init_search_by_label([n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True])
 
-		self.init_search_by_label()
+	def reset_search_params_action(self, action, value, user_data):
+		self.lookup_action("search-by-name").set_state(GLib.Variant.new_boolean(True))
+		self.lookup_action("search-by-desc").set_state(GLib.Variant.new_boolean(False))
+		self.lookup_action("search-by-group").set_state(GLib.Variant.new_boolean(False))
+		self.lookup_action("search-by-deps").set_state(GLib.Variant.new_boolean(False))
+		self.lookup_action("search-by-optdeps").set_state(GLib.Variant.new_boolean(False))
+		self.lookup_action("search-by-provides").set_state(GLib.Variant.new_boolean(False))
+
+		self.column_view.search_by_name = True
+		self.column_view.search_by_desc = False
+		self.column_view.search_by_group = False
+		self.column_view.search_by_deps = False
+		self.column_view.search_by_optdeps = False
+		self.column_view.search_by_provides = False
+
+		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+		self.init_search_by_label(["name"])
 
 	def show_column_action(self, action, value, user_data):
 		action.set_state(value)

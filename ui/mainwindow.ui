@@ -338,5 +338,11 @@
         <attribute name="action">win.search-by-provides</attribute>
       </item>
     </section>
+    <section>
+      <item>
+        <attribute name="label">Reset</attribute>
+        <attribute name="action">win.search-reset-params</attribute>
+      </item>
+    </section>
   </menu>
 </interface>
