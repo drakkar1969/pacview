@@ -517,8 +517,8 @@ class MainWindow(Adw.ApplicationWindow):
 	column_view = Gtk.Template.Child()
 	info_pane = Gtk.Template.Child()
 
-	count_label = Gtk.Template.Child()
-	search_params_label = Gtk.Template.Child()
+	status_count_label = Gtk.Template.Child()
+	status_search_label = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -559,7 +559,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Bind package column view count to status label text
 		self.column_view.filter_model.bind_property(
 			"n-items",
-			self.count_label,
+			self.status_count_label,
 			"label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
@@ -634,7 +634,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.init_sidebar()
 
 		# Set status bar search by text
-		self.init_search_by_label(["name"])
+		self.init_status_search_label(["name"])
 
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
@@ -654,8 +654,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
-	def init_search_by_label(self, param_list):
-		self.search_params_label.set_text(f'Search by: {", ".join(param_list) if param_list != [] else "(none)"}')
+	def init_status_search_label(self, param_list):
+		self.status_search_label.set_text(f'Search by: {", ".join(param_list) if param_list != [] else "(none)"}')
 
 	#-----------------------------------
 	# Action handlers
@@ -691,7 +691,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.init_search_by_label([n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True])
+		self.init_status_search_label([n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True])
 
 	def reset_search_params_action(self, action, value, user_data):
 		self.lookup_action("search-by-name").set_state(GLib.Variant.new_boolean(True))
@@ -710,7 +710,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.init_search_by_label(["name"])
+		self.init_status_search_label(["name"])
 
 	def show_column_action(self, action, value, user_data):
 		action.set_state(value)
