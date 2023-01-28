@@ -307,11 +307,11 @@ class PkgInfoPane(Gtk.Overlay):
 	# Details window function
 	#-----------------------------------
 	def show_package_details(self):
-		if self._pkg_index >= 0 and self._pkg_index < len(self._pkg_list) and self._pkg_list[self._pkg_index] is not None:
+		if self.pkg_object is not None:
 			details_window = PkgDetailsWindow()
 			details_window.set_transient_for(app.main_window)
 
-			details_window.pkg_object = self._pkg_list[self._pkg_index]
+			details_window.pkg_object = self.pkg_object
 
 			details_window.show()
 
