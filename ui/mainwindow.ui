@@ -280,6 +280,10 @@
         <attribute name="label">Show Statistics</attribute>
         <attribute name="action">win.show-stats-window</attribute>
       </item>
+      <item>
+        <attribute name="label">Copy List</attribute>
+        <attribute name="action">win.copy-package-list</attribute>
+      </item>
     </section>
     <section>
       <item>

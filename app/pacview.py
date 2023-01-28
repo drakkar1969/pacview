@@ -597,6 +597,8 @@ class MainWindow(Adw.ApplicationWindow):
 
 			( "refresh-dbs", self.refresh_dbs_action ),
 			( "show-stats-window", self.show_stats_window_action ),
+			( "copy-package-list", self.copy_package_list_action ),
+
 			( "show-about", self.show_about_action ),
 			( "quit-app", self.quit_app_action )
 		]
@@ -620,6 +622,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.show-stats-window", ["<ctrl>S"])
+		app.set_accels_for_action("win.copy-package-list", ["<ctrl>L"])
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
@@ -744,6 +747,15 @@ class MainWindow(Adw.ApplicationWindow):
 		))
 
 		stats_window.show()
+
+	def copy_package_list_action(self, action, value, user_data):
+		copy_text = '\n'.join([f'{obj.repository}/{obj.name}' for obj in self.column_view.selection])
+
+		clipboard = self.get_clipboard()
+
+		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, copy_text))
+
+		clipboard.set_content(content)
 
 	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(
