@@ -188,8 +188,7 @@ class PkgObject(GObject.Object):
 		super().__init__(*args, **kwargs)
 
 		self.pkg = pkg
-		self.local_pkg = local_data[0]
-		self.status_flags = local_data[1]
+		self.local_pkg, self.status_flags = local_data
 
 	#-----------------------------------
 	# Helper functions
