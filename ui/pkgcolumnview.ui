@@ -52,6 +52,7 @@
                 <property name="title">Package</property>
                 <property name="resizable">True</property>
                 <property name="expand">True</property>
+                <property name="header_menu">header_menu</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="name_factory">
                     <property name="resource">/com/github/PacView/ui/columnview/name-item.ui</property>
@@ -70,6 +71,7 @@
               <object class="GtkColumnViewColumn" id="version_column">
                 <property name="title">Version</property>
                 <property name="resizable">True</property>
+                <property name="header_menu">header_menu</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="version_factory">
                     <property name="resource">/com/github/PacView/ui/columnview/version-item.ui</property>
@@ -84,6 +86,7 @@
               <object class="GtkColumnViewColumn" id="repository_column">
                 <property name="title">Repository</property>
                 <property name="resizable">True</property>
+                <property name="header_menu">header_menu</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="repository_factory">
                     <property name="resource">/com/github/PacView/ui/columnview/repository-item.ui</property>
@@ -102,6 +105,7 @@
               <object class="GtkColumnViewColumn" id="status_column">
                 <property name="title">Status</property>
                 <property name="resizable">True</property>
+                <property name="header_menu">header_menu</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="status_factory">
                     <property name="resource">/com/github/PacView/ui/columnview/status-item.ui</property>
@@ -120,6 +124,7 @@
               <object class="GtkColumnViewColumn" id="date_column">
                 <property name="title">Date</property>
                 <property name="resizable">True</property>
+                <property name="header_menu">header_menu</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="date_factory">
                     <property name="resource">/com/github/PacView/ui/columnview/date-item.ui</property>
@@ -138,6 +143,7 @@
               <object class="GtkColumnViewColumn" id="size_column">
                 <property name="title">Size</property>
                 <property name="resizable">True</property>
+                <property name="header_menu">header_menu</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="size_factory">
                     <property name="resource">/com/github/PacView/ui/columnview/size-item.ui</property>
@@ -156,6 +162,7 @@
               <object class="GtkColumnViewColumn" id="group_column">
                 <property name="title">Group</property>
                 <property name="resizable">True</property>
+                <property name="header_menu">header_menu</property>
                 <property name="factory">
                   <object class="GtkBuilderListItemFactory" id="group_factory">
                     <property name="resource">/com/github/PacView/ui/columnview/group-item.ui</property>
@@ -175,4 +182,38 @@
       </object>
     </child>
   </template>
+
+  <!--// HEADER MENU //-->
+  <menu id="header_menu">
+    <section>
+      <item>
+        <attribute name="label">Name</attribute>
+        <attribute name="action">win.show-column-package</attribute>
+      </item>
+      <item>
+        <attribute name="label">Version</attribute>
+        <attribute name="action">win.show-column-version</attribute>
+      </item>
+      <item>
+        <attribute name="label">Repository</attribute>
+        <attribute name="action">win.show-column-repository</attribute>
+      </item>
+      <item>
+        <attribute name="label">Status</attribute>
+        <attribute name="action">win.show-column-status</attribute>
+      </item>
+      <item>
+        <attribute name="label">Date</attribute>
+        <attribute name="action">win.show-column-date</attribute>
+      </item>
+      <item>
+        <attribute name="label">Size</attribute>
+        <attribute name="action">win.show-column-size</attribute>
+      </item>
+      <item>
+        <attribute name="label">Group</attribute>
+        <attribute name="action">win.show-column-group</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

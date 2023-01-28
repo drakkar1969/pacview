@@ -552,18 +552,30 @@ class MainWindow(Adw.ApplicationWindow):
 		action_list = [
 			( "toggle-sidebar", None, "", "true", self.toggle_sidebar_action ),
 			( "toggle-infopane", None, "", "true", self.toggle_infopane_action ),
+			
 			( "search-start", self.search_start_action ),
 			( "search-stop", self.search_stop_action ),
 			( "search-toggle", None, "", "false", self.search_toggle_action ),
+
 			( "search-by-name", None, "", "true", self.search_params_action ),
 			( "search-by-desc", None, "", "false", self.search_params_action ),
 			( "search-by-group", None, "", "false", self.search_params_action ),
 			( "search-by-deps", None, "", "false", self.search_params_action ),
 			( "search-by-optdeps", None, "", "false", self.search_params_action ),
 			( "search-by-provides", None, "", "false", self.search_params_action ),
+
+			( "show-column-package", None, "", "true", self.show_column_action ),
+			( "show-column-version", None, "", "true", self.show_column_action ),
+			( "show-column-repository", None, "", "true", self.show_column_action ),
+			( "show-column-status", None, "", "true", self.show_column_action ),
+			( "show-column-date", None, "", "true", self.show_column_action ),
+			( "show-column-size", None, "", "true", self.show_column_action ),
+			( "show-column-group", None, "", "true", self.show_column_action ),
+
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
 			( "show-details-window", self.show_details_window_action ),
+
 			( "refresh-dbs", self.refresh_dbs_action ),
 			( "show-stats-window", self.show_stats_window_action ),
 			( "show-about", self.show_about_action ),
@@ -571,6 +583,7 @@ class MainWindow(Adw.ApplicationWindow):
 		]
 
 		self.add_action_entries(action_list)
+		self.lookup_action("show-column-package").set_enabled(False)
 
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.toggle-sidebar", ["<ctrl>b"])
@@ -658,6 +671,13 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.search_params = [n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True]
 
 		self.init_search_by_label()
+
+	def show_column_action(self, action, value, user_data):
+		action.set_state(value)
+
+		for col in self.column_view.view.get_columns():
+			if col.get_title() == action.props.name.replace("show-column-", "").title():
+				col.set_visible(value.get_boolean())
 
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()
