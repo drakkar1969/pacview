@@ -857,25 +857,25 @@ class LauncherApp(Adw.Application):
 		self.db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
 
 		# Package dict
-		self.db_dict = {}
+		self.all_pkg_dict = {}
 
 		# Add sync packages
 		for db in self.db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
-				self.db_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
+				self.all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
 
 		# Add local packages
 		local_db = alpm_handle.get_localdb()
-		local_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
+		local_pkg_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
 
-		self.db_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in self.db_dict.keys()]))
+		self.all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in self.all_pkg_dict.keys()]))
 
 		# Populate PkgObject list
 		def get_local_data(name):
-			if name in local_dict.keys():
-				local_pkg = local_dict[name]
+			if name in local_pkg_dict.keys():
+				local_pkg = local_pkg_dict[name]
 
 				status_flags = PkgStatus.NONE
 
@@ -890,7 +890,7 @@ class LauncherApp(Adw.Application):
 
 			return(None, PkgStatus.NONE)
 
-		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in self.db_dict.values()]
+		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in self.all_pkg_dict.values()]
 
 		# Add AUR to database names
 		self.db_names.append("AUR")
