@@ -3,7 +3,7 @@
   <!--// MAIN WINDOW //-->
   <template class="MainWindow" parent="AdwApplicationWindow">
     <property name="default_width">1400</property>
-    <property name="default_height">700</property>
+    <property name="default_height">740</property>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
