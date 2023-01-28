@@ -242,11 +242,18 @@ class PkgInfoPane(Gtk.Overlay):
 	def on_setup_value(self, factory, item):
 		image = Gtk.Image()
 
+		button = Gtk.Button(icon_name="edit-copy")
+		button.add_css_class("flat")
+		button.add_css_class("inline-button")
+		button.set_can_focus(False)
+		button.connect("clicked", self.on_copybtn_clicked)
+
 		label = Gtk.Label(halign=Gtk.Align.START, wrap_mode=Pango.WrapMode.WORD, wrap=True, xalign=0, use_markup=True)
 		label.connect("activate-link", self.on_link_activated)
 
 		box = Gtk.Box(spacing=6)
 		box.append(image)
+		box.append(button)
 		box.append(label)
 
 		item.set_child(box)
@@ -256,10 +263,12 @@ class PkgInfoPane(Gtk.Overlay):
 		image = item.get_child().get_first_child()
 		icon = item.get_item().prop_icon
 
-		image.set_visible(icon is not None)
+		image.set_visible(icon is not None and icon != "")
 		image.set_from_resource(icon)
 
 		item.get_child().get_last_child().set_label(item.get_item().prop_value)
+
+		item.get_child().get_first_child().get_next_sibling().set_visible(item.get_item().prop_copy)
 
 	#-----------------------------------
 	# Link signal handler
@@ -296,6 +305,16 @@ class PkgInfoPane(Gtk.Overlay):
 		return(True)
 
 	#-----------------------------------
+	# Copy button signal handler
+	#-----------------------------------
+	def on_copybtn_clicked(self, button):
+		clipboard = self.get_clipboard()
+
+		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, button.get_next_sibling().get_label()))
+
+		clipboard.set_content(content)
+
+	#-----------------------------------
 	# Display functions
 	#-----------------------------------
 	def display_package(self, pkg_object):
@@ -312,7 +331,7 @@ class PkgInfoPane(Gtk.Overlay):
 			if pkg_object.repository in app.sync_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
 			if pkg_object.repository == "AUR": self.model.append(PkgProperty("AUR URL", pkg_object.package_url))
 			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
-			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed", pkg_object.status_icon))
+			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed", prop_icon=pkg_object.status_icon))
 			self.model.append(PkgProperty("Repository", pkg_object.repository))
 			if pkg_object.group != "":self.model.append(PkgProperty("Groups", pkg_object.group))
 			if pkg_object.provides != "None": self.model.append(PkgProperty("Provides", pkg_object.provides))
@@ -329,8 +348,8 @@ class PkgInfoPane(Gtk.Overlay):
 			if pkg_object.download_size != "": self.model.append(PkgProperty("Download Size", pkg_object.download_size))
 			self.model.append(PkgProperty("Installed Size", pkg_object.install_size))
 			self.model.append(PkgProperty("Install Script", pkg_object.install_script))
-			self.model.append(PkgProperty("SHA256 Sum", pkg_object.sha256sum))
-			self.model.append(PkgProperty("MD5 Sum", pkg_object.md5sum))
+			self.model.append(PkgProperty("SHA256 Sum", pkg_object.sha256sum, prop_copy=True))
+			self.model.append(PkgProperty("MD5 Sum", pkg_object.md5sum, prop_copy=True))
 
 	def display_prev_package(self):
 		if self._pkg_index > 0:

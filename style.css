@@ -19,3 +19,13 @@ headerbar.transparent {
 box.rounded {
 	border-radius: 8px;
 }
+
+button.inline-button {
+	min-height: 0;
+	min-width: 0;
+	padding: 0;
+}
+
+button.inline-button:hover {
+	background: none;
+}

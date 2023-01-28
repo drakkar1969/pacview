@@ -247,16 +247,16 @@ class PkgProperty(GObject.Object):
 	prop_name = GObject.Property(type=str, default="")
 	prop_value = GObject.Property(type=str, default="")
 	prop_icon = GObject.Property(type=str, default=None)
+	prop_copy = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, name, value, icon=None, *args, **kwargs):
+	def __init__(self, name, value, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		self.prop_name = name
 		self.prop_value = value
-		self.prop_icon = icon
 
 #------------------------------------------------------------------------------
 #-- CLASS: STATSITEM
