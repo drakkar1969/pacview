@@ -526,6 +526,13 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		# Bind gsettings
+		self.settings = Gio.Settings(schema_id="com.github.PacView")
+
+		self.settings.bind("width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
+
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.column_view)
 
