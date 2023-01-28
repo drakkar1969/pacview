@@ -2,9 +2,9 @@
 <interface>
   <!--// STATS WINDOW //-->
   <template class="StatsWindow" parent="AdwWindow">
-    <property name="default-width">400</property>
+    <property name="default-width">450</property>
     <property name="modal">True</property>
-    <property name="title">Statistics</property>
+    <property name="title">Installed Packages</property>
     <child>
       <object class="GtkEventControllerKey">
         <signal name="key-pressed" handler="on_key_pressed" swapped="no"/>
