@@ -29,7 +29,7 @@
             <child>
               <object class="GtkMenuButton" id="filter_btn">
                 <property name="icon_name">ymuse-filter-symbolic</property>
-                <!-- <property name="menu_model">search_menu</property> -->
+                <property name="menu_model">search_menu</property>
               </object>
             </child>
           </object>
@@ -39,7 +39,7 @@
   </template>
 
   <!--// SEARCH MENU //-->
-  <!-- <menu id="search_menu">
+  <menu id="search_menu">
     <section>
       <attribute name="label">Search By</attribute>
       <item>
@@ -73,5 +73,5 @@
         <attribute name="action">win.search-reset-params</attribute>
       </item>
     </section>
-  </menu> -->
+  </menu>
 </interface>
