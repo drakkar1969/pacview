@@ -411,8 +411,7 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	def show_package_details(self):
 		if self.pkg_object is not None:
-			details_window = PkgDetailsWindow()
-			details_window.set_transient_for(app.main_window)
+			details_window = PkgDetailsWindow(transient_for=app.main_window)
 
 			details_window.pkg_object = self.pkg_object
 
@@ -867,8 +866,7 @@ class MainWindow(Adw.ApplicationWindow):
 		update_window.model.splice(0, 0, obj_list)
 
 	def show_stats_window_action(self, action, value, user_data):
-		stats_window = StatsWindow()
-		stats_window.set_transient_for(self)
+		stats_window = StatsWindow(transient_for=self)
 
 		total_count = 0
 		total_size = 0
