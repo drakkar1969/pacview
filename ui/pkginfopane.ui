@@ -2,7 +2,6 @@
 <interface>
   <!--// PACKAGE INFOVIEW //-->
   <template class="PkgInfoPane" parent="GtkOverlay">
-    <!-- <property name="orientation">vertical</property> -->
     <child>
       <object class="GtkScrolledWindow">
         <property name="hexpand">True</property>
@@ -49,9 +48,6 @@
         </property>
       </object>
     </child>
-    <!-- <child>
-      <object class="GtkSeparator"/>
-    </child> -->
     <child type="overlay">
       <object class="GtkBox">
         <property name="halign">end</property>
