@@ -187,10 +187,6 @@
   <menu id="header_menu">
     <section>
       <item>
-        <attribute name="label">Name</attribute>
-        <attribute name="action">win.show-column-package</attribute>
-      </item>
-      <item>
         <attribute name="label">Version</attribute>
         <attribute name="action">win.show-column-version</attribute>
       </item>

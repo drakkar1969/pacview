@@ -19,9 +19,6 @@
     <key name="infopane-position" type="i">
       <default>360</default>
     </key>
-    <key name="show-column-package" type="b">
-      <default>true</default>
-    </key>
     <key name="show-column-version" type="b">
       <default>true</default>
     </key>
