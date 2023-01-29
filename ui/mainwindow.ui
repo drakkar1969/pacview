@@ -98,12 +98,6 @@
                         <style>
                           <class name="navigation-sidebar"/>
                         </style>
-                        <child>
-                          <object class="SidebarListBoxRow" id="repo_listbox_all">
-                            <property name="icon">package-x-generic-symbolic</property>
-                            <property name="text">All</property>
-                          </object>
-                        </child>
                       </object>
                     </child>
                     <child>
@@ -128,55 +122,6 @@
                         <style>
                           <class name="navigation-sidebar"/>
                         </style>
-                        <child>
-                          <object class="SidebarListBoxRow" id="status_listbox_all">
-                            <property name="icon">ymuse-filter-symbolic</property>
-                            <property name="text">All</property>
-                            <property name="str_id">31</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SidebarListBoxRow" id="status_listbox_installed">
-                            <property name="icon">ymuse-filter-symbolic</property>
-                            <property name="text">Installed</property>
-                            <property name="str_id">15</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SidebarListBoxRow" id="status_listbox_explicit">
-                            <property name="icon">ymuse-filter-symbolic</property>
-                            <property name="text">Explicit</property>
-                            <property name="str_id">1</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SidebarListBoxRow" id="status_listbox_dependency">
-                            <property name="icon">ymuse-filter-symbolic</property>
-                            <property name="text">Dependency</property>
-                            <property name="str_id">2</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SidebarListBoxRow" id="status_listbox_optional">
-                            <property name="icon">ymuse-filter-symbolic</property>
-                            <property name="text">Optional</property>
-                            <property name="str_id">4</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SidebarListBoxRow" id="status_listbox_orphan">
-                            <property name="icon">ymuse-filter-symbolic</property>
-                            <property name="text">Orphan</property>
-                            <property name="str_id">8</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SidebarListBoxRow" id="status_listbox_none">
-                            <property name="icon">ymuse-filter-symbolic</property>
-                            <property name="text">Not Installed</property>
-                            <property name="str_id">16</property>
-                          </object>
-                        </child>
                       </object>
                     </child>
                   </object>

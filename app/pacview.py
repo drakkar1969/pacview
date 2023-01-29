@@ -697,10 +697,7 @@ class MainWindow(Adw.ApplicationWindow):
 	header_details_btn = Gtk.Template.Child()
 
 	repo_listbox = Gtk.Template.Child()
-	repo_listbox_all = Gtk.Template.Child()
-
 	status_listbox = Gtk.Template.Child()
-	status_listbox_installed = Gtk.Template.Child()
 
 	pane = Gtk.Template.Child()
 
@@ -839,16 +836,31 @@ class MainWindow(Adw.ApplicationWindow):
 	# Functions
 	#-----------------------------------
 	def init_sidebar(self):
+		# Remove rows from listboxes
+		while(row := self.repo_listbox.get_row_at_index(0)):
+			self.repo_listbox.remove(row)
+
+		while(row := self.status_listbox.get_row_at_index(0)):
+			self.status_listbox.remove(row)
+
 		# Add rows to sidebar repository list box
-		while(row := self.repo_listbox.get_row_at_index(1)):
-			if row != self.repo_listbox_all: self.repo_listbox.remove(row)
+		repo_row = SidebarListBoxRow(icon="package-x-generic-symbolic", text="All")
+		self.repo_listbox.append(repo_row)
 
 		for db in app.pacman_db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon="package-x-generic-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
 
+		# Add rows to sidebar repository list box
+		status_row = None
+
+		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE]:
+			row = SidebarListBoxRow(icon="ymuse-filter-symbolic", text=st.name.title(), str_id=st.value)
+			self.status_listbox.append(row)
+			if st == PkgStatus.INSTALLED: status_row = row
+
 		# Select initial repo/status
-		self.repo_listbox.select_row(self.repo_listbox_all)
-		self.status_listbox.select_row(self.status_listbox_installed)
+		self.repo_listbox.select_row(repo_row)
+		self.status_listbox.select_row(status_row)
 
 	def set_status_search_label(self):
 		param_list = [k for k,v in self.column_view.search_by.items() if v]
