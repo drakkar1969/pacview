@@ -551,9 +551,23 @@ class MainWindow(Adw.ApplicationWindow):
 		self.settings.bind("show-sidebar", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("show-infopane", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("infopane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-column-package", self.column_view.package_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-column-version", self.column_view.version_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-column-repository", self.column_view.repository_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-column-status", self.column_view.status_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-column-date", self.column_view.date_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.settings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 
 		self.add_action(self.settings.create_action("show-sidebar"))
 		self.add_action(self.settings.create_action("show-infopane"))
+		self.add_action(self.settings.create_action("show-column-package"))
+		self.add_action(self.settings.create_action("show-column-version"))
+		self.add_action(self.settings.create_action("show-column-repository"))
+		self.add_action(self.settings.create_action("show-column-status"))
+		self.add_action(self.settings.create_action("show-column-date"))
+		self.add_action(self.settings.create_action("show-column-size"))
+		self.add_action(self.settings.create_action("show-column-group"))
 
 		# Connect header search entry to package column view
 		self.header_search_entry.set_key_capture_widget(self.column_view)
@@ -622,15 +636,6 @@ class MainWindow(Adw.ApplicationWindow):
 		]
 
 		self.add_action_entries(action_list)
-
-		# Add property actions
-		self.add_action(Gio.PropertyAction.new("show-column-package", self.column_view.package_column, "visible"))
-		self.add_action(Gio.PropertyAction.new("show-column-version", self.column_view.version_column, "visible"))
-		self.add_action(Gio.PropertyAction.new("show-column-repository", self.column_view.repository_column, "visible"))
-		self.add_action(Gio.PropertyAction.new("show-column-status", self.column_view.status_column, "visible"))
-		self.add_action(Gio.PropertyAction.new("show-column-date", self.column_view.date_column, "visible"))
-		self.add_action(Gio.PropertyAction.new("show-column-size", self.column_view.size_column, "visible"))
-		self.add_action(Gio.PropertyAction.new("show-column-group", self.column_view.group_column, "visible"))
 
 		# Add keyboard shortcuts
 		app.set_accels_for_action("win.show-sidebar", ["<ctrl>b"])

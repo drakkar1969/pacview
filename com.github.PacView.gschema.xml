@@ -19,5 +19,26 @@
     <key name="infopane-position" type="i">
       <default>360</default>
     </key>
+    <key name="show-column-package" type="b">
+      <default>true</default>
+    </key>
+    <key name="show-column-version" type="b">
+      <default>true</default>
+    </key>
+    <key name="show-column-repository" type="b">
+      <default>true</default>
+    </key>
+    <key name="show-column-status" type="b">
+      <default>true</default>
+    </key>
+    <key name="show-column-date" type="b">
+      <default>true</default>
+    </key>
+    <key name="show-column-size" type="b">
+      <default>true</default>
+    </key>
+    <key name="show-column-group" type="b">
+      <default>true</default>
+    </key>
   </schema>
 </schemalist>
