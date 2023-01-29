@@ -50,6 +50,28 @@ class UpdateWindow(Adw.Window):
 		# Sort by package name
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
 
+		# Initialize widgets
+		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+		expr = re.compile("(\S+)\s(\S+)\s->\s(\S+)")
+
+		updates = {expr.sub(r"\1", u): {"ver": expr.sub(r"\2", u), "new_ver": expr.sub(r"\3", u)} for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
+
+		if len(updates) != 0:
+			self.stack.set_visible_child_name("view")
+
+			obj_list = []
+
+			for obj in app.pkg_objects:
+				if obj.name in updates.keys():
+					obj.update_version = updates[obj.name]["new_ver"]
+					obj_list.append(obj)
+
+
+			self.model.splice(0, 0, obj_list)
+		else:
+			self.stack.set_visible_child_name("status")
+
 	#-----------------------------------
 	# Key press signal handler
 	#-----------------------------------
@@ -74,6 +96,31 @@ class StatsWindow(Adw.Window):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Initialize widgets
+		total_count = 0
+		total_size = 0
+
+		for db in app.pacman_db_names:
+			pkg_list = [pkg for pkg in app.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
+
+			count = len(pkg_list)
+			total_count += count
+
+			size = sum([pkg.install_size_raw for pkg in pkg_list])
+			total_size += size
+
+			self.model.append(StatsItem(
+				db if db.isupper() else str.title(db),
+				count,
+				f'{size/(1024.0*1024.0):.0f} MiB'
+			))
+
+		self.model.append(StatsItem(
+			"<b>Total</b>",
+			f'<b>{total_count}</b>',
+			f'<b>{total_size/(1024.0*1024.0):.0f} MiB</b>'
+		))
 
 	#-----------------------------------
 	# Key press signal handler
@@ -855,54 +902,8 @@ class MainWindow(Adw.ApplicationWindow):
 		update_window = UpdateWindow(transient_for=self)
 		update_window.show()
 
-		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-		expr = re.compile("(\S+)\s(\S+)\s->\s(\S+)")
-
-		updates = {expr.sub(r"\1", u): {"ver": expr.sub(r"\2", u), "new_ver": expr.sub(r"\3", u)} for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
-
-		if len(updates) != 0:
-			update_window.stack.set_visible_child_name("view")
-
-			obj_list = []
-
-			for obj in app.pkg_objects:
-				if obj.name in updates.keys():
-					obj.update_version = updates[obj.name]["new_ver"]
-					obj_list.append(obj)
-
-
-			update_window.model.splice(0, 0, obj_list)
-		else:
-			update_window.stack.set_visible_child_name("status")
-
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
-
-		total_count = 0
-		total_size = 0
-
-		for db in app.pacman_db_names:
-			pkg_list = [pkg for pkg in app.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
-
-			count = len(pkg_list)
-			total_count += count
-
-			size = sum([pkg.install_size_raw for pkg in pkg_list])
-			total_size += size
-
-			stats_window.model.append(StatsItem(
-				db if db.isupper() else str.title(db),
-				count,
-				f'{size/(1024.0*1024.0):.0f} MiB'
-			))
-
-		stats_window.model.append(StatsItem(
-			"<b>Total</b>",
-			f'<b>{total_count}</b>',
-			f'<b>{total_size/(1024.0*1024.0):.0f} MiB</b>'
-		))
-
 		stats_window.show()
 
 	def copy_package_list_action(self, action, value, user_data):
