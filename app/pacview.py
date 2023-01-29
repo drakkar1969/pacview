@@ -216,6 +216,7 @@ class PkgDetailsWindow(Adw.Window):
 
 	log_model = Gtk.Template.Child()
 
+	cache_header_label = Gtk.Template.Child()
 	cache_model = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -256,6 +257,7 @@ class PkgDetailsWindow(Adw.Window):
 
 			cache_lines = [l for l in str(pkg_cache.stdout, 'utf-8').split('\n') if (l != "" and l.startswith("==>") == False and l.endswith(".sig") == False)]
 
+			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
 			self.cache_model.splice(0, 0, cache_lines)
 
 	#-----------------------------------
