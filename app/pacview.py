@@ -559,8 +559,10 @@ class MainWindow(Adw.ApplicationWindow):
 		self.settings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.settings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 
+		# Gsettings actions
 		self.add_action(self.settings.create_action("show-sidebar"))
 		self.add_action(self.settings.create_action("show-infopane"))
+
 		self.add_action(self.settings.create_action("show-column-package"))
 		self.add_action(self.settings.create_action("show-column-version"))
 		self.add_action(self.settings.create_action("show-column-repository"))
@@ -637,7 +639,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.add_action_entries(action_list)
 
-		# Add keyboard shortcuts
+		# Add action keyboard shortcuts
 		app.set_accels_for_action("win.show-sidebar", ["<ctrl>b"])
 		app.set_accels_for_action("win.show-infopane", ["<ctrl>i"])
 
