@@ -629,6 +629,8 @@ class SearchHeader(Gtk.Stack):
 	def search_active(self, value):
 		self._search_active = value
 
+		app.main_window.set_status_search_labels()
+
 		self.toggle_search(value)
 
 	search_term = GObject.Property(type=str, default="")
@@ -660,11 +662,11 @@ class SearchHeader(Gtk.Stack):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
-		self.toggle_search(True)
+		self.search_active = True
 
 	@Gtk.Template.Callback()
 	def on_search_stopped(self, entry):
-		self.toggle_search(False)
+		self.search_active = False
 
 	#-----------------------------------
 	# Helper functions
@@ -834,7 +836,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.init_sidebar()
 
 		# Set status bar search status
-		self.set_status_search_label()
+		self.set_status_search_labels()
 
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
@@ -869,13 +871,13 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(repo_row)
 		self.status_listbox.select_row(status_row)
 
-	def set_status_search_label(self):
-		self.status_search_label_name.set_visible(self.header_search.search_term != "" and self.column_view.search_by["name"])
-		self.status_search_label_desc.set_visible(self.header_search.search_term != "" and self.column_view.search_by["desc"])
-		self.status_search_label_group.set_visible(self.header_search.search_term != "" and self.column_view.search_by["group"])
-		self.status_search_label_deps.set_visible(self.header_search.search_term != "" and self.column_view.search_by["deps"])
-		self.status_search_label_optdeps.set_visible(self.header_search.search_term != "" and self.column_view.search_by["optdeps"])
-		self.status_search_label_provides.set_visible(self.header_search.search_term != "" and self.column_view.search_by["provides"])
+	def set_status_search_labels(self):
+		self.status_search_label_name.set_visible(self.header_search.search_active and self.column_view.search_by["name"])
+		self.status_search_label_desc.set_visible(self.header_search.search_active and self.column_view.search_by["desc"])
+		self.status_search_label_group.set_visible(self.header_search.search_active and self.column_view.search_by["group"])
+		self.status_search_label_deps.set_visible(self.header_search.search_active and self.column_view.search_by["deps"])
+		self.status_search_label_optdeps.set_visible(self.header_search.search_active and self.column_view.search_by["optdeps"])
+		self.status_search_label_provides.set_visible(self.header_search.search_active and self.column_view.search_by["provides"])
 
 	#-----------------------------------
 	# Action handlers
@@ -893,7 +895,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.set_status_search_label()
+		self.set_status_search_labels()
 
 	def reset_search_params_action(self, action, value, user_data):
 		for key in self.column_view.search_by.keys():
@@ -902,7 +904,7 @@ class MainWindow(Adw.ApplicationWindow):
 			
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.set_status_search_label()
+		self.set_status_search_labels()
 
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()
@@ -976,7 +978,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.set_status_search_label()
+		self.set_status_search_labels()
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
