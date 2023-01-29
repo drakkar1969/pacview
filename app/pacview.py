@@ -27,6 +27,7 @@ class UpdateWindow(Adw.Window):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	stack = Gtk.Template.Child()
 	view = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 	update_count_label = Gtk.Template.Child()
@@ -860,15 +861,20 @@ class MainWindow(Adw.ApplicationWindow):
 
 		updates = {expr.sub(r"\1", u): {"ver": expr.sub(r"\2", u), "new_ver": expr.sub(r"\3", u)} for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
 
-		obj_list = []
+		if len(updates) != 0:
+			update_window.stack.set_visible_child_name("view")
 
-		for obj in app.pkg_objects:
-			if obj.name in updates.keys():
-				obj.update_version = updates[obj.name]["new_ver"]
-				obj_list.append(obj)
+			obj_list = []
+
+			for obj in app.pkg_objects:
+				if obj.name in updates.keys():
+					obj.update_version = updates[obj.name]["new_ver"]
+					obj_list.append(obj)
 
 
-		update_window.model.splice(0, 0, obj_list)
+			update_window.model.splice(0, 0, obj_list)
+		else:
+			update_window.stack.set_visible_child_name("status")
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
