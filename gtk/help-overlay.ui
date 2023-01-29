@@ -52,7 +52,13 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">F5</property>
-                <property name="title">Refresh</property>
+                <property name="title">Refresh Packages</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;U</property>
+                <property name="title">Check For Updates</property>
               </object>
             </child>
             <child>

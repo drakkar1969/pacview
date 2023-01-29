@@ -767,6 +767,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
 
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
+		app.set_accels_for_action("win.check-updates", ["<alt>U"])
 		app.set_accels_for_action("win.show-stats-window", ["<alt>S"])
 		app.set_accels_for_action("win.copy-package-list", ["<alt>L"])
 		
