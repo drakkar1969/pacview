@@ -26,8 +26,15 @@
                 <property name="model">
                   <object class="GtkSingleSelection" id="selection">
                     <property name="model">
-                      <object class="GListStore" id="model">
-                        <property name="item-type">PkgObject</property>
+                      <object class="GtkSortListModel" id="sort_model">
+                        <property name="model">
+                          <object class="GListStore" id="model">
+                            <property name="item-type">PkgObject</property>
+                          </object>
+                        </property>
+                        <binding name="sorter">
+                          <lookup name="sorter">view</lookup>
+                        </binding>
                       </object>
                     </property>
                   </object>
@@ -40,6 +47,13 @@
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory" id="package_factory">
                         <property name="resource">/com/github/PacView/ui/columnview/name-item.ui</property>
+                      </object>
+                    </property>
+                    <property name="sorter">
+                      <object class="GtkStringSorter" id="package_sorter">
+                        <property name="expression">
+                          <lookup name="name" type="PkgObject"/>
+                        </property>
                       </object>
                     </property>
                   </object>

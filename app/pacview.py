@@ -27,6 +27,7 @@ class UpdateWindow(Adw.Window):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	view = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 	update_count_label = Gtk.Template.Child()
 
@@ -44,6 +45,9 @@ class UpdateWindow(Adw.Window):
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'{value} update{"s" if value != 1 else ""} available'
 		)
+
+		# Sort by package name
+		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
 
 	#-----------------------------------
 	# Key press signal handler
