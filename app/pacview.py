@@ -949,14 +949,14 @@ class MainWindow(Adw.ApplicationWindow):
 		while(row := self.status_listbox.get_row_at_index(0)):
 			self.status_listbox.remove(row)
 
-		# Add rows to sidebar repository list box
+		# Add rows to repository list box
 		repo_row = SidebarListBoxRow(icon="package-x-generic-symbolic", text="All")
 		self.repo_listbox.append(repo_row)
 
 		for db in app.pacman_db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon="package-x-generic-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
 
-		# Add rows to sidebar repository list box
+		# Add rows to status list box
 		status_row = None
 
 		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE]:
