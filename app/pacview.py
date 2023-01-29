@@ -502,10 +502,107 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
-	current_search = GObject.Property(type=str, default="")
+	_current_status = PkgStatus.ALL
 
-	search_by = {"name": True, "desc": False, "group": False, "deps": False, "optdeps": False, "provides": False}
+	@GObject.Property(type=int, default=PkgStatus.ALL)
+	def current_status(self):
+		return(self._current_status)
+
+	@current_status.setter
+	def current_status(self, value):
+		self._current_status = value
+
+		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	_current_search = ""
+
+	@GObject.Property(type=str, default="")
+	def current_search(self):
+		return(self._current_search)
+
+	@current_search.setter
+	def current_search(self, value):
+		self._current_search = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	_search_by_name = True
+
+	@GObject.Property(type=bool, default=True)
+	def search_by_name(self):
+		return(self._search_by_name)
+
+	@search_by_name.setter
+	def search_by_name(self, value):
+		self._search_by_name = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		app.main_window.set_status_search_labels()
+
+	_search_by_desc = False
+
+	@GObject.Property(type=bool, default=False)
+	def search_by_desc(self):
+		return(self._search_by_desc)
+
+	@search_by_desc.setter
+	def search_by_desc(self, value):
+		self._search_by_desc = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		app.main_window.set_status_search_labels()
+
+	_search_by_group = False
+
+	@GObject.Property(type=bool, default=False)
+	def search_by_group(self):
+		return(self._search_by_group)
+
+	@search_by_group.setter
+	def search_by_group(self, value):
+		self._search_by_group = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		app.main_window.set_status_search_labels()
+
+	_search_by_deps = False
+
+	@GObject.Property(type=bool, default=False)
+	def search_by_deps(self):
+		return(self._search_by_deps)
+
+	@search_by_deps.setter
+	def search_by_deps(self, value):
+		self._search_by_deps = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		app.main_window.set_status_search_labels()
+
+	_search_by_optdeps = False
+
+	@GObject.Property(type=bool, default=False)
+	def search_by_optdeps(self):
+		return(self._search_by_optdeps)
+
+	@search_by_optdeps.setter
+	def search_by_optdeps(self, value):
+		self._search_by_optdeps = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		app.main_window.set_status_search_labels()
+
+	_search_by_provides = False
+
+	@GObject.Property(type=bool, default=False)
+	def search_by_provides(self):
+		return(self._search_by_provides)
+
+	@search_by_provides.setter
+	def search_by_provides(self, value):
+		self._search_by_provides = value
+
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		app.main_window.set_status_search_labels()
 
 	#-----------------------------------
 	# Init function
@@ -539,12 +636,12 @@ class PkgColumnView(Gtk.Box):
 		if self.current_search == "":
 			return(True)
 		else:
-			match_name = (self.current_search in item.name) if self.search_by["name"] else False
-			match_desc = (self.current_search in item.description.lower()) if self.search_by["desc"] else False
-			match_group = (self.current_search in item.group.lower()) if self.search_by["group"] else False
-			match_deps = ([s for s in item.depends_list if self.current_search in s] != []) if self.search_by["deps"] else False
-			match_optdeps = ([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by["optdeps"] else False
-			match_provides = ([s for s in item.provides_list if self.current_search in s] != []) if self.search_by["provides"] else False
+			match_name = (self.current_search in item.name) if self.search_by_name else False
+			match_desc = (self.current_search in item.description.lower()) if self.search_by_desc else False
+			match_group = (self.current_search in item.group.lower()) if self.search_by_group else False
+			match_deps = ([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False
+			match_optdeps = ([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False
+			match_provides = ([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False
 
 			return(match_name or match_desc or match_group or match_deps or match_optdeps or match_provides)
 
@@ -781,13 +878,6 @@ class MainWindow(Adw.ApplicationWindow):
 			( "search-start", self.start_search_action ),
 			( "search-stop", self.stop_search_action ),
 
-			( "search-by-name", None, "", "true", self.change_search_params_action ),
-			( "search-by-desc", None, "", "false", self.change_search_params_action ),
-			( "search-by-group", None, "", "false", self.change_search_params_action ),
-			( "search-by-deps", None, "", "false", self.change_search_params_action ),
-			( "search-by-optdeps", None, "", "false", self.change_search_params_action ),
-			( "search-by-provides", None, "", "false", self.change_search_params_action ),
-
 			( "search-reset-params", self.reset_search_params_action ),
 
 			( "view-prev-package", self.view_prev_package_action ),
@@ -804,6 +894,14 @@ class MainWindow(Adw.ApplicationWindow):
 		]
 
 		self.add_action_entries(action_list)
+
+		# Add property actions
+		self.add_action(Gio.PropertyAction.new("search-by-name", self.column_view, "search_by_name"))
+		self.add_action(Gio.PropertyAction.new("search-by-desc", self.column_view, "search_by_desc"))
+		self.add_action(Gio.PropertyAction.new("search-by-group", self.column_view, "search_by_group"))
+		self.add_action(Gio.PropertyAction.new("search-by-deps", self.column_view, "search_by_deps"))
+		self.add_action(Gio.PropertyAction.new("search-by-optdeps", self.column_view, "search_by_optdeps"))
+		self.add_action(Gio.PropertyAction.new("search-by-provides", self.column_view, "search_by_provides"))
 
 		# Add action keyboard shortcuts
 		app.set_accels_for_action("win.show-sidebar", ["<ctrl>b"])
@@ -870,12 +968,12 @@ class MainWindow(Adw.ApplicationWindow):
 		self.status_listbox.select_row(status_row)
 
 	def set_status_search_labels(self):
-		self.status_search_label_name.set_visible(self.header_search.search_active and self.column_view.search_by["name"])
-		self.status_search_label_desc.set_visible(self.header_search.search_active and self.column_view.search_by["desc"])
-		self.status_search_label_group.set_visible(self.header_search.search_active and self.column_view.search_by["group"])
-		self.status_search_label_deps.set_visible(self.header_search.search_active and self.column_view.search_by["deps"])
-		self.status_search_label_optdeps.set_visible(self.header_search.search_active and self.column_view.search_by["optdeps"])
-		self.status_search_label_provides.set_visible(self.header_search.search_active and self.column_view.search_by["provides"])
+		self.status_search_label_name.set_visible(self.header_search.search_active and self.column_view.search_by_name)
+		self.status_search_label_desc.set_visible(self.header_search.search_active and self.column_view.search_by_desc)
+		self.status_search_label_group.set_visible(self.header_search.search_active and self.column_view.search_by_group)
+		self.status_search_label_deps.set_visible(self.header_search.search_active and self.column_view.search_by_deps)
+		self.status_search_label_optdeps.set_visible(self.header_search.search_active and self.column_view.search_by_optdeps)
+		self.status_search_label_provides.set_visible(self.header_search.search_active and self.column_view.search_by_provides)
 
 	#-----------------------------------
 	# Action handlers
@@ -886,24 +984,10 @@ class MainWindow(Adw.ApplicationWindow):
 	def stop_search_action(self, action, value, user_data):
 		self.header_search.search_active = False
 
-	def change_search_params_action(self, action, value, user_data):
-		action.set_state(value)
-
-		self.column_view.search_by[action.props.name.replace("search-by-", "")] = value
-
-		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-		self.set_status_search_labels()
-
 	def reset_search_params_action(self, action, value, user_data):
-		for key in self.column_view.search_by.keys():
-			self.lookup_action(f'search-by-{key}').set_state(GLib.Variant.new_boolean(key == "name"))
-			self.column_view.search_by[key] = (key == "name")
+		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
+			self.column_view.set_property(f'search_by_{n}', (n == "name"))
 			
-		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-		self.set_status_search_labels()
-
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()
 
@@ -968,13 +1052,9 @@ class MainWindow(Adw.ApplicationWindow):
 		if row is not None:
 			self.column_view.current_status = PkgStatus(int(row.str_id))
 
-			self.column_view.status_filter.changed(Gtk.FilterChange.DIFFERENT)
-
 	@Gtk.Template.Callback()
 	def on_search_changed(self, widget, prop):
 		self.column_view.current_search = widget.search_term.lower()
-
-		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
