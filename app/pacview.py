@@ -590,7 +590,7 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 		)
 
 #------------------------------------------------------------------------------
-#-- CLASS: SEARCHHEADERBAR
+#-- CLASS: SEARCHHEADER
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/searchheader.ui")
 class SearchHeader(Gtk.Stack):
@@ -678,6 +678,8 @@ class SearchHeader(Gtk.Stack):
 			self.search_entry.set_text("")
 
 			self.set_visible_child_name("title")
+
+			app.main_window.column_view.view.grab_focus()
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
