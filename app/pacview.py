@@ -479,27 +479,29 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	#-----------------------------------
 	str_id = GObject.Property(type=str, default="")
 
-	@GObject.Property(type=str)
-	def icon_name(self):
-		return(self.image.get_icon_name())
-
-	@icon_name.setter
-	def icon_name(self, value):
-		self.image.set_from_icon_name(value)
-
-	@GObject.Property(type=str)
-	def label_text(self):
-		return(self.label.get_text())
-
-	@label_text.setter
-	def label_text(self, value):
-		self.label.set_text(value)
+	icon = GObject.Property(type=str, default="")
+	text = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Bind properties
+		self.bind_property(
+			"icon",
+			self.image,
+			"icon_name",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.bind_property(
+			"text",
+			self.label,
+			"label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
 
 #------------------------------------------------------------------------------
 #-- CLASS: SEARCHHEADERBAR
@@ -756,7 +758,7 @@ class MainWindow(Adw.ApplicationWindow):
 			if row != self.repo_listbox_all: self.repo_listbox.remove(row)
 
 		for db in app.pacman_db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon_name="package-x-generic-symbolic", label_text=db if db.isupper() else str.title(db), str_id=db))
+			self.repo_listbox.append(SidebarListBoxRow(icon="package-x-generic-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
 
 		# Select initial repo/status
 		self.repo_listbox.select_row(self.repo_listbox_all)
