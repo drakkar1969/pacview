@@ -155,20 +155,77 @@
         </child>
         <child>
           <object class="GtkBox">
-            <property name="margin_start">12</property>
-            <property name="margin_end">12</property>
+            <property name="margin_end">6</property>
             <property name="margin_top">6</property>
             <property name="margin_bottom">6</property>
+            <property name="spacing">6</property>
             <child>
               <object class="GtkLabel" id="status_count_label">
                 <property name="hexpand">True</property>
                 <property name="xalign">0</property>
+                <style>
+                  <class name="pill-label"/>
+                </style>
               </object>
             </child>
             <child>
-              <object class="GtkLabel" id="status_search_label">
-                <property name="hexpand">True</property>
+              <object class="GtkLabel" id="status_search_label_name">
                 <property name="xalign">1</property>
+                <property name="label">name</property>
+                <style>
+                  <class name="pill-label"/>
+                  <class name="pill-label-opaque"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="status_search_label_desc">
+                <property name="xalign">1</property>
+                <property name="label">desc</property>
+                <style>
+                  <class name="pill-label"/>
+                  <class name="pill-label-opaque"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="status_search_label_group">
+                <property name="xalign">1</property>
+                <property name="label">group</property>
+                <style>
+                  <class name="pill-label"/>
+                  <class name="pill-label-opaque"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="status_search_label_deps">
+                <property name="xalign">1</property>
+                <property name="label">deps</property>
+                <style>
+                  <class name="pill-label"/>
+                  <class name="pill-label-opaque"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="status_search_label_optdeps">
+                <property name="xalign">1</property>
+                <property name="label">optdeps</property>
+                <style>
+                  <class name="pill-label"/>
+                  <class name="pill-label-opaque"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="status_search_label_provides">
+                <property name="xalign">1</property>
+                <property name="label">provides</property>
+                <style>
+                  <class name="pill-label"/>
+                  <class name="pill-label-opaque"/>
+                </style>
               </object>
             </child>
           </object>

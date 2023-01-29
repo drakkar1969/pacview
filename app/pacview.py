@@ -707,7 +707,12 @@ class MainWindow(Adw.ApplicationWindow):
 	info_pane = Gtk.Template.Child()
 
 	status_count_label = Gtk.Template.Child()
-	status_search_label = Gtk.Template.Child()
+	status_search_label_name = Gtk.Template.Child()
+	status_search_label_desc = Gtk.Template.Child()
+	status_search_label_group = Gtk.Template.Child()
+	status_search_label_deps = Gtk.Template.Child()
+	status_search_label_optdeps = Gtk.Template.Child()
+	status_search_label_provides = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -865,9 +870,12 @@ class MainWindow(Adw.ApplicationWindow):
 		self.status_listbox.select_row(status_row)
 
 	def set_status_search_label(self):
-		param_list = [k for k,v in self.column_view.search_by.items() if v]
-
-		self.status_search_label.set_text(f'Search by: {", ".join(param_list) if param_list != [] else "(none)"}')
+		self.status_search_label_name.set_visible(self.header_search.search_term != "" and self.column_view.search_by["name"])
+		self.status_search_label_desc.set_visible(self.header_search.search_term != "" and self.column_view.search_by["desc"])
+		self.status_search_label_group.set_visible(self.header_search.search_term != "" and self.column_view.search_by["group"])
+		self.status_search_label_deps.set_visible(self.header_search.search_term != "" and self.column_view.search_by["deps"])
+		self.status_search_label_optdeps.set_visible(self.header_search.search_term != "" and self.column_view.search_by["optdeps"])
+		self.status_search_label_provides.set_visible(self.header_search.search_term != "" and self.column_view.search_by["provides"])
 
 	#-----------------------------------
 	# Action handlers
@@ -967,6 +975,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.current_search = widget.search_term.lower()
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+		self.set_status_search_label()
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP

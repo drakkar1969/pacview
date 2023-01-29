@@ -36,3 +36,12 @@ button.inline-button:active {
 	background: none;
 	opacity: 0.8;
 }
+
+label.pill-label {
+	padding: 3px 10px;
+}
+
+label.pill-label-opaque {
+	background: @headerbar_bg_color;
+	border-radius: 9999px;
+}
