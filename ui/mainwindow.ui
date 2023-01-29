@@ -170,6 +170,7 @@
             </child>
             <child>
               <object class="GtkLabel" id="status_search_label_name">
+                <property name="visible">False</property>
                 <property name="xalign">1</property>
                 <property name="label">name</property>
                 <style>
@@ -180,6 +181,7 @@
             </child>
             <child>
               <object class="GtkLabel" id="status_search_label_desc">
+                <property name="visible">False</property>
                 <property name="xalign">1</property>
                 <property name="label">desc</property>
                 <style>
@@ -190,6 +192,7 @@
             </child>
             <child>
               <object class="GtkLabel" id="status_search_label_group">
+                <property name="visible">False</property>
                 <property name="xalign">1</property>
                 <property name="label">group</property>
                 <style>
@@ -200,6 +203,7 @@
             </child>
             <child>
               <object class="GtkLabel" id="status_search_label_deps">
+                <property name="visible">False</property>
                 <property name="xalign">1</property>
                 <property name="label">deps</property>
                 <style>
@@ -210,6 +214,7 @@
             </child>
             <child>
               <object class="GtkLabel" id="status_search_label_optdeps">
+                <property name="visible">False</property>
                 <property name="xalign">1</property>
                 <property name="label">optdeps</property>
                 <style>
@@ -220,6 +225,7 @@
             </child>
             <child>
               <object class="GtkLabel" id="status_search_label_provides">
+                <property name="visible">False</property>
                 <property name="xalign">1</property>
                 <property name="label">provides</property>
                 <style>

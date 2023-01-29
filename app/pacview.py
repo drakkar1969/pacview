@@ -836,9 +836,6 @@ class MainWindow(Adw.ApplicationWindow):
 		# Initialize sidebar listboxes
 		self.init_sidebar()
 
-		# Set status bar search status
-		self.set_status_search_labels()
-
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
 
@@ -978,8 +975,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.current_search = widget.search_term.lower()
 
 		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-		self.set_status_search_labels()
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
