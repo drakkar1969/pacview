@@ -126,6 +126,9 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkSeparator"/>
+                    </child>
+                    <child>
                       <object class="GtkBox">
                         <property name="margin_start">12</property>
                         <property name="margin_end">12</property>
