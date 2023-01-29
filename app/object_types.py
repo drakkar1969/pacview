@@ -190,6 +190,11 @@ class PkgObject(GObject.Object):
 		return(self.pkg.md5sum if self.pkg.md5sum is not None else "")
 
 	#-----------------------------------
+	# Update version property
+	#-----------------------------------
+	update_version = GObject.Property(type=str, default="")
+
+	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, pkg, local_data, *args, **kwargs):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading
+import gi, sys, os, urllib.parse, subprocess, shlex, re
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -16,6 +16,41 @@ app_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
 # Global gresource file
 gresource = Gio.Resource.load(os.path.join(app_dir, "com.github.PacView.gresource"))
 gresource._register()
+
+#------------------------------------------------------------------------------
+#-- CLASS: UPDATEWINDOW
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/updatewindow.ui")
+class UpdateWindow(Adw.Window):
+	__gtype_name__ = "UpdateWindow"
+
+	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	model = Gtk.Template.Child()
+	update_count_label = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		# Bind package column view count to status label text
+		self.model.bind_property(
+			"n-items",
+			self.update_count_label,
+			"label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: f'{value} update{"s" if value != 1 else ""} available'
+		)
+
+	#-----------------------------------
+	# Key press signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_key_pressed(self, keyval, keycode, user_data, state):
+		if keycode == Gdk.KEY_Escape and state == 0: self.close()
 
 #------------------------------------------------------------------------------
 #-- CLASS: STATSWINDOW
@@ -702,6 +737,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "show-details-window", self.show_details_window_action ),
 
 			( "refresh-dbs", self.refresh_dbs_action ),
+			( "check-updates", self.check_updates_action ),
 			( "show-stats-window", self.show_stats_window_action ),
 			( "copy-package-list", self.copy_package_list_action ),
 
@@ -809,6 +845,26 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.init_sidebar()
 		self.header_search.search_active = False
+
+	def check_updates_action(self, action, value, user_data):
+		update_window = UpdateWindow(transient_for=self)
+		update_window.show()
+
+		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+		expr = re.compile("(\S+)\s(\S+)\s->\s(\S+)")
+
+		updates = {expr.sub(r"\1", u): {"ver": expr.sub(r"\2", u), "new_ver": expr.sub(r"\3", u)} for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
+
+		obj_list = []
+
+		for obj in app.pkg_objects:
+			if obj.name in updates.keys():
+				obj.update_version = updates[obj.name]["new_ver"]
+				obj_list.append(obj)
+
+
+		update_window.model.splice(0, 0, obj_list)
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow()

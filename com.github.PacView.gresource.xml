@@ -14,6 +14,7 @@
     <file compressed="true">ui/columnview/date-item.ui</file>
     <file compressed="true">ui/columnview/size-item.ui</file>
     <file compressed="true">ui/columnview/group-item.ui</file>
+    <file compressed="true">ui/columnview/updateversion-item.ui</file>
     <file compressed="true">ui/details/cache-item.ui</file>
     <file compressed="true">ui/details/file-item.ui</file>
     <file compressed="true">ui/details/log-item.ui</file>
@@ -25,6 +26,7 @@
     <file compressed="true">ui/searchheader.ui</file>
     <file compressed="true">ui/sidebarlistboxrow.ui</file>
     <file compressed="true">ui/statswindow.ui</file>
+    <file compressed="true">ui/updatewindow.ui</file>
     <file compressed="true">ui/vtogglebutton.ui</file>
   </gresource>
 </gresources>
