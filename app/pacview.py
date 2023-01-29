@@ -53,9 +53,9 @@ class UpdateWindow(Adw.Window):
 		# Initialize widgets
 		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-		expr = re.compile("(\S+)\s(\S+)\s->\s(\S+)")
+		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
 
-		updates = {expr.sub(r"\1", u): {"ver": expr.sub(r"\2", u), "new_ver": expr.sub(r"\3", u)} for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
+		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
 
 		if len(updates) != 0:
 			self.stack.set_visible_child_name("view")
@@ -64,9 +64,8 @@ class UpdateWindow(Adw.Window):
 
 			for obj in app.pkg_objects:
 				if obj.name in updates.keys():
-					obj.update_version = updates[obj.name]["new_ver"]
+					obj.update_version = updates[obj.name]
 					obj_list.append(obj)
-
 
 			self.model.splice(0, 0, obj_list)
 		else:

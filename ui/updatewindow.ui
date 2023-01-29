@@ -2,8 +2,8 @@
 <interface>
   <!--// UPDATE WINDOW //-->
   <template class="UpdateWindow" parent="AdwWindow">
-    <property name="default-width">900</property>
-    <property name="default-height">550</property>
+    <property name="default-width">800</property>
+    <property name="default-height">500</property>
     <property name="modal">True</property>
     <property name="title">Available Updates</property>
     <child>
@@ -99,7 +99,7 @@
                                 </property>
                               </object>
                             </child>
-                            <child>
+                            <!-- <child>
                               <object class="GtkColumnViewColumn" id="version_column">
                                 <property name="title">Version</property>
                                 <property name="resizable">True</property>
@@ -109,10 +109,10 @@
                                   </object>
                                 </property>
                               </object>
-                            </child>
+                            </child> -->
                             <child>
                               <object class="GtkColumnViewColumn" id="update_version_column">
-                                <property name="title">Update Version</property>
+                                <property name="title">Version Update</property>
                                 <property name="resizable">True</property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory" id="update_version_factory">
