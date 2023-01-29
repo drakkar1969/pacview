@@ -537,7 +537,7 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_name = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.set_status_search_labels()
+		app.main_window.status_search_label_name.set_visible(value)
 
 	_search_by_desc = False
 
@@ -550,7 +550,7 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_desc = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.set_status_search_labels()
+		app.main_window.status_search_label_desc.set_visible(value)
 
 	_search_by_group = False
 
@@ -563,7 +563,7 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_group = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.set_status_search_labels()
+		app.main_window.status_search_label_group.set_visible(value)
 
 	_search_by_deps = False
 
@@ -576,7 +576,7 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_deps = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.set_status_search_labels()
+		app.main_window.status_search_label_deps.set_visible(value)
 
 	_search_by_optdeps = False
 
@@ -589,7 +589,7 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_optdeps = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.set_status_search_labels()
+		app.main_window.status_search_label_optdeps.set_visible(value)
 
 	_search_by_provides = False
 
@@ -602,7 +602,7 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_provides = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.set_status_search_labels()
+		app.main_window.status_search_label_provides.set_visible(value)
 
 	#-----------------------------------
 	# Init function
@@ -727,7 +727,7 @@ class SearchHeader(Gtk.Stack):
 	def search_active(self, value):
 		self._search_active = value
 
-		app.main_window.set_status_search_labels()
+		app.main_window.status_search_box.set_visible(value)
 
 		self.toggle_search(value)
 
@@ -807,6 +807,7 @@ class MainWindow(Adw.ApplicationWindow):
 	info_pane = Gtk.Template.Child()
 
 	status_count_label = Gtk.Template.Child()
+	status_search_box = Gtk.Template.Child()
 	status_search_label_name = Gtk.Template.Child()
 	status_search_label_desc = Gtk.Template.Child()
 	status_search_label_group = Gtk.Template.Child()
@@ -938,7 +939,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.set_focus(self.column_view.view)
 
 	#-----------------------------------
-	# Functions
+	# Init sidebar function
 	#-----------------------------------
 	def init_sidebar(self):
 		# Remove rows from listboxes
@@ -966,14 +967,6 @@ class MainWindow(Adw.ApplicationWindow):
 		# Select initial repo/status
 		self.repo_listbox.select_row(repo_row)
 		self.status_listbox.select_row(status_row)
-
-	def set_status_search_labels(self):
-		self.status_search_label_name.set_visible(self.header_search.search_active and self.column_view.search_by_name)
-		self.status_search_label_desc.set_visible(self.header_search.search_active and self.column_view.search_by_desc)
-		self.status_search_label_group.set_visible(self.header_search.search_active and self.column_view.search_by_group)
-		self.status_search_label_deps.set_visible(self.header_search.search_active and self.column_view.search_by_deps)
-		self.status_search_label_optdeps.set_visible(self.header_search.search_active and self.column_view.search_by_optdeps)
-		self.status_search_label_provides.set_visible(self.header_search.search_active and self.column_view.search_by_provides)
 
 	#-----------------------------------
 	# Action handlers
