@@ -85,27 +85,29 @@ class VToggleButton(Gtk.ToggleButton):
 	#-----------------------------------
 	str_id = GObject.Property(type=str, default="")
 
-	@GObject.Property(type=str)
-	def icon(self):
-		return(self.image.get_icon_name())
-
-	@icon.setter
-	def icon(self, value):
-		self.image.set_from_icon_name(value)
-
-	@GObject.Property(type=str)
-	def text(self):
-		return(self.label.get_text())
-
-	@text.setter
-	def text(self, value):
-		self.label.set_text(value)
+	icon = GObject.Property(type=str, default="")
+	text = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Bind properties
+		self.bind_property(
+			"icon",
+			self.image,
+			"icon_name",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.bind_property(
+			"text",
+			self.label,
+			"label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGDETAILSWINDOW
