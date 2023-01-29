@@ -398,7 +398,7 @@ class PkgColumnView(Gtk.Box):
 
 	repo_filter = Gtk.Template.Child()
 	status_filter = Gtk.Template.Child()
-	search_filter = Gtk.Template.Child()
+	# search_filter = Gtk.Template.Child()
 
 	version_sorter = Gtk.Template.Child()
 
@@ -414,14 +414,14 @@ class PkgColumnView(Gtk.Box):
 	# Properties
 	#-----------------------------------
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
-	current_search = GObject.Property(type=str, default="")
+	# current_search = GObject.Property(type=str, default="")
 
-	search_by_name = GObject.Property(type=bool, default=True)
-	search_by_desc = GObject.Property(type=bool, default=False)
-	search_by_group = GObject.Property(type=bool, default=False)
-	search_by_deps = GObject.Property(type=bool, default=False)
-	search_by_optdeps = GObject.Property(type=bool, default=False)
-	search_by_provides = GObject.Property(type=bool, default=False)
+	# search_by_name = GObject.Property(type=bool, default=True)
+	# search_by_desc = GObject.Property(type=bool, default=False)
+	# search_by_group = GObject.Property(type=bool, default=False)
+	# search_by_deps = GObject.Property(type=bool, default=False)
+	# search_by_optdeps = GObject.Property(type=bool, default=False)
+	# search_by_provides = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
@@ -434,7 +434,7 @@ class PkgColumnView(Gtk.Box):
 
 		# Bind filters to filter functions
 		self.status_filter.set_filter_func(self.filter_by_status)
-		self.search_filter.set_filter_func(self.filter_by_search)
+		# self.search_filter.set_filter_func(self.filter_by_search)
 
 		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
@@ -451,18 +451,18 @@ class PkgColumnView(Gtk.Box):
 	def filter_by_status(self, item):
 		return(item.status_flags & self.current_status)
 
-	def filter_by_search(self, item):
-		if self.current_search == "":
-			return(True)
-		else:
-			match_name = (self.current_search in item.name) if self.search_by_name else False
-			match_desc = (self.current_search in item.description.lower()) if self.search_by_desc else False
-			match_group = (self.current_search in item.group.lower()) if self.search_by_group else False
-			match_deps = ([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False
-			match_optdeps = ([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False
-			match_provides = ([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False
+	# def filter_by_search(self, item):
+	# 	if self.current_search == "":
+	# 		return(True)
+	# 	else:
+	# 		match_name = (self.current_search in item.name) if self.search_by_name else False
+	# 		match_desc = (self.current_search in item.description.lower()) if self.search_by_desc else False
+	# 		match_group = (self.current_search in item.group.lower()) if self.search_by_group else False
+	# 		match_deps = ([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False
+	# 		match_optdeps = ([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False
+	# 		match_provides = ([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False
 
-			return(match_name or match_desc or match_group or match_deps or match_optdeps or match_provides)
+	# 		return(match_name or match_desc or match_group or match_deps or match_optdeps or match_provides)
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
@@ -505,6 +505,96 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 		super().__init__(*args, **kwargs)
 
 #------------------------------------------------------------------------------
+#-- CLASS: SEARCHHEADERBAR
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/searchheader.ui")
+class SearchHeader(Gtk.Stack):
+	__gtype_name__ = "SearchHeader"
+
+	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	title_widget = Gtk.Template.Child()
+	search_entry = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	title = GObject.Property(type=str, default="")
+
+	_key_capture_widget = None
+
+	@GObject.Property(type=Gtk.Widget, default=None)
+	def key_capture_widget(self):
+		return(self._key_capture_widget)
+
+	@key_capture_widget.setter
+	def key_capture_widget(self, value):
+		self._key_capture_widget = value
+
+		self.search_entry.set_key_capture_widget(value)
+
+	_search_active = False
+
+	@GObject.Property(type=bool, default=False)
+	def search_active(self):
+		return(self._search_active)
+
+	@search_active.setter
+	def search_active(self, value):
+		self._search_active = value
+
+		self.toggle_search(value)
+
+	search_term = GObject.Property(type=str, default="")
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		# Bind title property
+		self.bind_property(
+			"title",
+			self.title_widget,
+			"title",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		# Bind entry text to search_term property
+		self.search_entry.bind_property(
+			"text",
+			self,
+			"search_term",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+	#-----------------------------------
+	# Signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_search_started(self, entry):
+		self.toggle_search(True)
+
+	@Gtk.Template.Callback()
+	def on_search_stopped(self, entry):
+		self.toggle_search(False)
+
+	#-----------------------------------
+	# Helper functions
+	#-----------------------------------
+	def toggle_search(self, state):
+		if state == True:
+			self.set_visible_child_name("search")
+
+			self.search_entry.grab_focus()
+		else:
+			self.search_entry.set_text("")
+
+			self.set_visible_child_name("title")
+
+#------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/mainwindow.ui")
@@ -514,8 +604,7 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
-	header_stack = Gtk.Template.Child()
-	header_search_entry = Gtk.Template.Child()
+	header_search = Gtk.Template.Child()
 
 	header_sidebar_btn = Gtk.Template.Child()
 	header_infopane_btn = Gtk.Template.Child()
@@ -534,7 +623,7 @@ class MainWindow(Adw.ApplicationWindow):
 	info_pane = Gtk.Template.Child()
 
 	status_count_label = Gtk.Template.Child()
-	status_search_label = Gtk.Template.Child()
+	# status_search_label = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -571,19 +660,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action(self.settings.create_action("show-column-size"))
 		self.add_action(self.settings.create_action("show-column-group"))
 
-		# Connect header search entry to package column view
-		self.header_search_entry.set_key_capture_widget(self.column_view)
-
-		# Bind header search button state to search entry visibility
-		self.header_search_btn.bind_property(
-			"active",
-			self.header_stack,
-			"visible-child-name",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
-			lambda binding, value: "search" if value == True else "title",
-			lambda binding, value: (value == "search")
-		)
-
 		# Bind package column view selected item to info pane
 		self.column_view.selection.bind_property(
 			"selected-item",
@@ -614,16 +690,15 @@ class MainWindow(Adw.ApplicationWindow):
 		action_list = [
 			( "search-start", self.start_search_action ),
 			( "search-stop", self.stop_search_action ),
-			( "search-toggle", None, "", "false", self.toggle_search_action ),
 
-			( "search-by-name", None, "", "true", self.change_search_params_action ),
-			( "search-by-desc", None, "", "false", self.change_search_params_action ),
-			( "search-by-group", None, "", "false", self.change_search_params_action ),
-			( "search-by-deps", None, "", "false", self.change_search_params_action ),
-			( "search-by-optdeps", None, "", "false", self.change_search_params_action ),
-			( "search-by-provides", None, "", "false", self.change_search_params_action ),
+			# ( "search-by-name", None, "", "true", self.change_search_params_action ),
+			# ( "search-by-desc", None, "", "false", self.change_search_params_action ),
+			# ( "search-by-group", None, "", "false", self.change_search_params_action ),
+			# ( "search-by-deps", None, "", "false", self.change_search_params_action ),
+			# ( "search-by-optdeps", None, "", "false", self.change_search_params_action ),
+			# ( "search-by-provides", None, "", "false", self.change_search_params_action ),
 
-			( "search-reset-params", self.reset_search_params_action ),
+			# ( "search-reset-params", self.reset_search_params_action ),
 
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
@@ -646,14 +721,14 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
 
-		app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
-		app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
-		app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
-		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
-		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
-		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
+		# app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
+		# app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
+		# app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
+		# app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
+		# app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
+		# app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
 
-		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
+		# app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
 
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
@@ -669,8 +744,8 @@ class MainWindow(Adw.ApplicationWindow):
 		# Initialize sidebar listboxes
 		self.init_sidebar()
 
-		# Set status bar search status
-		self.set_status_search_label()
+		# # Set status bar search status
+		# self.set_status_search_label()
 
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
@@ -690,45 +765,37 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(self.repo_listbox_all)
 		self.status_listbox.select_row(self.status_listbox_installed)
 
-	def set_status_search_label(self):
-		param_list = [n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True]
+	# def set_status_search_label(self):
+	# 	param_list = [n for n in ["name", "desc", "group", "deps", "optdeps", "provides"] if self.column_view.get_property(f'search_by_{n}') == True]
 
-		self.status_search_label.set_text(f'Search by: {", ".join(param_list) if param_list != [] else "(none)"}')
+	# 	self.status_search_label.set_text(f'Search by: {", ".join(param_list) if param_list != [] else "(none)"}')
 
 	#-----------------------------------
 	# Action handlers
 	#-----------------------------------
 	def start_search_action(self, action, value, user_data):
-		self.header_search_entry.emit("search-started")
+		self.header_search.search_active = True
 
 	def stop_search_action(self, action, value, user_data):
-		self.header_search_entry.emit("stop-search")
+		self.header_search.search_active = False
 
-	def toggle_search_action(self, action, value, user_data):
-		action.set_state(value)
+	# def change_search_params_action(self, action, value, user_data):
+	# 	action.set_state(value)
 
-		if value.get_boolean():
-			self.header_search_entry.emit("search-started")
-		else:
-			self.header_search_entry.emit("stop-search")
+	# 	self.column_view.set_property(action.props.name, value)
 
-	def change_search_params_action(self, action, value, user_data):
-		action.set_state(value)
+	# 	self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-		self.column_view.set_property(action.props.name, value)
+	# 	self.set_status_search_label()
 
-		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+	# def reset_search_params_action(self, action, value, user_data):
+	# 	for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
+	# 		self.lookup_action(f'search-by-{n}').set_state(GLib.Variant.new_boolean(n == "name"))
+	# 		self.column_view.set_property(f'search_by_{n}', n == "name")
 
-		self.set_status_search_label()
+	# 	self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	def reset_search_params_action(self, action, value, user_data):
-		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
-			self.lookup_action(f'search-by-{n}').set_state(GLib.Variant.new_boolean(n == "name"))
-			self.column_view.set_property(f'search_by_{n}', n == "name")
-
-		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-		self.set_status_search_label()
+	# 	self.set_status_search_label()
 
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()
@@ -744,7 +811,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.populate_pkg_objects()
 
 		self.init_sidebar()
-		self.header_search_entry.emit("stop-search")
+		self.header_search.search_active = False
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow()
@@ -819,22 +886,11 @@ class MainWindow(Adw.ApplicationWindow):
 			self.column_view.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	@Gtk.Template.Callback()
-	def on_search_started(self, entry):
-		self.header_stack.set_visible_child_name("search")
+	def on_search_changed(self, widget, prop):
+	# 	self.column_view.current_search = entry.get_text().lower()
 
-		self.set_focus(self.header_search_entry)
-
-	@Gtk.Template.Callback()
-	def on_search_changed(self, entry):
-		self.column_view.current_search = entry.get_text().lower()
-
-		self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	@Gtk.Template.Callback()
-	def on_search_stopped(self, entry):
-		entry.set_text("")
-
-		self.header_stack.set_visible_child_name("title")
+	# 	self.column_view.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+		pass
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP

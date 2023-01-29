@@ -28,9 +28,9 @@
                             <child>
                               <object class="GtkCustomFilter" id="status_filter"/>
                             </child>
-                            <child>
+                            <!-- <child>
                               <object class="GtkCustomFilter" id="search_filter"/>
-                            </child>
+                            </child> -->
                           </object>
                         </property>
                         <property name="model">

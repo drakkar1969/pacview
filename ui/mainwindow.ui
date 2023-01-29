@@ -10,50 +10,15 @@
         <child>
           <object class="AdwHeaderBar" id="header_bar">
             <property name="title-widget">
-              <object class="GtkStack" id="header_stack">
-                <child>
-                  <object class="GtkStackPage">
-                    <property name="name">title</property>
-                    <property name="child">
-                      <object class="AdwWindowTitle" id="header_title">
-                        <property name="title">PacView</property>
-                      </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkStackPage">
-                    <property name="name">search</property>
-                    <property name="child">
-                      <object class="GtkBox" id="header_search_box">
-                        <style>
-                          <class name="linked"/>
-                        </style>
-                        <child>
-                          <object class="GtkSearchEntry" id="header_search_entry">
-                            <property name="width-request">400</property>
-                            <property name="placeholder-text">Search for packages</property>
-                            <signal name="search-started" handler="on_search_started" swapped="no"/>
-                            <signal name="search-changed" handler="on_search_changed" swapped="no"/>
-                            <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkMenuButton" id="header_search_filter_btn">
-                            <property name="icon_name">ymuse-filter-symbolic</property>
-                            <property name="menu_model">search_menu</property>
-                          </object>
-                        </child>
-                      </object>
-                    </property>
-                  </object>
-                </child>
+              <object class="SearchHeader" id="header_search">
+                <property name="title">PacView</property>
+                <property name="key_capture_widget">column_view</property>
+                <signal name="notify::search-term" handler="on_search_changed" swapped="no"/>
               </object>
             </property>
             <child type="start">
               <object class="GtkToggleButton" id="header_sidebar_btn">
                 <property name="icon-name">sidebar-show-symbolic</property>
-                <property name="active">True</property>
                 <property name="tooltip-text">Toggle Sidebar</property>
                 <property name="active" bind-source="flap" bind-property="reveal-flap" bind-flags="sync-create|bidirectional"/>
               </object>
@@ -75,10 +40,10 @@
             </child>
             <child type="end">
               <object class="GtkToggleButton" id="header_search_btn">
-                <property name="icon-name">edit-find-symbolic</property>
                 <property name="active">False</property>
+                <property name="icon-name">edit-find-symbolic</property>
                 <property name="tooltip-text">Toggle Search</property>
-                <property name="action-name">win.search-toggle</property>
+                <property name="active" bind-source="header_search" bind-property="search_active" bind-flags="sync-create|bidirectional"/>
               </object>
             </child>
             <child type="end">
@@ -305,43 +270,6 @@
       <item>
         <attribute name="label">About PacView</attribute>
         <attribute name="action">win.show-about</attribute>
-      </item>
-    </section>
-  </menu>
-
-  <!--// SEARCH MENU //-->
-  <menu id="search_menu">
-    <section>
-      <attribute name="label">Search By</attribute>
-      <item>
-        <attribute name="label">Name</attribute>
-        <attribute name="action">win.search-by-name</attribute>
-      </item>
-      <item>
-        <attribute name="label">Description</attribute>
-        <attribute name="action">win.search-by-desc</attribute>
-      </item>
-      <item>
-        <attribute name="label">Group</attribute>
-        <attribute name="action">win.search-by-group</attribute>
-      </item>
-      <item>
-        <attribute name="label">Dependencies</attribute>
-        <attribute name="action">win.search-by-deps</attribute>
-      </item>
-      <item>
-        <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">win.search-by-optdeps</attribute>
-      </item>
-      <item>
-        <attribute name="label">Provides</attribute>
-        <attribute name="action">win.search-by-provides</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Reset</attribute>
-        <attribute name="action">win.search-reset-params</attribute>
       </item>
     </section>
   </menu>
