@@ -537,7 +537,6 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_name = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.status_search_label_name.set_visible(value)
 
 	_search_by_desc = False
 
@@ -550,7 +549,6 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_desc = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.status_search_label_desc.set_visible(value)
 
 	_search_by_group = False
 
@@ -563,7 +561,6 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_group = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.status_search_label_group.set_visible(value)
 
 	_search_by_deps = False
 
@@ -576,7 +573,6 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_deps = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.status_search_label_deps.set_visible(value)
 
 	_search_by_optdeps = False
 
@@ -589,7 +585,6 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_optdeps = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.status_search_label_optdeps.set_visible(value)
 
 	_search_by_provides = False
 
@@ -602,7 +597,6 @@ class PkgColumnView(Gtk.Box):
 		self._search_by_provides = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-		app.main_window.status_search_label_provides.set_visible(value)
 
 	#-----------------------------------
 	# Init function
@@ -727,8 +721,6 @@ class SearchHeader(Gtk.Stack):
 	def search_active(self, value):
 		self._search_active = value
 
-		app.main_window.status_search_box.set_visible(value)
-
 		self.toggle_search(value)
 
 	search_term = GObject.Property(type=str, default="")
@@ -850,28 +842,58 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Bind package column view selected item to info pane
 		self.column_view.selection.bind_property(
-			"selected-item",
-			self.info_pane,
-			"pkg_object",
+			"selected-item", self.info_pane, "pkg_object",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		# Bind info pane package to details button enabled state
 		self.info_pane.bind_property(
-			"pkg_object",
-			self.header_details_btn,
-			"sensitive",
+			"pkg_object", self.header_details_btn, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value is not None
 		)
 
 		# Bind package column view count to status label text
 		self.column_view.filter_model.bind_property(
-			"n-items",
-			self.status_count_label,
-			"label",
+			"n-items", self.status_count_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
+		)
+
+		# Bind search properties to status labels
+		self.header_search.bind_property(
+			"search_active", self.status_search_box, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_name", self.status_search_label_name, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_desc", self.status_search_label_desc, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_group", self.status_search_label_group, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_deps", self.status_search_label_deps, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_optdeps", self.status_search_label_optdeps, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_provides", self.status_search_label_provides, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		# Add actions
