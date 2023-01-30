@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PACKAGE COLUMNVIEW //-->
-  <template class="PkgColumnView" parent="GtkBox">
-    <property name="orientation">vertical</property>
+  <template class="PkgColumnView" parent="GtkOverlay">
     <child>
       <object class="GtkScrolledWindow">
         <property name="hexpand">True</property>
@@ -179,6 +178,17 @@
             </child>
           </object>
         </property>
+      </object>
+    </child>
+    <child type="overlay">
+      <object class="GtkLabel" id="empty_label">
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="label">No packages found</property>
+        <style>
+          <class name="heading"/>
+          <class name="dim-label"/>
+        </style>
       </object>
     </child>
   </template>

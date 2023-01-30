@@ -282,6 +282,8 @@ class PkgInfoPane(Gtk.Overlay):
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
 
+	empty_label = Gtk.Template.Child()
+
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
@@ -300,6 +302,8 @@ class PkgInfoPane(Gtk.Overlay):
 		self.display_package(value)
 
 		self.overlay_toolbar.set_visible(False)
+
+		self.empty_label.set_visible(value is None)
 
 	#-----------------------------------
 	# Init function
@@ -445,7 +449,7 @@ class PkgInfoPane(Gtk.Overlay):
 #-- CLASS: PKGCOLUMNVIEW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkgcolumnview.ui")
-class PkgColumnView(Gtk.Box):
+class PkgColumnView(Gtk.Overlay):
 	__gtype_name__ = "PkgColumnView"
 
 	#-----------------------------------
@@ -455,6 +459,7 @@ class PkgColumnView(Gtk.Box):
 	selection = Gtk.Template.Child()
 	filter_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
+	empty_label = Gtk.Template.Child()
 
 	repo_filter = Gtk.Template.Child()
 	status_filter = Gtk.Template.Child()
@@ -574,6 +579,13 @@ class PkgColumnView(Gtk.Box):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Bind item count to empty label visibility
+		self.selection.bind_property(
+			"n-items", self.empty_label, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value == 0
+		)
 
 		# Bind column sorters to sort functions
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")

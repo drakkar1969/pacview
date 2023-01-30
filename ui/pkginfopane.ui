@@ -88,5 +88,16 @@
         </child>
       </object>
     </child>
+    <child type="overlay">
+      <object class="GtkLabel" id="empty_label">
+        <property name="halign">center</property>
+        <property name="valign">center</property>
+        <property name="label">No package selected</property>
+        <style>
+          <class name="heading"/>
+          <class name="dim-label"/>
+        </style>
+      </object>
+    </child>
   </template>
 </interface>
