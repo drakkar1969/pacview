@@ -214,54 +214,42 @@ class PkgDetailsWindow(Adw.Window):
 	cache_model = Gtk.Template.Child()
 
 	#-----------------------------------
-	# Properties
+	# Init function
 	#-----------------------------------
-	_pkg_object = None
+	def __init__(self, pkg_object, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
-	@GObject.Property(type=PkgObject, default=None)
-	def pkg_object(self):
-		return(self._pkg_object)
+		# Set tree label font
+		self.tree_label.set_attributes(Pango.AttrList.from_string('0 -1 font-desc "Source Code Pro 11"'))
 
-	@pkg_object.setter
-	def pkg_object(self, value):
-		self._pkg_object = value
-
-		if value is not None:
+		# Initialize widgets
+		if pkg_object is not None:
 			# Set package name
-			self.pkg_label.set_text(f'{value.repository}/{value.name}')
+			self.pkg_label.set_text(f'{pkg_object.repository}/{pkg_object.name}')
 
 			# Populate file list
-			self.file_header_label.set_text(f'Files ({len(value.files_list)})')
-			self.files_model.splice(0, 0, value.files_list)
+			self.file_header_label.set_text(f'Files ({len(pkg_object.files_list)})')
+			self.files_model.splice(0, 0, pkg_object.files_list)
 
 			# Populate dependency tree
-			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (value.status_flags & PkgStatus.INSTALLED) else " -s"} {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			self.tree_label.set_label(re.sub(" provides.+", "", str(pkg_tree.stdout, 'utf-8')))
 
 			# Populate log
-			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
 
 			self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
 			# Populate cache
-			pkg_cache = subprocess.run(shlex.split(f'paccache -vdk0 {value.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_cache = subprocess.run(shlex.split(f'paccache -vdk0 {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			cache_lines = [l for l in str(pkg_cache.stdout, 'utf-8').split('\n') if (l != "" and l.startswith("==>") == False and l.endswith(".sig") == False)]
 
 			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
 			self.cache_model.splice(0, 0, cache_lines)
-
-	#-----------------------------------
-	# Init function
-	#-----------------------------------
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		# Set tree label font
-		self.tree_label.set_attributes(Pango.AttrList.from_string('0 -1 font-desc "Source Code Pro 11"'))
 
 	#-----------------------------------
 	# Key press signal handler
@@ -458,9 +446,7 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	def show_package_details(self):
 		if self.pkg_object is not None:
-			details_window = PkgDetailsWindow(transient_for=app.main_window)
-
-			details_window.pkg_object = self.pkg_object
+			details_window = PkgDetailsWindow(self.pkg_object, transient_for=app.main_window)
 
 			details_window.show()
 
