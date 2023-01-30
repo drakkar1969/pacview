@@ -87,7 +87,7 @@ class PkgObject(GObject.Object):
 			PkgStatus.ORPHAN: "pkg-orphan"
 		}
 
-		return(icon_dict.get(self.status_flags, None))
+		return(icon_dict.get(self.status_flags, ""))
 
 	@GObject.Property(type=str, default="")
 	def repository(self):
