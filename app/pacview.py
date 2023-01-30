@@ -441,15 +441,6 @@ class PkgInfoPane(Gtk.Overlay):
 
 			self.display_package(self._pkg_list[self._pkg_index])
 
-	#-----------------------------------
-	# Details window function
-	#-----------------------------------
-	def show_package_details(self):
-		if self.pkg_object is not None:
-			details_window = PkgDetailsWindow(self.pkg_object, transient_for=app.main_window)
-
-			details_window.show()
-
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
 #------------------------------------------------------------------------------
@@ -982,7 +973,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.info_pane.display_next_package()
 
 	def show_details_window_action(self, action, value, user_data):
-		self.info_pane.show_package_details()
+		if self.info_pane.pkg_object is not None:
+			details_window = PkgDetailsWindow(self.info_pane.pkg_object, transient_for=self)
+			details_window.show()
 
 	def refresh_dbs_action(self, action, value, user_data):
 		app.init_databases()
