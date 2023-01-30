@@ -52,7 +52,7 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">F5</property>
-                <property name="title">Refresh Packages</property>
+                <property name="title">Refresh</property>
               </object>
             </child>
             <child>

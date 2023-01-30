@@ -249,7 +249,7 @@
   <menu id="primary_menu">
     <section>
       <item>
-        <attribute name="label">Refresh Packages</attribute>
+        <attribute name="label">Refresh</attribute>
         <attribute name="action">win.refresh-dbs</attribute>
       </item>
       <item>
