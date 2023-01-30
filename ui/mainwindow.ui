@@ -163,7 +163,7 @@
                 <property name="hexpand">True</property>
                 <property name="xalign">0</property>
                 <style>
-                  <class name="pill-label"/>
+                  <class name="status-label"/>
                 </style>
               </object>
             </child>
@@ -177,8 +177,8 @@
                     <property name="xalign">1</property>
                     <property name="label">name</property>
                     <style>
+                      <class name="status-label"/>
                       <class name="pill-label"/>
-                      <class name="pill-label-opaque"/>
                     </style>
                   </object>
                 </child>
@@ -188,8 +188,8 @@
                     <property name="xalign">1</property>
                     <property name="label">desc</property>
                     <style>
+                      <class name="status-label"/>
                       <class name="pill-label"/>
-                      <class name="pill-label-opaque"/>
                     </style>
                   </object>
                 </child>
@@ -199,8 +199,8 @@
                     <property name="xalign">1</property>
                     <property name="label">group</property>
                     <style>
+                      <class name="status-label"/>
                       <class name="pill-label"/>
-                      <class name="pill-label-opaque"/>
                     </style>
                   </object>
                 </child>
@@ -210,8 +210,8 @@
                     <property name="xalign">1</property>
                     <property name="label">deps</property>
                     <style>
+                      <class name="status-label"/>
                       <class name="pill-label"/>
-                      <class name="pill-label-opaque"/>
                     </style>
                   </object>
                 </child>
@@ -221,8 +221,8 @@
                     <property name="xalign">1</property>
                     <property name="label">optdeps</property>
                     <style>
+                      <class name="status-label"/>
                       <class name="pill-label"/>
-                      <class name="pill-label-opaque"/>
                     </style>
                   </object>
                 </child>
@@ -232,8 +232,8 @@
                     <property name="xalign">1</property>
                     <property name="label">provides</property>
                     <style>
+                      <class name="status-label"/>
                       <class name="pill-label"/>
-                      <class name="pill-label-opaque"/>
                     </style>
                   </object>
                 </child>
