@@ -734,8 +734,6 @@ class SearchHeader(Gtk.Stack):
 
 			self.set_visible_child_name("title")
 
-			app.main_window.column_view.view.grab_focus()
-
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
 #------------------------------------------------------------------------------
@@ -961,6 +959,8 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def stop_search_action(self, action, value, user_data):
 		self.header_search.search_active = False
+
+		self.column_view.view.grab_focus()
 
 	def reset_search_params_action(self, action, value, user_data):
 		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
