@@ -341,8 +341,8 @@ class PkgInfoPane(Gtk.Overlay):
 
 		icon = obj.prop_icon
 
-		image.set_visible(icon is not None and icon != "")
-		image.set_from_resource(icon)
+		image.set_visible(icon != "")
+		image.set_from_icon_name(icon)
 
 		label.set_label(obj.prop_value)
 

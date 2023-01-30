@@ -81,10 +81,10 @@ class PkgObject(GObject.Object):
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
 		icon_dict = {
-			PkgStatus.EXPLICIT: "/com/github/PacView/icons/pkg-explicit.svg",
-			PkgStatus.DEPENDENCY: "/com/github/PacView/icons/pkg-dependency.svg",
-			PkgStatus.OPTIONAL: "/com/github/PacView/icons/pkg-optional.svg",
-			PkgStatus.ORPHAN: "/com/github/PacView/icons/pkg-orphan.svg"
+			PkgStatus.EXPLICIT: "pkg-explicit",
+			PkgStatus.DEPENDENCY: "pkg-dependency",
+			PkgStatus.OPTIONAL: "pkg-optional",
+			PkgStatus.ORPHAN: "pkg-orphan"
 		}
 
 		return(icon_dict.get(self.status_flags, None))
@@ -251,7 +251,7 @@ class PkgProperty(GObject.Object):
 	#-----------------------------------
 	prop_name = GObject.Property(type=str, default="")
 	prop_value = GObject.Property(type=str, default="")
-	prop_icon = GObject.Property(type=str, default=None)
+	prop_icon = GObject.Property(type=str, default="")
 	prop_copy = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
