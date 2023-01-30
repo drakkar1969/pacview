@@ -40,9 +40,7 @@ class UpdateWindow(Adw.Window):
 
 		# Bind package column view count to status label text
 		self.model.bind_property(
-			"n-items",
-			self.update_count_label,
-			"label",
+			"n-items", self.update_count_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'{value} update{"s" if value != 1 else ""} available'
 		)
@@ -182,16 +180,12 @@ class VToggleButton(Gtk.ToggleButton):
 
 		# Bind properties
 		self.bind_property(
-			"icon",
-			self.image,
-			"icon_name",
+			"icon", self.image, "icon_name",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		self.bind_property(
-			"text",
-			self.label,
-			"label",
+			"text", self.label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
@@ -668,16 +662,12 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 
 		# Bind properties
 		self.bind_property(
-			"icon",
-			self.image,
-			"icon_name",
+			"icon", self.image, "icon_name",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		self.bind_property(
-			"text",
-			self.label,
-			"label",
+			"text", self.label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
@@ -733,17 +723,13 @@ class SearchHeader(Gtk.Stack):
 
 		# Bind title property
 		self.bind_property(
-			"title",
-			self.title_widget,
-			"title",
+			"title", self.title_widget, "title",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		# Bind entry text to search_term property
 		self.search_entry.bind_property(
-			"text",
-			self,
-			"search_term",
+			"text", self, "search_term",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
