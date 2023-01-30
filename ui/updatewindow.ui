@@ -43,7 +43,7 @@
                         <property name="child">
                           <object class="GtkColumnView" id="view">
                             <property name="model">
-                              <object class="GtkSingleSelection" id="selection">
+                              <object class="GtkNoSelection" id="selection">
                                 <property name="model">
                                   <object class="GtkSortListModel" id="sort_model">
                                     <property name="model">
