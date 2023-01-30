@@ -93,7 +93,7 @@
                     </child>
                     <child>
                       <object class="GtkListBox" id="repo_listbox">
-                        <property name="margin_bottom">12</property>
+                        <property name="margin_bottom">6</property>
                         <signal name="row-selected" handler="on_repo_selected" swapped="no"/>
                         <style>
                           <class name="navigation-sidebar"/>
