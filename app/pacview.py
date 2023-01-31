@@ -972,6 +972,8 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add threaded function to get package updates
 		GLib.idle_add(self.get_pkg_updates)
 
+		return(False)
+
 	def get_pkg_updates(self):
 		# Get updates
 		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -1024,7 +1026,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.init_databases()
 		self.init_sidebar()
-		self.populate_column_view()
+		GLib.idle_add(self.populate_column_view)
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
