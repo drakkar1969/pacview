@@ -18,65 +18,6 @@ gresource = Gio.Resource.load(os.path.join(app_dir, "com.github.PacView.gresourc
 gresource._register()
 
 #------------------------------------------------------------------------------
-#-- CLASS: UPDATEWINDOW
-#------------------------------------------------------------------------------
-@Gtk.Template(resource_path="/com/github/PacView/ui/updatewindow.ui")
-class UpdateWindow(Adw.Window):
-	__gtype_name__ = "UpdateWindow"
-
-	#-----------------------------------
-	# Class widget variables
-	#-----------------------------------
-	stack = Gtk.Template.Child()
-	view = Gtk.Template.Child()
-	model = Gtk.Template.Child()
-	update_count_label = Gtk.Template.Child()
-
-	#-----------------------------------
-	# Init function
-	#-----------------------------------
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-		# Bind package column view count to status label text
-		self.model.bind_property(
-			"n-items", self.update_count_label, "label",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: f'{value} update{"s" if value != 1 else ""} available'
-		)
-
-		# Sort by package name
-		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
-
-		# Initialize widgets
-		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
-
-		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
-
-		if len(updates) != 0:
-			self.stack.set_visible_child_name("view")
-
-			obj_list = []
-
-			for obj in app.pkg_objects:
-				if obj.name in updates.keys():
-					obj.update_version = updates[obj.name]
-					obj_list.append(obj)
-
-			self.model.splice(0, 0, obj_list)
-		else:
-			self.stack.set_visible_child_name("status")
-
-	#-----------------------------------
-	# Key press signal handler
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_key_pressed(self, keyval, keycode, user_data, state):
-		if keycode == Gdk.KEY_Escape and state == 0: self.close()
-
-#------------------------------------------------------------------------------
 #-- CLASS: STATSWINDOW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/statswindow.ui")
@@ -407,7 +348,8 @@ class PkgInfoPane(Gtk.Overlay):
 
 		if pkg_object is not None:
 			self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
-			self.model.append(PkgProperty("Version", pkg_object.version))
+			if self.pkg_object.update_version != "": self.model.append(PkgProperty("Version", pkg_object.update_version, prop_icon="pkg-update"))
+			else: self.model.append(PkgProperty("Version", pkg_object.version))
 			self.model.append(PkgProperty("Description", pkg_object.description))
 			self.model.append(PkgProperty("URL", pkg_object.url))
 			if pkg_object.repository in app.sync_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
@@ -830,7 +772,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.filter_model.bind_property(
 			"n-items", self.status_count_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
+			lambda binding, value: f'{value} {"update" if self.column_view.current_status == PkgStatus.UPDATES else "package"}{"s" if value != 1 else ""} found'
 		)
 
 		# Bind search properties to status labels
@@ -881,7 +823,6 @@ class MainWindow(Adw.ApplicationWindow):
 			( "show-details-window", self.show_details_window_action ),
 
 			( "refresh-dbs", self.refresh_dbs_action ),
-			( "check-updates", self.check_updates_action ),
 			( "show-stats-window", self.show_stats_window_action ),
 			( "copy-package-list", self.copy_package_list_action ),
 
@@ -920,7 +861,6 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
 
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
-		app.set_accels_for_action("win.check-updates", ["<alt>U"])
 		app.set_accels_for_action("win.show-stats-window", ["<alt>S"])
 		app.set_accels_for_action("win.copy-package-list", ["<alt>L"])
 		
@@ -954,7 +894,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add rows to status list box
 		status_row = None
 
-		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE]:
+		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]:
 			row = SidebarListBoxRow(icon="funnel-symbolic", text=st.name.title(), str_id=st.value)
 			self.status_listbox.append(row)
 			if st == PkgStatus.INSTALLED: status_row = row
@@ -990,15 +930,11 @@ class MainWindow(Adw.ApplicationWindow):
 			details_window.show()
 
 	def refresh_dbs_action(self, action, value, user_data):
-		app.init_databases()
-		app.populate_pkg_objects()
-
 		self.init_sidebar()
 		self.header_search.search_active = False
 
-	def check_updates_action(self, action, value, user_data):
-		update_window = UpdateWindow(transient_for=self)
-		update_window.show()
+		app.init_databases()
+		app.populate_pkg_objects()
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
@@ -1125,6 +1061,24 @@ class LauncherApp(Adw.Application):
 		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in all_pkg_dict.values()]
 
 		self.main_window.column_view.model.splice(0, len(self.main_window.column_view.model), app.pkg_objects)
+
+		GLib.idle_add(self.get_pkg_updates)
+
+	def get_pkg_updates(self):
+		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
+
+		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
+
+		if len(updates) != 0:
+			for obj in app.pkg_objects:
+				if obj.name in updates.keys():
+					obj.has_updates = True
+					obj.status_flags |= PkgStatus.UPDATES
+					obj.update_version = updates[obj.name]
+
+		return(False)
 
 #------------------------------------------------------------------------------
 #-- MAIN APP

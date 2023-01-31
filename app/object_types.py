@@ -19,6 +19,7 @@ class PkgStatus(IntFlag):
 	INSTALLED = 15
 	NONE = 16
 	ALL = 31
+	UPDATES = 32
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGOBJECT
@@ -69,25 +70,19 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def status(self):
-		str_dict = {
-			PkgStatus.EXPLICIT: "explicit",
-			PkgStatus.DEPENDENCY: "dependency",
-			PkgStatus.OPTIONAL: "optional",
-			PkgStatus.ORPHAN: "orphan"
-		}
-
-		return(str_dict.get(self.status_flags, ""))
+		if self.status_flags & PkgStatus.EXPLICIT: return("explicit")
+		elif self.status_flags & PkgStatus.DEPENDENCY: return("dependency")
+		elif self.status_flags & PkgStatus.OPTIONAL: return("optional")
+		elif self.status_flags & PkgStatus.ORPHAN: return("orphan")
+		else: return("")
 
 	@GObject.Property(type=str, default="")
 	def status_icon(self):
-		icon_dict = {
-			PkgStatus.EXPLICIT: "pkg-explicit",
-			PkgStatus.DEPENDENCY: "pkg-dependency",
-			PkgStatus.OPTIONAL: "pkg-optional",
-			PkgStatus.ORPHAN: "pkg-orphan"
-		}
-
-		return(icon_dict.get(self.status_flags, ""))
+		if self.status_flags & PkgStatus.EXPLICIT: return("pkg-explicit")
+		elif self.status_flags & PkgStatus.DEPENDENCY: return("pkg-dependency")
+		elif self.status_flags & PkgStatus.OPTIONAL: return("pkg-optional")
+		elif self.status_flags & PkgStatus.ORPHAN: return("pkg-orphan")
+		else: return("")
 
 	@GObject.Property(type=str, default="")
 	def repository(self):
@@ -190,8 +185,9 @@ class PkgObject(GObject.Object):
 		return(self.pkg.md5sum if self.pkg.md5sum is not None else "")
 
 	#-----------------------------------
-	# Update version property
+	# Update properties
 	#-----------------------------------
+	has_updates = GObject.Property(type=bool, default=False)
 	update_version = GObject.Property(type=str, default="")
 
 	#-----------------------------------

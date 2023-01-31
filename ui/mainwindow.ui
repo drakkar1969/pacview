@@ -252,10 +252,6 @@
         <attribute name="label">Refresh</attribute>
         <attribute name="action">win.refresh-dbs</attribute>
       </item>
-      <item>
-        <attribute name="label">Check For Updates</attribute>
-        <attribute name="action">win.check-updates</attribute>
-      </item>
     </section>
     <section>
       <item>

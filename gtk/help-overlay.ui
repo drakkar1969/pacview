@@ -57,12 +57,6 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;U</property>
-                <property name="title">Check For Updates</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;S</property>
                 <property name="title">Show Statistics</property>
               </object>
