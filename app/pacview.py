@@ -935,7 +935,7 @@ class MainWindow(Adw.ApplicationWindow):
 		all_pkg_dict = {}
 
 		# Add sync packages
-		for db in app.main_window.pacman_db_names:
+		for db in self.pacman_db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
