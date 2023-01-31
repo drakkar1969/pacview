@@ -142,7 +142,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def build_date_long(self):
-		return(self.int_to_datestr_long(self.pkg.builddate))
+		return(self.date_to_str_long(self.pkg.builddate))
 
 	@GObject.Property(type=int, default=0)
 	def install_date_raw(self):
@@ -150,15 +150,15 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def install_date_short(self):
-		return(self.int_to_datestr_short(self.install_date_raw))
+		return(self.date_to_str_short(self.install_date_raw))
 
 	@GObject.Property(type=str, default="")
 	def install_date_long(self):
-		return(self.int_to_datestr_long(self.install_date_raw))
+		return(self.date_to_str_long(self.install_date_raw))
 
 	@GObject.Property(type=str, default="")
 	def download_size(self):
-		return(self.int_to_sizestr(self.pkg.size) if self.local_pkg is None else "")
+		return(self.size_to_str(self.pkg.size) if self.local_pkg is None else "")
 
 	@GObject.Property(type=int, default=0)
 	def install_size_raw(self):
@@ -166,7 +166,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def install_size(self):
-		return(self.int_to_sizestr(self.pkg.isize))
+		return(self.size_to_str(self.pkg.isize))
 
 	@GObject.Property(type=str, default="")
 	def install_script(self):
@@ -202,13 +202,13 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Helper functions
 	#-----------------------------------
-	def int_to_datestr_short(self, value):
+	def date_to_str_short(self, value):
 		return(datetime.datetime.fromtimestamp(value).strftime("%Y/%m/%d %H:%M") if value != 0 else "")
 
-	def int_to_datestr_long(self, value):
+	def date_to_str_long(self, value):
 		return(datetime.datetime.fromtimestamp(value).strftime("%a %d %b %Y %H:%M:%S") if value != 0 else "")
 
-	def int_to_sizestr(self, value):
+	def size_to_str(self, value):
 		if value == 0: return "0 B"
 		
 		pkg_size = value
