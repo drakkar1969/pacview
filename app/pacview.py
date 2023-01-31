@@ -969,15 +969,18 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
+		# Add threaded function to get package updates
 		GLib.idle_add(self.get_pkg_updates)
 
 	def get_pkg_updates(self):
+		# Get updates
 		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
 
 		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
 
+		# Modify package object properties if update available
 		if len(updates) != 0:
 			for obj in self.pkg_objects:
 				if obj.name in updates.keys():
@@ -985,6 +988,7 @@ class MainWindow(Adw.ApplicationWindow):
 					obj.status_flags |= PkgStatus.UPDATES
 					obj.update_version = updates[obj.name]
 
+		# Force update of info pane package object
 		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 		return(False)
