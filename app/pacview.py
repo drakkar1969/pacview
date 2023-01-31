@@ -8,7 +8,7 @@ from gi.repository import Gtk, Adw, Gio, GObject, Pango, Gdk, GLib
 
 import pyalpm
 
-from object_types import PkgStatus, PkgObject, PkgProperty, StatsItem
+from objects import PkgStatus, PkgObject, PkgProperty, StatsItem
 
 # Global path variable
 app_dir = os.path.abspath(os.path.dirname(sys.argv[0]))
