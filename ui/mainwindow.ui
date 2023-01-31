@@ -2,6 +2,7 @@
 <interface>
   <!--// MAIN WINDOW //-->
   <template class="MainWindow" parent="AdwApplicationWindow">
+    <signal name="show" handler="on_show" swapped="no"/>
     <property name="default_width">1400</property>
     <property name="default_height">740</property>
     <property name="content">

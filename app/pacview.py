@@ -40,7 +40,7 @@ class StatsWindow(Adw.Window):
 		total_size = 0
 
 		for db in app.pacman_db_names:
-			pkg_list = [pkg for pkg in app.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
+			pkg_list = [pkg for pkg in app.main_window.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
 
 			count = len(pkg_list)
 			total_count += count
@@ -303,7 +303,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 		pkg_name = parse_url.netloc
 
-		pkg_dict = dict([(pkg.name, pkg) for pkg in app.pkg_objects])
+		pkg_dict = dict([(pkg.name, pkg) for pkg in app.main_window.pkg_objects])
 
 		new_pkg = None
 
@@ -874,6 +874,13 @@ class MainWindow(Adw.ApplicationWindow):
 		self.set_focus(self.column_view.view)
 
 	#-----------------------------------
+	# Show window signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_show(self, window):
+		self.populate_column_view()
+
+	#-----------------------------------
 	# Init sidebar function
 	#-----------------------------------
 	def init_sidebar(self):
@@ -902,6 +909,71 @@ class MainWindow(Adw.ApplicationWindow):
 		# Select initial repo/status
 		self.repo_listbox.select_row(repo_row)
 		self.status_listbox.select_row(status_row)
+
+	#-----------------------------------
+	# Populate column view functions
+	#-----------------------------------
+	def populate_column_view(self):
+		# Get pyalpm handle
+		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
+
+		# Package dict
+		all_pkg_dict = {}
+
+		# Add sync packages
+		for db in app.pacman_db_names:
+			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
+
+			if sync_db is not None:
+				all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
+
+		# Add local packages
+		local_db = alpm_handle.get_localdb()
+		local_pkg_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
+
+		all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in all_pkg_dict.keys()]))
+
+		# Create list of package objects
+		def get_local_data(name):
+			if name in local_pkg_dict.keys():
+				local_pkg = local_pkg_dict[name]
+
+				status_flags = PkgStatus.NONE
+
+				if local_pkg.reason == 0: status_flags = PkgStatus.EXPLICIT
+				else:
+					if local_pkg.compute_requiredby() != []:
+						status_flags = PkgStatus.DEPENDENCY
+					else:
+						status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+
+				return(local_pkg, status_flags)
+
+			return(None, PkgStatus.NONE)
+
+		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in all_pkg_dict.values()]
+
+		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
+
+		GLib.idle_add(self.get_pkg_updates)
+
+	def get_pkg_updates(self):
+		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
+
+		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
+
+		if len(updates) != 0:
+			for obj in self.pkg_objects:
+				if obj.name in updates.keys():
+					obj.has_updates = True
+					obj.status_flags |= PkgStatus.UPDATES
+					obj.update_version = updates[obj.name]
+
+		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+
+		return(False)
 
 	#-----------------------------------
 	# Action handlers
@@ -934,7 +1006,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search.search_active = False
 
 		app.init_databases()
-		app.populate_pkg_objects()
+		self.populate_column_view()
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
@@ -1017,68 +1089,6 @@ class LauncherApp(Adw.Application):
 	def on_activate(self, app):
 		self.main_window = MainWindow(application=app)
 		self.main_window.present()
-
-		self.populate_pkg_objects()
-
-	def populate_pkg_objects(self):
-		# Get pyalpm handle
-		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
-
-		# Package dict
-		all_pkg_dict = {}
-
-		# Add sync packages
-		for db in self.pacman_db_names:
-			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
-
-			if sync_db is not None:
-				all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
-
-		# Add local packages
-		local_db = alpm_handle.get_localdb()
-		local_pkg_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
-
-		all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in all_pkg_dict.keys()]))
-
-		# Create list of package objects
-		def get_local_data(name):
-			if name in local_pkg_dict.keys():
-				local_pkg = local_pkg_dict[name]
-
-				status_flags = PkgStatus.NONE
-
-				if local_pkg.reason == 0: status_flags = PkgStatus.EXPLICIT
-				else:
-					if local_pkg.compute_requiredby() != []:
-						status_flags = PkgStatus.DEPENDENCY
-					else:
-						status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
-
-				return(local_pkg, status_flags)
-
-			return(None, PkgStatus.NONE)
-
-		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in all_pkg_dict.values()]
-
-		self.main_window.column_view.model.splice(0, len(self.main_window.column_view.model), app.pkg_objects)
-
-		GLib.idle_add(self.get_pkg_updates)
-
-	def get_pkg_updates(self):
-		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
-
-		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
-
-		if len(updates) != 0:
-			for obj in app.pkg_objects:
-				if obj.name in updates.keys():
-					obj.has_updates = True
-					obj.status_flags |= PkgStatus.UPDATES
-					obj.update_version = updates[obj.name]
-
-		return(False)
 
 #------------------------------------------------------------------------------
 #-- MAIN APP
