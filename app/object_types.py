@@ -158,7 +158,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def download_size(self):
-		return(self.size_to_str(self.pkg.size) if self.local_pkg is None else "")
+		return(self.size_to_str(self.pkg.size, 1) if self.local_pkg is None else "")
 
 	@GObject.Property(type=int, default=0)
 	def install_size_raw(self):
@@ -166,7 +166,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def install_size(self):
-		return(self.size_to_str(self.pkg.isize))
+		return(self.size_to_str(self.pkg.isize, 1))
 
 	@GObject.Property(type=str, default="")
 	def install_script(self):
@@ -208,7 +208,7 @@ class PkgObject(GObject.Object):
 	def date_to_str_long(self, value):
 		return(datetime.datetime.fromtimestamp(value).strftime("%a %d %b %Y %H:%M:%S") if value != 0 else "")
 
-	def size_to_str(self, value):
+	def size_to_str(self, value, decimals):
 		if value == 0: return "0 B"
 		
 		pkg_size = value
@@ -218,7 +218,7 @@ class PkgObject(GObject.Object):
 				break
 			pkg_size /= 1024.0
 		
-		return(f"{pkg_size:.1f} {unit}")
+		return(f"{pkg_size:.{decimals}f} {unit}")
 
 	def url_to_link(self, url):
 		return(f'<a href="{url}">{url}</a>')

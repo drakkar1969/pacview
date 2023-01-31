@@ -51,13 +51,13 @@ class StatsWindow(Adw.Window):
 			self.model.append(StatsItem(
 				db if db.isupper() else str.title(db),
 				count,
-				f'{size/(1024.0*1024.0):.0f} MiB'
+				PkgObject.size_to_str(None, size, 2)
 			))
 
 		self.model.append(StatsItem(
 			"<b>Total</b>",
 			f'<b>{total_count}</b>',
-			f'<b>{total_size/(1024.0*1024.0):.0f} MiB</b>'
+			f'<b>{PkgObject.size_to_str(None, total_size, 2)}</b>'
 		))
 
 	#-----------------------------------
