@@ -39,7 +39,7 @@ class StatsWindow(Adw.Window):
 		total_count = 0
 		total_size = 0
 
-		for db in app.pacman_db_names:
+		for db in app.main_window.pacman_db_names:
 			pkg_list = [pkg for pkg in app.main_window.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
 
 			count = len(pkg_list)
@@ -352,7 +352,7 @@ class PkgInfoPane(Gtk.Overlay):
 			else: self.model.append(PkgProperty("Version", pkg_object.version))
 			self.model.append(PkgProperty("Description", pkg_object.description))
 			self.model.append(PkgProperty("URL", pkg_object.url))
-			if pkg_object.repository in app.sync_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
+			if pkg_object.repository in app.main_window.sync_db_names: self.model.append(PkgProperty("Package URL", pkg_object.package_url))
 			if pkg_object.repository == "AUR": self.model.append(PkgProperty("AUR URL", pkg_object.package_url))
 			self.model.append(PkgProperty("Licenses", pkg_object.licenses))
 			self.model.append(PkgProperty("Status", pkg_object.status if (pkg_object.status_flags & PkgStatus.INSTALLED) else "not installed", prop_icon=pkg_object.status_icon))
@@ -867,9 +867,6 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
-		# Initialize sidebar listboxes
-		self.init_sidebar()
-
 		# Set initial focus on package column view
 		self.set_focus(self.column_view.view)
 
@@ -878,7 +875,24 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_show(self, window):
+		self.init_databases()
+		self.init_sidebar()
 		self.populate_column_view()
+
+	#-----------------------------------
+	# Init databases function
+	#-----------------------------------
+	def init_databases(self):
+		# Define sync database names
+		self.sync_db_names = ["core", "extra", "community", "multilib"]
+
+		# Get list of configured database names
+		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+		self.pacman_db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
+
+		# Add AUR to configured database names
+		self.pacman_db_names.append("AUR")
 
 	#-----------------------------------
 	# Init sidebar function
@@ -895,7 +909,7 @@ class MainWindow(Adw.ApplicationWindow):
 		repo_row = SidebarListBoxRow(icon="package-x-generic-symbolic", text="All")
 		self.repo_listbox.append(repo_row)
 
-		for db in app.pacman_db_names:
+		for db in self.pacman_db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon="package-x-generic-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
 
 		# Add rows to status list box
@@ -921,7 +935,7 @@ class MainWindow(Adw.ApplicationWindow):
 		all_pkg_dict = {}
 
 		# Add sync packages
-		for db in app.pacman_db_names:
+		for db in app.main_window.pacman_db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
@@ -1002,10 +1016,10 @@ class MainWindow(Adw.ApplicationWindow):
 			details_window.show()
 
 	def refresh_dbs_action(self, action, value, user_data):
-		self.init_sidebar()
 		self.header_search.search_active = False
 
-		app.init_databases()
+		self.init_databases()
+		self.init_sidebar()
 		self.populate_column_view()
 
 	def show_stats_window_action(self, action, value, user_data):
@@ -1068,20 +1082,6 @@ class LauncherApp(Adw.Application):
 
 		# Connect signal handlers
 		self.connect("activate", self.on_activate)
-
-		self.init_databases()
-
-	def init_databases(self):
-		# Define sync database names
-		self.sync_db_names = ["core", "extra", "community", "multilib"]
-
-		# Get list of configured database names
-		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-		self.pacman_db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
-
-		# Add AUR to configured database names
-		self.pacman_db_names.append("AUR")
 
 	#-----------------------------------
 	# Signal handlers
