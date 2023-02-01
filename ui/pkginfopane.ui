@@ -49,7 +49,8 @@
       </object>
     </child>
     <child type="overlay">
-      <object class="GtkBox">
+      <object class="GtkBox" id="overlay_toolbar">
+        <property name="visible">False</property>
         <property name="halign">end</property>
         <property name="valign">end</property>
         <property name="margin_start">8</property>
@@ -61,8 +62,7 @@
           <class name="rounded"/>
         </style>
         <child>
-          <object class="GtkBox" id="overlay_toolbar">
-            <property name="visible">False</property>
+          <object class="GtkBox" id="button_box">
             <property name="margin_start">4</property>
             <property name="margin_end">4</property>
             <property name="margin_top">4</property>
