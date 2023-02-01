@@ -776,10 +776,10 @@ class MainWindow(Adw.ApplicationWindow):
 		)
 
 		# Bind search properties to status labels
-		self.header_search.bind_property(
-			"search_active", self.status_search_box, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
+		# self.header_search.bind_property(
+		# 	"search_active", self.status_search_box, "visible",
+		# 	GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		# )
 
 		self.column_view.bind_property(
 			"search_by_name", self.status_search_label_name, "visible",

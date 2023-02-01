@@ -14,6 +14,7 @@
               <object class="SearchHeader" id="header_search">
                 <property name="title">PacView</property>
                 <property name="key_capture_widget">column_view</property>
+                <property name="search_active" bind-source="status_search_box" bind-property="visible" bind-flags="sync-create|bidirectional"/>
                 <property name="search_term" bind-source="column_view" bind-property="current_search" bind-flags="sync-create|bidirectional"/>
               </object>
             </property>
