@@ -217,17 +217,17 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	_pkg_list = []
-	_pkg_index = -1
+	__pkg_list = []
+	__pkg_index = -1
 
 	@GObject.Property(type=PkgObject, default=None)
 	def pkg_object(self):
-		return(self._pkg_list[self._pkg_index] if (self._pkg_index >= 0 and self._pkg_index < len(self._pkg_list)) else None)
+		return(self.__pkg_list[self.__pkg_index] if (self.__pkg_index >= 0 and self.__pkg_index < len(self.__pkg_list)) else None)
 
 	@pkg_object.setter
 	def pkg_object(self, value):
-		self._pkg_list = [value]
-		self._pkg_index = 0
+		self.__pkg_list = [value]
+		self.__pkg_index = 0
 
 		self.display_package(value)
 
@@ -304,11 +304,11 @@ class PkgInfoPane(Gtk.Overlay):
 					new_pkg = pkg
 					break
 
-		if new_pkg is not None and new_pkg is not self._pkg_list[self._pkg_index]:
-			self._pkg_list = self._pkg_list[:self._pkg_index+1]
-			self._pkg_list.append(new_pkg)
+		if new_pkg is not None and new_pkg is not self.__pkg_list[self.__pkg_index]:
+			self.__pkg_list = self.__pkg_list[:self.__pkg_index+1]
+			self.__pkg_list.append(new_pkg)
 
-			self._pkg_index += 1
+			self.__pkg_index += 1
 
 			self.display_package(new_pkg)
 
@@ -330,8 +330,8 @@ class PkgInfoPane(Gtk.Overlay):
 	# Display functions
 	#-----------------------------------
 	def display_package(self, pkg_object):
-		self.prev_button.set_sensitive(self._pkg_index > 0)
-		self.next_button.set_sensitive(self._pkg_index < len(self._pkg_list) - 1)
+		self.prev_button.set_sensitive(self.__pkg_index > 0)
+		self.next_button.set_sensitive(self.__pkg_index < len(self.__pkg_list) - 1)
 
 		self.model.remove_all()
 
@@ -365,16 +365,16 @@ class PkgInfoPane(Gtk.Overlay):
 			if pkg_object.md5sum != "": self.model.append(PkgProperty("MD5 Sum", pkg_object.md5sum, prop_copy=True))
 
 	def display_prev_package(self):
-		if self._pkg_index > 0:
-			self._pkg_index -=1
+		if self.__pkg_index > 0:
+			self.__pkg_index -=1
 
-			self.display_package(self._pkg_list[self._pkg_index])
+			self.display_package(self.__pkg_list[self.__pkg_index])
 
 	def display_next_package(self):
-		if self._pkg_index < len(self._pkg_list) - 1:
-			self._pkg_index +=1
+		if self.__pkg_index < len(self.__pkg_list) - 1:
+			self.__pkg_index +=1
 
-			self.display_package(self._pkg_list[self._pkg_index])
+			self.display_package(self.__pkg_list[self.__pkg_index])
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -409,99 +409,99 @@ class PkgColumnView(Gtk.Overlay):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	_current_status = PkgStatus.ALL
+	__current_status = PkgStatus.ALL
 
 	@GObject.Property(type=int, default=PkgStatus.ALL)
 	def current_status(self):
-		return(self._current_status)
+		return(self.__current_status)
 
 	@current_status.setter
 	def current_status(self, value):
-		self._current_status = value
+		self.__current_status = value
 
 		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	_current_search = ""
+	__current_search = ""
 
 	@GObject.Property(type=str, default="")
 	def current_search(self):
-		return(self._current_search)
+		return(self.__current_search)
 
 	@current_search.setter
 	def current_search(self, value):
-		self._current_search = value.lower()
+		self.__current_search = value.lower()
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	_search_by_name = True
+	__search_by_name = True
 
 	@GObject.Property(type=bool, default=True)
 	def search_by_name(self):
-		return(self._search_by_name)
+		return(self.__search_by_name)
 
 	@search_by_name.setter
 	def search_by_name(self, value):
-		self._search_by_name = value
+		self.__search_by_name = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	_search_by_desc = False
+	__search_by_desc = False
 
 	@GObject.Property(type=bool, default=False)
 	def search_by_desc(self):
-		return(self._search_by_desc)
+		return(self.__search_by_desc)
 
 	@search_by_desc.setter
 	def search_by_desc(self, value):
-		self._search_by_desc = value
+		self.__search_by_desc = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	_search_by_group = False
+	__search_by_group = False
 
 	@GObject.Property(type=bool, default=False)
 	def search_by_group(self):
-		return(self._search_by_group)
+		return(self.__search_by_group)
 
 	@search_by_group.setter
 	def search_by_group(self, value):
-		self._search_by_group = value
+		self.__search_by_group = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	_search_by_deps = False
+	__search_by_deps = False
 
 	@GObject.Property(type=bool, default=False)
 	def search_by_deps(self):
-		return(self._search_by_deps)
+		return(self.__search_by_deps)
 
 	@search_by_deps.setter
 	def search_by_deps(self, value):
-		self._search_by_deps = value
+		self.__search_by_deps = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	_search_by_optdeps = False
+	__search_by_optdeps = False
 
 	@GObject.Property(type=bool, default=False)
 	def search_by_optdeps(self):
-		return(self._search_by_optdeps)
+		return(self.__search_by_optdeps)
 
 	@search_by_optdeps.setter
 	def search_by_optdeps(self, value):
-		self._search_by_optdeps = value
+		self.__search_by_optdeps = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	_search_by_provides = False
+	__search_by_provides = False
 
 	@GObject.Property(type=bool, default=False)
 	def search_by_provides(self):
-		return(self._search_by_provides)
+		return(self.__search_by_provides)
 
 	@search_by_provides.setter
 	def search_by_provides(self, value):
-		self._search_by_provides = value
+		self.__search_by_provides = value
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
@@ -598,27 +598,27 @@ class SearchHeader(Gtk.Stack):
 	#-----------------------------------
 	title = GObject.Property(type=str, default="")
 
-	_key_capture_widget = None
+	__key_capture_widget = None
 
 	@GObject.Property(type=Gtk.Widget, default=None)
 	def key_capture_widget(self):
-		return(self._key_capture_widget)
+		return(self.__key_capture_widget)
 
 	@key_capture_widget.setter
 	def key_capture_widget(self, value):
-		self._key_capture_widget = value
+		self.__key_capture_widget = value
 
 		self.search_entry.set_key_capture_widget(value)
 
-	_search_active = False
+	__search_active = False
 
 	@GObject.Property(type=bool, default=False)
 	def search_active(self):
-		return(self._search_active)
+		return(self.__search_active)
 
 	@search_active.setter
 	def search_active(self, value):
-		self._search_active = value
+		self.__search_active = value
 
 		self.toggle_search(value)
 
