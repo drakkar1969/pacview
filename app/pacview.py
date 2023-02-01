@@ -812,7 +812,7 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_show(self, window):
 		self.init_databases()
-		self.init_sidebar()
+		self.populate_sidebar()
 		self.populate_column_view()
 
 	#-----------------------------------
@@ -833,7 +833,7 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Init sidebar function
 	#-----------------------------------
-	def init_sidebar(self):
+	def populate_sidebar(self):
 		# Remove rows from listboxes
 		while(row := self.repo_listbox.get_row_at_index(0)):
 			self.repo_listbox.remove(row)
@@ -961,7 +961,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search.search_active = False
 
 		self.init_databases()
-		self.init_sidebar()
+		self.populate_sidebar()
 		GLib.idle_add(self.populate_column_view)
 
 	def show_stats_window_action(self, action, value, user_data):
