@@ -440,7 +440,7 @@ class PkgColumnView(Gtk.Overlay):
 
 	@current_search.setter
 	def current_search(self, value):
-		self._current_search = value
+		self._current_search = value.lower()
 
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
@@ -1071,10 +1071,6 @@ class MainWindow(Adw.ApplicationWindow):
 	def on_status_selected(self, listbox, row):
 		if row is not None:
 			self.column_view.current_status = PkgStatus(int(row.str_id))
-
-	@Gtk.Template.Callback()
-	def on_search_changed(self, widget, prop):
-		self.column_view.current_search = widget.search_term.lower()
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP

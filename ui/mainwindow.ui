@@ -14,7 +14,7 @@
               <object class="SearchHeader" id="header_search">
                 <property name="title">PacView</property>
                 <property name="key_capture_widget">column_view</property>
-                <signal name="notify::search-term" handler="on_search_changed" swapped="no"/>
+                <property name="search_term" bind-source="column_view" bind-property="current_search" bind-flags="sync-create|bidirectional"/>
               </object>
             </property>
             <child type="start">
