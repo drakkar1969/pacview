@@ -337,7 +337,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 		if pkg_object is not None:
 			self.model.append(PkgProperty("Name", f'<b>{pkg_object.name}</b>'))
-			if self.pkg_object.update_version != "": self.model.append(PkgProperty("Version", pkg_object.update_version, prop_icon="pkg-update"))
+			if pkg_object.update_version != "": self.model.append(PkgProperty("Version", pkg_object.update_version, prop_icon="pkg-update"))
 			else: self.model.append(PkgProperty("Version", pkg_object.version))
 			self.model.append(PkgProperty("Description", pkg_object.description))
 			self.model.append(PkgProperty("URL", pkg_object.url))
