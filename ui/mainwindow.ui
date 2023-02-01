@@ -142,6 +142,12 @@
                 <property name="start-child">
                   <object class="PkgColumnView" id="column_view">
                     <property name="height-request">150</property>
+                    <property name="search_by_name" bind-source="status_search_label_name" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+                    <property name="search_by_desc" bind-source="status_search_label_desc" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+                    <property name="search_by_group" bind-source="status_search_label_group" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+                    <property name="search_by_deps" bind-source="status_search_label_deps" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+                    <property name="search_by_optdeps" bind-source="status_search_label_optdeps" bind-property="visible" bind-flags="sync-create|bidirectional"/>
+                    <property name="search_by_provides" bind-source="status_search_label_provides" bind-property="visible" bind-flags="sync-create|bidirectional"/>
                   </object>
                 </property>
                 <property name="end-child">

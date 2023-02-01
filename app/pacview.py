@@ -775,42 +775,6 @@ class MainWindow(Adw.ApplicationWindow):
 			lambda binding, value: f'{value} {"update" if self.column_view.current_status == PkgStatus.UPDATES else "package"}{"s" if value != 1 else ""} found'
 		)
 
-		# Bind search properties to status labels
-		# self.header_search.bind_property(
-		# 	"search_active", self.status_search_box, "visible",
-		# 	GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		# )
-
-		self.column_view.bind_property(
-			"search_by_name", self.status_search_label_name, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		self.column_view.bind_property(
-			"search_by_desc", self.status_search_label_desc, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		self.column_view.bind_property(
-			"search_by_group", self.status_search_label_group, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		self.column_view.bind_property(
-			"search_by_deps", self.status_search_label_deps, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		self.column_view.bind_property(
-			"search_by_optdeps", self.status_search_label_optdeps, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		self.column_view.bind_property(
-			"search_by_provides", self.status_search_label_provides, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
 		# Add actions
 		action_list = [
 			( "search-start", self.start_search_action ),
