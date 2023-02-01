@@ -100,12 +100,6 @@ class VToggleButton(Gtk.ToggleButton):
 	__gtype_name__ = "VToggleButton"
 
 	#-----------------------------------
-	# Class widget variables
-	#-----------------------------------
-	image = Gtk.Template.Child()
-	label = Gtk.Template.Child()
-
-	#-----------------------------------
 	# Properties
 	#-----------------------------------
 	str_id = GObject.Property(type=str, default="")
@@ -563,12 +557,6 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	__gtype_name__ = "SidebarListBoxRow"
 
 	#-----------------------------------
-	# Class widget variables
-	#-----------------------------------
-	image = Gtk.Template.Child()
-	label = Gtk.Template.Child()
-
-	#-----------------------------------
 	# Properties
 	#-----------------------------------
 	str_id = GObject.Property(type=str, default="")
@@ -592,7 +580,6 @@ class SearchHeader(Gtk.Stack):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
-	title_widget = Gtk.Template.Child()
 	search_entry = Gtk.Template.Child()
 
 	#-----------------------------------
