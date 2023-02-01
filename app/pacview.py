@@ -630,12 +630,6 @@ class SearchHeader(Gtk.Stack):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Bind title property
-		self.bind_property(
-			"title", self.title_widget, "title",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
 		# Bind entry text to search_term property
 		self.search_entry.bind_property(
 			"text", self, "search_term",

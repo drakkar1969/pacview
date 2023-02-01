@@ -2,6 +2,7 @@
 <interface>
   <!--// SEARCH HEADER //-->
   <template class="SearchHeader" parent="GtkStack">
+    <property name="title" bind-source="title_widget" bind-property="title" bind-flags="sync-create|bidirectional"/>
     <child>
       <object class="GtkStackPage">
         <property name="name">title</property>
