@@ -74,6 +74,9 @@
                 <property name="icon_name">go-previous-symbolic</property>
                 <property name="tooltip-text">Previous</property>
                 <property name="action_name">win.view-prev-package</property>
+                <style>
+                  <class name="circular"/>
+                </style>
               </object>
             </child>
             <child>
@@ -82,6 +85,9 @@
                 <property name="icon_name">go-next-symbolic</property>
                 <property name="tooltip-text">Next</property>
                 <property name="action_name">win.view-next-package</property>
+                <style>
+                  <class name="circular"/>
+                </style>
               </object>
             </child>
           </object>
