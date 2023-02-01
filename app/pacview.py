@@ -622,7 +622,14 @@ class SearchHeader(Gtk.Stack):
 	def search_active(self, value):
 		self.__search_active = value
 
-		self.toggle_search(value)
+		if value == True:
+			self.set_visible_child_name("search")
+
+			self.search_entry.grab_focus()
+		else:
+			self.search_entry.set_text("")
+
+			self.set_visible_child_name("title")
 
 	search_term = GObject.Property(type=str, default="")
 
@@ -648,19 +655,6 @@ class SearchHeader(Gtk.Stack):
 	@Gtk.Template.Callback()
 	def on_search_stopped(self, entry):
 		self.search_active = False
-
-	#-----------------------------------
-	# Helper functions
-	#-----------------------------------
-	def toggle_search(self, state):
-		if state == True:
-			self.set_visible_child_name("search")
-
-			self.search_entry.grab_focus()
-		else:
-			self.search_entry.set_text("")
-
-			self.set_visible_child_name("title")
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
