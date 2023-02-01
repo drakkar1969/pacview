@@ -2,6 +2,8 @@
 <interface>
   <!--// VTOGGLEBUTTON //-->
   <template class="VToggleButton" parent="GtkToggleButton">
+    <property name="icon" bind-source="image" bind-property="icon-name" bind-flags="sync-create|bidirectional"/>
+    <property name="text" bind-source="label" bind-property="label" bind-flags="sync-create|bidirectional"/>
     <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
