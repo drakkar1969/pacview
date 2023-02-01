@@ -580,17 +580,6 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Bind properties
-		self.bind_property(
-			"icon", self.image, "icon_name",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		self.bind_property(
-			"text", self.label, "label",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
 #------------------------------------------------------------------------------
 #-- CLASS: SEARCHHEADER
 #------------------------------------------------------------------------------
