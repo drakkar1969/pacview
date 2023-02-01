@@ -368,13 +368,13 @@ class PkgInfoPane(Gtk.Overlay):
 		if self.__pkg_index > 0:
 			self.__pkg_index -=1
 
-			self.display_package(self.__pkg_list[self.__pkg_index])
+			self.display_package(self.pkg_object)
 
 	def display_next_package(self):
 		if self.__pkg_index < len(self.__pkg_list) - 1:
 			self.__pkg_index +=1
 
-			self.display_package(self.__pkg_list[self.__pkg_index])
+			self.display_package(self.pkg_object)
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
