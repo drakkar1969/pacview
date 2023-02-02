@@ -669,6 +669,10 @@ class MainWindow(Adw.ApplicationWindow):
 	info_pane = Gtk.Template.Child()
 
 	status_count_label = Gtk.Template.Child()
+
+	update_image = Gtk.Template.Child()
+	update_label = Gtk.Template.Child()
+
 	status_search_box = Gtk.Template.Child()
 	status_search_label_name = Gtk.Template.Child()
 	status_search_label_desc = Gtk.Template.Child()
@@ -727,7 +731,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.filter_model.bind_property(
 			"n-items", self.status_count_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: f'{value} {"update" if self.column_view.current_status == PkgStatus.UPDATES else "package"}{"s" if value != 1 else ""} found'
+			lambda binding, value: f'{value} package{"s" if value != 1 else ""} found'
 		)
 
 		# Add actions
@@ -913,6 +917,16 @@ class MainWindow(Adw.ApplicationWindow):
 
 			# Force update of info pane package object
 			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+
+			# Update status
+			self.update_image.set_from_icon_name("pkg-update")
+			self.update_label.set_label(f'{len(updates)} update{"s" if len(updates) != 1 else ""} available')
+		elif upd.returncode == 1:
+			self.update_image.set_from_icon_name("error-update")
+			self.update_label.set_label("Error retrieving updates")
+		else:
+			self.update_image.set_from_icon_name("no-update")
+			self.update_label.set_label("No updates")
 
 		return(False)
 
