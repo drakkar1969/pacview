@@ -170,7 +170,7 @@
             <property name="spacing">6</property>
             <child>
               <object class="GtkLabel" id="status_count_label">
-                <property name="width-request">220</property>
+                <property name="width-request">250</property>
                 <property name="xalign">0</property>
                 <style>
                   <class name="status-label"/>

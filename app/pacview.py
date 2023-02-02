@@ -731,7 +731,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.filter_model.bind_property(
 			"n-items", self.status_count_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: f'{value} package{"s" if value != 1 else ""} found'
+			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
 		)
 
 		# Add actions
