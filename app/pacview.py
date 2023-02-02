@@ -902,16 +902,17 @@ class MainWindow(Adw.ApplicationWindow):
 
 		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in upd.stdout.decode().split('\n') if u != ""}
 
-		# Modify package object properties if update available
-		if len(updates) != 0:
-			for obj in self.pkg_objects:
-				if obj.name in updates.keys():
-					obj.has_updates = True
-					obj.status_flags |= PkgStatus.UPDATES
-					obj.update_version = updates[obj.name]
+		if upd.returncode == 0:
+			# Modify package object properties if update available
+			if len(updates) != 0:
+				for obj in self.pkg_objects:
+					if obj.name in updates.keys():
+						obj.has_updates = True
+						obj.status_flags |= PkgStatus.UPDATES
+						obj.update_version = updates[obj.name]
 
-		# Force update of info pane package object
-		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+			# Force update of info pane package object
+			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 		return(False)
 
