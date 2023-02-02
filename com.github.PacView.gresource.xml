@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
-    <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
     <file alias="funnel-symbolic.svg">icons/funnel-symbolic.svg</file>
+    <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
+    <file alias="status-symbolic.svg">icons/status-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/PacView">
     <file compressed="true">style.css</file>
