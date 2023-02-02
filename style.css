@@ -10,11 +10,6 @@
 	min-height: 70px;
 }
 
-headerbar.transparent {
-	background: none;
-	box-shadow: none;
-}
-
 box.rounded {
 	border-radius: 9999px;
 }

@@ -16,7 +16,7 @@
         <child>
           <object class="AdwHeaderBar" id="header_bar">
             <style>
-              <class name="transparent"/>
+              <class name="flat"/>
             </style>
           </object>
         </child>
