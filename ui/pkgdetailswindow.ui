@@ -93,7 +93,7 @@
                   <object class="VToggleButton" id="cache_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
-                    <property name="icon">xapp-prefs-plugins-symbolic</property>
+                    <property name="icon">system-restart-symbolic</property>
                     <property name="text">Cache</property>
                     <property name="str_id">cache</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
@@ -305,7 +305,7 @@
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">xapp-prefs-plugins-symbolic</property>
+                                <property name="icon-name">system-restart-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>
