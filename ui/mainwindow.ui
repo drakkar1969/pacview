@@ -4,7 +4,7 @@
   <template class="MainWindow" parent="AdwApplicationWindow">
     <signal name="show" handler="on_show" swapped="no"/>
     <property name="default_width">1400</property>
-    <property name="default_height">740</property>
+    <property name="default_height">780</property>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
