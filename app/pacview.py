@@ -871,7 +871,7 @@ class MainWindow(Adw.ApplicationWindow):
 		all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in all_pkg_dict.keys()]))
 
 		# Create list of package objects
-		def get_local_data(name):
+		def __get_local_data(name):
 			if name in local_pkg_dict.keys():
 				local_pkg = local_pkg_dict[name]
 
@@ -888,7 +888,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 			return(None, PkgStatus.NONE)
 
-		self.pkg_objects = [PkgObject(pkg, get_local_data(pkg.name)) for pkg in all_pkg_dict.values()]
+		self.pkg_objects = [PkgObject(pkg, __get_local_data(pkg.name)) for pkg in all_pkg_dict.values()]
 
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
