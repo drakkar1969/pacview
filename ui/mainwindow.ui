@@ -163,6 +163,7 @@
         </child>
         <child>
           <object class="GtkBox">
+            <property name="margin_start">6</property>
             <property name="margin_end">6</property>
             <property name="margin_top">6</property>
             <property name="margin_bottom">6</property>
