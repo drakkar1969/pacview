@@ -893,12 +893,12 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
 		# Add threaded function to get package updates
-		thread = threading.Thread(target=self.get_pkg_updates, daemon=True)
+		thread = threading.Thread(target=self.checkupdates_async, daemon=True)
 		thread.start()
 
 		return(False)
 
-	def get_pkg_updates(self):
+	def checkupdates_async(self):
 		# Get updates
 		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -906,7 +906,10 @@ class MainWindow(Adw.ApplicationWindow):
 
 		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in upd.stdout.decode().split('\n') if u != ""}
 
-		if upd.returncode == 0:
+		GLib.idle_add(self.show_pkg_updates, updates, upd.returncode)
+
+	def show_pkg_updates(self, updates, returncode):
+		if returncode == 0:
 			# Modify package object properties if update available
 			if len(updates) != 0:
 				for obj in self.pkg_objects:
@@ -921,7 +924,7 @@ class MainWindow(Adw.ApplicationWindow):
 			# Update status
 			self.update_image.set_from_icon_name("pkg-update")
 			self.update_label.set_label(f'{len(updates)} update{"s" if len(updates) != 1 else ""} available')
-		elif upd.returncode == 1:
+		elif returncode == 1:
 			self.update_image.set_from_icon_name("error-update")
 			self.update_label.set_label("Error retrieving updates")
 		else:
