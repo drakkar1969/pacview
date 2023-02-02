@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -889,7 +889,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
 		# Add threaded function to get package updates
-		GLib.idle_add(self.get_pkg_updates)
+		thread = threading.Thread(target=self.get_pkg_updates, daemon=True)
+		thread.start()
 
 		return(False)
 
