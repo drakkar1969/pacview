@@ -829,11 +829,11 @@ class MainWindow(Adw.ApplicationWindow):
 			self.status_listbox.remove(row)
 
 		# Add rows to repository list box
-		repo_row = SidebarListBoxRow(icon="package-x-generic-symbolic", text="All")
+		repo_row = SidebarListBoxRow(icon="repository-symbolic", text="All")
 		self.repo_listbox.append(repo_row)
 
 		for db in self.pacman_db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon="package-x-generic-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
+			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
 
 		# Add rows to status list box
 		status_row = None
