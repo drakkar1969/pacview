@@ -118,7 +118,7 @@
                             <property name="margin_start">16</property>
                             <property name="margin_end">16</property>
                             <property name="margin_top">16</property>
-                            <property name="spacing">16</property>
+                            <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
                                 <property name="icon-name">text-x-generic-symbolic</property>
@@ -182,7 +182,7 @@
                             <property name="margin_start">16</property>
                             <property name="margin_end">16</property>
                             <property name="margin_top">16</property>
-                            <property name="spacing">16</property>
+                            <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
                                 <property name="icon-name">list-remove-all-symbolic</property>
@@ -237,7 +237,7 @@
                             <property name="margin_start">16</property>
                             <property name="margin_end">16</property>
                             <property name="margin_top">16</property>
-                            <property name="spacing">16</property>
+                            <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
                                 <property name="icon-name">accessories-text-editor-symbolic</property>
@@ -302,7 +302,7 @@
                             <property name="margin_start">16</property>
                             <property name="margin_end">16</property>
                             <property name="margin_top">16</property>
-                            <property name="spacing">16</property>
+                            <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
                                 <property name="icon-name">xapp-prefs-plugins-symbolic</property>
