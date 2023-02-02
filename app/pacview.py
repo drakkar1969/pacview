@@ -839,7 +839,7 @@ class MainWindow(Adw.ApplicationWindow):
 		status_row = None
 
 		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]:
-			row = SidebarListBoxRow(icon="funnel-symbolic", text=st.name.title(), str_id=st.value)
+			row = SidebarListBoxRow(icon="xapp-prefs-plugins-symbolic", text=st.name.title(), str_id=st.value)
 			self.status_listbox.append(row)
 			if st == PkgStatus.INSTALLED: status_row = row
 
