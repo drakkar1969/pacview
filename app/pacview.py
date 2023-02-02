@@ -535,19 +535,22 @@ class PkgColumnView(Gtk.Overlay):
 		return(item.status_flags & self.current_status)
 
 	def filter_by_search(self, item):
-		return(
-			((self.current_search in item.name) if self.search_by_name else False)
-			or
-			((self.current_search in item.description.lower()) if self.search_by_desc else False)
-			or
-			((self.current_search in item.group.lower()) if self.search_by_group else False)
-			or
-			(([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False)
-			or
-			(([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False)
-			or
-			(([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False)
-		)
+		if self.current_search == "":
+			return(True)
+		else:
+			return(
+				((self.current_search in item.name) if self.search_by_name else False)
+				or
+				((self.current_search in item.description.lower()) if self.search_by_desc else False)
+				or
+				((self.current_search in item.group.lower()) if self.search_by_group else False)
+				or
+				(([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False)
+				or
+				(([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False)
+				or
+				(([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False)
+			)
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
