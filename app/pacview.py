@@ -158,19 +158,19 @@ class PkgDetailsWindow(Adw.Window):
 			# Populate dependency tree
 			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			self.tree_label.set_label(re.sub(" provides.+", "", str(pkg_tree.stdout, 'utf-8')))
+			self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
 
 			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in str(pkg_log.stdout, 'utf-8').split('\n') if l != ""]
+			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in pkg_log.stdout.decode().split('\n') if l != ""]
 
 			self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
 			# Populate cache
 			pkg_cache = subprocess.run(shlex.split(f'paccache -vdk0 {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			cache_lines = [l for l in str(pkg_cache.stdout, 'utf-8').split('\n') if (l != "" and l.startswith("==>") == False and l.endswith(".sig") == False)]
+			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and l.startswith("==>") == False and l.endswith(".sig") == False)]
 
 			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
 			self.cache_model.splice(0, 0, cache_lines)
@@ -808,7 +808,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Get list of configured database names
 		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-		self.pacman_db_names = [n for n in str(dbs.stdout, 'utf-8').split('\n') if n != ""]
+		self.pacman_db_names = [n for n in dbs.stdout.decode().split('\n') if n != ""]
 
 		# Add AUR to configured database names
 		self.pacman_db_names.append("AUR")
@@ -900,7 +900,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
 
-		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in str(upd.stdout, 'utf-8').split('\n') if u != ""}
+		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in upd.stdout.decode().split('\n') if u != ""}
 
 		# Modify package object properties if update available
 		if len(updates) != 0:
