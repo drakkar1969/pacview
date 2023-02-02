@@ -16,9 +16,7 @@
         <property name="name">search</property>
         <property name="child">
           <object class="GtkBox" id="search_box">
-            <style>
-              <class name="linked"/>
-            </style>
+            <property name="spacing">6</property>
             <child>
               <object class="GtkSearchEntry" id="search_entry">
                 <property name="width-request">400</property>
