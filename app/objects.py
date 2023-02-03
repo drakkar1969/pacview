@@ -202,13 +202,16 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Helper functions
 	#-----------------------------------
-	def date_to_str_short(self, value):
+	@staticmethod
+	def date_to_str_short(value):
 		return(datetime.datetime.fromtimestamp(value).strftime("%Y/%m/%d %H:%M") if value != 0 else "")
 
-	def date_to_str_long(self, value):
+	@staticmethod
+	def date_to_str_long(value):
 		return(datetime.datetime.fromtimestamp(value).strftime("%a %d %b %Y %H:%M:%S") if value != 0 else "")
 
-	def size_to_str(self, value, decimals=1):
+	@staticmethod
+	def size_to_str(value, decimals=1):
 		if value == 0: return "0 B"
 		
 		pkg_size = value
@@ -220,10 +223,12 @@ class PkgObject(GObject.Object):
 		
 		return(f"{pkg_size:.{decimals}f} {unit}")
 
-	def url_to_link(self, url):
+	@staticmethod
+	def url_to_link(url):
 		return(f'<a href="{url}">{url}</a>')
 
-	def pkglist_to_linkstr(self, pkglist):
+	@staticmethod
+	def pkglist_to_linkstr(pkglist):
 		def __linkify(s):
 			expr = re.compile("([a-zA-Z0-9@._+-]+)([=<>]?[^:]+)?(:.+)?")
 
@@ -231,7 +236,8 @@ class PkgObject(GObject.Object):
 
 		return('   '.join([__linkify(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
 
-	def email_to_link(self, email):
+	@staticmethod
+	def email_to_link(email):
 		expr = re.compile("([^<]+)<?([^>]+)?>?")
 
 		return(expr.sub(r"\1<a href='mailto:\2'>\2</a>", email))
