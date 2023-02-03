@@ -801,9 +801,15 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_show(self, window):
+		self.init_window()
+
+	#-----------------------------------
+	# Init window function
+	#-----------------------------------
+	def init_window(self):
 		self.init_databases()
-		self.populate_sidebar()
 		self.populate_column_view()
+		self.populate_sidebar()
 
 	#-----------------------------------
 	# Init databases function
@@ -965,9 +971,7 @@ class MainWindow(Adw.ApplicationWindow):
 	def refresh_dbs_action(self, action, value, user_data):
 		self.header_search.search_active = False
 
-		self.init_databases()
-		self.populate_sidebar()
-		GLib.idle_add(self.populate_column_view)
+		GLib.idle_add(self.init_window)
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
