@@ -527,16 +527,12 @@ class SearchHeader(Gtk.Stack):
 	#-----------------------------------
 	title = GObject.Property(type=str, default="")
 
-	__key_capture_widget = None
-
 	@GObject.Property(type=Gtk.Widget, default=None)
 	def key_capture_widget(self):
-		return(self.__key_capture_widget)
+		return(self.search_entry.get_key_capture_widget())
 
 	@key_capture_widget.setter
 	def key_capture_widget(self, value):
-		self.__key_capture_widget = value
-
 		self.search_entry.set_key_capture_widget(value)
 
 	__search_active = False
