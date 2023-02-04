@@ -292,7 +292,7 @@ class PkgInfoPane(Gtk.Overlay):
 			new_obj = obj_dict[pkg_name]
 		else:
 			for obj in obj_dict.values():
-				if [s for s in obj.provides_list if pkg_name in s] != []:
+				if any(pkg_name in s for s in obj.provides_list):
 					new_obj = obj
 					break
 
