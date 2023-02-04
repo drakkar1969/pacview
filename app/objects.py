@@ -232,15 +232,13 @@ class PkgObject(GObject.Object):
 		def __linkify(s):
 			expr = re.compile("([a-zA-Z0-9@._+-]+)([=<>]?[^:]+)?(:.+)?")
 
-			return(expr.sub(lambda x: f'<a href="pkg://{x.group(1)}">{x.group(1)}</a>{GLib.markup_escape_text(x.group(2)) if x.group(2) is not None else ""}{GLib.markup_escape_text(x.group(3)) if x.group(3) is not None else ""}', s))
+			return(expr.sub(r"<a href='pkg://\1'>\1</a>\2\3", GLib.markup_escape_text(s)))
 
 		return('   '.join([__linkify(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
 
 	@staticmethod
 	def email_to_link(email):
-		expr = re.compile("([^<]+)<?([^>]+)?>?")
-
-		return(expr.sub(r"\1<a href='mailto:\2'>\2</a>", email))
+		return(re.sub("([^<]+)<?([^>]+)?>?", r"\1<a href='mailto:\2'>\2</a>", email))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
