@@ -401,101 +401,16 @@ class PkgColumnView(Gtk.Overlay):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	__current_status = PkgStatus.ALL
+	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
 
-	@GObject.Property(type=int, default=PkgStatus.ALL)
-	def current_status(self):
-		return(self.__current_status)
+	current_search = GObject.Property(type=str, default="")
 
-	@current_status.setter
-	def current_status(self, value):
-		self.__current_status = value
-
-		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	__current_search = ""
-
-	@GObject.Property(type=str, default="")
-	def current_search(self):
-		return(self.__current_search)
-
-	@current_search.setter
-	def current_search(self, value):
-		self.__current_search = value.lower()
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	__search_by_name = True
-
-	@GObject.Property(type=bool, default=True)
-	def search_by_name(self):
-		return(self.__search_by_name)
-
-	@search_by_name.setter
-	def search_by_name(self, value):
-		self.__search_by_name = value
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	__search_by_desc = False
-
-	@GObject.Property(type=bool, default=False)
-	def search_by_desc(self):
-		return(self.__search_by_desc)
-
-	@search_by_desc.setter
-	def search_by_desc(self, value):
-		self.__search_by_desc = value
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	__search_by_group = False
-
-	@GObject.Property(type=bool, default=False)
-	def search_by_group(self):
-		return(self.__search_by_group)
-
-	@search_by_group.setter
-	def search_by_group(self, value):
-		self.__search_by_group = value
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	__search_by_deps = False
-
-	@GObject.Property(type=bool, default=False)
-	def search_by_deps(self):
-		return(self.__search_by_deps)
-
-	@search_by_deps.setter
-	def search_by_deps(self, value):
-		self.__search_by_deps = value
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	__search_by_optdeps = False
-
-	@GObject.Property(type=bool, default=False)
-	def search_by_optdeps(self):
-		return(self.__search_by_optdeps)
-
-	@search_by_optdeps.setter
-	def search_by_optdeps(self, value):
-		self.__search_by_optdeps = value
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	__search_by_provides = False
-
-	@GObject.Property(type=bool, default=False)
-	def search_by_provides(self):
-		return(self.__search_by_provides)
-
-	@search_by_provides.setter
-	def search_by_provides(self, value):
-		self.__search_by_provides = value
-
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+	search_by_name = GObject.Property(type=bool, default=True)
+	search_by_desc = GObject.Property(type=bool, default=False)
+	search_by_group = GObject.Property(type=bool, default=False)
+	search_by_deps = GObject.Property(type=bool, default=False)
+	search_by_optdeps = GObject.Property(type=bool, default=False)
+	search_by_provides = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
@@ -516,6 +431,18 @@ class PkgColumnView(Gtk.Overlay):
 		# Set filter functions
 		self.status_filter.set_filter_func(self.filter_by_status)
 		self.search_filter.set_filter_func(self.filter_by_search)
+
+		# Connect property change signal handlers
+		self.connect("notify::current-status", self.on_current_status_changed)
+
+		self.connect("notify::current-search", self.on_current_search_changed)
+
+		self.connect("notify::search-by-name", self.on_search_by_changed)
+		self.connect("notify::search-by-desc", self.on_search_by_changed)
+		self.connect("notify::search-by-group", self.on_search_by_changed)
+		self.connect("notify::search-by-deps", self.on_search_by_changed)
+		self.connect("notify::search-by-optdeps", self.on_search_by_changed)
+		self.connect("notify::search-by-provides", self.on_search_by_changed)
 
 		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
@@ -549,6 +476,18 @@ class PkgColumnView(Gtk.Overlay):
 				or
 				(([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False)
 			)
+
+	#-----------------------------------
+	# Property change signal handlers
+	#-----------------------------------
+	def on_current_status_changed(self, view, prop):
+		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def on_current_search_changed(self, view, prop):
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	def on_search_by_changed(self, view, prop):
+		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 #------------------------------------------------------------------------------
 #-- CLASS: SIDEBARLISTBOXROW
