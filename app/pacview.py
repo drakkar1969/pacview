@@ -535,24 +535,7 @@ class SearchHeader(Gtk.Stack):
 	def key_capture_widget(self, value):
 		self.search_entry.set_key_capture_widget(value)
 
-	__search_active = False
-
-	@GObject.Property(type=bool, default=False)
-	def search_active(self):
-		return(self.__search_active)
-
-	@search_active.setter
-	def search_active(self, value):
-		self.__search_active = value
-
-		if value == True:
-			self.set_visible_child_name("search")
-
-			self.search_entry.grab_focus()
-		else:
-			self.search_entry.set_text("")
-
-			self.set_visible_child_name("title")
+	search_active = GObject.Property(type=bool, default=False)
 
 	search_term = GObject.Property(type=str, default="")
 
@@ -561,6 +544,9 @@ class SearchHeader(Gtk.Stack):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Bind property change signal handlers
+		self.connect("notify::search-active", self.on_search_active_changed)
 
 		# Bind entry text to search_term property
 		self.search_entry.bind_property(
@@ -578,6 +564,19 @@ class SearchHeader(Gtk.Stack):
 	@Gtk.Template.Callback()
 	def on_search_stopped(self, entry):
 		self.search_active = False
+
+	#-----------------------------------
+	# Property change signal handlers
+	#-----------------------------------
+	def on_search_active_changed(self, view, prop):
+		if self.search_active == True:
+			self.set_visible_child_name("search")
+
+			self.search_entry.grab_focus()
+		else:
+			self.search_entry.set_text("")
+
+			self.set_visible_child_name("title")
 
 #------------------------------------------------------------------------------
 #-- CLASS: MAINWINDOW
