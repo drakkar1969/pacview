@@ -666,6 +666,19 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Column view
 		#-----------------------------
+		# Bind column view selected item to info pane
+		self.column_view.selection.bind_property(
+			"selected-item", self.info_pane, "pkg_object",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		# Bind column view count to status label text
+		self.column_view.filter_model.bind_property(
+			"n-items", self.status_count_label, "label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
+		)
+
 		# Create column view header menu actions
 		self.add_action(self.gsettings.create_action("show-column-version"))
 		self.add_action(self.gsettings.create_action("show-column-repository"))
@@ -696,19 +709,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action_entries(action_list)
 
 		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
-
-		# Bind column view selected item to info pane
-		self.column_view.selection.bind_property(
-			"selected-item", self.info_pane, "pkg_object",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		# Bind column view count to status label text
-		self.column_view.filter_model.bind_property(
-			"n-items", self.status_count_label, "label",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
-		)
 
 		#-----------------------------
 		# Info pane
