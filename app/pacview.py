@@ -284,7 +284,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 		pkg_name = parse_url.netloc
 
-		pkg_dict = dict([(pkg.name, pkg) for pkg in app.main_window.pkg_objects])
+		pkg_dict = {pkg.name: pkg for pkg in app.main_window.pkg_objects}
 
 		new_pkg = None
 
@@ -860,13 +860,13 @@ class MainWindow(Adw.ApplicationWindow):
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
-				all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in sync_db.pkgcache]))
+				all_pkg_dict.update({pkg.name: pkg for pkg in sync_db.pkgcache})
 
 		# Add local packages
 		local_db = alpm_handle.get_localdb()
-		local_pkg_dict = dict([(pkg.name, pkg) for pkg in local_db.pkgcache])
+		local_pkg_dict = {pkg.name: pkg for pkg in local_db.pkgcache}
 
-		all_pkg_dict.update(dict([(pkg.name, pkg) for pkg in local_db.pkgcache if pkg.name not in all_pkg_dict.keys()]))
+		all_pkg_dict.update({pkg.name: pkg for pkg in local_db.pkgcache if pkg.name not in all_pkg_dict.keys()})
 
 		# Create list of package objects
 		def __get_local_data(name):
