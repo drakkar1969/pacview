@@ -102,8 +102,6 @@ class VToggleButton(Gtk.ToggleButton):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	str_id = GObject.Property(type=str, default="")
-
 	icon = GObject.Property(type=str, default="")
 	text = GObject.Property(type=str, default="")
 
@@ -188,7 +186,7 @@ class PkgDetailsWindow(Adw.Window):
 	@Gtk.Template.Callback()
 	def on_button_toggled(self, button):
 		if button.get_active() == True:
-			self.content_stack.set_visible_child_name(button.str_id)
+			self.content_stack.set_visible_child_name(button.text.lower())
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGINFOPANE

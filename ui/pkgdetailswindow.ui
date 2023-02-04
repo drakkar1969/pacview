@@ -65,7 +65,6 @@
                     <property name="active">True</property>
                     <property name="icon">text-x-generic-symbolic</property>
                     <property name="text">Files</property>
-                    <property name="str_id">files</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
@@ -75,7 +74,6 @@
                     <property name="group">file_button</property>
                     <property name="icon">list-remove-all-symbolic</property>
                     <property name="text">Tree</property>
-                    <property name="str_id">tree</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
@@ -85,7 +83,6 @@
                     <property name="group">file_button</property>
                     <property name="icon">accessories-text-editor-symbolic</property>
                     <property name="text">Log</property>
-                    <property name="str_id">log</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
@@ -95,7 +92,6 @@
                     <property name="group">file_button</property>
                     <property name="icon">system-restart-symbolic</property>
                     <property name="text">Cache</property>
-                    <property name="str_id">cache</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
