@@ -40,12 +40,12 @@ class StatsWindow(Adw.Window):
 		total_size = 0
 
 		for db in app.main_window.pacman_db_names:
-			pkg_list = [pkg for pkg in app.main_window.pkg_objects if pkg.repository == db and (pkg.status_flags & PkgStatus.INSTALLED)]
+			obj_list = [obj for obj in app.main_window.pkg_objects if obj.repository == db and (obj.status_flags & PkgStatus.INSTALLED)]
 
-			count = len(pkg_list)
+			count = len(obj_list)
 			total_count += count
 
-			size = sum([pkg.install_size_raw for pkg in pkg_list])
+			size = sum([obj.install_size_raw for obj in obj_list])
 			total_size += size
 
 			self.model.append(StatsItem(
@@ -209,17 +209,17 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	__pkg_list = []
-	__pkg_index = -1
+	__obj_list = []
+	__obj_index = -1
 
 	@GObject.Property(type=PkgObject, default=None)
 	def pkg_object(self):
-		return(self.__pkg_list[self.__pkg_index] if (self.__pkg_index >= 0 and self.__pkg_index < len(self.__pkg_list)) else None)
+		return(self.__obj_list[self.__obj_index] if (self.__obj_index >= 0 and self.__obj_index < len(self.__obj_list)) else None)
 
 	@pkg_object.setter
 	def pkg_object(self, value):
-		self.__pkg_list = [value]
-		self.__pkg_index = 0
+		self.__obj_list = [value]
+		self.__obj_index = 0
 
 		self.display_package(value)
 
@@ -284,25 +284,25 @@ class PkgInfoPane(Gtk.Overlay):
 
 		pkg_name = parse_url.netloc
 
-		pkg_dict = {pkg.name: pkg for pkg in app.main_window.pkg_objects}
+		obj_dict = {obj.name: obj for obj in app.main_window.pkg_objects}
 
-		new_pkg = None
+		new_obj = None
 
-		if pkg_name in pkg_dict.keys():
-			new_pkg = pkg_dict[pkg_name]
+		if pkg_name in obj_dict.keys():
+			new_obj = obj_dict[pkg_name]
 		else:
-			for pkg in pkg_dict.values():
-				if [s for s in pkg.provides_list if pkg_name in s] != []:
-					new_pkg = pkg
+			for obj in obj_dict.values():
+				if [s for s in obj.provides_list if pkg_name in s] != []:
+					new_obj = obj
 					break
 
-		if new_pkg is not None and new_pkg is not self.__pkg_list[self.__pkg_index]:
-			self.__pkg_list = self.__pkg_list[:self.__pkg_index+1]
-			self.__pkg_list.append(new_pkg)
+		if new_obj is not None and new_obj is not self.__obj_list[self.__obj_index]:
+			self.__obj_list = self.__obj_list[:self.__obj_index+1]
+			self.__obj_list.append(new_obj)
 
-			self.__pkg_index += 1
+			self.__obj_index += 1
 
-			self.display_package(new_pkg)
+			self.display_package(new_obj)
 
 			self.overlay_toolbar.set_visible(True)
 
@@ -322,8 +322,8 @@ class PkgInfoPane(Gtk.Overlay):
 	# Display functions
 	#-----------------------------------
 	def display_package(self, obj):
-		self.prev_button.set_sensitive(self.__pkg_index > 0)
-		self.next_button.set_sensitive(self.__pkg_index < len(self.__pkg_list) - 1)
+		self.prev_button.set_sensitive(self.__obj_index > 0)
+		self.next_button.set_sensitive(self.__obj_index < len(self.__obj_list) - 1)
 
 		self.model.remove_all()
 
@@ -357,14 +357,14 @@ class PkgInfoPane(Gtk.Overlay):
 			if obj.md5sum != "": self.model.append(PkgProperty("MD5 Sum", obj.md5sum, prop_copy=True))
 
 	def display_prev_package(self):
-		if self.__pkg_index > 0:
-			self.__pkg_index -=1
+		if self.__obj_index > 0:
+			self.__obj_index -=1
 
 			self.display_package(self.pkg_object)
 
 	def display_next_package(self):
-		if self.__pkg_index < len(self.__pkg_list) - 1:
-			self.__pkg_index +=1
+		if self.__obj_index < len(self.__obj_list) - 1:
+			self.__obj_index +=1
 
 			self.display_package(self.pkg_object)
 
