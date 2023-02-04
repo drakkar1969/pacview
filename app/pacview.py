@@ -664,6 +664,21 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-stop", ["Escape"])
 
 		#-----------------------------
+		# Search header
+		#-----------------------------
+		# Bind header search term to column view
+		self.header_search.bind_property(
+			"search_term", self.column_view, "current_search",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		# Bind header search active state to status search labels visibility
+		self.header_search.bind_property(
+			"search_active", self.status_search_box, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		#-----------------------------
 		# Column view
 		#-----------------------------
 		# Bind column view selected item to info pane
@@ -677,6 +692,37 @@ class MainWindow(Adw.ApplicationWindow):
 			"n-items", self.status_count_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
+		)
+
+		# Bind column view search by properties to status search labels visibility
+		self.column_view.bind_property(
+			"search_by_name", self.status_search_label_name, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_desc", self.status_search_label_desc, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_group", self.status_search_label_group, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_deps", self.status_search_label_deps, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_optdeps", self.status_search_label_optdeps, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		self.column_view.bind_property(
+			"search_by_provides", self.status_search_label_provides, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		# Create column view header menu actions

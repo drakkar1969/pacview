@@ -14,8 +14,6 @@
               <object class="SearchHeader" id="header_search">
                 <property name="title">PacView</property>
                 <property name="key_capture_widget">column_view</property>
-                <property name="search_active" bind-source="status_search_box" bind-property="visible" bind-flags="sync-create|bidirectional"/>
-                <property name="search_term" bind-source="column_view" bind-property="current_search" bind-flags="sync-create|bidirectional"/>
               </object>
             </property>
             <child type="start">
@@ -142,12 +140,6 @@
                 <property name="start-child">
                   <object class="PkgColumnView" id="column_view">
                     <property name="height-request">150</property>
-                    <property name="search_by_name" bind-source="status_search_label_name" bind-property="visible" bind-flags="sync-create|bidirectional"/>
-                    <property name="search_by_desc" bind-source="status_search_label_desc" bind-property="visible" bind-flags="sync-create|bidirectional"/>
-                    <property name="search_by_group" bind-source="status_search_label_group" bind-property="visible" bind-flags="sync-create|bidirectional"/>
-                    <property name="search_by_deps" bind-source="status_search_label_deps" bind-property="visible" bind-flags="sync-create|bidirectional"/>
-                    <property name="search_by_optdeps" bind-source="status_search_label_optdeps" bind-property="visible" bind-flags="sync-create|bidirectional"/>
-                    <property name="search_by_provides" bind-source="status_search_label_provides" bind-property="visible" bind-flags="sync-create|bidirectional"/>
                   </object>
                 </property>
                 <property name="end-child">
