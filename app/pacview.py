@@ -624,6 +624,9 @@ class MainWindow(Adw.ApplicationWindow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		#-----------------------------
+		# GSettings
+		#-----------------------------
 		# Bind gsettings
 		self.gsettings = Gio.Settings(schema_id="com.github.PacView")
 
@@ -640,6 +643,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 
+		#-----------------------------
+		# Toolbar buttons
+		#-----------------------------
 		# Create toolbar button actions
 		self.add_action(self.gsettings.create_action("show-sidebar"))
 		self.add_action(self.gsettings.create_action("show-infopane"))
@@ -657,6 +663,9 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
 
+		#-----------------------------
+		# Column view
+		#-----------------------------
 		# Create column view header menu actions
 		self.add_action(self.gsettings.create_action("show-column-version"))
 		self.add_action(self.gsettings.create_action("show-column-repository"))
@@ -688,19 +697,22 @@ class MainWindow(Adw.ApplicationWindow):
 
 		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
 
-		# Bind package column view selected item to info pane
+		# Bind column view selected item to info pane
 		self.column_view.selection.bind_property(
 			"selected-item", self.info_pane, "pkg_object",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
-		# Bind package column view count to status label text
+		# Bind column view count to status label text
 		self.column_view.filter_model.bind_property(
 			"n-items", self.status_count_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
 		)
 
+		#-----------------------------
+		# Info pane
+		#-----------------------------
 		# Bind info pane package to details button enabled state
 		self.info_pane.bind_property(
 			"pkg_object", self.header_details_btn, "sensitive",
@@ -721,7 +733,10 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
 		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
 
-		# Add other window actions
+		#-----------------------------
+		# Window
+		#-----------------------------
+		# Add window actions
 		action_list = [
 			( "refresh-dbs", self.refresh_dbs_action ),
 			( "show-stats-window", self.show_stats_window_action ),
