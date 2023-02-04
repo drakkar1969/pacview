@@ -463,19 +463,14 @@ class PkgColumnView(Gtk.Overlay):
 		if self.current_search == "":
 			return(True)
 		else:
-			return(
-				((self.current_search in item.name) if self.search_by_name else False)
-				or
-				((self.current_search in item.description.lower()) if self.search_by_desc else False)
-				or
-				((self.current_search in item.group.lower()) if self.search_by_group else False)
-				or
-				(([s for s in item.depends_list if self.current_search in s] != []) if self.search_by_deps else False)
-				or
-				(([s for s in item.optdepends_list if self.current_search in s] != []) if self.search_by_optdeps else False)
-				or
-				(([s for s in item.provides_list if self.current_search in s] != []) if self.search_by_provides else False)
-			)
+			return(any((
+				self.search_by_name and self.current_search in item.name,
+				self.search_by_desc and self.current_search in item.description.lower(),
+				self.search_by_group and self.current_search in item.group.lower(),
+				self.search_by_deps and any(self.current_search in s for s in item.depends_list),
+				self.search_by_optdeps and any(self.current_search in s for s in item.optdepends_list),
+				self.search_by_provides and any(self.current_search in s for s in item.provides_list)
+			)))
 
 	#-----------------------------------
 	# Property change signal handlers
