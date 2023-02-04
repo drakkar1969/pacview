@@ -98,7 +98,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def provides(self):
-		return(self.pkglist_to_linkstr(self.pkg.provides))
+		return('   '.join(sorted(self.pkg.provides)) if self.pkg.provides != [] else "None")
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def depends_list(self):
