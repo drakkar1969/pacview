@@ -246,7 +246,7 @@ class PkgInfoPane(Gtk.Overlay):
 		button.set_can_focus(False)
 		button.connect("clicked", self.on_copybtn_clicked)
 
-		label = Gtk.Label(halign=Gtk.Align.START, wrap_mode=Pango.WrapMode.WORD, wrap=True, xalign=0, use_markup=True)
+		label = Gtk.Label(hexpand=True, margin_end=60, wrap_mode=Pango.WrapMode.WORD, wrap=True, xalign=0, use_markup=True)
 		label.connect("activate-link", self.on_link_activated)
 
 		box = Gtk.Box(spacing=6)
