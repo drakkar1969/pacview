@@ -595,6 +595,8 @@ class MainWindow(Adw.ApplicationWindow):
 	header_search_btn = Gtk.Template.Child()
 	header_details_btn = Gtk.Template.Child()
 
+	flap = Gtk.Template.Child()
+
 	repo_listbox = Gtk.Template.Child()
 	status_listbox = Gtk.Template.Child()
 
@@ -628,8 +630,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("window-width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("window-height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("window-maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-sidebar", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-infopane", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-sidebar", self.flap, "reveal_flap",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-infopane", self.info_pane, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("infopane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-version", self.column_view.version_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-repository", self.column_view.repository_column, "visible",Gio.SettingsBindFlags.DEFAULT)
