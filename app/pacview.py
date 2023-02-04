@@ -646,6 +646,12 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Toolbar buttons
 		#-----------------------------
+		# Bind toolbar search button state to header search active state
+		self.header_search_btn.bind_property(
+			"active", self.header_search, "search_active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
 		# Create toolbar button actions
 		self.add_action(self.gsettings.create_action("show-sidebar"))
 		self.add_action(self.gsettings.create_action("show-infopane"))

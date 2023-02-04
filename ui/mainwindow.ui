@@ -43,7 +43,6 @@
                 <property name="active">False</property>
                 <property name="icon-name">edit-find-symbolic</property>
                 <property name="tooltip-text">Toggle Search</property>
-                <property name="active" bind-source="header_search" bind-property="search_active" bind-flags="sync-create|bidirectional"/>
               </object>
             </child>
             <child type="end">
