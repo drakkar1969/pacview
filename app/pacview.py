@@ -510,10 +510,10 @@ class PkgColumnView(Gtk.Overlay):
 			lambda binding, value: value == 0
 		)
 
-		# Bind column sorters to sort functions
+		# Set column sorter functions
 		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
 
-		# Bind filters to filter functions
+		# Set filter functions
 		self.status_filter.set_filter_func(self.filter_by_status)
 		self.search_filter.set_filter_func(self.filter_by_search)
 
