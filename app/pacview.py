@@ -623,43 +623,73 @@ class MainWindow(Adw.ApplicationWindow):
 		super().__init__(*args, **kwargs)
 
 		# Bind gsettings
-		self.settings = Gio.Settings(schema_id="com.github.PacView")
+		self.gsettings = Gio.Settings(schema_id="com.github.PacView")
 
-		self.settings.bind("window-width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("window-height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("window-maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-sidebar", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-infopane", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("infopane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-column-version", self.column_view.version_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-column-repository", self.column_view.repository_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-column-status", self.column_view.status_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-column-date", self.column_view.date_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.settings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("window-width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("window-height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("window-maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-sidebar", self.header_sidebar_btn, "active",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-infopane", self.header_infopane_btn, "active",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("infopane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-column-version", self.column_view.version_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-column-repository", self.column_view.repository_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-column-status", self.column_view.status_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-column-date", self.column_view.date_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 
-		# Gsettings actions
-		self.add_action(self.settings.create_action("show-sidebar"))
-		self.add_action(self.settings.create_action("show-infopane"))
+		# Create toolbar button actions
+		self.add_action(self.gsettings.create_action("show-sidebar"))
+		self.add_action(self.gsettings.create_action("show-infopane"))
 
-		self.add_action(self.settings.create_action("show-column-version"))
-		self.add_action(self.settings.create_action("show-column-repository"))
-		self.add_action(self.settings.create_action("show-column-status"))
-		self.add_action(self.settings.create_action("show-column-date"))
-		self.add_action(self.settings.create_action("show-column-size"))
-		self.add_action(self.settings.create_action("show-column-group"))
+		app.set_accels_for_action("win.show-sidebar", ["<ctrl>b"])
+		app.set_accels_for_action("win.show-infopane", ["<ctrl>i"])
+
+		action_list = [
+			( "search-start", self.start_search_action ),
+			( "search-stop", self.stop_search_action ),
+		]
+
+		self.add_action_entries(action_list)
+
+		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
+		app.set_accels_for_action("win.search-stop", ["Escape"])
+
+		# Create column view header menu actions
+		self.add_action(self.gsettings.create_action("show-column-version"))
+		self.add_action(self.gsettings.create_action("show-column-repository"))
+		self.add_action(self.gsettings.create_action("show-column-status"))
+		self.add_action(self.gsettings.create_action("show-column-date"))
+		self.add_action(self.gsettings.create_action("show-column-size"))
+		self.add_action(self.gsettings.create_action("show-column-group"))
+
+		# Create column view search filter actions
+		self.add_action(Gio.PropertyAction.new("search-by-name", self.column_view, "search_by_name"))
+		self.add_action(Gio.PropertyAction.new("search-by-desc", self.column_view, "search_by_desc"))
+		self.add_action(Gio.PropertyAction.new("search-by-group", self.column_view, "search_by_group"))
+		self.add_action(Gio.PropertyAction.new("search-by-deps", self.column_view, "search_by_deps"))
+		self.add_action(Gio.PropertyAction.new("search-by-optdeps", self.column_view, "search_by_optdeps"))
+		self.add_action(Gio.PropertyAction.new("search-by-provides", self.column_view, "search_by_provides"))
+
+		app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
+		app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
+		app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
+		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
+		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
+		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
+
+		action_list = [
+			( "search-reset-params", self.reset_search_params_action ),
+		]
+
+		self.add_action_entries(action_list)
+
+		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
 
 		# Bind package column view selected item to info pane
 		self.column_view.selection.bind_property(
 			"selected-item", self.info_pane, "pkg_object",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		# Bind info pane package to details button enabled state
-		self.info_pane.bind_property(
-			"pkg_object", self.header_details_btn, "sensitive",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: value is not None
 		)
 
 		# Bind package column view count to status label text
@@ -669,17 +699,28 @@ class MainWindow(Adw.ApplicationWindow):
 			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
 		)
 
-		# Add actions
+		# Bind info pane package to details button enabled state
+		self.info_pane.bind_property(
+			"pkg_object", self.header_details_btn, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value is not None
+		)
+
+		# Add info pane actions
 		action_list = [
-			( "search-start", self.start_search_action ),
-			( "search-stop", self.stop_search_action ),
-
-			( "search-reset-params", self.reset_search_params_action ),
-
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
 			( "show-details-window", self.show_details_window_action ),
+		]
 
+		self.add_action_entries(action_list)
+
+		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
+		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
+		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
+
+		# Add other window actions
+		action_list = [
 			( "refresh-dbs", self.refresh_dbs_action ),
 			( "show-stats-window", self.show_stats_window_action ),
 			( "copy-package-list", self.copy_package_list_action ),
@@ -689,34 +730,6 @@ class MainWindow(Adw.ApplicationWindow):
 		]
 
 		self.add_action_entries(action_list)
-
-		# Add property actions
-		self.add_action(Gio.PropertyAction.new("search-by-name", self.column_view, "search_by_name"))
-		self.add_action(Gio.PropertyAction.new("search-by-desc", self.column_view, "search_by_desc"))
-		self.add_action(Gio.PropertyAction.new("search-by-group", self.column_view, "search_by_group"))
-		self.add_action(Gio.PropertyAction.new("search-by-deps", self.column_view, "search_by_deps"))
-		self.add_action(Gio.PropertyAction.new("search-by-optdeps", self.column_view, "search_by_optdeps"))
-		self.add_action(Gio.PropertyAction.new("search-by-provides", self.column_view, "search_by_provides"))
-
-		# Add action keyboard shortcuts
-		app.set_accels_for_action("win.show-sidebar", ["<ctrl>b"])
-		app.set_accels_for_action("win.show-infopane", ["<ctrl>i"])
-
-		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
-		app.set_accels_for_action("win.search-stop", ["Escape"])
-
-		app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
-		app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
-		app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
-		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
-		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
-		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
-
-		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
-
-		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
-		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
-		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
 
 		app.set_accels_for_action("win.refresh-dbs", ["F5"])
 		app.set_accels_for_action("win.show-stats-window", ["<alt>S"])
