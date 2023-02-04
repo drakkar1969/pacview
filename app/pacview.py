@@ -740,8 +740,13 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def init_window(self):
 		self.init_databases()
+
 		self.populate_column_view()
+
 		self.populate_sidebar()
+
+		thread = threading.Thread(target=self.checkupdates_async, daemon=True)
+		thread.start()
 
 	#-----------------------------------
 	# Init databases function
@@ -759,37 +764,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pacman_db_names.append("AUR")
 
 	#-----------------------------------
-	# Init sidebar function
-	#-----------------------------------
-	def populate_sidebar(self):
-		# Remove rows from listboxes
-		while(row := self.repo_listbox.get_row_at_index(0)):
-			self.repo_listbox.remove(row)
-
-		while(row := self.status_listbox.get_row_at_index(0)):
-			self.status_listbox.remove(row)
-
-		# Add rows to repository list box
-		repo_row = SidebarListBoxRow(icon="repository-symbolic", text="All")
-		self.repo_listbox.append(repo_row)
-
-		for db in self.pacman_db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
-
-		# Add rows to status list box
-		status_row = None
-
-		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]:
-			row = SidebarListBoxRow(icon="status-symbolic", text=st.name.title(), str_id=st.value)
-			self.status_listbox.append(row)
-			if st == PkgStatus.INSTALLED: status_row = row
-
-		# Select initial repo/status
-		self.repo_listbox.select_row(repo_row)
-		self.status_listbox.select_row(status_row)
-
-	#-----------------------------------
-	# Populate column view functions
+	# Populate column view function
 	#-----------------------------------
 	def populate_column_view(self):
 		# Get pyalpm handle
@@ -833,12 +808,39 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
-		# Add threaded function to get package updates
-		thread = threading.Thread(target=self.checkupdates_async, daemon=True)
-		thread.start()
+	#-----------------------------------
+	# Init sidebar function
+	#-----------------------------------
+	def populate_sidebar(self):
+		# Remove rows from listboxes
+		while(row := self.repo_listbox.get_row_at_index(0)):
+			self.repo_listbox.remove(row)
 
-		return(False)
+		while(row := self.status_listbox.get_row_at_index(0)):
+			self.status_listbox.remove(row)
 
+		# Add rows to repository list box
+		repo_row = SidebarListBoxRow(icon="repository-symbolic", text="All")
+		self.repo_listbox.append(repo_row)
+
+		for db in self.pacman_db_names:
+			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
+
+		# Add rows to status list box
+		status_row = None
+
+		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]:
+			row = SidebarListBoxRow(icon="status-symbolic", text=st.name.title(), str_id=st.value)
+			self.status_listbox.append(row)
+			if st == PkgStatus.INSTALLED: status_row = row
+
+		# Select initial repo/status
+		self.repo_listbox.select_row(repo_row)
+		self.status_listbox.select_row(status_row)
+
+	#-----------------------------------
+	# Check for updates functions
+	#-----------------------------------
 	def checkupdates_async(self):
 		# Get updates
 		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
