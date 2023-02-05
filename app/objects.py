@@ -51,7 +51,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def description(self):
-		return(self.pkg.desc)
+		return(GLib.markup_escape_text(self.pkg.desc))
 
 	@GObject.Property(type=str, default="")
 	def url(self):
@@ -66,7 +66,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def licenses(self):
-		return(', '.join(sorted(self.pkg.licenses)))
+		return(GLib.markup_escape_text(', '.join(sorted(self.pkg.licenses))))
 
 	@GObject.Property(type=str, default="")
 	def status(self):
@@ -225,7 +225,7 @@ class PkgObject(GObject.Object):
 
 	@staticmethod
 	def url_to_link(url):
-		return(f'<a href="{url}">{url}</a>')
+		return(f'<a href="{GLib.markup_escape_text(url)}">{GLib.markup_escape_text(url)}</a>')
 
 	@staticmethod
 	def wrap_escape_list(pkglist, wrap_width=150):
