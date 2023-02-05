@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
+    <file alias="details-item-symbolic.svg">icons/details-item-symbolic.svg</file>
+    <file alias="details-files-symbolic.svg">icons/details-files-symbolic.svg</file>
+    <file alias="details-tree-symbolic.svg">icons/details-tree-symbolic.svg</file>
+    <file alias="details-log-symbolic.svg">icons/details-log-symbolic.svg</file>
+    <file alias="details-cache-symbolic.svg">icons/details-cache-symbolic.svg</file>
     <file alias="funnel-symbolic.svg">icons/funnel-symbolic.svg</file>
     <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
     <file alias="status-all-symbolic.svg">icons/status-all-symbolic.svg</file>

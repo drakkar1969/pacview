@@ -63,7 +63,7 @@
                   <object class="VToggleButton" id="file_button">
                     <property name="hexpand">True</property>
                     <property name="active">True</property>
-                    <property name="icon">text-x-generic-symbolic</property>
+                    <property name="icon">details-files-symbolic</property>
                     <property name="text">Files</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
@@ -72,7 +72,7 @@
                   <object class="VToggleButton" id="tree_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
-                    <property name="icon">list-remove-all-symbolic</property>
+                    <property name="icon">details-tree-symbolic</property>
                     <property name="text">Tree</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
@@ -81,7 +81,7 @@
                   <object class="VToggleButton" id="log_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
-                    <property name="icon">accessories-text-editor-symbolic</property>
+                    <property name="icon">details-log-symbolic</property>
                     <property name="text">Log</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
@@ -90,7 +90,7 @@
                   <object class="VToggleButton" id="cache_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
-                    <property name="icon">system-restart-symbolic</property>
+                    <property name="icon">details-cache-symbolic</property>
                     <property name="text">Cache</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
@@ -117,7 +117,7 @@
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">text-x-generic-symbolic</property>
+                                <property name="icon-name">details-files-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>
@@ -181,7 +181,7 @@
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">list-remove-all-symbolic</property>
+                                <property name="icon-name">details-tree-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>
@@ -239,7 +239,7 @@
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">accessories-text-editor-symbolic</property>
+                                <property name="icon-name">details-log-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>
@@ -304,7 +304,7 @@
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">system-restart-symbolic</property>
+                                <property name="icon-name">details-cache-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>
