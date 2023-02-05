@@ -746,14 +746,14 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
 
 		action_list = [
-			( "search-selectall-params", self.selectall_search_params_action ),
-			( "search-reset-params", self.reset_search_params_action )
+			( "selectall-searchby-params", self.selectall_searchby_params_action ),
+			( "reset-searchby-params", self.reset_searchby_params_action )
 		]
 
 		self.add_action_entries(action_list)
 
-		app.set_accels_for_action("win.search-selectall-params", ["<ctrl>A"])
-		app.set_accels_for_action("win.search-reset-params", ["<ctrl>R"])
+		app.set_accels_for_action("win.selectall-searchby-params", ["<ctrl>A"])
+		app.set_accels_for_action("win.reset-searchby-params", ["<ctrl>R"])
 
 		#-----------------------------
 		# Info pane
@@ -966,11 +966,11 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.view.grab_focus()
 
-	def selectall_search_params_action(self, action, value, user_data):
+	def selectall_searchby_params_action(self, action, value, user_data):
 		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
 			self.column_view.set_property(f'search_by_{n}', True)
 
-	def reset_search_params_action(self, action, value, user_data):
+	def reset_searchby_params_action(self, action, value, user_data):
 		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
 			self.column_view.set_property(f'search_by_{n}', (n == "name"))
 			
