@@ -951,7 +951,7 @@ class MainWindow(Adw.ApplicationWindow):
 			self.update_button_content.set_label("Error retrieving updates")
 		else:
 			self.update_button_content.set_icon_name("no-update")
-			self.update_button_content.set_label("No updates")
+			self.update_button_content.set_label("No updates available")
 
 		self.update_button_content.set_visible(True)
 
