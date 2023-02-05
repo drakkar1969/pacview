@@ -141,9 +141,6 @@ class PkgDetailsWindow(Adw.Window):
 	def __init__(self, pkg_object, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Set tree label font
-		self.tree_label.set_attributes(Pango.AttrList.from_string('0 -1 font-desc "Source Code Pro 11"'))
-
 		# Initialize widgets
 		if pkg_object is not None:
 			# Set package name
