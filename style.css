@@ -1,13 +1,13 @@
 .bubble {
 	border-radius: 50%;
 	background: alpha(@window_fg_color, 0.15);
-	min-width: 30px;
-	min-height: 30px;
+	min-width: 32px;
+	min-height: 32px;
 }
 
 .bubble.large {
-	min-width: 70px;
-	min-height: 70px;
+	min-width: 64px;
+	min-height: 64px;
 }
 
 box.rounded {
