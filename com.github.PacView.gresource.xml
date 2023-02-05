@@ -3,7 +3,14 @@
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
     <file alias="funnel-symbolic.svg">icons/funnel-symbolic.svg</file>
     <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
-    <file alias="status-symbolic.svg">icons/status-symbolic.svg</file>
+    <file alias="status-all-symbolic.svg">icons/status-all-symbolic.svg</file>
+    <file alias="status-explicit-symbolic.svg">icons/status-explicit-symbolic.svg</file>
+    <file alias="status-dependency-symbolic.svg">icons/status-dependency-symbolic.svg</file>
+    <file alias="status-installed-symbolic.svg">icons/status-installed-symbolic.svg</file>
+    <file alias="status-none-symbolic.svg">icons/status-none-symbolic.svg</file>
+    <file alias="status-optional-symbolic.svg">icons/status-optional-symbolic.svg</file>
+    <file alias="status-orphan-symbolic.svg">icons/status-orphan-symbolic.svg</file>
+    <file alias="status-update-symbolic.svg">icons/status-update-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/PacView">
     <file compressed="true">style.css</file>

@@ -902,8 +902,10 @@ class MainWindow(Adw.ApplicationWindow):
 		# Add rows to status list box
 		status_row = None
 
-		for st in [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]:
-			row = SidebarListBoxRow(icon="status-symbolic", text=st.name.title(), str_id=st.value)
+		status_dict = {PkgStatus.ALL: "status-all-symbolic", PkgStatus.INSTALLED: "status-installed-symbolic", PkgStatus.EXPLICIT: "status-explicit-symbolic", PkgStatus.DEPENDENCY: "status-dependency-symbolic", PkgStatus.OPTIONAL: "status-optional-symbolic", PkgStatus.ORPHAN: "status-orphan-symbolic", PkgStatus.NONE: "status-none-symbolic", PkgStatus.UPDATES: "status-update-symbolic"}
+
+		for st in status_dict.keys():
+			row = SidebarListBoxRow(icon=status_dict.get(st, ""), text=st.name.title(), str_id=st.value)
 			self.status_listbox.append(row)
 			if st == PkgStatus.INSTALLED: status_row = row
 
