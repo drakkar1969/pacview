@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, os, datetime, re
+import gi, os, datetime, re, textwrap
 
 from gi.repository import GObject, GLib
 
@@ -98,7 +98,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def provides(self):
-		return('   '.join(sorted(self.pkg.provides)) if self.pkg.provides != [] else "None")
+		return(self.wrap_escape_list(self.pkg.provides) if self.pkg.provides != [] else "None")
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def depends_list(self):
@@ -228,12 +228,18 @@ class PkgObject(GObject.Object):
 		return(f'<a href="{url}">{url}</a>')
 
 	@staticmethod
+	def wrap_escape_list(pkglist, wrap_width=150):
+		return(GLib.markup_escape_text(textwrap.fill('   '.join(sorted(pkglist)), width=wrap_width, break_on_hyphens=False)))
+
+	@staticmethod
 	def pkglist_to_linkstr(pkglist):
+		if pkglist == []: return("None")
+
 		re_match = "(^|   )([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |$)"
 		re_res = r"\1<a href='pkg://\2'>\2</a>"
-		join_str = GLib.markup_escape_text('   '.join(sorted(pkglist)))
+		join_str = PkgObject.wrap_escape_list(pkglist)
 
-		return(re.sub(re_match, re_res, join_str) if pkglist != [] else "None")
+		return(re.sub(re_match, re_res, join_str, flags=re.MULTILINE))
 
 	@staticmethod
 	def email_to_link(email):
