@@ -1026,6 +1026,21 @@ class MainWindow(Adw.ApplicationWindow):
 		if row is not None:
 			self.column_view.current_status = PkgStatus(int(row.str_id))
 
+	@Gtk.Template.Callback()
+	def on_update_button_clicked(self, button):
+		row_index = 0
+		update_row = None
+
+		while((row := self.status_listbox.get_row_at_index(row_index)) is not None):
+			if PkgStatus(int(row.str_id)) == PkgStatus.UPDATES:
+				update_row = row
+				break
+			else:
+				row_index += 1
+
+		if update_row is not None:
+			self.status_listbox.select_row(update_row)
+
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
 #------------------------------------------------------------------------------

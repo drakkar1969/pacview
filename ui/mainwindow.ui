@@ -173,6 +173,7 @@
                   <class name="pill"/>
                   <class name="status-button"/>
                 </style>
+                <signal name="clicked" handler="on_update_button_clicked" swapped="no"/>
                 <child>
                   <object class="AdwButtonContent" id="update_button_content">
                     <property name="visible">False</property>
