@@ -31,11 +31,6 @@ button.inline-button:active {
 	opacity: 0.8;
 }
 
-label.status-label {
-	padding: 3px 10px;
-}
-
-label.pill-label {
-	background: @headerbar_bg_color;
-	border-radius: 9999px;
+button.status-button {
+	padding: 1px 12px;
 }

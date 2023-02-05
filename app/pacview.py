@@ -599,16 +599,15 @@ class MainWindow(Adw.ApplicationWindow):
 
 	status_count_label = Gtk.Template.Child()
 
-	update_image = Gtk.Template.Child()
-	update_label = Gtk.Template.Child()
+	update_button_content = Gtk.Template.Child()
 
 	status_search_box = Gtk.Template.Child()
-	status_search_label_name = Gtk.Template.Child()
-	status_search_label_desc = Gtk.Template.Child()
-	status_search_label_group = Gtk.Template.Child()
-	status_search_label_deps = Gtk.Template.Child()
-	status_search_label_optdeps = Gtk.Template.Child()
-	status_search_label_provides = Gtk.Template.Child()
+	status_search_btn_name = Gtk.Template.Child()
+	status_search_btn_desc = Gtk.Template.Child()
+	status_search_btn_group = Gtk.Template.Child()
+	status_search_btn_deps = Gtk.Template.Child()
+	status_search_btn_optdeps = Gtk.Template.Child()
+	status_search_btn_provides = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -694,33 +693,33 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Bind column view search by properties to status search labels visibility
 		self.column_view.bind_property(
-			"search_by_name", self.status_search_label_name, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+			"search_by_name", self.status_search_btn_name, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_desc", self.status_search_label_desc, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+			"search_by_desc", self.status_search_btn_desc, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_group", self.status_search_label_group, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+			"search_by_group", self.status_search_btn_group, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_deps", self.status_search_label_deps, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+			"search_by_deps", self.status_search_btn_deps, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_optdeps", self.status_search_label_optdeps, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+			"search_by_optdeps", self.status_search_btn_optdeps, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_provides", self.status_search_label_provides, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+			"search_by_provides", self.status_search_btn_provides, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		# Create column view header menu actions
@@ -939,14 +938,16 @@ class MainWindow(Adw.ApplicationWindow):
 			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 			# Update status
-			self.update_image.set_from_icon_name("pkg-update")
-			self.update_label.set_label(f'{len(updates)} update{"s" if len(updates) != 1 else ""} available')
+			self.update_button_content.set_icon_name("pkg-update")
+			self.update_button_content.set_label(f'{len(updates)} update{"s" if len(updates) != 1 else ""} available')
 		elif returncode == 1:
-			self.update_image.set_from_icon_name("error-update")
-			self.update_label.set_label("Error retrieving updates")
+			self.update_button_content.set_icon_name("error-update")
+			self.update_button_content.set_label("Error retrieving updates")
 		else:
-			self.update_image.set_from_icon_name("no-update")
-			self.update_label.set_label("No updates")
+			self.update_button_content.set_icon_name("no-update")
+			self.update_button_content.set_label("No updates")
+
+		self.update_button_content.set_visible(True)
 
 		return(False)
 
