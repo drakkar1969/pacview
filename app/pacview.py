@@ -460,13 +460,15 @@ class PkgColumnView(Gtk.Overlay):
 		if self.current_search == "":
 			return(True)
 		else:
+			search_term = self.current_search.lower()
+
 			return(any((
-				self.search_by_name and self.current_search in item.name,
-				self.search_by_desc and self.current_search in item.description.lower(),
-				self.search_by_group and self.current_search in item.group.lower(),
-				self.search_by_deps and any(self.current_search in s for s in item.depends_list),
-				self.search_by_optdeps and any(self.current_search in s for s in item.optdepends_list),
-				self.search_by_provides and any(self.current_search in s for s in item.provides_list)
+				self.search_by_name and search_term in item.name.lower(),
+				self.search_by_desc and search_term in item.description.lower(),
+				self.search_by_group and search_term in item.group.lower(),
+				self.search_by_deps and any(search_term in s.lower() for s in item.depends_list),
+				self.search_by_optdeps and any(search_term in s.lower() for s in item.optdepends_list),
+				self.search_by_provides and any(search_term in s.lower() for s in item.provides_list)
 			)))
 
 	#-----------------------------------
