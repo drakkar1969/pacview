@@ -652,7 +652,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		action_list = [
 			( "search-start", self.start_search_action ),
-			( "search-stop", self.stop_search_action ),
+			( "search-stop", self.stop_search_action )
 		]
 
 		self.add_action_entries(action_list)
@@ -769,7 +769,7 @@ class MainWindow(Adw.ApplicationWindow):
 		action_list = [
 			( "view-prev-package", self.view_prev_package_action ),
 			( "view-next-package", self.view_next_package_action ),
-			( "show-details-window", self.show_details_window_action ),
+			( "show-details-window", self.show_details_window_action )
 		]
 
 		self.add_action_entries(action_list)
