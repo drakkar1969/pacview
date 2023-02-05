@@ -197,9 +197,10 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	model = Gtk.Template.Child()
 
-	overlay_toolbar = Gtk.Template.Child()
+	nav_button_box = Gtk.Template.Child()
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
+	details_button = Gtk.Template.Child()
 
 	empty_label = Gtk.Template.Child()
 
@@ -220,7 +221,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 		self.display_package(value)
 
-		self.overlay_toolbar.set_visible(False)
+		self.nav_button_box.set_visible(False)
 
 		self.empty_label.set_visible(value is None)
 
@@ -301,7 +302,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 			self.display_package(new_obj)
 
-			self.overlay_toolbar.set_visible(True)
+			self.nav_button_box.set_visible(True)
 
 		return(True)
 
@@ -587,7 +588,6 @@ class MainWindow(Adw.ApplicationWindow):
 	header_sidebar_btn = Gtk.Template.Child()
 	header_infopane_btn = Gtk.Template.Child()
 	header_search_btn = Gtk.Template.Child()
-	header_details_btn = Gtk.Template.Child()
 
 	flap = Gtk.Template.Child()
 
@@ -762,7 +762,7 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Bind info pane package to details button enabled state
 		self.info_pane.bind_property(
-			"pkg_object", self.header_details_btn, "sensitive",
+			"pkg_object", self.info_pane.details_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value is not None
 		)

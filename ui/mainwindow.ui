@@ -45,21 +45,6 @@
                 <property name="tooltip-text">Toggle Search</property>
               </object>
             </child>
-            <child type="end">
-              <object class="GtkSeparator">
-                <style>
-                  <class name="spacer"/>
-                </style>
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkButton" id="header_details_btn">
-                <property name="sensitive">False</property>
-                <property name="icon_name">dialog-information-symbolic</property>
-                <property name="tooltip-text">Show Package Details</property>
-                <property name="action_name">win.show-details-window</property>
-              </object>
-            </child>
           </object>
         </child>
         <child>

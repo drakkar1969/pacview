@@ -50,7 +50,6 @@
     </child>
     <child type="overlay">
       <object class="GtkBox" id="overlay_toolbar">
-        <property name="visible">False</property>
         <property name="halign">end</property>
         <property name="valign">end</property>
         <property name="margin_start">8</property>
@@ -62,7 +61,8 @@
           <class name="rounded"/>
         </style>
         <child>
-          <object class="GtkBox" id="button_box">
+          <object class="GtkBox" id="nav_button_box">
+            <property name="visible">False</property>
             <property name="margin_start">4</property>
             <property name="margin_end">4</property>
             <property name="margin_top">4</property>
@@ -76,6 +76,7 @@
                 <property name="action_name">win.view-prev-package</property>
                 <style>
                   <class name="circular"/>
+                  <class name="flat"/>
                 </style>
               </object>
             </child>
@@ -87,6 +88,27 @@
                 <property name="action_name">win.view-next-package</property>
                 <style>
                   <class name="circular"/>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox" id="info_button_box">
+            <property name="margin_start">4</property>
+            <property name="margin_end">4</property>
+            <property name="margin_top">4</property>
+            <property name="margin_bottom">4</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkButton" id="details_button">
+                <property name="icon_name">dialog-information-symbolic</property>
+                <property name="tooltip-text">Show Package Details</property>
+                <property name="action_name">win.show-details-window</property>
+                <style>
+                  <class name="circular"/>
+                  <class name="flat"/>
                 </style>
               </object>
             </child>
