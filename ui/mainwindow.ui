@@ -198,6 +198,7 @@
                     <property name="active">True</property>
                     <property name="label">name</property>
                     <style>
+                      <class name="flat"/>
                       <class name="pill"/>
                       <class name="status-button"/>
                     </style>
@@ -207,6 +208,7 @@
                   <object class="GtkToggleButton" id="status_search_btn_desc">
                     <property name="label">desc</property>
                     <style>
+                      <class name="flat"/>
                       <class name="pill"/>
                       <class name="status-button"/>
                     </style>
@@ -216,6 +218,7 @@
                   <object class="GtkToggleButton" id="status_search_btn_group">
                     <property name="label">group</property>
                     <style>
+                      <class name="flat"/>
                       <class name="pill"/>
                       <class name="status-button"/>
                     </style>
@@ -225,6 +228,7 @@
                   <object class="GtkToggleButton" id="status_search_btn_deps">
                     <property name="label">deps</property>
                     <style>
+                      <class name="flat"/>
                       <class name="pill"/>
                       <class name="status-button"/>
                     </style>
@@ -234,6 +238,7 @@
                   <object class="GtkToggleButton" id="status_search_btn_optdeps">
                     <property name="label">optdeps</property>
                     <style>
+                      <class name="flat"/>
                       <class name="pill"/>
                       <class name="status-button"/>
                     </style>
@@ -243,6 +248,7 @@
                   <object class="GtkToggleButton" id="status_search_btn_provides">
                     <property name="label">provides</property>
                     <style>
+                      <class name="flat"/>
                       <class name="pill"/>
                       <class name="status-button"/>
                     </style>
