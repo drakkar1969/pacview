@@ -60,7 +60,7 @@
                 <property name="homogeneous">True</property>
                 <property name="spacing">8</property>
                 <child>
-                  <object class="VToggleButton" id="file_button">
+                  <object class="StackToggleButton" id="file_button">
                     <property name="hexpand">True</property>
                     <property name="active">True</property>
                     <property name="icon">details-files-symbolic</property>
@@ -69,7 +69,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="VToggleButton" id="tree_button">
+                  <object class="StackToggleButton" id="tree_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
                     <property name="icon">details-tree-symbolic</property>
@@ -78,7 +78,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="VToggleButton" id="log_button">
+                  <object class="StackToggleButton" id="log_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
                     <property name="icon">details-log-symbolic</property>
@@ -87,7 +87,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="VToggleButton" id="cache_button">
+                  <object class="StackToggleButton" id="cache_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
                     <property name="icon">details-cache-symbolic</property>

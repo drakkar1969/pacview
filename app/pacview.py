@@ -93,17 +93,18 @@ class StatsWindow(Adw.Window):
 		item.get_child().set_label(item.get_item().size)
 
 #------------------------------------------------------------------------------
-#-- CLASS: VTOGGLEBUTTON
+#-- CLASS: STACKTOGGLEBUTTON
 #------------------------------------------------------------------------------
-@Gtk.Template(resource_path="/com/github/PacView/ui/vtogglebutton.ui")
-class VToggleButton(Gtk.ToggleButton):
-	__gtype_name__ = "VToggleButton"
+@Gtk.Template(resource_path="/com/github/PacView/ui/stacktogglebutton.ui")
+class StackToggleButton(Gtk.ToggleButton):
+	__gtype_name__ = "StackToggleButton"
 
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
 	icon = GObject.Property(type=str, default="")
 	text = GObject.Property(type=str, default="")
+	orientation = GObject.Property(type=Gtk.Orientation, default=Gtk.Orientation.HORIZONTAL)
 
 	#-----------------------------------
 	# Init function

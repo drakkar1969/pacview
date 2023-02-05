@@ -1,16 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// VTOGGLEBUTTON //-->
-  <template class="VToggleButton" parent="GtkToggleButton">
+  <!--// STACKTOGGLEBUTTON //-->
+  <template class="StackToggleButton" parent="GtkToggleButton">
     <property name="icon" bind-source="image" bind-property="icon-name" bind-flags="sync-create|bidirectional"/>
     <property name="text" bind-source="label" bind-property="label" bind-flags="sync-create|bidirectional"/>
+    <property name="orientation" bind-source="content_box" bind-property="orientation" bind-flags="sync-create|bidirectional"/>
     <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="margin_start">16</property>
-        <property name="margin_end">16</property>
-        <property name="margin_top">4</property>
-        <property name="margin_bottom">4</property>
+      <object class="GtkBox" id="content_box">
+        <property name="hexpand">True</property>
+        <property name="halign">center</property>
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage" id="image"/>

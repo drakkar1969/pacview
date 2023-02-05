@@ -44,7 +44,7 @@
     <file compressed="true">ui/pkginfopane.ui</file>
     <file compressed="true">ui/searchheader.ui</file>
     <file compressed="true">ui/sidebarlistboxrow.ui</file>
+    <file compressed="true">ui/stacktogglebutton.ui</file>
     <file compressed="true">ui/statswindow.ui</file>
-    <file compressed="true">ui/vtogglebutton.ui</file>
   </gresource>
 </gresources>
