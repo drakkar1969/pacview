@@ -186,6 +186,12 @@
                 <property name="halign">end</property>
                 <property name="spacing">6</property>
                 <child>
+                  <object class="GtkImage">
+                    <property name="margin_end">6</property>
+                    <property name="icon_name">edit-find-symbolic</property>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkToggleButton" id="status_search_btn_name">
                     <property name="active">True</property>
                     <property name="label">name</property>
