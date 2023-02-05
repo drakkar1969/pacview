@@ -74,7 +74,7 @@
             <property name="title">Info Pane</property>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">Return</property>
+                <property name="accelerator">&lt;alt&gt;Return</property>
                 <property name="title">Show Package Details</property>
               </object>
             </child>

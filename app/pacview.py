@@ -782,7 +782,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		app.set_accels_for_action("win.view-prev-package", ["<alt>Left"])
 		app.set_accels_for_action("win.view-next-package", ["<alt>Right"])
-		app.set_accels_for_action("win.show-details-window", ["Return", "KP_Enter"])
+		app.set_accels_for_action("win.show-details-window", ["<alt>Return", "<alt>KP_Enter"])
 
 		#-----------------------------
 		# Window
