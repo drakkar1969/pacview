@@ -77,6 +77,23 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
+            <property name="title">Info Pane</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;Left</property>
+                <property name="title">Previous Package</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;Right</property>
+                <property name="title">Next Package</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
             <property name="title">Search</property>
             <child>
               <object class="GtkShortcutsShortcut">
@@ -90,6 +107,11 @@
                 <property name="title">Exit Search</property>
               </object>
             </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Search Options</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;1</property>
@@ -126,21 +148,16 @@
                 <property name="title">Toggle Search By Provides</property>
               </object>
             </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkShortcutsGroup">
-            <property name="title">Info Pane</property>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;Left</property>
-                <property name="title">Previous Package</property>
+                <property name="accelerator">&lt;ctrl&gt;A</property>
+                <property name="title">Select All Search By Options</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;Right</property>
-                <property name="title">Next Package</property>
+                <property name="accelerator">&lt;ctrl&gt;R</property>
+                <property name="title">Reset Search By Options</property>
               </object>
             </child>
           </object>
