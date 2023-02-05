@@ -758,6 +758,9 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.selectall-searchby-params", ["<ctrl>A"])
 		app.set_accels_for_action("win.reset-searchby-params", ["<ctrl>R"])
 
+		# Connect column view activate signal
+		self.column_view.view.connect("activate", self.on_column_view_activated)
+
 		#-----------------------------
 		# Info pane
 		#-----------------------------
@@ -1036,6 +1039,10 @@ class MainWindow(Adw.ApplicationWindow):
 	def on_status_selected(self, listbox, row):
 		if row is not None:
 			self.column_view.current_status = PkgStatus(int(row.str_id))
+
+	def on_column_view_activated(self, view, pos):
+		if self.info_pane.pkg_object != self.column_view.selection.get_selected_item():
+			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 	@Gtk.Template.Callback()
 	def on_update_button_clicked(self, button):
