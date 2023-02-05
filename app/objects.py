@@ -229,12 +229,11 @@ class PkgObject(GObject.Object):
 
 	@staticmethod
 	def pkglist_to_linkstr(pkglist):
-		def __linkify(s):
-			expr = re.compile("([a-zA-Z0-9@._+-]+)([=<>]?[^:]+)?(:.+)?")
+		re_match = "(^|   )([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |$)"
+		re_res = r"\1<a href='pkg://\2'>\2</a>"
+		join_str = GLib.markup_escape_text('   '.join(sorted(pkglist)))
 
-			return(expr.sub(r"<a href='pkg://\1'>\1</a>\2\3", GLib.markup_escape_text(s)))
-
-		return('   '.join([__linkify(s) for s in sorted(pkglist)]) if pkglist != [] else "None")
+		return(re.sub(re_match, re_res, join_str) if pkglist != [] else "None")
 
 	@staticmethod
 	def email_to_link(email):
