@@ -3,7 +3,7 @@
   <!--// PACKAGE DETAILS WINDOW //-->
   <template class="PkgDetailsWindow" parent="AdwWindow">
     <property name="default_width">550</property>
-    <property name="default_height">700</property>
+    <property name="default_height">650</property>
     <property name="modal">True</property>
     <property name="title"></property>
     <child>
@@ -27,13 +27,13 @@
             <property name="margin_start">24</property>
             <property name="margin_end">24</property>
             <property name="margin_bottom">24</property>
-            <property name="spacing">24</property>
+            <property name="spacing">16</property>
             <child>
               <object class="GtkBox" id="banner_box">
                 <property name="orientation">vertical</property>
                 <property name="margin_start">16</property>
                 <property name="margin_end">16</property>
-                <property name="margin_bottom">16</property>
+                <property name="margin_bottom">24</property>
                 <property name="spacing">16</property>
                 <child>
                   <object class="GtkImage" id="pkg_image">
@@ -58,7 +58,7 @@
             <child>
               <object class="GtkBox" id="button_box">
                 <property name="homogeneous">True</property>
-                <property name="spacing">8</property>
+                <property name="spacing">6</property>
                 <child>
                   <object class="StackToggleButton" id="file_button">
                     <property name="hexpand">True</property>
