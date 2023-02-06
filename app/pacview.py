@@ -264,14 +264,14 @@ class PkgInfoPane(Gtk.Overlay):
 		button = child.get_first_child().get_next_sibling()
 		label = child.get_last_child()
 
-		icon = obj.prop_icon
+		icon = obj.icon
 
 		image.set_visible(icon != "")
 		image.set_from_icon_name(icon)
 
-		label.set_label(obj.prop_value)
+		label.set_label(obj.value)
 
-		button.set_visible(obj.prop_copy)
+		button.set_visible(obj.can_copy)
 
 	#-----------------------------------
 	# Link signal handler
@@ -328,14 +328,14 @@ class PkgInfoPane(Gtk.Overlay):
 
 		if obj is not None:
 			self.model.append(PkgProperty("Name", f'<b>{obj.name}</b>'))
-			if obj.update_version != "": self.model.append(PkgProperty("Version", obj.update_version, prop_icon="pkg-update"))
+			if obj.update_version != "": self.model.append(PkgProperty("Version", obj.update_version, icon="pkg-update"))
 			else: self.model.append(PkgProperty("Version", obj.version))
 			self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
 			self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
 			if obj.repository in app.main_window.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
 			elif obj.repository == "AUR": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
 			self.model.append(PkgProperty("Licenses", GLib.markup_escape_text(obj.licenses)))
-			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", prop_icon=obj.status_icon))
+			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
 			self.model.append(PkgProperty("Repository", obj.repository))
 			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
 			if obj.provides != []: self.model.append(PkgProperty("Provides", self.wrap_escape_list(obj.provides)))
@@ -352,8 +352,8 @@ class PkgInfoPane(Gtk.Overlay):
 			if obj.download_size != "": self.model.append(PkgProperty("Download Size", obj.download_size))
 			self.model.append(PkgProperty("Installed Size", obj.install_size))
 			self.model.append(PkgProperty("Install Script", "Yes" if obj.install_script else "No"))
-			if obj.sha256sum is not None: self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum, prop_copy=True))
-			if obj.md5sum is not None: self.model.append(PkgProperty("MD5 Sum", obj.md5sum, prop_copy=True))
+			if obj.sha256sum is not None: self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum, can_copy=True))
+			if obj.md5sum is not None: self.model.append(PkgProperty("MD5 Sum", obj.md5sum, can_copy=True))
 
 	def display_prev_package(self):
 		if self.__obj_index > 0:
