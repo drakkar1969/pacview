@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -291,7 +291,7 @@ class PkgInfoPane(Gtk.Overlay):
 			new_obj = obj_dict[pkg_name]
 		else:
 			for obj in obj_dict.values():
-				if any(pkg_name in s for s in obj.provides_list):
+				if any(pkg_name in s for s in obj.provides):
 					new_obj = obj
 					break
 
@@ -330,30 +330,30 @@ class PkgInfoPane(Gtk.Overlay):
 			self.model.append(PkgProperty("Name", f'<b>{obj.name}</b>'))
 			if obj.update_version != "": self.model.append(PkgProperty("Version", obj.update_version, prop_icon="pkg-update"))
 			else: self.model.append(PkgProperty("Version", obj.version))
-			self.model.append(PkgProperty("Description", obj.description))
-			self.model.append(PkgProperty("URL", obj.url))
-			if obj.repository in app.main_window.sync_db_names: self.model.append(PkgProperty("Package URL", obj.package_url))
-			if obj.repository == "AUR": self.model.append(PkgProperty("AUR URL", obj.package_url))
-			self.model.append(PkgProperty("Licenses", obj.licenses))
+			self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
+			self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
+			if obj.repository in app.main_window.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
+			elif obj.repository == "AUR": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
+			self.model.append(PkgProperty("Licenses", GLib.markup_escape_text(obj.licenses)))
 			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", prop_icon=obj.status_icon))
 			self.model.append(PkgProperty("Repository", obj.repository))
 			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
-			if obj.provides != "None": self.model.append(PkgProperty("Provides", obj.provides))
-			self.model.append(PkgProperty("Dependencies", obj.depends))
-			if obj.optdepends != "None": self.model.append(PkgProperty("Optional", obj.optdepends))
-			self.model.append(PkgProperty("Required By", obj.required_by))
-			if obj.optional_for != "None": self.model.append(PkgProperty("Optional For", obj.optional_for))
-			if obj.conflicts != "None": self.model.append(PkgProperty("Conflicts With", obj.conflicts))
-			if obj.replaces != "None": self.model.append(PkgProperty("Replaces", obj.replaces))
+			if obj.provides != []: self.model.append(PkgProperty("Provides", self.wrap_escape_list(obj.provides)))
+			self.model.append(PkgProperty("Dependencies", self.pkglist_to_linkstr(obj.depends)))
+			if obj.optdepends != []: self.model.append(PkgProperty("Optional", self.pkglist_to_linkstr(obj.optdepends)))
+			self.model.append(PkgProperty("Required By", self.pkglist_to_linkstr(obj.required_by)))
+			if obj.optional_for != []: self.model.append(PkgProperty("Optional For", self.pkglist_to_linkstr(obj.optional_for)))
+			if obj.conflicts != []: self.model.append(PkgProperty("Conflicts With", self.pkglist_to_linkstr(obj.conflicts)))
+			if obj.replaces != []: self.model.append(PkgProperty("Replaces", self.pkglist_to_linkstr(obj.replaces)))
 			self.model.append(PkgProperty("Architecture", obj.architecture))
-			self.model.append(PkgProperty("Maintainer", obj.maintainer))
+			self.model.append(PkgProperty("Maintainer", self.email_to_link(obj.maintainer)))
 			self.model.append(PkgProperty("Build Date", obj.build_date_long))
 			if obj.install_date_long != "": self.model.append(PkgProperty("Install Date", obj.install_date_long))
 			if obj.download_size != "": self.model.append(PkgProperty("Download Size", obj.download_size))
 			self.model.append(PkgProperty("Installed Size", obj.install_size))
-			self.model.append(PkgProperty("Install Script", obj.install_script))
-			if obj.sha256sum != "": self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum, prop_copy=True))
-			if obj.md5sum != "": self.model.append(PkgProperty("MD5 Sum", obj.md5sum, prop_copy=True))
+			self.model.append(PkgProperty("Install Script", "Yes" if obj.install_script else "No"))
+			if obj.sha256sum is not None: self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum, prop_copy=True))
+			if obj.md5sum is not None: self.model.append(PkgProperty("MD5 Sum", obj.md5sum, prop_copy=True))
 
 	def display_prev_package(self):
 		if self.__obj_index > 0:
@@ -366,6 +366,31 @@ class PkgInfoPane(Gtk.Overlay):
 			self.__obj_index +=1
 
 			self.display_package(self.pkg_object)
+
+	#-----------------------------------
+	# Helper functions
+	#-----------------------------------
+	@staticmethod
+	def url_to_link(url):
+		return(f'<a href="{GLib.markup_escape_text(url)}">{GLib.markup_escape_text(url)}</a>')
+
+	@staticmethod
+	def email_to_link(email):
+		return(re.sub("([^<]+)<?([^>]+)?>?", r"\1<a href='mailto:\2'>\2</a>", email))
+
+	@staticmethod
+	def wrap_escape_list(pkglist, wrap_width=150):
+		return(GLib.markup_escape_text(textwrap.fill('   '.join(sorted(pkglist)), width=wrap_width, break_on_hyphens=False)))
+
+	@staticmethod
+	def pkglist_to_linkstr(pkglist):
+		if pkglist == []: return("None")
+
+		re_match = "(^|   )([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |$)"
+		re_res = r"\1<a href='pkg://\2'>\2</a>"
+		join_str = PkgInfoPane.wrap_escape_list(pkglist)
+
+		return(re.sub(re_match, re_res, join_str, flags=re.MULTILINE))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
@@ -468,9 +493,9 @@ class PkgColumnView(Gtk.Overlay):
 				self.search_by_name and search_term in item.name.lower(),
 				self.search_by_desc and search_term in item.description.lower(),
 				self.search_by_group and search_term in item.group.lower(),
-				self.search_by_deps and any(search_term in s.lower() for s in item.depends_list),
-				self.search_by_optdeps and any(search_term in s.lower() for s in item.optdepends_list),
-				self.search_by_provides and any(search_term in s.lower() for s in item.provides_list)
+				self.search_by_deps and any(search_term in s.lower() for s in item.depends),
+				self.search_by_optdeps and any(search_term in s.lower() for s in item.optdepends),
+				self.search_by_provides and any(search_term in s.lower() for s in item.provides)
 			)))
 
 	#-----------------------------------

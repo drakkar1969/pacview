@@ -51,22 +51,15 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def description(self):
-		return(GLib.markup_escape_text(self.pkg.desc))
+		return(self.pkg.desc)
 
 	@GObject.Property(type=str, default="")
 	def url(self):
-		return(self.url_to_link(self.pkg.url))
-
-	@GObject.Property(type=str, default="")
-	def package_url(self):
-		if self.pkg.db.name == "local":
-			return(self.url_to_link(f'https://aur.archlinux.org/packages/{self.name}'))
-		else:
-			return(self.url_to_link(f'https://www.archlinux.org/packages/{self.repository}/{self.architecture}/{self.name}'))
+		return(self.pkg.url)
 
 	@GObject.Property(type=str, default="")
 	def licenses(self):
-		return(GLib.markup_escape_text(', '.join(sorted(self.pkg.licenses))))
+		return(', '.join(sorted(self.pkg.licenses)))
 
 	@GObject.Property(type=str, default="")
 	def status(self):
@@ -93,44 +86,32 @@ class PkgObject(GObject.Object):
 		return(', '.join(sorted(self.pkg.groups)))
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
-	def provides_list(self):
+	def provides(self):
 		return(self.pkg.provides)
 
-	@GObject.Property(type=str, default="")
-	def provides(self):
-		return(self.wrap_escape_list(self.pkg.provides) if self.pkg.provides != [] else "None")
-
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
-	def depends_list(self):
+	def depends(self):
 		return(self.pkg.depends)
 
-	@GObject.Property(type=str, default="")
-	def depends(self):
-		return(self.pkglist_to_linkstr(self.pkg.depends))
-
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
-	def optdepends_list(self):
+	def optdepends(self):
 		return(self.pkg.optdepends)
 
 	@GObject.Property(type=str, default="")
-	def optdepends(self):
-		return(self.pkglist_to_linkstr(self.pkg.optdepends))
-
-	@GObject.Property(type=str, default="")
 	def required_by(self):
-		return(self.pkglist_to_linkstr(self.local_pkg.compute_requiredby() if self.local_pkg is not None else self.pkg.compute_requiredby()))
+		return(self.local_pkg.compute_requiredby() if self.local_pkg is not None else self.pkg.compute_requiredby())
 
 	@GObject.Property(type=str, default="")
 	def optional_for(self):
-		return(self.pkglist_to_linkstr(self.local_pkg.compute_optionalfor() if self.local_pkg is not None else self.pkg.compute_optionalfor()))
+		return(self.local_pkg.compute_optionalfor() if self.local_pkg is not None else self.pkg.compute_optionalfor())
 
 	@GObject.Property(type=str, default="")
 	def conflicts(self):
-		return(self.pkglist_to_linkstr(self.pkg.conflicts))
+		return(self.pkg.conflicts)
 
 	@GObject.Property(type=str, default="")
 	def replaces(self):
-		return(self.pkglist_to_linkstr(self.pkg.replaces))
+		return(self.pkg.replaces)
 
 	@GObject.Property(type=str, default="")
 	def architecture(self):
@@ -138,7 +119,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def maintainer(self):
-		return(self.email_to_link(self.pkg.packager))
+		return(self.pkg.packager)
 
 	@GObject.Property(type=str, default="")
 	def build_date_long(self):
@@ -168,9 +149,9 @@ class PkgObject(GObject.Object):
 	def install_size(self):
 		return(self.size_to_str(self.pkg.isize))
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=bool, default=False)
 	def install_script(self):
-		return("Yes" if self.pkg.has_scriptlet else "No")
+		return(self.pkg.has_scriptlet)
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
 	def files_list(self):
@@ -178,11 +159,11 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="")
 	def sha256sum(self):
-		return(self.pkg.sha256sum if self.pkg.sha256sum is not None else "")
+		return(self.pkg.sha256sum)
 
 	@GObject.Property(type=str, default="")
 	def md5sum(self):
-		return(self.pkg.md5sum if self.pkg.md5sum is not None else "")
+		return(self.pkg.md5sum)
 
 	#-----------------------------------
 	# Update properties
@@ -222,28 +203,6 @@ class PkgObject(GObject.Object):
 			pkg_size /= 1024.0
 		
 		return(f"{pkg_size:.{decimals}f} {unit}")
-
-	@staticmethod
-	def url_to_link(url):
-		return(f'<a href="{GLib.markup_escape_text(url)}">{GLib.markup_escape_text(url)}</a>')
-
-	@staticmethod
-	def wrap_escape_list(pkglist, wrap_width=150):
-		return(GLib.markup_escape_text(textwrap.fill('   '.join(sorted(pkglist)), width=wrap_width, break_on_hyphens=False)))
-
-	@staticmethod
-	def pkglist_to_linkstr(pkglist):
-		if pkglist == []: return("None")
-
-		re_match = "(^|   )([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |$)"
-		re_res = r"\1<a href='pkg://\2'>\2</a>"
-		join_str = PkgObject.wrap_escape_list(pkglist)
-
-		return(re.sub(re_match, re_res, join_str, flags=re.MULTILINE))
-
-	@staticmethod
-	def email_to_link(email):
-		return(re.sub("([^<]+)<?([^>]+)?>?", r"\1<a href='mailto:\2'>\2</a>", email))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
