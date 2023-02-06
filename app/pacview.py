@@ -412,8 +412,6 @@ class PkgColumnView(Gtk.Overlay):
 	status_filter = Gtk.Template.Child()
 	search_filter = Gtk.Template.Child()
 
-	version_sorter = Gtk.Template.Child()
-
 	package_column = Gtk.Template.Child()
 	version_column = Gtk.Template.Child()
 	repository_column = Gtk.Template.Child()
@@ -449,9 +447,6 @@ class PkgColumnView(Gtk.Overlay):
 			lambda binding, value: value == 0
 		)
 
-		# Set column sorter functions
-		self.version_sorter.set_sort_func(self.sort_by_ver, "version")
-
 		# Set filter functions
 		self.status_filter.set_filter_func(self.filter_by_status)
 		self.search_filter.set_filter_func(self.filter_by_search)
@@ -470,12 +465,6 @@ class PkgColumnView(Gtk.Overlay):
 
 		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
-
-	#-----------------------------------
-	# Sorter functions
-	#-----------------------------------
-	def sort_by_ver(self, item_a, item_b, prop):
-		return(pyalpm.vercmp(item_a.get_property(prop), item_b.get_property(prop)))
 
 	#-----------------------------------
 	# Filter functions

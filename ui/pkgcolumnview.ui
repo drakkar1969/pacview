@@ -77,7 +77,11 @@
                   </object>
                 </property>
                 <property name="sorter">
-                  <object class="GtkCustomSorter" id="version_sorter"/>
+                  <object class="GtkStringSorter" id="version_sorter">
+                    <property name="expression">
+                      <lookup name="version" type="PkgObject"/>
+                    </property>
+                  </object>
                 </property>
               </object>
             </child>
