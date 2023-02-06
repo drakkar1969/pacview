@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import gi, os, datetime, re, textwrap
+import gi, datetime
 
-from gi.repository import GObject, GLib
-
-import pyalpm
+from gi.repository import GObject
 
 from enum import IntFlag
 
