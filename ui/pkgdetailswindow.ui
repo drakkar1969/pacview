@@ -406,6 +406,8 @@
                                 <style>
                                   <class name="data-table"/>
                                 </style>
+                                <property name="margin_start">16</property>
+                                <property name="margin_end">16</property>
                                 <property name="model">
                                   <object class="GtkNoSelection">
                                     <property name="model">
