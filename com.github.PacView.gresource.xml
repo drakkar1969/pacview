@@ -34,6 +34,8 @@
     <file compressed="true">ui/columnview/date-item.ui</file>
     <file compressed="true">ui/columnview/size-item.ui</file>
     <file compressed="true">ui/columnview/group-item.ui</file>
+    <file compressed="true">ui/details/backup-file-item.ui</file>
+    <file compressed="true">ui/details/backup-mod-item.ui</file>
     <file compressed="true">ui/details/cache-item.ui</file>
     <file compressed="true">ui/details/file-item.ui</file>
     <file compressed="true">ui/details/log-item.ui</file>

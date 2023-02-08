@@ -226,6 +226,27 @@ class PkgProperty(GObject.Object):
 		self.value = value
 
 #------------------------------------------------------------------------------
+#-- CLASS: PKGBACKUP
+#------------------------------------------------------------------------------
+class PkgBackup(GObject.Object):
+	__gtype_name__ = "Pkgbackup"
+
+	#-----------------------------------
+	# Read/write properties
+	#-----------------------------------
+	icon = GObject.Property(type=str, default="")
+	label = GObject.Property(type=str, default="")
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, icon, label, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+		self.icon = icon
+		self.label = label
+
+#------------------------------------------------------------------------------
 #-- CLASS: STATSITEM
 #------------------------------------------------------------------------------
 class StatsItem(GObject.Object):

@@ -401,24 +401,37 @@
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
                             <property name="margin_bottom">16</property>
-                            <!-- <property name="child">
-                              <object class="GtkListView" id="cache_view">
-                                <property name="margin_start">16</property>
-                                <property name="margin_end">16</property>
+                            <property name="child">
+                              <object class="GtkColumnView" id="backup_view">
                                 <property name="model">
-                                  <object class="GtkNoSelection">
-                                    <property name="model">
-                                      <object class="GtkStringList" id="cache_model"/>
+                                  <object class="GtkSingleSelection">
+                                  </object>
+                                </property>
+                                <child>
+                                  <object class="GtkColumnViewColumn" id="backup_mod_column">
+                                    <property name="title">Modified</property>
+                                    <property name="resizable">True</property>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory" id="backup_mod_factory">
+                                        <property name="resource">/com/github/PacView/ui/details/backup-mod-item.ui</property>
+                                      </object>
                                     </property>
                                   </object>
-                                </property>
-                                <property name="factory">
-                                  <object class="GtkBuilderListItemFactory" id="cache_factory">
-                                    <property name="resource">/com/github/PacView/ui/details/cache-item.ui</property>
+                                </child>
+                                <child>
+                                  <object class="GtkColumnViewColumn" id="backup_file_column">
+                                    <property name="title">File</property>
+                                    <property name="resizable">True</property>
+                                    <property name="expand">True</property>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory" id="backup_file_factory">
+                                        <property name="resource">/com/github/PacView/ui/details/backup-file-item.ui</property>
+                                      </object>
+                                    </property>
                                   </object>
-                                </property>
+                                </child>
                               </object>
-                            </property> -->
+                            </property>
                           </object>
                         </child>
                       </object>
