@@ -99,7 +99,7 @@
                   <object class="StackToggleButton" id="backup_button">
                     <property name="hexpand">True</property>
                     <property name="group">file_button</property>
-                    <property name="icon"></property>
+                    <property name="icon">details-backup-symbolic</property>
                     <property name="text">Backup</property>
                     <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
@@ -378,7 +378,7 @@
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
-                                <property name="icon-name">details-cache-symbolic</property>
+                                <property name="icon-name">details-backup-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
                                 </style>
