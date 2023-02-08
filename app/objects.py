@@ -152,7 +152,7 @@ class PkgObject(GObject.Object):
 		return(self.pkg.has_scriptlet)
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[])
-	def files_list(self):
+	def files(self):
 		return([f[0] for f in self.local_pkg.files] if self.local_pkg is not None else [])
 
 	@GObject.Property(type=str, default="")

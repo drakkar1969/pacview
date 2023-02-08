@@ -148,8 +148,8 @@ class PkgDetailsWindow(Adw.Window):
 			self.pkg_label.set_text(f'{pkg_object.repository}/{pkg_object.name}')
 
 			# Populate file list
-			self.file_header_label.set_text(f'Files ({len(pkg_object.files_list)})')
-			self.files_model.splice(0, 0, pkg_object.files_list)
+			self.file_header_label.set_text(f'Files ({len(pkg_object.files)})')
+			self.files_model.splice(0, 0, pkg_object.files)
 
 			# Populate dependency tree
 			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
