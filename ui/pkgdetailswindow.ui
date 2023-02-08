@@ -403,6 +403,9 @@
                             <property name="margin_bottom">16</property>
                             <property name="child">
                               <object class="GtkColumnView" id="backup_view">
+                                <style>
+                                  <class name="data-table"/>
+                                </style>
                                 <property name="model">
                                   <object class="GtkNoSelection">
                                     <property name="model">
