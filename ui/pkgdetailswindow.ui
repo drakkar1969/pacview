@@ -405,6 +405,11 @@
                               <object class="GtkColumnView" id="backup_view">
                                 <property name="model">
                                   <object class="GtkSingleSelection">
+                                    <property name="model">
+                                      <object class="GListStore" id="backup_modelmodel">
+                                        <property name="item-type">PkgBackup</property>
+                                      </object>
+                                    </property>
                                   </object>
                                 </property>
                                 <child>

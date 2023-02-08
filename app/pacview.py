@@ -136,6 +136,8 @@ class PkgDetailsWindow(Adw.Window):
 	cache_header_label = Gtk.Template.Child()
 	cache_model = Gtk.Template.Child()
 
+	backup_header_label = Gtk.Template.Child()
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -170,6 +172,10 @@ class PkgDetailsWindow(Adw.Window):
 
 			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
 			self.cache_model.splice(0, 0, cache_lines)
+
+			# Populate backup list
+			self.backup_header_label.set_text(f'Backup ({len(pkg_object.backup)})')
+			# self.files_model.splice(0, 0, pkg_object.files)
 
 	#-----------------------------------
 	# Key press signal handler

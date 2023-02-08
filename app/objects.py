@@ -233,7 +233,7 @@ class PkgProperty(GObject.Object):
 #-- CLASS: PKGBACKUP
 #------------------------------------------------------------------------------
 class PkgBackup(GObject.Object):
-	__gtype_name__ = "Pkgbackup"
+	__gtype_name__ = "PkgBackup"
 
 	#-----------------------------------
 	# Read/write properties
