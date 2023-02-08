@@ -155,6 +155,10 @@ class PkgObject(GObject.Object):
 	def files(self):
 		return([f[0] for f in self.local_pkg.files] if self.local_pkg is not None else [])
 
+	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	def backup(self):
+		return(self.local_pkg.backup if self.local_pkg is not None else [])
+
 	@GObject.Property(type=str, default="")
 	def sha256sum(self):
 		return(self.pkg.sha256sum)
