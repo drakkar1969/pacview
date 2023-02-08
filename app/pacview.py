@@ -137,6 +137,7 @@ class PkgDetailsWindow(Adw.Window):
 	cache_model = Gtk.Template.Child()
 
 	backup_header_label = Gtk.Template.Child()
+	backup_model = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -175,7 +176,10 @@ class PkgDetailsWindow(Adw.Window):
 
 			# Populate backup list
 			self.backup_header_label.set_text(f'Backup ({len(pkg_object.backup)})')
-			# self.files_model.splice(0, 0, pkg_object.files)
+
+			backup_list = [PkgBackup("details-cache-symbolic", f[0]) for f in pkg_object.backup]
+
+			self.backup_model.splice(0, 0, backup_list)
 
 	#-----------------------------------
 	# Key press signal handler
