@@ -239,15 +239,17 @@ class PkgBackup(GObject.Object):
 	# Read/write properties
 	#-----------------------------------
 	label = GObject.Property(type=str, default="")
+	status_icon = GObject.Property(type=str, default="")
 	status = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, label, status, *args, **kwargs):
+	def __init__(self, label, status_icon, status, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		self.label = label
+		self.status_icon = status_icon
 		self.status = status
 
 #------------------------------------------------------------------------------

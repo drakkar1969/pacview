@@ -196,11 +196,13 @@ class PkgDetailsWindow(Adw.Window):
 							
 						text_hash = md5_hash.hexdigest()
 
+						status_icon = "backup-unchanged" if text_hash == bk[1] else "backup-changed"
 						status = "unchanged" if text_hash == bk[1] else "changed"
 				except:
+					status_icon = "backup-error"
 					status = "read error"
 
-				backup_list += [PkgBackup(filename, status)]
+				backup_list += [PkgBackup(filename, status_icon, status)]
 
 			self.backup_model.splice(0, 0, backup_list)
 

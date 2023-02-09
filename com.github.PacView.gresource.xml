@@ -21,6 +21,9 @@
   <gresource prefix="/com/github/PacView">
     <file compressed="true">style.css</file>
     <file compressed="true">gtk/help-overlay.ui</file>
+    <file compressed="true">icons/backup-changed.svg</file>
+    <file compressed="true">icons/backup-error.svg</file>
+    <file compressed="true">icons/backup-unchanged.svg</file>
     <file compressed="true">icons/error-update.svg</file>
     <file compressed="true">icons/no-update.svg</file>
     <file compressed="true">icons/pkg-dependency.svg</file>
