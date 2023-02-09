@@ -2,7 +2,7 @@
 <interface>
   <!--// PACKAGE DETAILS WINDOW //-->
   <template class="PkgDetailsWindow" parent="AdwWindow">
-    <property name="default_width">550</property>
+    <property name="default_width">650</property>
     <property name="default_height">650</property>
     <property name="modal">True</property>
     <property name="title"></property>
