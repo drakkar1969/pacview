@@ -200,7 +200,7 @@ class PkgDetailsWindow(Adw.Window):
 				except:
 					status = "read error"
 
-				backup_list += [PkgBackup(status, filename)]
+				backup_list += [PkgBackup(filename, status)]
 
 			self.backup_model.splice(0, 0, backup_list)
 

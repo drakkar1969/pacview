@@ -418,17 +418,6 @@
                                   </object>
                                 </property>
                                 <child>
-                                  <object class="GtkColumnViewColumn" id="backup_mod_column">
-                                    <property name="title">Status</property>
-                                    <property name="resizable">True</property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory" id="backup_mod_factory">
-                                        <property name="resource">/com/github/PacView/ui/details/backup-mod-item.ui</property>
-                                      </object>
-                                    </property>
-                                  </object>
-                                </child>
-                                <child>
                                   <object class="GtkColumnViewColumn" id="backup_file_column">
                                     <property name="title">File</property>
                                     <property name="resizable">True</property>
@@ -436,6 +425,17 @@
                                     <property name="factory">
                                       <object class="GtkBuilderListItemFactory" id="backup_file_factory">
                                         <property name="resource">/com/github/PacView/ui/details/backup-file-item.ui</property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkColumnViewColumn" id="backup_mod_column">
+                                    <property name="title">Status</property>
+                                    <property name="resizable">True</property>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory" id="backup_mod_factory">
+                                        <property name="resource">/com/github/PacView/ui/details/backup-mod-item.ui</property>
                                       </object>
                                     </property>
                                   </object>
