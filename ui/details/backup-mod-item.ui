@@ -2,9 +2,9 @@
 <interface>
   <template class="GtkListItem">
     <property name="child">
-      <object class="GtkImage">
-        <binding name="icon-name">
-          <lookup name="icon" type="PkgBackup">
+      <object class="GtkLabel">
+        <binding name="label">
+          <lookup name="status" type="PkgBackup">
             <lookup name="item">GtkListItem</lookup>
           </lookup>
         </binding>

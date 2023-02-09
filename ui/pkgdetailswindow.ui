@@ -419,7 +419,7 @@
                                 </property>
                                 <child>
                                   <object class="GtkColumnViewColumn" id="backup_mod_column">
-                                    <property name="title">Mod</property>
+                                    <property name="title">Status</property>
                                     <property name="resizable">True</property>
                                     <property name="factory">
                                       <object class="GtkBuilderListItemFactory" id="backup_mod_factory">

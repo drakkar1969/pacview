@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -177,7 +177,27 @@ class PkgDetailsWindow(Adw.Window):
 			# Populate backup list
 			self.backup_header_label.set_text(f'Backup ({len(pkg_object.backup)})')
 
-			backup_list = [PkgBackup("details-cache-symbolic", f[0]) for f in pkg_object.backup]
+			backup_list = []
+
+			for bk in pkg_object.backup:
+				filename = f'/{bk[0]}'
+				status = ""
+
+				md5_hash = hashlib.md5()
+
+				try:
+					with open(filename, "rb") as f:
+						# Read and update hash in chunks of 4K
+						for block in iter(lambda: f.read(4096), b""):
+							md5_hash.update(block)
+							
+						text_hash = md5_hash.hexdigest()
+
+						status = "unchanged" if text_hash == bk[1] else "changed"
+				except:
+					status = "read error"
+
+				backup_list += [PkgBackup(status, filename)]
 
 			self.backup_model.splice(0, 0, backup_list)
 
