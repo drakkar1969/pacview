@@ -2,13 +2,23 @@
 <interface>
   <template class="GtkListItem">
     <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="label" type="PkgBackup">
-            <lookup name="item">GtkListItem</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
+      <object class="GtkBox">
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkImage">
+            <property name="icon_name">details-item-symbolic</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="label" type="PkgBackup">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+            <property name="xalign">0</property>
+          </object>
+        </child>
       </object>
     </property>
   </template>
