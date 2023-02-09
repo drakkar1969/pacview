@@ -137,6 +137,7 @@ class PkgDetailsWindow(Adw.Window):
 	cache_model = Gtk.Template.Child()
 
 	backup_header_label = Gtk.Template.Child()
+	backup_view = Gtk.Template.Child()
 	backup_model = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -204,7 +205,10 @@ class PkgDetailsWindow(Adw.Window):
 
 				backup_list += [PkgBackup(filename, status_icon, status)]
 
-			self.backup_model.splice(0, 0, backup_list)
+			if backup_list != []:
+				self.backup_model.splice(0, 0, backup_list)
+
+			self.backup_view.set_visible(backup_list != [])
 
 	#-----------------------------------
 	# Key press signal handler
