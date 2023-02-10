@@ -178,6 +178,12 @@ class PkgDetailsWindow(Adw.Window):
 			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
 			self.cache_model.splice(0, 0, cache_lines)
 
+			# Hide backup column view header
+			child = self.backup_view.get_first_child()
+			
+			if child is not None and type(child).__name__ == "GtkListItemWidget":
+				child.set_visible(False)
+
 			# Populate backup list
 			self.backup_header_label.set_text(f'Backup ({len(pkg_object.backup)})')
 
@@ -235,6 +241,7 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	view = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 
 	nav_button_box = Gtk.Template.Child()
@@ -270,6 +277,12 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Hide column view header
+		child = self.view.get_first_child()
+
+		if child is not None and type(child).__name__ == "GtkListItemWidget":
+			child.set_visible(False)
 
 	#-----------------------------------
 	# Factory signal handlers
