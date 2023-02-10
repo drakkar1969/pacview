@@ -1107,8 +1107,7 @@ class MainWindow(Adw.ApplicationWindow):
 			self.column_view.current_status = PkgStatus(int(row.str_id))
 
 	def on_column_view_activated(self, view, pos):
-		if self.info_pane.pkg_object != self.column_view.selection.get_selected_item():
-			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 	@Gtk.Template.Callback()
 	def on_update_button_clicked(self, button):
