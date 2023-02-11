@@ -185,7 +185,7 @@ class PkgDetailsWindow(Adw.Window):
 				child.set_visible(False)
 
 			# Populate backup list
-			self.backup_header_label.set_text(f'Backup ({len(pkg_object.backup)})')
+			self.backup_header_label.set_text(f'Backup Files ({len(pkg_object.backup)})')
 
 			backup_list = []
 
