@@ -613,13 +613,8 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 #-- CLASS: SEARCHTAG
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/searchtag.ui")
-class SearchTag(Gtk.Box):
+class SearchTag(Gtk.Label):
 	__gtype_name__ = "SearchTag"
-
-	#-----------------------------------
-	# Properties
-	#-----------------------------------
-	text = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
@@ -680,6 +675,7 @@ class SearchHeader(Gtk.Stack):
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
+		# Position search tags
 		Gtk.Widget.insert_after(self.searchtag_box, self.search_entry, self.search_entry.get_first_child())
 
 	#-----------------------------------

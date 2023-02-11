@@ -19,7 +19,7 @@
             <property name="spacing">6</property>
             <child>
               <object class="GtkSearchEntry" id="search_entry">
-                <property name="width-request">900</property>
+                <property name="width-request">800</property>
                 <signal name="search-started" handler="on_search_started" swapped="no"/>
                 <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
                 <child>
@@ -29,37 +29,37 @@
                     <property name="spacing">6</property>
                     <child>
                       <object class="SearchTag" id="searchtag_name">
-                        <property name="text">name</property>
+                        <property name="label">name</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_desc">
                         <property name="visible">False</property>
-                        <property name="text">desc</property>
+                        <property name="label">desc</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_group">
                         <property name="visible">False</property>
-                        <property name="text">group</property>
+                        <property name="label">group</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_deps">
                         <property name="visible">False</property>
-                        <property name="text">deps</property>
+                        <property name="label">deps</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_optdeps">
                         <property name="visible">False</property>
-                        <property name="text">optdeps</property>
+                        <property name="label">optdeps</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_provides">
                         <property name="visible">False</property>
-                        <property name="text">provides</property>
+                        <property name="label">provides</property>
                       </object>
                     </child>
                   </object>
