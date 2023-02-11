@@ -419,7 +419,7 @@ class PkgInfoPane(Gtk.Overlay):
 			self.model.append(PkgProperty("Repository", obj.repository))
 			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
 			if obj.provides != []: self.model.append(PkgProperty("Provides", self.wrap_escape_list(obj.provides)))
-			self.model.append(PkgProperty("Dependencies", self.pkglist_to_linkstr(obj.depends)))
+			self.model.append(PkgProperty("Dependencies ", self.pkglist_to_linkstr(obj.depends)))
 			if obj.optdepends != []: self.model.append(PkgProperty("Optional", self.pkglist_to_linkstr(obj.optdepends)))
 			self.model.append(PkgProperty("Required By", self.pkglist_to_linkstr(obj.required_by)))
 			if obj.optional_for != []: self.model.append(PkgProperty("Optional For", self.pkglist_to_linkstr(obj.optional_for)))
