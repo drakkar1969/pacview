@@ -206,6 +206,36 @@
                                 </style>
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="hexpand">True</property>
+                                <property name="halign">end</property>
+                                <property name="spacing">8</property>
+                                <child>
+                                  <object class="GtkLabel">
+                                    <property name="label">Depth:</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkDropDown" id="tree_dropdown">
+                                    <property name="model">
+                                      <object class="GtkStringList">
+                                        <items>
+                                          <item translatable="yes">Default</item>
+                                          <item translatable="yes">0</item>
+                                          <item translatable="yes">1</item>
+                                          <item translatable="yes">2</item>
+                                          <item translatable="yes">3</item>
+                                          <item translatable="yes">4</item>
+                                          <item translatable="yes">5</item>
+                                        </items>
+                                      </object>
+                                    </property>
+                                    <signal name="notify::selected-item" handler="on_tree_depth_changed" swapped="no"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>

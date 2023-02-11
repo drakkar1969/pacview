@@ -130,6 +130,7 @@ class PkgDetailsWindow(Adw.Window):
 	files_model = Gtk.Template.Child()
 
 	tree_label = Gtk.Template.Child()
+	tree_dropdown = Gtk.Template.Child()
 
 	log_model = Gtk.Template.Child()
 
@@ -146,6 +147,8 @@ class PkgDetailsWindow(Adw.Window):
 	def __init__(self, pkg_object, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		self.pkg_object = pkg_object
+
 		# Initialize widgets
 		if pkg_object is not None:
 			# Set package name
@@ -159,9 +162,7 @@ class PkgDetailsWindow(Adw.Window):
 			self.files_model.splice(0, 0, file_list)
 
 			# Populate dependency tree
-			pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-			self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
+			self.populate_dep_tree()
 
 			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -215,6 +216,25 @@ class PkgDetailsWindow(Adw.Window):
 				self.backup_model.splice(0, 0, backup_list)
 
 			self.backup_view.set_visible(backup_list != [])
+
+	#-----------------------------------
+	# Populate dependency tree function
+	#-----------------------------------
+	def populate_dep_tree(self):
+		depth = self.tree_dropdown.get_selected_item().get_string()
+		depth_flag = "" if depth == "Default" else f'-d {depth}'
+
+		pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
+
+	#-----------------------------------
+	# Dependency tree dropdown signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_tree_depth_changed(self, dropdown, prop):
+		if self.pkg_object is not None:
+			self.populate_dep_tree()
 
 	#-----------------------------------
 	# Key press signal handler
