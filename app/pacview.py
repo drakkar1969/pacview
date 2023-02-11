@@ -452,7 +452,8 @@ class PkgInfoPane(Gtk.Overlay):
 	#-----------------------------------
 	@staticmethod
 	def url_to_link(url):
-		return(f'<a href="{GLib.markup_escape_text(url)}">{GLib.markup_escape_text(url)}</a>')
+		escaped_url = GLib.markup_escape_text(url)
+		return(f'<a href="{escaped_url}">{escaped_url}</a>')
 
 	@staticmethod
 	def email_to_link(email):
