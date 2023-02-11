@@ -3,6 +3,7 @@
   <template class="GtkListItem">
     <property name="child">
       <object class="GtkLabel">
+        <property name="margin_start">4</property>
         <binding name="label">
           <lookup name="string" type="GtkStringObject">
             <lookup name="item">GtkListItem</lookup>
