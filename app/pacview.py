@@ -855,7 +855,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.add_action_entries(action_list)
 
-		app.set_accels_for_action("win.selectall-searchby-params", ["<ctrl>A"])
+		app.set_accels_for_action("win.selectall-searchby-params", ["<ctrl>L"])
 		app.set_accels_for_action("win.reset-searchby-params", ["<ctrl>R"])
 
 		# Connect column view activate signal

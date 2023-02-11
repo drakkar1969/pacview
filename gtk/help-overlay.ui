@@ -150,7 +150,7 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;A</property>
+                <property name="accelerator">&lt;ctrl&gt;L</property>
                 <property name="title">Select All Search By Options</property>
               </object>
             </child>
