@@ -1011,19 +1011,16 @@ class MainWindow(Adw.ApplicationWindow):
 		for db in self.pacman_db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
 
-		# Add rows to status list box
-		status_row = None
+		self.repo_listbox.select_row(repo_row)
 
+		# Add rows to status list box
 		status_dict = {PkgStatus.ALL: "status-all-symbolic", PkgStatus.INSTALLED: "status-installed-symbolic", PkgStatus.EXPLICIT: "status-explicit-symbolic", PkgStatus.DEPENDENCY: "status-dependency-symbolic", PkgStatus.OPTIONAL: "status-optional-symbolic", PkgStatus.ORPHAN: "status-orphan-symbolic", PkgStatus.NONE: "status-none-symbolic", PkgStatus.UPDATES: "status-update-symbolic"}
 
 		for st in status_dict.keys():
 			row = SidebarListBoxRow(icon=status_dict.get(st, ""), text=st.name.title(), str_id=st.value)
 			self.status_listbox.append(row)
-			if st == PkgStatus.INSTALLED: status_row = row
-
-		# Select initial repo/status
-		self.repo_listbox.select_row(repo_row)
-		self.status_listbox.select_row(status_row)
+			if st == PkgStatus.INSTALLED:
+				status_row = self.status_listbox.select_row(row)
 
 	#-----------------------------------
 	# Check for updates functions
