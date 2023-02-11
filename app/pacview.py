@@ -182,7 +182,7 @@ class PkgDetailsWindow(Adw.Window):
 			# Populate cache
 			pkg_cache = subprocess.run(shlex.split(f'/usr/bin/paccache -vdk0 {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and l.startswith("==>") == False and l.endswith(".sig") == False)]
+			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and not l.startswith("==>") and not l.endswith(".sig"))]
 
 			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
 			self.cache_model.splice(0, 0, cache_lines)
@@ -232,7 +232,7 @@ class PkgDetailsWindow(Adw.Window):
 		depth = self.tree_dropdown.get_selected_item().get_string()
 		depth_flag = "" if depth == "Default" else f'-d {depth}'
 
-		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree{"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree {"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
 
