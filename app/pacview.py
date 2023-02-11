@@ -116,7 +116,7 @@ class StackToggleButton(Gtk.ToggleButton):
 #-- CLASS: PKGDETAILSWINDOW
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkgdetailswindow.ui")
-class PkgDetailsWindow(Adw.Window):
+class PkgDetailsWindow(Adw.ApplicationWindow):
 	__gtype_name__ = "PkgDetailsWindow"
 
 	#-----------------------------------
@@ -148,6 +148,11 @@ class PkgDetailsWindow(Adw.Window):
 		super().__init__(*args, **kwargs)
 
 		self.pkg_object = pkg_object
+
+		# Create stack action
+		action = Gio.SimpleAction.new_stateful("switch-stack-page", GLib.VariantType.new("s"), GLib.Variant.new_string("files"))
+		action.connect("change-state", self.on_stack_page_switch)
+		self.add_action(action)
 
 		# Set tree label font
 		if monospace_font == "":
@@ -237,6 +242,12 @@ class PkgDetailsWindow(Adw.Window):
 		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
 
 	#-----------------------------------
+	# Action handlers
+	#-----------------------------------
+	def on_stack_page_switch(self, action, value):
+		self.content_stack.set_visible_child_name(value.get_string())
+
+	#-----------------------------------
 	# Dependency tree dropdown signal handler
 	#-----------------------------------
 	@Gtk.Template.Callback()
@@ -250,14 +261,6 @@ class PkgDetailsWindow(Adw.Window):
 	@Gtk.Template.Callback()
 	def on_key_pressed(self, keyval, keycode, user_data, state):
 		if keycode == Gdk.KEY_Escape and state == 0: self.close()
-
-	#-----------------------------------
-	# Button signal handler
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_button_toggled(self, button):
-		if button.get_active() == True:
-			self.content_stack.set_visible_child_name(button.text.lower())
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGINFOPANE
