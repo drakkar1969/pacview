@@ -591,6 +591,11 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	__gtype_name__ = "SidebarListBoxRow"
 
 	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	image = Gtk.Template.Child()
+
+	#-----------------------------------
 	# Properties
 	#-----------------------------------
 	str_id = GObject.Property(type=str, default="")
@@ -699,8 +704,6 @@ class MainWindow(Adw.ApplicationWindow):
 	info_pane = Gtk.Template.Child()
 
 	status_count_label = Gtk.Template.Child()
-
-	update_button_content = Gtk.Template.Child()
 
 	status_search_box = Gtk.Template.Child()
 	status_search_btn_name = Gtk.Template.Child()
@@ -1020,7 +1023,11 @@ class MainWindow(Adw.ApplicationWindow):
 			row = SidebarListBoxRow(icon=status_dict.get(st, ""), text=st.name.title(), str_id=st.value)
 			self.status_listbox.append(row)
 			if st == PkgStatus.INSTALLED:
-				status_row = self.status_listbox.select_row(row)
+				self.status_listbox.select_row(row)
+			if st == PkgStatus.UPDATES:
+				self.update_row = row
+				self.update_row.image.set_opacity(0.3)
+				self.update_row.set_sensitive(False)
 
 	#-----------------------------------
 	# Check for updates functions
@@ -1049,16 +1056,13 @@ class MainWindow(Adw.ApplicationWindow):
 			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 			# Update status
-			self.update_button_content.set_icon_name("pkg-update")
-			self.update_button_content.set_label(f'{len(updates)} update{"s" if len(updates) != 1 else ""} available')
-		elif returncode == 1:
-			self.update_button_content.set_icon_name("error-update")
-			self.update_button_content.set_label("Error retrieving updates")
+			self.update_row.text = f'Updates ({len(updates)})'
+			self.update_row.image.set_opacity(1.0)
+			self.update_row.set_sensitive(True)
 		else:
-			self.update_button_content.set_icon_name("no-update")
-			self.update_button_content.set_label("No updates available")
-
-		self.update_button_content.set_visible(True)
+			self.update_row.text = f'Updates'
+			self.update_row.image.set_opacity(0.3)
+			self.update_row.set_sensitive(False)
 
 		return(False)
 
@@ -1143,21 +1147,6 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def on_column_view_activated(self, view, pos):
 		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
-
-	@Gtk.Template.Callback()
-	def on_update_button_clicked(self, button):
-		row_index = 0
-		update_row = None
-
-		while((row := self.status_listbox.get_row_at_index(row_index)) is not None):
-			if PkgStatus(int(row.str_id)) == PkgStatus.UPDATES:
-				update_row = row
-				break
-			else:
-				row_index += 1
-
-		if update_row is not None:
-			self.status_listbox.select_row(update_row)
 
 #------------------------------------------------------------------------------
 #-- CLASS: LAUNCHERAPP
