@@ -37,5 +37,8 @@
     <key name="show-column-group" type="b">
       <default>true</default>
     </key>
+    <key name="monospace-font" type="s">
+      <default>''</default>
+    </key>
   </schema>
 </schemalist>

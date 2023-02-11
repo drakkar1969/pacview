@@ -144,10 +144,18 @@ class PkgDetailsWindow(Adw.Window):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, pkg_object, *args, **kwargs):
+	def __init__(self, pkg_object, monospace_font, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		self.pkg_object = pkg_object
+
+		# Set tree label font
+		if monospace_font == "":
+			gsettings = Gio.Settings(schema_id="org.gnome.desktop.interface")
+
+			monospace_font = gsettings.get_string("monospace-font-name")
+
+		self.tree_label.set_attributes(Pango.AttrList.from_string(f'0 -1 font-desc "{monospace_font}"'))
 
 		# Initialize widgets
 		if pkg_object is not None:
@@ -699,6 +707,11 @@ class MainWindow(Adw.ApplicationWindow):
 	status_search_btn_provides = Gtk.Template.Child()
 
 	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	monospace_font = GObject.Property(type=str, default="")
+
+	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
@@ -722,6 +735,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("show-column-date", self.column_view.date_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("monospace-font", self, "monospace_font",Gio.SettingsBindFlags.DEFAULT)
 
 		#-----------------------------
 		# Toolbar buttons
@@ -1074,7 +1088,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def show_details_window_action(self, action, value, user_data):
 		if self.info_pane.pkg_object is not None:
-			details_window = PkgDetailsWindow(self.info_pane.pkg_object, transient_for=self)
+			details_window = PkgDetailsWindow(self.info_pane.pkg_object, self.monospace_font, transient_for=self)
 			details_window.show()
 
 	def refresh_dbs_action(self, action, value, user_data):
