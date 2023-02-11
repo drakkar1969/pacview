@@ -610,6 +610,24 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 		super().__init__(*args, **kwargs)
 
 #------------------------------------------------------------------------------
+#-- CLASS: SEARCHTAG
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/searchtag.ui")
+class SearchTag(Gtk.Box):
+	__gtype_name__ = "SearchTag"
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	text = GObject.Property(type=str, default="")
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+#------------------------------------------------------------------------------
 #-- CLASS: SEARCHHEADER
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/searchheader.ui")
@@ -620,6 +638,15 @@ class SearchHeader(Gtk.Stack):
 	# Class widget variables
 	#-----------------------------------
 	search_entry = Gtk.Template.Child()
+
+	searchtag_box = Gtk.Template.Child()
+
+	searchtag_name = Gtk.Template.Child()
+	searchtag_desc = Gtk.Template.Child()
+	searchtag_group = Gtk.Template.Child()
+	searchtag_deps = Gtk.Template.Child()
+	searchtag_optdeps = Gtk.Template.Child()
+	searchtag_provides = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -652,6 +679,8 @@ class SearchHeader(Gtk.Stack):
 			"text", self, "search_term",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
+
+		Gtk.Widget.insert_after(self.searchtag_box, self.search_entry, self.search_entry.get_first_child())
 
 	#-----------------------------------
 	# Signal handlers
@@ -704,14 +733,6 @@ class MainWindow(Adw.ApplicationWindow):
 	info_pane = Gtk.Template.Child()
 
 	status_count_label = Gtk.Template.Child()
-
-	status_search_box = Gtk.Template.Child()
-	status_search_btn_name = Gtk.Template.Child()
-	status_search_btn_desc = Gtk.Template.Child()
-	status_search_btn_group = Gtk.Template.Child()
-	status_search_btn_deps = Gtk.Template.Child()
-	status_search_btn_optdeps = Gtk.Template.Child()
-	status_search_btn_provides = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -779,12 +800,6 @@ class MainWindow(Adw.ApplicationWindow):
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
-		# Bind header search active state to status search labels visibility
-		self.header_search.bind_property(
-			"search_active", self.status_search_box, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
 		#-----------------------------
 		# Column view
 		#-----------------------------
@@ -803,32 +818,32 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Bind column view search by properties to status search labels visibility
 		self.column_view.bind_property(
-			"search_by_name", self.status_search_btn_name, "active",
+			"search_by_name", self.header_search.searchtag_name, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_desc", self.status_search_btn_desc, "active",
+			"search_by_desc", self.header_search.searchtag_desc, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_group", self.status_search_btn_group, "active",
+			"search_by_group", self.header_search.searchtag_group, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_deps", self.status_search_btn_deps, "active",
+			"search_by_deps", self.header_search.searchtag_deps, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_optdeps", self.status_search_btn_optdeps, "active",
+			"search_by_optdeps", self.header_search.searchtag_optdeps, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		self.column_view.bind_property(
-			"search_by_provides", self.status_search_btn_provides, "active",
+			"search_by_provides", self.header_search.searchtag_provides, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 

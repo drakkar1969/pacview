@@ -31,6 +31,13 @@ button.inline-button:active {
 	opacity: 0.8;
 }
 
-button.status-button {
-	padding: 0 10px;
+box.searchtag {
+	background: rgba(0, 0, 0, 0.08);
+	border-radius: 9999px;
+}
+
+button.searchtag-button {
+	margin: 0;
+	padding: 0;
+	border-radius: 50%;
 }

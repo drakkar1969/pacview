@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// SEARCH TAG //-->
+  <template class="SearchTag" parent="GtkBox">
+    <property name="text" bind-source="label" bind-property="label" bind-flags="sync-create|bidirectional"/>
+    <property name="margin_top">5</property>
+    <property name="margin_bottom">5</property>
+    <property name="spacing">6</property>
+    <style>
+      <class name="searchtag"/>
+    </style>
+    <child>
+      <object class="GtkLabel" id="label">
+        <property name="margin_start">12</property>
+        <style>
+          <class name="caption-heading"/>
+        </style>
+      </object>
+    </child>
+    <child>
+      <object class="GtkButton" id="button">
+        <property name="icon-name">window-close-symbolic</property>
+        <style>
+          <class name="searchtag-button"/>
+        </style>
+      </object>
+    </child>
+  </template>
+</interface>
