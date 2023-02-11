@@ -173,14 +173,14 @@ class PkgDetailsWindow(Adw.Window):
 			self.populate_dep_tree()
 
 			# Populate log
-			pkg_log = subprocess.run(shlex.split(f'paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_log = subprocess.run(shlex.split(f'/usr/bin/paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in pkg_log.stdout.decode().split('\n') if l != ""]
 
 			self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
 			# Populate cache
-			pkg_cache = subprocess.run(shlex.split(f'paccache -vdk0 {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_cache = subprocess.run(shlex.split(f'/usr/bin/paccache -vdk0 {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and l.startswith("==>") == False and l.endswith(".sig") == False)]
 
@@ -232,7 +232,7 @@ class PkgDetailsWindow(Adw.Window):
 		depth = self.tree_dropdown.get_selected_item().get_string()
 		depth_flag = "" if depth == "Default" else f'-d {depth}'
 
-		pkg_tree = subprocess.run(shlex.split(f'pactree{"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree{"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
 
@@ -938,7 +938,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.sync_db_names = ["core", "extra", "community", "multilib"]
 
 		# Get list of configured database names
-		dbs = subprocess.run(shlex.split(f'pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		dbs = subprocess.run(shlex.split(f'/usr/bin/pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		self.pacman_db_names = [n for n in dbs.stdout.decode().split('\n') if n != ""]
 
@@ -1027,7 +1027,7 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def checkupdates_async(self):
 		# Get updates
-		upd = subprocess.run(shlex.split(f'checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		upd = subprocess.run(shlex.split(f'/usr/bin/checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
 
