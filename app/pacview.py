@@ -1082,11 +1082,19 @@ class MainWindow(Adw.ApplicationWindow):
 			# Update status
 			self.update_row.text = f'Updates ({len(updates)})'
 			self.update_row.set_tooltip_text("")
+			self.update_row.image.set_from_icon_name("status-update-symbolic")
 			self.update_row.image.set_opacity(1.0)
 			self.update_row.set_sensitive(True)
+		elif returncode == 1:
+			self.update_row.text = f'Updates'
+			self.update_row.set_tooltip_text("Update error")
+			self.update_row.image.set_from_icon_name("status-update-error-symbolic")
+			self.update_row.image.set_opacity(0.3)
+			self.update_row.set_sensitive(False)
 		else:
 			self.update_row.text = f'Updates'
 			self.update_row.set_tooltip_text("No updates available")
+			self.update_row.image.set_from_icon_name("status-update-symbolic")
 			self.update_row.image.set_opacity(0.3)
 			self.update_row.set_sensitive(False)
 
