@@ -23,6 +23,17 @@
                 <signal name="search-started" handler="on_search_started" swapped="no"/>
                 <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
                 <child>
+                  <object class="GtkImage" id="filter_image">
+                    <property name="margin_start">6</property>
+                    <property name="icon_name">funnel-symbolic</property>
+                    <child>
+                      <object class="GtkPopoverMenu" id="filter_popover">
+                        <property name="menu_model">search_menu</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkBox" id="searchtag_box">
                     <property name="margin_start">6</property>
                     <property name="margin_end">6</property>
@@ -64,12 +75,6 @@
                     </child>
                   </object>
                 </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkMenuButton" id="filter_btn">
-                <property name="icon_name">funnel-symbolic</property>
-                <property name="menu_model">search_menu</property>
               </object>
             </child>
           </object>

@@ -636,6 +636,9 @@ class SearchHeader(Gtk.Stack):
 
 	searchtag_box = Gtk.Template.Child()
 
+	filter_image = Gtk.Template.Child()
+	filter_popover = Gtk.Template.Child()
+
 	searchtag_name = Gtk.Template.Child()
 	searchtag_desc = Gtk.Template.Child()
 	searchtag_group = Gtk.Template.Child()
@@ -677,6 +680,16 @@ class SearchHeader(Gtk.Stack):
 
 		# Position search tags
 		Gtk.Widget.insert_after(self.searchtag_box, self.search_entry, self.search_entry.get_first_child())
+
+		# Capture click on filter image
+		click_gesture = Gtk.GestureClick.new()
+		click_gesture.connect("pressed", self.on_filter_image_clicked)
+
+		self.filter_image.add_controller(click_gesture)
+
+	def on_filter_image_clicked(self, n_press, x, y, user_data):
+		self.filter_popover.popup()
+		self.filter_popover.grab_focus()
 
 	#-----------------------------------
 	# Signal handlers
