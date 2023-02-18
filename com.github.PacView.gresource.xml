@@ -24,8 +24,6 @@
     <file compressed="true">icons/backup-changed.svg</file>
     <file compressed="true">icons/backup-error.svg</file>
     <file compressed="true">icons/backup-unchanged.svg</file>
-    <file compressed="true">icons/error-update.svg</file>
-    <file compressed="true">icons/no-update.svg</file>
     <file compressed="true">icons/pkg-dependency.svg</file>
     <file compressed="true">icons/pkg-explicit.svg</file>
     <file compressed="true">icons/pkg-optional.svg</file>
