@@ -597,10 +597,9 @@ class PkgInfoPane(Gtk.Overlay):
 	def on_setup_value(self, factory, item):
 		image = Gtk.Image()
 
-		button = InfoPaneButton(icon_name="edit-copy")
+		button = InfoPaneButton(icon_name="edit-copy", can_focus=False)
 		button.add_css_class("flat")
 		button.add_css_class("inline-button")
-		button.set_can_focus(False)
 
 		label = InfoPaneLabel(hexpand=True, xalign=0, use_markup=True)
 
