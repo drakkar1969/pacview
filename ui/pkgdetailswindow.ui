@@ -65,8 +65,7 @@
                     <property name="active">True</property>
                     <property name="icon">details-files-symbolic</property>
                     <property name="text">Files</property>
-                    <property name="action-name">win.switch-stack-page</property>
-                    <property name="action-target">'files'</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -75,8 +74,7 @@
                     <property name="group">file_button</property>
                     <property name="icon">details-tree-symbolic</property>
                     <property name="text">Tree</property>
-                    <property name="action-name">win.switch-stack-page</property>
-                    <property name="action-target">'tree'</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -85,8 +83,7 @@
                     <property name="group">file_button</property>
                     <property name="icon">details-log-symbolic</property>
                     <property name="text">Log</property>
-                    <property name="action-name">win.switch-stack-page</property>
-                    <property name="action-target">'log'</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -95,8 +92,7 @@
                     <property name="group">file_button</property>
                     <property name="icon">details-cache-symbolic</property>
                     <property name="text">Cache</property>
-                    <property name="action-name">win.switch-stack-page</property>
-                    <property name="action-target">'cache'</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -105,8 +101,7 @@
                     <property name="group">file_button</property>
                     <property name="icon">details-backup-symbolic</property>
                     <property name="text">Backup</property>
-                    <property name="action-name">win.switch-stack-page</property>
-                    <property name="action-target">'backup'</property>
+                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
                   </object>
                 </child>
               </object>

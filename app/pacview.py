@@ -149,11 +149,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		self.pkg_object = pkg_object
 
-		# Create stack action
-		action = Gio.SimpleAction.new_stateful("switch-stack-page", GLib.VariantType.new("s"), GLib.Variant.new_string("files"))
-		action.connect("change-state", self.on_stack_page_switch)
-		self.add_action(action)
-
 		# Set tree label font
 		if monospace_font == "":
 			gsettings = Gio.Settings(schema_id="org.gnome.desktop.interface")
@@ -242,10 +237,12 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
 
 	#-----------------------------------
-	# Action handlers
+	# Toggle button signal handler
 	#-----------------------------------
-	def on_stack_page_switch(self, action, value):
-		self.content_stack.set_visible_child_name(value.get_string())
+	@Gtk.Template.Callback()
+	def on_button_toggled(self, button):
+		if button.get_active() == True:
+			self.content_stack.set_visible_child_name(button.text.lower())
 
 	#-----------------------------------
 	# Dependency tree dropdown signal handler
