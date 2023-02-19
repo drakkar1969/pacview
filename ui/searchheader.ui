@@ -24,19 +24,19 @@
                 <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
                 <child>
                   <object class="GtkImage" id="filter_image">
-                    <property name="margin_start">6</property>
-                    <property name="icon_name">funnel-symbolic</property>
+                    <property name="margin-start">6</property>
+                    <property name="icon-name">funnel-symbolic</property>
                     <child>
                       <object class="GtkPopoverMenu" id="filter_popover">
-                        <property name="menu_model">search_menu</property>
+                        <property name="menu-model">search_menu</property>
                       </object>
                     </child>
                   </object>
                 </child>
                 <child>
                   <object class="GtkBox" id="searchtag_box">
-                    <property name="margin_start">6</property>
-                    <property name="margin_end">6</property>
+                    <property name="margin-start">6</property>
+                    <property name="margin-end">6</property>
                     <property name="spacing">6</property>
                     <child>
                       <object class="SearchTag" id="searchtag_name">

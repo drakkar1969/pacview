@@ -52,10 +52,10 @@
       <object class="GtkBox" id="overlay_toolbar">
         <property name="halign">end</property>
         <property name="valign">end</property>
-        <property name="margin_start">8</property>
-        <property name="margin_end">8</property>
-        <property name="margin_top">8</property>
-        <property name="margin_bottom">8</property>
+        <property name="margin-start">8</property>
+        <property name="margin-end">8</property>
+        <property name="margin-top">8</property>
+        <property name="margin-bottom">8</property>
         <style>
           <class name="osd"/>
           <class name="rounded"/>
@@ -63,17 +63,17 @@
         <child>
           <object class="GtkBox" id="nav_button_box">
             <property name="visible">False</property>
-            <property name="margin_start">4</property>
-            <property name="margin_end">4</property>
-            <property name="margin_top">4</property>
-            <property name="margin_bottom">4</property>
+            <property name="margin-start">4</property>
+            <property name="margin-end">4</property>
+            <property name="margin-top">4</property>
+            <property name="margin-bottom">4</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkButton" id="prev_button">
                 <property name="sensitive">False</property>
-                <property name="icon_name">go-previous-symbolic</property>
+                <property name="icon-name">go-previous-symbolic</property>
                 <property name="tooltip-text">Previous</property>
-                <property name="action_name">win.view-prev-package</property>
+                <property name="action-name">win.view-prev-package</property>
                 <style>
                   <class name="circular"/>
                   <class name="flat"/>
@@ -83,9 +83,9 @@
             <child>
               <object class="GtkButton" id="next_button">
                 <property name="sensitive">False</property>
-                <property name="icon_name">go-next-symbolic</property>
+                <property name="icon-name">go-next-symbolic</property>
                 <property name="tooltip-text">Next</property>
-                <property name="action_name">win.view-next-package</property>
+                <property name="action-name">win.view-next-package</property>
                 <style>
                   <class name="circular"/>
                   <class name="flat"/>
@@ -96,16 +96,16 @@
         </child>
         <child>
           <object class="GtkBox" id="info_button_box">
-            <property name="margin_start">4</property>
-            <property name="margin_end">4</property>
-            <property name="margin_top">4</property>
-            <property name="margin_bottom">4</property>
+            <property name="margin-start">4</property>
+            <property name="margin-end">4</property>
+            <property name="margin-top">4</property>
+            <property name="margin-bottom">4</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkButton" id="details_button">
-                <property name="icon_name">dialog-information-symbolic</property>
+                <property name="icon-name">dialog-information-symbolic</property>
                 <property name="tooltip-text">Show Package Details</property>
-                <property name="action_name">win.show-details-window</property>
+                <property name="action-name">win.show-details-window</property>
                 <style>
                   <class name="circular"/>
                   <class name="flat"/>

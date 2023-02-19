@@ -2,8 +2,8 @@
 <interface>
   <!--// PACKAGE DETAILS WINDOW //-->
   <template class="PkgDetailsWindow" parent="AdwApplicationWindow">
-    <property name="default_width">650</property>
-    <property name="default_height">650</property>
+    <property name="default-width">650</property>
+    <property name="default-height">650</property>
     <property name="modal">True</property>
     <property name="title"></property>
     <child>
@@ -24,16 +24,16 @@
         <child>
           <object class="GtkBox" id="main_box">
             <property name="orientation">vertical</property>
-            <property name="margin_start">24</property>
-            <property name="margin_end">24</property>
-            <property name="margin_bottom">24</property>
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="margin-bottom">24</property>
             <property name="spacing">16</property>
             <child>
               <object class="GtkBox" id="banner_box">
                 <property name="orientation">vertical</property>
-                <property name="margin_start">16</property>
-                <property name="margin_end">16</property>
-                <property name="margin_bottom">24</property>
+                <property name="margin-start">16</property>
+                <property name="margin-end">16</property>
+                <property name="margin-bottom">24</property>
                 <property name="spacing">16</property>
                 <child>
                   <object class="GtkImage" id="pkg_image">
@@ -125,9 +125,9 @@
                         </style>
                         <child>
                           <object class="GtkBox">
-                            <property name="margin_start">16</property>
-                            <property name="margin_end">16</property>
-                            <property name="margin_top">16</property>
+                            <property name="margin-start">16</property>
+                            <property name="margin-end">16</property>
+                            <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
@@ -152,11 +152,11 @@
                           <object class="GtkScrolledWindow">
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
-                            <property name="margin_bottom">16</property>
+                            <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkListView" id="files_view">
-                                <property name="margin_start">16</property>
-                                <property name="margin_end">16</property>
+                                <property name="margin-start">16</property>
+                                <property name="margin-end">16</property>
                                 <property name="model">
                                   <object class="GtkNoSelection">
                                     <property name="model">
@@ -189,9 +189,9 @@
                         </style>
                         <child>
                           <object class="GtkBox">
-                            <property name="margin_start">16</property>
-                            <property name="margin_end">16</property>
-                            <property name="margin_top">16</property>
+                            <property name="margin-start">16</property>
+                            <property name="margin-end">16</property>
+                            <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
@@ -247,11 +247,11 @@
                           <object class="GtkScrolledWindow">
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
-                            <property name="margin_bottom">16</property>
+                            <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkLabel" id="tree_label">
-                                <property name="margin_start">24</property>
-                                <property name="margin_end">16</property>
+                                <property name="margin-start">24</property>
+                                <property name="margin-end">16</property>
                                 <property name="xalign">0</property>
                                 <property name="yalign">0</property>
                               </object>
@@ -274,9 +274,9 @@
                         </style>
                         <child>
                           <object class="GtkBox">
-                            <property name="margin_start">16</property>
-                            <property name="margin_end">16</property>
-                            <property name="margin_top">16</property>
+                            <property name="margin-start">16</property>
+                            <property name="margin-end">16</property>
+                            <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
@@ -302,11 +302,11 @@
                           <object class="GtkScrolledWindow">
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
-                            <property name="margin_bottom">16</property>
+                            <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkListView" id="log_view">
-                                <property name="margin_start">16</property>
-                                <property name="margin_end">16</property>
+                                <property name="margin-start">16</property>
+                                <property name="margin-end">16</property>
                                 <property name="model">
                                   <object class="GtkNoSelection">
                                     <property name="model">
@@ -339,9 +339,9 @@
                         </style>
                         <child>
                           <object class="GtkBox">
-                            <property name="margin_start">16</property>
-                            <property name="margin_end">16</property>
-                            <property name="margin_top">16</property>
+                            <property name="margin-start">16</property>
+                            <property name="margin-end">16</property>
+                            <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
@@ -367,11 +367,11 @@
                           <object class="GtkScrolledWindow">
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
-                            <property name="margin_bottom">16</property>
+                            <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkListView" id="cache_view">
-                                <property name="margin_start">16</property>
-                                <property name="margin_end">16</property>
+                                <property name="margin-start">16</property>
+                                <property name="margin-end">16</property>
                                 <property name="model">
                                   <object class="GtkNoSelection">
                                     <property name="model">
@@ -404,9 +404,9 @@
                         </style>
                         <child>
                           <object class="GtkBox">
-                            <property name="margin_start">16</property>
-                            <property name="margin_end">16</property>
-                            <property name="margin_top">16</property>
+                            <property name="margin-start">16</property>
+                            <property name="margin-end">16</property>
+                            <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
                               <object class="GtkImage">
@@ -432,14 +432,14 @@
                           <object class="GtkScrolledWindow">
                             <property name="hexpand">True</property>
                             <property name="vexpand">True</property>
-                            <property name="margin_bottom">16</property>
+                            <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkColumnView" id="backup_view">
                                 <style>
                                   <class name="data-table"/>
                                 </style>
-                                <property name="margin_start">16</property>
-                                <property name="margin_end">16</property>
+                                <property name="margin-start">16</property>
+                                <property name="margin-end">16</property>
                                 <property name="model">
                                   <object class="GtkNoSelection">
                                     <property name="model">
