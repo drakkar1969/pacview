@@ -1427,27 +1427,24 @@ class MainWindow(Adw.ApplicationWindow):
 		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 #------------------------------------------------------------------------------
-#-- CLASS: LAUNCHERAPP
+#-- CLASS: PACVIEWAPP
 #------------------------------------------------------------------------------
-class LauncherApp(Adw.Application):
+class PacViewApp(Adw.Application):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
 
-		# Connect signal handlers
-		self.connect("activate", self.on_activate)
-
 	#-----------------------------------
-	# Signal handlers
+	# Activate function
 	#-----------------------------------
-	def on_activate(self, app):
+	def do_activate(self):
 		self.main_window = MainWindow(application=app)
 		self.main_window.present()
 
 #------------------------------------------------------------------------------
 #-- MAIN APP
 #------------------------------------------------------------------------------
-app = LauncherApp(application_id="com.github.PacView")
+app = PacViewApp(application_id="com.github.PacView")
 app.run(sys.argv)
