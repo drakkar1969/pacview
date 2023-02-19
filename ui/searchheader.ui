@@ -73,6 +73,12 @@
                         <property name="label">provides</property>
                       </object>
                     </child>
+                    <child>
+                      <object class="SearchTag" id="searchtag_files">
+                        <property name="visible">False</property>
+                        <property name="label">files</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
@@ -110,6 +116,10 @@
       <item>
         <attribute name="label">Provides</attribute>
         <attribute name="action">win.search-by-provides</attribute>
+      </item>
+      <item>
+        <attribute name="label">Files</attribute>
+        <attribute name="action">win.search-by-files</attribute>
       </item>
     </section>
     <section>

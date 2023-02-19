@@ -517,6 +517,7 @@ class PkgColumnView(Gtk.Overlay):
 	search_by_deps = GObject.Property(type=bool, default=False)
 	search_by_optdeps = GObject.Property(type=bool, default=False)
 	search_by_provides = GObject.Property(type=bool, default=False)
+	search_by_files = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
@@ -546,6 +547,7 @@ class PkgColumnView(Gtk.Overlay):
 		self.connect("notify::search-by-deps", self.on_search_by_changed)
 		self.connect("notify::search-by-optdeps", self.on_search_by_changed)
 		self.connect("notify::search-by-provides", self.on_search_by_changed)
+		self.connect("notify::search-by-files", self.on_search_by_changed)
 
 		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
@@ -568,7 +570,8 @@ class PkgColumnView(Gtk.Overlay):
 				self.search_by_group and search_term in item.group.lower(),
 				self.search_by_deps and any(search_term in s.lower() for s in item.depends),
 				self.search_by_optdeps and any(search_term in s.lower() for s in item.optdepends),
-				self.search_by_provides and any(search_term in s.lower() for s in item.provides)
+				self.search_by_provides and any(search_term in s.lower() for s in item.provides),
+				self.search_by_files and any(search_term in s.lower() for s in item.files)
 			)))
 
 	#-----------------------------------
@@ -645,6 +648,7 @@ class SearchHeader(Gtk.Stack):
 	searchtag_deps = Gtk.Template.Child()
 	searchtag_optdeps = Gtk.Template.Child()
 	searchtag_provides = Gtk.Template.Child()
+	searchtag_files = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -856,6 +860,11 @@ class MainWindow(Adw.ApplicationWindow):
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
+		self.column_view.bind_property(
+			"search_by_files", self.header_search.searchtag_files, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
 		# Create column view header menu actions
 		self.add_action(self.gsettings.create_action("show-column-version"))
 		self.add_action(self.gsettings.create_action("show-column-repository"))
@@ -871,6 +880,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action(Gio.PropertyAction.new("search-by-deps", self.column_view, "search_by_deps"))
 		self.add_action(Gio.PropertyAction.new("search-by-optdeps", self.column_view, "search_by_optdeps"))
 		self.add_action(Gio.PropertyAction.new("search-by-provides", self.column_view, "search_by_provides"))
+		self.add_action(Gio.PropertyAction.new("search-by-files", self.column_view, "search_by_files"))
 
 		app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
 		app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
@@ -878,6 +888,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
 		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
 		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
+		app.set_accels_for_action("win.search-by-files", ["<ctrl>7"])
 
 		action_list = [
 			( "selectall-searchby-params", self.selectall_searchby_params_action ),
@@ -1112,11 +1123,11 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.view.grab_focus()
 
 	def selectall_searchby_params_action(self, action, value, user_data):
-		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
+		for n in ["name", "desc", "group", "deps", "optdeps", "provides", "files"]:
 			self.column_view.set_property(f'search_by_{n}', True)
 
 	def reset_searchby_params_action(self, action, value, user_data):
-		for n in ["name", "desc", "group", "deps", "optdeps", "provides"]:
+		for n in ["name", "desc", "group", "deps", "optdeps", "provides", "files"]:
 			self.column_view.set_property(f'search_by_{n}', (n == "name"))
 			
 	def view_prev_package_action(self, action, value, user_data):
