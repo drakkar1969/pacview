@@ -504,6 +504,40 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		if keycode == Gdk.KEY_Escape and state == 0: self.close()
 
 #------------------------------------------------------------------------------
+#-- CLASS: INFOPANEBUTTON
+#------------------------------------------------------------------------------
+class InfoPaneButton(Gtk.Button):
+	__gtype_name__ = "InfoPaneButton"
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	signal_id = GObject.Property(type=int, default=None)
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+#------------------------------------------------------------------------------
+#-- CLASS: INFOPANELABEL
+#------------------------------------------------------------------------------
+class InfoPaneLabel(Gtk.Label):
+	__gtype_name__ = "InfoPaneLabel"
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	signal_id = GObject.Property(type=int, default=None)
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+#------------------------------------------------------------------------------
 #-- CLASS: PKGINFOPANE
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkginfopane.ui")
@@ -563,14 +597,12 @@ class PkgInfoPane(Gtk.Overlay):
 	def on_setup_value(self, factory, item):
 		image = Gtk.Image()
 
-		button = Gtk.Button(icon_name="edit-copy")
+		button = InfoPaneButton(icon_name="edit-copy")
 		button.add_css_class("flat")
 		button.add_css_class("inline-button")
 		button.set_can_focus(False)
-		button.connect("clicked", self.on_copybtn_clicked)
 
-		label = Gtk.Label(hexpand=True, xalign=0, use_markup=True)
-		label.connect("activate-link", self.on_link_activated)
+		label = InfoPaneLabel(hexpand=True, xalign=0, use_markup=True)
 
 		box = Gtk.Box(spacing=6)
 		box.append(image)
@@ -594,8 +626,20 @@ class PkgInfoPane(Gtk.Overlay):
 		image.set_from_icon_name(icon)
 
 		label.set_label(obj.value)
+		label.signal_id = label.connect("activate-link", self.on_link_activated)
 
 		button.set_visible(obj.can_copy)
+		button.signal_id = button.connect("clicked", self.on_copybtn_clicked)
+
+	@Gtk.Template.Callback()
+	def on_unbind_value(self, factory, item):
+		child = item.get_child()
+
+		button = child.get_first_child().get_next_sibling()
+		label = child.get_last_child()
+
+		button.disconnect(button.signal_id)
+		label.disconnect(label.signal_id)
 
 	#-----------------------------------
 	# Link signal handler
