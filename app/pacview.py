@@ -554,7 +554,6 @@ class PkgInfoPane(Gtk.Overlay):
 	nav_button_box = Gtk.Template.Child()
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
-	details_button = Gtk.Template.Child()
 
 	empty_label = Gtk.Template.Child()
 
