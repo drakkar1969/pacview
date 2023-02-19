@@ -1153,7 +1153,7 @@ class MainWindow(Adw.ApplicationWindow):
 			application_name="PacView",
 			application_icon="software-properties",
 			developer_name="draKKar1969",
-			version="1.0.rc6",
+			version="1.0.rc7",
 			comments="A Pacman database and AUR browser for Arch Linux, heavily inspired by <a href='https://osdn.net/projects/pkgbrowser/'>PkgBrowser</a>",
 			website="https://github.com/drakkar1969/pacview",
 			developers=["draKKar1969"],
