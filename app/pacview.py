@@ -550,6 +550,7 @@ class PkgInfoPane(Gtk.Overlay):
 	view = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 
+	overlay_toolbar = Gtk.Template.Child()
 	nav_button_box = Gtk.Template.Child()
 	prev_button = Gtk.Template.Child()
 	next_button = Gtk.Template.Child()
@@ -1183,9 +1184,9 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Info pane
 		#-----------------------------
-		# Bind info pane package to details button enabled state
+		# Bind info pane package to overlay toolbar visibility
 		self.info_pane.bind_property(
-			"pkg_object", self.info_pane.details_button, "sensitive",
+			"pkg_object", self.info_pane.overlay_toolbar, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value is not None
 		)
