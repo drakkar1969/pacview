@@ -67,31 +67,6 @@ class StatsWindow(Adw.Window):
 	def on_key_pressed(self, keyval, keycode, user_data, state):
 		if keycode == Gdk.KEY_Escape and state == 0: self.close()
 
-	#-----------------------------------
-	# Factory signal handlers
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_setup_left(self, factory, item):
-		label = Gtk.Label(xalign=0, use_markup=True)
-		item.set_child(label)
-
-	@Gtk.Template.Callback()
-	def on_setup_right(self, factory, item):
-		label = Gtk.Label(xalign=1, use_markup=True)
-		item.set_child(label)
-
-	@Gtk.Template.Callback()
-	def on_bind_repository(self, factory, item):
-		item.get_child().set_label(item.get_item().repository)
-
-	@Gtk.Template.Callback()
-	def on_bind_count(self, factory, item):
-		item.get_child().set_label(item.get_item().count)
-
-	@Gtk.Template.Callback()
-	def on_bind_size(self, factory, item):
-		item.get_child().set_label(item.get_item().size)
-
 #------------------------------------------------------------------------------
 #-- CLASS: STACKTOGGLEBUTTON
 #------------------------------------------------------------------------------

@@ -51,9 +51,8 @@
                     <property name="title">Repository</property>
                     <property name="expand">True</property>
                     <property name="factory">
-                      <object class="GtkSignalListItemFactory" id="repository_factory">
-                        <signal name="setup" handler="on_setup_left" swapped="no"/>
-                        <signal name="bind" handler="on_bind_repository" swapped="no"/>
+                      <object class="GtkBuilderListItemFactory" id="repository_factory">
+                        <property name="resource">/com/github/PacView/ui/stats/repository-item.ui</property>
                       </object>
                     </property>
                   </object>
@@ -62,9 +61,8 @@
                   <object class="GtkColumnViewColumn" id="count_column">
                     <property name="title">Packages</property>
                     <property name="factory">
-                      <object class="GtkSignalListItemFactory" id="count_factory">
-                        <signal name="setup" handler="on_setup_right" swapped="no"/>
-                        <signal name="bind" handler="on_bind_count" swapped="no"/>
+                      <object class="GtkBuilderListItemFactory" id="count_factory">
+                        <property name="resource">/com/github/PacView/ui/stats/count-item.ui</property>
                       </object>
                     </property>
                   </object>
@@ -73,9 +71,8 @@
                   <object class="GtkColumnViewColumn" id="size_column">
                     <property name="title">Installed Size</property>
                     <property name="factory">
-                      <object class="GtkSignalListItemFactory" id="size_factory">
-                        <signal name="setup" handler="on_setup_right" swapped="no"/>
-                        <signal name="bind" handler="on_bind_size" swapped="no"/>
+                      <object class="GtkBuilderListItemFactory" id="size_factory">
+                        <property name="resource">/com/github/PacView/ui/stats/size-item.ui</property>
                       </object>
                     </property>
                   </object>

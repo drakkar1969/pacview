@@ -43,6 +43,9 @@
     <file compressed="true">ui/details/file-item.ui</file>
     <file compressed="true">ui/details/log-item.ui</file>
     <file compressed="true">ui/infopane/name-item.ui</file>
+    <file compressed="true">ui/stats/repository-item.ui</file>
+    <file compressed="true">ui/stats/count-item.ui</file>
+    <file compressed="true">ui/stats/size-item.ui</file>
     <file compressed="true">ui/mainwindow.ui</file>
     <file compressed="true">ui/pkgcolumnview.ui</file>
     <file compressed="true">ui/pkgdetailswindow.ui</file>
