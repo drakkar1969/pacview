@@ -1079,7 +1079,7 @@ class MainWindow(Adw.ApplicationWindow):
 			# Force update of info pane package object
 			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
-			# Update status
+			# Update sidebar listbox row
 			self.update_row.text = f'Updates ({len(updates)})'
 			self.update_row.set_tooltip_text("")
 			self.update_row.image.set_from_icon_name("status-update-symbolic")
