@@ -665,8 +665,6 @@ class SearchHeader(Gtk.Stack):
 
 	search_active = GObject.Property(type=bool, default=False)
 
-	search_term = GObject.Property(type=str, default="")
-
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -675,12 +673,6 @@ class SearchHeader(Gtk.Stack):
 
 		# Bind property change signal handlers
 		self.connect("notify::search-active", self.on_search_active_changed)
-
-		# Bind entry text to search_term property
-		self.search_entry.bind_property(
-			"text", self, "search_term",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
 
 		# Position search tags
 		Gtk.Widget.insert_after(self.searchtag_box, self.search_entry, self.search_entry.get_first_child())
@@ -808,8 +800,8 @@ class MainWindow(Adw.ApplicationWindow):
 		# Search header
 		#-----------------------------
 		# Bind header search term to column view
-		self.header_search.bind_property(
-			"search_term", self.column_view, "current_search",
+		self.header_search.search_entry.bind_property(
+			"text", self.column_view, "current_search",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
