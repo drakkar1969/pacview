@@ -215,7 +215,7 @@ class PkgObject(GObject.Object):
 				break
 			pkg_size /= 1024.0
 		
-		return(f"{pkg_size:.{decimals}f} {unit}")
+		return(f'{pkg_size:.{decimals}f} {unit}')
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGPROPERTY
