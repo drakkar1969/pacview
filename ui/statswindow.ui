@@ -51,7 +51,7 @@
                     <property name="title">Repository</property>
                     <property name="expand">True</property>
                     <property name="factory">
-                      <object class="GtkBuilderListItemFactory" id="repository_factory">
+                      <object class="GtkBuilderListItemFactory">
                         <property name="resource">/com/github/PacView/ui/stats/repository-item.ui</property>
                       </object>
                     </property>
@@ -61,7 +61,7 @@
                   <object class="GtkColumnViewColumn" id="count_column">
                     <property name="title">Packages</property>
                     <property name="factory">
-                      <object class="GtkBuilderListItemFactory" id="count_factory">
+                      <object class="GtkBuilderListItemFactory">
                         <property name="resource">/com/github/PacView/ui/stats/count-item.ui</property>
                       </object>
                     </property>
@@ -71,7 +71,7 @@
                   <object class="GtkColumnViewColumn" id="size_column">
                     <property name="title">Installed Size</property>
                     <property name="factory">
-                      <object class="GtkBuilderListItemFactory" id="size_factory">
+                      <object class="GtkBuilderListItemFactory">
                         <property name="resource">/com/github/PacView/ui/stats/size-item.ui</property>
                       </object>
                     </property>

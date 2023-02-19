@@ -161,7 +161,7 @@
                                   </object>
                                 </property>
                                 <property name="factory">
-                                  <object class="GtkBuilderListItemFactory" id="files_factory">
+                                  <object class="GtkBuilderListItemFactory">
                                     <property name="resource">/com/github/PacView/ui/details/file-item.ui</property>
                                   </object>
                                 </property>
@@ -311,7 +311,7 @@
                                   </object>
                                 </property>
                                 <property name="factory">
-                                  <object class="GtkBuilderListItemFactory" id="log_factory">
+                                  <object class="GtkBuilderListItemFactory">
                                     <property name="resource">/com/github/PacView/ui/details/log-item.ui</property>
                                   </object>
                                 </property>
@@ -376,7 +376,7 @@
                                   </object>
                                 </property>
                                 <property name="factory">
-                                  <object class="GtkBuilderListItemFactory" id="cache_factory">
+                                  <object class="GtkBuilderListItemFactory">
                                     <property name="resource">/com/github/PacView/ui/details/cache-item.ui</property>
                                   </object>
                                 </property>
@@ -451,7 +451,7 @@
                                     <property name="resizable">True</property>
                                     <property name="expand">True</property>
                                     <property name="factory">
-                                      <object class="GtkBuilderListItemFactory" id="backup_file_factory">
+                                      <object class="GtkBuilderListItemFactory">
                                         <property name="resource">/com/github/PacView/ui/details/backup-file-item.ui</property>
                                       </object>
                                     </property>
@@ -462,7 +462,7 @@
                                     <property name="title">Status</property>
                                     <property name="resizable">True</property>
                                     <property name="factory">
-                                      <object class="GtkBuilderListItemFactory" id="backup_mod_factory">
+                                      <object class="GtkBuilderListItemFactory">
                                         <property name="resource">/com/github/PacView/ui/details/backup-mod-item.ui</property>
                                       </object>
                                     </property>
