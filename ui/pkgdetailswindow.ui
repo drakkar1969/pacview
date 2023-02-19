@@ -136,6 +136,7 @@
                               <object class="GtkLabel" id="file_header_label">
                                 <property name="xalign">0</property>
                                 <property name="yalign">0.5</property>
+                                <property name="label">Files</property>
                                 <style>
                                   <class name="title-3"/>
                                 </style>
