@@ -1428,7 +1428,7 @@ class MainWindow(Adw.ApplicationWindow):
 		stats_window.show()
 
 	def copy_package_list_action(self, action, value, user_data):
-		copy_text = '\n'.join([f'{obj.repository}/{obj.name}' for obj in self.column_view.selection])
+		copy_text = '\n'.join([f'{obj.repository}\t{obj.name}\t{obj.version}' for obj in self.column_view.selection])
 
 		clipboard = self.get_clipboard()
 
