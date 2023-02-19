@@ -19,7 +19,7 @@
             <property name="spacing">6</property>
             <child>
               <object class="GtkSearchEntry" id="search_entry">
-                <property name="width-request">800</property>
+                <property name="width-request">700</property>
                 <signal name="search-started" handler="on_search_started" swapped="no"/>
                 <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
                 <child>
