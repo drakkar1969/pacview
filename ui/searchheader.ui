@@ -4,7 +4,7 @@
   <template class="SearchHeader" parent="GtkStack">
     <property name="title" bind-source="title_widget" bind-property="title" bind-flags="sync-create|bidirectional"/>
     <child>
-      <object class="GtkStackPage">
+      <object class="GtkStackPage" id="title_page">
         <property name="name">title</property>
         <property name="child">
           <object class="AdwWindowTitle" id="title_widget"/>
@@ -12,7 +12,7 @@
       </object>
     </child>
     <child>
-      <object class="GtkStackPage">
+      <object class="GtkStackPage" id="search_page">
         <property name="name">search</property>
         <property name="child">
           <object class="GtkBox" id="search_box">

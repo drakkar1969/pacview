@@ -140,7 +140,7 @@
           <object class="GtkSeparator"/>
         </child>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="status_box">
             <property name="margin-start">6</property>
             <property name="margin-end">6</property>
             <property name="margin-top">6</property>

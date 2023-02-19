@@ -109,7 +109,7 @@
             <child>
               <object class="GtkStack" id="content_stack">
                 <child>
-                  <object class="GtkStackPage">
+                  <object class="GtkStackPage" id="file_page">
                     <property name="name">files</property>
                     <property name="child">
                       <object class="GtkBox" id="file_box">
@@ -119,13 +119,13 @@
                           <class name="card"/>
                         </style>
                         <child>
-                          <object class="GtkBox">
+                          <object class="GtkBox" id="file_header_box">
                             <property name="margin-start">16</property>
                             <property name="margin-end">16</property>
                             <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
-                              <object class="GtkImage">
+                              <object class="GtkImage" id="file_header_image">
                                 <property name="icon-name">details-files-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
@@ -174,7 +174,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkStackPage">
+                  <object class="GtkStackPage" id="tree_page">
                     <property name="name">tree</property>
                     <property name="child">
                       <object class="GtkBox" id="tree_box">
@@ -184,13 +184,13 @@
                           <class name="card"/>
                         </style>
                         <child>
-                          <object class="GtkBox">
+                          <object class="GtkBox" id="tree_header_box">
                             <property name="margin-start">16</property>
                             <property name="margin-end">16</property>
                             <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
-                              <object class="GtkImage">
+                              <object class="GtkImage" id="tree_header_image">
                                 <property name="icon-name">details-tree-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
@@ -259,7 +259,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkStackPage">
+                  <object class="GtkStackPage" id="log_page">
                     <property name="name">log</property>
                     <property name="child">
                       <object class="GtkBox" id="log_box">
@@ -269,13 +269,13 @@
                           <class name="card"/>
                         </style>
                         <child>
-                          <object class="GtkBox">
+                          <object class="GtkBox" id="log_header_box">
                             <property name="margin-start">16</property>
                             <property name="margin-end">16</property>
                             <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
-                              <object class="GtkImage">
+                              <object class="GtkImage" id="log_header_image">
                                 <property name="icon-name">details-log-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
@@ -324,7 +324,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkStackPage">
+                  <object class="GtkStackPage" id="cache_page">
                     <property name="name">cache</property>
                     <property name="child">
                       <object class="GtkBox" id="cache_box">
@@ -334,13 +334,13 @@
                           <class name="card"/>
                         </style>
                         <child>
-                          <object class="GtkBox">
+                          <object class="GtkBox" id="cache_header_box">
                             <property name="margin-start">16</property>
                             <property name="margin-end">16</property>
                             <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
-                              <object class="GtkImage">
+                              <object class="GtkImage" id="cache_header_image">
                                 <property name="icon-name">details-cache-symbolic</property>
                                 <style>
                                   <class name="bubble"/>
@@ -389,7 +389,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkStackPage">
+                  <object class="GtkStackPage" id="backup_page">
                     <property name="name">backup</property>
                     <property name="child">
                       <object class="GtkBox" id="backup_box">
@@ -399,13 +399,13 @@
                           <class name="card"/>
                         </style>
                         <child>
-                          <object class="GtkBox">
+                          <object class="GtkBox" id="backup_header_box">
                             <property name="margin-start">16</property>
                             <property name="margin-end">16</property>
                             <property name="margin-top">16</property>
                             <property name="spacing">12</property>
                             <child>
-                              <object class="GtkImage">
+                              <object class="GtkImage" id="backup_header_image">
                                 <property name="icon-name">details-backup-symbolic</property>
                                 <style>
                                   <class name="bubble"/>

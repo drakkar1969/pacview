@@ -96,7 +96,7 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox" id="info_button_box">
+          <object class="GtkBox" id="details_button_box">
             <property name="margin-start">4</property>
             <property name="margin-end">4</property>
             <property name="margin-top">4</property>
