@@ -1484,8 +1484,13 @@ class PacViewApp(Adw.Application):
 	# Activate function
 	#-----------------------------------
 	def do_activate(self):
-		self.main_window = MainWindow(application=app)
-		self.main_window.present()
+		active_window = self.get_active_window()
+
+		if active_window:
+			active_window.present()
+		else:
+			self.main_window = MainWindow(application=app)
+			self.main_window.present()
 
 #------------------------------------------------------------------------------
 #-- MAIN APP
