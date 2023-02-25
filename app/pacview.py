@@ -1021,7 +1021,7 @@ class MainWindow(Adw.ApplicationWindow):
 	column_view = Gtk.Template.Child()
 	info_pane = Gtk.Template.Child()
 
-	status_count_label = Gtk.Template.Child()
+	status_label = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -1100,7 +1100,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Bind column view count to status label text
 		self.column_view.filter_model.bind_property(
-			"n-items", self.status_count_label, "label",
+			"n-items", self.status_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
 		)
