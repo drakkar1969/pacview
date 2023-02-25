@@ -39,8 +39,8 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Internal pyalpm package properties
 	#-----------------------------------
-	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
-	localpkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
+	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None, flags=GObject.ParamFlags.READWRITE|GObject.ParamFlags.PRIVATE)
+	localpkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None, flags=GObject.ParamFlags.READWRITE|GObject.ParamFlags.PRIVATE)
 
 	#-----------------------------------
 	# Status flags property
