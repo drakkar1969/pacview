@@ -1388,7 +1388,7 @@ class MainWindow(Adw.ApplicationWindow):
 		return(False)
 
 	#-----------------------------------
-	# Action handlers
+	# Search action handlers
 	#-----------------------------------
 	def start_search_action(self, action, value, user_data):
 		self.header_search.search_active = True
@@ -1406,6 +1406,9 @@ class MainWindow(Adw.ApplicationWindow):
 		for n in ["name", "desc", "group", "deps", "optdeps", "provides", "files"]:
 			self.column_view.set_property(f'search_by_{n}', (n == "name"))
 			
+	#-----------------------------------
+	# Info pane action handlers
+	#-----------------------------------
 	def view_prev_package_action(self, action, value, user_data):
 		self.info_pane.display_prev_package()
 
@@ -1417,6 +1420,9 @@ class MainWindow(Adw.ApplicationWindow):
 			details_window = PkgDetailsWindow(self.info_pane.pkg_object, self.monospace_font, transient_for=self)
 			details_window.show()
 
+	#-----------------------------------
+	# Other action handlers
+	#-----------------------------------
 	def refresh_dbs_action(self, action, value, user_data):
 		self.header_search.search_active = False
 
@@ -1454,7 +1460,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.close()
 
 	#-----------------------------------
-	# Signal handlers
+	# Sidebar signal handlers
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
@@ -1466,6 +1472,9 @@ class MainWindow(Adw.ApplicationWindow):
 		if row is not None:
 			self.column_view.current_status = PkgStatus(int(row.str_id))
 
+	#-----------------------------------
+	# Column view signal handlers
+	#-----------------------------------
 	def on_column_view_activated(self, view, pos):
 		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
