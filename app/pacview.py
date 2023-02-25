@@ -50,27 +50,27 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# External read-only properties
 	#-----------------------------------
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def name(self):
 		return(self.pkg.name)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def version(self):
 		return(self.local_pkg.version if self.local_pkg is not None else self.pkg.version)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def description(self):
 		return(self.pkg.desc)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def url(self):
 		return(self.pkg.url)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def licenses(self):
 		return(', '.join(sorted(self.pkg.licenses)))
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def status(self):
 		if self.status_flags & PkgStatus.EXPLICIT: return("explicit")
 		elif self.status_flags & PkgStatus.DEPENDENCY: return("dependency")
@@ -78,7 +78,7 @@ class PkgObject(GObject.Object):
 		elif self.status_flags & PkgStatus.ORPHAN: return("orphan")
 		else: return("")
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def status_icon(self):
 		if self.status_flags & PkgStatus.EXPLICIT: return("pkg-explicit")
 		elif self.status_flags & PkgStatus.DEPENDENCY: return("pkg-dependency")
@@ -86,95 +86,95 @@ class PkgObject(GObject.Object):
 		elif self.status_flags & PkgStatus.ORPHAN: return("pkg-orphan")
 		else: return("")
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def repository(self):
 		return(self.pkg.db.name if self.pkg.db.name != "local" else "AUR")
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def group(self):
 		return(', '.join(sorted(self.pkg.groups)))
 
-	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def provides(self):
 		return(self.pkg.provides)
 
-	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def depends(self):
 		return(self.pkg.depends)
 
-	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def optdepends(self):
 		return(self.pkg.optdepends)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def required_by(self):
 		return(self.local_pkg.compute_requiredby() if self.local_pkg is not None else self.pkg.compute_requiredby())
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def optional_for(self):
 		return(self.local_pkg.compute_optionalfor() if self.local_pkg is not None else self.pkg.compute_optionalfor())
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def conflicts(self):
 		return(self.pkg.conflicts)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def replaces(self):
 		return(self.pkg.replaces)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def architecture(self):
 		return(self.pkg.arch)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def maintainer(self):
 		return(self.pkg.packager)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def build_date_long(self):
 		return(self.date_to_str_long(self.pkg.builddate))
 
-	@GObject.Property(type=int, default=0)
+	@GObject.Property(type=int, default=0, flags=GObject.ParamFlags.READABLE)
 	def install_date_raw(self):
 		return(self.local_pkg.installdate if self.local_pkg is not None else self.pkg.installdate)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def install_date_short(self):
 		return(self.date_to_str_short(self.install_date_raw))
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def install_date_long(self):
 		return(self.date_to_str_long(self.install_date_raw))
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def download_size(self):
 		return(self.size_to_str(self.pkg.size) if self.local_pkg is None else "")
 
-	@GObject.Property(type=int, default=0)
+	@GObject.Property(type=int, default=0, flags=GObject.ParamFlags.READABLE)
 	def install_size_raw(self):
 		return(self.pkg.isize)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def install_size(self):
 		return(self.size_to_str(self.pkg.isize))
 
-	@GObject.Property(type=bool, default=False)
+	@GObject.Property(type=bool, default=False, flags=GObject.ParamFlags.READABLE)
 	def install_script(self):
 		return(self.pkg.has_scriptlet)
 
-	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def files(self):
 		return([f[0] for f in self.local_pkg.files] if self.local_pkg is not None else [])
 
-	@GObject.Property(type=GObject.TYPE_STRV, default=[])
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def backup(self):
 		return(self.local_pkg.backup if self.local_pkg is not None else [])
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def sha256sum(self):
 		return(self.pkg.sha256sum)
 
-	@GObject.Property(type=str, default="")
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def md5sum(self):
 		return(self.pkg.md5sum)
 
