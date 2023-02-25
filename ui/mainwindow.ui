@@ -3,8 +3,8 @@
   <!--// MAIN WINDOW //-->
   <template class="MainWindow" parent="AdwApplicationWindow">
     <signal name="show" handler="on_show" swapped="no"/>
-    <property name="default-width">1400</property>
-    <property name="default-height">780</property>
+    <property name="default-width">1450</property>
+    <property name="default-height">840</property>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
@@ -119,7 +119,7 @@
               <object class="GtkPaned" id="pane">
                 <property name="orientation">vertical</property>
                 <property name="wide-handle">True</property>
-                <property name="position">360</property>
+                <property name="position">400</property>
                 <property name="shrink-start-child">False</property>
                 <property name="shrink-end-child">False</property>
                 <property name="start-child">

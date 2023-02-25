@@ -2,10 +2,10 @@
 <schemalist>
   <schema id="com.github.PacView" path="/com/github/PacView/">
     <key name="window-width" type="i">
-      <default>1400</default>
+      <default>1450</default>
     </key>
     <key name="window-height" type="i">
-      <default>780</default>
+      <default>840</default>
     </key>
     <key name="window-maximized" type="b">
       <default>false</default>
@@ -17,7 +17,7 @@
       <default>true</default>
     </key>
     <key name="infopane-position" type="i">
-      <default>360</default>
+      <default>400</default>
     </key>
     <key name="show-column-version" type="b">
       <default>true</default>
