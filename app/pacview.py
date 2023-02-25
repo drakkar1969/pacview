@@ -40,7 +40,7 @@ class PkgObject(GObject.Object):
 	# Internal pyalpm package properties
 	#-----------------------------------
 	pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
-	local_pkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
+	localpkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None)
 
 	#-----------------------------------
 	# Status flags property
@@ -56,7 +56,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def version(self):
-		return(self.local_pkg.version if self.local_pkg is not None else self.pkg.version)
+		return(self.localpkg.version if self.localpkg is not None else self.pkg.version)
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def description(self):
@@ -108,11 +108,11 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def required_by(self):
-		return(self.local_pkg.compute_requiredby() if self.local_pkg is not None else self.pkg.compute_requiredby())
+		return(self.localpkg.compute_requiredby() if self.localpkg is not None else self.pkg.compute_requiredby())
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def optional_for(self):
-		return(self.local_pkg.compute_optionalfor() if self.local_pkg is not None else self.pkg.compute_optionalfor())
+		return(self.localpkg.compute_optionalfor() if self.localpkg is not None else self.pkg.compute_optionalfor())
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def conflicts(self):
@@ -136,7 +136,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=int, default=0, flags=GObject.ParamFlags.READABLE)
 	def install_date_raw(self):
-		return(self.local_pkg.installdate if self.local_pkg is not None else self.pkg.installdate)
+		return(self.localpkg.installdate if self.localpkg is not None else self.pkg.installdate)
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def install_date_short(self):
@@ -148,7 +148,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def download_size(self):
-		return(self.size_to_str(self.pkg.size) if self.local_pkg is None else "")
+		return(self.size_to_str(self.pkg.size) if self.localpkg is None else "")
 
 	@GObject.Property(type=int, default=0, flags=GObject.ParamFlags.READABLE)
 	def install_size_raw(self):
@@ -164,11 +164,11 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def files(self):
-		return([f[0] for f in self.local_pkg.files] if self.local_pkg is not None else [])
+		return([f[0] for f in self.localpkg.files] if self.localpkg is not None else [])
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def backup(self):
-		return(self.local_pkg.backup if self.local_pkg is not None else [])
+		return(self.localpkg.backup if self.localpkg is not None else [])
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def sha256sum(self):
@@ -191,7 +191,7 @@ class PkgObject(GObject.Object):
 		super().__init__(*args, **kwargs)
 
 		self.pkg = pkg
-		self.local_pkg, self.status_flags = local_data
+		self.localpkg, self.status_flags = local_data
 
 	#-----------------------------------
 	# Helper functions
@@ -1270,40 +1270,40 @@ class MainWindow(Adw.ApplicationWindow):
 		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
 
 		# Package dict
-		all_pkg_dict = {}
+		pkg_dict = {}
 
 		# Add sync packages
 		for db in self.pacman_db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
-				all_pkg_dict.update({pkg.name: pkg for pkg in sync_db.pkgcache})
+				pkg_dict.update({pkg.name: pkg for pkg in sync_db.pkgcache})
 
 		# Add local packages
 		local_db = alpm_handle.get_localdb()
-		local_pkg_dict = {pkg.name: pkg for pkg in local_db.pkgcache}
+		localpkg_dict = {pkg.name: pkg for pkg in local_db.pkgcache}
 
-		all_pkg_dict.update({pkg.name: pkg for pkg in local_db.pkgcache if pkg.name not in all_pkg_dict.keys()})
+		pkg_dict.update({pkg.name: pkg for pkg in local_db.pkgcache if pkg.name not in pkg_dict.keys()})
 
 		# Create list of package objects
 		def __get_local_data(name):
-			if name in local_pkg_dict.keys():
-				local_pkg = local_pkg_dict[name]
+			if name in localpkg_dict.keys():
+				localpkg = localpkg_dict[name]
 
 				status_flags = PkgStatus.NONE
 
-				if local_pkg.reason == 0: status_flags = PkgStatus.EXPLICIT
+				if localpkg.reason == 0: status_flags = PkgStatus.EXPLICIT
 				else:
-					if local_pkg.compute_requiredby() != []:
+					if localpkg.compute_requiredby() != []:
 						status_flags = PkgStatus.DEPENDENCY
 					else:
-						status_flags = PkgStatus.OPTIONAL if local_pkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+						status_flags = PkgStatus.OPTIONAL if localpkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
 
-				return(local_pkg, status_flags)
+				return(localpkg, status_flags)
 
 			return(None, PkgStatus.NONE)
 
-		self.pkg_objects = [PkgObject(pkg, __get_local_data(pkg.name)) for pkg in all_pkg_dict.values()]
+		self.pkg_objects = [PkgObject(pkg, __get_local_data(pkg.name)) for pkg in pkg_dict.values()]
 
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
