@@ -511,10 +511,22 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	__gtype_name__ = "PreferencesWindow"
 
 	#-----------------------------------
+	# Class widget variables
+	#-----------------------------------
+	font_expander = Gtk.Template.Child()
+	font_switch = Gtk.Template.Child()
+
+	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Bind font expander state to font switch
+		self.font_expander.bind_property(
+			"expanded", self.font_switch, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
 
 #------------------------------------------------------------------------------
 #-- CLASS: INFOPANEBUTTON

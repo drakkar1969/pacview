@@ -3,7 +3,7 @@
   <!--// PREFERENCES WINDOW //-->
   <template class="PreferencesWindow" parent="AdwPreferencesWindow">
     <property name="modal">True</property>
-    <property name="search_enabled">False</property>
+    <property name="search-enabled">False</property>
     <child>
       <object class="AdwPreferencesPage">
         <!-- <child>
@@ -28,8 +28,9 @@
             <property name="title">Details Window</property>
             <child>
               <object class="AdwExpanderRow" id="font_expander">
-                <property name="title">Custom Dependency Tree _Font</property>
-                <property name="use_underline">True</property>
+                <property name="title">Custom Monospace _Font</property>
+                <property name="subtitle">Use custom font for dependency tree</property>
+                <property name="use-underline">True</property>
                 <child type="action">
                   <object class="GtkSwitch" id="font_switch">
                     <property name="valign">center</property>
@@ -38,8 +39,16 @@
                 <child>
                   <object class="AdwActionRow">
                     <property name="title"></property>
-                    <property name="use_underline">True</property>
-                    <!-- <property name="activatable_widget">load_switch</property> -->
+                    <property name="activatable-widget">font_button</property>
+                    <child type="suffix">
+                      <object class="GtkButton" id="font_button">
+                        <property name="valign">center</property>
+                        <property name="icon-name">go-next-symbolic</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
