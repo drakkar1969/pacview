@@ -1318,10 +1318,12 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_show(self, window):
+		self.init_window()
+
 		if self.prefs_window.lazy_load:
-			GLib.idle_add(self.init_window)
+			GLib.idle_add(self.init_packages)
 		else:
-			self.init_window()
+			self.init_packages()
 
 	#-----------------------------------
 	# Init window function
@@ -1329,9 +1331,13 @@ class MainWindow(Adw.ApplicationWindow):
 	def init_window(self):
 		self.init_databases()
 
-		self.populate_column_view()
-
 		self.populate_sidebar()
+
+	#-----------------------------------
+	# Init packages function
+	#-----------------------------------
+	def init_packages(self):
+		self.populate_column_view()
 
 		thread = threading.Thread(target=self.checkupdates_async, args=(self.prefs_window.aur_update_command,), daemon=True)
 		thread.start()
@@ -1350,6 +1356,39 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Add AUR to configured database names
 		self.pacman_db_names.append("AUR")
+
+	#-----------------------------------
+	# Init sidebar function
+	#-----------------------------------
+	def populate_sidebar(self):
+		# Remove rows from listboxes
+		while(row := self.repo_listbox.get_row_at_index(0)):
+			self.repo_listbox.remove(row)
+
+		while(row := self.status_listbox.get_row_at_index(0)):
+			self.status_listbox.remove(row)
+
+		# Add rows to repository list box
+		repo_row = SidebarListBoxRow(icon="repository-symbolic", text="All")
+		self.repo_listbox.append(repo_row)
+
+		for db in self.pacman_db_names:
+			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
+
+		self.repo_listbox.select_row(repo_row)
+
+		# Add rows to status list box
+		status_dict = {PkgStatus.ALL: "status-all-symbolic", PkgStatus.INSTALLED: "status-installed-symbolic", PkgStatus.EXPLICIT: "status-explicit-symbolic", PkgStatus.DEPENDENCY: "status-dependency-symbolic", PkgStatus.OPTIONAL: "status-optional-symbolic", PkgStatus.ORPHAN: "status-orphan-symbolic", PkgStatus.NONE: "status-none-symbolic", PkgStatus.UPDATES: "status-update-symbolic"}
+
+		for st in status_dict.keys():
+			row = SidebarListBoxRow(icon=status_dict.get(st, ""), text=st.name.title(), str_id=st.value)
+			self.status_listbox.append(row)
+			if st == PkgStatus.INSTALLED:
+				self.status_listbox.select_row(row)
+			if st == PkgStatus.UPDATES:
+				self.update_row = row
+				self.update_row.image.set_opacity(0.3)
+				self.update_row.set_sensitive(False)
 
 	#-----------------------------------
 	# Populate column view function
@@ -1395,39 +1434,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pkg_objects = [PkgObject(pkg, __get_local_data(pkg.name)) for pkg in pkg_dict.values()]
 
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
-
-	#-----------------------------------
-	# Init sidebar function
-	#-----------------------------------
-	def populate_sidebar(self):
-		# Remove rows from listboxes
-		while(row := self.repo_listbox.get_row_at_index(0)):
-			self.repo_listbox.remove(row)
-
-		while(row := self.status_listbox.get_row_at_index(0)):
-			self.status_listbox.remove(row)
-
-		# Add rows to repository list box
-		repo_row = SidebarListBoxRow(icon="repository-symbolic", text="All")
-		self.repo_listbox.append(repo_row)
-
-		for db in self.pacman_db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
-
-		self.repo_listbox.select_row(repo_row)
-
-		# Add rows to status list box
-		status_dict = {PkgStatus.ALL: "status-all-symbolic", PkgStatus.INSTALLED: "status-installed-symbolic", PkgStatus.EXPLICIT: "status-explicit-symbolic", PkgStatus.DEPENDENCY: "status-dependency-symbolic", PkgStatus.OPTIONAL: "status-optional-symbolic", PkgStatus.ORPHAN: "status-orphan-symbolic", PkgStatus.NONE: "status-none-symbolic", PkgStatus.UPDATES: "status-update-symbolic"}
-
-		for st in status_dict.keys():
-			row = SidebarListBoxRow(icon=status_dict.get(st, ""), text=st.name.title(), str_id=st.value)
-			self.status_listbox.append(row)
-			if st == PkgStatus.INSTALLED:
-				self.status_listbox.select_row(row)
-			if st == PkgStatus.UPDATES:
-				self.update_row = row
-				self.update_row.image.set_opacity(0.3)
-				self.update_row.set_sensitive(False)
 
 	#-----------------------------------
 	# Check for updates functions
@@ -1525,7 +1531,9 @@ class MainWindow(Adw.ApplicationWindow):
 	def refresh_dbs_action(self, action, value, user_data):
 		self.header_search.search_active = False
 
-		GLib.idle_add(self.init_window)
+		self.init_window()
+
+		GLib.idle_add(self.init_packages)
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
