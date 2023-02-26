@@ -34,8 +34,7 @@ button.inline-button:active {
 label.searchtag {
 	background: alpha(@window_fg_color, 0.1);
 	border-radius: 9999px;
-	margin: 6px 0;
-	padding: 0 12px;
+	padding: 3px 12px;
 }
 
 label.count-indicator {

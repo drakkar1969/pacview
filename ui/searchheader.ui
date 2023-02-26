@@ -35,6 +35,7 @@
                 </child>
                 <child>
                   <object class="GtkBox" id="searchtag_box">
+                    <property name="valign">center</property>
                     <child>
                       <object class="SearchTag" id="searchtag_name">
                         <property name="label">name</property>
