@@ -1458,7 +1458,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		returncode = pacman_upd.returncode
 
-		if aur_update_command != "":
+		if aur_update_command != "" and returncode != 1:
 			aur_upd = subprocess.run(shlex.split(f'{aur_update_command}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			update_list.extend(aur_upd.stdout.decode().split('\n'))
@@ -1471,24 +1471,23 @@ class MainWindow(Adw.ApplicationWindow):
 		GLib.idle_add(self.show_pkg_updates, update_dict, returncode)
 
 	def show_pkg_updates(self, update_dict, returncode):
-		if returncode == 0:
-			# Modify package object properties if update available
-			if len(update_dict) != 0:
-				for obj in self.pkg_objects:
-					if obj.name in update_dict.keys():
-						obj.has_updates = True
-						obj.status_flags |= PkgStatus.UPDATES
-						obj.update_version = update_dict[obj.name]
+		# Modify package object properties if update available
+		if returncode != 1 and len(update_dict) != 0:
+			for obj in self.pkg_objects:
+				if obj.name in update_dict.keys():
+					obj.has_updates = True
+					obj.status_flags |= PkgStatus.UPDATES
+					obj.update_version = update_dict[obj.name]
 
-			# Force update of info pane package object
-			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+		# Update info pane package object
+		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 		# Update sidebar status listbox update row
 		self.update_row.stack.set_visible_child_name("icon")
 		self.update_row.spinner.set_spinning(False)
 
-		self.update_row.count_label.set_visible(True if returncode == 0 else False)
-		self.update_row.count = f'{len(update_dict)}' if returncode == 0 else ""
+		self.update_row.count_label.set_visible(True if returncode != 1 and len(update_dict) != 0 else False)
+		self.update_row.count = f'{len(update_dict)}' if returncode != 1 and len(update_dict) != 0 else ""
 		self.update_row.set_tooltip_text("Update error" if returncode == 1 else "")
 		self.update_row.image.set_from_icon_name("status-update-error-symbolic" if returncode == 1 else "status-update-symbolic")
 		self.update_row.set_sensitive(False if returncode == 1 else True)
