@@ -963,7 +963,9 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	stack = Gtk.Template.Child()
 	image = Gtk.Template.Child()
+	spinner = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -1394,6 +1396,8 @@ class MainWindow(Adw.ApplicationWindow):
 				self.status_listbox.select_row(row)
 			if st == PkgStatus.UPDATES:
 				self.update_row = row
+				self.update_row.spinner.set_spinning(True)
+				self.update_row.stack.set_visible_child_name("spinner")
 				self.update_row.set_sensitive(False)
 
 	#-----------------------------------
@@ -1478,6 +1482,9 @@ class MainWindow(Adw.ApplicationWindow):
 			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 		# Update sidebar status listbox update row
+		self.update_row.stack.set_visible_child_name("icon")
+		self.update_row.spinner.set_spinning(False)
+
 		self.update_row.text = f'Updates ({len(update_dict)})' if returncode == 0 else f'Updates'
 		self.update_row.set_tooltip_text("" if returncode == 0 else ("Update error" if returncode == 1 else "No updates available"))
 		self.update_row.image.set_from_icon_name("status-update-error-symbolic" if returncode == 1 else "status-update-symbolic")
