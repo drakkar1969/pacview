@@ -7,6 +7,7 @@
     <property name="count" bind-source="count_label" bind-property="label" bind-flags="sync-create|bidirectional"/>
     <property name="child">
       <object class="GtkBox">
+        <property name="hexpand">True</property>
         <property name="margin-start">6</property>
         <property name="margin-end">6</property>
         <property name="spacing">6</property>
@@ -32,13 +33,13 @@
         </child>
         <child>
           <object class="GtkLabel" id="text_label">
+            <property name="hexpand">True</property>
             <property name="xalign">0</property>
           </object>
         </child>
         <child>
           <object class="GtkLabel" id="count_label">
             <property name="visible">False</property>
-            <property name="margin_start">6</property>
             <property name="xalign">0</property>
             <style>
               <class name="caption-heading"/>
