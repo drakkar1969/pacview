@@ -50,6 +50,7 @@
     <file compressed="true">ui/pkgcolumnview.ui</file>
     <file compressed="true">ui/pkgdetailswindow.ui</file>
     <file compressed="true">ui/pkginfopane.ui</file>
+    <file compressed="true">ui/prefswindow.ui</file>
     <file compressed="true">ui/searchheader.ui</file>
     <file compressed="true">ui/searchtag.ui</file>
     <file compressed="true">ui/sidebarlistboxrow.ui</file>

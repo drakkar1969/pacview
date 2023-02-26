@@ -504,6 +504,19 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		if keycode == Gdk.KEY_Escape and state == 0: self.close()
 
 #------------------------------------------------------------------------------
+#-- CLASS: PREFERENCESWINDOW
+#------------------------------------------------------------------------------
+@Gtk.Template(resource_path="/com/github/PacView/ui/prefswindow.ui")
+class PreferencesWindow(Adw.PreferencesWindow):
+	__gtype_name__ = "PreferencesWindow"
+
+	#-----------------------------------
+	# Init function
+	#-----------------------------------
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
+
+#------------------------------------------------------------------------------
 #-- CLASS: INFOPANEBUTTON
 #------------------------------------------------------------------------------
 class InfoPaneButton(Gtk.Button):
@@ -1211,6 +1224,7 @@ class MainWindow(Adw.ApplicationWindow):
 			( "show-stats-window", self.show_stats_window_action ),
 			( "copy-package-list", self.copy_package_list_action ),
 
+			( "show-preferences", self.show_preferences_action ),
 			( "show-about", self.show_about_action ),
 			( "quit-app", self.quit_app_action )
 		]
@@ -1221,6 +1235,7 @@ class MainWindow(Adw.ApplicationWindow):
 		app.set_accels_for_action("win.show-stats-window", ["<alt>S"])
 		app.set_accels_for_action("win.copy-package-list", ["<alt>L"])
 		
+		app.set_accels_for_action("win.show-preferences", ["<ctrl>comma"])
 		app.set_accels_for_action("win.show-about", ["F1"])
 		app.set_accels_for_action("win.quit-app", ["<ctrl>q"])
 
@@ -1440,6 +1455,10 @@ class MainWindow(Adw.ApplicationWindow):
 		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, copy_text))
 
 		clipboard.set_content(content)
+
+	def show_preferences_action(self, action, value, user_data):
+		prefs_window = PreferencesWindow(transient_for=self)
+		prefs_window.show()
 
 	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(
