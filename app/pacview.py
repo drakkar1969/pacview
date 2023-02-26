@@ -519,7 +519,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 	font_expander = Gtk.Template.Child()
 	font_switch = Gtk.Template.Child()
-	font_row = Gtk.Template.Child()
+	font_label = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -552,7 +552,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		)
 
 		self.bind_property(
-			"monospace_font", self.font_row, "title",
+			"monospace_font", self.font_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
@@ -566,7 +566,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	# Signal handlers
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_font_button_clicked(self, button):
+	def on_fontrow_activated(self, button):
 		self.font_dialog = Gtk.FontChooserDialog(
 			title="Select Font",
 			modal=True,

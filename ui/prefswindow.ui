@@ -48,16 +48,17 @@
                 </child>
                 <child>
                   <object class="AdwActionRow" id="font_row">
-                    <property name="title"></property>
-                    <property name="activatable-widget">font_button</property>
+                    <property name="title">Font Name</property>
+                    <property name="activatable">True</property>
+                    <signal name="activated" handler="on_fontrow_activated" swapped="no"/>
                     <child type="suffix">
-                      <object class="GtkButton" id="font_button">
-                        <property name="valign">center</property>
+                      <object class="GtkLabel" id="font_label">
+                        <property name="margin_end">6</property>
+                      </object>
+                    </child>
+                    <child type="suffix">
+                      <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>
-                        <signal name="clicked" handler="on_font_button_clicked" swapped="no"/>
-                        <style>
-                          <class name="flat"/>
-                        </style>
                       </object>
                     </child>
                   </object>
