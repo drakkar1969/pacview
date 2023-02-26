@@ -4,7 +4,7 @@
   <template class="MainWindow" parent="AdwApplicationWindow">
     <signal name="show" handler="on_show" swapped="no"/>
     <property name="default-width">1450</property>
-    <property name="default-height">840</property>
+    <property name="default-height">800</property>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
@@ -55,59 +55,65 @@
                   <class name="background"/>
                 </style>
                 <child>
-                  <object class="GtkBox" id="sidebar_box">
-                    <property name="width-request">200</property>
-                    <property name="orientation">vertical</property>
-                    <property name="margin-start">6</property>
-                    <property name="margin-end">6</property>
-                    <property name="margin-top">12</property>
-                    <property name="margin-bottom">12</property>
-                    <child>
-                      <object class="GtkLabel" id="repo_header">
-                        <property name="label">Repository</property>
-                        <property name="xalign">0</property>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="vexpand">True</property>
+                    <property name="child">
+                      <object class="GtkBox" id="sidebar_box">
+                        <property name="width-request">200</property>
+                        <property name="orientation">vertical</property>
                         <property name="margin-start">6</property>
                         <property name="margin-end">6</property>
-                        <property name="margin-top">6</property>
-                        <property name="margin-bottom">6</property>
-                        <style>
-                          <class name="heading"/>
-                        </style>
+                        <property name="margin-top">12</property>
+                        <property name="margin-bottom">12</property>
+                        <child>
+                          <object class="GtkLabel" id="repo_header">
+                            <property name="label">Repository</property>
+                            <property name="xalign">0</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">6</property>
+                            <property name="margin-bottom">6</property>
+                            <style>
+                              <class name="heading"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkListBox" id="repo_listbox">
+                            <property name="margin-bottom">6</property>
+                            <signal name="row-selected" handler="on_repo_selected" swapped="no"/>
+                            <style>
+                              <class name="navigation-sidebar"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkSeparator"/>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="status_header">
+                            <property name="label">Package Status</property>
+                            <property name="xalign">0</property>
+                            <property name="margin-start">6</property>
+                            <property name="margin-end">6</property>
+                            <property name="margin-top">18</property>
+                            <property name="margin-bottom">6</property>
+                            <style>
+                              <class name="heading"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkListBox" id="status_listbox">
+                            <signal name="row-selected" handler="on_status_selected" swapped="no"/>
+                            <style>
+                              <class name="navigation-sidebar"/>
+                            </style>
+                          </object>
+                        </child>
                       </object>
-                    </child>
-                    <child>
-                      <object class="GtkListBox" id="repo_listbox">
-                        <property name="margin-bottom">6</property>
-                        <signal name="row-selected" handler="on_repo_selected" swapped="no"/>
-                        <style>
-                          <class name="navigation-sidebar"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparator"/>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="status_header">
-                        <property name="label">Package Status</property>
-                        <property name="xalign">0</property>
-                        <property name="margin-start">6</property>
-                        <property name="margin-end">6</property>
-                        <property name="margin-top">18</property>
-                        <property name="margin-bottom">6</property>
-                        <style>
-                          <class name="heading"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkListBox" id="status_listbox">
-                        <signal name="row-selected" handler="on_status_selected" swapped="no"/>
-                        <style>
-                          <class name="navigation-sidebar"/>
-                        </style>
-                      </object>
-                    </child>
+                    </property>
                   </object>
                 </child>
               </object>
@@ -119,7 +125,7 @@
               <object class="GtkPaned" id="pane">
                 <property name="orientation">vertical</property>
                 <property name="wide-handle">True</property>
-                <property name="position">400</property>
+                <property name="position">375</property>
                 <property name="shrink-start-child">False</property>
                 <property name="shrink-end-child">False</property>
                 <property name="start-child">
