@@ -513,6 +513,8 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
+	load_switch = Gtk.Template.Child()
+
 	font_expander = Gtk.Template.Child()
 	font_switch = Gtk.Template.Child()
 	font_row = Gtk.Template.Child()
@@ -520,6 +522,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
+	lazy_load = GObject.Property(type=bool, default=False)
 	custom_font = GObject.Property(type=bool, default=False)
 	monospace_font = GObject.Property(type=str, default="")
 
@@ -530,6 +533,11 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		super().__init__(*args, **kwargs)
 
 		# Bind properties to widgets
+		self.bind_property(
+			"lazy_load", self.load_switch, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
 		self.bind_property(
 			"custom_font", self.font_expander, "expanded",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
@@ -1117,6 +1125,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 
+		self.gsettings.bind("lazy-load", self.prefs_window, "lazy_load",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("custom-font", self.prefs_window, "custom_font",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("monospace-font", self.prefs_window, "monospace_font",Gio.SettingsBindFlags.DEFAULT)
 
@@ -1300,7 +1309,10 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_show(self, window):
-		self.init_window()
+		if self.prefs_window.lazy_load:
+			GLib.idle_add(self.init_window)
+		else:
+			self.init_window()
 
 	#-----------------------------------
 	# Init window function
