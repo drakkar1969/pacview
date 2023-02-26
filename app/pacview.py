@@ -520,6 +520,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
+	custom_font = GObject.Property(type=bool, default=False)
 	monospace_font = GObject.Property(type=str, default="")
 
 	#-----------------------------------
@@ -527,6 +528,17 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		# Bind properties to widgets
+		self.bind_property(
+			"custom_font", self.font_expander, "expanded",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
+		self.bind_property(
+			"monospace_font", self.font_row, "title",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
 
 		# Bind font expander state to font switch
 		self.font_expander.bind_property(
@@ -545,6 +557,8 @@ class PreferencesWindow(Adw.PreferencesWindow):
 			transient_for=self
 		)
 
+		self.font_dialog.set_font(self.monospace_font)
+
 		self.font_dialog.connect("response", self.on_font_dialog_response)
 		self.font_dialog.show()
 
@@ -552,7 +566,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		if response == Gtk.ResponseType.OK:
 			if (font := dialog.get_font()) is not None:
 				self.monospace_font = font
-				self.font_row.set_title(font)
 
 		self.font_dialog.close()
 		self.font_dialog = None
@@ -1077,10 +1090,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	status_label = Gtk.Template.Child()
 
-	#-----------------------------------
-	# Properties
-	#-----------------------------------
-	monospace_font = GObject.Property(type=str, default="")
+	prefs_window = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Init function
@@ -1106,7 +1116,9 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("show-column-date", self.column_view.date_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("monospace-font", self, "monospace_font",Gio.SettingsBindFlags.DEFAULT)
+
+		self.gsettings.bind("custom-font", self.prefs_window, "custom_font",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("monospace-font", self.prefs_window, "monospace_font",Gio.SettingsBindFlags.DEFAULT)
 
 		#-----------------------------
 		# Toolbar buttons
@@ -1473,7 +1485,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def show_details_window_action(self, action, value, user_data):
 		if self.info_pane.pkg_object is not None:
-			details_window = PkgDetailsWindow(self.info_pane.pkg_object, self.monospace_font, transient_for=self)
+			details_window = PkgDetailsWindow(self.info_pane.pkg_object, self.prefs_window.monospace_font if self.prefs_window.custom_font else "", transient_for=self)
 			details_window.show()
 
 	#-----------------------------------
@@ -1498,8 +1510,8 @@ class MainWindow(Adw.ApplicationWindow):
 		clipboard.set_content(content)
 
 	def show_preferences_action(self, action, value, user_data):
-		prefs_window = PreferencesWindow(transient_for=self)
-		prefs_window.show()
+		self.prefs_window.set_transient_for(self)
+		self.prefs_window.show()
 
 	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(

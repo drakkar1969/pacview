@@ -3,6 +3,7 @@
   <!--// PREFERENCES WINDOW //-->
   <template class="PreferencesWindow" parent="AdwPreferencesWindow">
     <property name="modal">True</property>
+    <property name="hide_on_close">True</property>
     <property name="search-enabled">False</property>
     <child>
       <object class="AdwPreferencesPage">
