@@ -515,6 +515,12 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	font_expander = Gtk.Template.Child()
 	font_switch = Gtk.Template.Child()
+	font_row = Gtk.Template.Child()
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	monospace_font = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
@@ -527,6 +533,29 @@ class PreferencesWindow(Adw.PreferencesWindow):
 			"expanded", self.font_switch, "active",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
+
+	#-----------------------------------
+	# Signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_font_button_clicked(self, button):
+		self.font_dialog = Gtk.FontChooserDialog(
+			title="Select Font",
+			modal=True,
+			transient_for=self
+		)
+
+		self.font_dialog.connect("response", self.on_font_dialog_response)
+		self.font_dialog.show()
+
+	def on_font_dialog_response(self, dialog, response):
+		if response == Gtk.ResponseType.OK:
+			if (font := dialog.get_font()) is not None:
+				self.monospace_font = font
+				self.font_row.set_title(font)
+
+		self.font_dialog.close()
+		self.font_dialog = None
 
 #------------------------------------------------------------------------------
 #-- CLASS: INFOPANEBUTTON

@@ -37,13 +37,14 @@
                   </object>
                 </child>
                 <child>
-                  <object class="AdwActionRow">
+                  <object class="AdwActionRow" id="font_row">
                     <property name="title"></property>
                     <property name="activatable-widget">font_button</property>
                     <child type="suffix">
                       <object class="GtkButton" id="font_button">
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
+                        <signal name="clicked" handler="on_font_button_clicked" swapped="no"/>
                         <style>
                           <class name="flat"/>
                         </style>
