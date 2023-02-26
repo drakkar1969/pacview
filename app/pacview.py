@@ -515,6 +515,8 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	load_switch = Gtk.Template.Child()
 
+	aur_entryrow = Gtk.Template.Child()
+
 	font_expander = Gtk.Template.Child()
 	font_switch = Gtk.Template.Child()
 	font_row = Gtk.Template.Child()
@@ -523,6 +525,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	# Properties
 	#-----------------------------------
 	lazy_load = GObject.Property(type=bool, default=False)
+	aur_update_command = GObject.Property(type=str, default="")
 	custom_font = GObject.Property(type=bool, default=False)
 	monospace_font = GObject.Property(type=str, default="")
 
@@ -535,6 +538,11 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		# Bind properties to widgets
 		self.bind_property(
 			"lazy_load", self.load_switch, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
+		self.bind_property(
+			"aur_update_command", self.aur_entryrow, "text",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
@@ -1126,6 +1134,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
 
 		self.gsettings.bind("lazy-load", self.prefs_window, "lazy_load",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("aur-update-command", self.prefs_window, "aur_update_command",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("custom-font", self.prefs_window, "custom_font",Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("monospace-font", self.prefs_window, "monospace_font",Gio.SettingsBindFlags.DEFAULT)
 
@@ -1324,7 +1333,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.populate_sidebar()
 
-		thread = threading.Thread(target=self.checkupdates_async, daemon=True)
+		thread = threading.Thread(target=self.checkupdates_async, args=(self.prefs_window.aur_update_command,), daemon=True)
 		thread.start()
 
 	#-----------------------------------
@@ -1423,31 +1432,41 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Check for updates functions
 	#-----------------------------------
-	def checkupdates_async(self):
+	def checkupdates_async(self, aur_update_command):
 		# Get updates
-		upd = subprocess.run(shlex.split(f'/usr/bin/checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		pacman_upd = subprocess.run(shlex.split(f'/usr/bin/checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
+		update_list = pacman_upd.stdout.decode().split('\n')
+
+		returncode = pacman_upd.returncode
+
+		if aur_update_command != "":
+			aur_upd = subprocess.run(shlex.split(f'{aur_update_command}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+			update_list.extend(aur_upd.stdout.decode().split('\n'))
+
+		# Build update dict
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
 
-		updates = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in upd.stdout.decode().split('\n') if u != ""}
+		update_dict = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in update_list if u != ""}
 
-		GLib.idle_add(self.show_pkg_updates, updates, upd.returncode)
+		GLib.idle_add(self.show_pkg_updates, update_dict, returncode)
 
-	def show_pkg_updates(self, updates, returncode):
+	def show_pkg_updates(self, update_dict, returncode):
 		if returncode == 0:
 			# Modify package object properties if update available
-			if len(updates) != 0:
+			if len(update_dict) != 0:
 				for obj in self.pkg_objects:
-					if obj.name in updates.keys():
+					if obj.name in update_dict.keys():
 						obj.has_updates = True
 						obj.status_flags |= PkgStatus.UPDATES
-						obj.update_version = updates[obj.name]
+						obj.update_version = update_dict[obj.name]
 
 			# Force update of info pane package object
 			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 			# Update sidebar listbox row
-			self.update_row.text = f'Updates ({len(updates)})'
+			self.update_row.text = f'Updates ({len(update_dict)})'
 			self.update_row.set_tooltip_text("")
 			self.update_row.image.set_from_icon_name("status-update-symbolic")
 			self.update_row.image.set_opacity(1.0)

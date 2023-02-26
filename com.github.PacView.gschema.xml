@@ -40,6 +40,9 @@
     <key name="lazy-load" type="b">
       <default>false</default>
     </key>
+    <key name="aur-update-command" type="s">
+      <default>''</default>
+    </key>
     <key name="custom-font" type="b">
       <default>false</default>
     </key>
