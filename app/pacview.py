@@ -979,6 +979,13 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
+		# Bind sensitive state to image opacity
+		self.bind_property(
+			"sensitive", self.image, "opacity",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: 1.0 if value == True else 0.3
+		)
+
 #------------------------------------------------------------------------------
 #-- CLASS: SEARCHTAG
 #------------------------------------------------------------------------------
@@ -1387,7 +1394,6 @@ class MainWindow(Adw.ApplicationWindow):
 				self.status_listbox.select_row(row)
 			if st == PkgStatus.UPDATES:
 				self.update_row = row
-				self.update_row.image.set_opacity(0.3)
 				self.update_row.set_sensitive(False)
 
 	#-----------------------------------
@@ -1475,7 +1481,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.update_row.text = f'Updates ({len(update_dict)})' if returncode == 0 else f'Updates'
 		self.update_row.set_tooltip_text("" if returncode == 0 else ("Update error" if returncode == 1 else "No updates available"))
 		self.update_row.image.set_from_icon_name("status-update-error-symbolic" if returncode == 1 else "status-update-symbolic")
-		self.update_row.image.set_opacity(1.0 if returncode == 0 else 0.3)
 		self.update_row.set_sensitive(True if returncode == 0 else False)
 
 		return(False)
