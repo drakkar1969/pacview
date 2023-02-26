@@ -39,8 +39,6 @@ label.searchtag {
 
 label.count-indicator {
 	background: alpha(@window_fg_color, 0.15);
-	/* color: @accent_fg_color; */
 	border-radius: 9999px;
-	margin: 7px 0;
-	padding: 0 7px;
+	padding: 3px 7px;
 }
