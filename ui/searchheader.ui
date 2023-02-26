@@ -35,9 +35,6 @@
                 </child>
                 <child>
                   <object class="GtkBox" id="searchtag_box">
-                    <property name="margin-start">6</property>
-                    <property name="margin-end">6</property>
-                    <property name="spacing">6</property>
                     <child>
                       <object class="SearchTag" id="searchtag_name">
                         <property name="label">name</property>
