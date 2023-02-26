@@ -1489,9 +1489,9 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.update_row.count_label.set_visible(True if returncode == 0 else False)
 		self.update_row.count = f'{len(update_dict)}' if returncode == 0 else ""
-		self.update_row.set_tooltip_text("" if returncode == 0 else ("Update error" if returncode == 1 else "No updates available"))
+		self.update_row.set_tooltip_text("Update error" if returncode == 1 else "")
 		self.update_row.image.set_from_icon_name("status-update-error-symbolic" if returncode == 1 else "status-update-symbolic")
-		self.update_row.set_sensitive(True if returncode == 0 else False)
+		self.update_row.set_sensitive(False if returncode == 1 else True)
 
 		return(False)
 
