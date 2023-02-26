@@ -1471,24 +1471,12 @@ class MainWindow(Adw.ApplicationWindow):
 			# Force update of info pane package object
 			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
-			# Update sidebar listbox row
-			self.update_row.text = f'Updates ({len(update_dict)})'
-			self.update_row.set_tooltip_text("")
-			self.update_row.image.set_from_icon_name("status-update-symbolic")
-			self.update_row.image.set_opacity(1.0)
-			self.update_row.set_sensitive(True)
-		elif returncode == 1:
-			self.update_row.text = f'Updates'
-			self.update_row.set_tooltip_text("Update error")
-			self.update_row.image.set_from_icon_name("status-update-error-symbolic")
-			self.update_row.image.set_opacity(0.3)
-			self.update_row.set_sensitive(False)
-		else:
-			self.update_row.text = f'Updates'
-			self.update_row.set_tooltip_text("No updates available")
-			self.update_row.image.set_from_icon_name("status-update-symbolic")
-			self.update_row.image.set_opacity(0.3)
-			self.update_row.set_sensitive(False)
+		# Update sidebar status listbox update row
+		self.update_row.text = f'Updates ({len(update_dict)})' if returncode == 0 else f'Updates'
+		self.update_row.set_tooltip_text("" if returncode == 0 else ("Update error" if returncode == 1 else "No updates available"))
+		self.update_row.image.set_from_icon_name("status-update-error-symbolic" if returncode == 1 else "status-update-symbolic")
+		self.update_row.image.set_opacity(1.0 if returncode == 0 else 0.3)
+		self.update_row.set_sensitive(True if returncode == 0 else False)
 
 		return(False)
 
