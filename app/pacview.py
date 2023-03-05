@@ -1081,10 +1081,32 @@ class SearchHeader(Gtk.Stack):
 	#-----------------------------------
 	def on_search_active_changed(self, view, prop):
 		if self.search_active == True:
+			app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
+			app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
+			app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
+			app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
+			app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
+			app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
+			app.set_accels_for_action("win.search-by-files", ["<ctrl>7"])
+
+			app.set_accels_for_action("win.selectall-searchby-params", ["<ctrl>L"])
+			app.set_accels_for_action("win.reset-searchby-params", ["<ctrl>R"])
+
 			self.set_visible_child_name("search")
 
 			self.search_entry.grab_focus()
 		else:
+			app.set_accels_for_action("win.search-by-name", [])
+			app.set_accels_for_action("win.search-by-desc", [])
+			app.set_accels_for_action("win.search-by-group", [])
+			app.set_accels_for_action("win.search-by-deps", [])
+			app.set_accels_for_action("win.search-by-optdeps", [])
+			app.set_accels_for_action("win.search-by-provides", [])
+			app.set_accels_for_action("win.search-by-files", [])
+
+			app.set_accels_for_action("win.selectall-searchby-params", [])
+			app.set_accels_for_action("win.reset-searchby-params", [])
+
 			self.search_entry.set_text("")
 
 			self.set_visible_child_name("title")
@@ -1236,14 +1258,6 @@ class MainWindow(Adw.ApplicationWindow):
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
-		# Create column view header menu actions
-		self.add_action(self.gsettings.create_action("show-column-version"))
-		self.add_action(self.gsettings.create_action("show-column-repository"))
-		self.add_action(self.gsettings.create_action("show-column-status"))
-		self.add_action(self.gsettings.create_action("show-column-date"))
-		self.add_action(self.gsettings.create_action("show-column-size"))
-		self.add_action(self.gsettings.create_action("show-column-group"))
-
 		# Create column view search filter actions
 		self.add_action(Gio.PropertyAction.new("search-by-name", self.column_view, "search_by_name"))
 		self.add_action(Gio.PropertyAction.new("search-by-desc", self.column_view, "search_by_desc"))
@@ -1253,14 +1267,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action(Gio.PropertyAction.new("search-by-provides", self.column_view, "search_by_provides"))
 		self.add_action(Gio.PropertyAction.new("search-by-files", self.column_view, "search_by_files"))
 
-		app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
-		app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
-		app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
-		app.set_accels_for_action("win.search-by-deps", ["<ctrl>4"])
-		app.set_accels_for_action("win.search-by-optdeps", ["<ctrl>5"])
-		app.set_accels_for_action("win.search-by-provides", ["<ctrl>6"])
-		app.set_accels_for_action("win.search-by-files", ["<ctrl>7"])
-
 		action_list = [
 			( "selectall-searchby-params", self.selectall_searchby_params_action ),
 			( "reset-searchby-params", self.reset_searchby_params_action )
@@ -1268,8 +1274,13 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.add_action_entries(action_list)
 
-		app.set_accels_for_action("win.selectall-searchby-params", ["<ctrl>L"])
-		app.set_accels_for_action("win.reset-searchby-params", ["<ctrl>R"])
+		# Create column view header menu actions
+		self.add_action(self.gsettings.create_action("show-column-version"))
+		self.add_action(self.gsettings.create_action("show-column-repository"))
+		self.add_action(self.gsettings.create_action("show-column-status"))
+		self.add_action(self.gsettings.create_action("show-column-date"))
+		self.add_action(self.gsettings.create_action("show-column-size"))
+		self.add_action(self.gsettings.create_action("show-column-group"))
 
 		# Connect column view activate signal
 		self.column_view.view.connect("activate", self.on_column_view_activated)
