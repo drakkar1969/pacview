@@ -1536,7 +1536,7 @@ class MainWindow(Adw.ApplicationWindow):
 	def show_details_window_action(self, action, value, user_data):
 		if self.info_pane.pkg_object is not None:
 			details_window = PkgDetailsWindow(self.info_pane.pkg_object, self.prefs_window.monospace_font if self.prefs_window.custom_font else "", transient_for=self)
-			details_window.show()
+			details_window.present()
 
 	#-----------------------------------
 	# Other action handlers
@@ -1550,7 +1550,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
-		stats_window.show()
+		stats_window.present()
 
 	def copy_package_list_action(self, action, value, user_data):
 		copy_text = '\n'.join([f'{obj.repository}\t{obj.name}\t{obj.version}' for obj in self.column_view.selection])
@@ -1563,7 +1563,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def show_preferences_action(self, action, value, user_data):
 		self.prefs_window.set_transient_for(self)
-		self.prefs_window.show()
+		self.prefs_window.present()
 
 	def show_about_action(self, action, value, user_data):
 		about_window = Adw.AboutWindow(
@@ -1578,7 +1578,7 @@ class MainWindow(Adw.ApplicationWindow):
 			license_type=Gtk.License.GPL_3_0,
 			transient_for=self)
 
-		about_window.show()
+		about_window.present()
 
 	def quit_app_action(self, action, value, user_data):
 		self.close()
