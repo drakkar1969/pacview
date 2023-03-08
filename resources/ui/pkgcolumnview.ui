@@ -190,7 +190,7 @@
         <property name="valign">center</property>
         <property name="label">No packages found</property>
         <style>
-          <class name="heading"/>
+          <class name="title-4"/>
           <class name="dim-label"/>
         </style>
       </object>
