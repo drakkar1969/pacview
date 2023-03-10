@@ -467,8 +467,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			if backup_list != []:
 				self.backup_model.splice(0, 0, backup_list)
 
-			self.backup_view.set_visible(backup_list != [])
-
 	#-----------------------------------
 	# Populate dependency tree function
 	#-----------------------------------
@@ -1440,8 +1438,6 @@ class MainWindow(Adw.ApplicationWindow):
 		def __get_local_data(name):
 			if name in localpkg_dict.keys():
 				localpkg = localpkg_dict[name]
-
-				status_flags = PkgStatus.NONE
 
 				if localpkg.reason == 0: status_flags = PkgStatus.EXPLICIT
 				else:
