@@ -96,23 +96,18 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox" id="details_button_box">
+          <object class="GtkButton" id="details_button">
             <property name="margin-start">4</property>
             <property name="margin-end">4</property>
             <property name="margin-top">4</property>
             <property name="margin-bottom">4</property>
-            <property name="spacing">6</property>
-            <child>
-              <object class="GtkButton" id="details_button">
-                <property name="icon-name">dialog-information-symbolic</property>
-                <property name="tooltip-text">Show Package Details</property>
-                <property name="action-name">win.show-details-window</property>
-                <style>
-                  <class name="circular"/>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
+            <property name="icon-name">dialog-information-symbolic</property>
+            <property name="tooltip-text">Show Package Details</property>
+            <property name="action-name">win.show-details-window</property>
+            <style>
+              <class name="circular"/>
+              <class name="flat"/>
+            </style>
           </object>
         </child>
       </object>
