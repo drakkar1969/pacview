@@ -32,13 +32,15 @@ button.inline-button:active {
 }
 
 label.searchtag {
-	background: alpha(@window_fg_color, 0.1);
+	background: @accent_bg_color;
+	color: @accent_fg_color;
 	border-radius: 9999px;
-	padding: 3px 12px;
+	padding: 3px 10px;
 }
 
 label.count-indicator {
-	background: alpha(@window_fg_color, 0.15);
+	background: @accent_bg_color;
+	color: @accent_fg_color;
 	border-radius: 9999px;
 	padding: 3px 7px;
 }
