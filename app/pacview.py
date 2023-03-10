@@ -371,6 +371,8 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	content_stack = Gtk.Template.Child()
 
 	file_header_label = Gtk.Template.Child()
+	file_header_button = Gtk.Template.Child()
+	files_selection = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
 
 	tree_label = Gtk.Template.Child()
@@ -379,10 +381,14 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	log_model = Gtk.Template.Child()
 
 	cache_header_label = Gtk.Template.Child()
+	cache_header_button = Gtk.Template.Child()
+	cache_selection = Gtk.Template.Child()
 	cache_model = Gtk.Template.Child()
 
 	backup_header_label = Gtk.Template.Child()
+	backup_header_button = Gtk.Template.Child()
 	backup_view = Gtk.Template.Child()
+	backup_selection = Gtk.Template.Child()
 	backup_model = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -400,6 +406,27 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			monospace_font = gsettings.get_string("monospace-font-name")
 
 		self.tree_label.set_attributes(Pango.AttrList.from_string(f'0 -1 font-desc "{monospace_font}"'))
+
+		# Bind file header button state to file selection
+		self.files_selection.bind_property(
+			"n-items", self.file_header_button, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != 0
+		)
+
+		# Bind cache header button state to cache selection
+		self.cache_selection.bind_property(
+			"n-items", self.cache_header_button, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != 0
+		)
+
+		# Bind backup header button state to backup selection
+		self.backup_selection.bind_property(
+			"n-items", self.backup_header_button, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != 0
+		)
 
 		# Initialize widgets
 		if pkg_object is not None:
@@ -487,12 +514,54 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.content_stack.set_visible_child_name(button.text.lower())
 
 	#-----------------------------------
+	# Helper function to open file manager
+	#-----------------------------------
+	def open_file_manager(self, selected_path):
+		desktop = Gio.AppInfo.get_default_for_type("inode/directory", True)
+
+		if desktop is not None:
+			try:
+				desktop.launch_uris_as_manager([f'file://{selected_path}'], None, GLib.SpawnFlags.DEFAULT, None, None, None, None, None)
+			except:
+				pass
+
+	#-----------------------------------
+	# File header button signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_file_header_button_clicked(self, button):
+		selected_item = self.files_selection.get_selected_item()
+
+		if selected_item is not None:
+			self.open_file_manager(selected_item.get_string())
+
+	#-----------------------------------
 	# Dependency tree dropdown signal handler
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_tree_depth_changed(self, dropdown, prop):
 		if self.pkg_object is not None:
 			self.populate_dep_tree()
+
+	#-----------------------------------
+	# Cache header button signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_cache_header_button_clicked(self, button):
+		selected_item = self.cache_selection.get_selected_item()
+
+		if selected_item is not None:
+			self.open_file_manager(f'/var/cache/pacman/pkg/{selected_item.get_string()}')
+
+	#-----------------------------------
+	# Backup header button signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_backup_header_button_clicked(self, button):
+		selected_item = self.backup_selection.get_selected_item()
+
+		if selected_item is not None:
+			self.open_file_manager(selected_item.label)
 
 	#-----------------------------------
 	# Key press signal handler

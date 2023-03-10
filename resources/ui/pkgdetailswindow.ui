@@ -142,6 +142,22 @@
                                 </style>
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="hexpand">True</property>
+                                <property name="halign">end</property>
+                                <property name="spacing">8</property>
+                                <child>
+                                  <object class="GtkButton" id="file_header_button">
+                                    <property name="icon-name">folder-open-symbolic</property>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                    <signal name="clicked" handler="on_file_header_button_clicked" swapped="no"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
@@ -154,7 +170,7 @@
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="model">
-                                  <object class="GtkNoSelection">
+                                  <object class="GtkSingleSelection" id="files_selection">
                                     <property name="model">
                                       <object class="GtkStringList" id="files_model"/>
                                     </property>
@@ -357,6 +373,22 @@
                                 </style>
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="hexpand">True</property>
+                                <property name="halign">end</property>
+                                <property name="spacing">8</property>
+                                <child>
+                                  <object class="GtkButton" id="cache_header_button">
+                                    <property name="icon-name">folder-open-symbolic</property>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                    <signal name="clicked" handler="on_cache_header_button_clicked" swapped="no"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
@@ -369,7 +401,7 @@
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="model">
-                                  <object class="GtkNoSelection">
+                                  <object class="GtkSingleSelection" id="cache_selection">
                                     <property name="model">
                                       <object class="GtkStringList" id="cache_model"/>
                                     </property>
@@ -422,6 +454,22 @@
                                 </style>
                               </object>
                             </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="hexpand">True</property>
+                                <property name="halign">end</property>
+                                <property name="spacing">8</property>
+                                <child>
+                                  <object class="GtkButton" id="backup_header_button">
+                                    <property name="icon-name">folder-open-symbolic</property>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                    <signal name="clicked" handler="on_backup_header_button_clicked" swapped="no"/>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
@@ -437,7 +485,7 @@
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="model">
-                                  <object class="GtkNoSelection">
+                                  <object class="GtkSingleSelection" id="backup_selection">
                                     <property name="model">
                                       <object class="GListStore" id="backup_model">
                                         <property name="item-type">PkgBackup</property>
