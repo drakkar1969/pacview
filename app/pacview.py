@@ -1313,7 +1313,7 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Add window actions
 		action_list = [
-			( "refresh-dbs", self.refresh_dbs_action ),
+			( "refresh-packages", self.refresh_dbs_action ),
 			( "show-stats-window", self.show_stats_window_action ),
 			( "copy-package-list", self.copy_package_list_action ),
 
@@ -1324,7 +1324,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.add_action_entries(action_list)
 
-		app.set_accels_for_action("win.refresh-dbs", ["F5"])
+		app.set_accels_for_action("win.refresh-packages", ["F5"])
 		app.set_accels_for_action("win.show-stats-window", ["<alt>S"])
 		app.set_accels_for_action("win.copy-package-list", ["<alt>L"])
 		

@@ -168,7 +168,7 @@
     <section>
       <item>
         <attribute name="label">Refresh</attribute>
-        <attribute name="action">win.refresh-dbs</attribute>
+        <attribute name="action">win.refresh-packages</attribute>
       </item>
     </section>
     <section>
