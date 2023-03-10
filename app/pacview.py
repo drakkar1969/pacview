@@ -376,7 +376,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	files_model = Gtk.Template.Child()
 
 	tree_label = Gtk.Template.Child()
-	tree_dropdown = Gtk.Template.Child()
+	tree_depth_label = Gtk.Template.Child()
 
 	log_model = Gtk.Template.Child()
 
@@ -441,7 +441,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.files_model.splice(0, 0, file_list)
 
 			# Populate dependency tree
-			self.populate_dep_tree()
+			self.populate_dep_tree(6)
 
 			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'/usr/bin/paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -497,9 +497,8 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Populate dependency tree function
 	#-----------------------------------
-	def populate_dep_tree(self):
-		depth = self.tree_dropdown.get_selected_item().get_string()
-		depth_flag = "" if depth == "Default" else f'-d {depth}'
+	def populate_dep_tree(self, depth):
+		depth_flag = "" if depth == 6 else f'-d {depth}'
 
 		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree {"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -539,9 +538,13 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	# Dependency tree dropdown signal handler
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_tree_depth_changed(self, dropdown, prop):
+	def on_tree_depth_changed(self, scale):
 		if self.pkg_object is not None:
-			self.populate_dep_tree()
+			depth = int(scale.get_value())
+			
+			self.populate_dep_tree(depth)
+
+			self.tree_depth_label.set_label("Default" if depth == 6 else str(depth))
 
 	#-----------------------------------
 	# Cache header button signal handler

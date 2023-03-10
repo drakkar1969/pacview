@@ -230,26 +230,33 @@
                                 <property name="halign">end</property>
                                 <property name="spacing">8</property>
                                 <child>
-                                  <object class="GtkLabel">
-                                    <property name="label">Depth:</property>
+                                  <object class="GtkLabel" id="tree_depth_label">
+                                    <property name="label">Default</property>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkDropDown" id="tree_dropdown">
-                                    <property name="model">
-                                      <object class="GtkStringList">
-                                        <items>
-                                          <item translatable="yes">Default</item>
-                                          <item translatable="yes">0</item>
-                                          <item translatable="yes">1</item>
-                                          <item translatable="yes">2</item>
-                                          <item translatable="yes">3</item>
-                                          <item translatable="yes">4</item>
-                                          <item translatable="yes">5</item>
-                                        </items>
+                                  <object class="GtkScale" id="tree_scale">
+                                    <property name="width-request">100</property>
+                                    <property name="tooltip-text">Adjust Tree Depth</property>
+                                    <property name="adjustment">
+                                      <object class="GtkAdjustment">
+                                        <property name="lower">0</property>
+                                        <property name="page-increment">1</property>
+                                        <property name="step-increment">1</property>
+                                        <property name="upper">6</property>
+                                        <property name="value">6</property>
                                       </object>
                                     </property>
-                                    <signal name="notify::selected-item" handler="on_tree_depth_changed" swapped="no"/>
+                                    <marks>
+                                      <mark value="0" position="bottom"></mark>
+                                      <mark value="1" position="bottom"></mark>
+                                      <mark value="2" position="bottom"></mark>
+                                      <mark value="3" position="bottom"></mark>
+                                      <mark value="4" position="bottom"></mark>
+                                      <mark value="5" position="bottom"></mark>
+                                      <mark value="6" position="bottom"></mark>
+                                    </marks>
+                                    <signal name="value-changed" handler="on_tree_depth_changed" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
