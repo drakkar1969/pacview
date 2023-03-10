@@ -446,7 +446,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'/usr/bin/paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"\1 \2 : \3", l) for l in pkg_log.stdout.decode().split('\n') if l != ""]
+			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"[\1 \2] : \3", l) for l in pkg_log.stdout.decode().split('\n') if l != ""]
 
 			self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
