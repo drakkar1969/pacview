@@ -370,8 +370,8 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 	content_stack = Gtk.Template.Child()
 
-	file_header_label = Gtk.Template.Child()
-	file_header_button = Gtk.Template.Child()
+	files_header_label = Gtk.Template.Child()
+	files_header_button = Gtk.Template.Child()
 	files_selection = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
 
@@ -409,7 +409,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		# Bind file header button state to file selection
 		self.files_selection.bind_property(
-			"n-items", self.file_header_button, "sensitive",
+			"n-items", self.files_header_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
@@ -434,7 +434,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.pkg_label.set_text(f'{pkg_object.repository}/{pkg_object.name}')
 
 			# Populate file list
-			self.file_header_label.set_text(f'Files ({len(pkg_object.files)})')
+			self.files_header_label.set_text(f'Files ({len(pkg_object.files)})')
 
 			file_list = [f'/{f}' for f in pkg_object.files]
 
@@ -528,7 +528,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	# File header button signal handler
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_file_header_button_clicked(self, button):
+	def on_files_header_button_clicked(self, button):
 		selected_item = self.files_selection.get_selected_item()
 
 		if selected_item is not None:
