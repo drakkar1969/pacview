@@ -787,7 +787,7 @@ class PkgInfoPane(Gtk.Overlay):
 		button.add_css_class("flat")
 		button.add_css_class("inline-button")
 
-		label = InfoPaneLabel(hexpand=True, xalign=0, use_markup=True)
+		label = InfoPaneLabel(hexpand=True, xalign=0, use_markup=True, can_focus=False)
 
 		box = Gtk.Box(spacing=6)
 		box.append(image)
