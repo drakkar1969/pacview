@@ -1079,6 +1079,7 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	icon = GObject.Property(type=str, default="")
 	text = GObject.Property(type=str, default="")
 	count = GObject.Property(type=str, default="")
+	spinning = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
@@ -1091,6 +1092,26 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 			"sensitive", self.image, "opacity",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: 1.0 if value == True else 0.3
+		)
+
+		# Bind count label visibility to count property
+		self.bind_property(
+			"count", self.count_label, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: True if value != "" else False
+		)
+
+		# Bind stack visible page to spinning property
+		self.bind_property(
+			"spinning", self.stack, "visible_child_name",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: "spinner" if value == True else "icon"
+		)
+
+		# Bind spinner state to spinning property
+		self.bind_property(
+			"spinning", self.spinner, "spinning",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 #------------------------------------------------------------------------------
@@ -1512,8 +1533,7 @@ class MainWindow(Adw.ApplicationWindow):
 				self.status_listbox.select_row(row)
 			if st == PkgStatus.UPDATES:
 				self.update_row = row
-				self.update_row.spinner.set_spinning(True)
-				self.update_row.stack.set_visible_child_name("spinner")
+				self.update_row.spinning = True
 				self.update_row.set_sensitive(False)
 
 	#-----------------------------------
@@ -1595,13 +1615,11 @@ class MainWindow(Adw.ApplicationWindow):
 		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 		# Update sidebar status listbox update row
-		self.update_row.stack.set_visible_child_name("icon")
-		self.update_row.spinner.set_spinning(False)
-
-		self.update_row.count_label.set_visible(True if returncode != 1 and len(update_dict) != 0 else False)
+		self.update_row.spinning = False
+		self.update_row.icon = "status-update-error-symbolic" if returncode == 1 else "status-update-symbolic"
 		self.update_row.count = f'{len(update_dict)}' if returncode != 1 and len(update_dict) != 0 else ""
+
 		self.update_row.set_tooltip_text("Update error" if returncode == 1 else "")
-		self.update_row.image.set_from_icon_name("status-update-error-symbolic" if returncode == 1 else "status-update-symbolic")
 		self.update_row.set_sensitive(False if returncode == 1 else True)
 
 		return(False)
