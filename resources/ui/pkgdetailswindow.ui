@@ -150,6 +150,7 @@
                                 <child>
                                   <object class="GtkButton" id="file_header_button">
                                     <property name="icon-name">folder-open-symbolic</property>
+                                    <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                     </style>
@@ -381,6 +382,7 @@
                                 <child>
                                   <object class="GtkButton" id="cache_header_button">
                                     <property name="icon-name">folder-open-symbolic</property>
+                                    <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                     </style>
@@ -462,6 +464,7 @@
                                 <child>
                                   <object class="GtkButton" id="backup_header_button">
                                     <property name="icon-name">folder-open-symbolic</property>
+                                    <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                     </style>
