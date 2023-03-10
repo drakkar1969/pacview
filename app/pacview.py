@@ -444,7 +444,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 			for bk in pkg_object.backup:
 				filename = f'/{bk[0]}'
-				status = ""
+				src_hash = bk[1]
 
 				md5_hash = hashlib.md5()
 
@@ -456,8 +456,8 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 							
 						text_hash = md5_hash.hexdigest()
 
-						status_icon = "backup-unchanged" if text_hash == bk[1] else "backup-changed"
-						status = "unchanged" if text_hash == bk[1] else "changed"
+						status_icon = "backup-unchanged" if text_hash == src_hash else "backup-changed"
+						status = "unchanged" if text_hash == src_hash else "changed"
 				except:
 					status_icon = "backup-error"
 					status = "read error"
