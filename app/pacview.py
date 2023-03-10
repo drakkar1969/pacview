@@ -450,7 +450,8 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.files_model.splice(0, 0, file_list)
 
 			# Populate dependency tree
-			self.populate_dep_tree(6)
+			self.default_depth = 6
+			self.populate_dep_tree(self.default_depth)
 
 			# Populate log
 			pkg_log = subprocess.run(shlex.split(f'/usr/bin/paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -523,15 +524,13 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		if search_text == "":
 			return(True)
 		else:
-			search_text = search_text.lower()
-
-			return(search_text in item.get_string().lower())
+			return(search_text.lower() in item.get_string().lower())
 
 	#-----------------------------------
 	# Populate dependency tree function
 	#-----------------------------------
 	def populate_dep_tree(self, depth):
-		depth_flag = "" if depth == 6 else f'-d {depth}'
+		depth_flag = "" if depth == self.default_depth else f'-d {depth}'
 
 		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree {"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -577,7 +576,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			
 			self.populate_dep_tree(depth)
 
-			self.tree_depth_label.set_label("Default" if depth == 6 else str(depth))
+			self.tree_depth_label.set_label("Default" if depth == self.default_depth else str(depth))
 
 	#-----------------------------------
 	# Cache header button signal handler
