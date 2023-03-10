@@ -371,9 +371,12 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	content_stack = Gtk.Template.Child()
 
 	files_header_label = Gtk.Template.Child()
+	files_search_entry = Gtk.Template.Child()
 	files_header_button = Gtk.Template.Child()
+	files_view = Gtk.Template.Child()
 	files_selection = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
+	files_filter = Gtk.Template.Child()
 
 	tree_label = Gtk.Template.Child()
 	tree_depth_label = Gtk.Template.Child()
@@ -398,6 +401,12 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		super().__init__(*args, **kwargs)
 
 		self.pkg_object = pkg_object
+
+		# Initialize files search entry
+		self.files_search_entry.set_key_capture_widget(self.files_view)
+
+		# Set file view filter function
+		self.files_filter.set_filter_func(self.filter_files)
 
 		# Set tree label font
 		if monospace_font == "":
@@ -493,6 +502,30 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 			if backup_list != []:
 				self.backup_model.splice(0, 0, backup_list)
+
+	#-----------------------------------
+	# Files search entry signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_files_search_changed(self, entry):
+		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	@Gtk.Template.Callback()
+	def on_files_search_stopped(self, entry):
+		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	#-----------------------------------
+	# Filter files function
+	#-----------------------------------
+	def filter_files(self, item):
+		search_text = self.files_search_entry.get_text()
+
+		if search_text == "":
+			return(True)
+		else:
+			search_text = search_text.lower()
+
+			return(search_text in item.get_string().lower())
 
 	#-----------------------------------
 	# Populate dependency tree function

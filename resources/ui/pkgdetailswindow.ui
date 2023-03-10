@@ -148,6 +148,12 @@
                                 <property name="halign">end</property>
                                 <property name="spacing">8</property>
                                 <child>
+                                  <object class="GtkSearchEntry" id="files_search_entry">
+                                    <signal name="search-changed" handler="on_files_search_changed" swapped="no"/>
+                                    <signal name="stop-search" handler="on_files_search_stopped" swapped="no"/>
+                                  </object>
+                                </child>
+                                <child>
                                   <object class="GtkButton" id="files_header_button">
                                     <property name="icon-name">folder-open-symbolic</property>
                                     <property name="tooltip-text">Open in File Manager</property>
@@ -173,7 +179,14 @@
                                 <property name="model">
                                   <object class="GtkSingleSelection" id="files_selection">
                                     <property name="model">
-                                      <object class="GtkStringList" id="files_model"/>
+                                      <object class="GtkFilterListModel" id="files_filter_model">
+                                        <property name="filter">
+                                          <object class="GtkCustomFilter" id="files_filter"/>
+                                        </property>
+                                        <property name="model">
+                                          <object class="GtkStringList" id="files_model"/>
+                                        </property>
+                                      </object>
                                     </property>
                                   </object>
                                 </property>
