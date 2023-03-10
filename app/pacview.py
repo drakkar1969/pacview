@@ -451,6 +451,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 			# Populate dependency tree
 			self.default_depth = 6
+
 			self.populate_dep_tree(self.default_depth)
 
 			# Populate log
@@ -466,6 +467,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and not l.startswith("==>") and not l.endswith(".sig"))]
 
 			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
+
 			self.cache_model.splice(0, 0, cache_lines)
 
 			# Hide backup column view header
@@ -501,8 +503,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 				backup_list += [PkgBackup(filename, status_icon, status)]
 
-			if backup_list != []:
-				self.backup_model.splice(0, 0, backup_list)
+			self.backup_model.splice(0, 0, backup_list)
 
 	#-----------------------------------
 	# Files search entry signal handlers
