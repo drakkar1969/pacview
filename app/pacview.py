@@ -1185,7 +1185,7 @@ class SearchHeader(Gtk.Stack):
 
 		self.filter_image.add_controller(click_gesture)
 
-	def on_filter_image_clicked(self, n_press, x, y, user_data):
+	def on_filter_image_clicked(self, controller, n_press, x, y):
 		self.filter_popover.popup()
 		self.filter_popover.grab_focus()
 
