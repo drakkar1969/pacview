@@ -706,6 +706,15 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		self.font_dialog.close()
 		self.font_dialog = None
 
+	@Gtk.Template.Callback()
+	def on_reset_button_clicked(self, button):
+		self.load_switch.set_active(False)
+		self.aur_entryrow.set_text("")
+		self.column_switch.set_active(True)
+		self.sorting_switch.set_active(False)
+		self.font_switch.set_active(False)
+		self.font_label.set_text("")
+
 #------------------------------------------------------------------------------
 #-- CLASS: INFOPANEBUTTON
 #------------------------------------------------------------------------------
