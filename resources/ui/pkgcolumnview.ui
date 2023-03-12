@@ -48,6 +48,7 @@
             </property>
             <child>
               <object class="GtkColumnViewColumn" id="package_column">
+                <property name="id">package</property>
                 <property name="title">Package</property>
                 <property name="resizable">True</property>
                 <property name="expand">True</property>
@@ -68,6 +69,7 @@
             </child>
             <child>
               <object class="GtkColumnViewColumn" id="version_column">
+                <property name="id">version</property>
                 <property name="title">Version</property>
                 <property name="resizable">True</property>
                 <property name="header-menu">header_menu</property>
@@ -87,6 +89,7 @@
             </child>
             <child>
               <object class="GtkColumnViewColumn" id="repository_column">
+                <property name="id">repository</property>
                 <property name="title">Repository</property>
                 <property name="resizable">True</property>
                 <property name="header-menu">header_menu</property>
@@ -106,6 +109,7 @@
             </child>
             <child>
               <object class="GtkColumnViewColumn" id="status_column">
+                <property name="id">status</property>
                 <property name="title">Status</property>
                 <property name="resizable">True</property>
                 <property name="header-menu">header_menu</property>
@@ -125,6 +129,7 @@
             </child>
             <child>
               <object class="GtkColumnViewColumn" id="date_column">
+                <property name="id">date</property>
                 <property name="title">Date</property>
                 <property name="resizable">True</property>
                 <property name="header-menu">header_menu</property>
@@ -144,6 +149,7 @@
             </child>
             <child>
               <object class="GtkColumnViewColumn" id="size_column">
+                <property name="id">size</property>
                 <property name="title">Size</property>
                 <property name="resizable">True</property>
                 <property name="header-menu">header_menu</property>
@@ -163,6 +169,7 @@
             </child>
             <child>
               <object class="GtkColumnViewColumn" id="group_column">
+                <property name="id">group</property>
                 <property name="title">Group</property>
                 <property name="resizable">True</property>
                 <property name="header-menu">header_menu</property>
