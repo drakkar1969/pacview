@@ -805,10 +805,8 @@ class PkgInfoPane(Gtk.Overlay):
 		button = child.get_first_child().get_next_sibling()
 		label = child.get_last_child()
 
-		icon = obj.icon
-
-		image.set_visible(icon != "")
-		image.set_from_icon_name(icon)
+		image.set_visible(obj.icon != "")
+		image.set_from_icon_name(obj.icon)
 
 		label.set_label(obj.value)
 		label.signal_id = label.connect("activate-link", self.on_link_activated)
