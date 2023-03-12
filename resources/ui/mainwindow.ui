@@ -34,7 +34,7 @@
             </child>
             <child type="end">
               <object class="GtkToggleButton" id="header_infopane_btn">
-                <property name="icon-name">view-bottom-pane-symbolic</property>
+                <property name="icon-name">sidebar-show-right-symbolic</property>
                 <property name="tooltip-text">Toggle Info Pane</property>
                 <property name="action-name">win.show-infopane</property>
               </object>
