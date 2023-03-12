@@ -1155,6 +1155,9 @@ class SearchHeader(Gtk.Stack):
 	filter_image = Gtk.Template.Child()
 	filter_popover = Gtk.Template.Child()
 
+	searchtag_exact = Gtk.Template.Child()
+	separator_exact = Gtk.Template.Child()
+
 	searchtag_name = Gtk.Template.Child()
 	searchtag_desc = Gtk.Template.Child()
 	searchtag_group = Gtk.Template.Child()
@@ -1362,6 +1365,16 @@ class MainWindow(Adw.ApplicationWindow):
 		)
 
 		# Bind column view search by properties to status search labels visibility
+		self.column_view.bind_property(
+			"search_exact", self.header_search.searchtag_exact, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
+		self.column_view.bind_property(
+			"search_exact", self.header_search.separator_exact, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
 		self.column_view.bind_property(
 			"search_by_name", self.header_search.searchtag_name, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
