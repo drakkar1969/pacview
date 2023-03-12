@@ -1747,6 +1747,9 @@ class MainWindow(Adw.ApplicationWindow):
 		for n in ["name", "desc", "group", "deps", "optdeps", "provides", "files"]:
 			self.column_view.set_property(f'search_by_{n}', (n == "name"))
 
+	#-----------------------------------
+	# Column view action handlers
+	#-----------------------------------
 	def reset_view_columns_action(self, action, value, user_data):
 		self.column_view.column_ids = ["package", "version", "repository", "status", "date", "size", "group"]
 
