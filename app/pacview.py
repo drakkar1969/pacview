@@ -1491,18 +1491,20 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_show(self, window):
+		# Set column view column order
 		for i,id in enumerate(self.column_view.column_ids):
 			for col in self.column_view.view.get_columns():
-				col_id = col.get_id()
-
-				if col_id == id: self.column_view.view.insert_column(i, col)
-
-				if col_id == self.column_view.sort_id:
-					self.column_view.view.sort_by_column(col, Gtk.SortType.ASCENDING if self.column_view.sort_asc else Gtk.SortType.DESCENDING)
+				if col.get_id() == id: self.column_view.view.insert_column(i, col)
 
 		for col in self.column_view.view.get_columns():
 			if col.get_id() not in self.column_view.column_ids: col.set_visible(False)
 
+		# Set column view sorting
+		for col in self.column_view.view.get_columns():
+			if col.get_id() == self.column_view.sort_id:
+				self.column_view.view.sort_by_column(col, Gtk.SortType.ASCENDING if self.column_view.sort_asc else Gtk.SortType.DESCENDING)
+
+		# Initialize window
 		self.init_window()
 
 		if self.prefs_window.lazy_load:
@@ -1515,6 +1517,7 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_close(self, window):
+		# Save column view column order
 		column_ids = []
 
 		for col in self.column_view.view.get_columns():
@@ -1522,6 +1525,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.column_ids = column_ids
 
+		# Save column view sortinf
 		sorter = self.column_view.view.get_sorter()
 
 		if (sort_col := sorter.get_primary_sort_column()) is not None:
