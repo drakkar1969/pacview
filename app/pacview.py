@@ -932,17 +932,19 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@staticmethod
 	def wrap_escape_list(pkglist, wrap_width=150):
-		return(GLib.markup_escape_text(textwrap.fill('   '.join(sorted(pkglist)), width=wrap_width, break_on_hyphens=False)))
+		return(GLib.markup_escape_text(textwrap.fill('   '.join(sorted(pkglist)), width=wrap_width, break_on_hyphens=False, drop_whitespace=False)))
 
 	@staticmethod
 	def pkglist_to_linkstr(pkglist):
 		if pkglist == []: return("None")
 
-		re_match = "(^|   )([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |$)"
+		re_match = "(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)"
 		re_res = r"\1<a href='pkg://\2'>\2</a>"
 		join_str = PkgInfoPane.wrap_escape_list(pkglist)
 
-		return(re.sub(re_match, re_res, join_str, flags=re.MULTILINE))
+		out_list = [s.lstrip() for s in re.sub(re_match, re_res, join_str).split('\n')]
+
+		return('\n'.join(out_list))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
