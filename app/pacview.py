@@ -789,7 +789,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 		label = InfoPaneLabel(hexpand=True, xalign=0, use_markup=True, can_focus=False)
 
-		box = Gtk.Box(spacing=6)
+		box = Gtk.Box(margin_start=6, spacing=6)
 		box.append(image)
 		box.append(button)
 		box.append(label)
