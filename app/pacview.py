@@ -1483,7 +1483,7 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Add window actions
 		action_list = [
-			( "refresh-packages", self.refresh_dbs_action ),
+			( "refresh-packages", self.refresh_packages_action ),
 			( "show-stats-window", self.show_stats_window_action ),
 			( "copy-package-list", self.copy_package_list_action ),
 
@@ -1753,7 +1753,7 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Other action handlers
 	#-----------------------------------
-	def refresh_dbs_action(self, action, value, user_data):
+	def refresh_packages_action(self, action, value, user_data):
 		self.header_search.search_active = False
 
 		self.init_window()
