@@ -19,23 +19,8 @@
     <key name="infopane-position" type="i">
       <default>375</default>
     </key>
-    <key name="show-column-version" type="b">
-      <default>true</default>
-    </key>
-    <key name="show-column-repository" type="b">
-      <default>true</default>
-    </key>
-    <key name="show-column-status" type="b">
-      <default>true</default>
-    </key>
-    <key name="show-column-date" type="b">
-      <default>true</default>
-    </key>
-    <key name="show-column-size" type="b">
-      <default>true</default>
-    </key>
-    <key name="show-column-group" type="b">
-      <default>true</default>
+    <key name="view-columns" type="as">
+      <default>['package', 'version', 'repository', 'status', 'date', 'size', 'group']</default>
     </key>
     <key name="lazy-load" type="b">
       <default>false</default>

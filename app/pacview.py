@@ -1296,21 +1296,16 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.gsettings.bind("window-width", self, "default-width", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("window-height", self, "default-height", Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("window-maximized", self, "maximized",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-sidebar", self.flap, "reveal_flap",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-infopane", self.info_pane, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("infopane-position", self.pane, "position",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-column-version", self.column_view.version_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-column-repository", self.column_view.repository_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-column-status", self.column_view.status_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-column-date", self.column_view.date_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-column-size", self.column_view.size_column, "visible",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("show-column-group", self.column_view.group_column, "visible",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("window-maximized", self, "maximized", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-sidebar", self.flap, "reveal_flap", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("show-infopane", self.info_pane, "visible", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("infopane-position", self.pane, "position", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("view-columns", self.column_view, "column_ids", Gio.SettingsBindFlags.DEFAULT)
 
-		self.gsettings.bind("lazy-load", self.prefs_window, "lazy_load",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("aur-update-command", self.prefs_window, "aur_update_command",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("custom-font", self.prefs_window, "custom_font",Gio.SettingsBindFlags.DEFAULT)
-		self.gsettings.bind("monospace-font", self.prefs_window, "monospace_font",Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("lazy-load", self.prefs_window, "lazy_load", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("aur-update-command", self.prefs_window, "aur_update_command", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("custom-font", self.prefs_window, "custom_font", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("monospace-font", self.prefs_window, "monospace_font", Gio.SettingsBindFlags.DEFAULT)
 
 		#-----------------------------
 		# Toolbar buttons
@@ -1428,12 +1423,12 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action_entries(action_list)
 
 		# Create column view header menu actions
-		self.add_action(self.gsettings.create_action("show-column-version"))
-		self.add_action(self.gsettings.create_action("show-column-repository"))
-		self.add_action(self.gsettings.create_action("show-column-status"))
-		self.add_action(self.gsettings.create_action("show-column-date"))
-		self.add_action(self.gsettings.create_action("show-column-size"))
-		self.add_action(self.gsettings.create_action("show-column-group"))
+		self.add_action(Gio.PropertyAction.new("show-column-version", self.column_view.version_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-repository", self.column_view.repository_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-status", self.column_view.status_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-date", self.column_view.date_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-size", self.column_view.size_column, "visible"))
+		self.add_action(Gio.PropertyAction.new("show-column-group", self.column_view.group_column, "visible"))
 
 		# Connect column view activate signal
 		self.column_view.view.connect("activate", self.on_column_view_activated)
@@ -1497,12 +1492,27 @@ class MainWindow(Adw.ApplicationWindow):
 			for col in self.column_view.view.get_columns():
 				if col.get_id() == id: self.column_view.view.insert_column(i, col)
 
+		for col in self.column_view.view.get_columns():
+			if col.get_id() not in self.column_view.column_ids: col.set_visible(False)
+
 		self.init_window()
 
 		if self.prefs_window.lazy_load:
 			GLib.idle_add(self.init_packages)
 		else:
 			self.init_packages()
+
+	#-----------------------------------
+	# Close window signal handler
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_close(self, window):
+		column_ids = []
+
+		for col in self.column_view.view.get_columns():
+			if col.get_visible() == True: column_ids.append(col.get_id())
+
+		self.column_view.column_ids = column_ids
 
 	#-----------------------------------
 	# Init window function
