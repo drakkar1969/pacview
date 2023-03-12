@@ -975,6 +975,8 @@ class PkgColumnView(Gtk.Overlay):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
+	column_ids = GObject.Property(type=GObject.TYPE_STRV, default=["package", "version", "repository", "status", "date", "size", "group"])
+
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
 
 	current_search = GObject.Property(type=str, default="")
@@ -1491,6 +1493,10 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_show(self, window):
+		for i,id in enumerate(self.column_view.column_ids):
+			for col in self.column_view.view.get_columns():
+				if col.get_id() == id: self.column_view.view.insert_column(i, col)
+
 		self.init_window()
 
 		if self.prefs_window.lazy_load:
