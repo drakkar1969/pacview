@@ -207,6 +207,7 @@
   <!--// HEADER MENU //-->
   <menu id="header_menu">
     <section>
+      <attribute name="label">Show Columns</attribute>
       <item>
         <attribute name="label">Version</attribute>
         <attribute name="action">win.show-column-version</attribute>
