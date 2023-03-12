@@ -1439,7 +1439,8 @@ class MainWindow(Adw.ApplicationWindow):
 
 		action_list = [
 			( "selectall-searchby-params", self.selectall_searchby_params_action ),
-			( "reset-searchby-params", self.reset_searchby_params_action )
+			( "reset-searchby-params", self.reset_searchby_params_action ),
+			( "reset-view-columns", self.reset_view_columns_action )
 		]
 
 		self.add_action_entries(action_list)
@@ -1732,7 +1733,17 @@ class MainWindow(Adw.ApplicationWindow):
 	def reset_searchby_params_action(self, action, value, user_data):
 		for n in ["name", "desc", "group", "deps", "optdeps", "provides", "files"]:
 			self.column_view.set_property(f'search_by_{n}', (n == "name"))
-			
+
+	def reset_view_columns_action(self, action, value, user_data):
+		self.column_view.column_ids = ["package", "version", "repository", "status", "date", "size", "group"]
+
+		for i,id in enumerate(self.column_view.column_ids):
+			for col in self.column_view.view.get_columns():
+				if col.get_id() == id: self.column_view.view.insert_column(i, col)
+
+		for col in self.column_view.view.get_columns():
+			col.set_visible(True)
+
 	#-----------------------------------
 	# Info pane action handlers
 	#-----------------------------------

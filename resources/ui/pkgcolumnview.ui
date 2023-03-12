@@ -233,5 +233,11 @@
         <attribute name="action">win.show-column-group</attribute>
       </item>
     </section>
+    <section>
+      <item>
+        <attribute name="label">Reset Columns</attribute>
+        <attribute name="action">win.reset-view-columns</attribute>
+      </item>
+    </section>
   </menu>
 </interface>
