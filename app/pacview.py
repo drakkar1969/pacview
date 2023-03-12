@@ -1003,7 +1003,8 @@ class PkgColumnView(Gtk.Overlay):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	column_ids = GObject.Property(type=GObject.TYPE_STRV, default=["package", "version", "repository", "status", "date", "size", "group"])
+	column_ids = GObject.Property(type=GObject.TYPE_STRV, default=[])
+	default_column_ids = GObject.Property(type=GObject.TYPE_STRV, default=["package", "version", "repository", "status", "date", "size", "group"], flags=GObject.ParamFlags.READABLE)
 	sort_id = GObject.Property(type=str, default="package")
 	sort_asc = GObject.Property(type=bool, default=True)
 
@@ -1559,7 +1560,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 			self.column_view.column_ids = column_ids
 		else:
-			self.column_view.column_ids = ["package", "version", "repository", "status", "date", "size", "group"]
+			self.column_view.column_ids = self.column_view.default_column_ids
 
 		# Save column view sorting
 		if self.prefs_window.remember_sorting == True:
@@ -1751,7 +1752,7 @@ class MainWindow(Adw.ApplicationWindow):
 	# Column view action handlers
 	#-----------------------------------
 	def reset_view_columns_action(self, action, value, user_data):
-		self.column_view.column_ids = ["package", "version", "repository", "status", "date", "size", "group"]
+		self.column_view.column_ids = self.column_view.default_column_ids
 
 		for i,id in enumerate(self.column_view.column_ids):
 			for col in self.column_view.view.get_columns():
