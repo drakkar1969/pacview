@@ -1774,7 +1774,7 @@ class MainWindow(Adw.ApplicationWindow):
 			application_name="PacView",
 			application_icon="software-properties",
 			developer_name="draKKar1969",
-			version="1.0.rc8",
+			version="1.0.0",
 			website="https://github.com/drakkar1969/pacview",
 			developers=["draKKar1969"],
 			designers=["draKKar1969"],
