@@ -708,12 +708,24 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 	@Gtk.Template.Callback()
 	def on_reset_button_clicked(self, button):
-		self.load_switch.set_active(False)
-		self.aur_entryrow.set_text("")
-		self.column_switch.set_active(True)
-		self.sorting_switch.set_active(False)
-		self.font_switch.set_active(False)
-		self.font_label.set_text("")
+		self.dialog = Adw.MessageDialog.new(self, "Reset Preferences", "Reset all preferences to their default values?")
+
+		self.dialog.add_response("cancel", "_Cancel")
+		self.dialog.add_response("reset", "_Reset")
+		self.dialog.set_response_appearance("reset", Adw.ResponseAppearance.DESTRUCTIVE)
+
+		self.dialog.connect("response", self.on_reset_dialog_response)
+
+		self.dialog.present()
+
+	def on_reset_dialog_response(self, dialog, response):
+		if response == "reset":
+			self.load_switch.set_active(False)
+			self.aur_entryrow.set_text("")
+			self.column_switch.set_active(True)
+			self.sorting_switch.set_active(False)
+			self.font_switch.set_active(False)
+			self.font_label.set_text("")
 
 #------------------------------------------------------------------------------
 #-- CLASS: INFOPANEBUTTON
