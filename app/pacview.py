@@ -1011,13 +1011,13 @@ class PkgColumnView(Gtk.Overlay):
 		self.connect("notify::current-search", self.on_current_search_changed)
 		self.connect("notify::search-exact", self.on_current_search_changed)
 
-		self.connect("notify::search-by-name", self.on_search_by_changed)
-		self.connect("notify::search-by-desc", self.on_search_by_changed)
-		self.connect("notify::search-by-group", self.on_search_by_changed)
-		self.connect("notify::search-by-deps", self.on_search_by_changed)
-		self.connect("notify::search-by-optdeps", self.on_search_by_changed)
-		self.connect("notify::search-by-provides", self.on_search_by_changed)
-		self.connect("notify::search-by-files", self.on_search_by_changed)
+		self.connect("notify::search-by-name", self.on_current_search_changed)
+		self.connect("notify::search-by-desc", self.on_current_search_changed)
+		self.connect("notify::search-by-group", self.on_current_search_changed)
+		self.connect("notify::search-by-deps", self.on_current_search_changed)
+		self.connect("notify::search-by-optdeps", self.on_current_search_changed)
+		self.connect("notify::search-by-provides", self.on_current_search_changed)
+		self.connect("notify::search-by-files", self.on_current_search_changed)
 
 		# Sort view by name (first) column
 		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
@@ -1062,9 +1062,6 @@ class PkgColumnView(Gtk.Overlay):
 		self.status_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 	def on_current_search_changed(self, view, prop):
-		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	def on_search_by_changed(self, view, prop):
 		self.search_filter.changed(Gtk.FilterChange.DIFFERENT)
 
 #------------------------------------------------------------------------------
