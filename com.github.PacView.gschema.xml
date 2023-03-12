@@ -34,6 +34,12 @@
     <key name="aur-update-command" type="s">
       <default>''</default>
     </key>
+    <key name="remember-columns" type="b">
+      <default>true</default>
+    </key>
+    <key name="remember-sorting" type="b">
+      <default>false</default>
+    </key>
     <key name="custom-font" type="b">
       <default>false</default>
     </key>

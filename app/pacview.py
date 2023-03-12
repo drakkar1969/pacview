@@ -620,6 +620,9 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 	aur_entryrow = Gtk.Template.Child()
 
+	column_switch = Gtk.Template.Child()
+	sorting_switch = Gtk.Template.Child()
+
 	font_expander = Gtk.Template.Child()
 	font_switch = Gtk.Template.Child()
 	font_label = Gtk.Template.Child()
@@ -629,6 +632,10 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	lazy_load = GObject.Property(type=bool, default=False)
 	aur_update_command = GObject.Property(type=str, default="")
+
+	remember_columns = GObject.Property(type=bool, default=True)
+	remember_sorting = GObject.Property(type=bool, default=False)
+
 	custom_font = GObject.Property(type=bool, default=False)
 	monospace_font = GObject.Property(type=str, default="")
 
@@ -646,6 +653,16 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 		self.bind_property(
 			"aur_update_command", self.aur_entryrow, "text",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
+		self.bind_property(
+			"remember_columns", self.column_switch, "active",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+		)
+
+		self.bind_property(
+			"remember_sorting", self.sorting_switch, "active",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
@@ -1307,6 +1324,8 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.gsettings.bind("lazy-load", self.prefs_window, "lazy_load", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("aur-update-command", self.prefs_window, "aur_update_command", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("remember-columns", self.prefs_window, "remember_columns", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("remember-sorting", self.prefs_window, "remember_sorting", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("custom-font", self.prefs_window, "custom_font", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("monospace-font", self.prefs_window, "monospace_font", Gio.SettingsBindFlags.DEFAULT)
 
@@ -1518,22 +1537,24 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_close(self, window):
 		# Save column view column order
-		column_ids = []
+		if self.prefs_window.remember_columns == True:
+			column_ids = []
 
-		for col in self.column_view.view.get_columns():
-			if col.get_visible() == True: column_ids.append(col.get_id())
+			for col in self.column_view.view.get_columns():
+				if col.get_visible() == True: column_ids.append(col.get_id())
 
-		self.column_view.column_ids = column_ids
+			self.column_view.column_ids = column_ids
 
-		# Save column view sortinf
-		sorter = self.column_view.view.get_sorter()
+		# Save column view sorting
+		if self.prefs_window.remember_sorting == True:
+			sorter = self.column_view.view.get_sorter()
 
-		if (sort_col := sorter.get_primary_sort_column()) is not None:
-			self.column_view.sort_id = sort_col.get_id()
-		else:
-			self.column_view.sort_id = ""
+			if (sort_col := sorter.get_primary_sort_column()) is not None:
+				self.column_view.sort_id = sort_col.get_id()
+			else:
+				self.column_view.sort_id = ""
 
-		self.column_view.sort_asc = True if sorter.get_primary_sort_order() == Gtk.SortType.ASCENDING else False
+			self.column_view.sort_asc = True if sorter.get_primary_sort_order() == Gtk.SortType.ASCENDING else False
 
 	#-----------------------------------
 	# Init window function

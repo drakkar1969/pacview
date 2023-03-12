@@ -35,6 +35,37 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title">Package View</property>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title">Remember _columns</property>
+                <property name="subtitle">Save package view column order</property>
+                <property name="use_underline">True</property>
+                <property name="activatable_widget">column_switch</property>
+                <child>
+                  <object class="GtkSwitch" id="column_switch">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title">Remember _sorting</property>
+                <property name="subtitle">Save package view sort order</property>
+                <property name="use_underline">True</property>
+                <property name="activatable_widget">sorting_switch</property>
+                <child>
+                  <object class="GtkSwitch" id="sorting_switch">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
             <property name="title">Package Details</property>
             <child>
               <object class="AdwExpanderRow" id="font_expander">
@@ -48,7 +79,8 @@
                 </child>
                 <child>
                   <object class="AdwActionRow" id="font_row">
-                    <property name="title">Font Name</property>
+                    <property name="title">Font _Name</property>
+                    <property name="use-underline">True</property>
                     <property name="activatable">True</property>
                     <signal name="activated" handler="on_fontrow_activated" swapped="no"/>
                     <child type="suffix">
