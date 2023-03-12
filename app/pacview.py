@@ -978,6 +978,8 @@ class PkgColumnView(Gtk.Overlay):
 	# Properties
 	#-----------------------------------
 	column_ids = GObject.Property(type=GObject.TYPE_STRV, default=["package", "version", "repository", "status", "date", "size", "group"])
+	sort_id = GObject.Property(type=str, default="package")
+	sort_asc = GObject.Property(type=bool, default=True)
 
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
 
@@ -1022,9 +1024,6 @@ class PkgColumnView(Gtk.Overlay):
 		self.connect("notify::search-by-optdeps", self.on_current_search_changed)
 		self.connect("notify::search-by-provides", self.on_current_search_changed)
 		self.connect("notify::search-by-files", self.on_current_search_changed)
-
-		# Sort view by name (first) column
-		self.view.sort_by_column(self.view.get_columns()[0], Gtk.SortType.ASCENDING)
 
 	#-----------------------------------
 	# Filter functions
@@ -1303,6 +1302,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("show-infopane", self.info_pane, "visible", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("infopane-position", self.pane, "position", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("view-columns", self.column_view, "column_ids", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("sort-column", self.column_view, "sort_id", Gio.SettingsBindFlags.DEFAULT)
+		self.gsettings.bind("sort-ascending", self.column_view, "sort_asc", Gio.SettingsBindFlags.DEFAULT)
 
 		self.gsettings.bind("lazy-load", self.prefs_window, "lazy_load", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("aur-update-command", self.prefs_window, "aur_update_command", Gio.SettingsBindFlags.DEFAULT)
@@ -1492,7 +1493,12 @@ class MainWindow(Adw.ApplicationWindow):
 	def on_show(self, window):
 		for i,id in enumerate(self.column_view.column_ids):
 			for col in self.column_view.view.get_columns():
-				if col.get_id() == id: self.column_view.view.insert_column(i, col)
+				col_id = col.get_id()
+
+				if col_id == id: self.column_view.view.insert_column(i, col)
+
+				if col_id == self.column_view.sort_id:
+					self.column_view.view.sort_by_column(col, Gtk.SortType.ASCENDING if self.column_view.sort_asc else Gtk.SortType.DESCENDING)
 
 		for col in self.column_view.view.get_columns():
 			if col.get_id() not in self.column_view.column_ids: col.set_visible(False)
@@ -1515,6 +1521,15 @@ class MainWindow(Adw.ApplicationWindow):
 			if col.get_visible() == True: column_ids.append(col.get_id())
 
 		self.column_view.column_ids = column_ids
+
+		sorter = self.column_view.view.get_sorter()
+
+		if (sort_col := sorter.get_primary_sort_column()) is not None:
+			self.column_view.sort_id = sort_col.get_id()
+		else:
+			self.column_view.sort_id = ""
+
+		self.column_view.sort_asc = True if sorter.get_primary_sort_order() == Gtk.SortType.ASCENDING else False
 
 	#-----------------------------------
 	# Init window function
