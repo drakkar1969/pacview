@@ -1511,25 +1511,17 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_show(self, window):
 		# Set column view column order
-		if self.prefs_window.remember_columns == True:
-			id_list = self.column_view.column_ids
-		else:
-			id_list = ["package", "version", "repository", "status", "date", "size", "group"]
-		
-		for i,id in enumerate(id_list):
+		for i,id in enumerate(self.column_view.column_ids):
 			for col in self.column_view.view.get_columns():
 				if col.get_id() == id: self.column_view.view.insert_column(i, col)
 
 		for col in self.column_view.view.get_columns():
-			if col.get_id() not in id_list: col.set_visible(False)
+			if col.get_id() not in self.column_view.column_ids: col.set_visible(False)
 
 		# Set column view sorting
-		if self.prefs_window.remember_sorting == True:
-			for col in self.column_view.view.get_columns():
-				if col.get_id() == self.column_view.sort_id:
-					self.column_view.view.sort_by_column(col, Gtk.SortType.ASCENDING if self.column_view.sort_asc else Gtk.SortType.DESCENDING)
-		else:
-			self.column_view.view.sort_by_column(self.column_view.view.get_columns()[0], Gtk.SortType.ASCENDING)
+		for col in self.column_view.view.get_columns():
+			if col.get_id() == self.column_view.sort_id:
+				self.column_view.view.sort_by_column(col, Gtk.SortType.ASCENDING if self.column_view.sort_asc else Gtk.SortType.DESCENDING)
 
 		# Initialize window
 		self.init_window()
@@ -1552,6 +1544,8 @@ class MainWindow(Adw.ApplicationWindow):
 				if col.get_visible() == True: column_ids.append(col.get_id())
 
 			self.column_view.column_ids = column_ids
+		else:
+			self.column_view.column_ids = ["package", "version", "repository", "status", "date", "size", "group"]
 
 		# Save column view sorting
 		if self.prefs_window.remember_sorting == True:
@@ -1563,6 +1557,9 @@ class MainWindow(Adw.ApplicationWindow):
 				self.column_view.sort_id = ""
 
 			self.column_view.sort_asc = True if sorter.get_primary_sort_order() == Gtk.SortType.ASCENDING else False
+		else:
+			self.column_view.sort_id = "package"
+			self.column_view.sort_asc = True
 
 	#-----------------------------------
 	# Init window function
