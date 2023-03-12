@@ -38,7 +38,7 @@
             <property name="title">Package View</property>
             <child>
               <object class="AdwActionRow">
-                <property name="title">Remember _columns</property>
+                <property name="title">Remember _Columns</property>
                 <property name="subtitle">Save package view column order</property>
                 <property name="use_underline">True</property>
                 <property name="activatable_widget">column_switch</property>
@@ -51,7 +51,7 @@
             </child>
             <child>
               <object class="AdwActionRow">
-                <property name="title">Remember _sorting</property>
+                <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package view sort order</property>
                 <property name="use_underline">True</property>
                 <property name="activatable_widget">sorting_switch</property>
