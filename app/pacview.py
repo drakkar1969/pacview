@@ -978,6 +978,7 @@ class PkgColumnView(Gtk.Overlay):
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
 
 	current_search = GObject.Property(type=str, default="")
+	search_exact = GObject.Property(type=bool, default=False)
 
 	search_by_name = GObject.Property(type=bool, default=True)
 	search_by_desc = GObject.Property(type=bool, default=False)
@@ -1008,6 +1009,7 @@ class PkgColumnView(Gtk.Overlay):
 		self.connect("notify::current-status", self.on_current_status_changed)
 
 		self.connect("notify::current-search", self.on_current_search_changed)
+		self.connect("notify::search-exact", self.on_current_search_changed)
 
 		self.connect("notify::search-by-name", self.on_search_by_changed)
 		self.connect("notify::search-by-desc", self.on_search_by_changed)
@@ -1032,15 +1034,26 @@ class PkgColumnView(Gtk.Overlay):
 		else:
 			search_term = self.current_search.lower()
 
-			return(any((
-				self.search_by_name and search_term in item.name.lower(),
-				self.search_by_desc and search_term in item.description.lower(),
-				self.search_by_group and search_term in item.group.lower(),
-				self.search_by_deps and any(search_term in s.lower() for s in item.depends),
-				self.search_by_optdeps and any(search_term in s.lower() for s in item.optdepends),
-				self.search_by_provides and any(search_term in s.lower() for s in item.provides),
-				self.search_by_files and any(search_term in s.lower() for s in item.files)
-			)))
+			if self.search_exact == True:
+				return(any((
+					self.search_by_name and search_term == item.name.lower(),
+					self.search_by_desc and search_term == item.description.lower(),
+					self.search_by_group and search_term == item.group.lower(),
+					self.search_by_deps and any(search_term == s.lower() for s in item.depends),
+					self.search_by_optdeps and any(search_term == s.lower() for s in item.optdepends),
+					self.search_by_provides and any(search_term == s.lower() for s in item.provides),
+					self.search_by_files and any(search_term == s.lower() for s in item.files)
+				)))
+			else:
+				return(any((
+					self.search_by_name and search_term in item.name.lower(),
+					self.search_by_desc and search_term in item.description.lower(),
+					self.search_by_group and search_term in item.group.lower(),
+					self.search_by_deps and any(search_term in s.lower() for s in item.depends),
+					self.search_by_optdeps and any(search_term in s.lower() for s in item.optdepends),
+					self.search_by_provides and any(search_term in s.lower() for s in item.provides),
+					self.search_by_files and any(search_term in s.lower() for s in item.files)
+				)))
 
 	#-----------------------------------
 	# Property change signal handlers
@@ -1203,6 +1216,8 @@ class SearchHeader(Gtk.Stack):
 	#-----------------------------------
 	def on_search_active_changed(self, view, prop):
 		if self.search_active == True:
+			app.set_accels_for_action("win.search-exact", ["<ctrl>E"])
+
 			app.set_accels_for_action("win.search-by-name", ["<ctrl>1"])
 			app.set_accels_for_action("win.search-by-desc", ["<ctrl>2"])
 			app.set_accels_for_action("win.search-by-group", ["<ctrl>3"])
@@ -1218,6 +1233,8 @@ class SearchHeader(Gtk.Stack):
 
 			self.search_entry.grab_focus()
 		else:
+			app.set_accels_for_action("win.search-exact", [])
+
 			app.set_accels_for_action("win.search-by-name", [])
 			app.set_accels_for_action("win.search-by-desc", [])
 			app.set_accels_for_action("win.search-by-group", [])
@@ -1381,6 +1398,8 @@ class MainWindow(Adw.ApplicationWindow):
 		)
 
 		# Create column view search filter actions
+		self.add_action(Gio.PropertyAction.new("search-exact", self.column_view, "search_exact"))
+
 		self.add_action(Gio.PropertyAction.new("search-by-name", self.column_view, "search_by_name"))
 		self.add_action(Gio.PropertyAction.new("search-by-desc", self.column_view, "search_by_desc"))
 		self.add_action(Gio.PropertyAction.new("search-by-group", self.column_view, "search_by_group"))

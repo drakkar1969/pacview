@@ -162,6 +162,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;E</property>
+                <property name="title">Toggle Exact Match</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;L</property>
                 <property name="title">Select All Search By Options</property>
               </object>
