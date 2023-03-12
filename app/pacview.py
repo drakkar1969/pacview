@@ -127,7 +127,7 @@ class PkgObject(GObject.Object):
 		return(self.pkg.arch)
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
-	def maintainer(self):
+	def packager(self):
 		return(self.pkg.packager)
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
@@ -897,7 +897,7 @@ class PkgInfoPane(Gtk.Overlay):
 			if obj.conflicts != []: self.model.append(PkgProperty("Conflicts With", self.pkglist_to_linkstr(obj.conflicts)))
 			if obj.replaces != []: self.model.append(PkgProperty("Replaces", self.pkglist_to_linkstr(obj.replaces)))
 			self.model.append(PkgProperty("Architecture", obj.architecture))
-			self.model.append(PkgProperty("Maintainer", self.email_to_link(obj.maintainer)))
+			self.model.append(PkgProperty("Packager", self.email_to_link(obj.packager)))
 			self.model.append(PkgProperty("Build Date", obj.build_date_long))
 			if obj.install_date_long != "": self.model.append(PkgProperty("Install Date", obj.install_date_long))
 			if obj.download_size != "": self.model.append(PkgProperty("Download Size", obj.download_size))
