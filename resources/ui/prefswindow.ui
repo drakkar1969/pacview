@@ -99,6 +99,29 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Preferences</property>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title">_Reset Preferences</property>
+                <property name="subtitle">Reset all preferences to default values</property>
+                <property name="use_underline">True</property>
+                <property name="activatable_widget">reset_button</property>
+                <child>
+                  <object class="GtkButton" id="reset_button">
+                    <property name="valign">center</property>
+                    <property name="label">Reset</property>
+                    <signal name="clicked" handler="on_reset_button_clicked" swapped="no"/>
+                    <style>
+                      <class name="destructive-action"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </template>
