@@ -44,7 +44,7 @@
       <default>false</default>
     </key>
     <key name="monospace-font" type="s">
-      <default>''</default>
+      <default>'Source Code Pro 11'</default>
     </key>
   </schema>
 </schemalist>

@@ -626,7 +626,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 	font_expander = Gtk.Template.Child()
 	font_switch = Gtk.Template.Child()
-	font_label = Gtk.Template.Child()
+	font_button = Gtk.Template.Child()
 
 	#-----------------------------------
 	# Properties
@@ -673,8 +673,10 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		)
 
 		self.bind_property(
-			"monospace_font", self.font_label, "label",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
+			"monospace_font", self.font_button, "font-desc",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
+			lambda binding, value: Pango.FontDescription.from_string(value),
+			lambda binding, value: value.to_string()
 		)
 
 		# Bind font expander state to font switch
@@ -689,24 +691,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	# Signal handlers
 	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_fontrow_activated(self, button):
-		self.font_dialog = Gtk.FontChooserDialog.new("Select Font", self)
-		self.font_dialog.set_modal(True)
-
-		self.font_dialog.set_font(self.monospace_font)
-
-		self.font_dialog.connect("response", self.on_font_dialog_response)
-		self.font_dialog.present()
-
-	def on_font_dialog_response(self, dialog, response):
-		if response == Gtk.ResponseType.OK:
-			if (font := dialog.get_font()) is not None:
-				self.monospace_font = font
-
-		self.font_dialog.close()
-		self.font_dialog = None
-
 	@Gtk.Template.Callback()
 	def on_reset_button_clicked(self, button):
 		self.reset_dialog = Adw.MessageDialog.new(self, "Reset Preferences?", "Reset all preferences to their default values.")
@@ -726,7 +710,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 			self.column_switch.set_active(True)
 			self.sorting_switch.set_active(False)
 			self.font_switch.set_active(False)
-			self.font_label.set_text("")
+			self.font_button.set_font_desc(Pango.FontDescription.from_string("Source Code Pro 11"))
 
 		self.reset_dialog = None
 

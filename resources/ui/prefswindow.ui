@@ -86,16 +86,14 @@
                   <object class="AdwActionRow" id="font_row">
                     <property name="title">Font _Name</property>
                     <property name="use-underline">True</property>
-                    <property name="activatable">True</property>
-                    <signal name="activated" handler="on_fontrow_activated" swapped="no"/>
-                    <child type="suffix">
-                      <object class="GtkLabel" id="font_label">
-                        <property name="margin-end">6</property>
-                      </object>
-                    </child>
-                    <child type="suffix">
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
+                    <property name="activatable-widget">font_button</property>
+                    <child>
+                      <object class="GtkFontDialogButton" id="font_button">
+                        <property name="valign">center</property>
+                        <property name="dialog">
+                          <object class="GtkFontDialog" id="font_dialog">
+                          </object>
+                        </property>
                       </object>
                     </child>
                   </object>
