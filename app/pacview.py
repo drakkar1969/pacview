@@ -1715,7 +1715,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Build update dict
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
 
-		update_dict = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in update_list if u != ""}
+		update_dict = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in update_list if expr.match(u)}
 
 		GLib.idle_add(self.show_pkg_updates, update_dict, returncode)
 
