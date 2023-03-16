@@ -1235,6 +1235,7 @@ class SearchHeader(Gtk.Stack):
 
 		# Capture click on filter image
 		click_gesture = Gtk.GestureClick.new()
+		click_gesture.set_button(Gdk.BUTTON_PRIMARY)
 		click_gesture.connect("pressed", self.on_filter_image_clicked)
 
 		self.filter_image.add_controller(click_gesture)
