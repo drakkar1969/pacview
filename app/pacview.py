@@ -691,16 +691,13 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_fontrow_activated(self, button):
-		self.font_dialog = Gtk.FontChooserDialog(
-			title="Select Font",
-			modal=True,
-			transient_for=self
-		)
+		self.font_dialog = Gtk.FontChooserDialog.new("Select Font", self)
+		self.font_dialog.set_modal(True)
 
 		self.font_dialog.set_font(self.monospace_font)
 
 		self.font_dialog.connect("response", self.on_font_dialog_response)
-		self.font_dialog.show()
+		self.font_dialog.present()
 
 	def on_font_dialog_response(self, dialog, response):
 		if response == Gtk.ResponseType.OK:
