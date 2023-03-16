@@ -619,6 +619,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	load_switch = Gtk.Template.Child()
 
 	aur_entryrow = Gtk.Template.Child()
+	aur_info_image = Gtk.Template.Child()
 
 	column_switch = Gtk.Template.Child()
 	sorting_switch = Gtk.Template.Child()
@@ -681,6 +682,9 @@ class PreferencesWindow(Adw.PreferencesWindow):
 			"expanded", self.font_switch, "active",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
+
+		# Set aur update command info tooltip
+		self.aur_info_image.set_tooltip_markup("The command should return a list of AUR updates in the format:\n\n<i>package_name  current_version</i> -> <i>new_version</i>")
 
 	#-----------------------------------
 	# Signal handlers
