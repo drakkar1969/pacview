@@ -712,7 +712,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 	@Gtk.Template.Callback()
 	def on_reset_button_clicked(self, button):
-		self.dialog = Adw.MessageDialog.new(self, "Reset Preferences", "Reset all preferences to their default values?")
+		self.dialog = Adw.MessageDialog.new(self, "Reset Preferences?", "Reset all preferences to their default values.")
 
 		self.dialog.add_response("cancel", "_Cancel")
 		self.dialog.add_response("reset", "_Reset")
