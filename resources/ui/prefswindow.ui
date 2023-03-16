@@ -2,10 +2,10 @@
 <interface>
   <!--// PREFERENCES WINDOW //-->
   <template class="PreferencesWindow" parent="AdwPreferencesWindow">
-    <property name="default_width">550</property>
-    <property name="default_height">-1</property>
+    <property name="default-width">550</property>
+    <property name="default-height">-1</property>
     <property name="modal">True</property>
-    <property name="hide_on_close">True</property>
+    <property name="hide-on-close">True</property>
     <property name="search-enabled">False</property>
     <child>
       <object class="AdwPreferencesPage">
@@ -16,8 +16,8 @@
               <object class="AdwActionRow">
                 <property name="title">Lazy Package _Load</property>
                 <property name="subtitle">Show main window before package list is fully loaded</property>
-                <property name="use_underline">True</property>
-                <property name="activatable_widget">load_switch</property>
+                <property name="use-underline">True</property>
+                <property name="activatable-widget">load_switch</property>
                 <child>
                   <object class="GtkSwitch" id="load_switch">
                     <property name="valign">center</property>
@@ -28,7 +28,7 @@
             <child>
               <object class="AdwEntryRow" id="aur_entryrow">
                 <property name="title">Command to check for _AUR updates (optional)</property>
-                <property name="use_underline">True</property>
+                <property name="use-underline">True</property>
                 <child type="suffix">
                   <object class="GtkImage" id="aur_info_image">
                     <property name="icon-name">dialog-information-symbolic</property>
@@ -45,8 +45,8 @@
               <object class="AdwActionRow">
                 <property name="title">Remember _Columns</property>
                 <property name="subtitle">Save package list column order</property>
-                <property name="use_underline">True</property>
-                <property name="activatable_widget">column_switch</property>
+                <property name="use-underline">True</property>
+                <property name="activatable-widget">column_switch</property>
                 <child>
                   <object class="GtkSwitch" id="column_switch">
                     <property name="valign">center</property>
@@ -58,8 +58,8 @@
               <object class="AdwActionRow">
                 <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package list sort order</property>
-                <property name="use_underline">True</property>
-                <property name="activatable_widget">sorting_switch</property>
+                <property name="use-underline">True</property>
+                <property name="activatable-widget">sorting_switch</property>
                 <child>
                   <object class="GtkSwitch" id="sorting_switch">
                     <property name="valign">center</property>
@@ -90,7 +90,7 @@
                     <signal name="activated" handler="on_fontrow_activated" swapped="no"/>
                     <child type="suffix">
                       <object class="GtkLabel" id="font_label">
-                        <property name="margin_end">6</property>
+                        <property name="margin-end">6</property>
                       </object>
                     </child>
                     <child type="suffix">
@@ -111,8 +111,8 @@
               <object class="AdwActionRow">
                 <property name="title">_Reset Preferences</property>
                 <property name="subtitle">Reset all preferences to default values</property>
-                <property name="use_underline">True</property>
-                <property name="activatable_widget">reset_button</property>
+                <property name="use-underline">True</property>
+                <property name="activatable-widget">reset_button</property>
                 <child>
                   <object class="GtkButton" id="reset_button">
                     <property name="valign">center</property>
