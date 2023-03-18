@@ -8,6 +8,7 @@
     <property name="title"></property>
     <child>
       <object class="GtkEventControllerKey">
+        <property name="propagation-phase">capture</property>
         <signal name="key-pressed" handler="on_key_pressed" swapped="no"/>
       </object>
     </child>
