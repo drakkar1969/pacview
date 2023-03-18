@@ -1124,13 +1124,6 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Bind sensitive state to image opacity
-		self.bind_property(
-			"sensitive", self.image, "opacity",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: 1.0 if value == True else 0.3
-		)
-
 		# Bind count label visibility to count property
 		self.bind_property(
 			"count", self.count_label, "visible",
