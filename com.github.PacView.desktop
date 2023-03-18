@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=PacView
+GenericName=Package Browser
+Comment=An application for browsing pacman databases and the AUR
+Exec=/usr/share/pacview/pacview.py
+Terminal=false
+Type=Application
+Icon=software-properties
+StartupNotify=false
+Categories=GTK;GNOME;System;
