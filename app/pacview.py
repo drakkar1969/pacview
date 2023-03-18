@@ -776,7 +776,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@GObject.Property(type=PkgObject, default=None)
 	def pkg_object(self):
-		return(self.__obj_list[self.__obj_index] if (self.__obj_index >= 0 and self.__obj_index < len(self.__obj_list)) else None)
+		return(self.__obj_list[self.__obj_index] if 0 <= self.__obj_index < len(self.__obj_list) else None)
 
 	@pkg_object.setter
 	def pkg_object(self, value):
@@ -871,7 +871,7 @@ class PkgInfoPane(Gtk.Overlay):
 					new_obj = obj
 					break
 
-		if new_obj is not None and new_obj is not self.__obj_list[self.__obj_index]:
+		if new_obj is not None and new_obj is not self.pkg_object:
 			self.__obj_list = self.__obj_list[:self.__obj_index+1]
 			self.__obj_list.append(new_obj)
 
