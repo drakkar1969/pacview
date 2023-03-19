@@ -210,6 +210,7 @@
                                     <property name="resource">/com/github/PacView/ui/details/file-item.ui</property>
                                   </object>
                                 </property>
+                                <signal name="activate" handler="on_files_view_activated" swapped="no"/>
                               </object>
                             </property>
                           </object>
@@ -493,6 +494,7 @@
                                     <property name="resource">/com/github/PacView/ui/details/cache-item.ui</property>
                                   </object>
                                 </property>
+                                <signal name="activate" handler="on_cache_view_activated" swapped="no"/>
                               </object>
                             </property>
                           </object>
@@ -584,6 +586,7 @@
                                     </property>
                                   </object>
                                 </property>
+                                <signal name="activate" handler="on_backup_view_activated" swapped="no"/>
                                 <child>
                                   <object class="GtkColumnViewColumn" id="backup_file_column">
                                     <property name="title">File</property>
