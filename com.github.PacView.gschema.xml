@@ -29,7 +29,7 @@
       <default>true</default>
     </key>
     <key name="lazy-load" type="b">
-      <default>false</default>
+      <default>true</default>
     </key>
     <key name="aur-update-command" type="s">
       <default>''</default>
