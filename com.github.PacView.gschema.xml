@@ -28,9 +28,6 @@
     <key name="sort-ascending" type="b">
       <default>true</default>
     </key>
-    <key name="lazy-load" type="b">
-      <default>true</default>
-    </key>
     <key name="aur-update-command" type="s">
       <default>''</default>
     </key>

@@ -616,8 +616,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	# Class widget variables
 	#-----------------------------------
-	load_switch = Gtk.Template.Child()
-
 	aur_entryrow = Gtk.Template.Child()
 	aur_info_image = Gtk.Template.Child()
 
@@ -631,7 +629,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	lazy_load = GObject.Property(type=bool, default=False)
 	aur_update_command = GObject.Property(type=str, default="")
 
 	remember_columns = GObject.Property(type=bool, default=True)
@@ -647,11 +644,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		super().__init__(*args, **kwargs)
 
 		# Bind properties to widgets
-		self.bind_property(
-			"lazy_load", self.load_switch, "active",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
-		)
-
 		self.bind_property(
 			"aur_update_command", self.aur_entryrow, "text",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
@@ -1329,7 +1321,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("sort-column", self.column_view, "sort_id", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("sort-ascending", self.column_view, "sort_asc", Gio.SettingsBindFlags.DEFAULT)
 
-		self.gsettings.bind("lazy-load", self.prefs_window, "lazy_load", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("aur-update-command", self.prefs_window, "aur_update_command", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("remember-columns", self.prefs_window, "remember_columns", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("remember-sorting", self.prefs_window, "remember_sorting", Gio.SettingsBindFlags.DEFAULT)

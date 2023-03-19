@@ -13,19 +13,6 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Application</property>
             <child>
-              <object class="AdwActionRow">
-                <property name="title">Lazy Package _Load</property>
-                <property name="subtitle">Show main window before package list is fully loaded</property>
-                <property name="use-underline">True</property>
-                <property name="activatable-widget">load_switch</property>
-                <child>
-                  <object class="GtkSwitch" id="load_switch">
-                    <property name="valign">center</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
               <object class="AdwEntryRow" id="aur_entryrow">
                 <property name="title">Command to check for _AUR updates (optional)</property>
                 <property name="use-underline">True</property>
