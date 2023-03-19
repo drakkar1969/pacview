@@ -20,7 +20,7 @@
             <child type="start">
               <object class="GtkToggleButton" id="header_sidebar_btn">
                 <property name="icon-name">sidebar-show-symbolic</property>
-                <property name="tooltip-text">Toggle Sidebar</property>
+                <property name="tooltip-text">Toggle sidebar</property>
                 <property name="action-name">win.show-sidebar</property>
               </object>
             </child>
@@ -28,14 +28,14 @@
               <object class="GtkMenuButton" id="header_mainmenu_btn">
                 <property name="icon-name">open-menu-symbolic</property>
                 <property name="primary">True</property>
-                <property name="tooltip-text">Main Menu</property>
+                <property name="tooltip-text">Main menu</property>
                 <property name="menu-model">primary_menu</property>
               </object>
             </child>
             <child type="end">
               <object class="GtkToggleButton" id="header_infopane_btn">
                 <property name="icon-name">sidebar-show-right-symbolic</property>
-                <property name="tooltip-text">Toggle Info Pane</property>
+                <property name="tooltip-text">Toggle info pane</property>
                 <property name="action-name">win.show-infopane</property>
               </object>
             </child>
@@ -43,7 +43,7 @@
               <object class="GtkToggleButton" id="header_search_btn">
                 <property name="active">False</property>
                 <property name="icon-name">edit-find-symbolic</property>
-                <property name="tooltip-text">Toggle Search</property>
+                <property name="tooltip-text">Toggle search</property>
               </object>
             </child>
           </object>
