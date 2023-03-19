@@ -204,6 +204,7 @@
     </child>
     <child type="overlay">
       <object class="GtkBox" id="loading_box">
+        <property name="visible" bind-source="loading_spinner" bind-property="spinning" bind-flags="sync-create|bidirectional"/>
         <property name="halign">center</property>
         <property name="valign">center</property>
         <property name="spacing">6</property>
