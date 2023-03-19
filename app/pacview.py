@@ -28,7 +28,7 @@ class PkgStatus(IntFlag):
 	INSTALLED = 15
 	NONE = 16
 	ALL = 31
-	UPDATES = 32
+	UPDATE = 32
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGOBJECT
@@ -181,7 +181,7 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Update properties
 	#-----------------------------------
-	has_updates = GObject.Property(type=bool, default=False)
+	has_update = GObject.Property(type=bool, default=False)
 	update_version = GObject.Property(type=str, default="")
 
 	#-----------------------------------
@@ -1576,6 +1576,8 @@ class MainWindow(Adw.ApplicationWindow):
 	def init_packages(self):
 		self.populate_column_view()
 
+		self.set_sidebar_selections()
+
 		thread = threading.Thread(target=self.checkupdates_async, args=(self.prefs_window.aur_update_command,), daemon=True)
 		thread.start()
 
@@ -1595,7 +1597,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.pacman_db_names.append("AUR")
 
 	#-----------------------------------
-	# Init sidebar function
+	# Populate sidebar function
 	#-----------------------------------
 	def populate_sidebar(self):
 		# Remove rows from listboxes
@@ -1606,23 +1608,18 @@ class MainWindow(Adw.ApplicationWindow):
 			self.status_listbox.remove(row)
 
 		# Add rows to repository list box
-		repo_row = SidebarListBoxRow(icon="repository-symbolic", text="All")
-		self.repo_listbox.append(repo_row)
+		self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text="All"))
 
 		for db in self.pacman_db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
 
-		self.repo_listbox.select_row(repo_row)
-
 		# Add rows to status list box
-		status_dict = {PkgStatus.ALL: "status-all-symbolic", PkgStatus.INSTALLED: "status-installed-symbolic", PkgStatus.EXPLICIT: "status-explicit-symbolic", PkgStatus.DEPENDENCY: "status-dependency-symbolic", PkgStatus.OPTIONAL: "status-optional-symbolic", PkgStatus.ORPHAN: "status-orphan-symbolic", PkgStatus.NONE: "status-none-symbolic", PkgStatus.UPDATES: "status-update-symbolic"}
+		status_list = [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATE]
 
-		for st in status_dict.keys():
-			row = SidebarListBoxRow(icon=status_dict.get(st, ""), text=st.name.title(), str_id=st.value)
-			self.status_listbox.append(row)
-			if st == PkgStatus.INSTALLED:
-				self.status_listbox.select_row(row)
-			if st == PkgStatus.UPDATES:
+		for s in status_list:
+			self.status_listbox.append(row := SidebarListBoxRow(icon=f'status-{s.name.lower()}-symbolic', text=s.name.title(), str_id=s.value))
+
+			if s == PkgStatus.UPDATE:
 				self.update_row = row
 				self.update_row.spinning = True
 				self.update_row.set_sensitive(False)
@@ -1671,6 +1668,16 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
 	#-----------------------------------
+	# Set sidebar selections function
+	#-----------------------------------
+	def set_sidebar_selections(self):
+		self.repo_listbox.select_row(self.repo_listbox.get_row_at_index(0))
+
+		for row in self.status_listbox:
+			if PkgStatus(int(row.str_id)) is PkgStatus.INSTALLED:
+				self.status_listbox.select_row(row)
+
+	#-----------------------------------
 	# Check for updates functions
 	#-----------------------------------
 	def checkupdates_async(self, aur_update_command):
@@ -1698,8 +1705,8 @@ class MainWindow(Adw.ApplicationWindow):
 		if returncode != 1 and len(update_dict) != 0:
 			for obj in self.pkg_objects:
 				if obj.name in update_dict.keys():
-					obj.has_updates = True
-					obj.status_flags |= PkgStatus.UPDATES
+					obj.has_update = True
+					obj.status_flags |= PkgStatus.UPDATE
 					obj.update_version = update_dict[obj.name]
 
 		# Update info pane package object

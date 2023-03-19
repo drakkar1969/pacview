@@ -8,7 +8,7 @@
           <object class="GtkImage">
             <property name="icon-name">pkg-update</property>
             <binding name="visible">
-              <lookup name="has_updates" type="PkgObject">
+              <lookup name="has_update" type="PkgObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
