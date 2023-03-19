@@ -147,7 +147,7 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
-                                <property name="spacing">16</property>
+                                <property name="spacing">20</property>
                                 <child>
                                   <object class="GtkSearchEntry" id="files_search_entry">
                                     <signal name="search-changed" handler="on_files_search_changed" swapped="no"/>
@@ -159,6 +159,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkBox">
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkButton" id="files_open_button">
                                         <property name="icon-name">folder-open-symbolic</property>
@@ -262,7 +263,7 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
-                                <property name="spacing">8</property>
+                                <property name="spacing">12</property>
                                 <child>
                                   <object class="GtkLabel" id="tree_depth_label">
                                     <property name="label">Default</property>
@@ -295,6 +296,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkBox">
+                                    <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkToggleButton" id="tree_reverse_button">
                                         <property name="icon-name">tree-reverse-symbolic</property>
@@ -457,6 +459,7 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
+                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkButton" id="cache_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
@@ -551,6 +554,7 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
+                                <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkButton" id="backup_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
