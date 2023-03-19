@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib, datetime, time
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib, datetime
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
