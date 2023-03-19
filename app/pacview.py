@@ -571,10 +571,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	def on_files_search_changed(self, entry):
 		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
 
-	@Gtk.Template.Callback()
-	def on_files_search_stopped(self, entry):
-		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
-
 	#-----------------------------------
 	# Populate dependency tree function
 	#-----------------------------------

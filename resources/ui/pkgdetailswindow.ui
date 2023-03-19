@@ -152,7 +152,6 @@
                                   <object class="GtkSearchEntry" id="files_search_entry">
                                     <property name="tooltip-text">Search for files</property>
                                     <signal name="search-changed" handler="on_files_search_changed" swapped="no"/>
-                                    <signal name="stop-search" handler="on_files_search_stopped" swapped="no"/>
                                     <style>
                                       <class name="rounded"/>
                                     </style>
