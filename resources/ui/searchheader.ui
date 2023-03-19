@@ -19,7 +19,7 @@
             <property name="spacing">6</property>
             <child>
               <object class="GtkSearchEntry" id="search_entry">
-                <property name="width-request">760</property>
+                <property name="width-request">860</property>
                 <signal name="search-started" handler="on_search_started" swapped="no"/>
                 <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
                 <child>
@@ -44,43 +44,43 @@
                     <property name="valign">center</property>
                     <child>
                       <object class="SearchTag" id="searchtag_name">
-                        <property name="label">name</property>
+                        <property name="text">name</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_desc">
                         <property name="visible">False</property>
-                        <property name="label">desc</property>
+                        <property name="text">desc</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_group">
                         <property name="visible">False</property>
-                        <property name="label">group</property>
+                        <property name="text">group</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_deps">
                         <property name="visible">False</property>
-                        <property name="label">deps</property>
+                        <property name="text">deps</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_optdeps">
                         <property name="visible">False</property>
-                        <property name="label">optdeps</property>
+                        <property name="text">optdeps</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_provides">
                         <property name="visible">False</property>
-                        <property name="label">provides</property>
+                        <property name="text">provides</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_files">
                         <property name="visible">False</property>
-                        <property name="label">files</property>
+                        <property name="text">files</property>
                       </object>
                     </child>
                     <child>
@@ -91,7 +91,7 @@
                     </child>
                     <child>
                       <object class="SearchTag" id="searchtag_exact">
-                        <property name="label">exact</property>
+                        <property name="text">exact</property>
                       </object>
                     </child>
                   </object>

@@ -39,10 +39,17 @@ button.inline-button:active {
 	opacity: 0.8;
 }
 
-label.searchtag {
+box.searchtag {
 	background: alpha(@window_fg_color, 0.12);
 	border-radius: 9999px;
-	padding: 3px 10px;
+	padding: 0 0 0 10px;
+}
+
+button.searchtag {
+	min-height: 22px;
+	min-width: 22px;
+	margin: 0;
+	padding: 0;
 }
 
 label.count-indicator {

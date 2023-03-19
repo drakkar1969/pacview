@@ -1158,14 +1158,26 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 #-- CLASS: SEARCHTAG
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/searchtag.ui")
-class SearchTag(Gtk.Label):
+class SearchTag(Gtk.Box):
 	__gtype_name__ = "SearchTag"
+
+	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	text = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+	#-----------------------------------
+	# Signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_close_button_clicked(self, controller, n_press, x, y):
+		self.set_visible(False)
 
 #------------------------------------------------------------------------------
 #-- CLASS: SEARCHHEADER
