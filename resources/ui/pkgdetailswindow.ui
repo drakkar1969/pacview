@@ -162,6 +162,7 @@
                                         <property name="tooltip-text">Open in File Manager</property>
                                         <style>
                                           <class name="flat"/>
+                                          <class name="circular"/>
                                         </style>
                                         <signal name="clicked" handler="on_files_open_button_clicked" swapped="no"/>
                                       </object>
@@ -172,6 +173,7 @@
                                         <property name="tooltip-text">Copy File List</property>
                                         <style>
                                           <class name="flat"/>
+                                          <class name="circular"/>
                                         </style>
                                         <signal name="clicked" handler="on_files_copy_button_clicked" swapped="no"/>
                                       </object>
@@ -296,6 +298,7 @@
                                         <property name="tooltip-text">Reverse Tree</property>
                                         <style>
                                           <class name="flat"/>
+                                          <class name="circular"/>
                                         </style>
                                         <signal name="toggled" handler="on_tree_reverse_toggled" swapped="no"/>
                                       </object>
@@ -306,6 +309,7 @@
                                         <property name="tooltip-text">Copy Dependency Tree</property>
                                         <style>
                                           <class name="flat"/>
+                                          <class name="circular"/>
                                         </style>
                                         <signal name="clicked" handler="on_tree_copy_button_clicked" swapped="no"/>
                                       </object>
@@ -376,6 +380,7 @@
                                 <property name="tooltip-text">Copy Log Messages</property>
                                 <style>
                                   <class name="flat"/>
+                                  <class name="circular"/>
                                 </style>
                                 <signal name="clicked" handler="on_log_copy_button_clicked" swapped="no"/>
                               </object>
@@ -455,6 +460,7 @@
                                     <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
+                                      <class name="circular"/>
                                     </style>
                                     <signal name="clicked" handler="on_cache_open_button_clicked" swapped="no"/>
                                   </object>
@@ -465,6 +471,7 @@
                                     <property name="tooltip-text">Copy Cache File List</property>
                                     <style>
                                       <class name="flat"/>
+                                      <class name="circular"/>
                                     </style>
                                     <signal name="clicked" handler="on_cache_copy_button_clicked" swapped="no"/>
                                   </object>
@@ -547,6 +554,7 @@
                                     <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
+                                      <class name="circular"/>
                                     </style>
                                     <signal name="clicked" handler="on_backup_open_button_clicked" swapped="no"/>
                                   </object>
@@ -557,6 +565,7 @@
                                     <property name="tooltip-text">Copy Backup File List</property>
                                     <style>
                                       <class name="flat"/>
+                                      <class name="circular"/>
                                     </style>
                                     <signal name="clicked" handler="on_backup_copy_button_clicked" swapped="no"/>
                                   </object>
