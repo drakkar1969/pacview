@@ -455,11 +455,15 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.populate_dep_tree(self.default_depth)
 
 			# Populate log
-			pkg_log = subprocess.run(shlex.split(f'/usr/bin/paclog --no-color --package={pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			with open("/var/log/pacman.log", "r") as f:
+				log_lines = f.readlines()
 
-			log_lines = [re.sub("\[(.+)T(.+)\+.+\] (.+)", r"[\1 \2]  \3", l) for l in pkg_log.stdout.decode().split('\n') if l != ""]
+				log_match = re.compile(f'\[(.+)T(.+)\+.+\] \[ALPM\] (installed|removed|upgraded|downgraded) {pkg_object.name} (.+)')
+				log_sub = re.compile("\[(.+)T(.+)\+.+\] (.+)\n")
 
-			self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
+				log_lines = [log_sub.sub(r"[\1 \2]  \3", l) for l in log_lines if log_match.match(l)]
+
+				self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
 			# Populate cache
 			pkg_cache = subprocess.run(shlex.split(f'/usr/bin/paccache -vdk0 {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
