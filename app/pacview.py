@@ -413,9 +413,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		# Initialize files search entry
 		self.files_search_entry.set_key_capture_widget(self.files_view)
 
-		# Set file view filter function
-		self.files_filter.set_filter_func(self.filter_files)
-
 		# Set tree label font
 		if monospace_font == "":
 			gsettings = Gio.Settings(schema_id="org.gnome.desktop.interface")
@@ -554,22 +551,11 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.content_stack.set_visible_child_name(button.text.lower())
 
 	#-----------------------------------
-	# Filter files function
-	#-----------------------------------
-	def filter_files(self, item):
-		search_text = self.files_search_entry.get_text()
-
-		if search_text == "":
-			return(True)
-		else:
-			return(search_text.lower() in item.get_string().lower())
-
-	#-----------------------------------
 	# Files search entry signal handlers
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_files_search_changed(self, entry):
-		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
+		self.files_filter.set_search(entry.get_text())
 
 	#-----------------------------------
 	# Populate dependency tree function

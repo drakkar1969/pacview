@@ -202,7 +202,11 @@
                                     <property name="model">
                                       <object class="GtkFilterListModel" id="files_filter_model">
                                         <property name="filter">
-                                          <object class="GtkCustomFilter" id="files_filter"/>
+                                          <object class="GtkStringFilter" id="files_filter">
+                                            <property name="expression">
+                                              <lookup name="string" type="GtkStringObject"/>
+                                            </property>
+                                          </object>
                                         </property>
                                         <property name="model">
                                           <object class="GtkStringList" id="files_model"/>
