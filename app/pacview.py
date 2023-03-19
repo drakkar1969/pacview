@@ -372,7 +372,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 	files_header_label = Gtk.Template.Child()
 	files_search_entry = Gtk.Template.Child()
-	files_header_button = Gtk.Template.Child()
+	files_open_button = Gtk.Template.Child()
 	files_view = Gtk.Template.Child()
 	files_selection = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
@@ -386,12 +386,12 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	log_model = Gtk.Template.Child()
 
 	cache_header_label = Gtk.Template.Child()
-	cache_header_button = Gtk.Template.Child()
+	cache_open_button = Gtk.Template.Child()
 	cache_selection = Gtk.Template.Child()
 	cache_model = Gtk.Template.Child()
 
 	backup_header_label = Gtk.Template.Child()
-	backup_header_button = Gtk.Template.Child()
+	backup_open_button = Gtk.Template.Child()
 	backup_view = Gtk.Template.Child()
 	backup_selection = Gtk.Template.Child()
 	backup_model = Gtk.Template.Child()
@@ -420,21 +420,21 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		# Bind file header button state to file selection
 		self.files_selection.bind_property(
-			"n-items", self.files_header_button, "sensitive",
+			"n-items", self.files_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
 		# Bind cache header button state to cache selection
 		self.cache_selection.bind_property(
-			"n-items", self.cache_header_button, "sensitive",
+			"n-items", self.cache_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
 		# Bind backup header button state to backup selection
 		self.backup_selection.bind_property(
-			"n-items", self.backup_header_button, "sensitive",
+			"n-items", self.backup_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
@@ -573,7 +573,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.populate_dep_tree(depth, button.get_active())
 
 	#-----------------------------------
-	# Helper function to open file manager
+	# Open file manager signal handlers
 	#-----------------------------------
 	def open_file_manager(self, selected_path):
 		desktop = Gio.AppInfo.get_default_for_type("inode/directory", True)
@@ -584,31 +584,22 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			except:
 				pass
 
-	#-----------------------------------
-	# File header button signal handler
-	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_files_header_button_clicked(self, button):
+	def on_files_open_button_clicked(self, button):
 		selected_item = self.files_selection.get_selected_item()
 
 		if selected_item is not None:
 			self.open_file_manager(selected_item.get_string())
 
-	#-----------------------------------
-	# Cache header button signal handler
-	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_cache_header_button_clicked(self, button):
+	def on_cache_open_button_clicked(self, button):
 		selected_item = self.cache_selection.get_selected_item()
 
 		if selected_item is not None:
 			self.open_file_manager(f'/var/cache/pacman/pkg/{selected_item.get_string()}')
 
-	#-----------------------------------
-	# Backup header button signal handler
-	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_backup_header_button_clicked(self, button):
+	def on_backup_open_button_clicked(self, button):
 		selected_item = self.backup_selection.get_selected_item()
 
 		if selected_item is not None:

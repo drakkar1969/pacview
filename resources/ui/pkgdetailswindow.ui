@@ -155,13 +155,13 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="files_header_button">
+                                  <object class="GtkButton" id="files_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
                                     <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                     </style>
-                                    <signal name="clicked" handler="on_files_header_button_clicked" swapped="no"/>
+                                    <signal name="clicked" handler="on_files_open_button_clicked" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
@@ -411,13 +411,13 @@
                                 <property name="halign">end</property>
                                 <property name="spacing">8</property>
                                 <child>
-                                  <object class="GtkButton" id="cache_header_button">
+                                  <object class="GtkButton" id="cache_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
                                     <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                     </style>
-                                    <signal name="clicked" handler="on_cache_header_button_clicked" swapped="no"/>
+                                    <signal name="clicked" handler="on_cache_open_button_clicked" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
@@ -493,13 +493,13 @@
                                 <property name="halign">end</property>
                                 <property name="spacing">8</property>
                                 <child>
-                                  <object class="GtkButton" id="backup_header_button">
+                                  <object class="GtkButton" id="backup_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
                                     <property name="tooltip-text">Open in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                     </style>
-                                    <signal name="clicked" handler="on_backup_header_button_clicked" swapped="no"/>
+                                    <signal name="clicked" handler="on_backup_open_button_clicked" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
