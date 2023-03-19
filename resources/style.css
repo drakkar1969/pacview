@@ -58,3 +58,11 @@ label.count-indicator {
 	border-radius: 9999px;
 	padding: 3px 7px;
 }
+
+entry.rounded {
+	border-radius: 9999px;
+}
+
+button.rounded {
+	border-radius: 9999px;
+}
