@@ -380,6 +380,8 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 	tree_label = Gtk.Template.Child()
 	tree_depth_label = Gtk.Template.Child()
+	tree_depth_scale = Gtk.Template.Child()
+	tree_reverse_button = Gtk.Template.Child()
 
 	log_model = Gtk.Template.Child()
 
@@ -452,7 +454,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			# Populate dependency tree
 			self.default_depth = 6
 
-			self.populate_dep_tree(self.default_depth)
+			self.populate_dep_tree(self.default_depth, False)
 
 			# Populate log
 			with open("/var/log/pacman.log", "r") as f:
@@ -510,15 +512,12 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.backup_model.splice(0, 0, backup_list)
 
 	#-----------------------------------
-	# Files search entry signal handlers
+	# Toggle button signal handler
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_files_search_changed(self, entry):
-		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
-
-	@Gtk.Template.Callback()
-	def on_files_search_stopped(self, entry):
-		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
+	def on_button_toggled(self, button):
+		if button.get_active() == True:
+			self.content_stack.set_visible_child_name(button.text.lower())
 
 	#-----------------------------------
 	# Filter files function
@@ -532,22 +531,46 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			return(search_text.lower() in item.get_string().lower())
 
 	#-----------------------------------
+	# Files search entry signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_files_search_changed(self, entry):
+		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	@Gtk.Template.Callback()
+	def on_files_search_stopped(self, entry):
+		self.files_filter.changed(Gtk.FilterChange.DIFFERENT)
+
+	#-----------------------------------
 	# Populate dependency tree function
 	#-----------------------------------
-	def populate_dep_tree(self, depth):
+	def populate_dep_tree(self, depth, reverse):
+		local_flag = "" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"
 		depth_flag = "" if depth == self.default_depth else f'-d {depth}'
+		reverse_flag = "-r" if reverse else ""
 
-		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree {"" if (self.pkg_object.status_flags & PkgStatus.INSTALLED) else " -s"} {depth_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
 
 	#-----------------------------------
-	# Toggle button signal handler
+	# Dependency tree signal handlers
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_button_toggled(self, button):
-		if button.get_active() == True:
-			self.content_stack.set_visible_child_name(button.text.lower())
+	def on_tree_depth_changed(self, scale):
+		if self.pkg_object is not None:
+			depth = int(scale.get_value())
+			
+			self.populate_dep_tree(depth, self.tree_reverse_button.get_active())
+
+			self.tree_depth_label.set_label("Default" if depth == self.default_depth else str(depth))
+
+	@Gtk.Template.Callback()
+	def on_tree_reverse_toggled(self, button):
+		if self.pkg_object is not None:
+			depth = int(self.tree_depth_scale.get_value())
+			
+			self.populate_dep_tree(depth, button.get_active())
 
 	#-----------------------------------
 	# Helper function to open file manager
@@ -570,18 +593,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		if selected_item is not None:
 			self.open_file_manager(selected_item.get_string())
-
-	#-----------------------------------
-	# Dependency tree dropdown signal handler
-	#-----------------------------------
-	@Gtk.Template.Callback()
-	def on_tree_depth_changed(self, scale):
-		if self.pkg_object is not None:
-			depth = int(scale.get_value())
-			
-			self.populate_dep_tree(depth)
-
-			self.tree_depth_label.set_label("Default" if depth == self.default_depth else str(depth))
 
 	#-----------------------------------
 	# Cache header button signal handler

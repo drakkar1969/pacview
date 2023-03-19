@@ -249,7 +249,7 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkScale" id="tree_scale">
+                                  <object class="GtkScale" id="tree_depth_scale">
                                     <property name="width-request">100</property>
                                     <property name="tooltip-text">Adjust Tree Depth</property>
                                     <property name="adjustment">
@@ -271,6 +271,16 @@
                                       <mark value="6" position="bottom"></mark>
                                     </marks>
                                     <signal name="value-changed" handler="on_tree_depth_changed" swapped="no"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkToggleButton" id="tree_reverse_button">
+                                    <property name="icon-name">tree-reverse-symbolic</property>
+                                    <property name="tooltip-text">Reverse Tree</property>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                    <signal name="toggled" handler="on_tree_reverse_toggled" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
