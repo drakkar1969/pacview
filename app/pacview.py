@@ -1592,10 +1592,12 @@ class MainWindow(Adw.ApplicationWindow):
 			self.status_listbox.remove(row)
 
 		# Add rows to repository list box
-		self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text="All"))
+		self.repo_listbox.append(all_row := SidebarListBoxRow(icon="repository-symbolic", text="All"))
 
 		for db in self.pacman_db_names:
 			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
+
+		self.repo_listbox.select_row(all_row)
 
 		# Add rows to status list box
 		status_list = [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATE]
@@ -1607,6 +1609,9 @@ class MainWindow(Adw.ApplicationWindow):
 				self.update_row = row
 				self.update_row.spinning = True
 				self.update_row.set_sensitive(False)
+
+			if s == PkgStatus.INSTALLED:
+				self.status_listbox.select_row(row)
 
 	#-----------------------------------
 	# Load packages async functions
@@ -1652,9 +1657,6 @@ class MainWindow(Adw.ApplicationWindow):
 		# Populate column view
 		GLib.idle_add(self.idle_populate_column_view, pkg_objects)
 
-		# Set sidebar selections
-		GLib.idle_add(self.idle_set_sidebar_selections)
-
 		# Get updates
 		pacman_upd = subprocess.run(shlex.split(f'/usr/bin/checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -1684,16 +1686,6 @@ class MainWindow(Adw.ApplicationWindow):
 		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
 
 		self.column_view.is_loading = False
-
-	#-----------------------------------
-	# Set sidebar selections function
-	#-----------------------------------
-	def idle_set_sidebar_selections(self):
-		self.repo_listbox.select_row(self.repo_listbox.get_row_at_index(0))
-
-		for row in self.status_listbox:
-			if PkgStatus(int(row.str_id)) is PkgStatus.INSTALLED:
-				self.status_listbox.select_row(row)
 
 	#-----------------------------------
 	# Show updates function
