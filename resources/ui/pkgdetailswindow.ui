@@ -147,7 +147,7 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
-                                <property name="spacing">8</property>
+                                <property name="spacing">16</property>
                                 <child>
                                   <object class="GtkSearchEntry" id="files_search_entry">
                                     <signal name="search-changed" handler="on_files_search_changed" swapped="no"/>
@@ -155,13 +155,27 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="files_open_button">
-                                    <property name="icon-name">folder-open-symbolic</property>
-                                    <property name="tooltip-text">Open in File Manager</property>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                    <signal name="clicked" handler="on_files_open_button_clicked" swapped="no"/>
+                                  <object class="GtkBox">
+                                    <child>
+                                      <object class="GtkButton" id="files_open_button">
+                                        <property name="icon-name">folder-open-symbolic</property>
+                                        <property name="tooltip-text">Open in File Manager</property>
+                                        <style>
+                                          <class name="flat"/>
+                                        </style>
+                                        <signal name="clicked" handler="on_files_open_button_clicked" swapped="no"/>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton" id="files_copy_button">
+                                        <property name="icon-name">edit-copy-symbolic</property>
+                                        <property name="tooltip-text">Copy File List</property>
+                                        <style>
+                                          <class name="flat"/>
+                                        </style>
+                                        <signal name="clicked" handler="on_files_copy_button_clicked" swapped="no"/>
+                                      </object>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -274,13 +288,27 @@
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkToggleButton" id="tree_reverse_button">
-                                    <property name="icon-name">tree-reverse-symbolic</property>
-                                    <property name="tooltip-text">Reverse Tree</property>
-                                    <style>
-                                      <class name="flat"/>
-                                    </style>
-                                    <signal name="toggled" handler="on_tree_reverse_toggled" swapped="no"/>
+                                  <object class="GtkBox">
+                                    <child>
+                                      <object class="GtkToggleButton" id="tree_reverse_button">
+                                        <property name="icon-name">tree-reverse-symbolic</property>
+                                        <property name="tooltip-text">Reverse Tree</property>
+                                        <style>
+                                          <class name="flat"/>
+                                        </style>
+                                        <signal name="toggled" handler="on_tree_reverse_toggled" swapped="no"/>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton" id="tree_copy_button">
+                                        <property name="icon-name">edit-copy-symbolic</property>
+                                        <property name="tooltip-text">Copy Dependency Tree</property>
+                                        <style>
+                                          <class name="flat"/>
+                                        </style>
+                                        <signal name="clicked" handler="on_tree_copy_button_clicked" swapped="no"/>
+                                      </object>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -332,12 +360,23 @@
                             </child>
                             <child>
                               <object class="GtkLabel" id="log_header_label">
+                                <property name="hexpand">True</property>
                                 <property name="xalign">0</property>
                                 <property name="yalign">0.5</property>
                                 <property name="label">Log Messages</property>
                                 <style>
                                   <class name="title-3"/>
                                 </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="log_copy_button">
+                                <property name="icon-name">edit-copy-symbolic</property>
+                                <property name="tooltip-text">Copy Log Messages</property>
+                                <style>
+                                  <class name="flat"/>
+                                </style>
+                                <signal name="clicked" handler="on_log_copy_button_clicked" swapped="no"/>
                               </object>
                             </child>
                           </object>
@@ -352,7 +391,7 @@
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="model">
-                                  <object class="GtkNoSelection">
+                                  <object class="GtkNoSelection" id="log_selection">
                                     <property name="model">
                                       <object class="GtkStringList" id="log_model"/>
                                     </property>
@@ -409,7 +448,6 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
-                                <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkButton" id="cache_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
@@ -418,6 +456,16 @@
                                       <class name="flat"/>
                                     </style>
                                     <signal name="clicked" handler="on_cache_open_button_clicked" swapped="no"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="cache_copy_button">
+                                    <property name="icon-name">edit-copy-symbolic</property>
+                                    <property name="tooltip-text">Copy Cache File List</property>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                    <signal name="clicked" handler="on_cache_copy_button_clicked" swapped="no"/>
                                   </object>
                                 </child>
                               </object>
@@ -491,7 +539,6 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
-                                <property name="spacing">8</property>
                                 <child>
                                   <object class="GtkButton" id="backup_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
@@ -500,6 +547,16 @@
                                       <class name="flat"/>
                                     </style>
                                     <signal name="clicked" handler="on_backup_open_button_clicked" swapped="no"/>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkButton" id="backup_copy_button">
+                                    <property name="icon-name">edit-copy-symbolic</property>
+                                    <property name="tooltip-text">Copy Backup File List</property>
+                                    <style>
+                                      <class name="flat"/>
+                                    </style>
+                                    <signal name="clicked" handler="on_backup_copy_button_clicked" swapped="no"/>
                                   </object>
                                 </child>
                               </object>

@@ -373,6 +373,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	files_header_label = Gtk.Template.Child()
 	files_search_entry = Gtk.Template.Child()
 	files_open_button = Gtk.Template.Child()
+	files_copy_button = Gtk.Template.Child()
 	files_view = Gtk.Template.Child()
 	files_selection = Gtk.Template.Child()
 	files_model = Gtk.Template.Child()
@@ -382,16 +383,21 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	tree_depth_label = Gtk.Template.Child()
 	tree_depth_scale = Gtk.Template.Child()
 	tree_reverse_button = Gtk.Template.Child()
+	tree_copy_button = Gtk.Template.Child()
 
+	log_copy_button = Gtk.Template.Child()
+	log_selection = Gtk.Template.Child()
 	log_model = Gtk.Template.Child()
 
 	cache_header_label = Gtk.Template.Child()
 	cache_open_button = Gtk.Template.Child()
+	cache_copy_button = Gtk.Template.Child()
 	cache_selection = Gtk.Template.Child()
 	cache_model = Gtk.Template.Child()
 
 	backup_header_label = Gtk.Template.Child()
 	backup_open_button = Gtk.Template.Child()
+	backup_copy_button = Gtk.Template.Child()
 	backup_view = Gtk.Template.Child()
 	backup_selection = Gtk.Template.Child()
 	backup_model = Gtk.Template.Child()
@@ -418,23 +424,51 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		self.tree_label.set_attributes(Pango.AttrList.from_string(f'0 -1 font-desc "{monospace_font}"'))
 
-		# Bind file header button state to file selection
+		# Bind file open button state to file selection
 		self.files_selection.bind_property(
 			"n-items", self.files_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind cache header button state to cache selection
+		# Bind cache open button state to cache selection
 		self.cache_selection.bind_property(
 			"n-items", self.cache_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind backup header button state to backup selection
+		# Bind backup open button state to backup selection
 		self.backup_selection.bind_property(
 			"n-items", self.backup_open_button, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != 0
+		)
+
+		# Bind file copy button state to file selection
+		self.files_selection.bind_property(
+			"n-items", self.files_copy_button, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != 0
+		)
+
+		# Bind log copy button state to log selection
+		self.log_selection.bind_property(
+			"n-items", self.log_copy_button, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != 0
+		)
+
+		# Bind cache copy button state to cache selection
+		self.cache_selection.bind_property(
+			"n-items", self.cache_copy_button, "sensitive",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != 0
+		)
+
+		# Bind backup copy button state to backup selection
+		self.backup_selection.bind_property(
+			"n-items", self.backup_copy_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
@@ -604,6 +638,59 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		if selected_item is not None:
 			self.open_file_manager(selected_item.label)
+
+	#-----------------------------------
+	# Copy signal handlers
+	#-----------------------------------
+	@Gtk.Template.Callback()
+	def on_files_copy_button_clicked(self, button):
+		copy_text = '\n'.join([obj.get_string() for obj in self.files_selection])
+
+		clipboard = button.get_clipboard()
+
+		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, copy_text))
+
+		clipboard.set_content(content)
+
+	@Gtk.Template.Callback()
+	def on_tree_copy_button_clicked(self, button):
+		copy_text = self.tree_label.get_label()
+
+		clipboard = button.get_clipboard()
+
+		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, copy_text))
+
+		clipboard.set_content(content)
+
+	@Gtk.Template.Callback()
+	def on_log_copy_button_clicked(self, button):
+		copy_text = '\n'.join([obj.get_string() for obj in self.log_selection])
+
+		clipboard = button.get_clipboard()
+
+		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, copy_text))
+
+		clipboard.set_content(content)
+
+	@Gtk.Template.Callback()
+	def on_cache_copy_button_clicked(self, button):
+		copy_text = '\n'.join([obj.get_string() for obj in self.cache_selection])
+
+		clipboard = button.get_clipboard()
+
+		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, copy_text))
+
+		clipboard.set_content(content)
+
+	@Gtk.Template.Callback()
+	def on_backup_copy_button_clicked(self, button):
+		copy_text = '\n'.join([f'{obj.label} ({obj.status})' for obj in self.backup_selection])
+
+		clipboard = button.get_clipboard()
+
+		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, copy_text))
+
+		clipboard.set_content(content)
 
 	#-----------------------------------
 	# Key press signal handler
