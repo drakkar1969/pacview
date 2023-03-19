@@ -28,7 +28,7 @@ class PkgStatus(IntFlag):
 	INSTALLED = 15
 	NONE = 16
 	ALL = 31
-	UPDATE = 32
+	UPDATES = 32
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGOBJECT
@@ -1600,12 +1600,12 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(all_row)
 
 		# Add rows to status list box
-		status_list = [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATE]
+		status_list = [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]
 
 		for s in status_list:
 			self.status_listbox.append(row := SidebarListBoxRow(icon=f'status-{s.name.lower()}-symbolic', text=s.name.title(), str_id=s.value))
 
-			if s == PkgStatus.UPDATE:
+			if s == PkgStatus.UPDATES:
 				self.update_row = row
 				self.update_row.spinning = True
 				self.update_row.set_sensitive(False)
@@ -1696,7 +1696,7 @@ class MainWindow(Adw.ApplicationWindow):
 			for obj in self.pkg_objects:
 				if obj.name in update_dict.keys():
 					obj.has_update = True
-					obj.status_flags |= PkgStatus.UPDATE
+					obj.status_flags |= PkgStatus.UPDATES
 					obj.update_version = update_dict[obj.name]
 
 		# Update info pane package object
@@ -1704,7 +1704,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Update sidebar status listbox update row
 		self.update_row.spinning = False
-		self.update_row.icon = "status-update-error-symbolic" if returncode == 1 else "status-update-symbolic"
+		self.update_row.icon = "status-updates-error-symbolic" if returncode == 1 else "status-updates-symbolic"
 		self.update_row.count = f'{len(update_dict)}' if returncode != 1 and len(update_dict) != 0 else ""
 
 		self.update_row.set_tooltip_text("Update error" if returncode == 1 else "")
