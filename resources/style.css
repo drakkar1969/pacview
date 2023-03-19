@@ -14,6 +14,10 @@ row image:disabled {
 	filter: opacity(0.3);
 }
 
+spinner.dim-spinner {
+	filter: opacity(0.5);
+}
+
 box.rounded {
 	border-radius: 9999px;
 }

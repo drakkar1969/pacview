@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib, datetime
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib, datetime, time
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -985,7 +985,10 @@ class PkgColumnView(Gtk.Overlay):
 	selection = Gtk.Template.Child()
 	filter_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
+
 	empty_label = Gtk.Template.Child()
+	loading_box = Gtk.Template.Child()
+	loading_spinner = Gtk.Template.Child()
 
 	repo_filter = Gtk.Template.Child()
 	status_filter = Gtk.Template.Child()
@@ -1002,6 +1005,8 @@ class PkgColumnView(Gtk.Overlay):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
+	is_loading = GObject.Property(type=bool, default=True)
+
 	column_ids = GObject.Property(type=GObject.TYPE_STRV, default=[])
 	default_column_ids = GObject.Property(type=GObject.TYPE_STRV, default=["package", "version", "repository", "status", "date", "size", "group"], flags=GObject.ParamFlags.READABLE)
 	sort_id = GObject.Property(type=str, default="package")
@@ -1030,7 +1035,13 @@ class PkgColumnView(Gtk.Overlay):
 		self.selection.bind_property(
 			"n-items", self.empty_label, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: value == 0
+			lambda binding, value: self.is_loading == False and value == 0
+		)
+
+		# Bind is_loading property to loading box visibility
+		self.bind_property(
+			"is_loading", self.loading_box, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
 		# Set filter functions
@@ -1525,12 +1536,13 @@ class MainWindow(Adw.ApplicationWindow):
 			self.column_view.view.sort_by_column(self.column_view.view.get_columns()[0], Gtk.SortType.ASCENDING)
 
 		# Initialize window
-		self.init_window()
+		self.init_databases()
 
-		if self.prefs_window.lazy_load:
-			GLib.idle_add(self.init_packages)
-		else:
-			self.init_packages()
+		self.populate_sidebar()
+
+		# Load packages
+		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names, self.prefs_window.aur_update_command,), daemon=True)
+		load_thread.start()
 
 	#-----------------------------------
 	# Close window signal handler
@@ -1561,25 +1573,6 @@ class MainWindow(Adw.ApplicationWindow):
 		else:
 			self.column_view.sort_id = "package"
 			self.column_view.sort_asc = True
-
-	#-----------------------------------
-	# Init window function
-	#-----------------------------------
-	def init_window(self):
-		self.init_databases()
-
-		self.populate_sidebar()
-
-	#-----------------------------------
-	# Init packages function
-	#-----------------------------------
-	def init_packages(self):
-		self.populate_column_view()
-
-		self.set_sidebar_selections()
-
-		thread = threading.Thread(target=self.checkupdates_async, args=(self.prefs_window.aur_update_command,), daemon=True)
-		thread.start()
 
 	#-----------------------------------
 	# Init databases function
@@ -1625,9 +1618,9 @@ class MainWindow(Adw.ApplicationWindow):
 				self.update_row.set_sensitive(False)
 
 	#-----------------------------------
-	# Populate column view function
+	# Load packages async functions
 	#-----------------------------------
-	def populate_column_view(self):
+	def load_packages_async(self, pacman_db_names, aur_update_command):
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
 
@@ -1635,7 +1628,7 @@ class MainWindow(Adw.ApplicationWindow):
 		pkg_dict = {}
 
 		# Add sync packages
-		for db in self.pacman_db_names:
+		for db in pacman_db_names:
 			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
 
 			if sync_db is not None:
@@ -1663,24 +1656,14 @@ class MainWindow(Adw.ApplicationWindow):
 
 			return(None, PkgStatus.NONE)
 
-		self.pkg_objects = [PkgObject(pkg, __get_local_data(pkg.name)) for pkg in pkg_dict.values()]
+		pkg_objects = [PkgObject(pkg, __get_local_data(pkg.name)) for pkg in pkg_dict.values()]
 
-		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
+		# Populate column view
+		GLib.idle_add(self.idle_populate_column_view, pkg_objects)
 
-	#-----------------------------------
-	# Set sidebar selections function
-	#-----------------------------------
-	def set_sidebar_selections(self):
-		self.repo_listbox.select_row(self.repo_listbox.get_row_at_index(0))
+		# Set sidebar selections
+		GLib.idle_add(self.idle_set_sidebar_selections)
 
-		for row in self.status_listbox:
-			if PkgStatus(int(row.str_id)) is PkgStatus.INSTALLED:
-				self.status_listbox.select_row(row)
-
-	#-----------------------------------
-	# Check for updates functions
-	#-----------------------------------
-	def checkupdates_async(self, aur_update_command):
 		# Get updates
 		pacman_upd = subprocess.run(shlex.split(f'/usr/bin/checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -1698,9 +1681,33 @@ class MainWindow(Adw.ApplicationWindow):
 
 		update_dict = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in update_list if expr.match(u)}
 
-		GLib.idle_add(self.show_pkg_updates, update_dict, returncode)
+		# Show updates in sidebar
+		GLib.idle_add(self.idle_show_updates, update_dict, returncode)
 
-	def show_pkg_updates(self, update_dict, returncode):
+	#-----------------------------------
+	# Populate column view function
+	#-----------------------------------
+	def idle_populate_column_view(self, pkg_objects):
+		self.pkg_objects = pkg_objects
+
+		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
+
+		self.column_view.is_loading = False
+
+	#-----------------------------------
+	# Set sidebar selections function
+	#-----------------------------------
+	def idle_set_sidebar_selections(self):
+		self.repo_listbox.select_row(self.repo_listbox.get_row_at_index(0))
+
+		for row in self.status_listbox:
+			if PkgStatus(int(row.str_id)) is PkgStatus.INSTALLED:
+				self.status_listbox.select_row(row)
+
+	#-----------------------------------
+	# Show updates function
+	#-----------------------------------
+	def idle_show_updates(self, update_dict, returncode):
 		# Modify package object properties if update available
 		if returncode != 1 and len(update_dict) != 0:
 			for obj in self.pkg_objects:
@@ -1774,9 +1781,14 @@ class MainWindow(Adw.ApplicationWindow):
 	def refresh_packages_action(self, action, value, user_data):
 		self.header_search.search_active = False
 
-		self.init_window()
+		# Initialize window
+		self.init_databases()
 
-		GLib.idle_add(self.init_packages)
+		self.populate_sidebar()
+
+		# Load packages
+		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names, self.prefs_window.aur_update_command,), daemon=True)
+		load_thread.start()
 
 	def show_stats_window_action(self, action, value, user_data):
 		stats_window = StatsWindow(transient_for=self)
