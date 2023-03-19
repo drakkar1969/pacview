@@ -299,7 +299,7 @@
                                     <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkToggleButton" id="tree_reverse_button">
-                                        <property name="icon-name">tree-reverse-symbolic</property>
+                                        <property name="icon-name">details-tree-reverse-symbolic</property>
                                         <property name="tooltip-text">Reverse Tree</property>
                                         <style>
                                           <class name="flat"/>

@@ -4,6 +4,7 @@
     <file alias="details-item-symbolic.svg">icons/details-item-symbolic.svg</file>
     <file alias="details-files-symbolic.svg">icons/details-files-symbolic.svg</file>
     <file alias="details-tree-symbolic.svg">icons/details-tree-symbolic.svg</file>
+    <file alias="details-tree-reverse-symbolic.svg">icons/details-tree-reverse-symbolic.svg</file>
     <file alias="details-log-symbolic.svg">icons/details-log-symbolic.svg</file>
     <file alias="details-cache-symbolic.svg">icons/details-cache-symbolic.svg</file>
     <file alias="details-backup-symbolic.svg">icons/details-backup-symbolic.svg</file>
@@ -18,7 +19,6 @@
     <file alias="status-orphan-symbolic.svg">icons/status-orphan-symbolic.svg</file>
     <file alias="status-updates-symbolic.svg">icons/status-updates-symbolic.svg</file>
     <file alias="status-updates-error-symbolic.svg">icons/status-updates-error-symbolic.svg</file>
-    <file alias="tree-reverse-symbolic.svg">icons/tree-reverse-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/PacView">
     <file compressed="true">style.css</file>
