@@ -3,6 +3,7 @@
   <!--// SEARCH HEADER //-->
   <template class="SearchHeader" parent="GtkStack">
     <property name="title" bind-source="title_widget" bind-property="title" bind-flags="sync-create|bidirectional"/>
+    <property name="width-request">860</property>
     <child>
       <object class="GtkStackPage" id="title_page">
         <property name="name">title</property>
@@ -19,7 +20,7 @@
             <property name="spacing">6</property>
             <child>
               <object class="GtkSearchEntry" id="search_entry">
-                <property name="width-request">860</property>
+                <property name="hexpand">True</property>
                 <signal name="search-started" handler="on_search_started" swapped="no"/>
                 <signal name="stop-search" handler="on_search_stopped" swapped="no"/>
                 <child>
