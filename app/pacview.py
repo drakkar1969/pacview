@@ -793,6 +793,13 @@ class PkgInfoPane(Gtk.Overlay):
 		if child is not None and type(child).__name__ == "GtkListItemWidget":
 			child.set_visible(False)
 
+		# Bind package to overlay toolbar visibility
+		self.bind_property(
+			"pkg_object", self.overlay_toolbar, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value is not None
+		)
+
 	#-----------------------------------
 	# Factory signal handlers
 	#-----------------------------------
@@ -1457,13 +1464,6 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Info pane
 		#-----------------------------
-		# Bind info pane package to overlay toolbar visibility
-		self.info_pane.bind_property(
-			"pkg_object", self.info_pane.overlay_toolbar, "visible",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
-			lambda binding, value: value is not None
-		)
-
 		# Add info pane actions
 		action_list = [
 			( "view-prev-package", self.view_prev_package_action ),
