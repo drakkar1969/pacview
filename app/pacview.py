@@ -538,7 +538,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 					status_icon = "backup-error"
 					status = "read error"
 
-				backup_list += [PkgBackup(filename, status_icon, status)]
+				backup_list.append(PkgBackup(filename, status_icon, status))
 
 			self.backup_model.splice(0, 0, backup_list)
 
