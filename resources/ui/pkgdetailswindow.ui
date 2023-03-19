@@ -66,7 +66,7 @@
                     <property name="active">True</property>
                     <property name="icon">details-files-symbolic</property>
                     <property name="text">Files</property>
-                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -75,7 +75,7 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-tree-symbolic</property>
                     <property name="text">Tree</property>
-                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -84,7 +84,7 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-log-symbolic</property>
                     <property name="text">Log</property>
-                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -93,7 +93,7 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-cache-symbolic</property>
                     <property name="text">Cache</property>
-                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
                   </object>
                 </child>
                 <child>
@@ -102,7 +102,7 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-backup-symbolic</property>
                     <property name="text">Backup</property>
-                    <signal name="toggled" handler="on_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
                   </object>
                 </child>
               </object>

@@ -546,7 +546,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	# Toggle button signal handler
 	#-----------------------------------
 	@Gtk.Template.Callback()
-	def on_button_toggled(self, button):
+	def on_stack_button_toggled(self, button):
 		if button.get_active() == True:
 			self.content_stack.set_visible_child_name(button.text.lower())
 
