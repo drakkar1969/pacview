@@ -1349,7 +1349,7 @@ class SearchHeader(Gtk.Stack):
 		Gtk.Widget.insert_after(self.searchtag_box, self.search_entry, self.search_entry.get_first_child())
 
 	#-----------------------------------
-	# Signal handlers
+	# Search signal handlers
 	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_search_started(self, entry):
@@ -1359,6 +1359,13 @@ class SearchHeader(Gtk.Stack):
 	def on_search_stopped(self, entry):
 		self.search_active = False
 
+	@Gtk.Template.Callback()
+	def on_search_changed(self, entry):
+		self.key_capture_widget.current_search = entry.get_text()
+
+	#-----------------------------------
+	# Filter signal handlers
+	#-----------------------------------
 	@Gtk.Template.Callback()
 	def on_filter_image_clicked(self, controller, n_press, x, y):
 		self.filter_popover.popup()
@@ -1485,15 +1492,6 @@ class MainWindow(Adw.ApplicationWindow):
 
 		app.set_accels_for_action("win.search-start", ["<ctrl>f"])
 		app.set_accels_for_action("win.search-stop", ["Escape"])
-
-		#-----------------------------
-		# Search header
-		#-----------------------------
-		# Bind header search term to column view
-		self.header_search.search_entry.bind_property(
-			"text", self.column_view, "current_search",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
 
 		#-----------------------------
 		# Column view
