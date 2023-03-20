@@ -877,6 +877,8 @@ class PkgInfoPane(Gtk.Overlay):
 
 		self.empty_label.set_visible(value is None)
 
+	pkg_model = GObject.Property(type=Gio.ListStore, default=None)
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -948,23 +950,31 @@ class PkgInfoPane(Gtk.Overlay):
 	# Link signal handler
 	#-----------------------------------
 	def on_link_activated(self, label, url):
+		def filter_name_func(obj, pkg_name):
+			return(obj.name == pkg_name)
+
+		def filter_provides_func(obj, pkg_name):
+			return(any(pkg_name in s for s in obj.provides))
+
 		parse_url = urllib.parse.urlsplit(url)
 
 		if parse_url.scheme != "pkg": return(False)
 
 		pkg_name = parse_url.netloc
 
-		obj_dict = {obj.name: obj for obj in app.main_window.pkg_objects}
-
 		new_obj = None
 
-		if pkg_name in obj_dict.keys():
-			new_obj = obj_dict[pkg_name]
+		link_filter = Gtk.CustomFilter.new(filter_name_func, pkg_name)
+
+		link_list = Gtk.FilterListModel.new(self.pkg_model, link_filter)
+
+		if link_list.get_n_items() > 0:
+			new_obj = link_list.get_item(0)
 		else:
-			for obj in obj_dict.values():
-				if any(pkg_name in s for s in obj.provides):
-					new_obj = obj
-					break
+			link_filter.set_filter_func(filter_provides_func, pkg_name)
+
+			if link_list.get_n_items() > 0:
+				new_obj = link_list.get_item(0)
 
 		if new_obj is not None and new_obj is not self.pkg_object:
 			self.__obj_list = self.__obj_list[:self.__obj_index+1]
@@ -1478,6 +1488,12 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Column view
 		#-----------------------------
+		# Bind column view model to info pane
+		self.column_view.filter_model.bind_property(
+			"model", self.info_pane, "pkg_model",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
 		# Bind column view selected item to info pane
 		self.column_view.selection.bind_property(
 			"selected-item", self.info_pane, "pkg_object",
