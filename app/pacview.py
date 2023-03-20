@@ -438,6 +438,27 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		self.tree_label.set_attributes(Pango.AttrList.from_string(f'0 -1 font-desc "{monospace_font}"'))
 
+		# Bind file header text to file selection
+		self.files_selection.bind_property(
+			"n-items", self.files_header_label, "label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: f'Files ({value})'
+		)
+
+		# Bind cache header text to cache selection
+		self.cache_selection.bind_property(
+			"n-items", self.cache_header_label, "label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: f'Cache ({value})'
+		)
+
+		# Bind backup header text to backup selection
+		self.backup_selection.bind_property(
+			"n-items", self.backup_header_label, "label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: f'Backup Files ({value})'
+		)
+
 		# Bind file open button state to file selection
 		self.files_selection.bind_property(
 			"n-items", self.files_open_button, "sensitive",
@@ -493,8 +514,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.pkg_label.set_text(f'{pkg_object.repository}/{pkg_object.name}')
 
 			# Populate file list
-			self.files_header_label.set_text(f'Files ({len(pkg_object.files)})')
-
 			file_list = [f'/{f}' for f in pkg_object.files]
 
 			self.files_model.splice(0, 0, file_list)
@@ -520,8 +539,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and not l.startswith("==>") and not l.endswith(".sig"))]
 
-			self.cache_header_label.set_text(f'Cache ({len(cache_lines)})')
-
 			self.cache_model.splice(0, 0, cache_lines)
 
 			# Hide backup column view header
@@ -531,8 +548,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 				child.set_visible(False)
 
 			# Populate backup list
-			self.backup_header_label.set_text(f'Backup Files ({len(pkg_object.backup)})')
-
 			backup_list = []
 
 			for bk in pkg_object.backup:
