@@ -1815,9 +1815,7 @@ class MainWindow(Adw.ApplicationWindow):
 	# Populate column view function
 	#-----------------------------------
 	def idle_populate_column_view(self, pkg_objects):
-		self.pkg_objects = pkg_objects
-
-		self.column_view.model.splice(0, len(self.column_view.model), self.pkg_objects)
+		self.column_view.model.splice(0, len(self.column_view.model), pkg_objects)
 
 		self.column_view.is_loading = False
 
@@ -1827,7 +1825,7 @@ class MainWindow(Adw.ApplicationWindow):
 	def idle_show_updates(self, update_dict, returncode):
 		# Modify package object properties if update available
 		if returncode != 1 and len(update_dict) != 0:
-			for obj in self.pkg_objects:
+			for obj in self.column_view.model:
 				if obj.name in update_dict.keys():
 					obj.has_update = True
 					obj.status_flags |= PkgStatus.UPDATES
