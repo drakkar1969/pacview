@@ -52,7 +52,7 @@
     <child type="overlay">
       <object class="GtkBox" id="overlay_toolbar">
         <property name="halign">end</property>
-        <property name="valign">end</property>
+        <property name="valign">start</property>
         <property name="margin-start">8</property>
         <property name="margin-end">8</property>
         <property name="margin-top">8</property>
