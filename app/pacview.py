@@ -415,6 +415,11 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	backup_model = Gtk.Template.Child()
 
 	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	pkg_object = GObject.Property(type=PkgObject, default=None)
+
+	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, pkg_object, monospace_font, *args, **kwargs):
