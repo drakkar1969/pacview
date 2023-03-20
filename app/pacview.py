@@ -889,6 +889,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 		self.empty_label.set_visible(value is None)
 
+	sync_db_names = GObject.Property(type=GObject.TYPE_STRV, default=[])
 	pkg_model = GObject.Property(type=Gio.ListStore, default=None)
 
 	#-----------------------------------
@@ -1025,7 +1026,7 @@ class PkgInfoPane(Gtk.Overlay):
 			else: self.model.append(PkgProperty("Version", obj.version))
 			self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
 			self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
-			if obj.repository in app.main_window.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
+			if obj.repository in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
 			elif obj.repository == "AUR": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
 			self.model.append(PkgProperty("Licenses", GLib.markup_escape_text(obj.licenses)))
 			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
@@ -1444,6 +1445,12 @@ class MainWindow(Adw.ApplicationWindow):
 	prefs_window = Gtk.Template.Child()
 
 	#-----------------------------------
+	# Properties
+	#-----------------------------------
+	sync_db_names = GObject.Property(type=GObject.TYPE_STRV, default=["core", "extra", "community", "multilib"])
+	pacman_db_names = GObject.Property(type=GObject.TYPE_STRV, default=[])
+
+	#-----------------------------------
 	# Init function
 	#-----------------------------------
 	def __init__(self, *args, **kwargs):
@@ -1598,6 +1605,12 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Info pane
 		#-----------------------------
+		# Bind sync db names to info pane
+		self.bind_property(
+			"sync_db_names", self.info_pane, "sync_db_names",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
 		# Add info pane actions
 		action_list = [
 			( "view-prev-package", self.view_prev_package_action ),
@@ -1703,9 +1716,6 @@ class MainWindow(Adw.ApplicationWindow):
 	# Init databases function
 	#-----------------------------------
 	def init_databases(self):
-		# Define sync database names
-		self.sync_db_names = ["core", "extra", "community", "multilib"]
-
 		# Get list of configured database names
 		dbs = subprocess.run(shlex.split(f'/usr/bin/pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
