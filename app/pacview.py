@@ -301,20 +301,32 @@ class StatsWindow(Adw.Window):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, *args, **kwargs):
+	def __init__(self, pacman_db_names, model, *args, **kwargs):
 		super().__init__(*args, **kwargs)
+
+		def filter_installed_func(obj):
+			return(obj.status_flags & PkgStatus.INSTALLED)
+
+		def filter_db_func(obj, db):
+			return(obj.repository == db)
 
 		# Initialize widgets
 		total_count = 0
 		total_size = 0
 
-		for db in app.main_window.pacman_db_names:
-			obj_list = [obj for obj in app.main_window.pkg_objects if obj.repository == db and (obj.status_flags & PkgStatus.INSTALLED)]
+		installed_filter = Gtk.CustomFilter.new(filter_installed_func)
+		installed_model = Gtk.FilterListModel.new(model, installed_filter)
 
-			count = len(obj_list)
+		db_filter = Gtk.CustomFilter()
+		obj_model = Gtk.FilterListModel.new(installed_model, db_filter)
+
+		for db in pacman_db_names:
+			db_filter.set_filter_func(filter_db_func, db)
+
+			count = obj_model.get_n_items()
 			total_count += count
-
-			size = sum([obj.install_size_raw for obj in obj_list])
+		
+			size = sum([obj.install_size_raw for obj in obj_model])
 			total_size += size
 
 			self.model.append(StatsItem(
@@ -1896,7 +1908,7 @@ class MainWindow(Adw.ApplicationWindow):
 		load_thread.start()
 
 	def show_stats_window_action(self, action, value, user_data):
-		stats_window = StatsWindow(transient_for=self)
+		stats_window = StatsWindow(self.pacman_db_names, self.column_view.model, transient_for=self)
 		stats_window.present()
 
 	def copy_package_list_action(self, action, value, user_data):
