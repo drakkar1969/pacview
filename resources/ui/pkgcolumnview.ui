@@ -47,6 +47,11 @@
               </object>
             </property>
             <child>
+              <object class="GtkGestureClick" id="click_gesture">
+                <property name="button">1</property>
+              </object>
+            </child>
+            <child>
               <object class="GtkColumnViewColumn" id="package_column">
                 <property name="id">package</property>
                 <property name="title">Package</property>

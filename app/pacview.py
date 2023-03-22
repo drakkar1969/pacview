@@ -1124,6 +1124,8 @@ class PkgColumnView(Gtk.Overlay):
 	filter_model = Gtk.Template.Child()
 	model = Gtk.Template.Child()
 
+	click_gesture = Gtk.Template.Child()
+
 	empty_label = Gtk.Template.Child()
 	loading_box = Gtk.Template.Child()
 	loading_spinner = Gtk.Template.Child()
@@ -1619,8 +1621,8 @@ class MainWindow(Adw.ApplicationWindow):
 		self.add_action(Gio.PropertyAction.new("show-column-size", self.column_view.size_column, "visible"))
 		self.add_action(Gio.PropertyAction.new("show-column-group", self.column_view.group_column, "visible"))
 
-		# Connect column view activate signal
-		self.column_view.view.connect("activate", self.on_column_view_activated)
+		# Connect column view signals
+		self.column_view.click_gesture.connect("released", self.on_column_view_clicked)
 
 		#-----------------------------
 		# Info pane
@@ -1862,7 +1864,10 @@ class MainWindow(Adw.ApplicationWindow):
 					obj.update_version = update_dict[obj.name]
 
 		# Update info pane package object
-		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+		selected_item = self.column_view.selection.get_selected_item()
+
+		if selected_item != self.info_pane.pkg_object:
+			self.info_pane.pkg_object = selected_item
 
 		# Update sidebar status listbox update row
 		self.update_row.spinning = False
@@ -1985,8 +1990,11 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Column view signal handlers
 	#-----------------------------------
-	def on_column_view_activated(self, view, pos):
-		self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+	def on_column_view_clicked(self, controller, n_press, x, y):
+		selected_item = self.column_view.selection.get_selected_item()
+
+		if selected_item != self.info_pane.pkg_object:
+			self.info_pane.pkg_object = selected_item
 
 #------------------------------------------------------------------------------
 #-- CLASS: PACVIEWAPP
