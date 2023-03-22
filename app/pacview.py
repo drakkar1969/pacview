@@ -808,6 +808,9 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		# Set aur update command info tooltip
 		self.aur_info_image.set_tooltip_markup("The command should return a list of AUR updates in the format:\n\n<i>package_name  current_version</i> -> <i>new_version</i>")
 
+		# Focus AUR entry row
+		self.aur_entryrow.grab_focus_without_selecting()
+
 	#-----------------------------------
 	# Signal handlers
 	#-----------------------------------
