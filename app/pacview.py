@@ -1223,6 +1223,7 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	stack = Gtk.Template.Child()
 	image = Gtk.Template.Child()
 	spinner = Gtk.Template.Child()
+	count_box = Gtk.Template.Child()
 	count_label = Gtk.Template.Child()
 
 	#-----------------------------------
@@ -1243,7 +1244,7 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 
 		# Bind count label visibility to count property
 		self.bind_property(
-			"count", self.count_label, "visible",
+			"count", self.count_box, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: True if value != "" else False
 		)

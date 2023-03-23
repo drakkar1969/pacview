@@ -35,11 +35,17 @@ button.searchtag {
 	padding: 0;
 }
 
-label.count-indicator {
+box.count-indicator {
+	min-width: 22px;
 	background: @accent_bg_color;
-	color: @accent_fg_color;
 	border-radius: 9999px;
-	padding: 3px 7px;
+}
+
+label.count-indicator {
+	line-height: 22px;
+	color: @accent_fg_color;
+	margin: 0 7px;
+	padding: 0;
 }
 
 entry.rounded {
