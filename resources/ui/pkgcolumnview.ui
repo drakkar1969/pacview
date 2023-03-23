@@ -52,6 +52,18 @@
               </object>
             </child>
             <child>
+              <object class="GtkGestureClick" id="popover_gesture">
+                <property name="button">3</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkPopoverMenu" id="popover_menu">
+                <property name="menu-model">popup_menu</property>
+                <property name="has-arrow">False</property>
+                <property name="halign">start</property>
+              </object>
+            </child>
+            <child>
               <object class="GtkColumnViewColumn" id="package_column">
                 <property name="id">package</property>
                 <property name="title">Package</property>
@@ -267,6 +279,26 @@
       <item>
         <attribute name="label">Reset Columns</attribute>
         <attribute name="action">win.reset-view-columns</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!--// POPUP MENU //-->
+  <menu id="popup_menu">
+    <section>
+      <item>
+        <attribute name="label">Refresh</attribute>
+        <attribute name="action">win.refresh-packages</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Show Statistics</attribute>
+        <attribute name="action">win.show-stats-window</attribute>
+      </item>
+      <item>
+        <attribute name="label">Copy List</attribute>
+        <attribute name="action">win.copy-package-list</attribute>
       </item>
     </section>
   </menu>
