@@ -229,7 +229,6 @@ class PkgProperty(GObject.Object):
 	label = GObject.Property(type=str, default="")
 	value = GObject.Property(type=str, default="")
 	icon = GObject.Property(type=str, default="")
-	can_copy = GObject.Property(type=bool, default=False)
 
 	#-----------------------------------
 	# Init function
@@ -838,23 +837,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		self.reset_dialog = None
 
 #------------------------------------------------------------------------------
-#-- CLASS: INFOPANEBUTTON
-#------------------------------------------------------------------------------
-class InfoPaneButton(Gtk.Button):
-	__gtype_name__ = "InfoPaneButton"
-
-	#-----------------------------------
-	# Properties
-	#-----------------------------------
-	signal_id = GObject.Property(type=int, default=None)
-
-	#-----------------------------------
-	# Init function
-	#-----------------------------------
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-#------------------------------------------------------------------------------
 #-- CLASS: INFOPANELABEL
 #------------------------------------------------------------------------------
 class InfoPaneLabel(Gtk.Label):
@@ -863,7 +845,7 @@ class InfoPaneLabel(Gtk.Label):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	signal_id = GObject.Property(type=int, default=None)
+	link_id = GObject.Property(type=int, default=None)
 
 	#-----------------------------------
 	# Init function
@@ -941,15 +923,10 @@ class PkgInfoPane(Gtk.Overlay):
 	def on_setup_value(self, factory, item):
 		image = Gtk.Image()
 
-		button = InfoPaneButton(icon_name="edit-copy-symbolic", can_focus=False)
-		button.add_css_class("flat")
-		button.add_css_class("inline-button")
-
-		label = InfoPaneLabel(hexpand=True, vexpand=True, xalign=0, yalign=0, use_markup=True, can_focus=False)
+		label = InfoPaneLabel(hexpand=True, vexpand=True, xalign=0, yalign=0, use_markup=True, can_focus=False, selectable=True)
 
 		box = Gtk.Box(margin_start=4, spacing=6)
 		box.append(image)
-		box.append(button)
 		box.append(label)
 
 		item.set_child(box)
@@ -960,27 +937,21 @@ class PkgInfoPane(Gtk.Overlay):
 		obj = item.get_item()
 		
 		image = child.get_first_child()
-		button = child.get_first_child().get_next_sibling()
 		label = child.get_last_child()
 
 		image.set_visible(obj.icon != "")
 		image.set_from_icon_name(obj.icon)
 
 		label.set_label(obj.value)
-		label.signal_id = label.connect("activate-link", self.on_link_activated)
-
-		button.set_visible(obj.can_copy)
-		button.signal_id = button.connect("clicked", self.on_copybtn_clicked)
+		label.link_id = label.connect("activate-link", self.on_link_activated)
 
 	@Gtk.Template.Callback()
 	def on_unbind_value(self, factory, item):
 		child = item.get_child()
 
-		button = child.get_first_child().get_next_sibling()
 		label = child.get_last_child()
 
-		button.disconnect(button.signal_id)
-		label.disconnect(label.signal_id)
+		label.disconnect(label.link_id)
 
 	#-----------------------------------
 	# Link signal handler
@@ -1025,16 +996,6 @@ class PkgInfoPane(Gtk.Overlay):
 		return(True)
 
 	#-----------------------------------
-	# Copy button signal handler
-	#-----------------------------------
-	def on_copybtn_clicked(self, button):
-		clipboard = self.get_clipboard()
-
-		content = Gdk.ContentProvider.new_for_value(GObject.Value(str, button.get_next_sibling().get_label()))
-
-		clipboard.set_content(content)
-
-	#-----------------------------------
 	# Display functions
 	#-----------------------------------
 	def display_package(self, obj):
@@ -1069,8 +1030,8 @@ class PkgInfoPane(Gtk.Overlay):
 			if obj.download_size != "": self.model.append(PkgProperty("Download Size", obj.download_size))
 			self.model.append(PkgProperty("Installed Size", obj.install_size))
 			self.model.append(PkgProperty("Install Script", "Yes" if obj.install_script else "No"))
-			if obj.sha256sum is not None: self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum, can_copy=True))
-			if obj.md5sum is not None: self.model.append(PkgProperty("MD5 Sum", obj.md5sum, can_copy=True))
+			if obj.sha256sum is not None: self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum))
+			if obj.md5sum is not None: self.model.append(PkgProperty("MD5 Sum", obj.md5sum))
 
 	def display_prev_package(self):
 		if self.__obj_index > 0:
