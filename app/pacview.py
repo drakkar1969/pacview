@@ -1089,7 +1089,6 @@ class PkgColumnView(Gtk.Overlay):
 	model = Gtk.Template.Child()
 
 	click_gesture = Gtk.Template.Child()
-	popover_gesture = Gtk.Template.Child()
 	popover_menu = Gtk.Template.Child()
 
 	empty_label = Gtk.Template.Child()
@@ -1590,7 +1589,6 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Connect column view signals
 		self.column_view.click_gesture.connect("released", self.on_column_view_clicked)
-		self.column_view.popover_gesture.connect("pressed", self.on_column_view_popover)
 
 		#-----------------------------
 		# Info pane
@@ -1959,18 +1957,20 @@ class MainWindow(Adw.ApplicationWindow):
 	# Column view signal handlers
 	#-----------------------------------
 	def on_column_view_clicked(self, controller, n_press, x, y):
-		selected_item = self.column_view.selection.get_selected_item()
+		button = controller.get_current_button()
 
-		if selected_item != self.info_pane.pkg_object:
-			self.info_pane.pkg_object = selected_item
+		if button == Gdk.BUTTON_PRIMARY:
+			selected_item = self.column_view.selection.get_selected_item()
 
-	def on_column_view_popover(self, controller, n_press, x, y):
-		rect = Gdk.Rectangle()
-		rect.x = x
-		rect.y = y
+			if selected_item != self.info_pane.pkg_object:
+				self.info_pane.pkg_object = selected_item
+		elif button == Gdk.BUTTON_SECONDARY:
+			rect = Gdk.Rectangle()
+			rect.x = x
+			rect.y = y
 
-		self.column_view.popover_menu.set_pointing_to(rect)
-		self.column_view.popover_menu.popup()
+			self.column_view.popover_menu.set_pointing_to(rect)
+			self.column_view.popover_menu.popup()
 
 #------------------------------------------------------------------------------
 #-- CLASS: PACVIEWAPP

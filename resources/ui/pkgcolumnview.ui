@@ -48,12 +48,7 @@
             </property>
             <child>
               <object class="GtkGestureClick" id="click_gesture">
-                <property name="button">1</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkGestureClick" id="popover_gesture">
-                <property name="button">3</property>
+                <property name="button">0</property>
               </object>
             </child>
             <child>
