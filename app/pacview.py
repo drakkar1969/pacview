@@ -1665,11 +1665,15 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Set column view sorting
 		if self.prefs_window.remember_sorting == True:
-			for col in self.column_view.view.get_columns():
-				if col.get_id() == self.column_view.sort_id:
-					self.column_view.view.sort_by_column(col, Gtk.SortType.ASCENDING if self.column_view.sort_asc else Gtk.SortType.DESCENDING)
+			sort_id = self.column_view.sort_id
+			sort_asc = Gtk.SortType.ASCENDING if self.column_view.sort_asc else Gtk.SortType.DESCENDING
 		else:
-			self.column_view.view.sort_by_column(self.column_view.view.get_columns()[0], Gtk.SortType.ASCENDING)
+			sort_id = self.column_view.default_sort_id
+			sort_asc = Gtk.SortType.ASCENDING
+
+		for col in self.column_view.view.get_columns():
+			if col.get_id() == sort_id:
+				self.column_view.view.sort_by_column(col, sort_asc)
 
 		# Initialize window
 		self.init_databases()
