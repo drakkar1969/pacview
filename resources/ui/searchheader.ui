@@ -141,18 +141,18 @@
     </section>
     <section>
       <item>
-        <attribute name="label">Exact Match</attribute>
-        <attribute name="action">win.search-exact</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
         <attribute name="label">Select All</attribute>
         <attribute name="action">win.selectall-searchby-params</attribute>
       </item>
       <item>
         <attribute name="label">Reset</attribute>
         <attribute name="action">win.reset-searchby-params</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Exact Match</attribute>
+        <attribute name="action">win.search-exact</attribute>
       </item>
     </section>
   </menu>
