@@ -1804,9 +1804,9 @@ class MainWindow(Adw.ApplicationWindow):
 
 		update_list = pacman_upd.stdout.decode().split('\n')
 
-		returncode = pacman_upd.returncode
+		update_error = (pacman_upd.returncode == 1)
 
-		if aur_update_command != "" and returncode != 1:
+		if aur_update_command != "" and update_error == False:
 			aur_upd = subprocess.run(shlex.split(f'{aur_update_command}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			update_list.extend(aur_upd.stdout.decode().split('\n'))
@@ -1817,7 +1817,7 @@ class MainWindow(Adw.ApplicationWindow):
 		update_dict = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in update_list if expr.match(u)}
 
 		# Show updates in sidebar
-		GLib.idle_add(self.idle_show_updates, update_dict, returncode)
+		GLib.idle_add(self.idle_show_updates, update_dict, update_error)
 
 	#-----------------------------------
 	# Populate column view function
@@ -1830,9 +1830,9 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Show updates function
 	#-----------------------------------
-	def idle_show_updates(self, update_dict, returncode):
+	def idle_show_updates(self, update_dict, update_error):
 		# Modify package object properties if update available
-		if returncode != 1 and len(update_dict) != 0:
+		if update_error == False and len(update_dict) != 0:
 			for obj in self.column_view.model:
 				if obj.name in update_dict.keys():
 					obj.has_update = True
@@ -1847,11 +1847,11 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Update sidebar status listbox update row
 		self.status_update_row.spinning = False
-		self.status_update_row.icon = "status-updates-error-symbolic" if returncode == 1 else "status-updates-symbolic"
-		self.status_update_row.count = f'{len(update_dict)}' if returncode != 1 and len(update_dict) != 0 else ""
+		self.status_update_row.icon = "status-updates-symbolic" if update_error == False else "status-updates-error-symbolic"
+		self.status_update_row.count = f'{len(update_dict)}' if update_error == False and len(update_dict) != 0 else ""
 
-		self.status_update_row.set_tooltip_text("Update error" if returncode == 1 else "")
-		self.status_update_row.set_sensitive(False if returncode == 1 else True)
+		self.status_update_row.set_tooltip_text("" if update_error == False else "Update error")
+		self.status_update_row.set_sensitive(not update_error)
 
 		return(False)
 
