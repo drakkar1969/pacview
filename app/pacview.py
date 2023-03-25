@@ -409,7 +409,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	backup_header_label = Gtk.Template.Child()
 	backup_open_button = Gtk.Template.Child()
 	backup_copy_button = Gtk.Template.Child()
-	backup_view = Gtk.Template.Child()
 	backup_selection = Gtk.Template.Child()
 	backup_model = Gtk.Template.Child()
 
