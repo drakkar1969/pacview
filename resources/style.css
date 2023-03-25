@@ -11,11 +11,11 @@ image.bubble.large {
 }
 
 row image:disabled {
-	filter: opacity(0.3);
+	-gtk-icon-filter: opacity(0.5);
 }
 
 spinner.dim-spinner {
-	filter: opacity(0.5);
+	opacity: 0.5;
 }
 
 box.rounded {
