@@ -1433,6 +1433,8 @@ class MainWindow(Adw.ApplicationWindow):
 	sync_db_names = GObject.Property(type=GObject.TYPE_STRV, default=["core", "extra", "community", "multilib"])
 	pacman_db_names = GObject.Property(type=GObject.TYPE_STRV, default=[])
 
+	status_update_row = GObject.Property(type=SidebarListBoxRow, default=None)
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
@@ -1746,9 +1748,9 @@ class MainWindow(Adw.ApplicationWindow):
 			self.status_listbox.append(row := SidebarListBoxRow(icon=f'status-{s.name.lower()}-symbolic', text=s.name.title(), status_id=s.value))
 
 			if s == PkgStatus.UPDATES:
-				self.update_row = row
-				self.update_row.spinning = True
-				self.update_row.set_sensitive(False)
+				self.status_update_row = row
+				self.status_update_row.spinning = True
+				self.status_update_row.set_sensitive(False)
 
 			if s == PkgStatus.INSTALLED:
 				self.status_listbox.select_row(row)
@@ -1844,12 +1846,12 @@ class MainWindow(Adw.ApplicationWindow):
 			self.info_pane.pkg_object = selected_item
 
 		# Update sidebar status listbox update row
-		self.update_row.spinning = False
-		self.update_row.icon = "status-updates-error-symbolic" if returncode == 1 else "status-updates-symbolic"
-		self.update_row.count = f'{len(update_dict)}' if returncode != 1 and len(update_dict) != 0 else ""
+		self.status_update_row.spinning = False
+		self.status_update_row.icon = "status-updates-error-symbolic" if returncode == 1 else "status-updates-symbolic"
+		self.status_update_row.count = f'{len(update_dict)}' if returncode != 1 and len(update_dict) != 0 else ""
 
-		self.update_row.set_tooltip_text("Update error" if returncode == 1 else "")
-		self.update_row.set_sensitive(False if returncode == 1 else True)
+		self.status_update_row.set_tooltip_text("Update error" if returncode == 1 else "")
+		self.status_update_row.set_sensitive(False if returncode == 1 else True)
 
 		return(False)
 
