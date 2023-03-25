@@ -1222,7 +1222,8 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
-	str_id = GObject.Property(type=str, default="")
+	repo_id = GObject.Property(type=str, default="")
+	status_id = GObject.Property(type=int, default=PkgStatus.NONE)
 
 	icon = GObject.Property(type=str, default="")
 	text = GObject.Property(type=str, default="")
@@ -1734,7 +1735,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.append(all_row := SidebarListBoxRow(icon="repository-symbolic", text="All"))
 
 		for db in self.pacman_db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), str_id=db))
+			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db if db.isupper() else str.title(db), repo_id=db))
 
 		self.repo_listbox.select_row(all_row)
 
@@ -1742,7 +1743,7 @@ class MainWindow(Adw.ApplicationWindow):
 		status_list = [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]
 
 		for s in status_list:
-			self.status_listbox.append(row := SidebarListBoxRow(icon=f'status-{s.name.lower()}-symbolic', text=s.name.title(), str_id=s.value))
+			self.status_listbox.append(row := SidebarListBoxRow(icon=f'status-{s.name.lower()}-symbolic', text=s.name.title(), status_id=s.value))
 
 			if s == PkgStatus.UPDATES:
 				self.update_row = row
@@ -1953,12 +1954,12 @@ class MainWindow(Adw.ApplicationWindow):
 	@Gtk.Template.Callback()
 	def on_repo_selected(self, listbox, row):
 		if row is not None:
-			self.column_view.repo_filter.set_search(row.str_id)
+			self.column_view.repo_filter.set_search(row.repo_id)
 
 	@Gtk.Template.Callback()
 	def on_status_selected(self, listbox, row):
 		if row is not None:
-			self.column_view.current_status = PkgStatus(int(row.str_id))
+			self.column_view.current_status = PkgStatus(row.status_id)
 
 	#-----------------------------------
 	# Column view signal handlers
