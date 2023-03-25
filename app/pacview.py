@@ -248,17 +248,17 @@ class PkgBackup(GObject.Object):
 	#-----------------------------------
 	# Read/write properties
 	#-----------------------------------
-	label = GObject.Property(type=str, default="")
+	filename = GObject.Property(type=str, default="")
 	status_icon = GObject.Property(type=str, default="")
 	status = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, label, status_icon, status, *args, **kwargs):
+	def __init__(self, filename, status_icon, status, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.label = label
+		self.filename = filename
 		self.status_icon = status_icon
 		self.status = status
 
@@ -539,12 +539,6 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and not l.startswith("==>") and not l.endswith(".sig"))]
 
 			self.cache_model.splice(0, 0, cache_lines)
-
-			# Hide backup column view header
-			child = self.backup_view.get_first_child()
-			
-			if child is not None and type(child).__name__ == "GtkListItemWidget":
-				child.set_visible(False)
 
 			# Populate backup list
 			backup_list = []
