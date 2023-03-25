@@ -1113,8 +1113,9 @@ class PkgColumnView(Gtk.Overlay):
 	is_loading = GObject.Property(type=bool, default=True)
 
 	column_ids = GObject.Property(type=GObject.TYPE_STRV, default=[])
-	default_column_ids = GObject.Property(type=GObject.TYPE_STRV, default=["package", "version", "repository", "status", "date", "size", "group"], flags=GObject.ParamFlags.READABLE)
-	sort_id = GObject.Property(type=str, default="package")
+	default_column_ids = GObject.Property(type=GObject.TYPE_STRV, default=[])
+	sort_id = GObject.Property(type=str, default="")
+	default_sort_id = GObject.Property(type=str, default="")
 	sort_asc = GObject.Property(type=bool, default=True)
 
 	current_status = GObject.Property(type=int, default=PkgStatus.ALL)
@@ -1466,6 +1467,15 @@ class MainWindow(Adw.ApplicationWindow):
 		self.gsettings.bind("custom-font", self.prefs_window, "custom_font", Gio.SettingsBindFlags.DEFAULT)
 		self.gsettings.bind("monospace-font", self.prefs_window, "monospace_font", Gio.SettingsBindFlags.DEFAULT)
 
+		# Load default column order and sort column
+		cols_variant = self.gsettings.get_default_value("view-columns")
+
+		self.column_view.default_column_ids = cols_variant.get_strv()
+
+		sort_variant = self.gsettings.get_default_value("sort-column")
+
+		self.column_view.default_sort_id = sort_variant.get_string()
+
 		#-----------------------------
 		# Toolbar buttons
 		#-----------------------------
@@ -1697,7 +1707,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 			self.column_view.sort_asc = True if sorter.get_primary_sort_order() == Gtk.SortType.ASCENDING else False
 		else:
-			self.column_view.sort_id = "package"
+			self.column_view.sort_id = self.column_view.default_sort_id
 			self.column_view.sort_asc = True
 
 	#-----------------------------------
