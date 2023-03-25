@@ -36,15 +36,15 @@ button.searchtag {
 }
 
 box.count-indicator {
-	min-width: 22px;
+	min-width: 20px;
 	background: @accent_bg_color;
 	border-radius: 9999px;
 }
 
 label.count-indicator {
-	line-height: 22px;
+	line-height: 20px;
 	color: @accent_fg_color;
-	margin: 0 7px;
+	margin: 0 6px;
 	padding: 0;
 }
 
