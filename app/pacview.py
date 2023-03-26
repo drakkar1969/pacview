@@ -148,7 +148,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def download_size(self):
-		return(self.size_to_str(self.pkg.size) if self.localpkg is None else "")
+		return(self.size_to_str(self.pkg.size) if self.pkg.size != 0 else "")
 
 	@GObject.Property(type=int, default=0, flags=GObject.ParamFlags.READABLE)
 	def install_size_raw(self):
