@@ -1055,7 +1055,10 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@staticmethod
 	def email_to_link(email):
-		return(re.sub("([^<]+)<?([^>]+)?>?", r"\1<a href='mailto:\2'>\2</a>", email))
+		if re.match("([^<]+)<([^>]+)>", email):
+			return(re.sub("([^<]+)<?([^>]+)?>?", r"\1&lt;<a href='mailto:\2'>\2</a>&gt;", email))
+		else:
+			return(email)
 
 	@staticmethod
 	def wrap_escape_list(pkglist, wrap_width=150):
