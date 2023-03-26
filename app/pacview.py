@@ -657,14 +657,14 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		selected_item = self.backup_selection.get_selected_item()
 
 		if selected_item is not None:
-			self.open_file_manager(selected_item.label)
+			self.open_file_manager(selected_item.filename)
 
 	@Gtk.Template.Callback()
 	def on_backup_open_button_clicked(self, button):
 		selected_item = self.backup_selection.get_selected_item()
 
 		if selected_item is not None:
-			self.open_file_manager(selected_item.label)
+			self.open_file_manager(selected_item.filename)
 
 	#-----------------------------------
 	# Copy signal handlers
@@ -711,7 +711,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 	@Gtk.Template.Callback()
 	def on_backup_copy_button_clicked(self, button):
-		copy_text = '\n'.join([f'{obj.label} ({obj.status})' for obj in self.backup_selection])
+		copy_text = '\n'.join([f'{obj.filename} ({obj.status})' for obj in self.backup_selection])
 
 		clipboard = button.get_clipboard()
 
