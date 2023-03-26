@@ -977,12 +977,15 @@ class PkgInfoPane(Gtk.Overlay):
 				new_obj = link_list.get_item(0)
 
 		if new_obj is not None and new_obj is not self.pkg_object:
-			self.__obj_list = self.__obj_list[:self.__obj_index+1]
-			self.__obj_list.append(new_obj)
+			if new_obj in self.__obj_list:
+				self.__obj_index = self.__obj_list.index(new_obj)
+			else:
+				self.__obj_list = self.__obj_list[:self.__obj_index+1]
+				self.__obj_list.append(new_obj)
 
-			self.__obj_index += 1
+				self.__obj_index += 1
 
-			self.display_package(new_obj)
+			self.display_package(self.pkg_object)
 
 			self.nav_button_box.set_visible(True)
 
