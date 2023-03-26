@@ -887,6 +887,10 @@ class PkgInfoPane(Gtk.Overlay):
 
 		self.empty_label.set_visible(value is None)
 
+	@GObject.Property(type=bool, default=True)
+	def is_first_object(self):
+		return(len(self.__obj_list) > 0 and self.__obj_index == 0)
+
 	sync_db_names = GObject.Property(type=GObject.TYPE_STRV, default=[])
 	pkg_model = GObject.Property(type=Gio.ListStore, default=None)
 
@@ -1842,11 +1846,12 @@ class MainWindow(Adw.ApplicationWindow):
 					obj.status_flags |= PkgStatus.UPDATES
 					obj.update_version = update_dict[obj.name]
 
-		# Update info pane package object
-		selected_item = self.column_view.selection.get_selected_item()
+		# Update info pane package object (if link has not been clicked, i.e. info pane is displaying column view selected item)
+		if self.info_pane.is_first_object == True:
+			selected_item = self.column_view.selection.get_selected_item()
 
-		if selected_item != self.info_pane.pkg_object:
-			self.info_pane.pkg_object = selected_item
+			if selected_item != self.info_pane.pkg_object:
+				self.info_pane.pkg_object = selected_item
 
 		# Update sidebar status listbox update row
 		self.status_update_row.spinning = False
