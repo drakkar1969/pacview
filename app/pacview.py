@@ -1848,10 +1848,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Update info pane package object (if link has not been clicked, i.e. info pane is displaying column view selected item)
 		if self.info_pane.is_first_object == True:
-			selected_item = self.column_view.selection.get_selected_item()
-
-			if selected_item != self.info_pane.pkg_object:
-				self.info_pane.pkg_object = selected_item
+			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 
 		# Update sidebar status listbox update row
 		self.status_update_row.spinning = False
@@ -1978,10 +1975,7 @@ class MainWindow(Adw.ApplicationWindow):
 		button = controller.get_current_button()
 
 		if button == Gdk.BUTTON_PRIMARY:
-			selected_item = self.column_view.selection.get_selected_item()
-
-			if selected_item != self.info_pane.pkg_object:
-				self.info_pane.pkg_object = selected_item
+			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
 		elif button == Gdk.BUTTON_SECONDARY:
 			rect = Gdk.Rectangle()
 			rect.x = x
