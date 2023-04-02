@@ -64,7 +64,7 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def url(self):
-		return(self.pkg.url)
+		return(self.pkg.url if self.pkg.url is not None else "")
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def licenses(self):
@@ -1009,10 +1009,10 @@ class PkgInfoPane(Gtk.Overlay):
 			if obj.update_version != "": self.model.append(PkgProperty("Version", obj.update_version, icon="pkg-update"))
 			else: self.model.append(PkgProperty("Version", obj.version))
 			self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
-			self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
+			if obj.url != "": self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
 			if obj.repository in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
 			elif obj.repository == "AUR": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
-			self.model.append(PkgProperty("Licenses", GLib.markup_escape_text(obj.licenses)))
+			if obj.licenses != "": self.model.append(PkgProperty("Licenses", GLib.markup_escape_text(obj.licenses)))
 			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
 			self.model.append(PkgProperty("Repository", obj.repository))
 			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
