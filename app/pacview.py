@@ -1605,6 +1605,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Connect column view signals
 		self.column_view.click_gesture.connect("released", self.on_column_view_clicked)
+		self.column_view.view.connect("activate", self.on_column_view_activated)
 
 		#-----------------------------
 		# Info pane
@@ -1986,6 +1987,9 @@ class MainWindow(Adw.ApplicationWindow):
 
 			self.column_view.popover_menu.set_pointing_to(rect)
 			self.column_view.popover_menu.popup()
+
+	def on_column_view_activated(self, view, position):
+		self.activate_action("win.show-details-window")
 
 #------------------------------------------------------------------------------
 #-- CLASS: PACVIEWAPP
