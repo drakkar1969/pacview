@@ -43,21 +43,17 @@ class PkgObject(GObject.Object):
 	localpkg = GObject.Property(type=GObject.TYPE_PYOBJECT, default=None, flags=GObject.ParamFlags.READWRITE|GObject.ParamFlags.PRIVATE)
 
 	#-----------------------------------
-	# Status flags property
+	# Read-write properties
 	#-----------------------------------
 	status_flags = GObject.Property(type=int, default=PkgStatus.NONE)
 
-	#-----------------------------------
-	# External read-only properties
-	#-----------------------------------
-	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
-	def name(self):
-		return(self.pkg.name)
+	name = GObject.Property(type=str, default="")
+	version = GObject.Property(type=str, default="")
+	repository = GObject.Property(type=str, default="")
 
-	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
-	def version(self):
-		return(self.localpkg.version if self.localpkg is not None else self.pkg.version)
-
+	#-----------------------------------
+	# Read-only properties
+	#-----------------------------------
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def description(self):
 		return(self.pkg.desc)
@@ -85,10 +81,6 @@ class PkgObject(GObject.Object):
 		elif self.status_flags & PkgStatus.OPTIONAL: return("pkg-optional")
 		elif self.status_flags & PkgStatus.ORPHAN: return("pkg-orphan")
 		else: return("")
-
-	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
-	def repository(self):
-		return(self.pkg.db.name if self.pkg.db.name != "local" else "AUR")
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def group(self):
@@ -187,11 +179,8 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, pkg, local_data, *args, **kwargs):
+	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.pkg = pkg
-		self.localpkg, self.status_flags = local_data
 
 	#-----------------------------------
 	# Helper functions
@@ -1790,9 +1779,9 @@ class MainWindow(Adw.ApplicationWindow):
 		pkg_dict.update({pkg.name: pkg for pkg in local_db.pkgcache if pkg.name not in pkg_dict.keys()})
 
 		# Create list of package objects
-		def __get_local_data(name):
-			if name in localpkg_dict.keys():
-				localpkg = localpkg_dict[name]
+		def __get_pkgobject(pkg):
+			if pkg.name in localpkg_dict.keys():
+				localpkg = localpkg_dict[pkg.name]
 
 				if localpkg.reason == 0: status_flags = PkgStatus.EXPLICIT
 				else:
@@ -1800,12 +1789,20 @@ class MainWindow(Adw.ApplicationWindow):
 						status_flags = PkgStatus.DEPENDENCY
 					else:
 						status_flags = PkgStatus.OPTIONAL if localpkg.compute_optionalfor() != [] else PkgStatus.ORPHAN
+			else:
+				localpkg = None
+				status_flags = PkgStatus.NONE
 
-				return(localpkg, status_flags)
+			return(PkgObject(
+				pkg=pkg,
+				localpkg=localpkg,
+				status_flags=status_flags,
+				name=pkg.name,
+				version=localpkg.version if localpkg is not None else pkg.version,
+				repository=pkg.db.name if pkg.db.name != "local" else "AUR"
+			))
 
-			return(None, PkgStatus.NONE)
-
-		pkg_objects = [PkgObject(pkg, __get_local_data(pkg.name)) for pkg in pkg_dict.values()]
+		pkg_objects = [__get_pkgobject(pkg) for pkg in pkg_dict.values()]
 
 		# Populate column view
 		GLib.idle_add(self.idle_populate_column_view, pkg_objects)
