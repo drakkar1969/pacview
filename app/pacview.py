@@ -51,6 +51,8 @@ class PkgObject(GObject.Object):
 	version = GObject.Property(type=str, default="")
 	repository = GObject.Property(type=str, default="")
 
+	has_update = GObject.Property(type=bool, default=False)
+
 	#-----------------------------------
 	# Read-only properties
 	#-----------------------------------
@@ -169,12 +171,6 @@ class PkgObject(GObject.Object):
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def md5sum(self):
 		return(self.pkg.md5sum)
-
-	#-----------------------------------
-	# Update properties
-	#-----------------------------------
-	has_update = GObject.Property(type=bool, default=False)
-	update_version = GObject.Property(type=str, default="")
 
 	#-----------------------------------
 	# Init function
@@ -995,8 +991,7 @@ class PkgInfoPane(Gtk.Overlay):
 
 		if obj is not None:
 			self.model.append(PkgProperty("Name", f'<b>{obj.name}</b>'))
-			if obj.update_version != "": self.model.append(PkgProperty("Version", obj.update_version, icon="pkg-update"))
-			else: self.model.append(PkgProperty("Version", obj.version))
+			self.model.append(PkgProperty("Version", obj.version, icon="pkg-update" if obj.has_update else ""))
 			self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
 			if obj.url != "": self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
 			if obj.repository in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
@@ -1843,9 +1838,9 @@ class MainWindow(Adw.ApplicationWindow):
 		if update_error == False and len(update_dict) != 0:
 			for obj in self.column_view.model:
 				if obj.name in update_dict.keys():
-					obj.has_update = True
 					obj.status_flags |= PkgStatus.UPDATES
-					obj.update_version = update_dict[obj.name]
+					obj.version = update_dict[obj.name]
+					obj.has_update = True
 
 		# Update info pane package object (if link has not been clicked, i.e. info pane is displaying column view selected item)
 		if self.info_pane.is_first_object == True:
