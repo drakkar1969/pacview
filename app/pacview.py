@@ -47,7 +47,6 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	status_flags = GObject.Property(type=int, default=PkgStatus.NONE)
 
-	name = GObject.Property(type=str, default="")
 	version = GObject.Property(type=str, default="")
 	repository = GObject.Property(type=str, default="")
 
@@ -56,6 +55,10 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	# Read-only properties
 	#-----------------------------------
+	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
+	def name(self):
+		return(self.pkg.name)
+
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def description(self):
 		return(self.pkg.desc)
@@ -1792,7 +1795,6 @@ class MainWindow(Adw.ApplicationWindow):
 				pkg=pkg,
 				localpkg=localpkg,
 				status_flags=status_flags,
-				name=pkg.name,
 				version=localpkg.version if localpkg is not None else pkg.version,
 				repository=pkg.db.name if pkg.db.name != "local" else "AUR"
 			))
