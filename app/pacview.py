@@ -61,15 +61,15 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def description(self):
-		return(self.pkg.desc)
+		return(self.pkg.desc or "")
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def url(self):
-		return(self.pkg.url if self.pkg.url is not None else "")
+		return(self.pkg.url or "")
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def licenses(self):
-		return(', '.join(sorted(self.pkg.licenses)))
+		return(', '.join(sorted(self.pkg.licenses or [])))
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def status(self):
@@ -89,19 +89,19 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def group(self):
-		return(', '.join(sorted(self.pkg.groups)))
+		return(', '.join(sorted(self.pkg.groups or [])))
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def provides(self):
-		return(self.pkg.provides)
+		return(self.pkg.provides or [])
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def depends(self):
-		return(self.pkg.depends)
+		return(self.pkg.depends or [])
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def optdepends(self):
-		return(self.pkg.optdepends)
+		return(self.pkg.optdepends or [])
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def required_by(self):
@@ -113,19 +113,19 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def conflicts(self):
-		return(self.pkg.conflicts)
+		return(self.pkg.conflicts or [])
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def replaces(self):
-		return(self.pkg.replaces)
+		return(self.pkg.replaces or [])
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def architecture(self):
-		return(self.pkg.arch)
+		return(self.pkg.arch or "")
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def packager(self):
-		return(self.pkg.packager)
+		return(self.pkg.packager or "")
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def build_date_long(self):
@@ -161,19 +161,19 @@ class PkgObject(GObject.Object):
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def files(self):
-		return([f[0] for f in self.localpkg.files] if self.localpkg is not None else [])
+		return([f[0] for f in (self.localpkg.files or [])] if self.localpkg is not None else [])
 
 	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def backup(self):
-		return(self.localpkg.backup if self.localpkg is not None else [])
+		return((self.localpkg.backup or []) if self.localpkg is not None else [])
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def sha256sum(self):
-		return(self.pkg.sha256sum)
+		return(self.pkg.sha256sum or "")
 
 	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
 	def md5sum(self):
-		return(self.pkg.md5sum)
+		return(self.pkg.md5sum or "")
 
 	#-----------------------------------
 	# Init function
@@ -995,7 +995,7 @@ class PkgInfoPane(Gtk.Overlay):
 		if obj is not None:
 			self.model.append(PkgProperty("Name", f'<b>{obj.name}</b>'))
 			self.model.append(PkgProperty("Version", obj.version, icon="pkg-update" if obj.has_update else ""))
-			self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
+			if obj.description != "": self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
 			if obj.url != "": self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
 			if obj.repository in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
 			elif obj.repository == "AUR": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
@@ -1010,15 +1010,15 @@ class PkgInfoPane(Gtk.Overlay):
 			if obj.optional_for != []: self.model.append(PkgProperty("Optional For", self.pkglist_to_linkstr(obj.optional_for)))
 			if obj.conflicts != []: self.model.append(PkgProperty("Conflicts With", self.pkglist_to_linkstr(obj.conflicts)))
 			if obj.replaces != []: self.model.append(PkgProperty("Replaces", self.pkglist_to_linkstr(obj.replaces)))
-			self.model.append(PkgProperty("Architecture", obj.architecture))
-			self.model.append(PkgProperty("Packager", self.email_to_link(obj.packager)))
+			if obj.architecture != "": self.model.append(PkgProperty("Architecture", obj.architecture))
+			if obj.packager != "": self.model.append(PkgProperty("Packager", self.email_to_link(obj.packager)))
 			self.model.append(PkgProperty("Build Date", obj.build_date_long))
 			if obj.install_date_long != "": self.model.append(PkgProperty("Install Date", obj.install_date_long))
 			if obj.download_size != "": self.model.append(PkgProperty("Download Size", obj.download_size))
 			self.model.append(PkgProperty("Installed Size", obj.install_size))
 			self.model.append(PkgProperty("Install Script", "Yes" if obj.install_script else "No"))
-			if obj.sha256sum is not None: self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum))
-			if obj.md5sum is not None: self.model.append(PkgProperty("MD5 Sum", obj.md5sum))
+			if obj.sha256sum != "": self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum))
+			if obj.md5sum != "": self.model.append(PkgProperty("MD5 Sum", obj.md5sum))
 
 	def display_prev_package(self):
 		if self.__obj_index > 0:
