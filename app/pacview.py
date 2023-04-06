@@ -103,19 +103,19 @@ class PkgObject(GObject.Object):
 	def optdepends(self):
 		return(self.pkg.optdepends or [])
 
-	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def required_by(self):
-		return(self.localpkg.compute_requiredby() if self.localpkg is not None else self.pkg.compute_requiredby())
+		return((self.localpkg.compute_requiredby() or []) if self.localpkg is not None else (self.pkg.compute_requiredby() or []))
 
-	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def optional_for(self):
-		return(self.localpkg.compute_optionalfor() if self.localpkg is not None else self.pkg.compute_optionalfor())
+		return((self.localpkg.compute_optionalfor() or []) if self.localpkg is not None else (self.pkg.compute_optionalfor() or []))
 
-	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def conflicts(self):
 		return(self.pkg.conflicts or [])
 
-	@GObject.Property(type=str, default="", flags=GObject.ParamFlags.READABLE)
+	@GObject.Property(type=GObject.TYPE_STRV, default=[], flags=GObject.ParamFlags.READABLE)
 	def replaces(self):
 		return(self.pkg.replaces or [])
 
