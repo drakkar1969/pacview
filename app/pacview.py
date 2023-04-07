@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib, datetime
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib, datetime, requests
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -48,7 +48,8 @@ class PkgObject(GObject.Object):
 	status_flags = GObject.Property(type=int, default=PkgStatus.NONE)
 
 	version = GObject.Property(type=str, default="")
-	repository = GObject.Property(type=str, default="")
+	filter_repo = GObject.Property(type=str, default="")
+	display_repo = GObject.Property(type=str, default="")
 
 	has_update = GObject.Property(type=bool, default=False)
 
@@ -295,7 +296,7 @@ class StatsWindow(Adw.Window):
 			return(obj.status_flags & PkgStatus.INSTALLED)
 
 		def filter_db_func(obj, db):
-			return(obj.repository == db)
+			return(obj.filter_repo == db)
 
 		# Initialize widgets
 		total_count = 0
@@ -497,7 +498,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		# Initialize widgets
 		if pkg_object is not None:
 			# Set package name
-			self.pkg_label.set_text(f'{pkg_object.repository}/{pkg_object.name}')
+			self.pkg_label.set_text(f'{pkg_object.display_repo}/{pkg_object.name}')
 
 			# Populate file list
 			file_list = [f'/{f}' for f in pkg_object.files]
@@ -997,11 +998,11 @@ class PkgInfoPane(Gtk.Overlay):
 			self.model.append(PkgProperty("Version", obj.version, icon="pkg-update" if obj.has_update else ""))
 			if obj.description != "": self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
 			if obj.url != "": self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
-			if obj.repository in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.repository}/{obj.architecture}/{obj.name}')))
-			elif obj.repository == "AUR": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
+			if obj.display_repo in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.display_repo}/{obj.architecture}/{obj.name}')))
+			elif obj.display_repo == "aur": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
 			if obj.licenses != "": self.model.append(PkgProperty("Licenses", GLib.markup_escape_text(obj.licenses)))
 			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
-			self.model.append(PkgProperty("Repository", obj.repository))
+			self.model.append(PkgProperty("Repository", obj.display_repo))
 			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
 			if obj.provides != []: self.model.append(PkgProperty("Provides", self.wrap_escape_list(obj.provides)))
 			self.model.append(PkgProperty("Dependencies ", self.pkglist_to_linkstr(obj.depends)))
@@ -1673,8 +1674,8 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.populate_sidebar()
 
-		# Load packages
-		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names, self.prefs_window.aur_update_command,), daemon=True)
+		# Load packages async
+		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names,), daemon=True)
 		load_thread.start()
 
 	#-----------------------------------
@@ -1716,8 +1717,8 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.pacman_db_names = [n for n in dbs.stdout.decode().split('\n') if n != ""]
 
-		# Add AUR to configured database names
-		self.pacman_db_names.append("AUR")
+		# Add foreign to configured database names
+		self.pacman_db_names.append("foreign")
 
 	#-----------------------------------
 	# Populate sidebar function
@@ -1753,9 +1754,9 @@ class MainWindow(Adw.ApplicationWindow):
 				self.status_listbox.select_row(row)
 
 	#-----------------------------------
-	# Load packages async functions
+	# Load packages async function
 	#-----------------------------------
-	def load_packages_async(self, pacman_db_names, aur_update_command):
+	def load_packages_async(self, pacman_db_names):
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
 
@@ -1790,12 +1791,15 @@ class MainWindow(Adw.ApplicationWindow):
 				localpkg = None
 				status_flags = PkgStatus.NONE
 
+			repo = pkg.db.name if pkg.db.name != "local" else "foreign"
+
 			return(PkgObject(
 				pkg=pkg,
 				localpkg=localpkg,
 				status_flags=status_flags,
 				version=localpkg.version if localpkg is not None else pkg.version,
-				repository=pkg.db.name if pkg.db.name != "local" else "AUR"
+				filter_repo=repo,
+				display_repo=repo
 			))
 
 		pkg_objects = [__get_pkgobject(pkg) for pkg in pkg_dict.values()]
@@ -1803,6 +1807,56 @@ class MainWindow(Adw.ApplicationWindow):
 		# Populate column view
 		GLib.idle_add(self.idle_populate_column_view, pkg_objects)
 
+	#-----------------------------------
+	# Populate column view function
+	#-----------------------------------
+	def idle_populate_column_view(self, pkg_objects):
+		self.column_view.model.splice(0, len(self.column_view.model), pkg_objects)
+
+		self.column_view.is_loading = False
+
+		# Parse foreign packages async
+		foreign_thread = threading.Thread(target=self.parse_foreign_pkgs_async, args=(pkg_objects,), daemon=True)
+		foreign_thread.start()
+
+		# Get updates async
+		update_thread = threading.Thread(target=self.get_updates_async, args=(self.prefs_window.aur_update_command,), daemon=True)
+		update_thread.start()
+
+	#-----------------------------------
+	# Parse foreign pkgs async function
+	#-----------------------------------
+	def parse_foreign_pkgs_async(self, pkg_objects):
+		aur_list = []
+
+		try:
+			params = {"v": "5", "type": "info", "arg[]": [obj.name for obj in pkg_objects if obj.filter_repo == "foreign"]}
+
+			response = requests.get("https://aur.archlinux.org/rpc/", params=params, timeout=5)
+
+			if response.status_code == 200:
+				data = response.json()
+
+				if data.get("type") == "multiinfo" and data.get("results") is not None:
+					aur_list = [r.get("Name", "") for r in data.get("results", [])]
+		except:
+			pass
+
+		# Update repo for foreign packages
+		GLib.idle_add(self.idle_update_foreign_pkgs, aur_list)
+
+	#-----------------------------------
+	# Update foreign pkgs function
+	#-----------------------------------
+	def idle_update_foreign_pkgs(self, aur_list):
+		if aur_list != []:
+			for obj in self.column_view.model:
+				if obj.name in aur_list: obj.display_repo = "aur"
+
+	#-----------------------------------
+	# Get updates async function
+	#-----------------------------------
+	def get_updates_async(self, aur_update_command):
 		# Get updates
 		pacman_upd = subprocess.run(shlex.split(f'/usr/bin/checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -1822,14 +1876,6 @@ class MainWindow(Adw.ApplicationWindow):
 
 		# Show updates in sidebar
 		GLib.idle_add(self.idle_show_updates, update_dict, update_error)
-
-	#-----------------------------------
-	# Populate column view function
-	#-----------------------------------
-	def idle_populate_column_view(self, pkg_objects):
-		self.column_view.model.splice(0, len(self.column_view.model), pkg_objects)
-
-		self.column_view.is_loading = False
 
 	#-----------------------------------
 	# Show updates function
@@ -1915,7 +1961,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.populate_sidebar()
 
 		# Load packages
-		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names, self.prefs_window.aur_update_command,), daemon=True)
+		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names,), daemon=True)
 		load_thread.start()
 
 	def show_stats_window_action(self, action, value, user_data):
@@ -1923,7 +1969,7 @@ class MainWindow(Adw.ApplicationWindow):
 		stats_window.present()
 
 	def copy_package_list_action(self, action, value, user_data):
-		copy_text = '\n'.join([f'{obj.repository}\t{obj.name}\t{obj.version}' for obj in self.column_view.selection])
+		copy_text = '\n'.join([f'{obj.display_repo}\t{obj.name}\t{obj.version}' for obj in self.column_view.selection])
 
 		clipboard = self.get_clipboard()
 

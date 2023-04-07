@@ -4,7 +4,7 @@
     <property name="child">
       <object class="GtkLabel">
         <binding name="label">
-          <lookup name="repository" type="PkgObject">
+          <lookup name="display_repo" type="PkgObject">
             <lookup name="item">GtkListItem</lookup>
           </lookup>
         </binding>

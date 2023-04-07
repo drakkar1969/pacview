@@ -19,7 +19,7 @@
                             <child>
                               <object class="GtkStringFilter" id="repo_filter">
                                 <property name="expression">
-                                  <lookup name="repository" type="PkgObject"/>
+                                  <lookup name="filter_repo" type="PkgObject"/>
                                 </property>
                                 <property name="match-mode">exact</property>
                               </object>
@@ -113,7 +113,7 @@
                 <property name="sorter">
                   <object class="GtkStringSorter">
                     <property name="expression">
-                      <lookup name="repository" type="PkgObject"/>
+                      <lookup name="display_repo" type="PkgObject"/>
                     </property>
                   </object>
                 </property>
