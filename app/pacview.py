@@ -513,10 +513,10 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			with open("/var/log/pacman.log", "r") as f:
 				log_lines = f.readlines()
 
-				log_match = re.compile(f'\[(.+)T(.+)\+.+\] \[ALPM\] (installed|removed|upgraded|downgraded) {pkg_object.name} (.+)')
-				log_sub = re.compile("\[(.+)T(.+)\+.+\] (.+)\n")
+				match_expr = re.compile(f'\[(.+)T(.+)\+.+\] \[ALPM\] (installed|removed|upgraded|downgraded) {pkg_object.name} (.+)')
+				sub_expr = re.compile("\[(.+)T(.+)\+.+\] (.+)\n")
 
-				log_lines = [log_sub.sub(r"[\1 \2]  \3", l) for l in log_lines if log_match.match(l)]
+				log_lines = [sub_expr.sub(r"[\1 \2]  \3", l) for l in log_lines if match_expr.match(l)]
 
 				self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
@@ -1055,11 +1055,10 @@ class PkgInfoPane(Gtk.Overlay):
 	def pkglist_to_linkstr(pkglist):
 		if pkglist == []: return("None")
 
-		re_match = "(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)"
-		re_res = r"\1<a href='pkg://\2'>\2</a>"
+		match_expr = re.compile("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)")
 		join_str = PkgInfoPane.wrap_escape_list(pkglist)
 
-		out_list = [s.lstrip() for s in re.sub(re_match, re_res, join_str).split('\n')]
+		out_list = [s.lstrip() for s in match_expr.sub(r"\1<a href='pkg://\2'>\2</a>", join_str).split('\n')]
 
 		return('\n'.join(out_list))
 
