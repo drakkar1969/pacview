@@ -318,7 +318,7 @@ class StatsWindow(Adw.Window):
 			total_size += size
 
 			self.model.append(StatsItem(
-				str.title(db),
+				db.title(),
 				count,
 				PkgObject.size_to_str(size, 2)
 			))
@@ -1735,7 +1735,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.append(all_row := SidebarListBoxRow(icon="repository-symbolic", text="All"))
 
 		for db in self.pacman_db_names:
-			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=str.title(db), repo_id=db))
+			self.repo_listbox.append(SidebarListBoxRow(icon="repository-symbolic", text=db.title(), repo_id=db))
 
 		self.repo_listbox.select_row(all_row)
 
