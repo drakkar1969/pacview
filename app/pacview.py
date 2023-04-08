@@ -1502,18 +1502,6 @@ class MainWindow(Adw.ApplicationWindow):
 		#-----------------------------
 		# Column view
 		#-----------------------------
-		# Bind column view model to info pane
-		self.column_view.filter_model.bind_property(
-			"model", self.info_pane, "pkg_model",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
-		# Bind column view selected item to info pane
-		self.column_view.selection.bind_property(
-			"selected-item", self.info_pane, "pkg_object",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
-		)
-
 		# Bind column view count to status label text
 		self.column_view.filter_model.bind_property(
 			"n-items", self.status_label, "label",
@@ -1604,6 +1592,18 @@ class MainWindow(Adw.ApplicationWindow):
 		# Bind sync db names to info pane
 		self.bind_property(
 			"sync_db_names", self.info_pane, "sync_db_names",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		# Bind column view model to info pane
+		self.column_view.filter_model.bind_property(
+			"model", self.info_pane, "pkg_model",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		# Bind column view selected item to info pane
+		self.column_view.selection.bind_property(
+			"selected-item", self.info_pane, "pkg_object",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
 		)
 
