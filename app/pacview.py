@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, textwrap, hashlib, datetime, requests
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, hashlib, datetime, requests
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -883,7 +883,7 @@ class PkgInfoPane(Gtk.Overlay):
 	def on_setup_value(self, factory, item):
 		image = Gtk.Image()
 
-		label = InfoPaneLabel(hexpand=True, vexpand=True, xalign=0, yalign=0, use_markup=True, can_focus=False, selectable=True)
+		label = InfoPaneLabel(hexpand=True, vexpand=True, xalign=0, yalign=0, use_markup=True, can_focus=False, selectable=True, wrap=True, margin_end=32)
 
 		box = Gtk.Box(margin_start=4, spacing=6)
 		box.append(image)
@@ -1028,18 +1028,16 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@staticmethod
 	def prop_to_wraplist(pkglist, wrap_width=150):
-		return(GLib.markup_escape_text(textwrap.fill('   '.join(sorted(pkglist)), width=wrap_width, break_on_hyphens=False, drop_whitespace=False)))
+		return(GLib.markup_escape_text('   '.join(sorted(pkglist))))
 
 	@staticmethod
 	def prop_to_linklist(pkglist):
 		if pkglist == []: return("None")
 
-		match_expr = re.compile("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)")
+		match_expr = "(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)"
 		join_str = PkgInfoPane.prop_to_wraplist(pkglist)
 
-		out_list = [s.lstrip() for s in match_expr.sub(r"\1<a href='pkg://\2'>\2</a>", join_str).split('\n')]
-
-		return('\n'.join(out_list))
+		return(re.sub(match_expr, r"\1<a href='pkg://\2'>\2</a>", join_str))
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGCOLUMNVIEW
