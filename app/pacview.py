@@ -425,70 +425,70 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 		self.tree_label.set_attributes(Pango.AttrList.from_string(f'0 -1 font-desc "{monospace_font}"'))
 
-		# Bind file header text to file selection
+		# Bind file selection to file header text
 		self.files_selection.bind_property(
 			"n-items", self.files_header_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'Files ({value})'
 		)
 
-		# Bind cache header text to cache selection
+		# Bind cache selection to cache header text
 		self.cache_selection.bind_property(
 			"n-items", self.cache_header_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'Cache ({value})'
 		)
 
-		# Bind backup header text to backup selection
+		# Bind backup selection to backup header text
 		self.backup_selection.bind_property(
 			"n-items", self.backup_header_label, "label",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: f'Backup Files ({value})'
 		)
 
-		# Bind file open button state to file selection
+		# Bind file selection to file open button state
 		self.files_selection.bind_property(
 			"n-items", self.files_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind cache open button state to cache selection
+		# Bind cache selection to cache open button state
 		self.cache_selection.bind_property(
 			"n-items", self.cache_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind backup open button state to backup selection
+		# Bind backup selection to backup open button state
 		self.backup_selection.bind_property(
 			"n-items", self.backup_open_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind file copy button state to file selection
+		# Bind file selection to file copy button state
 		self.files_selection.bind_property(
 			"n-items", self.files_copy_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind log copy button state to log selection
+		# Bind log selection to log copy button state
 		self.log_selection.bind_property(
 			"n-items", self.log_copy_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind cache copy button state to cache selection
+		# Bind cache selection to cache copy button state
 		self.cache_selection.bind_property(
 			"n-items", self.cache_copy_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: value != 0
 		)
 
-		# Bind backup copy button state to backup selection
+		# Bind backup selection to backup copy button state
 		self.backup_selection.bind_property(
 			"n-items", self.backup_copy_button, "sensitive",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
@@ -780,7 +780,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
 			lambda binding, value: value.to_string()
 		)
 
-		# Bind font expander state to font switch
+		# Bind font expander state to font switch state
 		self.font_expander.bind_property(
 			"expanded", self.font_switch, "active",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
@@ -1237,21 +1237,21 @@ class SidebarListBoxRow(Gtk.ListBoxRow):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Bind count label visibility to count property
+		# Bind count property to count label visibility
 		self.bind_property(
 			"count", self.count_box, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: True if value != "" else False
 		)
 
-		# Bind stack visible page to spinning property
+		# Bind spinning property to stack visible page
 		self.bind_property(
 			"spinning", self.stack, "visible_child_name",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
 			lambda binding, value: "spinner" if value == True else "icon"
 		)
 
-		# Bind spinner state to spinning property
+		# Bind spinning property to spinner state
 		self.bind_property(
 			"spinning", self.spinner, "spinning",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
