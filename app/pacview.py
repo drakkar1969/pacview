@@ -1509,7 +1509,7 @@ class MainWindow(Adw.ApplicationWindow):
 			lambda binding, value: f'{value} matching package{"s" if value != 1 else ""}'
 		)
 
-		# Bind column view search by properties to status search labels visibility
+		# Bind column view search by properties to search header tags visibility
 		self.column_view.bind_property(
 			"search_exact", self.header_search.searchtag_exact, "visible",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
