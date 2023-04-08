@@ -754,36 +754,10 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 		# Bind properties to widgets
 		self.bind_property(
-			"aur_update_command", self.aur_entryrow, "text",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
-		)
-
-		self.bind_property(
-			"remember_columns", self.column_switch, "active",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
-		)
-
-		self.bind_property(
-			"remember_sorting", self.sorting_switch, "active",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
-		)
-
-		self.bind_property(
-			"custom_font", self.font_expander, "expanded",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
-		)
-
-		self.bind_property(
 			"monospace_font", self.font_button, "font-desc",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL,
 			lambda binding, value: Pango.FontDescription.from_string(value),
 			lambda binding, value: value.to_string()
-		)
-
-		# Bind font expander state to font switch state
-		self.font_expander.bind_property(
-			"expanded", self.font_switch, "active",
-			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
 
 		# Set aur update command info tooltip
