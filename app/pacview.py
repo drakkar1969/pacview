@@ -996,23 +996,23 @@ class PkgInfoPane(Gtk.Overlay):
 		if obj is not None:
 			self.model.append(PkgProperty("Name", f'<b>{obj.name}</b>'))
 			self.model.append(PkgProperty("Version", obj.version, icon="pkg-update" if obj.has_update else ""))
-			if obj.description != "": self.model.append(PkgProperty("Description", GLib.markup_escape_text(obj.description)))
-			if obj.url != "": self.model.append(PkgProperty("URL", self.url_to_link(obj.url)))
-			if obj.display_repo in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.url_to_link(f'https://www.archlinux.org/packages/{obj.display_repo}/{obj.architecture}/{obj.name}')))
-			elif obj.display_repo == "aur": self.model.append(PkgProperty("AUR URL", self.url_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
-			if obj.licenses != "": self.model.append(PkgProperty("Licenses", GLib.markup_escape_text(obj.licenses)))
+			if obj.description != "": self.model.append(PkgProperty("Description", self.prop_to_string(obj.description)))
+			if obj.url != "": self.model.append(PkgProperty("URL", self.prop_to_link(obj.url)))
+			if obj.display_repo in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.prop_to_link(f'https://www.archlinux.org/packages/{obj.display_repo}/{obj.architecture}/{obj.name}')))
+			elif obj.display_repo == "aur": self.model.append(PkgProperty("AUR URL", self.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
+			if obj.licenses != "": self.model.append(PkgProperty("Licenses", self.prop_to_string(obj.licenses)))
 			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
 			self.model.append(PkgProperty("Repository", obj.display_repo))
 			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
-			if obj.provides != []: self.model.append(PkgProperty("Provides", self.wrap_escape_list(obj.provides)))
-			self.model.append(PkgProperty("Dependencies ", self.pkglist_to_linkstr(obj.depends)))
-			if obj.optdepends != []: self.model.append(PkgProperty("Optional", self.pkglist_to_linkstr(obj.optdepends)))
-			self.model.append(PkgProperty("Required By", self.pkglist_to_linkstr(obj.required_by)))
-			if obj.optional_for != []: self.model.append(PkgProperty("Optional For", self.pkglist_to_linkstr(obj.optional_for)))
-			if obj.conflicts != []: self.model.append(PkgProperty("Conflicts With", self.pkglist_to_linkstr(obj.conflicts)))
-			if obj.replaces != []: self.model.append(PkgProperty("Replaces", self.pkglist_to_linkstr(obj.replaces)))
+			if obj.provides != []: self.model.append(PkgProperty("Provides", self.prop_to_wraplist(obj.provides)))
+			self.model.append(PkgProperty("Dependencies ", self.prop_to_linklist(obj.depends)))
+			if obj.optdepends != []: self.model.append(PkgProperty("Optional", self.prop_to_linklist(obj.optdepends)))
+			self.model.append(PkgProperty("Required By", self.prop_to_linklist(obj.required_by)))
+			if obj.optional_for != []: self.model.append(PkgProperty("Optional For", self.prop_to_linklist(obj.optional_for)))
+			if obj.conflicts != []: self.model.append(PkgProperty("Conflicts With", self.prop_to_linklist(obj.conflicts)))
+			if obj.replaces != []: self.model.append(PkgProperty("Replaces", self.prop_to_linklist(obj.replaces)))
 			if obj.architecture != "": self.model.append(PkgProperty("Architecture", obj.architecture))
-			if obj.packager != "": self.model.append(PkgProperty("Packager", self.email_to_link(obj.packager)))
+			if obj.packager != "": self.model.append(PkgProperty("Packager", self.prop_to_packager(obj.packager)))
 			self.model.append(PkgProperty("Build Date", obj.build_date_long))
 			if obj.install_date_long != "": self.model.append(PkgProperty("Install Date", obj.install_date_long))
 			if obj.download_size != "": self.model.append(PkgProperty("Download Size", obj.download_size))
@@ -1037,27 +1037,31 @@ class PkgInfoPane(Gtk.Overlay):
 	# Helper functions
 	#-----------------------------------
 	@staticmethod
-	def url_to_link(url):
+	def prop_to_string(string):
+		return(GLib.markup_escape_text(string))
+
+	@staticmethod
+	def prop_to_link(url):
 		escaped_url = GLib.markup_escape_text(url)
 		return(f'<a href="{escaped_url}">{escaped_url}</a>')
 
 	@staticmethod
-	def email_to_link(email):
+	def prop_to_packager(email):
 		if re.match("([^<]+)<([^>]+)>", email):
 			return(re.sub("([^<]+)<?([^>]+)?>?", r"\1&lt;<a href='mailto:\2'>\2</a>&gt;", email))
 		else:
 			return(email)
 
 	@staticmethod
-	def wrap_escape_list(pkglist, wrap_width=150):
+	def prop_to_wraplist(pkglist, wrap_width=150):
 		return(GLib.markup_escape_text(textwrap.fill('   '.join(sorted(pkglist)), width=wrap_width, break_on_hyphens=False, drop_whitespace=False)))
 
 	@staticmethod
-	def pkglist_to_linkstr(pkglist):
+	def prop_to_linklist(pkglist):
 		if pkglist == []: return("None")
 
 		match_expr = re.compile("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)")
-		join_str = PkgInfoPane.wrap_escape_list(pkglist)
+		join_str = PkgInfoPane.prop_to_wraplist(pkglist)
 
 		out_list = [s.lstrip() for s in match_expr.sub(r"\1<a href='pkg://\2'>\2</a>", join_str).split('\n')]
 
