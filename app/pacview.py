@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, hashlib, datetime, requests
+import gi, sys, os, urllib.parse, subprocess, shlex, re, threading, hashlib, requests
+from datetime import datetime
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -187,11 +188,11 @@ class PkgObject(GObject.Object):
 	#-----------------------------------
 	@staticmethod
 	def date_to_str_short(value):
-		return(datetime.datetime.fromtimestamp(value).strftime("%Y/%m/%d %H:%M") if value != 0 else "")
+		return(datetime.fromtimestamp(value).strftime("%Y/%m/%d %H:%M") if value != 0 else "")
 
 	@staticmethod
 	def date_to_str_long(value):
-		return(datetime.datetime.fromtimestamp(value).strftime("%a %d %b %Y %H:%M:%S") if value != 0 else "")
+		return(datetime.fromtimestamp(value).strftime("%d %B %Y %H:%M") if value != 0 else "")
 
 	@staticmethod
 	def size_to_str(value, decimals=1):
