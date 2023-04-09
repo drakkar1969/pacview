@@ -1690,7 +1690,7 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def init_databases(self):
 		# Get list of configured database names
-		dbs = subprocess.run(shlex.split(f'/usr/bin/pacman-conf -l'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		dbs = subprocess.run(shlex.split("/usr/bin/pacman-conf -l"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		self.pacman_db_names = [n for n in dbs.stdout.decode().split('\n') if n != ""]
 
@@ -1833,14 +1833,14 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def get_updates_async(self, aur_update_command):
 		# Get updates
-		pacman_upd = subprocess.run(shlex.split(f'/usr/bin/checkupdates'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		pacman_upd = subprocess.run(shlex.split("/usr/bin/checkupdates"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 		update_list = pacman_upd.stdout.decode().split('\n')
 
 		update_error = (pacman_upd.returncode == 1)
 
 		if aur_update_command != "" and update_error == False:
-			aur_upd = subprocess.run(shlex.split(f'{aur_update_command}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			aur_upd = subprocess.run(shlex.split(aur_update_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 			update_list.extend(aur_upd.stdout.decode().split('\n'))
 
