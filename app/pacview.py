@@ -21,13 +21,13 @@ gresource._register()
 #-- FLAGS: PKGSTATUS
 #------------------------------------------------------------------------------
 class PkgStatus(IntFlag):
+	ALL = 31
+	INSTALLED = 15
 	EXPLICIT = 1
 	DEPENDENCY = 2
 	OPTIONAL = 4
 	ORPHAN = 8
-	INSTALLED = 15
 	NONE = 16
-	ALL = 31
 	UPDATES = 32
 
 #------------------------------------------------------------------------------
@@ -1716,9 +1716,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.repo_listbox.select_row(all_row)
 
 		# Add rows to status list box
-		status_list = [PkgStatus.ALL, PkgStatus.INSTALLED, PkgStatus.EXPLICIT, PkgStatus.DEPENDENCY, PkgStatus.OPTIONAL, PkgStatus.ORPHAN, PkgStatus.NONE, PkgStatus.UPDATES]
-
-		for s in status_list:
+		for s in PkgStatus:
 			self.status_listbox.append(row := SidebarListBoxRow(icon=f'status-{s.name.lower()}-symbolic', text=s.name.title(), status_id=s.value))
 
 			if s == PkgStatus.UPDATES:
