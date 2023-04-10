@@ -224,7 +224,7 @@ class PkgProperty(GObject.Object):
 	value_binding = GObject.Property(type=GObject.Binding, default=None)
 	icon_binding = GObject.Property(type=GObject.Binding, default=None)
 	icon_visibile_binding = GObject.Property(type=GObject.Binding, default=None)
-	link_signal_id = GObject.Property(type=int, default=None)
+	link_signal_id = GObject.Property(type=int, default=0)
 
 	#-----------------------------------
 	# Init function
@@ -904,6 +904,11 @@ class PkgInfoPane(Gtk.Overlay):
 		prop.value_binding.unbind()
 
 		label.disconnect(prop.link_signal_id)
+
+		prop.icon_visibile_binding = None
+		prop.icon_binding = None
+		prop.value_binding = None
+		prop.link_signal_id = 0
 
 	#-----------------------------------
 	# Link signal handler
