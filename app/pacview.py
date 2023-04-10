@@ -868,11 +868,11 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@Gtk.Template.Callback()
 	def on_bind_value(self, factory, item):
-		child = item.get_child()
 		prop = item.get_item()
 		
-		image = child.get_first_child()
-		label = child.get_last_child()
+		box = item.get_child()
+		image = box.get_first_child()
+		label = box.get_last_child()
 
 		prop.icon_visibile_binding = prop.bind_property(
 			"icon", image, "visible",
@@ -894,10 +894,10 @@ class PkgInfoPane(Gtk.Overlay):
 
 	@Gtk.Template.Callback()
 	def on_unbind_value(self, factory, item):
-		child = item.get_child()
 		prop = item.get_item()
 
-		label = child.get_last_child()
+		box = item.get_child()
+		label = box.get_last_child()
 
 		prop.icon_visibile_binding.unbind()
 		prop.icon_binding.unbind()
