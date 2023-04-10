@@ -1821,18 +1821,21 @@ class MainWindow(Adw.ApplicationWindow):
 	# Update foreign pkgs function
 	#-----------------------------------
 	def idle_update_foreign_pkgs(self, aur_list):
-		# Update package display repository if in AUR
-		for obj in self.column_view.model:
-			if obj.name in aur_list:
-				obj.display_repo = "aur"
+		# Get model with AUR packages
+		aur_filter = Gtk.CustomFilter.new(lambda obj: obj.name in aur_list)
+		aur_model = Gtk.FilterListModel.new(self.column_view.model, aur_filter)
 
-				# Update info pane package properties
-				if obj.name == self.info_pane.pkg_object.name:
-					for i,prop in enumerate(self.info_pane.model):
-						if prop.code == "display_repo":
-							prop.value = obj.display_repo
-						if prop.code == "description" and i < len(self.info_pane.model):
-							self.info_pane.model.insert(i+1, PkgProperty(label="AUR URL", value=self.info_pane.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
+		# Update package display repository if in AUR
+		for obj in aur_model:
+			obj.display_repo = "aur"
+
+			# Update info pane package properties
+			if obj.name == self.info_pane.pkg_object.name:
+				for i,prop in enumerate(self.info_pane.model):
+					if prop.code == "display_repo":
+						prop.value = obj.display_repo
+					if prop.code == "description" and i < len(self.info_pane.model):
+						self.info_pane.model.insert(i+1, PkgProperty(label="AUR URL", value=self.info_pane.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
 
 	#-----------------------------------
 	# Get updates async function
@@ -1862,20 +1865,23 @@ class MainWindow(Adw.ApplicationWindow):
 	# Show updates function
 	#-----------------------------------
 	def idle_show_updates(self, update_dict, update_error):
-		# Modify package object properties if update available
 		if update_error == False and len(update_dict) != 0:
-			for obj in self.column_view.model:
-				if obj.name in update_dict.keys():
-					obj.status_flags |= PkgStatus.UPDATES
-					obj.version = update_dict[obj.name]
-					obj.has_update = True
+			# Get model with update packages
+			update_filter = Gtk.CustomFilter.new(lambda obj: obj.name in update_dict.keys())
+			update_model = Gtk.FilterListModel.new(self.column_view.model, update_filter)
 
-					# Update info pane package properties
-					if obj.name == self.info_pane.pkg_object.name:
-						for prop in self.info_pane.model:
-							if prop.code == "version":
-								prop.value = obj.version
-								prop.icon = "pkg-update"
+			# Modify package object properties if update available
+			for obj in update_model:
+				obj.status_flags |= PkgStatus.UPDATES
+				obj.version = update_dict[obj.name]
+				obj.has_update = True
+
+				# Update info pane package properties
+				if obj.name == self.info_pane.pkg_object.name:
+					for prop in self.info_pane.model:
+						if prop.code == "version":
+							prop.value = obj.version
+							prop.icon = "pkg-update"
 
 		# Update sidebar status listbox update row
 		self.status_update_row.spinning = False
