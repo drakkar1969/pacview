@@ -214,11 +214,17 @@ class PkgProperty(GObject.Object):
 	__gtype_name__ = "PkgProperty"
 
 	#-----------------------------------
-	# Read/write properties
+	# Properties
 	#-----------------------------------
+	code = GObject.Property(type=str, default="")
 	label = GObject.Property(type=str, default="")
 	value = GObject.Property(type=str, default="")
 	icon = GObject.Property(type=str, default="")
+
+	value_binding = GObject.Property(type=GObject.Binding, default=None)
+	icon_binding = GObject.Property(type=GObject.Binding, default=None)
+	icon_visibile_binding = GObject.Property(type=GObject.Binding, default=None)
+	link_signal_id = GObject.Property(type=int, default=None)
 
 	#-----------------------------------
 	# Init function
@@ -794,23 +800,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 		self.reset_dialog = None
 
 #------------------------------------------------------------------------------
-#-- CLASS: INFOPANELABEL
-#------------------------------------------------------------------------------
-class InfoPaneLabel(Gtk.Label):
-	__gtype_name__ = "InfoPaneLabel"
-
-	#-----------------------------------
-	# Properties
-	#-----------------------------------
-	link_id = GObject.Property(type=int, default=None)
-
-	#-----------------------------------
-	# Init function
-	#-----------------------------------
-	def __init__(self, *args, **kwargs):
-		super().__init__(*args, **kwargs)
-
-#------------------------------------------------------------------------------
 #-- CLASS: PKGINFOPANE
 #------------------------------------------------------------------------------
 @Gtk.Template(resource_path="/com/github/PacView/ui/pkginfopane.ui")
@@ -851,10 +840,6 @@ class PkgInfoPane(Gtk.Overlay):
 
 		self.empty_label.set_visible(value is None)
 
-	@GObject.Property(type=bool, default=True)
-	def is_first_object(self):
-		return(len(self.__obj_list) > 0 and self.__obj_index == 0)
-
 	sync_db_names = GObject.Property(type=GObject.TYPE_STRV, default=[])
 	pkg_model = GObject.Property(type=Gio.ListStore, default=None)
 
@@ -884,7 +869,7 @@ class PkgInfoPane(Gtk.Overlay):
 	def on_setup_value(self, factory, item):
 		image = Gtk.Image()
 
-		label = InfoPaneLabel(hexpand=True, vexpand=True, xalign=0, yalign=0, use_markup=True, can_focus=False, selectable=True, wrap=True, margin_end=32)
+		label = Gtk.Label(hexpand=True, vexpand=True, xalign=0, yalign=0, use_markup=True, can_focus=False, selectable=True, wrap=True, margin_end=32)
 
 		box = Gtk.Box(margin_start=4, spacing=6)
 		box.append(image)
@@ -895,24 +880,41 @@ class PkgInfoPane(Gtk.Overlay):
 	@Gtk.Template.Callback()
 	def on_bind_value(self, factory, item):
 		child = item.get_child()
-		obj = item.get_item()
+		prop = item.get_item()
 		
 		image = child.get_first_child()
 		label = child.get_last_child()
 
-		image.set_visible(obj.icon != "")
-		image.set_from_icon_name(obj.icon)
+		prop.icon_visibile_binding = prop.bind_property(
+			"icon", image, "visible",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT,
+			lambda binding, value: value != ""
+		)
 
-		label.set_label(obj.value)
-		label.link_id = label.connect("activate-link", self.on_link_activated)
+		prop.icon_binding = prop.bind_property(
+			"icon", image, "icon_name",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		prop.value_binding = prop.bind_property(
+			"value", label, "label",
+			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.DEFAULT
+		)
+
+		prop.link_signal_id = label.connect("activate-link", self.on_link_activated)
 
 	@Gtk.Template.Callback()
 	def on_unbind_value(self, factory, item):
 		child = item.get_child()
+		prop = item.get_item()
 
 		label = child.get_last_child()
 
-		label.disconnect(label.link_id)
+		prop.icon_visibile_binding.unbind()
+		prop.icon_binding.unbind()
+		prop.value_binding.unbind()
+
+		label.disconnect(prop.link_signal_id)
 
 	#-----------------------------------
 	# Link signal handler
@@ -970,14 +972,14 @@ class PkgInfoPane(Gtk.Overlay):
 
 		if obj is not None:
 			self.model.append(PkgProperty("Name", f'<b>{obj.name}</b>'))
-			self.model.append(PkgProperty("Version", obj.version, icon="pkg-update" if obj.has_update else ""))
+			self.model.append(PkgProperty("Version", obj.version, code="version", icon="pkg-update" if obj.has_update else ""))
 			if obj.description != "": self.model.append(PkgProperty("Description", self.prop_to_string(obj.description)))
 			if obj.url != "": self.model.append(PkgProperty("URL", self.prop_to_link(obj.url)))
 			if obj.display_repo in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.prop_to_link(f'https://www.archlinux.org/packages/{obj.display_repo}/{obj.architecture}/{obj.name}')))
 			elif obj.display_repo == "aur": self.model.append(PkgProperty("AUR URL", self.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
 			if obj.licenses != "": self.model.append(PkgProperty("Licenses", self.prop_to_string(obj.licenses)))
 			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
-			self.model.append(PkgProperty("Repository", obj.display_repo))
+			self.model.append(PkgProperty("Repository", obj.display_repo, code="display_repo"))
 			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
 			if obj.provides != []: self.model.append(PkgProperty("Provides", self.prop_to_wraplist(obj.provides)))
 			self.model.append(PkgProperty("Dependencies ", self.prop_to_linklist(obj.depends)))
@@ -1790,6 +1792,8 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.is_loading = False
 
+		self.column_view.selection.set_selected(7)
+
 		# Parse foreign packages async
 		foreign_thread = threading.Thread(target=self.parse_foreign_pkgs_async, args=(pkg_objects,), daemon=True)
 		foreign_thread.start()
@@ -1818,15 +1822,21 @@ class MainWindow(Adw.ApplicationWindow):
 			pass
 
 		# Update repo for foreign packages
-		GLib.idle_add(self.idle_update_foreign_pkgs, aur_list)
+		if aur_list != []:
+			GLib.idle_add(self.idle_update_foreign_pkgs, aur_list)
 
 	#-----------------------------------
 	# Update foreign pkgs function
 	#-----------------------------------
 	def idle_update_foreign_pkgs(self, aur_list):
-		if aur_list != []:
-			for obj in self.column_view.model:
-				if obj.name in aur_list: obj.display_repo = "aur"
+		for obj in self.column_view.model:
+			if obj.name in aur_list:
+				obj.display_repo = "aur"
+
+				if obj.name == self.info_pane.pkg_object.name:
+					for prop in self.info_pane.model:
+						if prop.code == "display_repo":
+							prop.value = obj.display_repo
 
 	#-----------------------------------
 	# Get updates async function
@@ -1864,9 +1874,11 @@ class MainWindow(Adw.ApplicationWindow):
 					obj.version = update_dict[obj.name]
 					obj.has_update = True
 
-		# Update info pane package object (if link has not been clicked, i.e. info pane is displaying column view selected item)
-		if self.info_pane.is_first_object == True:
-			self.info_pane.pkg_object = self.column_view.selection.get_selected_item()
+					if obj.name == self.info_pane.pkg_object.name:
+						for prop in self.info_pane.model:
+							if prop.code == "version":
+								prop.value = obj.version
+								prop.icon = "pkg-update"
 
 		# Update sidebar status listbox update row
 		self.status_update_row.spinning = False
