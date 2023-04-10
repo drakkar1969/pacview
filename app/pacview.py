@@ -270,12 +270,8 @@ class StatsItem(GObject.Object):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, repository, count, size, *args, **kwargs):
+	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.repository = repository
-		self.count = count
-		self.size = size
 
 #------------------------------------------------------------------------------
 #-- CLASS: STATSWINDOW
@@ -321,15 +317,15 @@ class StatsWindow(Adw.Window):
 			total_size += size
 
 			self.model.append(StatsItem(
-				db.title(),
-				count,
-				PkgObject.size_to_str(size, 2)
+				repository=db.title(),
+				count=count,
+				size=PkgObject.size_to_str(size, 2)
 			))
 
 		self.model.append(StatsItem(
-			"<b>Total</b>",
-			f'<b>{total_count}</b>',
-			f'<b>{PkgObject.size_to_str(total_size, 2)}</b>'
+			repository="<b>Total</b>",
+			count=f'<b>{total_count}</b>',
+			size=f'<b>{PkgObject.size_to_str(total_size, 2)}</b>'
 		))
 
 	#-----------------------------------
