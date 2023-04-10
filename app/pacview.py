@@ -229,11 +229,8 @@ class PkgProperty(GObject.Object):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, label, value, *args, **kwargs):
+	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.label = label
-		self.value = value
 
 #------------------------------------------------------------------------------
 #-- CLASS: PKGBACKUP
@@ -963,32 +960,32 @@ class PkgInfoPane(Gtk.Overlay):
 		self.model.remove_all()
 
 		if obj is not None:
-			self.model.append(PkgProperty("Name", f'<b>{obj.name}</b>'))
-			self.model.append(PkgProperty("Version", obj.version, code="version", icon="pkg-update" if obj.has_update else ""))
-			if obj.description != "": self.model.append(PkgProperty("Description", self.prop_to_string(obj.description)))
-			if obj.url != "": self.model.append(PkgProperty("URL", self.prop_to_link(obj.url)))
-			if obj.display_repo in self.sync_db_names: self.model.append(PkgProperty("Package URL", self.prop_to_link(f'https://www.archlinux.org/packages/{obj.display_repo}/{obj.architecture}/{obj.name}')))
-			elif obj.display_repo == "aur": self.model.append(PkgProperty("AUR URL", self.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
-			if obj.licenses != "": self.model.append(PkgProperty("Licenses", self.prop_to_string(obj.licenses)))
-			self.model.append(PkgProperty("Status", obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
-			self.model.append(PkgProperty("Repository", obj.display_repo, code="display_repo"))
-			if obj.group != "":self.model.append(PkgProperty("Groups", obj.group))
-			if obj.provides != []: self.model.append(PkgProperty("Provides", self.prop_to_wraplist(obj.provides)))
-			self.model.append(PkgProperty("Dependencies ", self.prop_to_linklist(obj.depends)))
-			if obj.optdepends != []: self.model.append(PkgProperty("Optional", self.prop_to_linklist(obj.optdepends)))
-			self.model.append(PkgProperty("Required By", self.prop_to_linklist(obj.required_by)))
-			if obj.optional_for != []: self.model.append(PkgProperty("Optional For", self.prop_to_linklist(obj.optional_for)))
-			if obj.conflicts != []: self.model.append(PkgProperty("Conflicts With", self.prop_to_linklist(obj.conflicts)))
-			if obj.replaces != []: self.model.append(PkgProperty("Replaces", self.prop_to_linklist(obj.replaces)))
-			if obj.architecture != "": self.model.append(PkgProperty("Architecture", obj.architecture))
-			if obj.packager != "": self.model.append(PkgProperty("Packager", self.prop_to_packager(obj.packager)))
-			self.model.append(PkgProperty("Build Date", obj.build_date_long))
-			if obj.install_date_long != "": self.model.append(PkgProperty("Install Date", obj.install_date_long))
-			if obj.download_size != "": self.model.append(PkgProperty("Download Size", obj.download_size))
-			self.model.append(PkgProperty("Installed Size", obj.install_size))
-			self.model.append(PkgProperty("Install Script", "Yes" if obj.install_script else "No"))
-			if obj.sha256sum != "": self.model.append(PkgProperty("SHA256 Sum", obj.sha256sum))
-			if obj.md5sum != "": self.model.append(PkgProperty("MD5 Sum", obj.md5sum))
+			self.model.append(PkgProperty(label="Name", value=f'<b>{obj.name}</b>'))
+			self.model.append(PkgProperty(label="Version", value=obj.version, code="version", icon="pkg-update" if obj.has_update else ""))
+			if obj.description != "": self.model.append(PkgProperty(label="Description", value=self.prop_to_string(obj.description)))
+			if obj.url != "": self.model.append(PkgProperty(label="URL", value=self.prop_to_link(obj.url)))
+			if obj.display_repo in self.sync_db_names: self.model.append(PkgProperty(label="Package URL", value=self.prop_to_link(f'https://www.archlinux.org/packages/{obj.display_repo}/{obj.architecture}/{obj.name}')))
+			elif obj.display_repo == "aur": self.model.append(PkgProperty(label="AUR URL", value=self.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
+			if obj.licenses != "": self.model.append(PkgProperty(label="Licenses", value=self.prop_to_string(obj.licenses)))
+			self.model.append(PkgProperty(label="Status", value=obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
+			self.model.append(PkgProperty(label="Repository", value=obj.display_repo, code="display_repo"))
+			if obj.group != "":self.model.append(PkgProperty(label="Groups", value=obj.group))
+			if obj.provides != []: self.model.append(PkgProperty(label="Provides", value=self.prop_to_wraplist(obj.provides)))
+			self.model.append(PkgProperty(label="Dependencies ", value=self.prop_to_linklist(obj.depends)))
+			if obj.optdepends != []: self.model.append(PkgProperty(label="Optional", value=self.prop_to_linklist(obj.optdepends)))
+			self.model.append(PkgProperty(label="Required By", value=self.prop_to_linklist(obj.required_by)))
+			if obj.optional_for != []: self.model.append(PkgProperty(label="Optional For", value=self.prop_to_linklist(obj.optional_for)))
+			if obj.conflicts != []: self.model.append(PkgProperty(label="Conflicts With", value=self.prop_to_linklist(obj.conflicts)))
+			if obj.replaces != []: self.model.append(PkgProperty(label="Replaces", value=self.prop_to_linklist(obj.replaces)))
+			if obj.architecture != "": self.model.append(PkgProperty(label="Architecture", value=obj.architecture))
+			if obj.packager != "": self.model.append(PkgProperty(label="Packager", value=self.prop_to_packager(obj.packager)))
+			self.model.append(PkgProperty(label="Build Date", value=obj.build_date_long))
+			if obj.install_date_long != "": self.model.append(PkgProperty(label="Install Date", value=obj.install_date_long))
+			if obj.download_size != "": self.model.append(PkgProperty(label="Download Size", value=obj.download_size))
+			self.model.append(PkgProperty(label="Installed Size", value=obj.install_size))
+			self.model.append(PkgProperty(label="Install Script", value="Yes" if obj.install_script else "No"))
+			if obj.sha256sum != "": self.model.append(PkgProperty(label="SHA256 Sum", value=obj.sha256sum))
+			if obj.md5sum != "": self.model.append(PkgProperty(label="MD5 Sum", value=obj.md5sum))
 
 	def display_prev_package(self):
 		if self.__obj_index > 0:
