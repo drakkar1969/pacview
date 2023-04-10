@@ -288,24 +288,18 @@ class StatsWindow(Adw.Window):
 	def __init__(self, pacman_db_names, model, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		def filter_installed_func(obj):
-			return(obj.status_flags & PkgStatus.INSTALLED)
-
-		def filter_db_func(obj, db):
-			return(obj.filter_repo == db)
-
 		# Initialize widgets
 		total_count = 0
 		total_size = 0
 
-		installed_filter = Gtk.CustomFilter.new(filter_installed_func)
+		installed_filter = Gtk.CustomFilter.new(lambda obj: obj.status_flags & PkgStatus.INSTALLED)
 		installed_model = Gtk.FilterListModel.new(model, installed_filter)
 
 		db_filter = Gtk.CustomFilter()
 		obj_model = Gtk.FilterListModel.new(installed_model, db_filter)
 
 		for db in pacman_db_names:
-			db_filter.set_filter_func(filter_db_func, db)
+			db_filter.set_filter_func(lambda obj: obj.filter_repo == db)
 
 			count = obj_model.get_n_items()
 			total_count += count
@@ -914,12 +908,6 @@ class PkgInfoPane(Gtk.Overlay):
 	# Link signal handler
 	#-----------------------------------
 	def on_link_activated(self, label, url):
-		def filter_name_func(obj, pkg_name):
-			return(obj.name == pkg_name)
-
-		def filter_provides_func(obj, pkg_name):
-			return(any(pkg_name in s for s in obj.provides))
-
 		parse_url = urllib.parse.urlsplit(url)
 
 		if parse_url.scheme != "pkg": return(False)
@@ -928,17 +916,16 @@ class PkgInfoPane(Gtk.Overlay):
 
 		new_obj = None
 
-		link_filter = Gtk.CustomFilter.new(filter_name_func, pkg_name)
+		link_filter = Gtk.CustomFilter.new(lambda obj: obj.name == pkg_name)
+		link_model = Gtk.FilterListModel.new(self.pkg_model, link_filter)
 
-		link_list = Gtk.FilterListModel.new(self.pkg_model, link_filter)
-
-		if link_list.get_n_items() > 0:
-			new_obj = link_list.get_item(0)
+		if link_model.get_n_items() > 0:
+			new_obj = link_model.get_item(0)
 		else:
-			link_filter.set_filter_func(filter_provides_func, pkg_name)
+			link_filter.set_filter_func(lambda obj: any(pkg_name in s for s in obj.provides))
 
-			if link_list.get_n_items() > 0:
-				new_obj = link_list.get_item(0)
+			if link_model.get_n_items() > 0:
+				new_obj = link_model.get_item(0)
 
 		if new_obj is not None and new_obj is not self.pkg_object:
 			if new_obj in self.__obj_list:
