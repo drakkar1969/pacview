@@ -962,10 +962,10 @@ class PkgInfoPane(Gtk.Overlay):
 		if obj is not None:
 			self.model.append(PkgProperty(label="Name", value=f'<b>{obj.name}</b>'))
 			self.model.append(PkgProperty(label="Version", value=obj.version, code="version", icon="pkg-update" if obj.has_update else ""))
-			if obj.description != "": self.model.append(PkgProperty(label="Description", value=self.prop_to_string(obj.description)))
-			if obj.url != "": self.model.append(PkgProperty(label="URL", value=self.prop_to_link(obj.url)))
+			if obj.description != "": self.model.append(PkgProperty(label="Description", value=self.prop_to_string(obj.description), code="description"))
 			if obj.display_repo in self.sync_db_names: self.model.append(PkgProperty(label="Package URL", value=self.prop_to_link(f'https://www.archlinux.org/packages/{obj.display_repo}/{obj.architecture}/{obj.name}')))
 			elif obj.display_repo == "aur": self.model.append(PkgProperty(label="AUR URL", value=self.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
+			if obj.url != "": self.model.append(PkgProperty(label="URL", value=self.prop_to_link(obj.url)))
 			if obj.licenses != "": self.model.append(PkgProperty(label="Licenses", value=self.prop_to_string(obj.licenses)))
 			self.model.append(PkgProperty(label="Status", value=obj.status if (obj.status_flags & PkgStatus.INSTALLED) else "not installed", icon=obj.status_icon))
 			self.model.append(PkgProperty(label="Repository", value=obj.display_repo, code="display_repo"))
@@ -1781,8 +1781,6 @@ class MainWindow(Adw.ApplicationWindow):
 
 		self.column_view.is_loading = False
 
-		self.column_view.selection.set_selected(7)
-
 		# Parse foreign packages async
 		foreign_thread = threading.Thread(target=self.parse_foreign_pkgs_async, args=(pkg_objects,), daemon=True)
 		foreign_thread.start()
@@ -1818,14 +1816,18 @@ class MainWindow(Adw.ApplicationWindow):
 	# Update foreign pkgs function
 	#-----------------------------------
 	def idle_update_foreign_pkgs(self, aur_list):
+		# Update package display repository if in AUR
 		for obj in self.column_view.model:
 			if obj.name in aur_list:
 				obj.display_repo = "aur"
 
+				# Update info pane package properties
 				if obj.name == self.info_pane.pkg_object.name:
-					for prop in self.info_pane.model:
+					for i,prop in enumerate(self.info_pane.model):
 						if prop.code == "display_repo":
 							prop.value = obj.display_repo
+						if prop.code == "description" and i < len(self.info_pane.model):
+							self.info_pane.model.insert(i+1, PkgProperty(label="AUR URL", value=self.info_pane.prop_to_link(f'https://aur.archlinux.org/packages/{obj.name}')))
 
 	#-----------------------------------
 	# Get updates async function
@@ -1863,6 +1865,7 @@ class MainWindow(Adw.ApplicationWindow):
 					obj.version = update_dict[obj.name]
 					obj.has_update = True
 
+					# Update info pane package properties
 					if obj.name == self.info_pane.pkg_object.name:
 						for prop in self.info_pane.model:
 							if prop.code == "version":
