@@ -251,12 +251,8 @@ class PkgBackup(GObject.Object):
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, filename, status_icon, status, *args, **kwargs):
+	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
-
-		self.filename = filename
-		self.status_icon = status_icon
-		self.status = status
 
 #------------------------------------------------------------------------------
 #-- CLASS: STATSITEM
@@ -558,7 +554,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 					status_icon = "backup-error"
 					status = "read error"
 
-				backup_list.append(PkgBackup(filename, status_icon, status))
+				backup_list.append(PkgBackup(filename=filename, status_icon=status_icon, status=status))
 
 			self.backup_model.splice(0, 0, backup_list)
 
