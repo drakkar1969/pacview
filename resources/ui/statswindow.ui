@@ -2,9 +2,9 @@
 <interface>
   <!--// STATS WINDOW //-->
   <template class="StatsWindow" parent="AdwWindow">
-    <property name="default-width">450</property>
+    <property name="default-width">520</property>
     <property name="modal">True</property>
-    <property name="title">Installed Packages</property>
+    <property name="title">Package Statistics</property>
     <child>
       <object class="GtkEventControllerKey">
         <signal name="key-pressed" handler="on_key_pressed" swapped="no"/>
@@ -58,11 +58,21 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkColumnViewColumn" id="count_column">
+                  <object class="GtkColumnViewColumn" id="packages_column">
                     <property name="title">Packages</property>
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats/count-item.ui</property>
+                        <property name="resource">/com/github/PacView/ui/stats/packages-item.ui</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="installed_column">
+                    <property name="title">Installed</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/stats/installed-item.ui</property>
                       </object>
                     </property>
                   </object>

@@ -44,7 +44,8 @@
     <file compressed="true">ui/details/log-item.ui</file>
     <file compressed="true">ui/infopane/name-item.ui</file>
     <file compressed="true">ui/stats/repository-item.ui</file>
-    <file compressed="true">ui/stats/count-item.ui</file>
+    <file compressed="true">ui/stats/packages-item.ui</file>
+    <file compressed="true">ui/stats/installed-item.ui</file>
     <file compressed="true">ui/stats/size-item.ui</file>
     <file compressed="true">ui/mainwindow.ui</file>
     <file compressed="true">ui/pkgcolumnview.ui</file>

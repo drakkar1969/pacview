@@ -261,7 +261,8 @@ class StatsItem(GObject.Object):
 	# Read/write properties
 	#-----------------------------------
 	repository = GObject.Property(type=str, default="")
-	count = GObject.Property(type=str, default="")
+	packages = GObject.Property(type=str, default="")
+	installed = GObject.Property(type=str, default="")
 	size = GObject.Property(type=str, default="")
 
 	#-----------------------------------
@@ -289,33 +290,40 @@ class StatsWindow(Adw.Window):
 		super().__init__(*args, **kwargs)
 
 		# Initialize widgets
-		total_count = 0
+		total_pcount = 0
+		total_icount = 0
 		total_size = 0
 
-		installed_filter = Gtk.CustomFilter.new(lambda obj: obj.status_flags & PkgStatus.INSTALLED)
-		installed_model = Gtk.FilterListModel.new(model, installed_filter)
 
 		db_filter = Gtk.CustomFilter()
-		obj_model = Gtk.FilterListModel.new(installed_model, db_filter)
+		db_model = Gtk.FilterListModel.new(model, db_filter)
 
 		for db in pacman_db_names:
 			db_filter.set_filter_func(lambda obj: obj.filter_repo == db)
 
-			count = obj_model.get_n_items()
-			total_count += count
+			pcount = db_model.get_n_items()
+			total_pcount += pcount
+
+			installed_filter = Gtk.CustomFilter.new(lambda obj: obj.status_flags & PkgStatus.INSTALLED)
+			installed_model = Gtk.FilterListModel.new(db_model, installed_filter)
+
+			icount = installed_model.get_n_items()
+			total_icount += icount
 		
-			size = sum([obj.install_size_raw for obj in obj_model])
+			size = sum([obj.install_size_raw for obj in installed_model])
 			total_size += size
 
 			self.model.append(StatsItem(
 				repository=db.title(),
-				count=count,
+				packages=pcount,
+				installed=icount,
 				size=PkgObject.size_to_str(size, 2)
 			))
 
 		self.model.append(StatsItem(
 			repository="<b>Total</b>",
-			count=f'<b>{total_count}</b>',
+			packages=f'<b>{total_pcount}</b>',
+			installed=f'<b>{total_icount}</b>',
 			size=f'<b>{PkgObject.size_to_str(total_size, 2)}</b>'
 		))
 
