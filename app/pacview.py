@@ -611,10 +611,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 	@Gtk.Template.Callback()
 	def on_files_view_activated(self, view, pos):
-		selected_item = self.files_selection.get_selected_item()
-
-		if selected_item is not None:
-			self.open_file_manager(selected_item.get_string())
+		self.on_files_open_button_clicked(self.files_open_button)
 
 	@Gtk.Template.Callback()
 	def on_files_open_button_clicked(self, button):
@@ -625,10 +622,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 	@Gtk.Template.Callback()
 	def on_cache_view_activated(self, view, pos):
-		selected_item = self.cache_selection.get_selected_item()
-
-		if selected_item is not None:
-			self.open_file_manager(f'/var/cache/pacman/pkg/{selected_item.get_string()}')
+		self.on_cache_open_button_clicked(self.cache_open_button)
 
 	@Gtk.Template.Callback()
 	def on_cache_open_button_clicked(self, button):
@@ -639,10 +633,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 
 	@Gtk.Template.Callback()
 	def on_backup_view_activated(self, view, pos):
-		selected_item = self.backup_selection.get_selected_item()
-
-		if selected_item is not None:
-			self.open_file_manager(selected_item.filename)
+		self.on_backup_open_button_clicked(self.backup_open_button)
 
 	@Gtk.Template.Callback()
 	def on_backup_open_button_clicked(self, button):
