@@ -289,11 +289,9 @@ class StatsWindow(Adw.Window):
 	def __init__(self, pacman_db_names, model, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		# Initialize widgets
 		total_pcount = 0
 		total_icount = 0
 		total_size = 0
-
 
 		db_filter = Gtk.CustomFilter()
 		db_model = Gtk.FilterListModel.new(model, db_filter)
