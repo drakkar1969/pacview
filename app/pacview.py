@@ -1124,28 +1124,33 @@ class PkgColumnView(Gtk.Overlay):
 		if self.current_search == "":
 			return(True)
 		else:
-			search_term = self.current_search.lower()
-
 			if self.search_exact == True:
-				return(any((
-					self.search_by_name and search_term == item.name.lower(),
-					self.search_by_desc and search_term == item.description.lower(),
-					self.search_by_group and search_term == item.group.lower(),
-					self.search_by_deps and any(search_term == s.lower() for s in item.depends),
-					self.search_by_optdeps and any(search_term == s.lower() for s in item.optdepends),
-					self.search_by_provides and any(search_term == s.lower() for s in item.provides),
-					self.search_by_files and any(search_term == s.lower() for s in item.files)
-				)))
+				term = self.current_search.lower()
+
+				return(any([
+					self.search_by_name and term == item.name.lower(),
+					self.search_by_desc and term == item.description.lower(),
+					self.search_by_group and term == item.group.lower(),
+					self.search_by_deps and any(term == s.lower() for s in item.depends),
+					self.search_by_optdeps and any(term == s.lower() for s in item.optdepends),
+					self.search_by_provides and any(term == s.lower() for s in item.provides),
+					self.search_by_files and any(term == s.lower() for s in item.files)
+				]))
 			else:
-				return(any((
-					self.search_by_name and search_term in item.name.lower(),
-					self.search_by_desc and search_term in item.description.lower(),
-					self.search_by_group and search_term in item.group.lower(),
-					self.search_by_deps and any(search_term in s.lower() for s in item.depends),
-					self.search_by_optdeps and any(search_term in s.lower() for s in item.optdepends),
-					self.search_by_provides and any(search_term in s.lower() for s in item.provides),
-					self.search_by_files and any(search_term in s.lower() for s in item.files)
-				)))
+				terms = self.current_search.lower().split(' ')
+
+				return(all([
+					any([
+						self.search_by_name and term in item.name.lower(),
+						self.search_by_desc and term in item.description.lower(),
+						self.search_by_group and term in item.group.lower(),
+						self.search_by_deps and any(term in s.lower() for s in item.depends),
+						self.search_by_optdeps and any(term in s.lower() for s in item.optdepends),
+						self.search_by_provides and any(term in s.lower() for s in item.provides),
+						self.search_by_files and any(term in s.lower() for s in item.files)
+					])
+					for term in terms
+				]))
 
 	#-----------------------------------
 	# Property change signal handlers
