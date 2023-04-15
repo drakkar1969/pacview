@@ -770,7 +770,6 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
 	def on_reset_dialog_response(self, dialog, response):
 		if response == "reset":
-			self.load_switch.set_active(False)
 			self.aur_entryrow.set_text("")
 			self.column_switch.set_active(True)
 			self.sorting_switch.set_active(False)
