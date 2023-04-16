@@ -1952,7 +1952,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.populate_sidebar()
 
 		# Load packages
-		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names,), daemon=True)
+		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_root_dir, self.pacman_db_path, self.pacman_db_names,), daemon=True)
 		load_thread.start()
 
 	def show_stats_window_action(self, action, value, user_data):
