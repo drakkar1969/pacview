@@ -524,9 +524,9 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 				self.log_model.splice(0, 0, log_lines[::-1]) # Reverse list
 
 			# Populate cache
-			pkg_cache = subprocess.run(shlex.split(f'/usr/bin/paccache -vdk0 {pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			pkg_cache,_ = app.run_program(f'/usr/bin/paccache -vdk0 {pkg_object.name}')
 
-			cache_lines = [l for l in pkg_cache.stdout.decode().split('\n') if (l != "" and not l.startswith("==>") and not l.endswith(".sig"))]
+			cache_lines = [l for l in pkg_cache.split('\n') if (l != "" and not l.startswith("==>") and not l.endswith(".sig"))]
 
 			self.cache_model.splice(0, 0, cache_lines)
 
@@ -580,9 +580,9 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		depth_flag = "" if depth == self.default_depth else f'-d {depth}'
 		reverse_flag = "-r" if reverse else ""
 
-		pkg_tree = subprocess.run(shlex.split(f'/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {self.pkg_object.name}'), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		pkg_tree,_ = app.run_program(f'/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {self.pkg_object.name}')
 
-		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree.stdout.decode()))
+		self.tree_label.set_label(re.sub(" provides.+", "", pkg_tree))
 
 	#-----------------------------------
 	# Dependency tree signal handlers
@@ -1685,18 +1685,18 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def get_pacman_config(self):
 		# Get pacman configuration
-		config = subprocess.run(shlex.split("/usr/bin/pacman-conf RootDir DBPath LogFile CacheDir"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		config,_ = app.run_program("/usr/bin/pacman-conf RootDir DBPath LogFile CacheDir")
 
-		for l in config.stdout.decode().split('\n'):
+		for l in config.split('\n'):
 			if "RootDir = " in l: self.pacman_root_dir = l.replace("RootDir = ", "")
 			if "DBPath = " in l: self.pacman_db_path = l.replace("DBPath = ", "")
 			if "LogFile = " in l: self.pacman_log_file = l.replace("LogFile = ", "")
 			if "CacheDir = " in l: self.pacman_cache_dir = l.replace("CacheDir = ", "")
 
 		# Get list of configured database names
-		dbs = subprocess.run(shlex.split("/usr/bin/pacman-conf -l"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		dbs,_ = app.run_program("/usr/bin/pacman-conf -l")
 
-		self.pacman_db_names = [n for n in dbs.stdout.decode().split('\n') if n != ""]
+		self.pacman_db_names = [n for n in dbs.split('\n') if n != ""]
 
 		# Add foreign to configured database names
 		self.pacman_db_names.append("foreign")
@@ -1843,19 +1843,16 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	def get_updates_async(self, aur_update_command):
 		# Get updates
-		pacman_upd = subprocess.run(shlex.split("/usr/bin/checkupdates"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		pacman_upd,returncode = app.run_program("/usr/bin/checkupdates")
 
-		update_list = pacman_upd.stdout.decode().split('\n')
+		update_list = pacman_upd.split('\n')
 
-		update_error = (pacman_upd.returncode == 1)
+		update_error = (returncode == 1)
 
 		if aur_update_command != "" and update_error == False:
-			try:
-				aur_upd = subprocess.run(shlex.split(aur_update_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			aur_upd,_ = app.run_program(aur_update_command)
 
-				update_list.extend(aur_upd.stdout.decode().split('\n'))
-			except:
-				pass
+			update_list.extend(aur_upd.split('\n'))
 
 		# Build update dict
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
@@ -2045,6 +2042,17 @@ class PacViewApp(Adw.Application):
 		else:
 			self.main_window = MainWindow(application=app)
 			self.main_window.present()
+
+	#-----------------------------------
+	# Run program utility function
+	#-----------------------------------
+	def run_program(self, cmdline):
+		try:
+			output = subprocess.run(shlex.split(cmdline), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+			return(output.stdout.decode(), output.returncode)
+		except:
+			return("", 1)
 
 #------------------------------------------------------------------------------
 #-- MAIN APP
