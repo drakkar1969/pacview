@@ -402,13 +402,19 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	pkg_object = GObject.Property(type=PkgObject, default=None)
 
+	pacman_log_file = GObject.Property(type=str, default="")
+	pacman_cache_dir = GObject.Property(type=str, default="")
+
 	#-----------------------------------
 	# Init function
 	#-----------------------------------
-	def __init__(self, pkg_object, monospace_font, *args, **kwargs):
+	def __init__(self, pkg_object, pacman_log_file, pacman_cache_dir, monospace_font, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
 		self.pkg_object = pkg_object
+
+		self.pacman_log_file = pacman_log_file
+		self.pacman_cache_dir = pacman_cache_dir
 
 		# Initialize files search entry
 		self.files_search_entry.set_key_capture_widget(self.files_view)
@@ -507,7 +513,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 			self.populate_dep_tree(self.default_depth, False)
 
 			# Populate log
-			with open("/var/log/pacman.log", "r") as f:
+			with open(self.pacman_log_file, "r") as f:
 				log_lines = f.readlines()
 
 				match_expr = re.compile(f'\[(.+)T(.+)\+.+\] \[ALPM\] (installed|removed|upgraded|downgraded) {pkg_object.name} (.+)')
@@ -629,7 +635,7 @@ class PkgDetailsWindow(Adw.ApplicationWindow):
 		selected_item = self.cache_selection.get_selected_item()
 
 		if selected_item is not None:
-			self.open_file_manager(f'/var/cache/pacman/pkg/{selected_item.get_string()}')
+			self.open_file_manager(f'{self.pacman_cache_dir}{selected_item.get_string()}')
 
 	@Gtk.Template.Callback()
 	def on_backup_view_activated(self, view, pos):
@@ -1388,6 +1394,11 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Properties
 	#-----------------------------------
+	pacman_root_dir = GObject.Property(type=str, default="/")
+	pacman_db_path = GObject.Property(type=str, default="/var/lib/pacman/")
+	pacman_log_file = GObject.Property(type=str, default="/var/log/pacman.log")
+	pacman_cache_dir = GObject.Property(type=str, default="/var/cache/pacman/pkg/")
+
 	sync_db_names = GObject.Property(type=GObject.TYPE_STRV, default=["core", "extra", "community", "multilib"])
 	pacman_db_names = GObject.Property(type=GObject.TYPE_STRV, default=[])
 
@@ -1631,12 +1642,12 @@ class MainWindow(Adw.ApplicationWindow):
 				self.column_view.view.sort_by_column(col, sort_asc)
 
 		# Initialize window
-		self.init_databases()
+		self.get_pacman_config()
 
 		self.populate_sidebar()
 
 		# Load packages async
-		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_db_names,), daemon=True)
+		load_thread = threading.Thread(target=self.load_packages_async, args=(self.pacman_root_dir, self.pacman_db_path, self.pacman_db_names,), daemon=True)
 		load_thread.start()
 
 	#-----------------------------------
@@ -1670,9 +1681,18 @@ class MainWindow(Adw.ApplicationWindow):
 			self.column_view.sort_asc = True
 
 	#-----------------------------------
-	# Init databases function
+	# Get pacman config function
 	#-----------------------------------
-	def init_databases(self):
+	def get_pacman_config(self):
+		# Get pacman configuration
+		config = subprocess.run(shlex.split("/usr/bin/pacman-conf RootDir DBPath LogFile CacheDir"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+		for l in config.stdout.decode().split('\n'):
+			if "RootDir = " in l: self.pacman_root_dir = l.replace("RootDir = ", "")
+			if "DBPath = " in l: self.pacman_db_path = l.replace("DBPath = ", "")
+			if "LogFile = " in l: self.pacman_log_file = l.replace("LogFile = ", "")
+			if "CacheDir = " in l: self.pacman_cache_dir = l.replace("CacheDir = ", "")
+
 		# Get list of configured database names
 		dbs = subprocess.run(shlex.split("/usr/bin/pacman-conf -l"), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -1715,9 +1735,9 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	# Load packages async function
 	#-----------------------------------
-	def load_packages_async(self, pacman_db_names):
+	def load_packages_async(self, pacman_root_dir, pacman_db_path, pacman_db_names):
 		# Get pyalpm handle
-		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
+		alpm_handle = pyalpm.Handle(pacman_root_dir, pacman_db_path)
 
 		# Get sync packages
 		sync_dict = dict((pkg.name, pkg) for db in pacman_db_names for pkg in alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL).pkgcache)
@@ -1917,7 +1937,7 @@ class MainWindow(Adw.ApplicationWindow):
 
 	def show_details_window_action(self, action, value, user_data):
 		if self.info_pane.pkg_object is not None:
-			details_window = PkgDetailsWindow(self.info_pane.pkg_object, self.prefs_window.monospace_font if self.prefs_window.custom_font else "", transient_for=self)
+			details_window = PkgDetailsWindow(self.info_pane.pkg_object, self.pacman_log_file, self.pacman_cache_dir, self.prefs_window.monospace_font if self.prefs_window.custom_font else "", transient_for=self)
 			details_window.present()
 
 	#-----------------------------------
@@ -1927,7 +1947,7 @@ class MainWindow(Adw.ApplicationWindow):
 		self.header_search.search_active = False
 
 		# Initialize window
-		self.init_databases()
+		self.get_pacman_config()
 
 		self.populate_sidebar()
 
