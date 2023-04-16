@@ -1719,26 +1719,19 @@ class MainWindow(Adw.ApplicationWindow):
 		# Get pyalpm handle
 		alpm_handle = pyalpm.Handle("/", "/var/lib/pacman")
 
-		# Package dict
-		pkg_dict = {}
+		# Get sync packages
+		sync_dict = dict((pkg.name, pkg) for db in pacman_db_names for pkg in alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL).pkgcache)
 
-		# Add sync packages
-		for db in pacman_db_names:
-			sync_db = alpm_handle.register_syncdb(db, pyalpm.SIG_DATABASE_OPTIONAL)
+		# Get local packages
+		local_dict = dict((pkg.name, pkg) for pkg in alpm_handle.get_localdb().pkgcache)
 
-			if sync_db is not None:
-				pkg_dict.update({pkg.name: pkg for pkg in sync_db.pkgcache})
-
-		# Add local packages
-		local_db = alpm_handle.get_localdb()
-		localpkg_dict = {pkg.name: pkg for pkg in local_db.pkgcache}
-
-		pkg_dict.update({pkg.name: pkg for pkg in local_db.pkgcache if pkg.name not in pkg_dict.keys()})
+		# Merge sync and local packages (only keep local packages not in sync dict)
+		pkg_dict = local_dict | sync_dict
 
 		# Create list of package objects
 		def __get_pkgobject(pkg):
-			if pkg.name in localpkg_dict.keys():
-				localpkg = localpkg_dict[pkg.name]
+			if pkg.name in local_dict.keys():
+				localpkg = local_dict[pkg.name]
 
 				if localpkg.reason == 0: status_flags = PkgStatus.EXPLICIT
 				else:
@@ -1844,7 +1837,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Build update dict
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
 
-		update_dict = {expr.sub(r"\1", u): expr.sub(r"\2", u) for u in update_list if expr.match(u)}
+		update_dict = dict((expr.sub(r"\1", u), expr.sub(r"\2", u)) for u in update_list if expr.match(u))
 
 		# Show updates in sidebar
 		GLib.idle_add(self.idle_show_updates, update_dict, update_error)
