@@ -1850,9 +1850,12 @@ class MainWindow(Adw.ApplicationWindow):
 		update_error = (pacman_upd.returncode == 1)
 
 		if aur_update_command != "" and update_error == False:
-			aur_upd = subprocess.run(shlex.split(aur_update_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+			try:
+				aur_upd = subprocess.run(shlex.split(aur_update_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-			update_list.extend(aur_upd.stdout.decode().split('\n'))
+				update_list.extend(aur_upd.stdout.decode().split('\n'))
+			except:
+				pass
 
 		# Build update dict
 		expr = re.compile("(\S+)\s(\S+\s->\s\S+)")
