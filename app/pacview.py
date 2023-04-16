@@ -1373,9 +1373,7 @@ class MainWindow(Adw.ApplicationWindow):
 	#-----------------------------------
 	header_search = Gtk.Template.Child()
 
-	header_sidebar_btn = Gtk.Template.Child()
-	header_infopane_btn = Gtk.Template.Child()
-	header_search_btn = Gtk.Template.Child()
+	header_search_button = Gtk.Template.Child()
 
 	flap = Gtk.Template.Child()
 
@@ -1445,7 +1443,7 @@ class MainWindow(Adw.ApplicationWindow):
 		# Toolbar buttons
 		#-----------------------------
 		# Bind toolbar search button state to header search active state
-		self.header_search_btn.bind_property(
+		self.header_search_button.bind_property(
 			"active", self.header_search, "search_active",
 			GObject.BindingFlags.SYNC_CREATE | GObject.BindingFlags.BIDIRECTIONAL
 		)
