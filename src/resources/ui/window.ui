@@ -127,17 +127,221 @@
             </property>
             <property name="content">
               <object class="GtkPaned" id="pane">
-                <!-- <property name="orientation">vertical</property>
+                <property name="orientation">vertical</property>
                 <property name="wide-handle">True</property>
-                <property name="position">375</property>
+                <!-- <property name="position">375</property> -->
                 <property name="shrink-start-child">False</property>
                 <property name="shrink-end-child">False</property>
                 <property name="start-child">
-                  <object class="PkgColumnView" id="column_view">
-                    <property name="height-request">150</property>
+                  <object class="GtkOverlay">
+                    <child>
+                      <object class="GtkScrolledWindow">
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
+                        <child>
+                          <object class="GtkColumnView" id="pkgview">
+                            <property name="model">
+                              <object class="GtkSingleSelection" id="pkgview_selection">
+                                <property name="model">
+                                  <object class="GtkSortListModel" id="pkgview_sort_model">
+                                    <property name="model">
+                                      <object class="GtkFilterListModel" id="pkgview_filter_model">
+                                        <property name="filter">
+                                          <object class="GtkEveryFilter" id="pkgview_main_filter">
+                                            <child>
+                                              <object class="GtkStringFilter" id="pkgview_repo_filter">
+                                                <!-- <property name="expression">
+                                                  <lookup name="filter_repo" type="PkgObject"/>
+                                                </property> -->
+                                                <property name="match-mode">exact</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkCustomFilter" id="pkgview_status_filter"/>
+                                            </child>
+                                            <child>
+                                              <object class="GtkCustomFilter" id="pkgview_search_filter"/>
+                                            </child>
+                                          </object>
+                                        </property>
+                                        <property name="model">
+                                          <object class="GListStore" id="pkgview_model">
+                                            <!-- <property name="item-type">PkgObject</property> -->
+                                          </object>
+                                        </property>
+                                      </object>
+                                    </property>
+                                    <binding name="sorter">
+                                      <lookup name="sorter">pkgview</lookup>
+                                    </binding>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                            <!-- <child>
+                              <object class="GtkGestureClick" id="click_gesture">
+                                <property name="button">0</property>
+                              </object>
+                            </child> -->
+                            <!-- <child>
+                              <object class="GtkPopoverMenu" id="popover_menu">
+                                <property name="menu-model">popup_menu</property>
+                                <property name="has-arrow">False</property>
+                                <property name="halign">start</property>
+                              </object>
+                            </child> -->
+                            <child>
+                              <object class="GtkColumnViewColumn" id="pkgview_package_column">
+                                <property name="id">package</property>
+                                <property name="title">Package</property>
+                                <property name="resizable">True</property>
+                                <property name="expand">True</property>
+                                <!-- <property name="header-menu">header_menu</property> -->
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/columnview/name-item.ui</property>
+                                  </object>
+                                </property> -->
+                                <!-- <property name="sorter">
+                                  <object class="GtkStringSorter">
+                                    <property name="expression">
+                                      <lookup name="name" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="pkgview_version_column">
+                                <property name="id">version</property>
+                                <property name="title">Version</property>
+                                <property name="resizable">True</property>
+                                <!-- <property name="header-menu">header_menu</property> -->
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/columnview/version-item.ui</property>
+                                  </object>
+                                </property> -->
+                                <!-- <property name="sorter">
+                                  <object class="GtkStringSorter">
+                                    <property name="expression">
+                                      <lookup name="version" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="pkgview_repository_column">
+                                <property name="id">repository</property>
+                                <property name="title">Repository</property>
+                                <property name="resizable">True</property>
+                                <!-- <property name="header-menu">header_menu</property> -->
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/columnview/repository-item.ui</property>
+                                  </object>
+                                </property> -->
+                                <!-- <property name="sorter">
+                                  <object class="GtkStringSorter">
+                                    <property name="expression">
+                                      <lookup name="display_repo" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="pkgview_status_column">
+                                <property name="id">status</property>
+                                <property name="title">Status</property>
+                                <property name="resizable">True</property>
+                                <!-- <property name="header-menu">header_menu</property> -->
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/columnview/status-item.ui</property>
+                                  </object>
+                                </property> -->
+                                <!-- <property name="sorter">
+                                  <object class="GtkStringSorter">
+                                    <property name="expression">
+                                      <lookup name="status" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="pkgview_date_column">
+                                <property name="id">date</property>
+                                <property name="title">Date</property>
+                                <property name="resizable">True</property>
+                                <!-- <property name="header-menu">header_menu</property> -->
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/columnview/date-item.ui</property>
+                                  </object>
+                                </property> -->
+                                <!-- <property name="sorter">
+                                  <object class="GtkNumericSorter">
+                                    <property name="expression">
+                                      <lookup name="install_date_raw" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="pkgview_size_column">
+                                <property name="id">size</property>
+                                <property name="title">Size</property>
+                                <property name="resizable">True</property>
+                                <!-- <property name="header-menu">header_menu</property> -->
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/columnview/size-item.ui</property>
+                                  </object>
+                                </property> -->
+                                <!-- <property name="sorter">
+                                  <object class="GtkNumericSorter">
+                                    <property name="expression">
+                                      <lookup name="install_size_raw" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="pkgview_group_column">
+                                <property name="id">group</property>
+                                <property name="title">Group</property>
+                                <property name="resizable">True</property>
+                                <!-- <property name="header-menu">header_menu</property> -->
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/columnview/group-item.ui</property>
+                                  </object>
+                                </property> -->
+                                <!-- <property name="sorter">
+                                  <object class="GtkStringSorter">
+                                    <property name="expression">
+                                      <lookup name="group" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
                   </object>
+
+                  <!-- <object class="PkgColumnView" id="column_view">
+                    <property name="height-request">150</property>
+                  </object> -->
                 </property>
-                <property name="end-child">
+                <!-- <property name="end-child">
                   <object class="PkgInfoPane" id="info_pane">
                     <property name="height-request">150</property>
                   </object>
