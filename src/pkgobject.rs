@@ -11,7 +11,11 @@ mod imp {
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
         #[property(get, set)]
-        name: RefCell<Option<String>>,
+        pub name: RefCell<Option<String>>,
+        #[property(get, set)]
+        pub version: RefCell<Option<String>>,
+        #[property(get, set)]
+        pub repository: RefCell<Option<String>>,
     }
     
     // The central trait for subclassing a GObject
