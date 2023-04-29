@@ -1,5 +1,6 @@
 mod app;
 mod window;
+mod pkgobject;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;
