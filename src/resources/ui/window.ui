@@ -257,11 +257,11 @@
                                 <property name="title">Status</property>
                                 <property name="resizable">True</property>
                                 <!-- <property name="header-menu">header_menu</property> -->
-                                <!-- <property name="factory">
+                                <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
                                     <property name="resource">/com/github/PacView/ui/columnview/status-item.ui</property>
                                   </object>
-                                </property> -->
+                                </property>
                                 <!-- <property name="sorter">
                                   <object class="GtkStringSorter">
                                     <property name="expression">

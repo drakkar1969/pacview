@@ -44,6 +44,10 @@ mod imp {
         pub version: RefCell<Option<String>>,
         #[property(get, set)]
         pub repository: RefCell<Option<String>>,
+        #[property(get, set)]
+        pub status: RefCell<Option<String>>,
+        #[property(get, set)]
+        pub status_icon: RefCell<Option<String>>,
     }
     
     // The central trait for subclassing a GObject

@@ -1,7 +1,7 @@
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 
-use alpm::{Alpm, SigLevel};
+use alpm::{Alpm,SigLevel,PackageReason};
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgStatusFlags,PkgObject};
@@ -70,11 +70,39 @@ impl PacViewWindow {
         handle.register_syncdb("community", SigLevel::DATABASE_OPTIONAL).unwrap();
         handle.register_syncdb("custom", SigLevel::DATABASE_OPTIONAL).unwrap();
 
+        let localdb = handle.localdb();
+
         for db in handle.syncdbs() {
             for pkg in db.pkgs() {
                 let obj = PkgObject::new();
 
-                obj.set_flags(PkgStatusFlags::EXPLICIT | PkgStatusFlags::UPDATES);
+                if let Some(localpkg) = localdb.pkgs().find_satisfier(pkg.name()) {
+                    if localpkg.reason() == PackageReason::Explicit {
+                        obj.set_flags(PkgStatusFlags::EXPLICIT);
+                        obj.set_status("explicit");
+                        obj.set_status_icon("pkg-explicit");
+                    }
+                    else {
+                        if !localpkg.required_by().is_empty() {
+                            obj.set_flags(PkgStatusFlags::DEPENDENCY);
+                            obj.set_status("dependency");
+                            obj.set_status_icon("pkg-dependency");
+                        }
+                        else {
+                            if !localpkg.optional_for().is_empty() {
+                                obj.set_flags(PkgStatusFlags::OPTIONAL);
+                                obj.set_status("optional");
+                                obj.set_status_icon("pkg-optional");
+                            }
+                            else {
+                                obj.set_flags(PkgStatusFlags::ORPHAN);
+                                obj.set_status("orphan");
+                                obj.set_status_icon("pkg-orphan");
+                            }
+                        }
+                    }
+                }
+
                 obj.set_name(pkg.name());
                 obj.set_version(pkg.version().as_str());
                 obj.set_repository(db.name());
