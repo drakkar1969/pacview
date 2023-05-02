@@ -4,7 +4,7 @@ use adw::subclass::prelude::*;
 use alpm::{Alpm, SigLevel};
 
 use crate::PacViewApplication;
-use crate::pkgobject::PkgObject;
+use crate::pkgobject::{PkgStatusFlags,PkgObject};
 
 mod imp {
     use super::*;
@@ -74,6 +74,7 @@ impl PacViewWindow {
             for pkg in db.pkgs() {
                 let obj = PkgObject::new();
 
+                obj.set_flags(PkgStatusFlags::EXPLICIT | PkgStatusFlags::UPDATES);
                 obj.set_name(pkg.name());
                 obj.set_version(pkg.version().as_str());
                 obj.set_repository(db.name());

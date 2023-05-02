@@ -1,8 +1,34 @@
-use std::cell::RefCell;
+use std::cell::{Cell,RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
+
+#[glib::flags(name = "PkgStatusFlags")]
+pub enum PkgStatusFlags {
+    #[flags_value(name = "Installed")]
+    EXPLICIT  = 0b00000001,
+    #[flags_value(name = "Dependency")]
+    DEPENDENCY = 0b00000010,
+    #[flags_value(name = "Optional")]
+    OPTIONAL   = 0b00000100,
+    #[flags_value(name = "Orphan")]
+    ORPHAN     = 0b00001000,
+    #[flags_value(name = "None")]
+    NONE       = 0b00010000,
+    #[flags_value(name = "Installed")]
+    INSTALLED = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
+    #[flags_value(name = "All")]
+    ALL = Self::INSTALLED.bits() | Self::NONE.bits(),
+    #[gflags(name = "Updates")]
+    UPDATES    = 0b00100000,
+}
+
+impl Default for PkgStatusFlags {
+    fn default() -> Self {
+        PkgStatusFlags::NONE
+    }
+}
 
 mod imp {
     use super::*;
@@ -10,6 +36,8 @@ mod imp {
     #[derive(glib::Properties, Default)]
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
+        #[property(get, set)]
+        pub flags: Cell<PkgStatusFlags>,
         #[property(get, set)]
         pub name: RefCell<Option<String>>,
         #[property(get, set)]
