@@ -202,13 +202,13 @@
                                     <property name="resource">/com/github/PacView/ui/columnview/package-item.ui</property>
                                   </object>
                                 </property>
-                                <!-- <property name="sorter">
+                                <property name="sorter">
                                   <object class="GtkStringSorter">
                                     <property name="expression">
                                       <lookup name="name" type="PkgObject"/>
                                     </property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                             <child>
@@ -222,13 +222,13 @@
                                     <property name="resource">/com/github/PacView/ui/columnview/version-item.ui</property>
                                   </object>
                                 </property>
-                                <!-- <property name="sorter">
+                                <property name="sorter">
                                   <object class="GtkStringSorter">
                                     <property name="expression">
                                       <lookup name="version" type="PkgObject"/>
                                     </property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                             <child>
@@ -242,13 +242,13 @@
                                     <property name="resource">/com/github/PacView/ui/columnview/repository-item.ui</property>
                                   </object>
                                 </property>
-                                <!-- <property name="sorter">
+                                <property name="sorter">
                                   <object class="GtkStringSorter">
                                     <property name="expression">
-                                      <lookup name="display_repo" type="PkgObject"/>
+                                      <lookup name="repository" type="PkgObject"/>
                                     </property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                             <child>
@@ -262,13 +262,13 @@
                                     <property name="resource">/com/github/PacView/ui/columnview/status-item.ui</property>
                                   </object>
                                 </property>
-                                <!-- <property name="sorter">
+                                <property name="sorter">
                                   <object class="GtkStringSorter">
                                     <property name="expression">
                                       <lookup name="status" type="PkgObject"/>
                                     </property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                             <child>
