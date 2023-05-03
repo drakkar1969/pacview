@@ -1,5 +1,6 @@
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
+use gtk::prelude::StaticType;
 
 use alpm::{Alpm, SigLevel, PackageReason};
 
@@ -23,6 +24,8 @@ mod imp {
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
+            PkgObject::static_type();
+            
             klass.bind_template();
             klass.bind_template_callbacks();
         }

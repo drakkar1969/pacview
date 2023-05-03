@@ -166,7 +166,7 @@
                                         </property>
                                         <property name="model">
                                           <object class="GListStore" id="pkgview_model">
-                                            <!-- <property name="item-type">PkgObject</property> -->
+                                            <property name="item-type">PkgObject</property>
                                           </object>
                                         </property>
                                       </object>
