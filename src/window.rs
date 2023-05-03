@@ -1,15 +1,15 @@
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 
-use alpm::{Alpm,SigLevel,PackageReason};
+use alpm::{Alpm, SigLevel, PackageReason};
 
 use crate::PacViewApplication;
-use crate::pkgobject::{PkgStatusFlags,PkgObject};
+use crate::pkgobject::{PkgStatusFlags, PkgObject};
 
 mod imp {
     use super::*;
 
-    #[derive(gtk::CompositeTemplate, Default)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -50,7 +50,7 @@ mod imp {
 
 glib::wrapper! {
     pub struct PacViewWindow(ObjectSubclass<imp::PacViewWindow>)
-        @extends adw::ApplicationWindow, gtk::ApplicationWindow, gtk::Window, gtk::Widget,
+        @extends gtk::Widget, gtk::Window, gtk::ApplicationWindow, adw::ApplicationWindow,
         @implements gio::ActionGroup, gio::ActionMap, gtk::Accessible, gtk::Buildable,
                     gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
@@ -81,20 +81,17 @@ impl PacViewWindow {
                         obj.set_flags(PkgStatusFlags::EXPLICIT);
                         obj.set_status("explicit");
                         obj.set_status_icon("pkg-explicit");
-                    }
-                    else {
+                    } else {
                         if !localpkg.required_by().is_empty() {
                             obj.set_flags(PkgStatusFlags::DEPENDENCY);
                             obj.set_status("dependency");
                             obj.set_status_icon("pkg-dependency");
-                        }
-                        else {
+                        } else {
                             if !localpkg.optional_for().is_empty() {
                                 obj.set_flags(PkgStatusFlags::OPTIONAL);
                                 obj.set_status("optional");
                                 obj.set_status_icon("pkg-optional");
-                            }
-                            else {
+                            } else {
                                 obj.set_flags(PkgStatusFlags::ORPHAN);
                                 obj.set_status("orphan");
                                 obj.set_status_icon("pkg-orphan");

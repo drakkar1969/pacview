@@ -1,4 +1,4 @@
-use std::cell::{Cell,RefCell};
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -33,7 +33,7 @@ impl Default for PkgStatusFlags {
 mod imp {
     use super::*;
 
-    #[derive(glib::Properties, Default)]
+    #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
         #[property(get, set)]
@@ -50,14 +50,12 @@ mod imp {
         pub status_icon: RefCell<Option<String>>,
     }
     
-    // The central trait for subclassing a GObject
     #[glib::object_subclass]
     impl ObjectSubclass for PkgObject {
         const NAME: &'static str = "PkgObject";
         type Type = super::PkgObject;
     }
     
-    // Trait shared by all GObjects
     impl ObjectImpl for PkgObject {
         fn properties() -> &'static [glib::ParamSpec] {
             Self::derived_properties()
