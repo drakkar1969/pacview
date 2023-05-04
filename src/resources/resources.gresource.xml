@@ -9,6 +9,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/columnview/version-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/columnview/repository-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/columnview/status-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/date-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
   </gresource>
 </gresources>

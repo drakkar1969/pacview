@@ -277,18 +277,18 @@
                                 <property name="title">Date</property>
                                 <property name="resizable">True</property>
                                 <!-- <property name="header-menu">header_menu</property> -->
-                                <!-- <property name="factory">
+                                <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
                                     <property name="resource">/com/github/PacView/ui/columnview/date-item.ui</property>
                                   </object>
-                                </property> -->
-                                <!-- <property name="sorter">
+                                </property>
+                                <property name="sorter">
                                   <object class="GtkNumericSorter">
                                     <property name="expression">
-                                      <lookup name="install_date_raw" type="PkgObject"/>
+                                      <lookup name="install_date" type="PkgObject"/>
                                     </property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                             <child>

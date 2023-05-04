@@ -101,6 +101,15 @@ impl PacViewWindow {
                             }
                         }
                     }
+
+                    if let Some(install_date) = localpkg.install_date() {
+                        let datetime = glib::DateTime::from_unix_local(install_date).expect("error");
+
+                        let s = datetime.format("%Y/%m/%d %H:%M").expect("error");
+    
+                        obj.set_install_date(install_date);
+                        obj.set_install_date_short(s);
+                    }
                 }
 
                 obj.set_name(pkg.name());

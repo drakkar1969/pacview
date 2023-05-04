@@ -48,6 +48,10 @@ mod imp {
         pub status: RefCell<Option<String>>,
         #[property(get, set)]
         pub status_icon: RefCell<Option<String>>,
+        #[property(get, set)]
+        pub install_date: Cell<i64>,
+        #[property(get, set)]
+        pub install_date_short: RefCell<Option<String>>,
     }
     
     #[glib::object_subclass]
