@@ -3,6 +3,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::StaticType;
 
 use alpm::{Alpm, SigLevel, PackageReason};
+use bytesize;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgStatusFlags, PkgObject};
@@ -115,6 +116,12 @@ impl PacViewWindow {
                 obj.set_name(pkg.name());
                 obj.set_version(pkg.version().as_str());
                 obj.set_repository(db.name());
+
+                obj.set_install_size(pkg.isize());
+
+                let s = bytesize::to_string(pkg.isize() as u64, true);
+
+                obj.set_install_size_string(s);
 
                 obj_list.push(obj);
             }

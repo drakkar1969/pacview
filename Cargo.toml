@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 adw = { version = "0.4.1", package = "libadwaita", features = ["v1_3"] }
 alpm = "2.2.1"
+bytesize = "1.2.0"
 gtk = { version = "0.6.6", package = "gtk4", features = ["v4_10"] }
 
 [build-dependencies]
