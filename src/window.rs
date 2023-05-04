@@ -123,6 +123,12 @@ impl PacViewWindow {
 
                 obj.set_install_size_string(s);
 
+                let mut groups: Vec<&str> = pkg.groups().iter().collect();
+
+                groups.sort_unstable();
+
+                obj.set_groups(groups.join(", "));
+
                 obj_list.push(obj);
             }
         }

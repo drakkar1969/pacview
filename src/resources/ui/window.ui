@@ -317,18 +317,18 @@
                                 <property name="title">Group</property>
                                 <property name="resizable">True</property>
                                 <!-- <property name="header-menu">header_menu</property> -->
-                                <!-- <property name="factory">
+                                <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/group-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/columnview/groups-item.ui</property>
                                   </object>
-                                </property> -->
-                                <!-- <property name="sorter">
+                                </property>
+                                <property name="sorter">
                                   <object class="GtkStringSorter">
                                     <property name="expression">
-                                      <lookup name="group" type="PkgObject"/>
+                                      <lookup name="groups" type="PkgObject"/>
                                     </property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                           </object>

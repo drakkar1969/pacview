@@ -56,6 +56,8 @@ mod imp {
         pub install_size: Cell<i64>,
         #[property(get, set)]
         pub install_size_string: RefCell<Option<String>>,
+        #[property(get, set)]
+        pub groups: RefCell<Option<String>>,
     }
     
     #[glib::object_subclass]
