@@ -4,6 +4,9 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
+use alpm;
+use bytesize;
+
 #[glib::flags(name = "PkgStatusFlags")]
 pub enum PkgStatusFlags {
     #[flags_value(name = "Installed")]
@@ -86,7 +89,68 @@ glib::wrapper! {
 }
 
 impl PkgObject {
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+    pub fn new(repository: &str, syncpkg: alpm::Package, localpkg: Option<alpm::Package>) -> Self {
+        let mut flags = PkgStatusFlags::NONE;
+        let mut install_date = 0;
+        let mut install_date_short = String::from("");
+
+        if let Some(pkg) = localpkg {
+            if pkg.reason() == alpm::PackageReason::Explicit {
+                flags = PkgStatusFlags::EXPLICIT;
+            } else {
+                if !pkg.required_by().is_empty() {
+                    flags = PkgStatusFlags::DEPENDENCY;
+                } else {
+                    if !pkg.optional_for().is_empty() {
+                        flags = PkgStatusFlags::OPTIONAL;
+                    } else {
+                        flags = PkgStatusFlags::ORPHAN;
+                    }
+                }
+            }
+
+            install_date = pkg.install_date().unwrap_or(0);
+
+            if install_date != 0 {
+                let datetime = glib::DateTime::from_unix_local(install_date).expect("error");
+    
+                let datestring = datetime.format("%Y/%m/%d %H:%M").expect("error");
+    
+                install_date_short = datestring.to_string()
+            }
+        }
+
+        let status = match flags {
+            PkgStatusFlags::EXPLICIT => "explicit",
+            PkgStatusFlags::DEPENDENCY => "dependency",
+            PkgStatusFlags::OPTIONAL => "optional",
+            PkgStatusFlags::ORPHAN => "orphan",
+            _ => ""
+        };
+
+        let status_icon = match flags {
+            PkgStatusFlags::EXPLICIT => "pkg-explicit",
+            PkgStatusFlags::DEPENDENCY => "pkg-dependency",
+            PkgStatusFlags::OPTIONAL => "pkg-optional",
+            PkgStatusFlags::ORPHAN => "pkg-orphan",
+            _ => ""
+        };
+
+        let mut groups: Vec<&str> = syncpkg.groups().iter().collect();
+        groups.sort_unstable();
+
+        glib::Object::builder()
+            .property("name", syncpkg.name())
+            .property("version", syncpkg.version().as_str())
+            .property("repository", repository)
+            .property("flags", flags)
+            .property("status", status)
+            .property("status-icon", status_icon)
+            .property("install-date", install_date)
+            .property("install-date-short", install_date_short)
+            .property("install-size", syncpkg.isize())
+            .property("install-size-string", bytesize::to_string(syncpkg.isize() as u64, true))
+            .property("groups", groups.join(", "))
+            .build()
     }
 }

@@ -2,11 +2,10 @@ use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::StaticType;
 
-use alpm::{Alpm, SigLevel, PackageReason};
-use bytesize;
+use alpm;
 
 use crate::PacViewApplication;
-use crate::pkgobject::{PkgStatusFlags, PkgObject};
+use crate::pkgobject::PkgObject;
 
 mod imp {
     use super::*;
@@ -65,69 +64,22 @@ impl PacViewWindow {
     }
 
     fn load_packages(&self) {
-        let mut obj_list: Vec<PkgObject> = Vec::new();
+        let handle = alpm::Alpm::new("/", "/var/lib/pacman/").unwrap();
 
-        let handle = Alpm::new("/", "/var/lib/pacman/").unwrap();
-
-        handle.register_syncdb("core", SigLevel::DATABASE_OPTIONAL).unwrap();
-        handle.register_syncdb("extra", SigLevel::DATABASE_OPTIONAL).unwrap();
-        handle.register_syncdb("community", SigLevel::DATABASE_OPTIONAL).unwrap();
-        handle.register_syncdb("custom", SigLevel::DATABASE_OPTIONAL).unwrap();
+        handle.register_syncdb("core", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
+        handle.register_syncdb("extra", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
+        handle.register_syncdb("community", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
+        handle.register_syncdb("custom", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
 
         let localdb = handle.localdb();
 
+        let mut obj_list: Vec<PkgObject> = Vec::new();
+
         for db in handle.syncdbs() {
-            for pkg in db.pkgs() {
-                let obj = PkgObject::new();
+            for syncpkg in db.pkgs() {
+                let localpkg = localdb.pkgs().find_satisfier(syncpkg.name());
 
-                if let Some(localpkg) = localdb.pkgs().find_satisfier(pkg.name()) {
-                    if localpkg.reason() == PackageReason::Explicit {
-                        obj.set_flags(PkgStatusFlags::EXPLICIT);
-                        obj.set_status("explicit");
-                        obj.set_status_icon("pkg-explicit");
-                    } else {
-                        if !localpkg.required_by().is_empty() {
-                            obj.set_flags(PkgStatusFlags::DEPENDENCY);
-                            obj.set_status("dependency");
-                            obj.set_status_icon("pkg-dependency");
-                        } else {
-                            if !localpkg.optional_for().is_empty() {
-                                obj.set_flags(PkgStatusFlags::OPTIONAL);
-                                obj.set_status("optional");
-                                obj.set_status_icon("pkg-optional");
-                            } else {
-                                obj.set_flags(PkgStatusFlags::ORPHAN);
-                                obj.set_status("orphan");
-                                obj.set_status_icon("pkg-orphan");
-                            }
-                        }
-                    }
-
-                    if let Some(install_date) = localpkg.install_date() {
-                        let datetime = glib::DateTime::from_unix_local(install_date).expect("error");
-
-                        let s = datetime.format("%Y/%m/%d %H:%M").expect("error");
-    
-                        obj.set_install_date(install_date);
-                        obj.set_install_date_short(s);
-                    }
-                }
-
-                obj.set_name(pkg.name());
-                obj.set_version(pkg.version().as_str());
-                obj.set_repository(db.name());
-
-                obj.set_install_size(pkg.isize());
-
-                let s = bytesize::to_string(pkg.isize() as u64, true);
-
-                obj.set_install_size_string(s);
-
-                let mut groups: Vec<&str> = pkg.groups().iter().collect();
-
-                groups.sort_unstable();
-
-                obj.set_groups(groups.join(", "));
+                let obj = PkgObject::new(db.name(), syncpkg, localpkg);
 
                 obj_list.push(obj);
             }
