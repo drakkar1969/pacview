@@ -117,7 +117,7 @@ mod imp {
                 let obj = self.obj();
 
                 if let Some(repo_id) = &r.repo_id() {
-                    obj.set_pkg_repo_filter(repo_id);
+                    obj.repo_selected_handler(repo_id);
                 }
             }
         }
@@ -127,7 +127,7 @@ mod imp {
             if let Some(r) = row {
                 let obj = self.obj();
 
-                obj.set_pkg_status_filter(r.status_id());
+                obj.status_selected_handler(r.status_id());
             }
         }
     }
@@ -260,13 +260,13 @@ impl PacViewWindow {
         imp.pkgview_model.extend_from_slice(&obj_list);
     }
 
-    fn set_pkg_repo_filter(&self, repo: &str) {
+    fn repo_selected_handler(&self, repo: &str) {
         let imp = self.imp();
 
         imp.pkgview_repo_filter.set_search(Some(repo));
     }
 
-    fn set_pkg_status_filter(&self, status: PkgStatusFlags) {
+    fn status_selected_handler(&self, status: PkgStatusFlags) {
         let imp = self.imp();
 
         imp.pkgview_status_filter.set_filter_func(move |item| {

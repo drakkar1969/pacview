@@ -81,7 +81,7 @@ mod imp {
         fn on_search_started(&self) {
             let obj = self.obj();
 
-            obj.start_search();
+            obj.search_started_handler();
         }
     }
 }
@@ -124,7 +124,7 @@ impl SearchHeader {
         });
     }
 
-    fn start_search(&self) {
+    fn search_started_handler(&self) {
         self.set_search_active(true);
     }
 }
