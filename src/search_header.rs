@@ -2,11 +2,10 @@ use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
-use gtk::prelude::ObjectExt;
+use gtk::prelude::*;
+use gtk::traits::WidgetExt;
 
 mod imp {
-    use gtk::traits::WidgetExt;
-
     use super::*;
 
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
@@ -63,21 +62,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.connect_notify(Some("search-active"), |header, _| {
-                let imp = header.imp();
-
-                if header.search_active() {
-                    imp.stack.set_visible_child_name("search");
-
-                    imp.search_entry.grab_focus();
-                } else {
-                    // imp.search_entry.set_text("");
-
-                    imp.stack.set_visible_child_name("title")
-                }
-
-            });
-
             obj.setup_self();
         }
     }
@@ -112,6 +96,24 @@ impl SearchHeader {
         self.bind_property("title", &imp.title_widget.get(), "title")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        self.connect_notify(Some("search-active"), |header: &Self, _| {
+            let imp = header.imp();
+
+            if header.search_active() {
+                imp.stack.set_visible_child_name("search");
+
+                imp.search_entry.grab_focus();
+            } else {
+                imp.search_entry.set_text("");
+
+                imp.stack.set_visible_child_name("title");
+
+                if let Some(view) = header.key_capture_widget() {
+                    view.grab_focus();
+                }
+            }
+        });
     }
 }
 
