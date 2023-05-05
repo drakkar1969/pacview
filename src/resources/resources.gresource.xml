@@ -24,6 +24,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/columnview/size-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/columnview/groups-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
   </gresource>
 </gresources>

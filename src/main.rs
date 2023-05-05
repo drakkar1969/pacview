@@ -1,5 +1,6 @@
 mod app;
 mod window;
+mod search_header;
 mod filter_row;
 mod pkgobject;
 

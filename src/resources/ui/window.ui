@@ -11,12 +11,12 @@
         <property name="orientation">vertical</property>
         <child>
           <object class="AdwHeaderBar" id="header_bar">
-            <!-- <property name="title-widget">
-              <object class="SearchHeader" id="header_search">
+            <property name="title-widget">
+              <object class="SearchHeader" id="search_header">
                 <property name="title">PacView</property>
-                <property name="key-capture-widget">column_view</property>
+                <!-- <property name="key-capture-widget">column_view</property> -->
               </object>
-            </property> -->
+            </property>
             <child type="start">
               <object class="GtkToggleButton" id="sidebar_button">
                 <property name="icon-name">sidebar-show-symbolic</property>

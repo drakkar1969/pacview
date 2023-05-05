@@ -10,6 +10,7 @@ use titlecase;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
+use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
 
 mod imp {
@@ -54,6 +55,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             PkgObject::static_type();
+            SearchHeader::static_type();
             
             klass.bind_template();
             klass.bind_template_callbacks();
