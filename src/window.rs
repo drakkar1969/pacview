@@ -21,6 +21,9 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
+        pub search_header: TemplateChild<SearchHeader>,
+
+        #[template_child]
         pub repo_listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub status_listbox: TemplateChild<gtk::ListBox>,
@@ -84,6 +87,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_gactions();
             obj.setup_pkgview();
         }
     }
@@ -136,6 +140,26 @@ glib::wrapper! {
 impl PacViewWindow {
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
+    }
+
+    fn setup_gactions(&self) {
+        let search_start_action = gio::ActionEntry::builder("search-start")
+            .activate(move |win :&Self, _, _| {
+                let imp = win.imp();
+
+                imp.search_header.set_search_active(true);
+            })
+            .build();
+
+        let search_stop_action = gio::ActionEntry::builder("search-stop")
+            .activate(move |win :&Self, _, _| {
+                let imp = win.imp();
+
+                imp.search_header.set_search_active(false);
+            })
+            .build();
+
+        self.add_action_entries([search_start_action, search_stop_action]);
     }
 
     fn setup_pkgview(&self) {

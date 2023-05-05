@@ -1,10 +1,12 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
 mod imp {
+    use gtk::traits::WidgetExt;
+
     use super::*;
 
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
@@ -12,10 +14,16 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/search_header.ui")]
     pub struct SearchHeader {
         #[template_child]
+        pub stack: TemplateChild<gtk::Stack>,
+        #[template_child]
         pub title_widget: TemplateChild<adw::WindowTitle>,
+        #[template_child]
+        pub search_entry: TemplateChild<gtk::SearchEntry>,
 
         #[property(get, set)]
         title: RefCell<Option<String>>,
+        #[property(get, set)]
+        search_active: Cell<bool>,
     }
 
     // The central trait for subclassing a GObject
@@ -52,6 +60,21 @@ mod imp {
             self.parent_constructed();
 
             let obj = self.obj();
+
+            obj.connect_notify(Some("search-active"), |header, _| {
+                let imp = header.imp();
+
+                if header.search_active() {
+                    imp.stack.set_visible_child_name("search");
+
+                    imp.search_entry.grab_focus();
+                } else {
+                    // imp.search_entry.set_text("");
+
+                    imp.stack.set_visible_child_name("title")
+                }
+
+            });
 
             obj.setup_self();
         }

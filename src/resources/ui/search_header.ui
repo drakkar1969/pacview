@@ -4,7 +4,7 @@
   <template class="SearchHeader" parent="GtkBox">
     <property name="width-request">860</property>
     <child>
-      <object class="GtkStack">
+      <object class="GtkStack" id="stack">
         <child>
           <object class="GtkStackPage" id="title_page">
             <property name="name">title</property>
