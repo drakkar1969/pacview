@@ -1,8 +1,12 @@
+use std::cell::RefCell;
+
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
+use pacmanconf;
 use alpm;
+use titlecase;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
@@ -11,7 +15,8 @@ use crate::filter_row::FilterRow;
 mod imp {
     use super::*;
 
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::PacViewWindow)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -32,6 +37,13 @@ mod imp {
 
         #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
+
+        #[property(get, set)]
+        pub pacman_root_dir: RefCell<String>,
+        #[property(get, set)]
+        pub pacman_db_path: RefCell<String>,
+        #[property(get, set)]
+        pub pacman_repo_names: RefCell<Vec<String>>,
     }
 
     #[glib::object_subclass]
@@ -58,6 +70,7 @@ mod imp {
         fn on_show_window(&self) {
             let obj = self.obj();
 
+            obj.get_pacman_config();
             obj.populate_sidebar();
             obj.load_packages();
         }
@@ -84,6 +97,18 @@ mod imp {
     }
 
     impl ObjectImpl for PacViewWindow {
+        fn properties() -> &'static [glib::ParamSpec] {
+            Self::derived_properties()
+        }
+
+        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
+            self.derived_set_property(id, value, pspec)
+        }
+    
+        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
+            self.derived_property(id, pspec)
+        }
+
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -112,13 +137,13 @@ impl PacViewWindow {
     }
 
     fn set_pkg_repo_filter(&self, repo: &str) {
-        let imp = &self.imp();
+        let imp = self.imp();
 
         imp.pkgview_repo_filter.set_search(Some(repo));
     }
 
     fn set_pkg_status_filter(&self, status: PkgStatusFlags) {
-        let imp = &self.imp();
+        let imp = self.imp();
 
         imp.pkgview_status_filter.set_filter_func(move |item| {
             let pkg: &PkgObject = item
@@ -130,7 +155,7 @@ impl PacViewWindow {
     }
 
     fn setup_pkgview(&self) {
-        let imp = &self.imp();
+        let imp = self.imp();
 
         imp.pkgview_filter_model.bind_property("n-items", &imp.status_label.get(), "label")
             .transform_to(|_, n_items: u32| {
@@ -144,17 +169,27 @@ impl PacViewWindow {
         imp.pkgview.sort_by_column(sort_column.and_downcast_ref(), gtk::SortType::Ascending);
     }
 
+    fn get_pacman_config(&self) {
+        let pacman_config = pacmanconf::Config::new().unwrap();
+
+        let repo_list: Vec<String> = pacman_config.repos.iter().map(|r| r.name.to_string()).collect();
+
+        self.set_pacman_root_dir(pacman_config.root_dir);
+        self.set_pacman_db_path(pacman_config.db_path);
+        self.set_pacman_repo_names(repo_list.clone());
+    }
+
     fn populate_sidebar(&self) {
-        let imp = &self.imp();
+        let imp = self.imp();
 
         let row = FilterRow::new("repository-symbolic", "All");
         imp.repo_listbox.append(&row);
 
         imp.repo_listbox.select_row(Some(&row));
 
-        for s in ["Core", "Extra", "Community", "Custom"] {
-            let row = FilterRow::new("repository-symbolic", s);
-            row.set_repo_id(s.to_lowercase());
+        for repo in self.pacman_repo_names() {
+            let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo));
+            row.set_repo_id(repo.to_lowercase());
             imp.repo_listbox.append(&row);
         }
 
@@ -181,18 +216,15 @@ impl PacViewWindow {
     }
 
     fn load_packages(&self) {
-        let handle = alpm::Alpm::new("/", "/var/lib/pacman/").unwrap();
-
-        handle.register_syncdb("core", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
-        handle.register_syncdb("extra", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
-        handle.register_syncdb("community", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
-        handle.register_syncdb("custom", alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
-
-        let localdb = handle.localdb();
+        let handle = alpm::Alpm::new(self.pacman_root_dir(), self.pacman_db_path()).unwrap();
 
         let mut obj_list: Vec<PkgObject> = Vec::new();
 
-        for db in handle.syncdbs() {
+        let localdb = handle.localdb();
+
+        for repo in self.pacman_repo_names() {
+            let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
+
             for syncpkg in db.pkgs() {
                 let localpkg = localdb.pkgs().find_satisfier(syncpkg.name());
 
@@ -202,7 +234,7 @@ impl PacViewWindow {
             }
         }
 
-        let model = &self.imp().pkgview_model;
-        model.extend_from_slice(&obj_list);
+        let imp = self.imp();
+        imp.pkgview_model.extend_from_slice(&obj_list);
     }
 }
