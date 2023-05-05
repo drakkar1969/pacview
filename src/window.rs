@@ -66,6 +66,33 @@ mod imp {
         }
     }
 
+    impl ObjectImpl for PacViewWindow {
+        fn properties() -> &'static [glib::ParamSpec] {
+            Self::derived_properties()
+        }
+
+        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
+            self.derived_set_property(id, value, pspec)
+        }
+    
+        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
+            self.derived_property(id, pspec)
+        }
+
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_pkgview();
+        }
+    }
+
+    impl WidgetImpl for PacViewWindow {}
+    impl WindowImpl for PacViewWindow {}
+    impl ApplicationWindowImpl for PacViewWindow {}
+    impl AdwApplicationWindowImpl for PacViewWindow {}
+
     #[gtk::template_callbacks]
     impl PacViewWindow {
         #[template_callback]
@@ -97,33 +124,6 @@ mod imp {
             }
         }
     }
-
-    impl ObjectImpl for PacViewWindow {
-        fn properties() -> &'static [glib::ParamSpec] {
-            Self::derived_properties()
-        }
-
-        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
-            self.derived_set_property(id, value, pspec)
-        }
-    
-        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
-            self.derived_property(id, pspec)
-        }
-
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            let obj = self.obj();
-
-            obj.setup_pkgview();
-        }
-    }
-
-    impl WidgetImpl for PacViewWindow {}
-    impl WindowImpl for PacViewWindow {}
-    impl ApplicationWindowImpl for PacViewWindow {}
-    impl AdwApplicationWindowImpl for PacViewWindow {}
 }
 
 glib::wrapper! {
@@ -136,24 +136,6 @@ glib::wrapper! {
 impl PacViewWindow {
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
-    }
-
-    fn set_pkg_repo_filter(&self, repo: &str) {
-        let imp = self.imp();
-
-        imp.pkgview_repo_filter.set_search(Some(repo));
-    }
-
-    fn set_pkg_status_filter(&self, status: PkgStatusFlags) {
-        let imp = self.imp();
-
-        imp.pkgview_status_filter.set_filter_func(move |item| {
-            let pkg: &PkgObject = item
-                .downcast_ref::<PkgObject>()
-                .expect("Needs to be a PkgObject");
-
-            pkg.flags().intersects(status)
-        });
     }
 
     fn setup_pkgview(&self) {
@@ -241,5 +223,23 @@ impl PacViewWindow {
 
         let imp = self.imp();
         imp.pkgview_model.extend_from_slice(&obj_list);
+    }
+
+    fn set_pkg_repo_filter(&self, repo: &str) {
+        let imp = self.imp();
+
+        imp.pkgview_repo_filter.set_search(Some(repo));
+    }
+
+    fn set_pkg_status_filter(&self, status: PkgStatusFlags) {
+        let imp = self.imp();
+
+        imp.pkgview_status_filter.set_filter_func(move |item| {
+            let pkg: &PkgObject = item
+                .downcast_ref::<PkgObject>()
+                .expect("Needs to be a PkgObject");
+
+            pkg.flags().intersects(status)
+        });
     }
 }
