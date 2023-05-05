@@ -18,14 +18,20 @@ mod imp {
         pub repo_listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub status_listbox: TemplateChild<gtk::ListBox>,
+
         #[template_child]
         pub pkgview: TemplateChild<gtk::ColumnView>,
+        #[template_child]
+        pub pkgview_filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub pkgview_repo_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub pkgview_status_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub pkgview_model: TemplateChild<gio::ListStore>,
+
+        #[template_child]
+        pub status_label: TemplateChild<gtk::Label>,
     }
 
     #[glib::object_subclass]
@@ -79,9 +85,9 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            let sort_column = self.pkgview.columns().item(0);
+            let obj = self.obj();
 
-            self.pkgview.sort_by_column(sort_column.and_downcast_ref(), gtk::SortType::Ascending);
+            obj.setup_pkgview();
         }
     }
 
@@ -119,6 +125,21 @@ impl PacViewWindow {
 
             pkg.flags().intersects(status)
         });
+    }
+
+    fn setup_pkgview(&self) {
+        let imp = &self.imp();
+
+        imp.pkgview_filter_model.bind_property("n-items", &imp.status_label.get(), "label")
+            .transform_to(|_, n_items: u32| {
+                Some(format!("{} matching package{}", n_items, if n_items != 1 {"s"} else {""}))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        let sort_column = imp.pkgview.columns().item(0);
+
+        imp.pkgview.sort_by_column(sort_column.and_downcast_ref(), gtk::SortType::Ascending);
     }
 
     fn populate_sidebar(&self) {
