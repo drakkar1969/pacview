@@ -169,6 +169,8 @@ impl PacViewWindow {
         let sort_column = imp.pkgview.columns().item(0);
 
         imp.pkgview.sort_by_column(sort_column.and_downcast_ref(), gtk::SortType::Ascending);
+
+        imp.pkgview.grab_focus();
     }
 
     fn get_pacman_config(&self) {
