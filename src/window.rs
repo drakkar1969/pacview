@@ -22,6 +22,8 @@ mod imp {
     pub struct PacViewWindow {
         #[template_child]
         pub search_header: TemplateChild<SearchHeader>,
+        #[template_child]
+        pub search_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
         pub repo_listbox: TemplateChild<gtk::ListBox>,
@@ -88,6 +90,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_gactions();
+            obj.setup_toolbar_buttons();
             obj.setup_pkgview();
         }
     }
@@ -160,6 +163,14 @@ impl PacViewWindow {
             .build();
 
         self.add_action_entries([search_start_action, search_stop_action]);
+    }
+
+    fn setup_toolbar_buttons(&self) {
+        let imp = self.imp();
+
+        imp.search_button.bind_property("active", &imp.search_header.get(), "search-active")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .build();
     }
 
     fn setup_pkgview(&self) {
