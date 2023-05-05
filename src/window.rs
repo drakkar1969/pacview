@@ -1,11 +1,12 @@
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
-use gtk::prelude::StaticType;
+use gtk::prelude::*;
 
 use alpm;
 
 use crate::PacViewApplication;
-use crate::pkgobject::PkgObject;
+use crate::pkgobject::{PkgObject, PkgStatusFlags};
+use crate::filter_row::FilterRow;
 
 mod imp {
     use super::*;
@@ -13,6 +14,16 @@ mod imp {
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
+        #[template_child]
+        pub repo_listbox: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub status_listbox: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub pkgview: TemplateChild<gtk::ColumnView>,
+        #[template_child]
+        pub pkgview_repo_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub pkgview_status_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub pkgview_model: TemplateChild<gio::ListStore>,
     }
@@ -40,11 +51,40 @@ mod imp {
         #[template_callback]
         fn on_show_window(&self) {
             let obj = self.obj();
+
+            obj.populate_sidebar();
             obj.load_packages();
+        }
+
+        #[template_callback]
+        fn on_repo_selected(&self, row: Option<FilterRow>) {
+            if let Some(r) = row {
+                let obj = self.obj();
+
+                obj.set_pkg_repo_filter(&r.repo_id());
+            }
+        }
+
+        #[template_callback]
+        fn on_status_selected(&self, row: Option<FilterRow>) {
+            if let Some(r) = row {
+                let obj = self.obj();
+
+                obj.set_pkg_status_filter(r.status_id());
+            }
         }
     }
 
-    impl ObjectImpl for PacViewWindow {}
+    impl ObjectImpl for PacViewWindow {
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let sort_column = self.pkgview.columns().item(0);
+
+            self.pkgview.sort_by_column(sort_column.and_downcast_ref(), gtk::SortType::Ascending);
+        }
+    }
+
     impl WidgetImpl for PacViewWindow {}
     impl WindowImpl for PacViewWindow {}
     impl ApplicationWindowImpl for PacViewWindow {}
@@ -61,6 +101,60 @@ glib::wrapper! {
 impl PacViewWindow {
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
+    }
+
+    fn set_pkg_repo_filter(&self, repo: &str) {
+        let imp = &self.imp();
+
+        imp.pkgview_repo_filter.set_search(Some(repo));
+    }
+
+    fn set_pkg_status_filter(&self, status: PkgStatusFlags) {
+        let imp = &self.imp();
+
+        imp.pkgview_status_filter.set_filter_func(move |item| {
+            let pkg: &PkgObject = item
+                .downcast_ref::<PkgObject>()
+                .expect("Needs to be a PkgObject");
+
+            pkg.flags().intersects(status)
+        });
+    }
+
+    fn populate_sidebar(&self) {
+        let imp = &self.imp();
+
+        let row = FilterRow::new("repository-symbolic", "All");
+        imp.repo_listbox.append(&row);
+
+        imp.repo_listbox.select_row(Some(&row));
+
+        for s in ["Core", "Extra", "Community", "Custom"] {
+            let row = FilterRow::new("repository-symbolic", s);
+            row.set_repo_id(s.to_lowercase());
+            imp.repo_listbox.append(&row);
+        }
+
+        let status_map = [
+            ("status-all-symbolic", "All", PkgStatusFlags::ALL),
+            ("status-installed-symbolic", "Installed", PkgStatusFlags::INSTALLED),
+            ("status-explicit-symbolic", "Explicit", PkgStatusFlags::EXPLICIT),
+            ("status-dependency-symbolic", "Dependency", PkgStatusFlags::DEPENDENCY),
+            ("status-optional-symbolic", "Optional", PkgStatusFlags::OPTIONAL),
+            ("status-orphan-symbolic", "Orphan", PkgStatusFlags::ORPHAN),
+            ("status-none-symbolic", "None", PkgStatusFlags::NONE),
+            ("status-updates-symbolic", "Updates", PkgStatusFlags::UPDATES),
+        ];
+
+        for status in status_map {
+            let row = FilterRow::new(status.0, status.1);
+            row.set_status_id(status.2);
+            imp.status_listbox.append(&row);
+
+            if status.2 == PkgStatusFlags::INSTALLED {
+                imp.status_listbox.select_row(Some(&row));
+            }
+        }
     }
 
     fn load_packages(&self) {

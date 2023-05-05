@@ -1,5 +1,6 @@
 mod app;
 mod window;
+mod filter_row;
 mod pkgobject;
 
 use gtk::{gio, glib};

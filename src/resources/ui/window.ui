@@ -83,7 +83,7 @@
                         <child>
                           <object class="GtkListBox" id="repo_listbox">
                             <property name="margin-bottom">6</property>
-                            <!-- <signal name="row-selected" handler="on_repo_selected" swapped="no"/> -->
+                            <signal name="row-selected" handler="on_repo_selected" swapped="true"/>
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>
@@ -110,7 +110,7 @@
                         </child>
                         <child>
                           <object class="GtkListBox" id="status_listbox">
-                            <!-- <signal name="row-selected" handler="on_status_selected" swapped="no"/> -->
+                            <signal name="row-selected" handler="on_status_selected" swapped="true"/>
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>
@@ -150,9 +150,9 @@
                                           <object class="GtkEveryFilter" id="pkgview_main_filter">
                                             <child>
                                               <object class="GtkStringFilter" id="pkgview_repo_filter">
-                                                <!-- <property name="expression">
-                                                  <lookup name="filter_repo" type="PkgObject"/>
-                                                </property> -->
+                                                <property name="expression">
+                                                  <lookup name="repository" type="PkgObject"/>
+                                                </property>
                                                 <property name="match-mode">exact</property>
                                               </object>
                                             </child>
