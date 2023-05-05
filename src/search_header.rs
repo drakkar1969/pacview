@@ -12,7 +12,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/search_header.ui")]
     pub struct SearchHeader {
         #[template_child]
-        title_widget: TemplateChild<adw::WindowTitle>,
+        pub title_widget: TemplateChild<adw::WindowTitle>,
 
         #[property(get, set)]
         title: RefCell<Option<String>>,
@@ -53,9 +53,7 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.bind_property("title", &self.title_widget.get(), "title")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            obj.setup_self();
         }
     }
 
@@ -73,6 +71,14 @@ impl SearchHeader {
     pub fn new() -> Self {
         glib::Object::builder()
             .build()
+    }
+
+    fn setup_self(&self) {
+        let imp = self.imp();
+
+        self.bind_property("title", &imp.title_widget.get(), "title")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 }
 
