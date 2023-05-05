@@ -14,7 +14,7 @@
             <property name="title-widget">
               <object class="SearchHeader" id="search_header">
                 <property name="title">PacView</property>
-                <!-- <property name="key-capture-widget">column_view</property> -->
+                <property name="key-capture-widget">pkgview</property>
               </object>
             </property>
             <child type="start">
