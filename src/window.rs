@@ -40,11 +40,11 @@ mod imp {
         pub status_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
-        pub pacman_root_dir: RefCell<String>,
+        pacman_root_dir: RefCell<String>,
         #[property(get, set)]
-        pub pacman_db_path: RefCell<String>,
+        pacman_db_path: RefCell<String>,
         #[property(get, set)]
-        pub pacman_repo_names: RefCell<Vec<String>>,
+        pacman_repo_names: RefCell<Vec<String>>,
     }
 
     #[glib::object_subclass]
