@@ -36,7 +36,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            // klass.bind_template_callbacks();
+            klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -69,11 +69,19 @@ mod imp {
     impl WidgetImpl for SearchHeader {}
     impl BoxImpl for SearchHeader {}
 
+    #[gtk::template_callbacks]
     impl SearchHeader {
         fn set_key_capture_widget(&self, widget: gtk::Widget) {
             self.search_entry.set_key_capture_widget(Some(&widget));
 
             *self.key_capture_widget.borrow_mut() = Some(widget);
+        }
+
+        #[template_callback]
+        fn on_search_started(&self) {
+            let obj = self.obj();
+
+            obj.start_search();
         }
     }
 }
@@ -114,6 +122,10 @@ impl SearchHeader {
                 }
             }
         });
+    }
+
+    fn start_search(&self) {
+        self.set_search_active(true);
     }
 }
 
