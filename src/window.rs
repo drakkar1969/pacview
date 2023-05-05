@@ -183,6 +183,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         let row = FilterRow::new("repository-symbolic", "All");
+        row.set_repo_id("");
         imp.repo_listbox.append(&row);
 
         imp.repo_listbox.select_row(Some(&row));
