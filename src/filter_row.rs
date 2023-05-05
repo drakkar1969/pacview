@@ -27,16 +27,16 @@ mod imp {
         count_box: TemplateChild<gtk::Box>,
 
         #[property(get, set)]
-        icon: RefCell<String>,
+        icon: RefCell<Option<String>>,
         #[property(get, set)]
-        text: RefCell<String>,
+        text: RefCell<Option<String>>,
         #[property(get, set)]
-        count: RefCell<String>,
+        count: RefCell<Option<String>>,
         #[property(get, set)]
         spinning: Cell<bool>,
 
         #[property(get, set)]
-        repo_id: RefCell<String>,
+        repo_id: RefCell<Option<String>>,
         #[property(get, set)]
         status_id: Cell<PkgStatusFlags>,
     }

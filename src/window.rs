@@ -67,7 +67,9 @@ mod imp {
             if let Some(r) = row {
                 let obj = self.obj();
 
-                obj.set_pkg_repo_filter(&r.repo_id());
+                if let Some(repo_id) = &r.repo_id() {
+                    obj.set_pkg_repo_filter(repo_id);
+                }
             }
         }
 
