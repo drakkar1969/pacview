@@ -14,17 +14,17 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/filter_row.ui")]
     pub struct FilterRow {
         #[template_child]
-        stack: TemplateChild<gtk::Stack>,
+        pub stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        image: TemplateChild<gtk::Image>,
+        pub image: TemplateChild<gtk::Image>,
         #[template_child]
-        spinner: TemplateChild<gtk::Spinner>,
+        pub spinner: TemplateChild<gtk::Spinner>,
         #[template_child]
-        text_label: TemplateChild<gtk::Label>,
+        pub text_label: TemplateChild<gtk::Label>,
         #[template_child]
-        count_label: TemplateChild<gtk::Label>,
+        pub count_label: TemplateChild<gtk::Label>,
         #[template_child]
-        count_box: TemplateChild<gtk::Box>,
+        pub count_box: TemplateChild<gtk::Box>,
 
         #[property(get, set)]
         icon: RefCell<Option<String>>,
@@ -41,7 +41,6 @@ mod imp {
         status_id: Cell<PkgStatusFlags>,
     }
 
-    // The central trait for subclassing a GObject
     #[glib::object_subclass]
     impl ObjectSubclass for FilterRow {
         const NAME: &'static str = "FilterRow";
@@ -50,7 +49,6 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            // klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -74,33 +72,9 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
     
-            // Bind label to number
             let obj = self.obj();
 
-            obj.bind_property("spinning", &self.stack.get(), "visible_child_name")
-                .transform_to(|_, spinning: bool| {
-                    Some(if spinning {"spinner"} else {"icon"})
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("spinning", &self.spinner.get(), "spinning")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("icon", &self.image.get(), "icon-name")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("text", &self.text_label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("count", &self.count_label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("count", &self.count_box.get(), "visible")
-                .transform_to(|_, count: Option<&str>| {
-                    Some(if count != Some("") {true} else {false})
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            obj.setup_self();
         }
     }
 
@@ -120,6 +94,35 @@ impl FilterRow {
             .property("icon", icon)
             .property("text", text)
             .build()
+    }
+
+    fn setup_self(&self) {
+        let imp = self.imp();
+
+        self.bind_property("spinning", &imp.stack.get(), "visible_child_name")
+            .transform_to(|_, spinning: bool| {
+                Some(if spinning {"spinner"} else {"icon"})
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("spinning", &imp.spinner.get(), "spinning")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+        self.bind_property("icon", &imp.image.get(), "icon-name")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+        self.bind_property("text", &imp.text_label.get(), "label")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+        self.bind_property("count", &imp.count_label.get(), "label")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+        self.bind_property("count", &imp.count_box.get(), "visible")
+                .transform_to(|_, count: Option<&str>| {
+                    Some(if count != Some("") {true} else {false})
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
     }
 }
 
