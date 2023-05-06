@@ -135,6 +135,7 @@
                 <property name="shrink-end-child">False</property>
                 <property name="start-child">
                   <object class="GtkOverlay">
+                    <property name="height-request">160</property>
                     <child>
                       <object class="GtkScrolledWindow">
                         <property name="hexpand">True</property>
@@ -337,16 +338,59 @@
                       </object>
                     </child>
                   </object>
-
-                  <!-- <object class="PkgColumnView" id="column_view">
-                    <property name="height-request">150</property>
-                  </object> -->
                 </property>
-                <!-- <property name="end-child">
-                  <object class="PkgInfoPane" id="info_pane">
+                <property name="end-child">
+                  <object class="GtkOverlay">
                     <property name="height-request">150</property>
+                    <child>
+                      <object class="GtkScrolledWindow">
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
+                        <property name="child">
+                          <object class="GtkColumnView" id="infopane">
+                            <property name="show-row-separators">True</property>
+                            <property name="show-column-separators">True</property>
+                            <property name="reorderable">False</property>
+                            <property name="model">
+                              <object class="GtkNoSelection" id="infopane_selection">
+                                <property name="model">
+                                  <object class="GListStore" id="infopane_model">
+                                    <!-- <property name="item-type">PkgProperty</property> -->
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="infopane_name_column">
+                                <property name="title">Property</property>
+                                <property name="resizable">False</property>
+                                <!-- <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/infopane/name-item.ui</property>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkColumnViewColumn" id="infopane_value_column">
+                                <property name="title">Value</property>
+                                <property name="resizable">False</property>
+                                <property name="expand">True</property>
+                                <!-- <property name="factory">
+                                  <object class="GtkSignalListItemFactory">
+                                    <signal name="setup" handler="on_setup_value" swapped="no"/>
+                                    <signal name="bind" handler="on_bind_value" swapped="no"/>
+                                    <signal name="unbind" handler="on_unbind_value" swapped="no"/>
+                                  </object>
+                                </property> -->
+                              </object>
+                            </child>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
-                </property> -->
+                </property>
               </object>
             </property>
           </object>
