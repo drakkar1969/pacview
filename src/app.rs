@@ -31,8 +31,8 @@ mod imp {
             };
 
             application.set_accels_for_action("win.show-sidebar", &["<ctrl>b"]);
-            application.set_accels_for_action("win.search-start", &["<ctrl>f"]);
-            application.set_accels_for_action("win.search-stop", &["Escape"]);
+            application.set_accels_for_action("search.search-start", &["<ctrl>f"]);
+            application.set_accels_for_action("search.search-stop", &["Escape"]);
 
             window.present();
         }

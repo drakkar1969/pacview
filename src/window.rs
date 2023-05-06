@@ -3,6 +3,7 @@ use std::cell::RefCell;
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+use glib::clone;
 
 use pacmanconf;
 use alpm;
@@ -158,23 +159,29 @@ impl PacViewWindow {
     }
 
     fn setup_gactions(&self) {
-        let search_start_action = gio::ActionEntry::builder("search-start")
-            .activate(move |win :&Self, _, _| {
-                let imp = win.imp();
+        let search_group = gio::SimpleActionGroup::new();
 
-                imp.search_header.set_search_active(true);
-            })
-            .build();
+        self.insert_action_group("search", Some(&search_group));
 
-        let search_stop_action = gio::ActionEntry::builder("search-stop")
-            .activate(move |win :&Self, _, _| {
-                let imp = win.imp();
+        let win = self;
 
-                imp.search_header.set_search_active(false);
-            })
-            .build();
+        let search_start_action = gio::SimpleAction::new("search-start", None);
 
-        self.add_action_entries([search_start_action, search_stop_action]);
+        search_start_action.connect_activate(clone!(@weak win => move |_, _| {
+            let imp = win.imp();
+    
+            imp.search_header.set_search_active(true);
+        }));
+        search_group.add_action(&search_start_action);
+
+        let search_stop_action = gio::SimpleAction::new("search-stop", None);
+
+        search_stop_action.connect_activate(clone!(@weak win => move |_, _| {
+            let imp = win.imp();
+    
+            imp.search_header.set_search_active(false);
+        }));
+        search_group.add_action(&search_stop_action);
     }
 
     fn setup_toolbar_buttons(&self) {
