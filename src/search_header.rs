@@ -4,6 +4,8 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::traits::WidgetExt;
+use glib::subclass::Signal;
+use glib::once_cell::sync::Lazy;
 
 mod imp {
     use super::*;
@@ -45,6 +47,15 @@ mod imp {
     }
     
     impl ObjectImpl for SearchHeader {
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
+                vec![Signal::builder("search-changed")
+                    .param_types([String::static_type()])
+                    .build()]
+            });
+            SIGNALS.as_ref()
+        }
+    
         fn properties() -> &'static [glib::ParamSpec] {
             Self::derived_properties()
         }
@@ -82,6 +93,13 @@ mod imp {
             let obj = self.obj();
 
             obj.search_started_handler();
+        }
+
+        #[template_callback]
+        fn on_search_changed(&self) {
+            let obj = self.obj();
+
+            obj.search_changed_handler();
         }
     }
 }
@@ -126,6 +144,12 @@ impl SearchHeader {
 
     fn search_started_handler(&self) {
         self.set_search_active(true);
+    }
+
+    fn search_changed_handler(&self) {
+        let imp = self.imp();
+
+        self.emit_by_name::<()>("search-changed", &[&imp.search_entry.text()]);
     }
 }
 

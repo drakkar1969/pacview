@@ -33,11 +33,13 @@ mod imp {
         #[template_child]
         pub pkgview: TemplateChild<gtk::ColumnView>,
         #[template_child]
-        pub pkgview_filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
         pub pkgview_repo_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub pkgview_status_filter: TemplateChild<gtk::CustomFilter>,
+        #[template_child]
+        pub pkgview_search_filter: TemplateChild<gtk::CustomFilter>,
+        #[template_child]
+        pub pkgview_filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub pkgview_model: TemplateChild<gio::ListStore>,
 
@@ -129,6 +131,13 @@ mod imp {
 
                 obj.status_selected_handler(r.status_id());
             }
+        }
+
+        #[template_callback]
+        fn on_search_changed(&self, term: &str) {
+            let obj = self.obj();
+
+            obj.search_changed_handler(term);
         }
     }
 }
@@ -275,6 +284,24 @@ impl PacViewWindow {
                 .expect("Needs to be a PkgObject");
 
             pkg.flags().intersects(status)
+        });
+    }
+
+    fn search_changed_handler(&self, term: &str) {
+        let imp = self.imp();
+
+        let search_term = String::from(term);
+
+        imp.pkgview_search_filter.set_filter_func(move |item| {
+            let pkg: &PkgObject = item
+                .downcast_ref::<PkgObject>()
+                .expect("Needs to be a PkgObject");
+
+            if let Some(name) = pkg.name() {
+                name.contains(&search_term)
+            } else {
+                false
+            }
         });
     }
 }
