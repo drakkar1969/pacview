@@ -185,21 +185,26 @@ impl PacViewWindow {
         search_group.add_action(&search_stop_action);
 
         let param_map = [
-            ("name", SearchFlags::NAME),
-            ("group", SearchFlags::GROUP),
+            ("name", SearchFlags::NAME, true),
+            ("group", SearchFlags::GROUP, false),
         ];
 
         for param in param_map {
             let action_name = format!("toggle-{}", param.0);
 
-            let toggle_action = gio::SimpleAction::new(&action_name, None);
-            toggle_action.connect_activate(clone!(@weak win => move |_, _| {
+            let toggle_action = gio::SimpleAction::new_stateful(&action_name, None, param.2.to_variant());
+            toggle_action.connect_activate(clone!(@weak win => move |action, _| {
                 let imp = win.imp();
-    
+
                 let mut flags = imp.search_header.get().search_flags();
                 flags.toggle(param.1);
         
                 imp.search_header.get().set_search_flags(flags);
+
+                let mut state = action.state().expect("Could not get state").get::<bool>().expect("The variant needs to be of type bool");
+                state = !state;
+
+                action.set_state(state.to_variant());
             }));
             search_group.add_action(&toggle_action);
         }
