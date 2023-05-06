@@ -8,6 +8,21 @@ use glib::subclass::Signal;
 use glib::once_cell::sync::Lazy;
 
 //------------------------------------------------------------------------------
+// FLAGS: SEARCHFLAGS
+//------------------------------------------------------------------------------
+#[glib::flags(name = "SearchFlags")]
+pub enum SearchFlags {
+    #[flags_value(name = "Installed")]
+    NAME  = 0b00000001,
+}
+
+impl Default for SearchFlags {
+    fn default() -> Self {
+        SearchFlags::NAME
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: SEARCHHEADER
 //------------------------------------------------------------------------------
 mod imp {
@@ -33,6 +48,8 @@ mod imp {
         key_capture_widget: RefCell<Option<gtk::Widget>>,
         #[property(get, set)]
         search_active: Cell<bool>,
+        #[property(get, set)]
+        search_flags: Cell<SearchFlags>,
     }
 
     //-----------------------------------
