@@ -3,7 +3,7 @@ use std::cell::{Cell, RefCell};
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use gtk::traits::WidgetExt;
+
 use glib::subclass::Signal;
 use glib::once_cell::sync::Lazy;
 

@@ -2,7 +2,7 @@ use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
-use gtk::prelude::ObjectExt;
+use gtk::prelude::*;
 
 use crate::pkgobject::PkgStatusFlags;
 
