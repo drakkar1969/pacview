@@ -30,6 +30,7 @@ mod imp {
                 window.upcast()
             };
 
+            application.set_accels_for_action("win.show-sidebar", &["<ctrl>b"]);
             application.set_accels_for_action("win.search-start", &["<ctrl>f"]);
             application.set_accels_for_action("win.search-stop", &["Escape"]);
 

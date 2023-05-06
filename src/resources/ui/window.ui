@@ -22,7 +22,7 @@
               <object class="GtkToggleButton" id="sidebar_button">
                 <property name="icon-name">sidebar-show-symbolic</property>
                 <property name="tooltip-text">Toggle sidebar</property>
-                <!-- <property name="action-name">win.show-sidebar</property> -->
+                <property name="action-name">win.show-sidebar</property>
               </object>
             </child>
             <child type="end">
@@ -393,7 +393,7 @@
     <section>
       <item>
         <attribute name="label">View Sidebar</attribute>
-        <!-- <attribute name="action">win.show-sidebar</attribute> -->
+        <attribute name="action">win.show-sidebar</attribute>
       </item>
       <item>
         <attribute name="label">View Info Pane</attribute>

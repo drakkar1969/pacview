@@ -26,6 +26,9 @@ mod imp {
         pub search_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
+        pub flap: TemplateChild<adw::Flap>,
+
+        #[template_child]
         pub repo_listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub status_listbox: TemplateChild<gtk::ListBox>,
@@ -176,6 +179,9 @@ impl PacViewWindow {
 
     fn setup_toolbar_buttons(&self) {
         let imp = self.imp();
+
+        let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.flap.get(), "reveal-flap");
+        self.add_action(&show_sidebar_action);
 
         imp.search_button.bind_property("active", &imp.search_header.get(), "search-active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
