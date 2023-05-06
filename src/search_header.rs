@@ -7,9 +7,15 @@ use gtk::traits::WidgetExt;
 use glib::subclass::Signal;
 use glib::once_cell::sync::Lazy;
 
+//------------------------------------------------------------------------------
+// MODULE: SEARCHHEADER
+//------------------------------------------------------------------------------
 mod imp {
     use super::*;
 
+    //-----------------------------------
+    // Private structure
+    //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::SearchHeader)]
     #[template(resource = "/com/github/PacView/ui/search_header.ui")]
@@ -29,7 +35,9 @@ mod imp {
         search_active: Cell<bool>,
     }
 
-    // The central trait for subclassing a GObject
+    //-----------------------------------
+    // Subclass
+    //-----------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for SearchHeader {
         const NAME: &'static str = "SearchHeader";
@@ -47,6 +55,9 @@ mod imp {
     }
     
     impl ObjectImpl for SearchHeader {
+        //-----------------------------------
+        // Custom signal
+        //-----------------------------------
         fn signals() -> &'static [Signal] {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
                 vec![Signal::builder("search-changed")
@@ -56,6 +67,9 @@ mod imp {
             SIGNALS.as_ref()
         }
     
+        //-----------------------------------
+        // Default property functions
+        //-----------------------------------
         fn properties() -> &'static [glib::ParamSpec] {
             Self::derived_properties()
         }
@@ -68,12 +82,37 @@ mod imp {
             self.derived_property(id, pspec)
         }
 
+        //-----------------------------------
+        // Constructor
+        //-----------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
             let obj = self.obj();
 
-            obj.setup_self();
+            // Bind properties to widgets
+            obj.bind_property("title", &self.title_widget.get(), "title")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+            // Bind property change signal handlers
+            obj.connect_notify(Some("search-active"), |header, _| {
+                let imp = header.imp();
+
+                if header.search_active() {
+                    imp.stack.set_visible_child_name("search");
+    
+                    imp.search_entry.grab_focus();
+                } else {
+                    imp.search_entry.set_text("");
+    
+                    imp.stack.set_visible_child_name("title");
+    
+                    if let Some(view) = header.key_capture_widget() {
+                        view.grab_focus();
+                    }
+                }
+            });
         }
     }
 
@@ -82,28 +121,37 @@ mod imp {
 
     #[gtk::template_callbacks]
     impl SearchHeader {
+        //-----------------------------------
+        // Property getters/setters
+        //-----------------------------------
         fn set_key_capture_widget(&self, widget: gtk::Widget) {
             self.search_entry.set_key_capture_widget(Some(&widget));
 
             *self.key_capture_widget.borrow_mut() = Some(widget);
         }
 
+        //-----------------------------------
+        // Search signal handlers
+        //-----------------------------------
         #[template_callback]
         fn on_search_started(&self) {
             let obj = self.obj();
 
-            obj.search_started_handler();
+            obj.set_search_active(true);
         }
 
         #[template_callback]
         fn on_search_changed(&self) {
             let obj = self.obj();
 
-            obj.search_changed_handler();
+            obj.emit_by_name::<()>("search-changed", &[&self.search_entry.text()]);
         }
     }
 }
 
+//------------------------------------------------------------------------------
+// PUBLIC IMPLEMENTATION
+//------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchHeader(ObjectSubclass<imp::SearchHeader>)
         @extends gtk::Box, gtk::Widget,
@@ -114,47 +162,5 @@ impl SearchHeader {
     pub fn new() -> Self {
         glib::Object::builder()
             .build()
-    }
-
-    fn setup_self(&self) {
-        let imp = self.imp();
-
-        self.bind_property("title", &imp.title_widget.get(), "title")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        self.connect_notify(Some("search-active"), |header: &Self, _| {
-            let imp = header.imp();
-
-            if header.search_active() {
-                imp.stack.set_visible_child_name("search");
-
-                imp.search_entry.grab_focus();
-            } else {
-                imp.search_entry.set_text("");
-
-                imp.stack.set_visible_child_name("title");
-
-                if let Some(view) = header.key_capture_widget() {
-                    view.grab_focus();
-                }
-            }
-        });
-    }
-
-    fn search_started_handler(&self) {
-        self.set_search_active(true);
-    }
-
-    fn search_changed_handler(&self) {
-        let imp = self.imp();
-
-        self.emit_by_name::<()>("search-changed", &[&imp.search_entry.text()]);
-    }
-}
-
-impl Default for SearchHeader {
-    fn default() -> Self {
-        Self::new()
     }
 }
