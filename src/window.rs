@@ -11,7 +11,7 @@ use titlecase;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
-use crate::search_header::SearchHeader;
+use crate::search_header::{SearchFlags, SearchHeader};
 use crate::filter_row::FilterRow;
 
 mod imp {
@@ -138,10 +138,10 @@ mod imp {
         }
 
         #[template_callback]
-        fn on_search_changed(&self, term: &str) {
+        fn on_search_changed(&self, term: &str, flags: SearchFlags) {
             let obj = self.obj();
 
-            obj.search_changed_handler(term);
+            obj.search_changed_handler(term, flags);
         }
     }
 }
@@ -166,7 +166,6 @@ impl PacViewWindow {
         let win = self;
 
         let search_start_action = gio::SimpleAction::new("start-search", None);
-
         search_start_action.connect_activate(clone!(@weak win => move |_, _| {
             let imp = win.imp();
     
@@ -175,13 +174,32 @@ impl PacViewWindow {
         search_group.add_action(&search_start_action);
 
         let search_stop_action = gio::SimpleAction::new("stop-search", None);
-
         search_stop_action.connect_activate(clone!(@weak win => move |_, _| {
             let imp = win.imp();
     
             imp.search_header.set_search_active(false);
         }));
         search_group.add_action(&search_stop_action);
+
+        let param_map = [
+            ("name", SearchFlags::NAME),
+            ("group", SearchFlags::GROUP),
+        ];
+
+        for param in param_map {
+            let action_name = format!("toggle-{}", param.0);
+
+            let toggle_action = gio::SimpleAction::new(&action_name, None);
+            toggle_action.connect_activate(clone!(@weak win => move |_, _| {
+                let imp = win.imp();
+    
+                let mut flags = imp.search_header.get().search_flags();
+                flags.toggle(param.1);
+        
+                imp.search_header.get().set_search_flags(flags);
+            }));
+            search_group.add_action(&toggle_action);
+        }
     }
 
     fn setup_toolbar_buttons(&self) {
@@ -300,7 +318,7 @@ impl PacViewWindow {
         });
     }
 
-    fn search_changed_handler(&self, term: &str) {
+    fn search_changed_handler(&self, term: &str, flags: SearchFlags) {
         let imp = self.imp();
 
         let search_term = String::from(term);
@@ -310,11 +328,22 @@ impl PacViewWindow {
                 .downcast_ref::<PkgObject>()
                 .expect("Needs to be a PkgObject");
 
-            if let Some(name) = pkg.name() {
-                name.contains(&search_term)
-            } else {
-                false
+            let mut name_ok = false;
+            let mut group_ok = false;
+
+            if flags.contains(SearchFlags::NAME) {
+                if let Some(name) = pkg.name() {
+                    name_ok = name.contains(&search_term);
+                }
             }
+
+            if flags.contains(SearchFlags::GROUP) {
+                if let Some(group) = pkg.groups() {
+                    group_ok = group.contains(&search_term);
+                }
+            }
+
+            name_ok | group_ok
         });
     }
 }

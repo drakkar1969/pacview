@@ -25,14 +25,14 @@
                     <signal name="search-started" handler="on_search_started" swapped="true"/>
                     <!-- <signal name="stop-search" handler="on_search_stopped" swapped="no"/> -->
                     <signal name="search-changed" handler="on_search_changed" swapped="true"/>
-                    <!-- <child>
+                    <child>
                       <object class="GtkImage" id="filter_image">
                         <property name="margin-start">6</property>
                         <property name="icon-name">funnel-symbolic</property>
                         <child>
                           <object class="GtkGestureClick">
                             <property name="button">1</property>
-                            <signal name="pressed" handler="on_filter_image_clicked" swapped="no"/>
+                            <signal name="pressed" handler="on_filter_image_clicked" swapped="true"/>
                           </object>
                         </child>
                         <child>
@@ -41,8 +41,8 @@
                           </object>
                         </child>
                       </object>
-                    </child> -->
-                    <!-- <child>
+                    </child>
+                    <child>
                       <object class="GtkBox" id="searchtag_box">
                         <property name="valign">center</property>
                         <child>
@@ -50,55 +50,49 @@
                             <property name="text">name</property>
                           </object>
                         </child>
-                        <child>
+                        <!-- <child>
                           <object class="SearchTag" id="searchtag_desc">
-                            <property name="visible">False</property>
                             <property name="text">desc</property>
                           </object>
-                        </child>
+                        </child> -->
                         <child>
                           <object class="SearchTag" id="searchtag_group">
-                            <property name="visible">False</property>
                             <property name="text">group</property>
                           </object>
                         </child>
-                        <child>
+                        <!-- <child>
                           <object class="SearchTag" id="searchtag_deps">
-                            <property name="visible">False</property>
                             <property name="text">deps</property>
                           </object>
-                        </child>
-                        <child>
+                        </child> -->
+                        <!-- <child>
                           <object class="SearchTag" id="searchtag_optdeps">
-                            <property name="visible">False</property>
                             <property name="text">optdeps</property>
                           </object>
-                        </child>
-                        <child>
+                        </child> -->
+                        <!-- <child>
                           <object class="SearchTag" id="searchtag_provides">
-                            <property name="visible">False</property>
                             <property name="text">provides</property>
                           </object>
-                        </child>
-                        <child>
+                        </child> -->
+                        <!-- <child>
                           <object class="SearchTag" id="searchtag_files">
-                            <property name="visible">False</property>
                             <property name="text">files</property>
                           </object>
-                        </child>
-                        <child>
+                        </child> -->
+                        <!-- <child>
                           <object class="GtkSeparator" id="separator_exact">
                             <property name="margin-start">3</property>
                             <property name="margin-end">3</property>
                           </object>
-                        </child>
-                        <child>
+                        </child> -->
+                        <!-- <child>
                           <object class="SearchTag" id="searchtag_exact">
                             <property name="text">exact</property>
                           </object>
-                        </child>
+                        </child> -->
                       </object>
-                    </child> -->
+                    </child>
                   </object>
                 </child>
               </object>
@@ -115,48 +109,48 @@
       <attribute name="label">Search By</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">win.search-by-name</attribute>
+        <attribute name="action">search.toggle-name</attribute>
       </item>
-      <item>
+      <!-- <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">win.search-by-desc</attribute>
-      </item>
+        <attribute name="action">search.toggle-desc</attribute>
+      </item> -->
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">win.search-by-group</attribute>
+        <attribute name="action">search.toggle-group</attribute>
       </item>
-      <item>
+      <!-- <item>
         <attribute name="label">Dependencies</attribute>
         <attribute name="action">win.search-by-deps</attribute>
-      </item>
-      <item>
+      </item> -->
+      <!-- <item>
         <attribute name="label">Optional Dependencies</attribute>
         <attribute name="action">win.search-by-optdeps</attribute>
-      </item>
-      <item>
+      </item> -->
+      <!-- <item>
         <attribute name="label">Provides</attribute>
         <attribute name="action">win.search-by-provides</attribute>
-      </item>
-      <item>
+      </item> -->
+      <!-- <item>
         <attribute name="label">Files</attribute>
         <attribute name="action">win.search-by-files</attribute>
-      </item>
+      </item> -->
     </section>
     <section>
-      <item>
+      <!-- <item>
         <attribute name="label">Select All</attribute>
         <attribute name="action">win.selectall-searchby-params</attribute>
-      </item>
-      <item>
+      </item> -->
+      <!-- <item>
         <attribute name="label">Reset</attribute>
         <attribute name="action">win.reset-searchby-params</attribute>
-      </item>
+      </item> -->
     </section>
-    <section>
+    <!-- <section>
       <item>
         <attribute name="label">Exact Match</attribute>
         <attribute name="action">win.search-exact</attribute>
       </item>
-    </section>
+    </section> -->
   </menu>
 </interface>

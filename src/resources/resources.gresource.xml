@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
+    <file alias="funnel-symbolic.svg">icons/funnel-symbolic.svg</file>
     <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
     <file alias="status-all-symbolic.svg">icons/status-all-symbolic.svg</file>
     <file alias="status-explicit-symbolic.svg">icons/status-explicit-symbolic.svg</file>
@@ -25,6 +26,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/columnview/groups-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
   </gresource>
 </gresources>
