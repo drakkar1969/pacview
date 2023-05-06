@@ -334,27 +334,31 @@ impl PacViewWindow {
 
         let search_term = String::from(term);
 
-        imp.pkgview_search_filter.set_filter_func(move |item| {
-            let pkg: &PkgObject = item
-                .downcast_ref::<PkgObject>()
-                .expect("Needs to be a PkgObject");
+        if search_term == "" {
+            imp.pkgview_search_filter.unset_filter_func();
+        } else {
+            imp.pkgview_search_filter.set_filter_func(move |item| {
+                let pkg: &PkgObject = item
+                    .downcast_ref::<PkgObject>()
+                    .expect("Needs to be a PkgObject");
 
-            let mut name_ok = false;
-            let mut group_ok = false;
-
-            if flags.contains(SearchFlags::NAME) {
-                if let Some(name) = pkg.name() {
-                    name_ok = name.contains(&search_term);
+                let mut name_ok = false;
+                let mut group_ok = false;
+    
+                if flags.contains(SearchFlags::NAME) {
+                    if let Some(name) = pkg.name() {
+                        name_ok = name.contains(&search_term);
+                    }
                 }
-            }
 
-            if flags.contains(SearchFlags::GROUP) {
-                if let Some(group) = pkg.groups() {
-                    group_ok = group.contains(&search_term);
+                if flags.contains(SearchFlags::GROUP) {
+                    if let Some(group) = pkg.groups() {
+                        group_ok = group.contains(&search_term);
+                    }
                 }
-            }
-
-            name_ok | group_ok
-        });
+    
+                name_ok | group_ok
+            });
+        }
     }
 }
