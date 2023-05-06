@@ -165,7 +165,7 @@ impl PacViewWindow {
 
         let win = self;
 
-        let search_start_action = gio::SimpleAction::new("search-start", None);
+        let search_start_action = gio::SimpleAction::new("start-search", None);
 
         search_start_action.connect_activate(clone!(@weak win => move |_, _| {
             let imp = win.imp();
@@ -174,7 +174,7 @@ impl PacViewWindow {
         }));
         search_group.add_action(&search_start_action);
 
-        let search_stop_action = gio::SimpleAction::new("search-stop", None);
+        let search_stop_action = gio::SimpleAction::new("stop-search", None);
 
         search_stop_action.connect_activate(clone!(@weak win => move |_, _| {
             let imp = win.imp();
