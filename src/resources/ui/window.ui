@@ -37,7 +37,7 @@
               <object class="GtkToggleButton" id="infopane_buttin">
                 <property name="icon-name">sidebar-show-right-symbolic</property>
                 <property name="tooltip-text">Toggle info pane</property>
-                <!-- <property name="action-name">win.show-infopane</property> -->
+                <property name="action-name">win.show-infopane</property>
               </object>
             </child>
             <child type="end">
@@ -134,7 +134,7 @@
                 <property name="shrink-start-child">False</property>
                 <property name="shrink-end-child">False</property>
                 <property name="start-child">
-                  <object class="GtkOverlay">
+                  <object class="GtkOverlay" id="pkgview_overlay">
                     <property name="height-request">160</property>
                     <child>
                       <object class="GtkScrolledWindow">
@@ -340,7 +340,7 @@
                   </object>
                 </property>
                 <property name="end-child">
-                  <object class="GtkOverlay">
+                  <object class="GtkOverlay" id="infopane_overlay">
                     <property name="height-request">150</property>
                     <child>
                       <object class="GtkScrolledWindow">
@@ -441,7 +441,7 @@
       </item>
       <item>
         <attribute name="label">View Info Pane</attribute>
-        <!-- <attribute name="action">win.show-infopane</attribute> -->
+        <attribute name="action">win.show-infopane</attribute>
       </item>
     </section>
     <section>

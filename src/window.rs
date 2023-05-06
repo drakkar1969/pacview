@@ -48,6 +48,9 @@ mod imp {
         pub pkgview_model: TemplateChild<gio::ListStore>,
 
         #[template_child]
+        pub infopane_overlay: TemplateChild<gtk::Overlay>,
+
+        #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
@@ -207,6 +210,9 @@ impl PacViewWindow {
 
         let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.flap.get(), "reveal-flap");
         self.add_action(&show_sidebar_action);
+
+        let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.infopane_overlay.get(), "visible");
+        self.add_action(&show_infopane_action);
 
         imp.search_button.bind_property("active", &imp.search_header.get(), "search-active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
