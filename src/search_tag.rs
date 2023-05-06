@@ -84,7 +84,9 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_close_button_clicked(&self) {
-            // self.set_visible(false);
+            let obj =self.obj();
+
+            obj.set_visible(false);
         }
     }
 }
