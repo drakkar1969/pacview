@@ -6,9 +6,15 @@ use gtk::prelude::ObjectExt;
 
 use crate::pkgobject::PkgStatusFlags;
 
+//------------------------------------------------------------------------------
+// MODULE: FILTERROW
+//------------------------------------------------------------------------------
 mod imp {
     use super::*;
 
+    //-----------------------------------
+    // Private structure
+    //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::FilterRow)]
     #[template(resource = "/com/github/PacView/ui/filter_row.ui")]
@@ -41,6 +47,9 @@ mod imp {
         status_id: Cell<PkgStatusFlags>,
     }
 
+    //-----------------------------------
+    // Subclass
+    //-----------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for FilterRow {
         const NAME: &'static str = "FilterRow";
@@ -57,6 +66,9 @@ mod imp {
     }
     
     impl ObjectImpl for FilterRow {
+        //-----------------------------------
+        // Default property functions
+        //-----------------------------------
         fn properties() -> &'static [glib::ParamSpec] {
             Self::derived_properties()
         }
@@ -69,12 +81,39 @@ mod imp {
             self.derived_property(id, pspec)
         }
 
+        //-----------------------------------
+        // Constructor
+        //-----------------------------------
         fn constructed(&self) {
             self.parent_constructed();
     
             let obj = self.obj();
 
-            obj.setup_self();
+            // Bind properties to widgets
+            obj.bind_property("spinning", &self.stack.get(), "visible_child_name")
+                .transform_to(|_, spinning: bool| {
+                    Some(if spinning {"spinner"} else {"icon"})
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+            obj.bind_property("spinning", &self.spinner.get(), "spinning")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+            obj.bind_property("icon", &self.image.get(), "icon-name")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+            obj.bind_property("text", &self.text_label.get(), "label")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+            obj.bind_property("count", &self.count_label.get(), "label")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+            obj.bind_property("count", &self.count_box.get(), "visible")
+                .transform_to(|_, count: Option<&str>| {
+                    Some(if count != Some("") {true} else {false})
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
         }
     }
 
@@ -82,6 +121,9 @@ mod imp {
     impl ListBoxRowImpl for FilterRow {}
 }
 
+//------------------------------------------------------------------------------
+// PUBLIC IMPLEMENTATION
+//------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct FilterRow(ObjectSubclass<imp::FilterRow>)
         @extends gtk::ListBoxRow, gtk::Widget,
@@ -94,40 +136,5 @@ impl FilterRow {
             .property("icon", icon)
             .property("text", text)
             .build()
-    }
-
-    fn setup_self(&self) {
-        let imp = self.imp();
-
-        self.bind_property("spinning", &imp.stack.get(), "visible_child_name")
-            .transform_to(|_, spinning: bool| {
-                Some(if spinning {"spinner"} else {"icon"})
-            })
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-        self.bind_property("spinning", &imp.spinner.get(), "spinning")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        self.bind_property("icon", &imp.image.get(), "icon-name")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        self.bind_property("text", &imp.text_label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        self.bind_property("count", &imp.count_label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        self.bind_property("count", &imp.count_box.get(), "visible")
-                .transform_to(|_, count: Option<&str>| {
-                    Some(if count != Some("") {true} else {false})
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-    }
-}
-
-impl Default for FilterRow {
-    fn default() -> Self {
-        Self::new("", "")
     }
 }
