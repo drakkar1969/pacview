@@ -318,7 +318,7 @@ impl PacViewWindow {
     fn search_changed_handler(&self, term: &str) {
         let imp = self.imp();
 
-        let search_term = String::from(term);
+        let search_term = String::from(term.to_lowercase());
 
         if search_term == "" {
             imp.pkgview_search_filter.unset_filter_func();
@@ -331,22 +331,12 @@ impl PacViewWindow {
                     .downcast_ref::<PkgObject>()
                     .expect("Needs to be a PkgObject");
 
-                let mut name_ok = false;
-                let mut group_ok = false;
-    
-                if by_name {
-                    if let Some(name) = obj.name() {
-                        name_ok = name.contains(&search_term);
-                    }
-                }
+                let results = [
+                    by_name && obj.name().unwrap_or_default().to_lowercase().contains(&search_term),
+                    by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&search_term),
+                ];
 
-                if by_group {
-                    if let Some(group) = obj.groups() {
-                        group_ok = group.contains(&search_term);
-                    }
-                }
-    
-                name_ok | group_ok
+                results.into_iter().any(|x| x)
             });
         }
     }
