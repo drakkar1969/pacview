@@ -107,22 +107,25 @@ mod imp {
 
             let obj = self.obj();
 
-            // Bind properties to widgets
+            // Set search by name active
+            obj.set_search_by_name(true);
+
+            // Bind title property to title widget
             obj.bind_property("title", &self.title_widget.get(), "title")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-            obj.set_search_by_name(true);
 
             let tag_map = [
                 self.searchtag_name.get(),
                 self.searchtag_group.get(),
             ];
 
+            // Bind search by properties
             for tag in tag_map {
                 if let Some(text) = tag.text() {
                     let prop_name = format!("search-by-{}", text);
 
+                    // Bind search by properties signal handlers
                     obj.connect_notify(Some(&prop_name), move |header, _| {
                         let imp = header.imp();
         
@@ -131,13 +134,14 @@ mod imp {
                         header.emit_by_name::<()>("search-changed", &[&search_text]);
                     });
     
+                    // Bind search by properties to search tag visibility
                     obj.bind_property(&prop_name, &tag, "visible")
                     .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                    .build();    
+                    .build();
                 }
             }
 
-            // Bind property change signal handlers
+            // Bind search active property signal handler
             obj.connect_notify(Some("search-active"), |header, _| {
                 let imp = header.imp();
 
