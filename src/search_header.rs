@@ -137,14 +137,14 @@ mod imp {
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
-            let tag_map = [
+            // Bind search by properties
+            let tag_array = [
                 self.searchtag_name.get(),
                 self.searchtag_desc.get(),
                 self.searchtag_group.get(),
             ];
 
-            // Bind search by properties
-            for tag in tag_map {
+            for tag in tag_array {
                 if let Some(text) = tag.text() {
                     let prop_name = format!("search-by-{}", text);
 

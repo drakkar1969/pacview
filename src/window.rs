@@ -151,9 +151,9 @@ mod imp {
             search_group.add_action(&search_stop_action);
 
             // Create actions for search header search-by properties
-            let prop_map = ["name", "desc", "group"];
+            let prop_array = ["name", "desc", "group"];
 
-            for prop in prop_map {
+            for prop in prop_array {
                 let action_name = format!("search-by-{}", prop);
 
                 let action = gio::PropertyAction::new(&action_name, &self.search_header.get(), &action_name);
