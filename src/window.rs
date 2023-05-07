@@ -307,11 +307,11 @@ impl PacViewWindow {
         let imp = self.imp();
 
         imp.pkgview_status_filter.set_filter_func(move |item| {
-            let pkg: &PkgObject = item
+            let obj: &PkgObject = item
                 .downcast_ref::<PkgObject>()
                 .expect("Needs to be a PkgObject");
 
-            pkg.flags().intersects(status)
+            obj.flags().intersects(status)
         });
     }
 
@@ -327,7 +327,7 @@ impl PacViewWindow {
             let by_group = imp.search_header.search_by_group();
 
             imp.pkgview_search_filter.set_filter_func(move |item| {
-                let pkg: &PkgObject = item
+                let obj: &PkgObject = item
                     .downcast_ref::<PkgObject>()
                     .expect("Needs to be a PkgObject");
 
@@ -335,13 +335,13 @@ impl PacViewWindow {
                 let mut group_ok = false;
     
                 if by_name {
-                    if let Some(name) = pkg.name() {
+                    if let Some(name) = obj.name() {
                         name_ok = name.contains(&search_term);
                     }
                 }
 
                 if by_group {
-                    if let Some(group) = pkg.groups() {
+                    if let Some(group) = obj.groups() {
                         group_ok = group.contains(&search_term);
                     }
                 }
