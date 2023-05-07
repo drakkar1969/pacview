@@ -107,6 +107,11 @@ mod imp {
 
             let obj = self.obj();
 
+            // Position search tags
+            if let Some(widget) = self.search_entry.get().first_child() {
+                gtk::Widget::insert_after(&self.searchtag_box.get().upcast(), &self.search_entry.get(), Some(&widget));
+            }
+
             // Set search by name active
             obj.set_search_by_name(true);
 
