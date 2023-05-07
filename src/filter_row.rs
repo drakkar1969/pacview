@@ -110,7 +110,7 @@ mod imp {
                 .build();
             obj.bind_property("count", &self.count_box.get(), "visible")
                 .transform_to(|_, count: Option<&str>| {
-                    Some(if count != Some("") {true} else {false})
+                    Some(if count.is_some() && count != Some("") {true} else {false})
                 })
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
