@@ -132,9 +132,6 @@ mod imp {
                 gtk::Widget::insert_after(&self.searchtag_box.get().upcast(), &self.search_entry.get(), Some(&widget));
             }
 
-            // Set search by name active
-            obj.set_search_by_name(true);
-
             // Bind title property to title widget
             obj.bind_property("title", &self.title_widget.get(), "title")
                 .flags(glib::BindingFlags::SYNC_CREATE)
