@@ -159,6 +159,10 @@ mod imp {
                 let action = gio::PropertyAction::new(&action_name, &self.search_header.get(), &action_name);
                 search_group.add_action(&action);
             }
+
+            // Create action for search header search exact property
+            let action = gio::PropertyAction::new("search-exact", &self.search_header.get(), "search-exact");
+            search_group.add_action(&action);
         }
 
         //-----------------------------------
@@ -329,6 +333,7 @@ mod imp {
                 if let Some(app) = &obj.application() {
                     app.set_accels_for_action("search.search-by-name", &["<ctrl>1"]);
                     app.set_accels_for_action("search.search-by-group", &["<ctrl>3"]);
+                    app.set_accels_for_action("search.search-exact", &["<ctrl>e"]);
                 }
     
             } else {
@@ -337,6 +342,7 @@ mod imp {
                 if let Some(app) = &obj.application() {
                     app.set_accels_for_action("search.search-by-name", &[]);
                     app.set_accels_for_action("search.search-by-group", &[]);
+                    app.set_accels_for_action("search.search-exact", &[]);
                 }
             }
         }
@@ -350,19 +356,36 @@ mod imp {
             } else {
                 let by_name = self.search_header.search_by_name();
                 let by_group = self.search_header.search_by_group();
+
+                let exact = self.search_header.search_exact();
     
-                self.pkgview_search_filter.set_filter_func(move |item| {
-                    let obj: &PkgObject = item
-                        .downcast_ref::<PkgObject>()
-                        .expect("Needs to be a PkgObject");
-    
-                    let results = [
-                        by_name && obj.name().unwrap_or_default().to_lowercase().contains(&search_term),
-                        by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&search_term),
-                    ];
-    
-                    results.into_iter().any(|x| x)
-                });
+                if exact {
+                    self.pkgview_search_filter.set_filter_func(move |item| {
+                        let obj: &PkgObject = item
+                            .downcast_ref::<PkgObject>()
+                            .expect("Needs to be a PkgObject");
+        
+                        let results = [
+                            by_name && obj.name().unwrap_or_default().to_lowercase().eq(&search_term),
+                            by_group && obj.groups().unwrap_or_default().to_lowercase().eq(&search_term),
+                        ];
+        
+                        results.into_iter().any(|x| x)
+                    });    
+                } else {
+                    self.pkgview_search_filter.set_filter_func(move |item| {
+                        let obj: &PkgObject = item
+                            .downcast_ref::<PkgObject>()
+                            .expect("Needs to be a PkgObject");
+        
+                        let results = [
+                            by_name && obj.name().unwrap_or_default().to_lowercase().contains(&search_term),
+                            by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&search_term),
+                        ];
+        
+                        results.into_iter().any(|x| x)
+                    });
+                }
             }
         }
     }

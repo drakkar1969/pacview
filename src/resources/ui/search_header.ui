@@ -80,17 +80,17 @@
                             <property name="text">files</property>
                           </object>
                         </child> -->
-                        <!-- <child>
+                        <child>
                           <object class="GtkSeparator" id="separator_exact">
                             <property name="margin-start">3</property>
                             <property name="margin-end">3</property>
                           </object>
-                        </child> -->
-                        <!-- <child>
+                        </child>
+                        <child>
                           <object class="SearchTag" id="searchtag_exact">
                             <property name="text">exact</property>
                           </object>
-                        </child> -->
+                        </child>
                       </object>
                     </child>
                   </object>
@@ -146,11 +146,11 @@
         <attribute name="action">win.reset-searchby-params</attribute>
       </item> -->
     </section>
-    <!-- <section>
+    <section>
       <item>
         <attribute name="label">Exact Match</attribute>
-        <attribute name="action">win.search-exact</attribute>
+        <attribute name="action">search.search-exact</attribute>
       </item>
-    </section> -->
+    </section>
   </menu>
 </interface>

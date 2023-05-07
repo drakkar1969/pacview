@@ -35,6 +35,10 @@ mod imp {
         #[template_child]
         pub searchtag_group: TemplateChild<SearchTag>,
         #[template_child]
+        pub separator_exact: TemplateChild<gtk::Separator>,
+        #[template_child]
+        pub searchtag_exact: TemplateChild<SearchTag>,
+        #[template_child]
         pub filter_popover: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set)]
@@ -48,6 +52,8 @@ mod imp {
         search_by_name: Cell<bool>,
         #[property(get, set)]
         search_by_group: Cell<bool>,
+        #[property(get, set)]
+        search_exact: Cell<bool>,
     }
 
     //-----------------------------------
@@ -150,6 +156,24 @@ mod imp {
                         .build();
                 }
             }
+
+            // Connect notify signal handler for search exact property
+            obj.connect_notify(Some("search-exact"), move |header, _| {
+                let imp = header.imp();
+
+                let search_text = imp.search_entry.text().to_string();
+
+                header.emit_by_name::<()>("search-changed", &[&search_text]);
+            });
+
+            // Bind search exact property to search tag visibility
+            obj.bind_property("search-exact", &self.separator_exact.get(), "visible")
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
+
+            obj.bind_property("search-exact", &self.searchtag_exact.get(), "visible")
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
 
             // Connect notify signal handler for search active property
             obj.connect_notify(Some("search-active"), |header, _| {
