@@ -375,14 +375,20 @@ mod imp {
                         let obj: &PkgObject = item
                             .downcast_ref::<PkgObject>()
                             .expect("Needs to be a PkgObject");
-        
-                        let results = [
-                            by_name && obj.name().unwrap_or_default().to_lowercase().contains(&search_term),
-                            by_desc && obj.description().unwrap_or_default().to_lowercase().contains(&search_term),
-                            by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&search_term),
-                        ];
-        
-                        results.into_iter().any(|x| x)
+
+                        let mut results = Vec::new();
+    
+                        for term in search_term.split_whitespace() {
+                            let term_results = [
+                                by_name && obj.name().unwrap_or_default().to_lowercase().contains(&term),
+                                by_desc && obj.description().unwrap_or_default().to_lowercase().contains(&term),
+                                by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&term),
+                            ];
+            
+                            results.push(term_results.into_iter().any(|x| x));
+                        }
+
+                        results.into_iter().all(|x| x)
                     });
                 }
             }
