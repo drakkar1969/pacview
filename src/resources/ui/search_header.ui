@@ -109,7 +109,7 @@
       <attribute name="label">Search By</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">search.toggle-name</attribute>
+        <attribute name="action">search.search-by-name</attribute>
       </item>
       <!-- <item>
         <attribute name="label">Description</attribute>
@@ -117,7 +117,7 @@
       </item> -->
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">search.toggle-group</attribute>
+        <attribute name="action">search.search-by-group</attribute>
       </item>
       <!-- <item>
         <attribute name="label">Dependencies</attribute>

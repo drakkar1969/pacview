@@ -10,23 +10,6 @@ use glib::once_cell::sync::Lazy;
 use crate::search_tag::SearchTag;
 
 //------------------------------------------------------------------------------
-// FLAGS: SEARCHFLAGS
-//------------------------------------------------------------------------------
-#[glib::flags(name = "SearchFlags")]
-pub enum SearchFlags {
-    #[flags_value(name = "Name")]
-    NAME = 0b00000001,
-    #[flags_value(name = "Group")]
-    GROUP = 0b00000010,
-}
-
-impl Default for SearchFlags {
-    fn default() -> Self {
-        SearchFlags::NAME
-    }
-}
-
-//------------------------------------------------------------------------------
 // MODULE: SEARCHHEADER
 //------------------------------------------------------------------------------
 mod imp {
@@ -60,8 +43,11 @@ mod imp {
         key_capture_widget: RefCell<Option<gtk::Widget>>,
         #[property(get, set)]
         search_active: Cell<bool>,
+
         #[property(get, set)]
-        search_flags: Cell<SearchFlags>,
+        search_by_name: Cell<bool>,
+        #[property(get, set)]
+        search_by_group: Cell<bool>,
     }
 
     //-----------------------------------
@@ -92,7 +78,7 @@ mod imp {
         fn signals() -> &'static [Signal] {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
                 vec![Signal::builder("search-changed")
-                    .param_types([String::static_type(), SearchFlags::static_type()])
+                    .param_types([String::static_type()])
                     .build()]
             });
             SIGNALS.as_ref()
@@ -126,18 +112,29 @@ mod imp {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-            let prop_map = [
-                (self.searchtag_name.get(), SearchFlags::NAME),
-                (self.searchtag_group.get(), SearchFlags::GROUP),
+            obj.set_search_by_name(true);
+
+            let tag_map = [
+                self.searchtag_name.get(),
+                self.searchtag_group.get(),
             ];
 
-            for prop in prop_map {
-                obj.bind_property("search-flags", &prop.0, "visible")
-                .transform_to(move |_, flags: SearchFlags| {
-                    Some(flags.contains(prop.1))
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            for tag in tag_map {
+                if let Some(text) = tag.text() {
+                    let prop_name = format!("search-by-{}", text);
+
+                    obj.connect_notify(Some(&prop_name), move |header, _| {
+                        let imp = header.imp();
+        
+                        let search_text = imp.search_entry.text().to_string();
+        
+                        header.emit_by_name::<()>("search-changed", &[&search_text]);
+                    });
+    
+                    obj.bind_property(&prop_name, &tag, "visible")
+                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                    .build();    
+                }
             }
 
             // Bind property change signal handlers
@@ -157,14 +154,6 @@ mod imp {
                         view.grab_focus();
                     }
                 }
-            });
-
-            obj.connect_notify(Some("search-flags"), move |header, _| {
-                let imp = header.imp();
-
-                let search_text = imp.search_entry.text().to_string();
-
-                header.emit_by_name::<()>("search-changed", &[&search_text, &header.search_flags()]);
             });
         }
     }
@@ -197,7 +186,7 @@ mod imp {
         fn on_search_changed(&self) {
             let obj = self.obj();
 
-            obj.emit_by_name::<()>("search-changed", &[&self.search_entry.text().to_string(), &obj.search_flags()]);
+            obj.emit_by_name::<()>("search-changed", &[&self.search_entry.text().to_string()]);
         }
 
         //-----------------------------------
