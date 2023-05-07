@@ -117,8 +117,8 @@ mod imp {
 
             // Bind title property to title widget
             obj.bind_property("title", &self.title_widget.get(), "title")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
 
             let tag_map = [
                 self.searchtag_name.get(),
@@ -141,8 +141,8 @@ mod imp {
     
                     // Bind search by properties to search tag visibility
                     obj.bind_property(&prop_name, &tag, "visible")
-                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                    .build();
+                        .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                        .build();
                 }
             }
 
