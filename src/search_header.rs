@@ -89,7 +89,7 @@ mod imp {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
                 vec![
                     Signal::builder("search-changed")
-                    .param_types([String::static_type()])
+                    .param_types([String::static_type(), bool::static_type(), bool::static_type(), bool::static_type(), bool::static_type()])
                     .build(),
                     Signal::builder("search-activated")
                     .param_types([bool::static_type()])
@@ -152,7 +152,7 @@ mod imp {
         
                         let search_text = imp.search_entry.text().to_string();
         
-                        header.emit_by_name::<()>("search-changed", &[&search_text]);
+                        header.emit_by_name::<()>("search-changed", &[&search_text, &header.search_by_name(), &header.search_by_desc(), &header.search_by_group(), &header.search_exact()]);
                     });
     
                     // Bind search by properties to search tag visibility
@@ -168,7 +168,7 @@ mod imp {
 
                 let search_text = imp.search_entry.text().to_string();
 
-                header.emit_by_name::<()>("search-changed", &[&search_text]);
+                header.emit_by_name::<()>("search-changed", &[&search_text, &header.search_by_name(), &header.search_by_desc(), &header.search_by_group(), &header.search_exact()]);
             });
 
             // Bind search exact property to search tag visibility
@@ -227,7 +227,7 @@ mod imp {
         fn on_search_changed(&self) {
             let obj = self.obj();
 
-            obj.emit_by_name::<()>("search-changed", &[&self.search_entry.text().to_string()]);
+            obj.emit_by_name::<()>("search-changed", &[&self.search_entry.text().to_string(), &obj.search_by_name(), &obj.search_by_desc(), &obj.search_by_group(), &obj.search_exact()]);
         }
 
         //-----------------------------------

@@ -350,18 +350,12 @@ mod imp {
         }
 
         #[template_callback]
-        fn on_search_changed(&self, term: &str) {
+        fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, exact: bool) {
             let search_term = String::from(term.to_lowercase());
     
             if search_term == "" {
                 self.pkgview_search_filter.unset_filter_func();
             } else {
-                let by_name = self.search_header.search_by_name();
-                let by_desc = self.search_header.search_by_desc();
-                let by_group = self.search_header.search_by_group();
-
-                let exact = self.search_header.search_exact();
-    
                 if exact {
                     self.pkgview_search_filter.set_filter_func(move |item| {
                         let obj: &PkgObject = item
