@@ -141,6 +141,13 @@ mod imp {
         }
 
         #[template_callback]
+        fn on_search_activated(&self, active: bool) {
+            let obj = self.obj();
+
+            obj.search_activated_handler(active);
+        }
+
+        #[template_callback]
         fn on_search_changed(&self, term: &str) {
             let obj = self.obj();
 
@@ -313,6 +320,25 @@ impl PacViewWindow {
 
             obj.flags().intersects(status)
         });
+    }
+
+    fn search_activated_handler(&self, active: bool) {
+        if active {
+            if let Some(app) = &self.application() {
+                app.set_accels_for_action("search.search-by-name", &["<ctrl>1"]);
+                app.set_accels_for_action("search.search-by-group", &["<ctrl>3"]);
+            }
+
+        } else {
+            let imp = self.imp();
+
+            imp.pkgview.grab_focus();
+
+            if let Some(app) = &self.application() {
+                app.set_accels_for_action("search.search-by-name", &[]);
+                app.set_accels_for_action("search.search-by-group", &[]);
+            }
+        }
     }
 
     fn search_changed_handler(&self, term: &str) {

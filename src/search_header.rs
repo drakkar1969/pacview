@@ -73,13 +73,18 @@ mod imp {
     
     impl ObjectImpl for SearchHeader {
         //-----------------------------------
-        // Custom signal
+        // Custom signals
         //-----------------------------------
         fn signals() -> &'static [Signal] {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
-                vec![Signal::builder("search-changed")
+                vec![
+                    Signal::builder("search-changed")
                     .param_types([String::static_type()])
-                    .build()]
+                    .build(),
+                    Signal::builder("search-activated")
+                    .param_types([bool::static_type()])
+                    .build(),
+                ]
             });
             SIGNALS.as_ref()
         }
@@ -130,7 +135,7 @@ mod imp {
                 if let Some(text) = tag.text() {
                     let prop_name = format!("search-by-{}", text);
 
-                    // Bind search by properties signal handlers
+                    // Connect notify signals handlers for search by properties
                     obj.connect_notify(Some(&prop_name), move |header, _| {
                         let imp = header.imp();
         
@@ -146,7 +151,7 @@ mod imp {
                 }
             }
 
-            // Bind search active property signal handler
+            // Connect notify signal handler for search active property
             obj.connect_notify(Some("search-active"), |header, _| {
                 let imp = header.imp();
 
@@ -158,11 +163,9 @@ mod imp {
                     imp.search_entry.set_text("");
     
                     imp.stack.set_visible_child_name("title");
-    
-                    if let Some(view) = header.key_capture_widget() {
-                        view.grab_focus();
-                    }
                 }
+
+                header.emit_by_name::<()>("search-activated", &[&header.search_active()]);
             });
         }
     }
@@ -182,7 +185,7 @@ mod imp {
         }
 
         //-----------------------------------
-        // Search signal handlers
+        // Search entry signal handlers
         //-----------------------------------
         #[template_callback]
         fn on_search_started(&self) {
@@ -199,7 +202,7 @@ mod imp {
         }
 
         //-----------------------------------
-        // Filter signal handlers
+        // Filter image signal handler
         //-----------------------------------
         #[template_callback]
         fn on_filter_image_clicked(&self) {

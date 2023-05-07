@@ -15,6 +15,7 @@
               <object class="SearchHeader" id="search_header">
                 <property name="title">PacView</property>
                 <property name="key-capture-widget">pkgview</property>
+                <signal name="search-activated" handler="on_search_activated" swapped="true"/>
                 <signal name="search-changed" handler="on_search_changed" swapped="true"/>
               </object>
             </property>
