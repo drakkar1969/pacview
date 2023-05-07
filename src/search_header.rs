@@ -33,6 +33,8 @@ mod imp {
         #[template_child]
         pub searchtag_name: TemplateChild<SearchTag>,
         #[template_child]
+        pub searchtag_desc: TemplateChild<SearchTag>,
+        #[template_child]
         pub searchtag_group: TemplateChild<SearchTag>,
         #[template_child]
         pub separator_exact: TemplateChild<gtk::Separator>,
@@ -50,6 +52,8 @@ mod imp {
 
         #[property(get, set)]
         search_by_name: Cell<bool>,
+        #[property(get, set)]
+        search_by_desc: Cell<bool>,
         #[property(get, set)]
         search_by_group: Cell<bool>,
         #[property(get, set)]
@@ -133,6 +137,7 @@ mod imp {
 
             let tag_map = [
                 self.searchtag_name.get(),
+                self.searchtag_desc.get(),
                 self.searchtag_group.get(),
             ];
 

@@ -61,6 +61,9 @@ mod imp {
         pub install_size_string: RefCell<Option<String>>,
         #[property(get, set)]
         pub groups: RefCell<Option<String>>,
+
+        #[property(get, set)]
+        pub description: RefCell<Option<String>>,
     }
     
     #[glib::object_subclass]
@@ -151,6 +154,7 @@ impl PkgObject {
             .property("install-size", syncpkg.isize())
             .property("install-size-string", bytesize::to_string(syncpkg.isize() as u64, true))
             .property("groups", groups.join(", "))
+            .property("description", syncpkg.desc())
             .build()
     }
 }

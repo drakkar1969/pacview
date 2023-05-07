@@ -151,7 +151,7 @@ mod imp {
             search_group.add_action(&search_stop_action);
 
             // Create actions for search header search-by properties
-            let prop_map = ["name", "group"];
+            let prop_map = ["name", "desc", "group"];
 
             for prop in prop_map {
                 let action_name = format!("search-by-{}", prop);
@@ -332,6 +332,7 @@ mod imp {
             if active {
                 if let Some(app) = &obj.application() {
                     app.set_accels_for_action("search.search-by-name", &["<ctrl>1"]);
+                    app.set_accels_for_action("search.search-by-desc", &["<ctrl>2"]);
                     app.set_accels_for_action("search.search-by-group", &["<ctrl>3"]);
                     app.set_accels_for_action("search.search-exact", &["<ctrl>e"]);
                 }
@@ -341,6 +342,7 @@ mod imp {
     
                 if let Some(app) = &obj.application() {
                     app.set_accels_for_action("search.search-by-name", &[]);
+                    app.set_accels_for_action("search.search-by-desc", &[]);
                     app.set_accels_for_action("search.search-by-group", &[]);
                     app.set_accels_for_action("search.search-exact", &[]);
                 }
@@ -355,6 +357,7 @@ mod imp {
                 self.pkgview_search_filter.unset_filter_func();
             } else {
                 let by_name = self.search_header.search_by_name();
+                let by_desc = self.search_header.search_by_desc();
                 let by_group = self.search_header.search_by_group();
 
                 let exact = self.search_header.search_exact();
@@ -367,6 +370,7 @@ mod imp {
         
                         let results = [
                             by_name && obj.name().unwrap_or_default().to_lowercase().eq(&search_term),
+                            by_desc && obj.description().unwrap_or_default().to_lowercase().eq(&search_term),
                             by_group && obj.groups().unwrap_or_default().to_lowercase().eq(&search_term),
                         ];
         
@@ -380,6 +384,7 @@ mod imp {
         
                         let results = [
                             by_name && obj.name().unwrap_or_default().to_lowercase().contains(&search_term),
+                            by_desc && obj.description().unwrap_or_default().to_lowercase().contains(&search_term),
                             by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&search_term),
                         ];
         

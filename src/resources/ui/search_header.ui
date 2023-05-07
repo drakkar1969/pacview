@@ -50,11 +50,11 @@
                             <property name="text">name</property>
                           </object>
                         </child>
-                        <!-- <child>
+                        <child>
                           <object class="SearchTag" id="searchtag_desc">
                             <property name="text">desc</property>
                           </object>
-                        </child> -->
+                        </child>
                         <child>
                           <object class="SearchTag" id="searchtag_group">
                             <property name="text">group</property>
@@ -111,10 +111,10 @@
         <attribute name="label">Name</attribute>
         <attribute name="action">search.search-by-name</attribute>
       </item>
-      <!-- <item>
+      <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">search.toggle-desc</attribute>
-      </item> -->
+        <attribute name="action">search.search-by-desc</attribute>
+      </item>
       <item>
         <attribute name="label">Group</attribute>
         <attribute name="action">search.search-by-group</attribute>
