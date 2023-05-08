@@ -63,15 +63,16 @@ mod imp {
         #[property(get, set)]
         pub install_date: Cell<i64>,
         #[property(get, set)]
-        pub install_date_short: RefCell<String>,
-        #[property(get, set)]
-        pub install_date_long: RefCell<String>,
-        #[property(get, set)]
         pub install_size: Cell<i64>,
         #[property(get, set)]
-        pub install_size_string: RefCell<String>,
-        #[property(get, set)]
         pub groups: RefCell<String>,
+
+        #[property(get = Self::install_date_short)]
+        pub install_date_short: RefCell<String>,
+        #[property(get = Self::install_date_long)]
+        pub install_date_long: RefCell<String>,
+        #[property(get = Self::install_size_string)]
+        pub install_size_string: RefCell<String>,
 
         #[property(get, set)]
         pub description: RefCell<Option<String>>,
@@ -108,6 +109,43 @@ mod imp {
             self.derived_property(id, pspec)
         }
     }
+
+    impl PkgObject {
+        //-----------------------------------
+        // Read-only property getters
+        //-----------------------------------
+        fn install_date_short(&self) -> String {
+            let obj = self.obj();
+
+            if obj.install_date() == 0 {
+                String::from("")
+            }
+            else {
+                let datetime = glib::DateTime::from_unix_local(obj.install_date()).expect("error");
+
+                datetime.format("%Y/%m/%d %H:%M").expect("error").to_string()
+            }
+        }
+
+        fn install_date_long(&self) -> String {
+            let obj = self.obj();
+
+            if obj.install_date() == 0 {
+                String::from("")
+            }
+            else {
+                let datetime = glib::DateTime::from_unix_local(obj.install_date()).expect("error");
+
+                datetime.format("%d %B %Y %H:%M").expect("error").to_string()
+            }
+        }
+
+        fn install_size_string(&self) -> String {
+            let obj = self.obj();
+
+            bytesize::to_string(obj.install_size() as u64, true)
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -122,8 +160,6 @@ impl PkgObject {
         // Default values for package status flags and install date (non-installed)
         let mut flags = PkgStatusFlags::NONE;
         let mut install_date = 0;
-        let mut install_date_short = String::from("");
-        let mut install_date_long = String::from("");
 
         // If package is installed locally
         if let Some(pkg) = localpkg {
@@ -144,13 +180,6 @@ impl PkgObject {
 
             // Get package installed date
             install_date = pkg.install_date().unwrap_or(0);
-
-            if install_date != 0 {
-                let datetime = glib::DateTime::from_unix_local(install_date).expect("error");
-    
-                install_date_short = datetime.format("%Y/%m/%d %H:%M").expect("error").to_string();
-                install_date_long = datetime.format("%d %B %Y %H:%M").expect("error").to_string();
-            }
         }
 
         // Get package status and status icon
@@ -185,16 +214,13 @@ impl PkgObject {
             .property("status", status)
             .property("status-icon", status_icon)
             .property("install-date", install_date)
-            .property("install-date-short", install_date_short)
             .property("install-size", syncpkg.isize())
-            .property("install-size-string", bytesize::to_string(syncpkg.isize() as u64, true))
             .property("groups", groups)
 
             .property("description", syncpkg.desc())
             .property("depends", PkgObject::deplist_to_vec(&syncpkg.depends()))
             .property("optdepends", PkgObject::deplist_to_vec(&syncpkg.optdepends()))
             .property("provides", PkgObject::deplist_to_vec(&syncpkg.provides()))
-            .property("install-date-long", install_date_long)
 
             .build()
     }
