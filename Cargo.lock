@@ -576,9 +576,9 @@ dependencies = [
  "fancy-regex",
  "glib-build-tools",
  "gtk4",
+ "lazy_static",
  "libadwaita",
  "pacmanconf",
- "regex",
  "titlecase",
 ]
 

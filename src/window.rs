@@ -8,7 +8,8 @@ use glib::clone;
 use pacmanconf;
 use alpm;
 use titlecase;
-use fancy_regex;
+use fancy_regex::Regex;
+use lazy_static::lazy_static;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
@@ -526,10 +527,13 @@ mod imp {
             if prop_vec.is_empty() {
                 String::from("None")
             } else {
-                let expr = fancy_regex::Regex::new("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)").unwrap();
+                lazy_static! {
+                    static ref EXPR: Regex = Regex::new("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)").unwrap();
+                }
+
                 let prop_str = self.propvec_to_wrapstring(prop_vec);
 
-                expr.replace_all(&prop_str, "$1<a href='pkg://$2'>$2</a>").to_string()
+                EXPR.replace_all(&prop_str, "$1<a href='pkg://$2'>$2</a>").to_string()
             }
         }
 

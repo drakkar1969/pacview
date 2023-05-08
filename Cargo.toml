@@ -11,8 +11,8 @@ alpm = "2.2.1"
 bytesize = "1.2.0"
 fancy-regex = "0.11.0"
 gtk = { version = "0.6.6", package = "gtk4", features = ["v4_10"] }
+lazy_static = "1.4.0"
 pacmanconf = "2.0.0"
-regex = "1.8.1"
 titlecase = "2.2.1"
 
 [build-dependencies]
