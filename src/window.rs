@@ -385,7 +385,7 @@ mod imp {
         
                         let results = [
                             by_name && obj.name().to_lowercase().eq(&search_term),
-                            by_desc && obj.description().unwrap_or_default().to_lowercase().eq(&search_term),
+                            by_desc && obj.description().to_lowercase().eq(&search_term),
                             by_group && obj.groups().to_lowercase().eq(&search_term),
                             by_deps && obj.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
@@ -405,7 +405,7 @@ mod imp {
                         for term in search_term.split_whitespace() {
                             let term_results = [
                                 by_name && obj.name().to_lowercase().contains(&term),
-                                by_desc && obj.description().unwrap_or_default().to_lowercase().contains(&term),
+                                by_desc && obj.description().to_lowercase().contains(&term),
                                 by_group && obj.groups().to_lowercase().contains(&term),
                                 by_deps && obj.depends().iter().any(|s| s.to_lowercase().contains(&term)),
                                 by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().contains(&term)),
@@ -444,8 +444,12 @@ mod imp {
                 let name = format!("<b>{}</b>", obj.name());
                 self.infopane_model.append(&PkgProperty::new("Name", &name, None));
                 self.infopane_model.append(&PkgProperty::new("Version", &obj.version(), None));
-                if let Some(desc) = obj.description() {
-                    self.infopane_model.append(&PkgProperty::new("Description", &self.prop_to_esc_string(&desc), None));
+                self.infopane_model.append(&PkgProperty::new("Description", &self.prop_to_esc_string(&obj.description()), None));
+                if obj.url() != "" {
+                    self.infopane_model.append(&PkgProperty::new("URL", &self.prop_to_esc_url(&obj.url()), None));
+                }
+                if obj.licenses() != "" {
+                    self.infopane_model.append(&PkgProperty::new("Licenses", &self.prop_to_esc_string(&obj.licenses()), None));
                 }
                 let status = &obj.status();
                 self.infopane_model.append(&PkgProperty::new("Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())));
@@ -462,6 +466,10 @@ mod imp {
 
         fn prop_to_esc_string(&self, prop: &str) -> String {
             glib::markup_escape_text(prop).to_string()
+        }
+
+        fn prop_to_esc_url(&self, prop: &str) -> String {
+            format!("<a href=\"{0}\">{0}</a>", glib::markup_escape_text(prop).to_string())
         }
 
         //-----------------------------------

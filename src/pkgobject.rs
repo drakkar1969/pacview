@@ -75,7 +75,11 @@ mod imp {
         pub install_size_string: RefCell<String>,
 
         #[property(get, set)]
-        pub description: RefCell<Option<String>>,
+        pub description: RefCell<String>,
+        #[property(get, set)]
+        pub url: RefCell<String>,
+        #[property(get, set)]
+        pub licenses: RefCell<String>,
         #[property(get, set)]
         pub depends: RefCell<Vec<String>>,
         #[property(get, set)]
@@ -205,6 +209,12 @@ impl PkgObject {
 
         let groups = group_list.join(", ");
 
+        // Get package licenses
+        let mut license_list: Vec<&str> = syncpkg.licenses().iter().collect();
+        license_list.sort_unstable();
+
+        let licenses = license_list.join(", ");
+
         // Build PkgObject
         glib::Object::builder()
             .property("name", syncpkg.name())
@@ -217,7 +227,9 @@ impl PkgObject {
             .property("install-size", syncpkg.isize())
             .property("groups", groups)
 
-            .property("description", syncpkg.desc())
+            .property("description", syncpkg.desc().unwrap_or_default())
+            .property("url", syncpkg.url().unwrap_or_default())
+            .property("licenses", licenses)
             .property("depends", PkgObject::deplist_to_vec(&syncpkg.depends()))
             .property("optdepends", PkgObject::deplist_to_vec(&syncpkg.optdepends()))
             .property("provides", PkgObject::deplist_to_vec(&syncpkg.provides()))
