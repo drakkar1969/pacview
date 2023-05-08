@@ -8,6 +8,7 @@ use glib::clone;
 use pacmanconf;
 use alpm;
 use titlecase;
+use fancy_regex;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
@@ -441,28 +442,45 @@ mod imp {
             self.infopane_model.remove_all();
             
             if let Some(obj) = pkg_object {
+                // Name
                 let name = format!("<b>{}</b>", obj.name());
                 self.infopane_model.append(&PkgProperty::new("Name", &name, None));
+                // Version
                 self.infopane_model.append(&PkgProperty::new("Version", &obj.version(), None));
+                // Description
                 self.infopane_model.append(&PkgProperty::new("Description", &self.prop_to_esc_string(&obj.description()), None));
+                // URL
                 if obj.url() != "" {
                     self.infopane_model.append(&PkgProperty::new("URL", &self.prop_to_esc_url(&obj.url()), None));
                 }
+                // Licenses
                 if obj.licenses() != "" {
                     self.infopane_model.append(&PkgProperty::new("Licenses", &self.prop_to_esc_string(&obj.licenses()), None));
                 }
+                // Status
                 let status = &obj.status();
                 self.infopane_model.append(&PkgProperty::new("Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())));
+                // Repository
                 self.infopane_model.append(&PkgProperty::new("Repository", &obj.repository(), None));
+                // Groups
                 if obj.groups() != "" {
                     self.infopane_model.append(&PkgProperty::new("Groups", &obj.groups(), None));
                 }
+                // Provides
                 if !obj.provides().is_empty() {
                     self.infopane_model.append(&PkgProperty::new("Provides", &self.propvec_to_wrapstring(&obj.provides()), None));
                 }
+                // Depends
+                self.infopane_model.append(&PkgProperty::new("Dependencies", &self.propvec_to_linkstring(&obj.depends()), None));
+                // Optdepends
+                if ! obj.optdepends().is_empty() {
+                    self.infopane_model.append(&PkgProperty::new("Optional", &self.propvec_to_linkstring(&obj.optdepends()), None));
+                }
+                // Install date
                 if obj.install_date() != 0 {
                     self.infopane_model.append(&PkgProperty::new("Install Date", &obj.install_date_long(), None));
                 }
+                // Installed size
                 self.infopane_model.append(&PkgProperty::new("Installed Size", &obj.install_size_string(), None));
             }
         }
@@ -476,7 +494,18 @@ mod imp {
         }
 
         fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
-            glib::markup_escape_text(&prop_vec.join("    ")).to_string()
+            glib::markup_escape_text(&prop_vec.join("   ")).to_string()
+        }
+
+        fn propvec_to_linkstring(&self, prop_vec: &Vec<String>) -> String {
+            if prop_vec.is_empty() {
+                String::from("None")
+            } else {
+                let match_expr = fancy_regex::Regex::new("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)").unwrap();
+                let prop_str = self.propvec_to_wrapstring(prop_vec);
+
+                match_expr.replace_all(&prop_str, "$1<a href='pkg://$2'>$2</a>").to_string()
+            }
         }
 
         //-----------------------------------
