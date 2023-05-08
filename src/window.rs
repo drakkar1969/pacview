@@ -522,14 +522,45 @@ mod imp {
                 .expect("The child has to be a `Box`.");
 
             if let Some(image) = itembox.first_child().and_downcast::<gtk::Image>() {
-                let icon = prop.icon().unwrap_or_default();
-                
-                image.set_visible(&icon != "");
-                image.set_icon_name(Some(&icon));
+                prop.set_icon_visible_binding(prop.bind_property("icon", &image, "visible")
+                    .transform_to(|_, icon: Option<&str>| {
+                        let icon = icon.unwrap_or_default();
+                        Some(icon != "")
+                    })
+                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                    .build());
+
+                prop.set_icon_binding(prop.bind_property("icon", &image, "icon-name")
+                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                    .build());
             }
     
             if let Some(label) = itembox.last_child().and_downcast::<gtk::Label>() {
-                label.set_label(&prop.value());
+                prop.set_value_binding(prop.bind_property("value", &label, "label")
+                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                    .build());
+            }
+        }
+
+        #[template_callback]
+        fn on_infopane_unbind_value(&self, item: glib::Object) {
+            let prop = item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Needs to be ListItem")
+                .item()
+                .and_downcast::<PkgProperty>()
+                .expect("The item has to be a `PkgProperty`.");
+
+            if let Some(binding) = prop.icon_visible_binding() {
+                binding.unbind();
+            }
+
+            if let Some(binding) = prop.icon_binding() {
+                binding.unbind();
+            }
+
+            if let Some(binding) = prop.value_binding() {
+                binding.unbind();
             }
         }
     }

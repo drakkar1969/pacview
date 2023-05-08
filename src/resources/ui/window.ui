@@ -382,7 +382,7 @@
                                   <object class="GtkSignalListItemFactory">
                                     <signal name="setup" handler="on_infopane_setup_value" swapped="true"/>
                                     <signal name="bind" handler="on_infopane_bind_value" swapped="true"/>
-                                    <!-- <signal name="unbind" handler="on_infopane_unbind_value" swapped="true"/> -->
+                                    <signal name="unbind" handler="on_infopane_unbind_value" swapped="true"/>
                                   </object>
                                 </property>
                               </object>
