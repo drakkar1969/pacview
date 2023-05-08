@@ -62,17 +62,16 @@ mod imp {
         pub status_icon: RefCell<String>,
         #[property(get, set)]
         pub install_date: Cell<i64>,
+        #[property(get = Self::install_date_short)] // Read-only, custom getter
+        pub install_date_short: RefCell<String>,
+        #[property(get = Self::install_date_long)] // Read-only, custom getter
+        pub install_date_long: RefCell<String>,
         #[property(get, set)]
         pub install_size: Cell<i64>,
+        #[property(get = Self::install_size_string)] // Read-only, custom getter
+        pub install_size_string: RefCell<String>,
         #[property(get, set)]
         pub groups: RefCell<String>,
-
-        #[property(get = Self::install_date_short)]
-        pub install_date_short: RefCell<String>,
-        #[property(get = Self::install_date_long)]
-        pub install_date_long: RefCell<String>,
-        #[property(get = Self::install_size_string)]
-        pub install_size_string: RefCell<String>,
 
         #[property(get, set)]
         pub description: RefCell<String>,
@@ -86,6 +85,14 @@ mod imp {
         pub optdepends: RefCell<Vec<String>>,
         #[property(get, set)]
         pub provides: RefCell<Vec<String>>,
+        #[property(get, set)]
+        pub build_date: Cell<i64>,
+        #[property(get = Self::build_date_long)] // Read-only, custom getter
+        pub build_date_long: RefCell<String>,
+        #[property(get, set)]
+        pub download_size: Cell<i64>,
+        #[property(get = Self::download_size_string)] // Read-only, custom getter
+        pub download_size_string: RefCell<String>,
     }
     
     //-----------------------------------
@@ -148,6 +155,20 @@ mod imp {
             let obj = self.obj();
 
             bytesize::to_string(obj.install_size() as u64, true)
+        }
+
+        fn build_date_long(&self) -> String {
+            let obj = self.obj();
+
+            let datetime = glib::DateTime::from_unix_local(obj.build_date()).expect("error");
+
+            datetime.format("%d %B %Y %H:%M").expect("error").to_string()
+        }
+
+        fn download_size_string(&self) -> String {
+            let obj = self.obj();
+
+            bytesize::to_string(obj.download_size() as u64, true)
         }
     }
 }
@@ -233,6 +254,8 @@ impl PkgObject {
             .property("depends", PkgObject::deplist_to_vec(&syncpkg.depends()))
             .property("optdepends", PkgObject::deplist_to_vec(&syncpkg.optdepends()))
             .property("provides", PkgObject::deplist_to_vec(&syncpkg.provides()))
+            .property("build-date", syncpkg.build_date())
+            .property("download-size", syncpkg.download_size())
 
             .build()
     }

@@ -498,10 +498,20 @@ mod imp {
                         "Optional", &self.propvec_to_linkstring(&obj.optdepends()), None
                     ));
                 }
+                // Build date
+                self.infopane_model.append(&PkgProperty::new(
+                    "Build Date", &obj.build_date_long(), None
+                ));
                 // Install date
                 if obj.install_date() != 0 {
                     self.infopane_model.append(&PkgProperty::new(
                         "Install Date", &obj.install_date_long(), None
+                    ));
+                }
+                // Download size
+                if obj.download_size() != 0 {
+                    self.infopane_model.append(&PkgProperty::new(
+                        "Download Size", &obj.download_size_string(), None
                     ));
                 }
                 // Installed size
