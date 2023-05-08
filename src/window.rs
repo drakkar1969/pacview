@@ -275,6 +275,9 @@ mod imp {
         // On show: load alpm packages
         //-----------------------------------
         fn load_packages(&self) {
+            use std::time::Instant;
+            let now = Instant::now();
+
             let obj = self.obj();
 
             let handle = alpm::Alpm::new(obj.pacman_root_dir(), obj.pacman_db_path()).unwrap();
@@ -300,6 +303,9 @@ mod imp {
             obj_list.extend(localdb.pkgs().iter().filter(|pkg| !syncpkg_list.contains(&pkg.name())).map(|pkg| PkgObject::new("foreign", pkg, Some(pkg))));
 
             self.pkgview_model.extend_from_slice(&obj_list);
+
+            let elapsed = now.elapsed();
+            println!("Elapsed: {:?}", elapsed);
         }
     
         //-----------------------------------

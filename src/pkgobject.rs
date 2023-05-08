@@ -64,6 +64,10 @@ mod imp {
 
         #[property(get, set)]
         pub description: RefCell<Option<String>>,
+        #[property(get, set)]
+        pub depends: RefCell<Vec<String>>,
+        #[property(get, set)]
+        pub optdepends: RefCell<Vec<String>>,
     }
     
     #[glib::object_subclass]
@@ -142,6 +146,9 @@ impl PkgObject {
         let mut groups: Vec<&str> = syncpkg.groups().iter().collect();
         groups.sort_unstable();
 
+        let depends = PkgObject::deplist_to_vec(&syncpkg.depends());
+        let optdepends = PkgObject::deplist_to_vec(&syncpkg.optdepends());
+
         glib::Object::builder()
             .property("name", syncpkg.name())
             .property("version", syncpkg.version().as_str())
@@ -154,7 +161,15 @@ impl PkgObject {
             .property("install-size", syncpkg.isize())
             .property("install-size-string", bytesize::to_string(syncpkg.isize() as u64, true))
             .property("groups", groups.join(", "))
+
             .property("description", syncpkg.desc())
+            .property("depends", depends)
+            .property("optdepends", optdepends)
+
             .build()
+    }
+
+    fn deplist_to_vec(alpm_list: &alpm::AlpmList<alpm::Dep>) -> Vec<String >{
+        alpm_list.iter().map(|dep| String::from(dep.name())).collect()
     }
 }
