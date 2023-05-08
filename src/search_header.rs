@@ -41,6 +41,8 @@ mod imp {
         #[template_child]
         pub searchtag_optdeps: TemplateChild<SearchTag>,
         #[template_child]
+        pub searchtag_provides: TemplateChild<SearchTag>,
+        #[template_child]
         pub separator_exact: TemplateChild<gtk::Separator>,
         #[template_child]
         pub searchtag_exact: TemplateChild<SearchTag>,
@@ -64,6 +66,8 @@ mod imp {
         search_by_deps: Cell<bool>,
         #[property(get, set)]
         search_by_optdeps: Cell<bool>,
+        #[property(get, set)]
+        search_by_provides: Cell<bool>,
         #[property(get, set)]
         search_exact: Cell<bool>,
     }
@@ -99,6 +103,7 @@ mod imp {
                     Signal::builder("search-changed")
                     .param_types([
                         String::static_type(),
+                        bool::static_type(),
                         bool::static_type(),
                         bool::static_type(),
                         bool::static_type(),
@@ -154,6 +159,7 @@ mod imp {
                 self.searchtag_group.get(),
                 self.searchtag_deps.get(),
                 self.searchtag_optdeps.get(),
+                self.searchtag_provides.get(),
             ];
 
             for tag in tag_array {
@@ -171,6 +177,7 @@ mod imp {
                             &header.search_by_group(),
                             &header.search_by_deps(),
                             &header.search_by_optdeps(),
+                            &header.search_by_provides(),
                             &header.search_exact()]
                         );
                     });
@@ -193,6 +200,7 @@ mod imp {
                     &header.search_by_group(),
                     &header.search_by_deps(),
                     &header.search_by_optdeps(),
+                    &header.search_by_provides(),
             &header.search_exact()]
                 );
             });
@@ -260,6 +268,7 @@ mod imp {
                 &obj.search_by_group(),
                 &obj.search_by_deps(),
                 &obj.search_by_optdeps(),
+                &obj.search_by_provides(),
                 &obj.search_exact()]);
         }
 

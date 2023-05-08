@@ -71,11 +71,11 @@
                             <property name="text">optdeps</property>
                           </object>
                         </child>
-                        <!-- <child>
+                        <child>
                           <object class="SearchTag" id="searchtag_provides">
                             <property name="text">provides</property>
                           </object>
-                        </child> -->
+                        </child>
                         <!-- <child>
                           <object class="SearchTag" id="searchtag_files">
                             <property name="text">files</property>
@@ -128,10 +128,10 @@
         <attribute name="label">Optional Dependencies</attribute>
         <attribute name="action">search.search-by-optdeps</attribute>
       </item>
-      <!-- <item>
+      <item>
         <attribute name="label">Provides</attribute>
-        <attribute name="action">win.search-by-provides</attribute>
-      </item> -->
+        <attribute name="action">search.search-by-provides</attribute>
+      </item>
       <!-- <item>
         <attribute name="label">Files</attribute>
         <attribute name="action">win.search-by-files</attribute>

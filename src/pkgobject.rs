@@ -68,6 +68,8 @@ mod imp {
         pub depends: RefCell<Vec<String>>,
         #[property(get, set)]
         pub optdepends: RefCell<Vec<String>>,
+        #[property(get, set)]
+        pub provides: RefCell<Vec<String>>,
     }
     
     #[glib::object_subclass]
@@ -148,6 +150,7 @@ impl PkgObject {
 
         let depends = PkgObject::deplist_to_vec(&syncpkg.depends());
         let optdepends = PkgObject::deplist_to_vec(&syncpkg.optdepends());
+        let provides = PkgObject::deplist_to_vec(&syncpkg.provides());
 
         glib::Object::builder()
             .property("name", syncpkg.name())
@@ -165,6 +168,7 @@ impl PkgObject {
             .property("description", syncpkg.desc())
             .property("depends", depends)
             .property("optdepends", optdepends)
+            .property("provides", provides)
 
             .build()
     }
