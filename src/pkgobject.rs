@@ -237,7 +237,7 @@ impl PkgObject {
             .build()
     }
 
-    fn deplist_to_vec(alpm_list: &alpm::AlpmList<alpm::Dep>) -> Vec<String >{
-        alpm_list.iter().map(|dep| String::from(dep.name())).collect()
+    fn deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String >{
+        list.iter().map(|dep| dep.to_string()).collect()
     }
 }

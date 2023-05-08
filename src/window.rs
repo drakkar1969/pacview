@@ -457,6 +457,9 @@ mod imp {
                 if obj.groups() != "" {
                     self.infopane_model.append(&PkgProperty::new("Groups", &obj.groups(), None));
                 }
+                if !obj.provides().is_empty() {
+                    self.infopane_model.append(&PkgProperty::new("Provides", &self.propvec_to_wrapstring(&obj.provides()), None));
+                }
                 if obj.install_date() != 0 {
                     self.infopane_model.append(&PkgProperty::new("Install Date", &obj.install_date_long(), None));
                 }
@@ -470,6 +473,10 @@ mod imp {
 
         fn prop_to_esc_url(&self, prop: &str) -> String {
             format!("<a href=\"{0}\">{0}</a>", glib::markup_escape_text(prop).to_string())
+        }
+
+        fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
+            glib::markup_escape_text(&prop_vec.join("    ")).to_string()
         }
 
         //-----------------------------------
