@@ -11,6 +11,7 @@ use titlecase;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
+use crate::pkgproperty::PkgProperty;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
 
@@ -43,6 +44,8 @@ mod imp {
         #[template_child]
         pub pkgview: TemplateChild<gtk::ColumnView>,
         #[template_child]
+        pub pkgview_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
         pub pkgview_repo_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub pkgview_status_filter: TemplateChild<gtk::CustomFilter>,
@@ -55,6 +58,8 @@ mod imp {
 
         #[template_child]
         pub infopane_overlay: TemplateChild<gtk::Overlay>,
+        #[template_child]
+        pub infopane_model: TemplateChild<gio::ListStore>,
 
         #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
@@ -78,6 +83,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             PkgObject::static_type();
+            PkgProperty::static_type();
             SearchHeader::static_type();
             
             klass.bind_template();
@@ -380,9 +386,9 @@ mod imp {
                             .expect("Needs to be a PkgObject");
         
                         let results = [
-                            by_name && obj.name().unwrap_or_default().to_lowercase().eq(&search_term),
+                            by_name && obj.name().to_lowercase().eq(&search_term),
                             by_desc && obj.description().unwrap_or_default().to_lowercase().eq(&search_term),
-                            by_group && obj.groups().unwrap_or_default().to_lowercase().eq(&search_term),
+                            by_group && obj.groups().to_lowercase().eq(&search_term),
                             by_deps && obj.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_provides && obj.provides().iter().any(|s| s.to_lowercase().eq(&search_term)),
@@ -400,9 +406,9 @@ mod imp {
     
                         for term in search_term.split_whitespace() {
                             let term_results = [
-                                by_name && obj.name().unwrap_or_default().to_lowercase().contains(&term),
+                                by_name && obj.name().to_lowercase().contains(&term),
                                 by_desc && obj.description().unwrap_or_default().to_lowercase().contains(&term),
-                                by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&term),
+                                by_group && obj.groups().to_lowercase().contains(&term),
                                 by_deps && obj.depends().iter().any(|s| s.to_lowercase().contains(&term)),
                                 by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().contains(&term)),
                                 by_provides && obj.provides().iter().any(|s| s.to_lowercase().contains(&term)),
@@ -414,6 +420,107 @@ mod imp {
                         results.into_iter().all(|x| x)
                     });
                 }
+            }
+        }
+
+        //-----------------------------------
+        // Pkgview signal handlers
+        //-----------------------------------
+        #[template_callback]
+        fn on_package_selected(&self) {
+            if let Some(item) = self.pkgview_selection.selected_item() {
+                let obj = item.downcast_ref::<PkgObject>();
+
+                self.infopane_display_package(obj);
+            }
+
+        }
+
+        //-----------------------------------
+        // Infopane display package function
+        //-----------------------------------
+        fn infopane_display_package(&self, pkg_object: Option<&PkgObject>) {
+            self.infopane_model.remove_all();
+            
+            if let Some(obj) = pkg_object {
+                let name = format!("<b>{}</b>", obj.name());
+                self.infopane_model.append(&PkgProperty::new("Name", &name, ""));
+                self.infopane_model.append(&PkgProperty::new("Version", &obj.version(), ""));
+                if let Some(desc) = obj.description() {
+                    self.infopane_model.append(&PkgProperty::new("Description", &desc, ""));
+                }
+                let status = &obj.status();
+                self.infopane_model.append(&PkgProperty::new("Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, &obj.status_icon()));
+                self.infopane_model.append(&PkgProperty::new("Repository", &obj.repository(), ""));
+                if obj.groups() != "" {
+                    self.infopane_model.append(&PkgProperty::new("Groups", &obj.groups(), ""));
+                }
+                if obj.install_date() != 0 {
+                    self.infopane_model.append(&PkgProperty::new("Install Date", &obj.install_date_long(), ""));
+                }
+                self.infopane_model.append(&PkgProperty::new("Installed Size", &obj.install_size_string(), ""));
+            }
+        }
+
+        //-----------------------------------
+        // Infopane value factory signal handlers
+        //-----------------------------------
+        #[template_callback]
+        fn on_infopane_setup_value(&self, item: glib::Object) {
+            let image = gtk::Image::new();
+
+            let label = gtk::Label::builder()
+                .hexpand(true)
+                .vexpand(true)
+                .xalign(0.0)
+                .yalign(0.0)
+                .use_markup(true)
+                .can_focus(false)
+                .selectable(true)
+                .wrap(true)
+                .margin_end(32)
+                .build();
+
+            let itembox = gtk::Box::builder()
+                .margin_start(4)
+                .spacing(6)
+                .build();
+
+            itembox.append(&image);
+            itembox.append(&label);
+
+            item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Needs to be ListItem")
+                .set_child(Some(&itembox));
+        }
+
+        #[template_callback]
+        fn on_infopane_bind_value(&self, item: glib::Object) {
+            let prop = item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Needs to be ListItem")
+                .item()
+                .and_downcast::<PkgProperty>()
+                .expect("The item has to be a `PkgProperty`.");
+
+            let itembox = item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Needs to be ListItem")
+                .child()
+                .and_downcast::<gtk::Box>()
+                .expect("The child has to be a `Box`.");
+
+            if let Some(image) = itembox.first_child().and_downcast::<gtk::Image>() {
+                let icon = prop.icon().unwrap_or_default();
+                
+                image.set_visible(&icon != "");
+                image.set_icon_name(Some(&icon));
+
+            }
+    
+            if let Some(label) = itembox.last_child().and_downcast::<gtk::Label>() {
+                label.set_label(&prop.value().unwrap_or_default());
             }
         }
     }

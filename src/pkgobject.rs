@@ -51,25 +51,27 @@ mod imp {
         #[property(get, set)]
         pub flags: Cell<PkgStatusFlags>,
         #[property(get, set)]
-        pub name: RefCell<Option<String>>,
+        pub name: RefCell<String>,
         #[property(get, set)]
-        pub version: RefCell<Option<String>>,
+        pub version: RefCell<String>,
         #[property(get, set)]
-        pub repository: RefCell<Option<String>>,
+        pub repository: RefCell<String>,
         #[property(get, set)]
-        pub status: RefCell<Option<String>>,
+        pub status: RefCell<String>,
         #[property(get, set)]
-        pub status_icon: RefCell<Option<String>>,
+        pub status_icon: RefCell<String>,
         #[property(get, set)]
         pub install_date: Cell<i64>,
         #[property(get, set)]
-        pub install_date_short: RefCell<Option<String>>,
+        pub install_date_short: RefCell<String>,
+        #[property(get, set)]
+        pub install_date_long: RefCell<String>,
         #[property(get, set)]
         pub install_size: Cell<i64>,
         #[property(get, set)]
-        pub install_size_string: RefCell<Option<String>>,
+        pub install_size_string: RefCell<String>,
         #[property(get, set)]
-        pub groups: RefCell<Option<String>>,
+        pub groups: RefCell<String>,
 
         #[property(get, set)]
         pub description: RefCell<Option<String>>,
@@ -121,6 +123,7 @@ impl PkgObject {
         let mut flags = PkgStatusFlags::NONE;
         let mut install_date = 0;
         let mut install_date_short = String::from("");
+        let mut install_date_long = String::from("");
 
         // If package is installed locally
         if let Some(pkg) = localpkg {
@@ -145,9 +148,8 @@ impl PkgObject {
             if install_date != 0 {
                 let datetime = glib::DateTime::from_unix_local(install_date).expect("error");
     
-                let datestring = datetime.format("%Y/%m/%d %H:%M").expect("error");
-    
-                install_date_short = datestring.to_string()
+                install_date_short = datetime.format("%Y/%m/%d %H:%M").expect("error").to_string();
+                install_date_long = datetime.format("%d %B %Y %H:%M").expect("error").to_string();
             }
         }
 
@@ -169,8 +171,10 @@ impl PkgObject {
         };
 
         // Get package groups
-        let mut groups: Vec<&str> = syncpkg.groups().iter().collect();
-        groups.sort_unstable();
+        let mut group_list: Vec<&str> = syncpkg.groups().iter().collect();
+        group_list.sort_unstable();
+
+        let groups = group_list.join(", ");
 
         // Build PkgObject
         glib::Object::builder()
@@ -184,12 +188,13 @@ impl PkgObject {
             .property("install-date-short", install_date_short)
             .property("install-size", syncpkg.isize())
             .property("install-size-string", bytesize::to_string(syncpkg.isize() as u64, true))
-            .property("groups", groups.join(", "))
+            .property("groups", groups)
 
             .property("description", syncpkg.desc())
             .property("depends", PkgObject::deplist_to_vec(&syncpkg.depends()))
             .property("optdepends", PkgObject::deplist_to_vec(&syncpkg.optdepends()))
             .property("provides", PkgObject::deplist_to_vec(&syncpkg.provides()))
+            .property("install-date-long", install_date_long)
 
             .build()
     }

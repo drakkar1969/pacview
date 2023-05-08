@@ -145,6 +145,7 @@
                           <object class="GtkColumnView" id="pkgview">
                             <property name="model">
                               <object class="GtkSingleSelection" id="pkgview_selection">
+                                <signal name="notify::selected-item" handler="on_package_selected" swapped="true"/>
                                 <property name="model">
                                   <object class="GtkSortListModel" id="pkgview_sort_model">
                                     <property name="model">
@@ -356,20 +357,20 @@
                               <object class="GtkNoSelection" id="infopane_selection">
                                 <property name="model">
                                   <object class="GListStore" id="infopane_model">
-                                    <!-- <property name="item-type">PkgProperty</property> -->
+                                    <property name="item-type">PkgProperty</property>
                                   </object>
                                 </property>
                               </object>
                             </property>
                             <child>
-                              <object class="GtkColumnViewColumn" id="infopane_name_column">
+                              <object class="GtkColumnViewColumn" id="infopane_label_column">
                                 <property name="title">Property</property>
                                 <property name="resizable">False</property>
-                                <!-- <property name="factory">
+                                <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/infopane/name-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/infopane/label-item.ui</property>
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                             <child>
@@ -377,13 +378,13 @@
                                 <property name="title">Value</property>
                                 <property name="resizable">False</property>
                                 <property name="expand">True</property>
-                                <!-- <property name="factory">
+                                <property name="factory">
                                   <object class="GtkSignalListItemFactory">
-                                    <signal name="setup" handler="on_setup_value" swapped="no"/>
-                                    <signal name="bind" handler="on_bind_value" swapped="no"/>
-                                    <signal name="unbind" handler="on_unbind_value" swapped="no"/>
+                                    <signal name="setup" handler="on_infopane_setup_value" swapped="true"/>
+                                    <signal name="bind" handler="on_infopane_bind_value" swapped="true"/>
+                                    <!-- <signal name="unbind" handler="on_infopane_unbind_value" swapped="true"/> -->
                                   </object>
-                                </property> -->
+                                </property>
                               </object>
                             </child>
                           </object>
