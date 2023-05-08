@@ -33,16 +33,16 @@ mod imp {
         pub count_box: TemplateChild<gtk::Box>,
 
         #[property(get, set)]
-        icon: RefCell<Option<String>>,
+        icon: RefCell<String>,
         #[property(get, set)]
-        text: RefCell<Option<String>>,
+        text: RefCell<String>,
         #[property(get, set)]
-        count: RefCell<Option<String>>,
+        count: RefCell<String>,
         #[property(get, set)]
         spinning: Cell<bool>,
 
         #[property(get, set)]
-        repo_id: RefCell<Option<String>>,
+        repo_id: RefCell<String>,
         #[property(get, set)]
         status_id: Cell<PkgStatusFlags>,
     }
@@ -109,8 +109,8 @@ mod imp {
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
             obj.bind_property("count", &self.count_box.get(), "visible")
-                .transform_to(|_, count: Option<&str>| {
-                    Some(if count.is_some() && count != Some("") {true} else {false})
+                .transform_to(|_, count: &str| {
+                    Some(if count != "" {true} else {false})
                 })
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();

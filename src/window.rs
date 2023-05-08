@@ -320,9 +320,7 @@ mod imp {
         #[template_callback]
         fn on_repo_selected(&self, row: Option<FilterRow>) {
             if let Some(r) = row {
-                if let Some(repo_id) = &r.repo_id() {
-                    self.pkgview_repo_filter.set_search(Some(repo_id));
-                }
+                self.pkgview_repo_filter.set_search(Some(&r.repo_id()));
             }
         }
 
