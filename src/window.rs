@@ -221,7 +221,8 @@ mod imp {
         fn get_pacman_config(&self) {
             let pacman_config = pacmanconf::Config::new().unwrap();
     
-            let repo_list: Vec<String> = pacman_config.repos.iter().map(|r| r.name.to_string()).collect();
+            let mut repo_list: Vec<String> = pacman_config.repos.iter().map(|r| r.name.to_string()).collect();
+            repo_list.push(String::from("foreign"));
 
             let obj = self.obj();
     
@@ -281,19 +282,23 @@ mod imp {
             let mut obj_list: Vec<PkgObject> = Vec::new();
     
             let localdb = handle.localdb();
+
+            let mut syncpkg_list: Vec<&str> = Vec::new();
     
             for repo in obj.pacman_repo_names() {
                 let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
-    
-                for syncpkg in db.pkgs() {
+
+                syncpkg_list.extend(db.pkgs().iter().map(|pkg| pkg.name()));
+
+                obj_list.extend(db.pkgs().iter().map(|syncpkg| {
                     let localpkg = localdb.pkgs().find_satisfier(syncpkg.name());
-    
-                    let obj = PkgObject::new(db.name(), syncpkg, localpkg);
-    
-                    obj_list.push(obj);
-                }
+
+                    PkgObject::new(db.name(), syncpkg, localpkg)
+                }));
             }
-    
+
+            obj_list.extend(localdb.pkgs().iter().filter(|pkg| !syncpkg_list.contains(&pkg.name())).map(|pkg| PkgObject::new("foreign", pkg, Some(pkg))));
+
             self.pkgview_model.extend_from_slice(&obj_list);
         }
     
