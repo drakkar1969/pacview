@@ -444,21 +444,21 @@ mod imp {
             
             if let Some(obj) = pkg_object {
                 let name = format!("<b>{}</b>", obj.name());
-                self.infopane_model.append(&PkgProperty::new("Name", &name, ""));
-                self.infopane_model.append(&PkgProperty::new("Version", &obj.version(), ""));
+                self.infopane_model.append(&PkgProperty::new("Name", &name, None));
+                self.infopane_model.append(&PkgProperty::new("Version", &obj.version(), None));
                 if let Some(desc) = obj.description() {
-                    self.infopane_model.append(&PkgProperty::new("Description", &desc, ""));
+                    self.infopane_model.append(&PkgProperty::new("Description", &desc, None));
                 }
                 let status = &obj.status();
-                self.infopane_model.append(&PkgProperty::new("Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, &obj.status_icon()));
-                self.infopane_model.append(&PkgProperty::new("Repository", &obj.repository(), ""));
+                self.infopane_model.append(&PkgProperty::new("Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())));
+                self.infopane_model.append(&PkgProperty::new("Repository", &obj.repository(), None));
                 if obj.groups() != "" {
-                    self.infopane_model.append(&PkgProperty::new("Groups", &obj.groups(), ""));
+                    self.infopane_model.append(&PkgProperty::new("Groups", &obj.groups(), None));
                 }
                 if obj.install_date() != 0 {
-                    self.infopane_model.append(&PkgProperty::new("Install Date", &obj.install_date_long(), ""));
+                    self.infopane_model.append(&PkgProperty::new("Install Date", &obj.install_date_long(), None));
                 }
-                self.infopane_model.append(&PkgProperty::new("Installed Size", &obj.install_size_string(), ""));
+                self.infopane_model.append(&PkgProperty::new("Installed Size", &obj.install_size_string(), None));
             }
         }
 
@@ -516,11 +516,10 @@ mod imp {
                 
                 image.set_visible(&icon != "");
                 image.set_icon_name(Some(&icon));
-
             }
     
             if let Some(label) = itembox.last_child().and_downcast::<gtk::Label>() {
-                label.set_label(&prop.value().unwrap_or_default());
+                label.set_label(&prop.value());
             }
         }
     }

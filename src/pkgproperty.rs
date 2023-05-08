@@ -17,9 +17,9 @@ mod imp {
     #[properties(wrapper_type = super::PkgProperty)]
     pub struct PkgProperty {
         #[property(get, set)]
-        pub label: RefCell<Option<String>>,
+        pub label: RefCell<String>,
         #[property(get, set)]
-        pub value: RefCell<Option<String>>,
+        pub value: RefCell<String>,
         #[property(get, set)]
         pub icon: RefCell<Option<String>>,
     }
@@ -59,7 +59,7 @@ glib::wrapper! {
 }
 
 impl PkgProperty {
-    pub fn new(label: &str, value: &str, icon: &str) -> Self {
+    pub fn new(label: &str, value: &str, icon: Option<&str>) -> Self {
         // Build PkgProperty
         glib::Object::builder()
             .property("label", label)
