@@ -61,16 +61,16 @@
                             <property name="text">group</property>
                           </object>
                         </child>
-                        <!-- <child>
+                        <child>
                           <object class="SearchTag" id="searchtag_deps">
                             <property name="text">deps</property>
                           </object>
-                        </child> -->
-                        <!-- <child>
+                        </child>
+                        <child>
                           <object class="SearchTag" id="searchtag_optdeps">
                             <property name="text">optdeps</property>
                           </object>
-                        </child> -->
+                        </child>
                         <!-- <child>
                           <object class="SearchTag" id="searchtag_provides">
                             <property name="text">provides</property>
@@ -120,14 +120,14 @@
         <attribute name="label">Group</attribute>
         <attribute name="action">search.search-by-group</attribute>
       </item>
-      <!-- <item>
+      <item>
         <attribute name="label">Dependencies</attribute>
-        <attribute name="action">win.search-by-deps</attribute>
-      </item> -->
-      <!-- <item>
+        <attribute name="action">search.search-by-deps</attribute>
+      </item>
+      <item>
         <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">win.search-by-optdeps</attribute>
-      </item> -->
+        <attribute name="action">search.search-by-optdeps</attribute>
+      </item>
       <!-- <item>
         <attribute name="label">Provides</attribute>
         <attribute name="action">win.search-by-provides</attribute>

@@ -151,7 +151,7 @@ mod imp {
             search_group.add_action(&search_stop_action);
 
             // Create actions for search header search-by properties
-            let prop_array = ["name", "desc", "group"];
+            let prop_array = ["name", "desc", "group", "deps", "optdeps"];
 
             for prop in prop_array {
                 let action_name = format!("search-by-{}", prop);
@@ -345,6 +345,8 @@ mod imp {
                     app.set_accels_for_action("search.search-by-name", &["<ctrl>1"]);
                     app.set_accels_for_action("search.search-by-desc", &["<ctrl>2"]);
                     app.set_accels_for_action("search.search-by-group", &["<ctrl>3"]);
+                    app.set_accels_for_action("search.search-by-deps", &["<ctrl>4"]);
+                    app.set_accels_for_action("search.search-by-optdeps", &["<ctrl>5"]);
                     app.set_accels_for_action("search.search-exact", &["<ctrl>e"]);
                 }
     
@@ -355,13 +357,15 @@ mod imp {
                     app.set_accels_for_action("search.search-by-name", &[]);
                     app.set_accels_for_action("search.search-by-desc", &[]);
                     app.set_accels_for_action("search.search-by-group", &[]);
+                    app.set_accels_for_action("search.search-by-deps", &[]);
+                    app.set_accels_for_action("search.search-by-optdeps", &[]);
                     app.set_accels_for_action("search.search-exact", &[]);
                 }
             }
         }
 
         #[template_callback]
-        fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, exact: bool) {
+        fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, exact: bool) {
             let search_term = String::from(term.to_lowercase());
     
             if search_term == "" {
@@ -377,7 +381,9 @@ mod imp {
                             by_name && obj.name().unwrap_or_default().to_lowercase().eq(&search_term),
                             by_desc && obj.description().unwrap_or_default().to_lowercase().eq(&search_term),
                             by_group && obj.groups().unwrap_or_default().to_lowercase().eq(&search_term),
-                        ];
+                            by_deps && obj.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                            by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                    ];
         
                         results.into_iter().any(|x| x)
                     });    
@@ -394,6 +400,8 @@ mod imp {
                                 by_name && obj.name().unwrap_or_default().to_lowercase().contains(&term),
                                 by_desc && obj.description().unwrap_or_default().to_lowercase().contains(&term),
                                 by_group && obj.groups().unwrap_or_default().to_lowercase().contains(&term),
+                                by_deps && obj.depends().iter().any(|s| s.to_lowercase().contains(&term)),
+                                by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().contains(&term)),
                             ];
             
                             results.push(term_results.into_iter().any(|x| x));

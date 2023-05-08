@@ -37,6 +37,10 @@ mod imp {
         #[template_child]
         pub searchtag_group: TemplateChild<SearchTag>,
         #[template_child]
+        pub searchtag_deps: TemplateChild<SearchTag>,
+        #[template_child]
+        pub searchtag_optdeps: TemplateChild<SearchTag>,
+        #[template_child]
         pub separator_exact: TemplateChild<gtk::Separator>,
         #[template_child]
         pub searchtag_exact: TemplateChild<SearchTag>,
@@ -56,6 +60,10 @@ mod imp {
         search_by_desc: Cell<bool>,
         #[property(get, set)]
         search_by_group: Cell<bool>,
+        #[property(get, set)]
+        search_by_deps: Cell<bool>,
+        #[property(get, set)]
+        search_by_optdeps: Cell<bool>,
         #[property(get, set)]
         search_exact: Cell<bool>,
     }
@@ -91,6 +99,8 @@ mod imp {
                     Signal::builder("search-changed")
                     .param_types([
                         String::static_type(),
+                        bool::static_type(),
+                        bool::static_type(),
                         bool::static_type(),
                         bool::static_type(),
                         bool::static_type(),
@@ -142,6 +152,8 @@ mod imp {
                 self.searchtag_name.get(),
                 self.searchtag_desc.get(),
                 self.searchtag_group.get(),
+                self.searchtag_deps.get(),
+                self.searchtag_optdeps.get(),
             ];
 
             for tag in tag_array {
@@ -157,6 +169,8 @@ mod imp {
                             &header.search_by_name(),
                             &header.search_by_desc(),
                             &header.search_by_group(),
+                            &header.search_by_deps(),
+                            &header.search_by_optdeps(),
                             &header.search_exact()]
                         );
                     });
@@ -177,7 +191,9 @@ mod imp {
                     &header.search_by_name(),
                     &header.search_by_desc(),
                     &header.search_by_group(),
-                    &header.search_exact()]
+                    &header.search_by_deps(),
+                    &header.search_by_optdeps(),
+            &header.search_exact()]
                 );
             });
 
@@ -242,6 +258,8 @@ mod imp {
                 &obj.search_by_name(),
                 &obj.search_by_desc(),
                 &obj.search_by_group(),
+                &obj.search_by_deps(),
+                &obj.search_by_optdeps(),
                 &obj.search_exact()]);
         }
 
