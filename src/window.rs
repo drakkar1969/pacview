@@ -445,7 +445,7 @@ mod imp {
                 self.infopane_model.append(&PkgProperty::new("Name", &name, None));
                 self.infopane_model.append(&PkgProperty::new("Version", &obj.version(), None));
                 if let Some(desc) = obj.description() {
-                    self.infopane_model.append(&PkgProperty::new("Description", &desc, None));
+                    self.infopane_model.append(&PkgProperty::new("Description", &self.prop_to_esc_string(&desc), None));
                 }
                 let status = &obj.status();
                 self.infopane_model.append(&PkgProperty::new("Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())));
@@ -458,6 +458,10 @@ mod imp {
                 }
                 self.infopane_model.append(&PkgProperty::new("Installed Size", &obj.install_size_string(), None));
             }
+        }
+
+        fn prop_to_esc_string(&self, prop: &str) -> String {
+            glib::markup_escape_text(prop).to_string()
         }
 
         //-----------------------------------
