@@ -7,6 +7,9 @@ use gtk::prelude::ObjectExt;
 use alpm;
 use bytesize;
 
+//------------------------------------------------------------------------------
+// FLAGS: PKGSTATUSFLAGS
+//------------------------------------------------------------------------------
 #[glib::flags(name = "PkgStatusFlags")]
 pub enum PkgStatusFlags {
     #[flags_value(name = "Installed")]
@@ -33,9 +36,15 @@ impl Default for PkgStatusFlags {
     }
 }
 
+//------------------------------------------------------------------------------
+// MODULE: PKGOBJECT
+//------------------------------------------------------------------------------
 mod imp {
     use super::*;
 
+    //-----------------------------------
+    // Private structure
+    //-----------------------------------
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
@@ -72,6 +81,9 @@ mod imp {
         pub provides: RefCell<Vec<String>>,
     }
     
+    //-----------------------------------
+    // Subclass
+    //-----------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PkgObject {
         const NAME: &'static str = "PkgObject";
@@ -79,6 +91,9 @@ mod imp {
     }
     
     impl ObjectImpl for PkgObject {
+        //-----------------------------------
+        // Default property functions
+        //-----------------------------------
         fn properties() -> &'static [glib::ParamSpec] {
             Self::derived_properties()
         }
@@ -93,17 +108,23 @@ mod imp {
     }
 }
 
+//------------------------------------------------------------------------------
+// PUBLIC IMPLEMENTATION
+//------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PkgObject(ObjectSubclass<imp::PkgObject>);
 }
 
 impl PkgObject {
     pub fn new(repository: &str, syncpkg: alpm::Package, localpkg: Option<alpm::Package>) -> Self {
+        // Default values for package status flags and install date (non-installed)
         let mut flags = PkgStatusFlags::NONE;
         let mut install_date = 0;
         let mut install_date_short = String::from("");
 
+        // If package is installed locally
         if let Some(pkg) = localpkg {
+            // Get package status flags
             if pkg.reason() == alpm::PackageReason::Explicit {
                 flags = PkgStatusFlags::EXPLICIT;
             } else {
@@ -118,6 +139,7 @@ impl PkgObject {
                 }
             }
 
+            // Get package installed date
             install_date = pkg.install_date().unwrap_or(0);
 
             if install_date != 0 {
@@ -129,6 +151,7 @@ impl PkgObject {
             }
         }
 
+        // Get package status and status icon
         let status = match flags {
             PkgStatusFlags::EXPLICIT => "explicit",
             PkgStatusFlags::DEPENDENCY => "dependency",
@@ -145,13 +168,11 @@ impl PkgObject {
             _ => ""
         };
 
+        // Get package groups
         let mut groups: Vec<&str> = syncpkg.groups().iter().collect();
         groups.sort_unstable();
 
-        let depends = PkgObject::deplist_to_vec(&syncpkg.depends());
-        let optdepends = PkgObject::deplist_to_vec(&syncpkg.optdepends());
-        let provides = PkgObject::deplist_to_vec(&syncpkg.provides());
-
+        // Build PkgObject
         glib::Object::builder()
             .property("name", syncpkg.name())
             .property("version", syncpkg.version().as_str())
@@ -166,9 +187,9 @@ impl PkgObject {
             .property("groups", groups.join(", "))
 
             .property("description", syncpkg.desc())
-            .property("depends", depends)
-            .property("optdepends", optdepends)
-            .property("provides", provides)
+            .property("depends", PkgObject::deplist_to_vec(&syncpkg.depends()))
+            .property("optdepends", PkgObject::deplist_to_vec(&syncpkg.optdepends()))
+            .property("provides", PkgObject::deplist_to_vec(&syncpkg.provides()))
 
             .build()
     }
