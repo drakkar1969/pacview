@@ -18,13 +18,13 @@
     <file compressed="true">icons/pkg-dependency.svg</file>
     <file compressed="true">icons/pkg-optional.svg</file>
     <file compressed="true">icons/pkg-orphan.svg</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/package-item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/version-item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/repository-item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/status-item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/date-item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/size-item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/columnview/groups-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/package-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/version-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/repository-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/status-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/date-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/size-item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/groups-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>

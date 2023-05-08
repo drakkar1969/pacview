@@ -202,7 +202,7 @@
                                 <!-- <property name="header-menu">header_menu</property> -->
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/package-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/pkgview/package-item.ui</property>
                                   </object>
                                 </property>
                                 <property name="sorter">
@@ -222,7 +222,7 @@
                                 <!-- <property name="header-menu">header_menu</property> -->
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/version-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/pkgview/version-item.ui</property>
                                   </object>
                                 </property>
                                 <property name="sorter">
@@ -242,7 +242,7 @@
                                 <!-- <property name="header-menu">header_menu</property> -->
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/repository-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/pkgview/repository-item.ui</property>
                                   </object>
                                 </property>
                                 <property name="sorter">
@@ -262,7 +262,7 @@
                                 <!-- <property name="header-menu">header_menu</property> -->
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/status-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/pkgview/status-item.ui</property>
                                   </object>
                                 </property>
                                 <property name="sorter">
@@ -282,7 +282,7 @@
                                 <!-- <property name="header-menu">header_menu</property> -->
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/date-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/pkgview/date-item.ui</property>
                                   </object>
                                 </property>
                                 <property name="sorter">
@@ -302,7 +302,7 @@
                                 <!-- <property name="header-menu">header_menu</property> -->
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/size-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/pkgview/size-item.ui</property>
                                   </object>
                                 </property>
                                 <property name="sorter">
@@ -322,7 +322,7 @@
                                 <!-- <property name="header-menu">header_menu</property> -->
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/columnview/groups-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/pkgview/groups-item.ui</property>
                                   </object>
                                 </property>
                                 <property name="sorter">
