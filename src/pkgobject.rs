@@ -181,13 +181,13 @@ glib::wrapper! {
 }
 
 impl PkgObject {
-    pub fn new(repository: &str, syncpkg: alpm::Package, localpkg: Option<alpm::Package>) -> Self {
+    pub fn new(repository: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
         // Default values for package status flags and install date (non-installed)
         let mut flags = PkgStatusFlags::NONE;
         let mut install_date = 0;
 
         // If package is installed locally
-        if let Some(pkg) = localpkg {
+        if let Ok(pkg) = localpkg {
             // Get package status flags
             if pkg.reason() == alpm::PackageReason::Explicit {
                 flags = PkgStatusFlags::EXPLICIT;

@@ -288,25 +288,23 @@ mod imp {
 
             let handle = alpm::Alpm::new(obj.pacman_root_dir(), obj.pacman_db_path()).unwrap();
     
-            let mut obj_list: Vec<PkgObject> = Vec::new();
-    
             let localdb = handle.localdb();
 
-            let mut syncpkg_list: Vec<&str> = Vec::new();
-    
+            let mut obj_list: Vec<PkgObject> = Vec::new();
+
             for repo in obj.pacman_repo_names() {
                 let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
 
-                syncpkg_list.extend(db.pkgs().iter().map(|pkg| pkg.name()));
-
                 obj_list.extend(db.pkgs().iter().map(|syncpkg| {
-                    let localpkg = localdb.pkgs().find_satisfier(syncpkg.name());
+                    let localpkg = localdb.pkg(syncpkg.name());
 
                     PkgObject::new(db.name(), syncpkg, localpkg)
                 }));
             }
 
-            obj_list.extend(localdb.pkgs().iter().filter(|pkg| !syncpkg_list.contains(&pkg.name())).map(|pkg| PkgObject::new("foreign", pkg, Some(pkg))));
+            obj_list.extend(localdb.pkgs().iter()
+                .filter(|pkg| !handle.syncdbs().find_satisfier(pkg.name()).is_some())
+                .map(|pkg| PkgObject::new("foreign", pkg, Ok(pkg))));
 
             self.pkgview_model.extend_from_slice(&obj_list);
 
