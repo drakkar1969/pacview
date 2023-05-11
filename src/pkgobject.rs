@@ -260,7 +260,9 @@ impl PkgObject {
             .build()
     }
 
-    fn deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String >{
-        list.iter().map(|dep| dep.to_string()).collect()
+    fn deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
+        let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
+        dep_vec.sort_unstable();
+        dep_vec
     }
 }
