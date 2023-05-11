@@ -234,7 +234,7 @@ mod imp {
     
             obj.set_pacman_root_dir(pacman_config.root_dir);
             obj.set_pacman_db_path(pacman_config.db_path);
-            obj.set_pacman_repo_names(repo_list.clone());
+            obj.set_pacman_repo_names(repo_list);
         }
     
         //-----------------------------------
