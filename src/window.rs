@@ -143,18 +143,16 @@ mod imp {
 
             obj.insert_action_group("search", Some(&search_group));
 
-            let win = self;
-
             // Create actions for start/stop search
             let search_start_action = gio::SimpleAction::new("start-search", None);
-            search_start_action.connect_activate(clone!(@weak win => move |_, _| {
-                win.search_header.set_search_active(true);
+            search_start_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                window.search_header.set_search_active(true);
             }));
             search_group.add_action(&search_start_action);
 
             let search_stop_action = gio::SimpleAction::new("stop-search", None);
-            search_stop_action.connect_activate(clone!(@weak win => move |_, _| {
-                win.search_header.set_search_active(false);
+            search_stop_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                window.search_header.set_search_active(false);
             }));
             search_group.add_action(&search_stop_action);
 
