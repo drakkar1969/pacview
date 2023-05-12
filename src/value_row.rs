@@ -7,7 +7,7 @@ use gtk::prelude::*;
 use crate::pkgproperty::PkgProperty;
 
 //------------------------------------------------------------------------------
-// MODULE: INFOVALUE
+// MODULE: VALUEROW
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -16,8 +16,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/info_value.ui")]
-    pub struct InfoValue {
+    #[template(resource = "/com/github/PacView/ui/value_row.ui")]
+    pub struct ValueRow {
         #[template_child]
         pub image: TemplateChild<gtk::Image>,
         #[template_child]
@@ -31,9 +31,9 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for InfoValue {
-        const NAME: &'static str = "InfoValue";
-        type Type = super::InfoValue;
+    impl ObjectSubclass for ValueRow {
+        const NAME: &'static str = "ValueRow";
+        type Type = super::ValueRow;
         type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
@@ -45,7 +45,7 @@ mod imp {
         }
     }
     
-    impl ObjectImpl for InfoValue {
+    impl ObjectImpl for ValueRow {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -54,21 +54,21 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for InfoValue {}
-    impl BoxImpl for InfoValue {}
-    impl InfoValue {}
+    impl WidgetImpl for ValueRow {}
+    impl BoxImpl for ValueRow {}
+    impl ValueRow {}
 }
 
 //------------------------------------------------------------------------------
 // PUBLIC IMPLEMENTATION
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct InfoValue(ObjectSubclass<imp::InfoValue>)
+    pub struct ValueRow(ObjectSubclass<imp::ValueRow>)
         @extends gtk::Box, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl InfoValue {
+impl ValueRow {
     pub fn new() -> Self {
         glib::Object::builder()
             .build()

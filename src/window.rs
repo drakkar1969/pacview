@@ -17,7 +17,7 @@ use crate::pkgobject::{PkgObject, PkgStatusFlags};
 use crate::pkgproperty::PkgProperty;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
-use crate::info_value::InfoValue;
+use crate::value_row::ValueRow;
 
 //------------------------------------------------------------------------------
 // MODULE: PACVIEWWINDOW
@@ -572,12 +572,12 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_infopane_setup_value(&self, item: glib::Object) {
-            let info_value = InfoValue::new();
+            let value_row = ValueRow::new();
 
             item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
-                .set_child(Some(&info_value));
+                .set_child(Some(&value_row));
         }
 
         #[template_callback]
@@ -589,33 +589,33 @@ mod imp {
                 .and_downcast::<PkgProperty>()
                 .expect("The item has to be a `PkgProperty`.");
 
-            let info_value = item
+            let value_row = item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
                 .child()
-                .and_downcast::<InfoValue>()
+                .and_downcast::<ValueRow>()
                 .expect("The child has to be a `Box`.");
 
-            info_value.bind_properties(&prop_obj);
+            value_row.bind_properties(&prop_obj);
 
-            let label = &info_value.imp().label;
+            let label = &value_row.imp().label;
 
             let signal = label.connect_activate_link(clone!(@weak self as window => @default-return gtk::Inhibit(true), move |_, link| window.infopane_link_handler(link)));
 
-            info_value.add_label_signal(signal);
+            value_row.add_label_signal(signal);
         }
 
         #[template_callback]
         fn on_infopane_unbind_value(&self, item: glib::Object) {
-            let info_value = item
+            let value_row = item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
                 .child()
-                .and_downcast::<InfoValue>()
+                .and_downcast::<ValueRow>()
                 .expect("The child has to be a `Box`.");
 
-            info_value.unbind_properties();
-            info_value.drop_label_signals();
+            value_row.unbind_properties();
+            value_row.drop_label_signals();
         }
 
         //-----------------------------------

@@ -27,9 +27,9 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/size-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/groups-item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/info_value.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/value_row.ui</file>
   </gresource>
 </gresources>
