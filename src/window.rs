@@ -14,7 +14,7 @@ use url::Url;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
-use crate::pkgproperty::PkgProperty;
+use crate::prop_object::PropObject;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
 use crate::value_row::ValueRow;
@@ -89,7 +89,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             PkgObject::static_type();
-            PkgProperty::static_type();
+            PropObject::static_type();
             SearchHeader::static_type();
             
             klass.bind_template();
@@ -446,96 +446,96 @@ mod imp {
             
             if let Some(obj) = obj {
                 // Name
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Name", &format!("<b>{}</b>", obj.name()), None
                 ));
                 // Version
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Version", &obj.version(), None
                 ));
                 // Description
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Description", &self.prop_to_esc_string(&obj.description()), None
                 ));
                 // URL
                 if obj.url() != "" {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "URL", &self.prop_to_esc_url(&obj.url()), None
                     ));
                 }
                 // Licenses
                 if obj.licenses() != "" {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Licenses", &self.prop_to_esc_string(&obj.licenses()), None
                     ));
                 }
                 // Status
                 let status = &obj.status();
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())
                 ));
                 // Repository
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Repository", &obj.repository(), None
                 ));
                 // Groups
                 if obj.groups() != "" {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Groups", &obj.groups(), None
                     ));
                 }
                 // Provides
                 if !obj.provides().is_empty() {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Provides", &self.propvec_to_wrapstring(&obj.provides()), None
                     ));
                 }
                 // Depends
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Dependencies", &self.propvec_to_linkstring(&obj.depends()), None
                 ));
                 // Optdepends
                 if !obj.optdepends().is_empty() {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Optional", &self.propvec_to_linkstring(&obj.optdepends()), None
                     ));
                 }
                 // Conflicts
                 if !obj.conflicts().is_empty() {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Conflicts With", &self.propvec_to_linkstring(&obj.conflicts()), None
                     ));
                 }
                 // Replaces
                 if !obj.replaces().is_empty() {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Replaces", &self.propvec_to_linkstring(&obj.replaces()), None
                     ));
                 }
                 // Architecture
                 if obj.architecture() != "" {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Architecture", &obj.architecture(), None
                     ));
                 }
                 // Build date
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Build Date", &obj.build_date_long(), None
                 ));
                 // Install date
                 if obj.install_date() != 0 {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Install Date", &obj.install_date_long(), None
                     ));
                 }
                 // Download size
                 if obj.download_size() != 0 {
-                    self.infopane_model.append(&PkgProperty::new(
+                    self.infopane_model.append(&PropObject::new(
                         "Download Size", &obj.download_size_string(), None
                     ));
                 }
                 // Installed size
-                self.infopane_model.append(&PkgProperty::new(
+                self.infopane_model.append(&PropObject::new(
                     "Installed Size", &obj.install_size_string(), None
                 ));
             }
@@ -586,8 +586,8 @@ mod imp {
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
                 .item()
-                .and_downcast::<PkgProperty>()
-                .expect("The item has to be a `PkgProperty`.");
+                .and_downcast::<PropObject>()
+                .expect("The item has to be a `PropObject`.");
 
             let value_row = item
                 .downcast_ref::<gtk::ListItem>()

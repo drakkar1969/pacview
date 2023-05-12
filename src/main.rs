@@ -5,7 +5,7 @@ mod search_tag;
 mod filter_row;
 mod value_row;
 mod pkgobject;
-mod pkgproperty;
+mod prop_object;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;

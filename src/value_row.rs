@@ -4,7 +4,7 @@ use gtk::glib::{self, SignalHandlerId};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 
-use crate::pkgproperty::PkgProperty;
+use crate::prop_object::PropObject;
 
 //------------------------------------------------------------------------------
 // MODULE: VALUEROW
@@ -74,7 +74,7 @@ impl ValueRow {
             .build()
     }
 
-    pub fn bind_properties(&self, property: &PkgProperty) {
+    pub fn bind_properties(&self, property: &PropObject) {
         let imp = self.imp();
 
         let image = imp.image.get();

@@ -357,7 +357,7 @@
                               <object class="GtkNoSelection" id="infopane_selection">
                                 <property name="model">
                                   <object class="GListStore" id="infopane_model">
-                                    <property name="item-type">PkgProperty</property>
+                                    <property name="item-type">PropObject</property>
                                   </object>
                                 </property>
                               </object>
