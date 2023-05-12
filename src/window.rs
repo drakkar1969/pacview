@@ -268,7 +268,7 @@ mod imp {
                 ("status-none-symbolic", "None", PkgStatusFlags::NONE),
                 ("status-updates-symbolic", "Updates", PkgStatusFlags::UPDATES),
             ];
-    
+
             for status in status_map {
                 let row = FilterRow::new(status.0, status.1);
                 row.set_status_id(status.2);
@@ -494,9 +494,21 @@ mod imp {
                     "Dependencies", &self.propvec_to_linkstring(&obj.depends()), None
                 ));
                 // Optdepends
-                if ! obj.optdepends().is_empty() {
+                if !obj.optdepends().is_empty() {
                     self.infopane_model.append(&PkgProperty::new(
                         "Optional", &self.propvec_to_linkstring(&obj.optdepends()), None
+                    ));
+                }
+                // Conflicts
+                if !obj.conflicts().is_empty() {
+                    self.infopane_model.append(&PkgProperty::new(
+                        "Conflicts With", &self.propvec_to_linkstring(&obj.conflicts()), None
+                    ));
+                }
+                // Replaces
+                if !obj.replaces().is_empty() {
+                    self.infopane_model.append(&PkgProperty::new(
+                        "Replaces", &self.propvec_to_linkstring(&obj.replaces()), None
                     ));
                 }
                 // Build date
