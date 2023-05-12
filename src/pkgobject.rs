@@ -138,9 +138,7 @@ mod imp {
                 String::from("")
             }
             else {
-                let datetime = glib::DateTime::from_unix_local(obj.install_date()).expect("error");
-
-                datetime.format("%Y/%m/%d %H:%M").expect("error").to_string()
+                self.date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
             }
         }
 
@@ -151,30 +149,29 @@ mod imp {
                 String::from("")
             }
             else {
-                let datetime = glib::DateTime::from_unix_local(obj.install_date()).expect("error");
-
-                datetime.format("%d %B %Y %H:%M").expect("error").to_string()
+                self.date_to_string(self.obj().install_date(), "%d %B %Y %H:%M")
             }
         }
 
         fn install_size_string(&self) -> String {
-            let obj = self.obj();
-
-            bytesize::to_string(obj.install_size() as u64, true)
+            bytesize::to_string(self.obj().install_size() as u64, true)
         }
 
         fn build_date_long(&self) -> String {
-            let obj = self.obj();
-
-            let datetime = glib::DateTime::from_unix_local(obj.build_date()).expect("error");
-
-            datetime.format("%d %B %Y %H:%M").expect("error").to_string()
+            self.date_to_string(self.obj().build_date(), "%d %B %Y %H:%M")
         }
 
         fn download_size_string(&self) -> String {
-            let obj = self.obj();
+            bytesize::to_string(self.obj().download_size() as u64, true)
+        }
 
-            bytesize::to_string(obj.download_size() as u64, true)
+        //-----------------------------------
+        // Helper functions
+        //-----------------------------------
+        fn date_to_string(&self, date: i64, format: &str) -> String {
+            let datetime = glib::DateTime::from_unix_local(date).expect("error");
+
+            datetime.format(format).expect("error").to_string()
         }
     }
 }
