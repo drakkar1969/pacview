@@ -10,6 +10,7 @@ use alpm;
 use titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
+use url::Url;
 
 use crate::PacViewApplication;
 use crate::pkgobject::{PkgObject, PkgStatusFlags};
@@ -72,6 +73,8 @@ mod imp {
         pacman_db_path: RefCell<String>,
         #[property(get, set)]
         pacman_repo_names: RefCell<Vec<String>>,
+
+        pkgobject_list: RefCell<Vec<PkgObject>>,
     }
 
     //-----------------------------------
@@ -307,6 +310,8 @@ mod imp {
                 .map(|pkg| PkgObject::new("foreign", pkg, Ok(pkg))));
 
             self.pkgview_model.extend_from_slice(&obj_list);
+
+            self.pkgobject_list.replace(obj_list);
 
             let elapsed = now.elapsed();
             println!("Elapsed: {:?}", elapsed);
@@ -610,6 +615,45 @@ mod imp {
                 prop.set_value_binding(prop.bind_property("value", &label, "label")
                     .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                     .build());
+
+                let window = self;
+
+                label.connect_activate_link(clone!(@weak window => @default-return gtk::Inhibit(true), move |_, link| window.link_activate_handler(link)));
+            }
+        }
+
+        fn link_activate_handler(&self, link: &str) -> gtk::Inhibit {
+            if let Ok(url) = Url::parse(link) {
+                if url.scheme() == "pkg" {
+                    if let Some(pkg_name) = url.domain() {
+                        let mut new_obj: Option<&PkgObject> = None;
+
+                        let obj_list = self.pkgobject_list.borrow().to_vec();
+
+                        let new_obj_list: Vec<&PkgObject> = obj_list.iter().filter(|obj| {
+                            obj.name() == pkg_name
+                        }).collect();
+
+                        if new_obj_list.len() > 0 {
+                            new_obj = Some(new_obj_list[0]);
+                        } else {
+                            let new_obj_list: Vec<&PkgObject> = obj_list.iter()
+                            .filter(|obj| obj.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name))).collect();
+
+                            if new_obj_list.len() > 0 {
+                                new_obj = Some(new_obj_list[0]);
+                            }
+                        }
+
+                        self.infopane_display_package(new_obj);
+                    }
+
+                    gtk::Inhibit(true)
+                } else {
+                    gtk::Inhibit(false)
+                }
+            } else {
+                gtk::Inhibit(true)
             }
         }
 
