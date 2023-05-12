@@ -376,7 +376,7 @@ mod imp {
 
         #[template_callback]
         fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, exact: bool) {
-            let search_term = String::from(term.to_lowercase());
+            let search_term = term.to_lowercase();
     
             if search_term == "" {
                 self.pkgview_search_filter.unset_filter_func();
@@ -394,7 +394,7 @@ mod imp {
                             by_deps && obj.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_provides && obj.provides().iter().any(|s| s.to_lowercase().eq(&search_term)),
-                    ];
+                        ];
         
                         results.into_iter().any(|x| x)
                     });    
