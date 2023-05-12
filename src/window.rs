@@ -13,7 +13,7 @@ use lazy_static::lazy_static;
 use url::Url;
 
 use crate::PacViewApplication;
-use crate::pkgobject::{PkgObject, PkgStatusFlags};
+use crate::pkg_object::{PkgObject, PkgStatusFlags};
 use crate::prop_object::PropObject;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;

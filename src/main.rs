@@ -4,7 +4,7 @@ mod search_header;
 mod search_tag;
 mod filter_row;
 mod value_row;
-mod pkgobject;
+mod pkg_object;
 mod prop_object;
 
 use gtk::{gio, glib};
