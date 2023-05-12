@@ -22,13 +22,6 @@ mod imp {
         pub value: RefCell<String>,
         #[property(get, set)]
         pub icon: RefCell<Option<String>>,
-
-        #[property(get, set)]
-        pub icon_visible_binding: RefCell<Option<glib::Binding>>,
-        #[property(get, set)]
-        pub icon_binding: RefCell<Option<glib::Binding>>,
-        #[property(get, set)]
-        pub value_binding: RefCell<Option<glib::Binding>>,
     }
     
     //-----------------------------------

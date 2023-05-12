@@ -3,6 +3,7 @@ mod window;
 mod search_header;
 mod search_tag;
 mod filter_row;
+mod info_value;
 mod pkgobject;
 mod pkgproperty;
 

@@ -17,6 +17,7 @@ use crate::pkgobject::{PkgObject, PkgStatusFlags};
 use crate::pkgproperty::PkgProperty;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
+use crate::info_value::InfoValue;
 
 //------------------------------------------------------------------------------
 // MODULE: PACVIEWWINDOW
@@ -571,76 +572,56 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_infopane_setup_value(&self, item: glib::Object) {
-            let image = gtk::Image::new();
-
-            let label = gtk::Label::builder()
-                .hexpand(true)
-                .vexpand(true)
-                .xalign(0.0)
-                .yalign(0.0)
-                .use_markup(true)
-                .can_focus(false)
-                .selectable(true)
-                .wrap(true)
-                .margin_end(32)
-                .build();
-
-            let itembox = gtk::Box::builder()
-                .margin_start(4)
-                .spacing(6)
-                .build();
-
-            itembox.append(&image);
-            itembox.append(&label);
+            let info_value = InfoValue::new();
 
             item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
-                .set_child(Some(&itembox));
+                .set_child(Some(&info_value));
         }
 
         #[template_callback]
         fn on_infopane_bind_value(&self, item: glib::Object) {
-            let prop = item
+            let prop_obj = item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
                 .item()
                 .and_downcast::<PkgProperty>()
                 .expect("The item has to be a `PkgProperty`.");
 
-            let itembox = item
+            let info_value = item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
                 .child()
-                .and_downcast::<gtk::Box>()
+                .and_downcast::<InfoValue>()
                 .expect("The child has to be a `Box`.");
 
-            if let Some(image) = itembox.first_child().and_downcast::<gtk::Image>() {
-                prop.set_icon_visible_binding(prop.bind_property("icon", &image, "visible")
-                    .transform_to(|_, icon: Option<&str>| {
-                        let icon = icon.unwrap_or_default();
-                        Some(icon != "")
-                    })
-                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                    .build());
+            info_value.bind_properties(&prop_obj);
 
-                prop.set_icon_binding(prop.bind_property("icon", &image, "icon-name")
-                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                    .build());
-            }
-    
-            if let Some(label) = itembox.last_child().and_downcast::<gtk::Label>() {
-                prop.set_value_binding(prop.bind_property("value", &label, "label")
-                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                    .build());
+            let label = &info_value.imp().label;
 
-                let window = self;
+            let signal = label.connect_activate_link(clone!(@weak self as window => @default-return gtk::Inhibit(true), move |_, link| window.infopane_link_handler(link)));
 
-                label.connect_activate_link(clone!(@weak window => @default-return gtk::Inhibit(true), move |_, link| window.link_activate_handler(link)));
-            }
+            info_value.add_label_signal(signal);
         }
 
-        fn link_activate_handler(&self, link: &str) -> gtk::Inhibit {
+        #[template_callback]
+        fn on_infopane_unbind_value(&self, item: glib::Object) {
+            let info_value = item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Needs to be ListItem")
+                .child()
+                .and_downcast::<InfoValue>()
+                .expect("The child has to be a `Box`.");
+
+            info_value.unbind_properties();
+            info_value.drop_label_signals();
+        }
+
+        //-----------------------------------
+        // Infopane value label link handler
+        //-----------------------------------
+        fn infopane_link_handler(&self, link: &str) -> gtk::Inhibit {
             if let Ok(url) = Url::parse(link) {
                 if url.scheme() == "pkg" {
                     if let Some(pkg_name) = url.domain() {
@@ -648,9 +629,7 @@ mod imp {
 
                         let obj_list = self.pkgobject_list.borrow().to_vec();
 
-                        let new_obj_list: Vec<&PkgObject> = obj_list.iter().filter(|obj| {
-                            obj.name() == pkg_name
-                        }).collect();
+                        let new_obj_list: Vec<&PkgObject> = obj_list.iter().filter(|obj| obj.name() == pkg_name).collect();
 
                         if new_obj_list.len() > 0 {
                             new_obj = Some(new_obj_list[0]);
@@ -672,28 +651,6 @@ mod imp {
                 }
             } else {
                 gtk::Inhibit(true)
-            }
-        }
-
-        #[template_callback]
-        fn on_infopane_unbind_value(&self, item: glib::Object) {
-            let prop = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .item()
-                .and_downcast::<PkgProperty>()
-                .expect("The item has to be a `PkgProperty`.");
-
-            if let Some(binding) = prop.icon_visible_binding() {
-                binding.unbind();
-            }
-
-            if let Some(binding) = prop.icon_binding() {
-                binding.unbind();
-            }
-
-            if let Some(binding) = prop.value_binding() {
-                binding.unbind();
             }
         }
     }
