@@ -511,6 +511,12 @@ mod imp {
                         "Replaces", &self.propvec_to_linkstring(&obj.replaces()), None
                     ));
                 }
+                // Architecture
+                if obj.architecture() != "" {
+                    self.infopane_model.append(&PkgProperty::new(
+                        "Architecture", &obj.architecture(), None
+                    ));
+                }
                 // Build date
                 self.infopane_model.append(&PkgProperty::new(
                     "Build Date", &obj.build_date_long(), None

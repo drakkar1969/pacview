@@ -90,6 +90,8 @@ mod imp {
         #[property(get, set)]
         pub replaces: RefCell<Vec<String>>,
         #[property(get, set)]
+        pub architecture: RefCell<String>,
+        #[property(get, set)]
         pub build_date: Cell<i64>,
         #[property(get = Self::build_date_long)] // Read-only, custom getter
         pub build_date_long: RefCell<String>,
@@ -260,6 +262,7 @@ impl PkgObject {
             .property("provides", PkgObject::deplist_to_vec(&syncpkg.provides()))
             .property("conflicts", PkgObject::deplist_to_vec(&syncpkg.conflicts()))
             .property("replaces", PkgObject::deplist_to_vec(&syncpkg.replaces()))
+            .property("architecture", syncpkg.arch().unwrap_or_default())
             .property("build-date", syncpkg.build_date())
             .property("download-size", syncpkg.download_size())
 
