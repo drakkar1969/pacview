@@ -322,20 +322,20 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_repo_selected(&self, row: Option<FilterRow>) {
-            if let Some(r) = row {
-                self.pkgview_repo_filter.set_search(Some(&r.repo_id()));
+            if let Some(row) = row {
+                self.pkgview_repo_filter.set_search(Some(&row.repo_id()));
             }
         }
 
         #[template_callback]
         fn on_status_selected(&self, row: Option<FilterRow>) {
-            if let Some(r) = row {
+            if let Some(row) = row {
                 self.pkgview_status_filter.set_filter_func(move |item| {
                     let obj: &PkgObject = item
                         .downcast_ref::<PkgObject>()
                         .expect("Needs to be a PkgObject");
         
-                    obj.flags().intersects(r.status_id())
+                    obj.flags().intersects(row.status_id())
                 });
             }
         }
@@ -440,10 +440,10 @@ mod imp {
         //-----------------------------------
         // Infopane display package function
         //-----------------------------------
-        fn infopane_display_package(&self, pkg_object: Option<&PkgObject>) {
+        fn infopane_display_package(&self, obj: Option<&PkgObject>) {
             self.infopane_model.remove_all();
             
-            if let Some(obj) = pkg_object {
+            if let Some(obj) = obj {
                 // Name
                 self.infopane_model.append(&PkgProperty::new(
                     "Name", &format!("<b>{}</b>", obj.name()), None
