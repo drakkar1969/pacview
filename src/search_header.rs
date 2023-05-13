@@ -53,23 +53,25 @@ mod imp {
         title: RefCell<Option<String>>,
         #[property(get, set = Self::set_key_capture_widget)]
         key_capture_widget: RefCell<Option<gtk::Widget>>,
-        #[property(get, set)]
-        search_active: Cell<bool>,
 
         #[property(get, set)]
-        search_by_name: Cell<bool>,
+        active: Cell<bool>,
+
         #[property(get, set)]
-        search_by_desc: Cell<bool>,
+        by_name: Cell<bool>,
         #[property(get, set)]
-        search_by_group: Cell<bool>,
+        by_desc: Cell<bool>,
         #[property(get, set)]
-        search_by_deps: Cell<bool>,
+        by_group: Cell<bool>,
         #[property(get, set)]
-        search_by_optdeps: Cell<bool>,
+        by_deps: Cell<bool>,
         #[property(get, set)]
-        search_by_provides: Cell<bool>,
+        by_optdeps: Cell<bool>,
         #[property(get, set)]
-        search_exact: Cell<bool>,
+        by_provides: Cell<bool>,
+
+        #[property(get, set)]
+        exact: Cell<bool>,
     }
 
     //-----------------------------------
@@ -164,7 +166,7 @@ mod imp {
 
             for tag in tag_array {
                 if let Some(text) = tag.text() {
-                    let prop_name = format!("search-by-{}", text);
+                    let prop_name = format!("by-{}", text);
 
                     // Connect notify signals handlers for search by properties
                     obj.connect_notify(Some(&prop_name), move |header, _| {
@@ -172,13 +174,13 @@ mod imp {
         
                         header.emit_by_name::<()>("search-changed",
                             &[&imp.search_entry.text().to_string(),
-                            &header.search_by_name(),
-                            &header.search_by_desc(),
-                            &header.search_by_group(),
-                            &header.search_by_deps(),
-                            &header.search_by_optdeps(),
-                            &header.search_by_provides(),
-                            &header.search_exact()]
+                            &header.by_name(),
+                            &header.by_desc(),
+                            &header.by_group(),
+                            &header.by_deps(),
+                            &header.by_optdeps(),
+                            &header.by_provides(),
+                            &header.exact()]
                         );
                     });
     
@@ -190,35 +192,35 @@ mod imp {
             }
 
             // Connect notify signal handler for search exact property
-            obj.connect_notify(Some("search-exact"), move |header, _| {
+            obj.connect_notify(Some("exact"), move |header, _| {
                 let imp = header.imp();
 
                 header.emit_by_name::<()>("search-changed",
                     &[&imp.search_entry.text().to_string(),
-                    &header.search_by_name(),
-                    &header.search_by_desc(),
-                    &header.search_by_group(),
-                    &header.search_by_deps(),
-                    &header.search_by_optdeps(),
-                    &header.search_by_provides(),
-            &header.search_exact()]
+                    &header.by_name(),
+                    &header.by_desc(),
+                    &header.by_group(),
+                    &header.by_deps(),
+                    &header.by_optdeps(),
+                    &header.by_provides(),
+                    &header.exact()]
                 );
             });
 
             // Bind search exact property to search tag visibility
-            obj.bind_property("search-exact", &self.separator_exact.get(), "visible")
+            obj.bind_property("exact", &self.separator_exact.get(), "visible")
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
 
-            obj.bind_property("search-exact", &self.searchtag_exact.get(), "visible")
+            obj.bind_property("exact", &self.searchtag_exact.get(), "visible")
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
 
             // Connect notify signal handler for search active property
-            obj.connect_notify(Some("search-active"), |header, _| {
+            obj.connect_notify(Some("active"), |header, _| {
                 let imp = header.imp();
 
-                if header.search_active() {
+                if header.active() {
                     imp.stack.set_visible_child_name("search");
     
                     imp.search_entry.grab_focus();
@@ -228,7 +230,7 @@ mod imp {
                     imp.stack.set_visible_child_name("title");
                 }
 
-                header.emit_by_name::<()>("search-activated", &[&header.search_active()]);
+                header.emit_by_name::<()>("search-activated", &[&header.active()]);
             });
         }
     }
@@ -254,7 +256,7 @@ mod imp {
         fn on_search_started(&self) {
             let obj = self.obj();
 
-            obj.set_search_active(true);
+            obj.set_active(true);
         }
 
         #[template_callback]
@@ -263,13 +265,13 @@ mod imp {
 
             obj.emit_by_name::<()>("search-changed",
                 &[&self.search_entry.text().to_string(),
-                &obj.search_by_name(),
-                &obj.search_by_desc(),
-                &obj.search_by_group(),
-                &obj.search_by_deps(),
-                &obj.search_by_optdeps(),
-                &obj.search_by_provides(),
-                &obj.search_exact()]);
+                &obj.by_name(),
+                &obj.by_desc(),
+                &obj.by_group(),
+                &obj.by_deps(),
+                &obj.by_optdeps(),
+                &obj.by_provides(),
+                &obj.exact()]);
         }
 
         //-----------------------------------

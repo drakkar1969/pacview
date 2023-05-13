@@ -3,7 +3,7 @@
   <!--// SEARCH HEADER //-->
   <template class="SearchHeader" parent="GtkBox">
     <property name="width-request">860</property>
-    <property name="search-by-name">true</property>
+    <property name="by-name">true</property>
     <child>
       <object class="GtkStack" id="stack">
         <child>

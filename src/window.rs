@@ -150,29 +150,29 @@ mod imp {
             // Create actions for start/stop search
             let search_start_action = gio::SimpleAction::new("start", None);
             search_start_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                window.search_header.set_search_active(true);
+                window.search_header.set_active(true);
             }));
             search_group.add_action(&search_start_action);
 
             let search_stop_action = gio::SimpleAction::new("stop", None);
             search_stop_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                window.search_header.set_search_active(false);
+                window.search_header.set_active(false);
             }));
             search_group.add_action(&search_stop_action);
 
-            // Create actions for search header search-by properties
+            // Create actions for search header search by properties
             let prop_array = ["name", "desc", "group", "deps", "optdeps", "provides"];
 
             for prop in prop_array {
                 let action_name = format!("toggle-{}", prop);
-                let prop_name = format!("search-by-{}", prop);
+                let prop_name = format!("by-{}", prop);
 
                 let action = gio::PropertyAction::new(&action_name, &self.search_header.get(), &prop_name);
                 search_group.add_action(&action);
             }
 
             // Create action for search header search exact property
-            let action = gio::PropertyAction::new("toggle-exact", &self.search_header.get(), "search-exact");
+            let action = gio::PropertyAction::new("toggle-exact", &self.search_header.get(), "exact");
             search_group.add_action(&action);
         }
 
@@ -190,7 +190,7 @@ mod imp {
             obj.add_action(&show_infopane_action);
     
             // Bind search button state to search header active state
-            self.search_button.bind_property("active", &self.search_header.get(), "search-active")
+            self.search_button.bind_property("active", &self.search_header.get(), "active")
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
         }
