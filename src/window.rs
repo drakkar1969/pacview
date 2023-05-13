@@ -147,7 +147,7 @@ mod imp {
 
             obj.insert_action_group("search", Some(&search_group));
 
-            // Create actions for start/stop search
+            // Create actions to start/stop search
             let search_start_action = gio::SimpleAction::new("start", None);
             search_start_action.connect_activate(clone!(@weak self as window => move |_, _| {
                 window.search_header.set_active(true);
@@ -170,6 +170,27 @@ mod imp {
                 let action = gio::PropertyAction::new(&action_name, &self.search_header.get(), &prop_name);
                 search_group.add_action(&action);
             }
+
+            // Create actions to select all/reset search header search by properties
+            let selectall_action = gio::SimpleAction::new("selectall", None);
+            selectall_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                for prop in prop_array {
+                    let prop_name = format!("by-{}", prop);
+
+                    window.search_header.set_property(&prop_name, true);
+                }
+            }));
+            search_group.add_action(&selectall_action);
+
+            let reset_action = gio::SimpleAction::new("reset", None);
+            reset_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                for prop in prop_array {
+                    let prop_name = format!("by-{}", prop);
+
+                    window.search_header.set_property(&prop_name, prop == "name");
+                }
+            }));
+            search_group.add_action(&reset_action);
 
             // Create action for search header search exact property
             let action = gio::PropertyAction::new("toggle-exact", &self.search_header.get(), "exact");
@@ -359,6 +380,9 @@ mod imp {
                     app.set_accels_for_action("search.toggle-provides", &["<ctrl>6"]);
                     app.set_accels_for_action("search.toggle-files", &["<ctrl>7"]);
                     app.set_accels_for_action("search.toggle-exact", &["<ctrl>e"]);
+
+                    app.set_accels_for_action("search.selectall", &["<ctrl>l"]);
+                    app.set_accels_for_action("search.reset", &["<ctrl>r"]);
                 }
     
             } else {
@@ -373,6 +397,9 @@ mod imp {
                     app.set_accels_for_action("search.toggle-provides", &[]);
                     app.set_accels_for_action("search.toggle-files", &[]);
                     app.set_accels_for_action("search.toggle-exact", &[]);
+
+                    app.set_accels_for_action("search.selectall", &[]);
+                    app.set_accels_for_action("search.reset", &[]);
                 }
             }
         }

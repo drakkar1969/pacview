@@ -138,14 +138,14 @@
       </item>
     </section>
     <section>
-      <!-- <item>
+      <item>
         <attribute name="label">Select All</attribute>
-        <attribute name="action">win.selectall-searchby-params</attribute>
-      </item> -->
-      <!-- <item>
+        <attribute name="action">search.selectall</attribute>
+      </item>
+      <item>
         <attribute name="label">Reset</attribute>
-        <attribute name="action">win.reset-searchby-params</attribute>
-      </item> -->
+        <attribute name="action">search.reset</attribute>
+      </item>
     </section>
     <section>
       <item>
