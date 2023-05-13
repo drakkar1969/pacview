@@ -386,7 +386,11 @@ mod imp {
                 let mut update_result = UpdateResult { success: false, map: HashMap::new() };
 
                 if let Ok(output) = Command::new("checkupdates").output() {
-                    if output.status.success() {
+                    if output.status.code() == Some(0) || output.status.code() == Some(2) {
+                        update_result.success = true;
+                    }
+
+                    if update_result.success {
                         lazy_static! {
                             static ref EXPR: Regex = Regex::new("(\\S+) (\\S+ -> \\S+)").unwrap();
                         }
@@ -397,10 +401,6 @@ mod imp {
                             if EXPR.is_match(update).unwrap_or_default() {
                                 update_result.map.insert(EXPR.replace_all(&update, "$1").to_string(), EXPR.replace_all(&update, "$2").to_string());
                             }
-                        }
-
-                        if output.status.code() == Some(0) || output.status.code() == Some(2) {
-                            update_result.success = true;
                         }
                     }
                 }
