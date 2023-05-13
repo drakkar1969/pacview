@@ -161,7 +161,7 @@ mod imp {
             search_group.add_action(&search_stop_action);
 
             // Create actions for search header search by properties
-            let prop_array = ["name", "desc", "group", "deps", "optdeps", "provides"];
+            let prop_array = ["name", "desc", "group", "deps", "optdeps", "provides", "files"];
 
             for prop in prop_array {
                 let action_name = format!("toggle-{}", prop);
@@ -357,6 +357,7 @@ mod imp {
                     app.set_accels_for_action("search.toggle-deps", &["<ctrl>4"]);
                     app.set_accels_for_action("search.toggle-optdeps", &["<ctrl>5"]);
                     app.set_accels_for_action("search.toggle-provides", &["<ctrl>6"]);
+                    app.set_accels_for_action("search.toggle-files", &["<ctrl>7"]);
                     app.set_accels_for_action("search.toggle-exact", &["<ctrl>e"]);
                 }
     
@@ -370,15 +371,16 @@ mod imp {
                     app.set_accels_for_action("search.toggle-deps", &[]);
                     app.set_accels_for_action("search.toggle-optdeps", &[]);
                     app.set_accels_for_action("search.toggle-provides", &[]);
+                    app.set_accels_for_action("search.toggle-files", &[]);
                     app.set_accels_for_action("search.toggle-exact", &[]);
                 }
             }
         }
 
         #[template_callback]
-        fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, exact: bool) {
+        fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, exact: bool) {
             let search_term = term.to_lowercase();
-    
+
             if search_term == "" {
                 self.pkgview_search_filter.unset_filter_func();
             } else {
@@ -395,6 +397,7 @@ mod imp {
                             by_deps && obj.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_provides && obj.provides().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                            by_files && obj.files().iter().any(|s| s.to_lowercase().eq(&search_term)),
                         ];
         
                         results.into_iter().any(|x| x)
@@ -415,6 +418,7 @@ mod imp {
                                 by_deps && obj.depends().iter().any(|s| s.to_lowercase().contains(&term)),
                                 by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().contains(&term)),
                                 by_provides && obj.provides().iter().any(|s| s.to_lowercase().contains(&term)),
+                                by_files && obj.files().iter().any(|s| s.to_lowercase().contains(&term)),
                             ];
             
                             results.push(term_results.into_iter().any(|x| x));

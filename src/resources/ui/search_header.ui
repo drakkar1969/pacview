@@ -76,11 +76,11 @@
                             <property name="text">provides</property>
                           </object>
                         </child>
-                        <!-- <child>
+                        <child>
                           <object class="SearchTag" id="searchtag_files">
                             <property name="text">files</property>
                           </object>
-                        </child> -->
+                        </child>
                         <child>
                           <object class="GtkSeparator" id="separator_exact">
                             <property name="margin-start">3</property>
@@ -132,10 +132,10 @@
         <attribute name="label">Provides</attribute>
         <attribute name="action">search.toggle-provides</attribute>
       </item>
-      <!-- <item>
+      <item>
         <attribute name="label">Files</attribute>
-        <attribute name="action">win.toggle-files</attribute>
-      </item> -->
+        <attribute name="action">search.toggle-files</attribute>
+      </item>
     </section>
     <section>
       <!-- <item>

@@ -43,6 +43,8 @@ mod imp {
         #[template_child]
         pub searchtag_provides: TemplateChild<SearchTag>,
         #[template_child]
+        pub searchtag_files: TemplateChild<SearchTag>,
+        #[template_child]
         pub separator_exact: TemplateChild<gtk::Separator>,
         #[template_child]
         pub searchtag_exact: TemplateChild<SearchTag>,
@@ -69,6 +71,8 @@ mod imp {
         by_optdeps: Cell<bool>,
         #[property(get, set)]
         by_provides: Cell<bool>,
+        #[property(get, set)]
+        by_files: Cell<bool>,
 
         #[property(get, set)]
         exact: Cell<bool>,
@@ -105,6 +109,7 @@ mod imp {
                     Signal::builder("search-changed")
                     .param_types([
                         String::static_type(),
+                        bool::static_type(),
                         bool::static_type(),
                         bool::static_type(),
                         bool::static_type(),
@@ -162,6 +167,7 @@ mod imp {
                 self.searchtag_deps.get(),
                 self.searchtag_optdeps.get(),
                 self.searchtag_provides.get(),
+                self.searchtag_files.get(),
             ];
 
             for tag in tag_array {
@@ -180,6 +186,7 @@ mod imp {
                             &header.by_deps(),
                             &header.by_optdeps(),
                             &header.by_provides(),
+                            &header.by_files(),
                             &header.exact()]
                         );
                     });
@@ -203,6 +210,7 @@ mod imp {
                     &header.by_deps(),
                     &header.by_optdeps(),
                     &header.by_provides(),
+                    &header.by_files(),
                     &header.exact()]
                 );
             });
@@ -271,6 +279,7 @@ mod imp {
                 &obj.by_deps(),
                 &obj.by_optdeps(),
                 &obj.by_provides(),
+                &obj.by_files(),
                 &obj.exact()]);
         }
 
