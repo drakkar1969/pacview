@@ -257,6 +257,8 @@ mod imp {
             // Create refresh action
             let refresh_action = gio::SimpleAction::new("refresh", None);
             refresh_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                window.search_header.set_active(false);
+                
                 window.on_show_window();
             }));
             pkgview_group.add_action(&refresh_action);
@@ -386,7 +388,7 @@ mod imp {
                 .filter(|pkg| !handle.syncdbs().find_satisfier(pkg.name()).is_some())
                 .map(|pkg| PkgObject::new("foreign", pkg, Ok(pkg))));
 
-            self.pkgview_model.extend_from_slice(&obj_list);
+            self.pkgview_model.splice(0, self.pkgview_model.n_items(), &obj_list);
 
             self.pkgobject_list.replace(obj_list);
 
