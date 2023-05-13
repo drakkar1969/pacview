@@ -101,6 +101,8 @@ mod imp {
         pub download_size_string: RefCell<String>,
         #[property(get, set)]
         pub files: RefCell<Vec<String>>,
+        #[property(get, set)]
+        pub has_script: Cell<bool>,
     }
 
     //-----------------------------------
@@ -268,6 +270,7 @@ impl PkgObject {
             .property("architecture", syncpkg.arch().unwrap_or_default())
             .property("build-date", syncpkg.build_date())
             .property("download-size", syncpkg.download_size())
+            .property("has-script", syncpkg.has_scriptlet())
             .property("files", file_vec)
 
             .build()

@@ -581,6 +581,10 @@ mod imp {
                 self.infopane_model.append(&PropObject::new(
                     "Installed Size", &obj.install_size_string(), None
                 ));
+                // Has script
+                self.infopane_model.append(&PropObject::new(
+                    "Install Script", if obj.has_script() {"Yes"} else {"No"}, None
+                ));
             }
         }
 
