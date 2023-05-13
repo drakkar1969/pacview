@@ -148,13 +148,13 @@ mod imp {
             obj.insert_action_group("search", Some(&search_group));
 
             // Create actions for start/stop search
-            let search_start_action = gio::SimpleAction::new("start-search", None);
+            let search_start_action = gio::SimpleAction::new("start", None);
             search_start_action.connect_activate(clone!(@weak self as window => move |_, _| {
                 window.search_header.set_search_active(true);
             }));
             search_group.add_action(&search_start_action);
 
-            let search_stop_action = gio::SimpleAction::new("stop-search", None);
+            let search_stop_action = gio::SimpleAction::new("stop", None);
             search_stop_action.connect_activate(clone!(@weak self as window => move |_, _| {
                 window.search_header.set_search_active(false);
             }));
@@ -164,14 +164,15 @@ mod imp {
             let prop_array = ["name", "desc", "group", "deps", "optdeps", "provides"];
 
             for prop in prop_array {
-                let action_name = format!("search-by-{}", prop);
+                let action_name = format!("toggle-{}", prop);
+                let prop_name = format!("search-by-{}", prop);
 
-                let action = gio::PropertyAction::new(&action_name, &self.search_header.get(), &action_name);
+                let action = gio::PropertyAction::new(&action_name, &self.search_header.get(), &prop_name);
                 search_group.add_action(&action);
             }
 
             // Create action for search header search exact property
-            let action = gio::PropertyAction::new("search-exact", &self.search_header.get(), "search-exact");
+            let action = gio::PropertyAction::new("toggle-exact", &self.search_header.get(), "search-exact");
             search_group.add_action(&action);
         }
 
@@ -350,26 +351,26 @@ mod imp {
 
             if active {
                 if let Some(app) = &obj.application() {
-                    app.set_accels_for_action("search.search-by-name", &["<ctrl>1"]);
-                    app.set_accels_for_action("search.search-by-desc", &["<ctrl>2"]);
-                    app.set_accels_for_action("search.search-by-group", &["<ctrl>3"]);
-                    app.set_accels_for_action("search.search-by-deps", &["<ctrl>4"]);
-                    app.set_accels_for_action("search.search-by-optdeps", &["<ctrl>5"]);
-                    app.set_accels_for_action("search.search-by-provides", &["<ctrl>6"]);
-                    app.set_accels_for_action("search.search-exact", &["<ctrl>e"]);
+                    app.set_accels_for_action("search.toggle-name", &["<ctrl>1"]);
+                    app.set_accels_for_action("search.toggle-desc", &["<ctrl>2"]);
+                    app.set_accels_for_action("search.toggle-group", &["<ctrl>3"]);
+                    app.set_accels_for_action("search.toggle-deps", &["<ctrl>4"]);
+                    app.set_accels_for_action("search.toggle-optdeps", &["<ctrl>5"]);
+                    app.set_accels_for_action("search.toggle-provides", &["<ctrl>6"]);
+                    app.set_accels_for_action("search.toggle-exact", &["<ctrl>e"]);
                 }
     
             } else {
                 self.pkgview.grab_focus();
     
                 if let Some(app) = &obj.application() {
-                    app.set_accels_for_action("search.search-by-name", &[]);
-                    app.set_accels_for_action("search.search-by-desc", &[]);
-                    app.set_accels_for_action("search.search-by-group", &[]);
-                    app.set_accels_for_action("search.search-by-deps", &[]);
-                    app.set_accels_for_action("search.search-by-optdeps", &[]);
-                    app.set_accels_for_action("search.search-by-provides", &[]);
-                    app.set_accels_for_action("search.search-exact", &[]);
+                    app.set_accels_for_action("search.toggle-name", &[]);
+                    app.set_accels_for_action("search.toggle-desc", &[]);
+                    app.set_accels_for_action("search.toggle-group", &[]);
+                    app.set_accels_for_action("search.toggle-deps", &[]);
+                    app.set_accels_for_action("search.toggle-optdeps", &[]);
+                    app.set_accels_for_action("search.toggle-provides", &[]);
+                    app.set_accels_for_action("search.toggle-exact", &[]);
                 }
             }
         }

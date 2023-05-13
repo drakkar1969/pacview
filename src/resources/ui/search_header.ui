@@ -110,31 +110,31 @@
       <attribute name="label">Search By</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">search.search-by-name</attribute>
+        <attribute name="action">search.toggle-name</attribute>
       </item>
       <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">search.search-by-desc</attribute>
+        <attribute name="action">search.toggle-desc</attribute>
       </item>
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">search.search-by-group</attribute>
+        <attribute name="action">search.toggle-group</attribute>
       </item>
       <item>
         <attribute name="label">Dependencies</attribute>
-        <attribute name="action">search.search-by-deps</attribute>
+        <attribute name="action">search.toggle-deps</attribute>
       </item>
       <item>
         <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">search.search-by-optdeps</attribute>
+        <attribute name="action">search.toggle-optdeps</attribute>
       </item>
       <item>
         <attribute name="label">Provides</attribute>
-        <attribute name="action">search.search-by-provides</attribute>
+        <attribute name="action">search.toggle-provides</attribute>
       </item>
       <!-- <item>
         <attribute name="label">Files</attribute>
-        <attribute name="action">win.search-by-files</attribute>
+        <attribute name="action">win.toggle-files</attribute>
       </item> -->
     </section>
     <section>
@@ -150,7 +150,7 @@
     <section>
       <item>
         <attribute name="label">Exact Match</attribute>
-        <attribute name="action">search.search-exact</attribute>
+        <attribute name="action">search.toggle-exact</attribute>
       </item>
     </section>
   </menu>
