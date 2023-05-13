@@ -99,6 +99,8 @@ mod imp {
         pub download_size: Cell<i64>,
         #[property(get = Self::download_size_string)] // Read-only, custom getter
         pub download_size_string: RefCell<String>,
+        #[property(get, set)]
+        pub files: RefCell<Vec<String>>,
     }
     
     //-----------------------------------
@@ -185,9 +187,10 @@ glib::wrapper! {
 
 impl PkgObject {
     pub fn new(repository: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
-        // Default values for package status flags and install date (non-installed)
+        // Default values for package status flags, install date and files (non-installed)
         let mut flags = PkgStatusFlags::NONE;
         let mut install_date = 0;
+        let mut file_vec: Vec<String> = Vec::new();
 
         // If package is installed locally
         if let Ok(pkg) = localpkg {
@@ -208,6 +211,9 @@ impl PkgObject {
 
             // Get package installed date
             install_date = pkg.install_date().unwrap_or(0);
+
+            // Get package files
+            file_vec.extend(PkgObject::filelist_to_vec(&pkg.files()));
         }
 
         // Get package status and status icon
@@ -262,6 +268,7 @@ impl PkgObject {
             .property("architecture", syncpkg.arch().unwrap_or_default())
             .property("build-date", syncpkg.build_date())
             .property("download-size", syncpkg.download_size())
+            .property("files", file_vec)
 
             .build()
     }
@@ -269,6 +276,14 @@ impl PkgObject {
     fn deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
         let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
         dep_vec.sort_unstable();
+
         dep_vec
+    }
+
+    fn filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
+        let mut file_vec: Vec<String> = list.files().iter().map(|file| file.name().to_string()).collect();
+        file_vec.sort_unstable();
+
+        file_vec
     }
 }
