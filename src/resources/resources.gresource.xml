@@ -11,6 +11,7 @@
     <file alias="status-optional-symbolic.svg">icons/status-optional-symbolic.svg</file>
     <file alias="status-orphan-symbolic.svg">icons/status-orphan-symbolic.svg</file>
     <file alias="status-updates-symbolic.svg">icons/status-updates-symbolic.svg</file>
+    <file alias="status-updates-error-symbolic.svg">icons/status-updates-error-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/PacView/">
     <file compressed="true">style.css</file>

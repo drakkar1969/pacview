@@ -12,6 +12,11 @@ button.searchtag {
 	padding: 0;
 }
 
+/* Sidebar disabled image */
+row image:disabled {
+	-gtk-icon-filter: opacity(0.5);
+}
+
 /* Sidebar list count indicator */
 box.count-indicator {
 	min-width: 20px;
@@ -36,13 +41,9 @@ label.count-indicator {
 image.bubble.large {
 	min-width: 64px;
 	min-height: 64px;
-}
+} */
 
-row image:disabled {
-	-gtk-icon-filter: opacity(0.5);
-}
-
-spinner.dim-spinner {
+/* spinner.dim-spinner {
 	opacity: 0.5;
 }
 

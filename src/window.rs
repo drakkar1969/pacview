@@ -1,4 +1,8 @@
 use std::cell::RefCell;
+use std::thread;
+use std::process::Command;
+use std::collections::HashMap;
+use std::borrow::Borrow;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -69,6 +73,9 @@ mod imp {
 
         #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
+
+        #[property(get, set)]
+        update_row: RefCell<FilterRow>,
 
         #[property(get, set)]
         pacman_root_dir: RefCell<String>,
@@ -255,6 +262,7 @@ mod imp {
             self.get_pacman_config();
             self.populate_sidebar();
             self.load_packages();
+            self.get_package_updates();
         }
 
         //-----------------------------------
@@ -309,6 +317,13 @@ mod imp {
                     if f == PkgStatusFlags::INSTALLED {
                         self.status_listbox.select_row(Some(&row));
                     }
+
+                    if f == PkgStatusFlags::UPDATES {
+                        row.set_spinning(true);
+                        row.set_sensitive(false);
+
+                        obj.set_update_row(row);
+                    }
                 }
             }
         }
@@ -348,6 +363,79 @@ mod imp {
 
             let elapsed = now.elapsed();
             println!("Elapsed: {:?}", elapsed);
+        }
+
+        //-----------------------------------
+        // On show: get package updates
+        //-----------------------------------
+        fn get_package_updates(&self) {
+            pub struct UpdateResult {
+                success: bool,
+                map: HashMap<String, String>,
+            }
+    
+            let (sender, receiver) = glib::MainContext::channel::<UpdateResult>(glib::PRIORITY_DEFAULT);
+
+            thread::spawn(move || {
+                let mut update_result = UpdateResult { success: false, map: HashMap::new() };
+
+                if let Ok(output) = Command::new("checkupdates").output() {
+                    if output.status.success() {
+                        lazy_static! {
+                            static ref EXPR: Regex = Regex::new("(\\S+) (\\S+ -> \\S+)").unwrap();
+                        }
+
+                        let stdout = String::from_utf8(output.stdout).unwrap_or_default();
+
+                        for update in stdout.split_terminator("\n") {
+                            if EXPR.is_match(update).unwrap_or_default() {
+                                update_result.map.insert(EXPR.replace_all(&update, "$1").to_string(), EXPR.replace_all(&update, "$2").to_string());
+                            }
+                        }
+
+                        if output.status.code() == Some(0) || output.status.code() == Some(2) {
+                            update_result.success = true;
+                        }
+                    }
+                }
+
+                sender.send(update_result).expect("Could not send through channel");
+            });
+
+            let obj_list = self.pkgobject_list.borrow().to_vec();
+            let update_row: FilterRow = self.obj().update_row().clone();
+
+            receiver.attach(
+                None,
+                clone!(@strong obj_list, @strong update_row => @default-return Continue(false), move |result| {
+                    if result.success == true && result.map.len() > 0 {
+                        let update_list = obj_list.iter().filter(|obj| result.map.contains_key(&obj.name()));
+
+                        for obj in update_list {
+                            let version = result.map.get(&obj.name());
+    
+                            if let Some(version) = version {
+                                obj.set_version(version.borrow());
+    
+                                let mut flags = obj.flags();
+                                flags.set(PkgStatusFlags::UPDATES, true);
+    
+                                obj.set_flags(flags);
+                            }
+                        }
+                    }
+
+                    update_row.set_spinning(false);
+                    update_row.set_icon(if result.success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
+                    update_row.set_count(if result.success && result.map.len() > 0 {result.map.len().to_string()} else {String::from("")});
+
+                    update_row.set_tooltip_text(if result.success {Some("")} else {Some("Update error")});
+
+                    update_row.set_sensitive(result.success);
+
+                    Continue(false)
+                }),
+            );
         }
 
         //-----------------------------------

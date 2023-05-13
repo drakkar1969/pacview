@@ -138,3 +138,9 @@ impl FilterRow {
             .build()
     }
 }
+
+impl Default for FilterRow {
+    fn default() -> Self {
+        Self::new("", "")
+    }
+}
