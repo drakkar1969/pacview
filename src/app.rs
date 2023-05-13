@@ -17,7 +17,13 @@ mod imp {
         type ParentType = adw::Application;
     }
 
-    impl ObjectImpl for PacViewApplication {}
+    impl ObjectImpl for PacViewApplication {
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            self.obj().setup_actions();
+        }
+    }
 
     impl ApplicationImpl for PacViewApplication {
         fn activate(&self) {
@@ -29,11 +35,6 @@ mod imp {
                 let window = PacViewWindow::new(&*application);
                 window.upcast()
             };
-
-            application.set_accels_for_action("win.show-sidebar", &["<ctrl>b"]);
-            application.set_accels_for_action("win.show-infopane", &["<ctrl>i"]);
-            application.set_accels_for_action("search.start", &["<ctrl>f"]);
-            application.set_accels_for_action("search.stop", &["Escape"]);
 
             window.present();
         }
@@ -55,5 +56,42 @@ impl PacViewApplication {
             .property("application-id", application_id)
             .property("flags", flags)
             .build()
+    }
+
+    fn setup_actions(&self) {
+        let quit_action = gio::ActionEntry::builder("quit-app")
+            .activate(move |app: &Self, _, _| app.quit())
+            .build();
+        let about_action = gio::ActionEntry::builder("show-about")
+            .activate(move |app: &Self, _, _| app.show_about())
+            .build();
+        self.add_action_entries([quit_action, about_action]);
+
+        self.set_accels_for_action("app.quit-app", &["<ctrl>q"]);
+        self.set_accels_for_action("app.show-about", &["F1"]);
+
+        self.set_accels_for_action("win.show-sidebar", &["<ctrl>b"]);
+        self.set_accels_for_action("win.show-infopane", &["<ctrl>i"]);
+        self.set_accels_for_action("search.start", &["<ctrl>f"]);
+        self.set_accels_for_action("search.stop", &["Escape"]);
+    }
+
+    fn show_about(&self) {
+        let window = self.active_window().unwrap();
+
+        let about_window = adw::AboutWindow::builder()
+            .transient_for(&window)
+            .application_name("PacView")
+            .application_icon("software-properties")
+            .developer_name("draKKar1969")
+            .version("1.0.0")
+            .website("https://github.com/drakkar1969/pacview")
+            .developers(vec!["draKKar1969"])
+            .designers(vec!["draKKar1969"])
+            .copyright("© 2023 draKKar1969")
+            .license_type(gtk::License::Gpl30)
+            .build();
+
+        about_window.present();
     }
 }

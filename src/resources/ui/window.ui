@@ -470,7 +470,7 @@
     <section>
       <item>
         <attribute name="label">About PacView</attribute>
-        <!-- <attribute name="action">app.show-about</attribute> -->
+        <attribute name="action">app.show-about</attribute>
       </item>
     </section>
   </menu>
