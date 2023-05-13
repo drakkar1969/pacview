@@ -452,6 +452,8 @@ mod imp {
                                 flags.set(PkgStatusFlags::UPDATES, true);
     
                                 obj.set_flags(flags);
+
+                                obj.set_has_update(true);
                             }
                         }
                     }
@@ -613,7 +615,7 @@ mod imp {
                 ));
                 // Version
                 self.infopane_model.append(&PropObject::new(
-                    "Version", &obj.version(), None
+                    "Version", &obj.version(), if obj.has_update() {Some("pkg-update")} else {None}
                 ));
                 // Description
                 self.infopane_model.append(&PropObject::new(

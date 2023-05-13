@@ -109,6 +109,9 @@ mod imp {
         pub md5sum: RefCell<String>,
         #[property(get, set)]
         pub files: RefCell<Vec<String>>,
+
+        #[property(get, set)]
+        pub has_update: Cell<bool>,
     }
 
     //-----------------------------------
