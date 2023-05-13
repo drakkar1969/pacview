@@ -83,6 +83,8 @@ mod imp {
         pacman_db_path: RefCell<String>,
         #[property(get, set)]
         pacman_repo_names: RefCell<Vec<String>>,
+        #[property(get, set)]
+        default_repo_names: RefCell<Vec<String>>,
 
         pkgobject_list: RefCell<Vec<PkgObject>>,
     }
@@ -279,6 +281,10 @@ mod imp {
             obj.set_pacman_root_dir(pacman_config.root_dir);
             obj.set_pacman_db_path(pacman_config.db_path);
             obj.set_pacman_repo_names(repo_list);
+
+            let default_repo_names: Vec<String> = vec![String::from("core"), String::from("extra"), String::from("community"), String::from("multilib")];
+
+            obj.set_default_repo_names(default_repo_names.borrow());
         }
 
         //-----------------------------------
@@ -588,6 +594,12 @@ mod imp {
                 self.infopane_model.append(&PropObject::new(
                     "Description", &self.prop_to_esc_string(&obj.description()), None
                 ));
+                // Package/AUR URL
+                if self.obj().default_repo_names().contains(&obj.repository()) {
+                    self.infopane_model.append(&PropObject::new(
+                        "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=obj.repository(), arch=obj.architecture(), name=obj.name())), None
+                    ));
+                }
                 // URL
                 if obj.url() != "" {
                     self.infopane_model.append(&PropObject::new(
