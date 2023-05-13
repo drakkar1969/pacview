@@ -231,6 +231,8 @@ mod imp {
         // Setup package column view
         //-----------------------------------
         fn setup_pkgview(&self) {
+            let obj = self.obj();
+
             // Bind pkgview item count to empty label visisility
             self.pkgview_filter_model.bind_property("n-items", &self.pkgview_empty_label.get(), "visible")
                 .transform_to(|_, n_items: u32| {
@@ -246,6 +248,19 @@ mod imp {
                 })
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
+
+            // Create view action group
+            let pkgview_group = gio::SimpleActionGroup::new();
+
+            obj.insert_action_group("view", Some(&pkgview_group));
+
+            // Create refresh action
+            let refresh_action = gio::SimpleAction::new("refresh", None);
+            refresh_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                window.on_show_window();
+                println!("refresh")
+            }));
+            pkgview_group.add_action(&refresh_action);
 
             // Set pkgview sorting
             let sort_column = self.pkgview.columns().item(0);

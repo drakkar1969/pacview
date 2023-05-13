@@ -434,7 +434,7 @@
     <section>
       <item>
         <attribute name="label">Refresh</attribute>
-        <!-- <attribute name="action">win.refresh-packages</attribute> -->
+        <attribute name="action">view.refresh</attribute>
       </item>
     </section>
     <section>
