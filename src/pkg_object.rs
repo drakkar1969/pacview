@@ -12,7 +12,11 @@ use bytesize;
 //------------------------------------------------------------------------------
 #[glib::flags(name = "PkgStatusFlags")]
 pub enum PkgStatusFlags {
+    #[flags_value(name = "All")]
+    ALL = Self::INSTALLED.bits() | Self::NONE.bits(),
     #[flags_value(name = "Installed")]
+    INSTALLED = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
+    #[flags_value(name = "Explicit")]
     EXPLICIT  = 0b00000001,
     #[flags_value(name = "Dependency")]
     DEPENDENCY = 0b00000010,
@@ -22,10 +26,6 @@ pub enum PkgStatusFlags {
     ORPHAN     = 0b00001000,
     #[flags_value(name = "None")]
     NONE       = 0b00010000,
-    #[flags_value(name = "Installed")]
-    INSTALLED = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
-    #[flags_value(name = "All")]
-    ALL = Self::INSTALLED.bits() | Self::NONE.bits(),
     #[gflags(name = "Updates")]
     UPDATES    = 0b00100000,
 }

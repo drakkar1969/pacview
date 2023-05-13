@@ -246,9 +246,11 @@ mod imp {
         //-----------------------------------
         fn populate_sidebar(&self) {
             let obj = self.obj();
-    
+
+            // Repository rows
             let row = FilterRow::new("repository-symbolic", "All");
             row.set_repo_id("");
+
             self.repo_listbox.append(&row);
     
             self.repo_listbox.select_row(Some(&row));
@@ -256,27 +258,25 @@ mod imp {
             for repo in obj.pacman_repo_names() {
                 let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo));
                 row.set_repo_id(repo.to_lowercase());
+
                 self.repo_listbox.append(&row);
             }
-    
-            let status_map = [
-                ("status-all-symbolic", "All", PkgStatusFlags::ALL),
-                ("status-installed-symbolic", "Installed", PkgStatusFlags::INSTALLED),
-                ("status-explicit-symbolic", "Explicit", PkgStatusFlags::EXPLICIT),
-                ("status-dependency-symbolic", "Dependency", PkgStatusFlags::DEPENDENCY),
-                ("status-optional-symbolic", "Optional", PkgStatusFlags::OPTIONAL),
-                ("status-orphan-symbolic", "Orphan", PkgStatusFlags::ORPHAN),
-                ("status-none-symbolic", "None", PkgStatusFlags::NONE),
-                ("status-updates-symbolic", "Updates", PkgStatusFlags::UPDATES),
-            ];
 
-            for status in status_map {
-                let row = FilterRow::new(status.0, status.1);
-                row.set_status_id(status.2);
-                self.status_listbox.append(&row);
-    
-                if status.2 == PkgStatusFlags::INSTALLED {
-                    self.status_listbox.select_row(Some(&row));
+            // Package status rows (enumerate PkgStatusFlags)
+            let flags_class = glib::FlagsClass::new(PkgStatusFlags::static_type());
+
+            if let Some(flags_class) = flags_class {
+                for v in flags_class.values() {
+                    let f = PkgStatusFlags::from_bits_truncate(v.value());
+
+                    let row = FilterRow::new(&format!("status-{}-symbolic", v.nick()), v.name());
+                    row.set_status_id(f);
+
+                    self.status_listbox.append(&row);
+
+                    if f == PkgStatusFlags::INSTALLED {
+                        self.status_listbox.select_row(Some(&row));
+                    }
                 }
             }
         }
