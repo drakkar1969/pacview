@@ -258,7 +258,6 @@ mod imp {
             let refresh_action = gio::SimpleAction::new("refresh", None);
             refresh_action.connect_activate(clone!(@weak self as window => move |_, _| {
                 window.on_show_window();
-                println!("refresh")
             }));
             pkgview_group.add_action(&refresh_action);
 
@@ -307,6 +306,15 @@ mod imp {
         //-----------------------------------
         fn populate_sidebar(&self) {
             let obj = self.obj();
+
+            // Clear sidebar rows
+            while let Some(row) = self.repo_listbox.row_at_index(0) {
+                self.repo_listbox.remove(&row);
+            }
+
+            while let Some(row) = self.status_listbox.row_at_index(0) {
+                self.status_listbox.remove(&row);
+            }
 
             // Repository rows
             let row = FilterRow::new("repository-symbolic", "All");
