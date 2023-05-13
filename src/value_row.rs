@@ -87,17 +87,17 @@ impl ValueRow {
                 let icon = icon.unwrap_or_default();
                 Some(icon != "")
             })
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         bindings.push(binding);
 
         let binding = property.bind_property("icon", &image, "icon-name")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         bindings.push(binding);
 
         let binding = property.bind_property("value", &label, "label")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         bindings.push(binding);
     }
