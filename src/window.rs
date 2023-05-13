@@ -561,6 +561,12 @@ mod imp {
                         "Architecture", &obj.architecture(), None
                     ));
                 }
+                // Packager
+                if obj.packager() != "" {
+                    self.infopane_model.append(&PropObject::new(
+                        "Packager", &self.prop_to_packager(&obj.packager()), None
+                    ));
+                }
                 // Build date
                 self.infopane_model.append(&PropObject::new(
                     "Build Date", &obj.build_date_long(), None
@@ -606,6 +612,19 @@ mod imp {
 
         fn prop_to_esc_url(&self, prop: &str) -> String {
             format!("<a href=\"{0}\">{0}</a>", glib::markup_escape_text(prop).to_string())
+        }
+
+        fn prop_to_packager(&self, prop: &str) -> String {
+            lazy_static! {
+                static ref MATCH: Regex = Regex::new("^([^<]+)<([^>]+)>$").unwrap();
+                static ref EXPR: Regex = Regex::new("([^<]+)<?([^>]+)?>?").unwrap();
+            }
+
+            if MATCH.is_match(prop).unwrap_or_default() {
+                EXPR.replace_all(&prop, "$1&lt;<a href='mailto:$2'>$2</a>&gt;").to_string()
+            } else {
+                prop.to_string()
+            }
         }
 
         fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
