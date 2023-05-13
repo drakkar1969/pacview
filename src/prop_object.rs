@@ -23,7 +23,7 @@ mod imp {
         #[property(get, set)]
         pub icon: RefCell<Option<String>>,
     }
-    
+
     //-----------------------------------
     // Subclass
     //-----------------------------------
@@ -32,7 +32,7 @@ mod imp {
         const NAME: &'static str = "PropObject";
         type Type = super::PropObject;
     }
-    
+
     impl ObjectImpl for PropObject {
         //-----------------------------------
         // Default property functions
@@ -40,11 +40,11 @@ mod imp {
         fn properties() -> &'static [glib::ParamSpec] {
             Self::derived_properties()
         }
-    
+
         fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
             self.derived_set_property(id, value, pspec)
         }
-    
+
         fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
             self.derived_property(id, pspec)
         }

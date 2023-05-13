@@ -93,7 +93,7 @@ mod imp {
             PkgObject::static_type();
             PropObject::static_type();
             SearchHeader::static_type();
-            
+
             klass.bind_template();
             klass.bind_template_callbacks();
         }
@@ -114,7 +114,7 @@ mod imp {
         fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
             self.derived_set_property(id, value, pspec)
         }
-    
+
         fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
             self.derived_property(id, pspec)
         }
@@ -208,10 +208,10 @@ mod imp {
             // Add sidebar/infopane visibility actions
             let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &self.flap.get(), "reveal-flap");
             obj.add_action(&show_sidebar_action);
-    
+
             let show_infopane_action = gio::PropertyAction::new("show-infopane", &self.infopane_overlay.get(), "visible");
             obj.add_action(&show_infopane_action);
-    
+
             // Bind search button state to search header active state
             self.search_button.bind_property("active", &self.search_header.get(), "active")
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
@@ -237,12 +237,12 @@ mod imp {
                 })
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
-    
+
             // Set pkgview sorting
             let sort_column = self.pkgview.columns().item(0);
-    
+
             self.pkgview.sort_by_column(sort_column.and_downcast_ref(), gtk::SortType::Ascending);
-    
+
             // Set initial focus on pkgview
             self.pkgview.grab_focus();
         }
@@ -262,17 +262,17 @@ mod imp {
         //-----------------------------------
         fn get_pacman_config(&self) {
             let pacman_config = pacmanconf::Config::new().unwrap();
-    
+
             let mut repo_list: Vec<String> = pacman_config.repos.iter().map(|r| r.name.to_string()).collect();
             repo_list.push(String::from("foreign"));
 
             let obj = self.obj();
-    
+
             obj.set_pacman_root_dir(pacman_config.root_dir);
             obj.set_pacman_db_path(pacman_config.db_path);
             obj.set_pacman_repo_names(repo_list);
         }
-    
+
         //-----------------------------------
         // On show: populate sidebar listboxes
         //-----------------------------------
@@ -284,9 +284,9 @@ mod imp {
             row.set_repo_id("");
 
             self.repo_listbox.append(&row);
-    
+
             self.repo_listbox.select_row(Some(&row));
-    
+
             for repo in obj.pacman_repo_names() {
                 let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo));
                 row.set_repo_id(repo.to_lowercase());
@@ -312,7 +312,7 @@ mod imp {
                 }
             }
         }
-    
+
         //-----------------------------------
         // On show: load alpm packages
         //-----------------------------------
@@ -323,7 +323,7 @@ mod imp {
             let obj = self.obj();
 
             let handle = alpm::Alpm::new(obj.pacman_root_dir(), obj.pacman_db_path()).unwrap();
-    
+
             let localdb = handle.localdb();
 
             let mut obj_list: Vec<PkgObject> = Vec::new();
@@ -349,7 +349,7 @@ mod imp {
             let elapsed = now.elapsed();
             println!("Elapsed: {:?}", elapsed);
         }
-    
+
         //-----------------------------------
         // Sidebar signal handlers
         //-----------------------------------
@@ -367,7 +367,7 @@ mod imp {
                     let obj: &PkgObject = item
                         .downcast_ref::<PkgObject>()
                         .expect("Needs to be a PkgObject");
-        
+
                     obj.flags().intersects(row.status_id())
                 });
             }
@@ -394,10 +394,10 @@ mod imp {
                     app.set_accels_for_action("search.selectall", &["<ctrl>l"]);
                     app.set_accels_for_action("search.reset", &["<ctrl>r"]);
                 }
-    
+
             } else {
                 self.pkgview.grab_focus();
-    
+
                 if let Some(app) = &obj.application() {
                     app.set_accels_for_action("search.toggle-name", &[]);
                     app.set_accels_for_action("search.toggle-desc", &[]);
@@ -426,7 +426,7 @@ mod imp {
                         let obj: &PkgObject = item
                             .downcast_ref::<PkgObject>()
                             .expect("Needs to be a PkgObject");
-        
+
                         let results = [
                             by_name && obj.name().to_lowercase().eq(&search_term),
                             by_desc && obj.description().to_lowercase().eq(&search_term),
@@ -436,9 +436,9 @@ mod imp {
                             by_provides && obj.provides().iter().any(|s| s.to_lowercase().eq(&search_term)),
                             by_files && obj.files().iter().any(|s| s.to_lowercase().eq(&search_term)),
                         ];
-        
+
                         results.into_iter().any(|x| x)
-                    });    
+                    });
                 } else {
                     self.pkgview_search_filter.set_filter_func(move |item| {
                         let obj: &PkgObject = item
@@ -446,7 +446,7 @@ mod imp {
                             .expect("Needs to be a PkgObject");
 
                         let mut results = Vec::new();
-    
+
                         for term in search_term.split_whitespace() {
                             let term_results = [
                                 by_name && obj.name().to_lowercase().contains(&term),
@@ -457,7 +457,7 @@ mod imp {
                                 by_provides && obj.provides().iter().any(|s| s.to_lowercase().contains(&term)),
                                 by_files && obj.files().iter().any(|s| s.to_lowercase().contains(&term)),
                             ];
-            
+
                             results.push(term_results.into_iter().any(|x| x));
                         }
 
@@ -486,7 +486,7 @@ mod imp {
         //-----------------------------------
         fn infopane_display_package(&self, obj: Option<&PkgObject>) {
             self.infopane_model.remove_all();
-            
+
             if let Some(obj) = obj {
                 // Name
                 self.infopane_model.append(&PropObject::new(

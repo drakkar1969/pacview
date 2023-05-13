@@ -44,7 +44,7 @@ mod imp {
             obj.init_template();
         }
     }
-    
+
     impl ObjectImpl for ValueRow {
         //-----------------------------------
         // Constructor

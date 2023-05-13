@@ -98,7 +98,7 @@ mod imp {
             obj.init_template();
         }
     }
-    
+
     impl ObjectImpl for SearchHeader {
         //-----------------------------------
         // Custom signals
@@ -125,7 +125,7 @@ mod imp {
             });
             SIGNALS.as_ref()
         }
-    
+
         //-----------------------------------
         // Default property functions
         //-----------------------------------
@@ -136,7 +136,7 @@ mod imp {
         fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
             self.derived_set_property(id, value, pspec)
         }
-    
+
         fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
             self.derived_property(id, pspec)
         }
@@ -177,7 +177,7 @@ mod imp {
                     // Connect notify signals handlers for search by properties
                     obj.connect_notify(Some(&prop_name), move |header, _| {
                         let imp = header.imp();
-        
+
                         header.emit_by_name::<()>("search-changed",
                             &[&imp.search_entry.text().to_string(),
                             &header.by_name(),
@@ -190,7 +190,7 @@ mod imp {
                             &header.exact()]
                         );
                     });
-    
+
                     // Bind search by properties to search tag visibility
                     obj.bind_property(&prop_name, &tag, "visible")
                         .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
@@ -230,11 +230,11 @@ mod imp {
 
                 if header.active() {
                     imp.stack.set_visible_child_name("search");
-    
+
                     imp.search_entry.grab_focus();
                 } else {
                     imp.search_entry.set_text("");
-    
+
                     imp.stack.set_visible_child_name("title");
                 }
 
