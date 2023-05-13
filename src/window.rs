@@ -585,6 +585,18 @@ mod imp {
                 self.infopane_model.append(&PropObject::new(
                     "Install Script", if obj.has_script() {"Yes"} else {"No"}, None
                 ));
+                // SHA256 sum
+                if obj.sha256sum() != "" {
+                    self.infopane_model.append(&PropObject::new(
+                        "SHA256 Sum", &obj.sha256sum(), None
+                    ));
+                }
+                // MD5 sum
+                if obj.md5sum() != "" {
+                    self.infopane_model.append(&PropObject::new(
+                        "MD5 Sum", &obj.md5sum(), None
+                    ));
+                }
             }
         }
 

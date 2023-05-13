@@ -100,9 +100,13 @@ mod imp {
         #[property(get = Self::download_size_string)] // Read-only, custom getter
         pub download_size_string: RefCell<String>,
         #[property(get, set)]
-        pub files: RefCell<Vec<String>>,
-        #[property(get, set)]
         pub has_script: Cell<bool>,
+        #[property(get, set)]
+        pub sha256sum: RefCell<String>,
+        #[property(get, set)]
+        pub md5sum: RefCell<String>,
+        #[property(get, set)]
+        pub files: RefCell<Vec<String>>,
     }
 
     //-----------------------------------
@@ -271,6 +275,8 @@ impl PkgObject {
             .property("build-date", syncpkg.build_date())
             .property("download-size", syncpkg.download_size())
             .property("has-script", syncpkg.has_scriptlet())
+            .property("sha256sum", syncpkg.sha256sum().unwrap_or_default())
+            .property("md5sum", syncpkg.md5sum().unwrap_or_default())
             .property("files", file_vec)
 
             .build()
