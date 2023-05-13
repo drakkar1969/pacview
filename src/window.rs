@@ -59,6 +59,8 @@ mod imp {
         pub pkgview_filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub pkgview_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub pkgview_empty_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub infopane_overlay: TemplateChild<gtk::Overlay>,
@@ -220,6 +222,14 @@ mod imp {
         // Setup package column view
         //-----------------------------------
         fn setup_pkgview(&self) {
+            // Bind pkgview item count to empty label visisility
+            self.pkgview_filter_model.bind_property("n-items", &self.pkgview_empty_label.get(), "visible")
+                .transform_to(|_, n_items: u32| {
+                    Some(n_items == 0)
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
             // Bind pkgview item count to status label text
             self.pkgview_filter_model.bind_property("n-items", &self.status_label.get(), "label")
                 .transform_to(|_, n_items: u32| {

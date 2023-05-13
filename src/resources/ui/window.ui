@@ -339,6 +339,17 @@
                         </child>
                       </object>
                     </child>
+                    <child type="overlay">
+                      <object class="GtkLabel" id="pkgview_empty_label">
+                        <property name="halign">center</property>
+                        <property name="valign">center</property>
+                        <property name="label">No packages found</property>
+                        <style>
+                          <class name="title-4"/>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </property>
                 <property name="end-child">
