@@ -476,8 +476,9 @@ mod imp {
                 let obj = item.downcast_ref::<PkgObject>();
 
                 self.infopane_display_package(obj);
+            } else {
+                self.infopane_display_package(None);
             }
-
         }
 
         //-----------------------------------
