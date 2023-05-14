@@ -17,7 +17,7 @@ use lazy_static::lazy_static;
 use url::Url;
 
 use crate::PacViewApplication;
-use crate::pkg_object::{PkgObject, PkgStatusFlags};
+use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
@@ -279,8 +279,7 @@ mod imp {
         fn on_show_window(&self) {
             self.get_pacman_config();
             self.populate_sidebar();
-            self.load_packages();
-            self.get_package_updates();
+            self.load_packages_async();
         }
 
         //-----------------------------------
@@ -328,33 +327,38 @@ mod imp {
 
             for repo in obj.pacman_repo_names() {
                 let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo));
-                row.set_repo_id(repo.to_lowercase());
+                row.set_repo_id(&repo.to_lowercase());
 
                 self.repo_listbox.append(&row);
             }
 
             // Package status rows (enumerate PkgStatusFlags)
-            let flags_class = glib::FlagsClass::new(PkgStatusFlags::static_type());
+            let status_map = [
+                ("all", PkgFlags::ALL),
+                ("installed", PkgFlags::INSTALLED),
+                ("explicit", PkgFlags::EXPLICIT),
+                ("dependency", PkgFlags::DEPENDENCY),
+                ("optional", PkgFlags::OPTIONAL),
+                ("orphan", PkgFlags::ORPHAN),
+                ("none", PkgFlags::NONE),
+                ("updates", PkgFlags::UPDATES),
+            ];
 
-            if let Some(flags_class) = flags_class {
-                for v in flags_class.values() {
-                    let f = PkgStatusFlags::from_bits_truncate(v.value());
+            for status in status_map {
+                let row = FilterRow::new(&format!("status-{}-symbolic", status.0), &titlecase::titlecase(status.0));
+                row.set_status_id(status.1);
 
-                    let row = FilterRow::new(&format!("status-{}-symbolic", v.nick()), v.name());
-                    row.set_status_id(f);
+                self.status_listbox.append(&row);
 
-                    self.status_listbox.append(&row);
+                if status.1 == PkgFlags::INSTALLED {
+                    self.status_listbox.select_row(Some(&row));
+                }
 
-                    if f == PkgStatusFlags::INSTALLED {
-                        self.status_listbox.select_row(Some(&row));
-                    }
+                if status.1 == PkgFlags::UPDATES {
+                    row.set_spinning(true);
+                    row.set_sensitive(false);
 
-                    if f == PkgStatusFlags::UPDATES {
-                        row.set_spinning(true);
-                        row.set_sensitive(false);
-
-                        obj.set_update_row(row);
-                    }
+                    obj.set_update_row(row);
                 }
             }
         }
@@ -362,44 +366,71 @@ mod imp {
         //-----------------------------------
         // On show: load alpm packages
         //-----------------------------------
-        fn load_packages(&self) {
-            use std::time::Instant;
-            let now = Instant::now();
-
+        fn load_packages_async(&self) {
             let obj = self.obj();
 
-            let handle = alpm::Alpm::new(obj.pacman_root_dir(), obj.pacman_db_path()).unwrap();
+            let (sender, receiver) = glib::MainContext::channel::<Vec<PkgData>>(glib::PRIORITY_DEFAULT);
 
-            let localdb = handle.localdb();
+            let root_dir = obj.pacman_root_dir();
+            let db_path = obj.pacman_db_path();
+            let repo_names = obj.pacman_repo_names();
 
-            let mut obj_list: Vec<PkgObject> = Vec::new();
+            thread::spawn(move || {
+                let handle = alpm::Alpm::new(root_dir, db_path).unwrap();
 
-            for repo in obj.pacman_repo_names() {
-                let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
+                let localdb = handle.localdb();
 
-                obj_list.extend(db.pkgs().iter().map(|syncpkg| {
-                    let localpkg = localdb.pkg(syncpkg.name());
+                let mut data_list: Vec<PkgData> = Vec::new();
 
-                    PkgObject::new(db.name(), syncpkg, localpkg)
-                }));
-            }
+                for repo in repo_names {
+                    let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
+                    data_list.extend(db.pkgs().iter()
+                        .map(|syncpkg| {
+                            let localpkg = localdb.pkg(syncpkg.name());
 
-            obj_list.extend(localdb.pkgs().iter()
-                .filter(|pkg| !handle.syncdbs().find_satisfier(pkg.name()).is_some())
-                .map(|pkg| PkgObject::new("foreign", pkg, Ok(pkg))));
+                            PkgObject::build_pkg_data(db.name(), syncpkg, localpkg)
+                        })
+                    );
+                }
 
-            self.pkgview_model.splice(0, self.pkgview_model.n_items(), &obj_list);
+                data_list.extend(localdb.pkgs().iter()
+                    .filter(|pkg| {
+                        !handle.syncdbs().find_satisfier(pkg.name()).is_some()
+                    })
+                    .map(|pkg| {
+                        PkgObject::build_pkg_data("foreign", pkg, Ok(pkg))
+                    })
+                );
 
-            self.pkgobject_list.replace(obj_list);
+                sender.send(data_list).expect("Could not send through channel");
+            });
 
-            let elapsed = now.elapsed();
-            println!("Elapsed: {:?}", elapsed);
+            let window = self;
+
+            receiver.attach(
+                None,
+                clone!(@weak window => @default-return Continue(false), move |data_list| {
+                    let obj_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
+                        let obj = PkgObject::new();
+                        obj.set_data(data);
+                        obj
+                    }).collect();
+
+                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &obj_list);
+
+                    window.pkgobject_list.replace(obj_list);
+
+                    window.get_package_updates_async();
+
+                    Continue(false)
+                }),
+            );
         }
 
         //-----------------------------------
         // On show: get package updates
         //-----------------------------------
-        fn get_package_updates(&self) {
+        fn get_package_updates_async(&self) {
             pub struct UpdateResult {
                 success: bool,
                 map: HashMap<String, String>,
@@ -449,7 +480,7 @@ mod imp {
                                 obj.set_version(version.borrow());
     
                                 let mut flags = obj.flags();
-                                flags.set(PkgStatusFlags::UPDATES, true);
+                                flags.set(PkgFlags::UPDATES, true);
     
                                 obj.set_flags(flags);
 
@@ -642,7 +673,7 @@ mod imp {
                 // Status
                 let status = &obj.status();
                 self.infopane_model.append(&PropObject::new(
-                    "Status", if obj.flags().intersects(PkgStatusFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())
+                    "Status", if obj.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())
                 ));
                 // Repository
                 self.infopane_model.append(&PropObject::new(

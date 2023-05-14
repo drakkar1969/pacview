@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -6,34 +6,63 @@ use gtk::prelude::ObjectExt;
 
 use alpm;
 use bytesize;
+use bitflags;
 
 //------------------------------------------------------------------------------
-// FLAGS: PKGSTATUSFLAGS
+// FLAGS: PKGFLAGS
 //------------------------------------------------------------------------------
-#[glib::flags(name = "PkgStatusFlags")]
-pub enum PkgStatusFlags {
-    #[flags_value(name = "All")]
-    ALL = Self::INSTALLED.bits() | Self::NONE.bits(),
-    #[flags_value(name = "Installed")]
-    INSTALLED = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
-    #[flags_value(name = "Explicit")]
-    EXPLICIT  = 0b00000001,
-    #[flags_value(name = "Dependency")]
-    DEPENDENCY = 0b00000010,
-    #[flags_value(name = "Optional")]
-    OPTIONAL   = 0b00000100,
-    #[flags_value(name = "Orphan")]
-    ORPHAN     = 0b00001000,
-    #[flags_value(name = "None")]
-    NONE       = 0b00010000,
-    #[gflags(name = "Updates")]
-    UPDATES    = 0b00100000,
+bitflags::bitflags! {
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+    pub struct PkgFlags: u32 {
+        const EXPLICIT   = 0b00000001;
+        const DEPENDENCY = 0b00000010;
+        const OPTIONAL   = 0b00000100;
+        const ORPHAN     = 0b00001000;
+        const NONE       = 0b00010000;
+        const UPDATES    = 0b00100000;
+        const ALL        = Self::INSTALLED.bits() | Self::NONE.bits();
+        const INSTALLED  = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits();
+    }
 }
 
-impl Default for PkgStatusFlags {
+impl Default for PkgFlags {
     fn default() -> Self {
-        PkgStatusFlags::NONE
+        PkgFlags::NONE
     }
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: PKGDATA
+//------------------------------------------------------------------------------
+#[derive(Default)]
+pub struct PkgData {
+    pub flags: PkgFlags,
+    pub name: String,
+    pub version: String,
+    pub repository: String,
+    pub status: String,
+    pub status_icon: String,
+    pub install_date: i64,
+    pub install_size: i64,
+    pub groups: String,
+
+    pub description: String,
+    pub url: String,
+    pub licenses: String,
+    pub provides: Vec<String>,
+    pub depends: Vec<String>,
+    pub optdepends: Vec<String>,
+    pub conflicts: Vec<String>,
+    pub replaces: Vec<String>,
+    pub architecture: String,
+    pub packager: String,
+    pub build_date: i64,
+    pub download_size: i64,
+    pub has_script: bool,
+    pub sha256sum: String,
+    pub md5sum: String,
+    pub files: Vec<String>,
+    pub has_update: bool,
 }
 
 //------------------------------------------------------------------------------
@@ -48,70 +77,47 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
-        #[property(get, set)]
-        pub flags: Cell<PkgStatusFlags>,
-        #[property(get, set)]
-        pub name: RefCell<String>,
-        #[property(get, set)]
-        pub version: RefCell<String>,
-        #[property(get, set)]
-        pub repository: RefCell<String>,
-        #[property(get, set)]
-        pub status: RefCell<String>,
-        #[property(get, set)]
-        pub status_icon: RefCell<String>,
-        #[property(get, set)]
-        pub install_date: Cell<i64>,
-        #[property(get = Self::install_date_short)] // Read-only, custom getter
+        // Read-write properties
+        #[property(name = "version", get, set, type = String, member = version)]
+        #[property(name = "has-update", get, set, type = bool, member = has_update)]
+
+        // Read-only properties
+        #[property(name = "name", get, type = String, member = name)]
+        #[property(name = "repository", get, type = String, member = repository)]
+        #[property(name = "status", get, type = String, member = status)]
+        #[property(name = "status-icon", get, type = String, member = status_icon)]
+        #[property(name = "install-date", get, type = i64, member = install_date)]
+        #[property(name = "install-size", get, type = i64, member = install_size)]
+        #[property(name = "groups", get, type = String, member = groups)]
+        #[property(name = "description", get, type = String, member = description)]
+        #[property(name = "url", get, type = String, member = url)]
+        #[property(name = "licenses", get, type = String, member = licenses)]
+        #[property(name = "provides", get, type = Vec<String>, member = provides)]
+        #[property(name = "depends", get, type = Vec<String>, member = depends)]
+        #[property(name = "optdepends", get, type = Vec<String>, member = optdepends)]
+        #[property(name = "conflicts", get, type = Vec<String>, member = conflicts)]
+        #[property(name = "replaces", get, type = Vec<String>, member = replaces)]
+        #[property(name = "architecture", get, type = String, member = architecture)]
+        #[property(name = "packager", get, type = String, member = packager)]
+        #[property(name = "build-date", get, type = i64, member = build_date)]
+        #[property(name = "download-size", get, type = i64, member = download_size)]
+        #[property(name = "has-script", get, type = bool, member = has_script)]
+        #[property(name = "sha256sum", get, type = String, member = sha256sum)]
+        #[property(name = "md5sum", get, type = String, member = md5sum)]
+        #[property(name = "files", get, type = Vec<String>, member = files)]
+        pub data: RefCell<PkgData>,
+
+        // Read-only properties with custom getter
+        #[property(get = Self::install_date_short)]
         pub install_date_short: RefCell<String>,
-        #[property(get = Self::install_date_long)] // Read-only, custom getter
+        #[property(get = Self::install_date_long)]
         pub install_date_long: RefCell<String>,
-        #[property(get, set)]
-        pub install_size: Cell<i64>,
-        #[property(get = Self::install_size_string)] // Read-only, custom getter
+        #[property(get = Self::install_size_string)]
         pub install_size_string: RefCell<String>,
-        #[property(get, set)]
-        pub groups: RefCell<String>,
-
-        #[property(get, set)]
-        pub description: RefCell<String>,
-        #[property(get, set)]
-        pub url: RefCell<String>,
-        #[property(get, set)]
-        pub licenses: RefCell<String>,
-        #[property(get, set)]
-        pub depends: RefCell<Vec<String>>,
-        #[property(get, set)]
-        pub optdepends: RefCell<Vec<String>>,
-        #[property(get, set)]
-        pub provides: RefCell<Vec<String>>,
-        #[property(get, set)]
-        pub conflicts: RefCell<Vec<String>>,
-        #[property(get, set)]
-        pub replaces: RefCell<Vec<String>>,
-        #[property(get, set)]
-        pub architecture: RefCell<String>,
-        #[property(get, set)]
-        pub packager: RefCell<String>,
-        #[property(get, set)]
-        pub build_date: Cell<i64>,
-        #[property(get = Self::build_date_long)] // Read-only, custom getter
+        #[property(get = Self::build_date_long)]
         pub build_date_long: RefCell<String>,
-        #[property(get, set)]
-        pub download_size: Cell<i64>,
-        #[property(get = Self::download_size_string)] // Read-only, custom getter
+        #[property(get = Self::download_size_string)]
         pub download_size_string: RefCell<String>,
-        #[property(get, set)]
-        pub has_script: Cell<bool>,
-        #[property(get, set)]
-        pub sha256sum: RefCell<String>,
-        #[property(get, set)]
-        pub md5sum: RefCell<String>,
-        #[property(get, set)]
-        pub files: RefCell<Vec<String>>,
-
-        #[property(get, set)]
-        pub has_update: Cell<bool>,
     }
 
     //-----------------------------------
@@ -197,108 +203,130 @@ glib::wrapper! {
 }
 
 impl PkgObject {
-    pub fn new(repository: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
-        // Default values for package status flags, install date and files (non-installed)
-        let mut flags = PkgStatusFlags::NONE;
-        let mut install_date = 0;
-        let mut file_vec: Vec<String> = Vec::new();
-
-        // If package is installed locally
-        if let Ok(pkg) = localpkg {
-            // Get package status flags
-            if pkg.reason() == alpm::PackageReason::Explicit {
-                flags = PkgStatusFlags::EXPLICIT;
-            } else {
-                if !pkg.required_by().is_empty() {
-                    flags = PkgStatusFlags::DEPENDENCY;
-                } else {
-                    if !pkg.optional_for().is_empty() {
-                        flags = PkgStatusFlags::OPTIONAL;
-                    } else {
-                        flags = PkgStatusFlags::ORPHAN;
-                    }
-                }
-            }
-
-            // Get package installed date
-            install_date = pkg.install_date().unwrap_or(0);
-
-            // Get package files
-            file_vec.extend(PkgObject::filelist_to_vec(&pkg.files()));
-        }
-
-        // Get package status and status icon
-        let status = match flags {
-            PkgStatusFlags::EXPLICIT => "explicit",
-            PkgStatusFlags::DEPENDENCY => "dependency",
-            PkgStatusFlags::OPTIONAL => "optional",
-            PkgStatusFlags::ORPHAN => "orphan",
-            _ => ""
-        };
-
-        let status_icon = match flags {
-            PkgStatusFlags::EXPLICIT => "pkg-explicit",
-            PkgStatusFlags::DEPENDENCY => "pkg-dependency",
-            PkgStatusFlags::OPTIONAL => "pkg-optional",
-            PkgStatusFlags::ORPHAN => "pkg-orphan",
-            _ => ""
-        };
-
-        // Get package groups
-        let mut group_list: Vec<&str> = syncpkg.groups().iter().collect();
-        group_list.sort_unstable();
-
-        let groups = group_list.join(", ");
-
-        // Get package licenses
-        let mut license_list: Vec<&str> = syncpkg.licenses().iter().collect();
-        license_list.sort_unstable();
-
-        let licenses = license_list.join(", ");
-
-        // Build PkgObject
-        glib::Object::builder()
-            .property("name", syncpkg.name())
-            .property("version", syncpkg.version().as_str())
-            .property("repository", repository)
-            .property("flags", flags)
-            .property("status", status)
-            .property("status-icon", status_icon)
-            .property("install-date", install_date)
-            .property("install-size", syncpkg.isize())
-            .property("groups", groups)
-
-            .property("description", syncpkg.desc().unwrap_or_default())
-            .property("url", syncpkg.url().unwrap_or_default())
-            .property("licenses", licenses)
-            .property("depends", PkgObject::deplist_to_vec(&syncpkg.depends()))
-            .property("optdepends", PkgObject::deplist_to_vec(&syncpkg.optdepends()))
-            .property("provides", PkgObject::deplist_to_vec(&syncpkg.provides()))
-            .property("conflicts", PkgObject::deplist_to_vec(&syncpkg.conflicts()))
-            .property("replaces", PkgObject::deplist_to_vec(&syncpkg.replaces()))
-            .property("architecture", syncpkg.arch().unwrap_or_default())
-            .property("packager", syncpkg.packager().unwrap_or_default())
-            .property("build-date", syncpkg.build_date())
-            .property("download-size", syncpkg.download_size())
-            .property("has-script", syncpkg.has_scriptlet())
-            .property("sha256sum", syncpkg.sha256sum().unwrap_or_default())
-            .property("md5sum", syncpkg.md5sum().unwrap_or_default())
-            .property("files", file_vec)
-
-            .build()
+    //-----------------------------------
+    // Public constructor
+    //-----------------------------------
+    pub fn new() -> Self {
+        glib::Object::builder().build()
     }
 
-    fn deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
+    //-----------------------------------
+    // Public helper functions
+    //-----------------------------------
+    pub fn deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
         let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
         dep_vec.sort_unstable();
 
         dep_vec
     }
 
-    fn filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
+    pub fn filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
         let mut file_vec: Vec<String> = list.files().iter().map(|file| file.name().to_string()).collect();
         file_vec.sort_unstable();
 
         file_vec
+    }
+
+    pub fn build_pkg_data(repo: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> PkgData {
+        // Defaults for package status flags, install date and files (non-installed)
+        let mut iflags = PkgFlags::NONE;
+        let mut idate = 0;
+        let mut files_vec: Vec<String> = Vec::new();
+
+        if let Ok(pkg) = localpkg {
+            // Get package status flags
+            if pkg.reason() == alpm::PackageReason::Explicit {
+                iflags = PkgFlags::EXPLICIT;
+            } else {
+                if !pkg.required_by().is_empty() {
+                    iflags = PkgFlags::DEPENDENCY;
+                } else {
+                    if !pkg.optional_for().is_empty() {
+                        iflags = PkgFlags::OPTIONAL;
+                    } else {
+                        iflags = PkgFlags::ORPHAN;
+                    }
+                }
+            }
+
+            // Get package installed date
+            idate = pkg.install_date().unwrap_or(0);
+
+            // Get package files
+            files_vec.extend(PkgObject::filelist_to_vec(&pkg.files()));
+        }
+
+        // Get package groups
+        let mut group_list: Vec<&str> = syncpkg.groups().iter().collect();
+        group_list.sort_unstable();
+
+        let pgroups = group_list.join(", ");
+
+        // Get package licenses
+        let mut license_list: Vec<&str> = syncpkg.licenses().iter().collect();
+        license_list.sort_unstable();
+
+        let plicenses = license_list.join(", ");
+
+        PkgData {
+            flags: iflags,
+            name: syncpkg.name().to_string(),
+            version: syncpkg.version().to_string(),
+            repository: repo.to_string(),
+            status: match iflags {
+                PkgFlags::EXPLICIT => "explicit".to_string(),
+                PkgFlags::DEPENDENCY => "dependency".to_string(),
+                PkgFlags::OPTIONAL => "optional".to_string(),
+                PkgFlags::ORPHAN => "orphan".to_string(),
+                _ => "".to_string()
+            },
+            status_icon: match iflags {
+                PkgFlags::EXPLICIT => "pkg-explicit".to_string(),
+                PkgFlags::DEPENDENCY => "pkg-dependency".to_string(),
+                PkgFlags::OPTIONAL => "pkg-optional".to_string(),
+                PkgFlags::ORPHAN => "pkg-orphan".to_string(),
+                _ => "".to_string()
+            },
+            install_date: idate,
+            install_size: syncpkg.isize(),
+            groups: pgroups,
+            description: syncpkg.desc().unwrap_or_default().to_string(),
+            url: syncpkg.url().unwrap_or_default().to_string(),
+            licenses: plicenses,
+            provides: PkgObject::deplist_to_vec(&syncpkg.provides()),
+            depends: PkgObject::deplist_to_vec(&syncpkg.depends()),
+            optdepends: PkgObject::deplist_to_vec(&syncpkg.optdepends()),
+            conflicts: PkgObject::deplist_to_vec(&syncpkg.conflicts()),
+            replaces: PkgObject::deplist_to_vec(&syncpkg.replaces()),
+            architecture: syncpkg.arch().unwrap_or_default().to_string(),
+            packager: syncpkg.packager().unwrap_or_default().to_string(),
+            build_date: syncpkg.build_date(),
+            download_size: syncpkg.download_size(),
+            has_script: syncpkg.has_scriptlet(),
+            sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
+            md5sum: syncpkg.md5sum().unwrap_or_default().to_string(),
+            files: files_vec,
+            has_update: false,
+        }
+    }
+
+    //-----------------------------------
+    // Public data setter function
+    //-----------------------------------
+    pub fn set_data(&self, data: PkgData) {
+        self.imp().data.replace(data);
+    }
+
+    //-----------------------------------
+    // Public flags getter/setter functions
+    //-----------------------------------
+    pub fn flags(&self) -> PkgFlags {
+        self.imp().data.borrow().flags
+    }
+
+    pub fn set_flags(&self, flags: PkgFlags) {
+        let mut data = self.imp().data.borrow_mut();
+
+        data.flags = flags;
     }
 }
