@@ -221,7 +221,7 @@ impl PkgObject {
         // Defaults for package status flags, install date and files (non-installed)
         let mut iflags = PkgFlags::NONE;
         let mut idate = 0;
-        let mut files_vec: Vec<String> = Vec::new();
+        let mut files_vec: Vec<String> = vec![];
 
         if let Ok(pkg) = localpkg {
             // Get package status flags

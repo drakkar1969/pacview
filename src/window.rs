@@ -406,7 +406,7 @@ mod imp {
 
                 let localdb = handle.localdb();
 
-                let mut data_list: Vec<PkgData> = Vec::new();
+                let mut data_list: Vec<PkgData> = vec![];
 
                 for repo in repo_names {
                     let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
@@ -448,7 +448,7 @@ mod imp {
 
                     window.pkgview_stack.set_visible_child_name("view");
 
-                    let history_list: Vec<PkgObject> = Vec::new(); 
+                    let history_list: Vec<PkgObject> = vec![]; 
 
                     window.history_list.replace(history_list);
                     window.history_index.replace(0);
@@ -631,7 +631,7 @@ mod imp {
                             .downcast_ref::<PkgObject>()
                             .expect("Needs to be a PkgObject");
 
-                        let mut results = Vec::new();
+                        let mut results = vec![];
 
                         for term in search_term.split_whitespace() {
                             let term_results = [
