@@ -67,16 +67,17 @@ impl PacViewApplication {
             .build();
         self.add_action_entries([quit_action, about_action]);
 
-        self.set_accels_for_action("app.quit-app", &["<ctrl>q"]);
+        self.set_accels_for_action("app.quit-app", &["<ctrl>Q"]);
         self.set_accels_for_action("app.show-about", &["F1"]);
 
-        self.set_accels_for_action("win.show-sidebar", &["<ctrl>b"]);
-        self.set_accels_for_action("win.show-infopane", &["<ctrl>i"]);
+        self.set_accels_for_action("win.show-sidebar", &["<ctrl>B"]);
+        self.set_accels_for_action("win.show-infopane", &["<ctrl>I"]);
 
-        self.set_accels_for_action("search.start", &["<ctrl>f"]);
+        self.set_accels_for_action("search.start", &["<ctrl>F"]);
         self.set_accels_for_action("search.stop", &["Escape"]);
 
         self.set_accels_for_action("view.refresh", &["F5"]);
+        self.set_accels_for_action("view.copy-list", &["<alt>L"]);
     }
 
     fn show_about(&self) {

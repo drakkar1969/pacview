@@ -256,7 +256,7 @@ mod imp {
 
             obj.insert_action_group("view", Some(&pkgview_group));
 
-            // Create refresh action
+            // Create pkgview refresh action
             let refresh_action = gio::SimpleAction::new("refresh", None);
             refresh_action.connect_activate(clone!(@weak self as window => move |_, _| {
                 window.search_header.set_active(false);
@@ -264,6 +264,27 @@ mod imp {
                 window.on_show_window();
             }));
             pkgview_group.add_action(&refresh_action);
+
+            // Create pkgview copy list action
+            let window = self;
+
+            let copy_action = gio::SimpleAction::new("copy-list", None);
+            copy_action.connect_activate(clone!(@weak window => move |_, _| {
+                let item_list: Vec<String> = IntoIterator::into_iter(0..window.pkgview_selection.n_items())
+                    .map(|i| {
+                        let obj: PkgObject = window.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
+
+                        format!("{repo}/{name}-{version}", repo=obj.repository(), name=obj.name(), version=obj.version())
+                    }
+                ).collect();
+
+                let copy_text = item_list.join("\n");
+
+                let clipboard = window.obj().clipboard();
+
+                clipboard.set_text(&copy_text);
+            }));
+            pkgview_group.add_action(&copy_action);
 
             // Set pkgview sorting
             let sort_column = self.pkgview.columns().item(0);
@@ -546,10 +567,10 @@ mod imp {
                     app.set_accels_for_action("search.toggle-optdeps", &["<ctrl>5"]);
                     app.set_accels_for_action("search.toggle-provides", &["<ctrl>6"]);
                     app.set_accels_for_action("search.toggle-files", &["<ctrl>7"]);
-                    app.set_accels_for_action("search.toggle-exact", &["<ctrl>e"]);
+                    app.set_accels_for_action("search.toggle-exact", &["<ctrl>E"]);
 
-                    app.set_accels_for_action("search.selectall", &["<ctrl>l"]);
-                    app.set_accels_for_action("search.reset", &["<ctrl>r"]);
+                    app.set_accels_for_action("search.selectall", &["<ctrl>L"]);
+                    app.set_accels_for_action("search.reset", &["<ctrl>R"]);
                 }
 
             } else {
