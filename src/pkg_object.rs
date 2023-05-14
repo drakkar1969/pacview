@@ -151,25 +151,11 @@ mod imp {
         // Read-only property getters
         //-----------------------------------
         fn install_date_short(&self) -> String {
-            let obj = self.obj();
-
-            if obj.install_date() == 0 {
-                String::from("")
-            }
-            else {
-                self.date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
-            }
+            self.date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
         }
 
         fn install_date_long(&self) -> String {
-            let obj = self.obj();
-
-            if obj.install_date() == 0 {
-                String::from("")
-            }
-            else {
-                self.date_to_string(self.obj().install_date(), "%d %B %Y %H:%M")
-            }
+            self.date_to_string(self.obj().install_date(), "%d %B %Y %H:%M")
         }
 
         fn install_size_string(&self) -> String {
@@ -188,9 +174,13 @@ mod imp {
         // Helper functions
         //-----------------------------------
         fn date_to_string(&self, date: i64, format: &str) -> String {
-            let datetime = glib::DateTime::from_unix_local(date).expect("error");
+            if date == 0 {
+                String::from("")
+            } else {
+                let datetime = glib::DateTime::from_unix_local(date).expect("error");
 
-            datetime.format(format).expect("error").to_string()
+                datetime.format(format).expect("error").to_string()
+            }
         }
     }
 }
