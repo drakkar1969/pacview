@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::thread;
 use std::process::Command;
 use std::collections::HashMap;
@@ -88,7 +88,10 @@ mod imp {
         #[property(get, set)]
         default_repo_names: RefCell<Vec<String>>,
 
-        pkgobject_list: RefCell<Vec<PkgObject>>,
+        package_list: RefCell<Vec<PkgObject>>,
+
+        history_list: RefCell<Vec<PkgObject>>,
+        history_index: Cell<u32>,
     }
 
     //-----------------------------------
@@ -441,9 +444,14 @@ mod imp {
 
                     window.pkgview_model.splice(0, window.pkgview_model.n_items(), &obj_list);
 
-                    window.pkgobject_list.replace(obj_list);
+                    window.package_list.replace(obj_list);
 
                     window.pkgview_stack.set_visible_child_name("view");
+
+                    let history_list: Vec<PkgObject> = Vec::new(); 
+
+                    window.history_list.replace(history_list);
+                    window.history_index.replace(0);
 
                     window.get_package_updates_async();
 
@@ -489,7 +497,7 @@ mod imp {
                 sender.send(update_result).expect("Could not send through channel");
             });
 
-            let obj_list = self.pkgobject_list.borrow().to_vec();
+            let obj_list = self.package_list.borrow().to_vec();
             let update_row: FilterRow = self.obj().update_row().clone();
 
             receiver.attach(
@@ -651,11 +659,14 @@ mod imp {
         #[template_callback]
         fn on_package_selected(&self) {
             if let Some(item) = self.pkgview_selection.selected_item() {
-                let obj = item.downcast_ref::<PkgObject>();
+                let obj = item.downcast::<PkgObject>().expect("Must be a PkgObject");
+                self.infopane_display_package(Some(&obj));
 
-                self.infopane_display_package(obj);
+                self.history_list.replace(vec![obj]);
             } else {
                 self.infopane_display_package(None);
+
+                self.history_list.replace(vec![]);
             }
         }
 
@@ -889,7 +900,7 @@ mod imp {
                     if let Some(pkg_name) = url.domain() {
                         let mut new_obj: Option<&PkgObject> = None;
 
-                        let obj_list = self.pkgobject_list.borrow().to_vec();
+                        let obj_list = self.package_list.borrow().to_vec();
 
                         let new_obj_list: Vec<&PkgObject> = obj_list.iter()
                             .filter(|obj| obj.name() == pkg_name)
