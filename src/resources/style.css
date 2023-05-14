@@ -31,6 +31,11 @@ label.count-indicator {
 	padding: 0;
 }
 
+/* Package view spinner */
+spinner.dim-spinner {
+	opacity: 0.5;
+}
+
 /* image.bubble {
 	border-radius: 50%;
 	background: alpha(@window_fg_color, 0.15);
@@ -43,11 +48,7 @@ image.bubble.large {
 	min-height: 64px;
 } */
 
-/* spinner.dim-spinner {
-	opacity: 0.5;
-}
-
-box.rounded {
+/* box.rounded {
 	border-radius: 9999px;
 } */
 

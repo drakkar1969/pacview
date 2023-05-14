@@ -50,6 +50,8 @@ mod imp {
         pub status_listbox: TemplateChild<gtk::ListBox>,
 
         #[template_child]
+        pub pkgview_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
         pub pkgview: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub pkgview_selection: TemplateChild<gtk::SingleSelection>,
@@ -299,7 +301,7 @@ mod imp {
 
             let default_repo_names: Vec<String> = vec![String::from("core"), String::from("extra"), String::from("community"), String::from("multilib")];
 
-            obj.set_default_repo_names(default_repo_names.borrow());
+            obj.set_default_repo_names(&default_repo_names);
         }
 
         //-----------------------------------
@@ -420,6 +422,8 @@ mod imp {
 
                     window.pkgobject_list.replace(obj_list);
 
+                    window.pkgview_stack.set_visible_child_name("view");
+
                     window.get_package_updates_async();
 
                     Continue(false)
@@ -471,7 +475,8 @@ mod imp {
                 None,
                 clone!(@strong obj_list, @strong update_row => @default-return Continue(false), move |result| {
                     if result.success == true && result.map.len() > 0 {
-                        let update_list = obj_list.iter().filter(|obj| result.map.contains_key(&obj.name()));
+                        let update_list = obj_list.iter()
+                            .filter(|obj| result.map.contains_key(&obj.name()));
 
                         for obj in update_list {
                             let version = result.map.get(&obj.name());
@@ -865,13 +870,16 @@ mod imp {
 
                         let obj_list = self.pkgobject_list.borrow().to_vec();
 
-                        let new_obj_list: Vec<&PkgObject> = obj_list.iter().filter(|obj| obj.name() == pkg_name).collect();
+                        let new_obj_list: Vec<&PkgObject> = obj_list.iter()
+                            .filter(|obj| obj.name() == pkg_name)
+                            .collect();
 
                         if new_obj_list.len() > 0 {
                             new_obj = Some(new_obj_list[0]);
                         } else {
                             let new_obj_list: Vec<&PkgObject> = obj_list.iter()
-                            .filter(|obj| obj.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name))).collect();
+                                .filter(|obj| obj.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name)))
+                                .collect();
 
                             if new_obj_list.len() > 0 {
                                 new_obj = Some(new_obj_list[0]);
