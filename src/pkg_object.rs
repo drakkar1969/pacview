@@ -203,14 +203,14 @@ impl PkgObject {
     //-----------------------------------
     // Public helper functions
     //-----------------------------------
-    pub fn deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
+    pub fn alpm_deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
         let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
         dep_vec.sort_unstable();
 
         dep_vec
     }
 
-    pub fn filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
+    pub fn alpm_filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
         let mut file_vec: Vec<String> = list.files().iter().map(|file| file.name().to_string()).collect();
         file_vec.sort_unstable();
 
@@ -243,7 +243,7 @@ impl PkgObject {
             idate = pkg.install_date().unwrap_or(0);
 
             // Get package files
-            files_vec.extend(PkgObject::filelist_to_vec(&pkg.files()));
+            files_vec.extend(PkgObject::alpm_filelist_to_vec(&pkg.files()));
         }
 
         // Get package groups
@@ -283,11 +283,11 @@ impl PkgObject {
             description: syncpkg.desc().unwrap_or_default().to_string(),
             url: syncpkg.url().unwrap_or_default().to_string(),
             licenses: plicenses,
-            provides: PkgObject::deplist_to_vec(&syncpkg.provides()),
-            depends: PkgObject::deplist_to_vec(&syncpkg.depends()),
-            optdepends: PkgObject::deplist_to_vec(&syncpkg.optdepends()),
-            conflicts: PkgObject::deplist_to_vec(&syncpkg.conflicts()),
-            replaces: PkgObject::deplist_to_vec(&syncpkg.replaces()),
+            provides: PkgObject::alpm_deplist_to_vec(&syncpkg.provides()),
+            depends: PkgObject::alpm_deplist_to_vec(&syncpkg.depends()),
+            optdepends: PkgObject::alpm_deplist_to_vec(&syncpkg.optdepends()),
+            conflicts: PkgObject::alpm_deplist_to_vec(&syncpkg.conflicts()),
+            replaces: PkgObject::alpm_deplist_to_vec(&syncpkg.replaces()),
             architecture: syncpkg.arch().unwrap_or_default().to_string(),
             packager: syncpkg.packager().unwrap_or_default().to_string(),
             build_date: syncpkg.build_date(),
