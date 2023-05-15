@@ -65,6 +65,111 @@ pub struct PkgData {
     pub has_update: bool,
 }
 
+impl PkgData {
+    //-----------------------------------
+    // Public builder function
+    //-----------------------------------
+    pub fn from_alpm_package(repo: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
+        // Defaults for package status flags, install date and files (non-installed)
+        let mut iflags = PkgFlags::NONE;
+        let mut idate = 0;
+        let mut files_vec: Vec<String> = vec![];
+
+        if let Ok(pkg) = localpkg {
+            // Get package status flags
+            if pkg.reason() == alpm::PackageReason::Explicit {
+                iflags = PkgFlags::EXPLICIT;
+            } else {
+                if !pkg.required_by().is_empty() {
+                    iflags = PkgFlags::DEPENDENCY;
+                } else {
+                    if !pkg.optional_for().is_empty() {
+                        iflags = PkgFlags::OPTIONAL;
+                    } else {
+                        iflags = PkgFlags::ORPHAN;
+                    }
+                }
+            }
+
+            // Get package installed date
+            idate = pkg.install_date().unwrap_or(0);
+
+            // Get package files
+            files_vec.extend(Self::alpm_filelist_to_vec(&pkg.files()));
+        }
+
+        // Get package groups
+        let mut group_list: Vec<&str> = syncpkg.groups().iter().collect();
+        group_list.sort_unstable();
+
+        let pgroups = group_list.join(", ");
+
+        // Get package licenses
+        let mut license_list: Vec<&str> = syncpkg.licenses().iter().collect();
+        license_list.sort_unstable();
+
+        let plicenses = license_list.join(", ");
+
+        Self {
+            flags: iflags,
+            name: syncpkg.name().to_string(),
+            version: syncpkg.version().to_string(),
+            repository: repo.to_string(),
+            status: match iflags {
+                PkgFlags::EXPLICIT => "explicit".to_string(),
+                PkgFlags::DEPENDENCY => "dependency".to_string(),
+                PkgFlags::OPTIONAL => "optional".to_string(),
+                PkgFlags::ORPHAN => "orphan".to_string(),
+                _ => "".to_string()
+            },
+            status_icon: match iflags {
+                PkgFlags::EXPLICIT => "pkg-explicit".to_string(),
+                PkgFlags::DEPENDENCY => "pkg-dependency".to_string(),
+                PkgFlags::OPTIONAL => "pkg-optional".to_string(),
+                PkgFlags::ORPHAN => "pkg-orphan".to_string(),
+                _ => "".to_string()
+            },
+            install_date: idate,
+            install_size: syncpkg.isize(),
+            groups: pgroups,
+            description: syncpkg.desc().unwrap_or_default().to_string(),
+            url: syncpkg.url().unwrap_or_default().to_string(),
+            licenses: plicenses,
+            provides: Self::alpm_deplist_to_vec(&syncpkg.provides()),
+            depends: Self::alpm_deplist_to_vec(&syncpkg.depends()),
+            optdepends: Self::alpm_deplist_to_vec(&syncpkg.optdepends()),
+            conflicts: Self::alpm_deplist_to_vec(&syncpkg.conflicts()),
+            replaces: Self::alpm_deplist_to_vec(&syncpkg.replaces()),
+            architecture: syncpkg.arch().unwrap_or_default().to_string(),
+            packager: syncpkg.packager().unwrap_or_default().to_string(),
+            build_date: syncpkg.build_date(),
+            download_size: syncpkg.download_size(),
+            has_script: syncpkg.has_scriptlet(),
+            sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
+            md5sum: syncpkg.md5sum().unwrap_or_default().to_string(),
+            files: files_vec,
+            has_update: false,
+        }
+    }
+
+    //-----------------------------------
+    // Helper functions
+    //-----------------------------------
+    fn alpm_deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
+        let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
+        dep_vec.sort_unstable();
+
+        dep_vec
+    }
+
+    fn alpm_filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
+        let mut file_vec: Vec<String> = list.files().iter().map(|file| file.name().to_string()).collect();
+        file_vec.sort_unstable();
+
+        file_vec
+    }
+}
+
 //------------------------------------------------------------------------------
 // MODULE: PKGOBJECT
 //------------------------------------------------------------------------------
@@ -198,106 +303,6 @@ impl PkgObject {
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
-    }
-
-    //-----------------------------------
-    // Public helper functions
-    //-----------------------------------
-    pub fn alpm_deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
-        let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
-        dep_vec.sort_unstable();
-
-        dep_vec
-    }
-
-    pub fn alpm_filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
-        let mut file_vec: Vec<String> = list.files().iter().map(|file| file.name().to_string()).collect();
-        file_vec.sort_unstable();
-
-        file_vec
-    }
-
-    pub fn build_pkg_data(repo: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> PkgData {
-        // Defaults for package status flags, install date and files (non-installed)
-        let mut iflags = PkgFlags::NONE;
-        let mut idate = 0;
-        let mut files_vec: Vec<String> = vec![];
-
-        if let Ok(pkg) = localpkg {
-            // Get package status flags
-            if pkg.reason() == alpm::PackageReason::Explicit {
-                iflags = PkgFlags::EXPLICIT;
-            } else {
-                if !pkg.required_by().is_empty() {
-                    iflags = PkgFlags::DEPENDENCY;
-                } else {
-                    if !pkg.optional_for().is_empty() {
-                        iflags = PkgFlags::OPTIONAL;
-                    } else {
-                        iflags = PkgFlags::ORPHAN;
-                    }
-                }
-            }
-
-            // Get package installed date
-            idate = pkg.install_date().unwrap_or(0);
-
-            // Get package files
-            files_vec.extend(PkgObject::alpm_filelist_to_vec(&pkg.files()));
-        }
-
-        // Get package groups
-        let mut group_list: Vec<&str> = syncpkg.groups().iter().collect();
-        group_list.sort_unstable();
-
-        let pgroups = group_list.join(", ");
-
-        // Get package licenses
-        let mut license_list: Vec<&str> = syncpkg.licenses().iter().collect();
-        license_list.sort_unstable();
-
-        let plicenses = license_list.join(", ");
-
-        PkgData {
-            flags: iflags,
-            name: syncpkg.name().to_string(),
-            version: syncpkg.version().to_string(),
-            repository: repo.to_string(),
-            status: match iflags {
-                PkgFlags::EXPLICIT => "explicit".to_string(),
-                PkgFlags::DEPENDENCY => "dependency".to_string(),
-                PkgFlags::OPTIONAL => "optional".to_string(),
-                PkgFlags::ORPHAN => "orphan".to_string(),
-                _ => "".to_string()
-            },
-            status_icon: match iflags {
-                PkgFlags::EXPLICIT => "pkg-explicit".to_string(),
-                PkgFlags::DEPENDENCY => "pkg-dependency".to_string(),
-                PkgFlags::OPTIONAL => "pkg-optional".to_string(),
-                PkgFlags::ORPHAN => "pkg-orphan".to_string(),
-                _ => "".to_string()
-            },
-            install_date: idate,
-            install_size: syncpkg.isize(),
-            groups: pgroups,
-            description: syncpkg.desc().unwrap_or_default().to_string(),
-            url: syncpkg.url().unwrap_or_default().to_string(),
-            licenses: plicenses,
-            provides: PkgObject::alpm_deplist_to_vec(&syncpkg.provides()),
-            depends: PkgObject::alpm_deplist_to_vec(&syncpkg.depends()),
-            optdepends: PkgObject::alpm_deplist_to_vec(&syncpkg.optdepends()),
-            conflicts: PkgObject::alpm_deplist_to_vec(&syncpkg.conflicts()),
-            replaces: PkgObject::alpm_deplist_to_vec(&syncpkg.replaces()),
-            architecture: syncpkg.arch().unwrap_or_default().to_string(),
-            packager: syncpkg.packager().unwrap_or_default().to_string(),
-            build_date: syncpkg.build_date(),
-            download_size: syncpkg.download_size(),
-            has_script: syncpkg.has_scriptlet(),
-            sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
-            md5sum: syncpkg.md5sum().unwrap_or_default().to_string(),
-            files: files_vec,
-            has_update: false,
-        }
     }
 
     //-----------------------------------

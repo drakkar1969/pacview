@@ -440,7 +440,7 @@ mod imp {
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());
 
-                            PkgObject::build_pkg_data(db.name(), syncpkg, localpkg)
+                            PkgData::from_alpm_package(db.name(), syncpkg, localpkg)
                         })
                     );
                 }
@@ -450,7 +450,7 @@ mod imp {
                         !handle.syncdbs().find_satisfier(pkg.name()).is_some()
                     })
                     .map(|pkg| {
-                        PkgObject::build_pkg_data("foreign", pkg, Ok(pkg))
+                        PkgData::from_alpm_package("foreign", pkg, Ok(pkg))
                     })
                 );
 
@@ -468,9 +468,9 @@ mod imp {
                         obj
                     }).collect();
 
-                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &obj_list);
+                    window.package_list.replace(obj_list.clone());
 
-                    window.package_list.replace(obj_list);
+                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &obj_list);
 
                     window.pkgview_stack.set_visible_child_name("view");
 
