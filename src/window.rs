@@ -91,7 +91,7 @@ mod imp {
         package_list: RefCell<Vec<PkgObject>>,
 
         history_list: RefCell<Vec<PkgObject>>,
-        history_index: Cell<u32>,
+        history_index: Cell<usize>,
     }
 
     //-----------------------------------
@@ -142,6 +142,7 @@ mod imp {
             self.setup_search();
             self.setup_toolbar();
             self.setup_pkgview();
+            self.setup_infopane();
         }
     }
 
@@ -299,6 +300,31 @@ mod imp {
         }
 
         //-----------------------------------
+        // Setup info pane
+        //-----------------------------------
+        fn setup_infopane(&self) {
+            let obj = self.obj();
+
+            // Create info pane action group
+            let infopane_group = gio::SimpleActionGroup::new();
+
+            obj.insert_action_group("info", Some(&infopane_group));
+
+            // Create info pane prev/next actions
+            let prev_action = gio::SimpleAction::new("previous", None);
+            prev_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                window.infopane_display_prev();
+            }));
+            infopane_group.add_action(&prev_action);
+
+            let next_action = gio::SimpleAction::new("next", None);
+            next_action.connect_activate(clone!(@weak self as window => move |_, _| {
+                window.infopane_display_next();
+            }));
+            infopane_group.add_action(&next_action);
+        }
+
+        //-----------------------------------
         // Show window signal handler
         //-----------------------------------
         #[template_callback]
@@ -447,11 +473,6 @@ mod imp {
                     window.package_list.replace(obj_list);
 
                     window.pkgview_stack.set_visible_child_name("view");
-
-                    let history_list: Vec<PkgObject> = vec![]; 
-
-                    window.history_list.replace(history_list);
-                    window.history_index.replace(0);
 
                     window.get_package_updates_async();
 
@@ -663,15 +684,17 @@ mod imp {
                 self.infopane_display_package(Some(&obj));
 
                 self.history_list.replace(vec![obj]);
+                self.history_index.replace(0);
             } else {
                 self.infopane_display_package(None);
 
                 self.history_list.replace(vec![]);
+                self.history_index.replace(0);
             }
         }
 
         //-----------------------------------
-        // Infopane display package function
+        // Infopane package display functions
         //-----------------------------------
         fn infopane_display_package(&self, obj: Option<&PkgObject>) {
             self.infopane_model.remove_all();
@@ -801,6 +824,39 @@ mod imp {
             }
         }
 
+        fn infopane_display_prev(&self) {
+            let hlist = self.history_list.borrow().to_vec();
+            let mut hindex = self.history_index.get();
+
+            if hindex > 0 {
+                hindex -= 1;
+
+                if let Some(obj) = hlist.get(hindex) {
+                    self.history_index.replace(hindex);
+
+                    self.infopane_display_package(Some(obj));
+                }
+            }
+        }
+
+        fn infopane_display_next(&self) {
+            let hlist = self.history_list.borrow().to_vec();
+            let mut hindex = self.history_index.get();
+
+            if hindex < hlist.len() - 1 {
+                hindex += 1;
+
+                if let Some(obj) = hlist.get(hindex) {
+                    self.history_index.replace(hindex);
+
+                    self.infopane_display_package(Some(obj));
+                }
+            }
+        }
+
+        //-----------------------------------
+        // Infopane helper functions
+        //-----------------------------------
         fn prop_to_esc_string(&self, prop: &str) -> String {
             glib::markup_escape_text(prop).to_string()
         }
@@ -918,7 +974,30 @@ mod imp {
                             }
                         }
 
-                        self.infopane_display_package(new_obj);
+                        if let Some(new_obj) = new_obj {
+                            let hlist = self.history_list.borrow().to_vec();
+                            let hindex = self.history_index.get();
+
+                            let i = hlist.iter().position(|obj| obj.name() == new_obj.name());
+
+                            if let Some(i) = i {
+                                if i != hindex {
+                                    self.history_index.replace(i);
+
+                                    self.infopane_display_package(Some(new_obj));
+                                }
+                            } else {
+                                let j = if hlist.len() > 0 {hindex + 1} else {hindex};
+                                let mut hslice = hlist[..j].to_vec();
+
+                                hslice.push(new_obj.clone());
+
+                                self.history_list.replace(hslice);
+                                self.history_index.replace(j);
+
+                                self.infopane_display_package(Some(new_obj));
+                            }
+                        }
                     }
 
                     gtk::Inhibit(true)

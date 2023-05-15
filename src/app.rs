@@ -78,6 +78,9 @@ impl PacViewApplication {
 
         self.set_accels_for_action("view.refresh", &["F5"]);
         self.set_accels_for_action("view.copy-list", &["<alt>L"]);
+
+        self.set_accels_for_action("info.previous", &["<alt>Left"]);
+        self.set_accels_for_action("info.next", &["<alt>Right"]);
     }
 
     fn show_about(&self) {
