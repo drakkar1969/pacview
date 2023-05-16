@@ -700,6 +700,27 @@ mod imp {
             self.infopane_model.remove_all();
 
             if let Some(pkg) = pkg {
+                let obj = self.obj();
+
+                let mut required_by: Vec<String> = vec![];
+                let mut optional_for: Vec<String> = vec![];
+    
+                let handle = alpm::Alpm::new(obj.pacman_root_dir(), obj.pacman_db_path()).unwrap();
+
+                let db = if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                    handle.localdb()
+                } else {
+                    handle.register_syncdb(pkg.repository(), alpm::SigLevel::DATABASE_OPTIONAL).unwrap()
+                };
+
+                if let Ok(alpm_pkg) = db.pkg(pkg.name()) {
+                    required_by.extend(alpm_pkg.required_by().iter().map(|dep| dep.to_string()));
+                    required_by.sort_unstable();
+
+                    optional_for.extend(alpm_pkg.optional_for().iter().map(|dep| dep.to_string()));
+                    optional_for.sort_unstable();
+                }
+
                 // Name
                 self.infopane_model.append(&PropObject::new(
                     "Name", &format!("<b>{}</b>", pkg.name()), None
@@ -713,7 +734,7 @@ mod imp {
                     "Description", &self.prop_to_esc_string(&pkg.description()), None
                 ));
                 // Package/AUR URL
-                if self.obj().default_repo_names().contains(&pkg.repository()) {
+                if obj.default_repo_names().contains(&pkg.repository()) {
                     self.infopane_model.append(&PropObject::new(
                         "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repository(), arch=pkg.architecture(), name=pkg.name())), None
                     ));
@@ -759,6 +780,16 @@ mod imp {
                 if !pkg.optdepends().is_empty() {
                     self.infopane_model.append(&PropObject::new(
                         "Optional", &self.propvec_to_linkstring(&pkg.optdepends()), None
+                    ));
+                }
+                // Required by
+                self.infopane_model.append(&PropObject::new(
+                    "Required by", &self.propvec_to_linkstring(&required_by), None
+                ));
+                // Optional for
+                if !optional_for.is_empty() {
+                    self.infopane_model.append(&PropObject::new(
+                        "Optional For", &self.propvec_to_linkstring(&optional_for), None
                     ));
                 }
                 // Conflicts
