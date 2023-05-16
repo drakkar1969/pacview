@@ -276,9 +276,9 @@ mod imp {
             copy_action.connect_activate(clone!(@weak window => move |_, _| {
                 let item_list: Vec<String> = IntoIterator::into_iter(0..window.pkgview_selection.n_items())
                     .map(|i| {
-                        let obj: PkgObject = window.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
+                        let pkg: PkgObject = window.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
 
-                        format!("{repo}/{name}-{version}", repo=obj.repository(), name=obj.name(), version=obj.version())
+                        format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
                     }
                 ).collect();
 
@@ -462,15 +462,15 @@ mod imp {
             receiver.attach(
                 None,
                 clone!(@weak window => @default-return Continue(false), move |data_list| {
-                    let obj_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
-                        let obj = PkgObject::new();
-                        obj.set_data(data);
-                        obj
+                    let pkg_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
+                        let pkg = PkgObject::new();
+                        pkg.set_data(data);
+                        pkg
                     }).collect();
 
-                    window.package_list.replace(obj_list.clone());
+                    window.package_list.replace(pkg_list.clone());
 
-                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &obj_list);
+                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &pkg_list);
 
                     window.pkgview_stack.set_visible_child_name("view");
 
@@ -518,28 +518,28 @@ mod imp {
                 sender.send(update_result).expect("Could not send through channel");
             });
 
-            let obj_list = self.package_list.borrow().to_vec();
+            let pkg_list = self.package_list.borrow().to_vec();
             let update_row: FilterRow = self.obj().update_row().clone();
 
             receiver.attach(
                 None,
-                clone!(@strong obj_list, @strong update_row => @default-return Continue(false), move |result| {
+                clone!(@strong pkg_list, @strong update_row => @default-return Continue(false), move |result| {
                     if result.success == true && result.map.len() > 0 {
-                        let update_list = obj_list.iter()
-                            .filter(|obj| result.map.contains_key(&obj.name()));
+                        let update_list = pkg_list.iter()
+                            .filter(|pkg| result.map.contains_key(&pkg.name()));
 
-                        for obj in update_list {
-                            let version = result.map.get(&obj.name());
+                        for pkg in update_list {
+                            let version = result.map.get(&pkg.name());
     
                             if let Some(version) = version {
-                                obj.set_version(version.borrow());
+                                pkg.set_version(version.borrow());
     
-                                let mut flags = obj.flags();
+                                let mut flags = pkg.flags();
                                 flags.set(PkgFlags::UPDATES, true);
     
-                                obj.set_flags(flags);
+                                pkg.set_flags(flags);
 
-                                obj.set_has_update(true);
+                                pkg.set_has_update(true);
                             }
                         }
                     }
@@ -571,11 +571,11 @@ mod imp {
         fn on_status_selected(&self, row: Option<FilterRow>) {
             if let Some(row) = row {
                 self.pkgview_status_filter.set_filter_func(move |item| {
-                    let obj: &PkgObject = item
+                    let pkg: &PkgObject = item
                         .downcast_ref::<PkgObject>()
                         .expect("Needs to be a PkgObject");
 
-                    obj.flags().intersects(row.status_id())
+                    pkg.flags().intersects(row.status_id())
                 });
             }
         }
@@ -630,25 +630,25 @@ mod imp {
             } else {
                 if exact {
                     self.pkgview_search_filter.set_filter_func(move |item| {
-                        let obj: &PkgObject = item
+                        let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
                             .expect("Needs to be a PkgObject");
 
                         let results = [
-                            by_name && obj.name().to_lowercase().eq(&search_term),
-                            by_desc && obj.description().to_lowercase().eq(&search_term),
-                            by_group && obj.groups().to_lowercase().eq(&search_term),
-                            by_deps && obj.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
-                            by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
-                            by_provides && obj.provides().iter().any(|s| s.to_lowercase().eq(&search_term)),
-                            by_files && obj.files().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                            by_name && pkg.name().to_lowercase().eq(&search_term),
+                            by_desc && pkg.description().to_lowercase().eq(&search_term),
+                            by_group && pkg.groups().to_lowercase().eq(&search_term),
+                            by_deps && pkg.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                            by_optdeps && pkg.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                            by_provides && pkg.provides().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                            by_files && pkg.files().iter().any(|s| s.to_lowercase().eq(&search_term)),
                         ];
 
                         results.into_iter().any(|x| x)
                     });
                 } else {
                     self.pkgview_search_filter.set_filter_func(move |item| {
-                        let obj: &PkgObject = item
+                        let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
                             .expect("Needs to be a PkgObject");
 
@@ -656,13 +656,13 @@ mod imp {
 
                         for term in search_term.split_whitespace() {
                             let term_results = [
-                                by_name && obj.name().to_lowercase().contains(&term),
-                                by_desc && obj.description().to_lowercase().contains(&term),
-                                by_group && obj.groups().to_lowercase().contains(&term),
-                                by_deps && obj.depends().iter().any(|s| s.to_lowercase().contains(&term)),
-                                by_optdeps && obj.optdepends().iter().any(|s| s.to_lowercase().contains(&term)),
-                                by_provides && obj.provides().iter().any(|s| s.to_lowercase().contains(&term)),
-                                by_files && obj.files().iter().any(|s| s.to_lowercase().contains(&term)),
+                                by_name && pkg.name().to_lowercase().contains(&term),
+                                by_desc && pkg.description().to_lowercase().contains(&term),
+                                by_group && pkg.groups().to_lowercase().contains(&term),
+                                by_deps && pkg.depends().iter().any(|s| s.to_lowercase().contains(&term)),
+                                by_optdeps && pkg.optdepends().iter().any(|s| s.to_lowercase().contains(&term)),
+                                by_provides && pkg.provides().iter().any(|s| s.to_lowercase().contains(&term)),
+                                by_files && pkg.files().iter().any(|s| s.to_lowercase().contains(&term)),
                             ];
 
                             results.push(term_results.into_iter().any(|x| x));
@@ -680,10 +680,10 @@ mod imp {
         #[template_callback]
         fn on_package_selected(&self) {
             if let Some(item) = self.pkgview_selection.selected_item() {
-                let obj = item.downcast::<PkgObject>().expect("Must be a PkgObject");
-                self.infopane_display_package(Some(&obj));
+                let pkg = item.downcast::<PkgObject>().expect("Must be a PkgObject");
+                self.infopane_display_package(Some(&pkg));
 
-                self.history_list.replace(vec![obj]);
+                self.history_list.replace(vec![pkg]);
                 self.history_index.replace(0);
             } else {
                 self.infopane_display_package(None);
@@ -696,129 +696,129 @@ mod imp {
         //-----------------------------------
         // Infopane package display functions
         //-----------------------------------
-        fn infopane_display_package(&self, obj: Option<&PkgObject>) {
+        fn infopane_display_package(&self, pkg: Option<&PkgObject>) {
             self.infopane_model.remove_all();
 
-            if let Some(obj) = obj {
+            if let Some(pkg) = pkg {
                 // Name
                 self.infopane_model.append(&PropObject::new(
-                    "Name", &format!("<b>{}</b>", obj.name()), None
+                    "Name", &format!("<b>{}</b>", pkg.name()), None
                 ));
                 // Version
                 self.infopane_model.append(&PropObject::new(
-                    "Version", &obj.version(), if obj.has_update() {Some("pkg-update")} else {None}
+                    "Version", &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None}
                 ));
                 // Description
                 self.infopane_model.append(&PropObject::new(
-                    "Description", &self.prop_to_esc_string(&obj.description()), None
+                    "Description", &self.prop_to_esc_string(&pkg.description()), None
                 ));
                 // Package/AUR URL
-                if self.obj().default_repo_names().contains(&obj.repository()) {
+                if self.obj().default_repo_names().contains(&pkg.repository()) {
                     self.infopane_model.append(&PropObject::new(
-                        "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=obj.repository(), arch=obj.architecture(), name=obj.name())), None
+                        "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repository(), arch=pkg.architecture(), name=pkg.name())), None
                     ));
                 }
                 // URL
-                if obj.url() != "" {
+                if pkg.url() != "" {
                     self.infopane_model.append(&PropObject::new(
-                        "URL", &self.prop_to_esc_url(&obj.url()), None
+                        "URL", &self.prop_to_esc_url(&pkg.url()), None
                     ));
                 }
                 // Licenses
-                if obj.licenses() != "" {
+                if pkg.licenses() != "" {
                     self.infopane_model.append(&PropObject::new(
-                        "Licenses", &self.prop_to_esc_string(&obj.licenses()), None
+                        "Licenses", &self.prop_to_esc_string(&pkg.licenses()), None
                     ));
                 }
                 // Status
-                let status = &obj.status();
+                let status = &pkg.status();
                 self.infopane_model.append(&PropObject::new(
-                    "Status", if obj.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, Some(&obj.status_icon())
+                    "Status", if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, Some(&pkg.status_icon())
                 ));
                 // Repository
                 self.infopane_model.append(&PropObject::new(
-                    "Repository", &obj.repository(), None
+                    "Repository", &pkg.repository(), None
                 ));
                 // Groups
-                if obj.groups() != "" {
+                if pkg.groups() != "" {
                     self.infopane_model.append(&PropObject::new(
-                        "Groups", &obj.groups(), None
+                        "Groups", &pkg.groups(), None
                     ));
                 }
                 // Provides
-                if !obj.provides().is_empty() {
+                if !pkg.provides().is_empty() {
                     self.infopane_model.append(&PropObject::new(
-                        "Provides", &self.propvec_to_wrapstring(&obj.provides()), None
+                        "Provides", &self.propvec_to_wrapstring(&pkg.provides()), None
                     ));
                 }
                 // Depends
                 self.infopane_model.append(&PropObject::new(
-                    "Dependencies", &self.propvec_to_linkstring(&obj.depends()), None
+                    "Dependencies", &self.propvec_to_linkstring(&pkg.depends()), None
                 ));
                 // Optdepends
-                if !obj.optdepends().is_empty() {
+                if !pkg.optdepends().is_empty() {
                     self.infopane_model.append(&PropObject::new(
-                        "Optional", &self.propvec_to_linkstring(&obj.optdepends()), None
+                        "Optional", &self.propvec_to_linkstring(&pkg.optdepends()), None
                     ));
                 }
                 // Conflicts
-                if !obj.conflicts().is_empty() {
+                if !pkg.conflicts().is_empty() {
                     self.infopane_model.append(&PropObject::new(
-                        "Conflicts With", &self.propvec_to_linkstring(&obj.conflicts()), None
+                        "Conflicts With", &self.propvec_to_linkstring(&pkg.conflicts()), None
                     ));
                 }
                 // Replaces
-                if !obj.replaces().is_empty() {
+                if !pkg.replaces().is_empty() {
                     self.infopane_model.append(&PropObject::new(
-                        "Replaces", &self.propvec_to_linkstring(&obj.replaces()), None
+                        "Replaces", &self.propvec_to_linkstring(&pkg.replaces()), None
                     ));
                 }
                 // Architecture
-                if obj.architecture() != "" {
+                if pkg.architecture() != "" {
                     self.infopane_model.append(&PropObject::new(
-                        "Architecture", &obj.architecture(), None
+                        "Architecture", &pkg.architecture(), None
                     ));
                 }
                 // Packager
-                if obj.packager() != "" {
+                if pkg.packager() != "" {
                     self.infopane_model.append(&PropObject::new(
-                        "Packager", &self.prop_to_packager(&obj.packager()), None
+                        "Packager", &self.prop_to_packager(&pkg.packager()), None
                     ));
                 }
                 // Build date
                 self.infopane_model.append(&PropObject::new(
-                    "Build Date", &obj.build_date_long(), None
+                    "Build Date", &pkg.build_date_long(), None
                 ));
                 // Install date
-                if obj.install_date() != 0 {
+                if pkg.install_date() != 0 {
                     self.infopane_model.append(&PropObject::new(
-                        "Install Date", &obj.install_date_long(), None
+                        "Install Date", &pkg.install_date_long(), None
                     ));
                 }
                 // Download size
-                if obj.download_size() != 0 {
+                if pkg.download_size() != 0 {
                     self.infopane_model.append(&PropObject::new(
-                        "Download Size", &obj.download_size_string(), None
+                        "Download Size", &pkg.download_size_string(), None
                     ));
                 }
                 // Installed size
                 self.infopane_model.append(&PropObject::new(
-                    "Installed Size", &obj.install_size_string(), None
+                    "Installed Size", &pkg.install_size_string(), None
                 ));
                 // Has script
                 self.infopane_model.append(&PropObject::new(
-                    "Install Script", if obj.has_script() {"Yes"} else {"No"}, None
+                    "Install Script", if pkg.has_script() {"Yes"} else {"No"}, None
                 ));
                 // SHA256 sum
-                if obj.sha256sum() != "" {
+                if pkg.sha256sum() != "" {
                     self.infopane_model.append(&PropObject::new(
-                        "SHA256 Sum", &obj.sha256sum(), None
+                        "SHA256 Sum", &pkg.sha256sum(), None
                     ));
                 }
                 // MD5 sum
-                if obj.md5sum() != "" {
+                if pkg.md5sum() != "" {
                     self.infopane_model.append(&PropObject::new(
-                        "MD5 Sum", &obj.md5sum(), None
+                        "MD5 Sum", &pkg.md5sum(), None
                     ));
                 }
             }
@@ -831,10 +831,10 @@ mod imp {
             if hindex > 0 {
                 hindex -= 1;
 
-                if let Some(obj) = hlist.get(hindex) {
+                if let Some(pkg) = hlist.get(hindex) {
                     self.history_index.replace(hindex);
 
-                    self.infopane_display_package(Some(obj));
+                    self.infopane_display_package(Some(pkg));
                 }
             }
         }
@@ -846,10 +846,10 @@ mod imp {
             if hindex < hlist.len() - 1 {
                 hindex += 1;
 
-                if let Some(obj) = hlist.get(hindex) {
+                if let Some(pkg) = hlist.get(hindex) {
                     self.history_index.replace(hindex);
 
-                    self.infopane_display_package(Some(obj));
+                    self.infopane_display_package(Some(pkg));
                 }
             }
         }
@@ -954,48 +954,48 @@ mod imp {
             if let Ok(url) = Url::parse(link) {
                 if url.scheme() == "pkg" {
                     if let Some(pkg_name) = url.domain() {
-                        let mut new_obj: Option<&PkgObject> = None;
+                        let mut new_pkg: Option<&PkgObject> = None;
 
-                        let obj_list = self.package_list.borrow().to_vec();
+                        let pkg_list = self.package_list.borrow().to_vec();
 
-                        let new_obj_list: Vec<&PkgObject> = obj_list.iter()
-                            .filter(|obj| obj.name() == pkg_name)
+                        let new_pkg_list: Vec<&PkgObject> = pkg_list.iter()
+                            .filter(|pkg| pkg.name() == pkg_name)
                             .collect();
 
-                        if new_obj_list.len() > 0 {
-                            new_obj = Some(new_obj_list[0]);
+                        if new_pkg_list.len() > 0 {
+                            new_pkg = Some(new_pkg_list[0]);
                         } else {
-                            let new_obj_list: Vec<&PkgObject> = obj_list.iter()
-                                .filter(|obj| obj.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name)))
+                            let new_pkg_list: Vec<&PkgObject> = pkg_list.iter()
+                                .filter(|pkg| pkg.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name)))
                                 .collect();
 
-                            if new_obj_list.len() > 0 {
-                                new_obj = Some(new_obj_list[0]);
+                            if new_pkg_list.len() > 0 {
+                                new_pkg = Some(new_pkg_list[0]);
                             }
                         }
 
-                        if let Some(new_obj) = new_obj {
+                        if let Some(new_pkg) = new_pkg {
                             let hlist = self.history_list.borrow().to_vec();
                             let hindex = self.history_index.get();
 
-                            let i = hlist.iter().position(|obj| obj.name() == new_obj.name());
+                            let i = hlist.iter().position(|pkg| pkg.name() == new_pkg.name());
 
                             if let Some(i) = i {
                                 if i != hindex {
                                     self.history_index.replace(i);
 
-                                    self.infopane_display_package(Some(new_obj));
+                                    self.infopane_display_package(Some(new_pkg));
                                 }
                             } else {
                                 let j = if hlist.len() > 0 {hindex + 1} else {hindex};
                                 let mut hslice = hlist[..j].to_vec();
 
-                                hslice.push(new_obj.clone());
+                                hslice.push(new_pkg.clone());
 
                                 self.history_list.replace(hslice);
                                 self.history_index.replace(j);
 
-                                self.infopane_display_package(Some(new_obj));
+                                self.infopane_display_package(Some(new_pkg));
                             }
                         }
                     }
