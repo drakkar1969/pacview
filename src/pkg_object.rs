@@ -6,23 +6,20 @@ use gtk::prelude::ObjectExt;
 
 use alpm;
 use bytesize;
-use bitflags;
 
 //------------------------------------------------------------------------------
 // FLAGS: PKGFLAGS
 //------------------------------------------------------------------------------
-bitflags::bitflags! {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-    pub struct PkgFlags: u32 {
-        const EXPLICIT   = 0b00000001;
-        const DEPENDENCY = 0b00000010;
-        const OPTIONAL   = 0b00000100;
-        const ORPHAN     = 0b00001000;
-        const NONE       = 0b00010000;
-        const UPDATES    = 0b00100000;
-        const ALL        = Self::INSTALLED.bits() | Self::NONE.bits();
-        const INSTALLED  = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits();
-    }
+#[glib::flags(name = "PkgFlags")]
+pub enum PkgFlags {
+    EXPLICIT   = 0b00000001,
+    DEPENDENCY = 0b00000010,
+    OPTIONAL   = 0b00000100,
+    ORPHAN     = 0b00001000,
+    NONE       = 0b00010000,
+    UPDATES    = 0b00100000,
+    ALL        = Self::INSTALLED.bits() | Self::NONE.bits(),
+    INSTALLED  = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
 }
 
 impl Default for PkgFlags {
@@ -183,8 +180,9 @@ mod imp {
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
         // Read-write properties
-        #[property(name = "version", get, set, type = String, member = version)]
-        #[property(name = "has-update", get, set, type = bool, member = has_update)]
+        #[property(name = "flags",      get, set, type = PkgFlags, member = flags)]
+        #[property(name = "version",    get, set, type = String,   member = version)]
+        #[property(name = "has-update", get, set, type = bool,     member = has_update)]
 
         // Read-only properties
         #[property(name = "name",          get, type = String,      member = name)]
@@ -303,27 +301,7 @@ impl PkgObject {
     //-----------------------------------
     pub fn new(data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
-        pkg.set_data(data);
+        pkg.imp().data.replace(data);
         pkg
-    }
-
-    //-----------------------------------
-    // Public data setter function
-    //-----------------------------------
-    pub fn set_data(&self, data: PkgData) {
-        self.imp().data.replace(data);
-    }
-
-    //-----------------------------------
-    // Public flags getter/setter functions
-    //-----------------------------------
-    pub fn flags(&self) -> PkgFlags {
-        self.imp().data.borrow().flags
-    }
-
-    pub fn set_flags(&self, flags: PkgFlags) {
-        let mut data = self.imp().data.borrow_mut();
-
-        data.flags = flags;
     }
 }
