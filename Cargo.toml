@@ -8,13 +8,11 @@ edition = "2021"
 [dependencies]
 adw = { version = "0.4.1", package = "libadwaita", features = ["v1_3"] }
 alpm = "2.2.1"
-bitflags = "2.2.1"
 bytesize = "1.2.0"
 fancy-regex = "0.11.0"
 gtk = { version = "0.6.6", package = "gtk4", features = ["v4_10"] }
 lazy_static = "1.4.0"
 pacmanconf = "2.0.0"
-send_wrapper = "0.6.0"
 titlecase = "2.2.1"
 url = "2.3.1"
 
