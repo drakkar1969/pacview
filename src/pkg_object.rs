@@ -301,8 +301,10 @@ impl PkgObject {
     //-----------------------------------
     // Public constructor
     //-----------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+    pub fn new(data: PkgData) -> Self {
+        let pkg: Self = glib::Object::builder().build();
+        pkg.set_data(data);
+        pkg
     }
 
     //-----------------------------------

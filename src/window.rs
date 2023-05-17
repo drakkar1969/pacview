@@ -463,9 +463,8 @@ mod imp {
                 None,
                 clone!(@weak window => @default-return Continue(false), move |data_list| {
                     let pkg_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
-                        let pkg = PkgObject::new();
-                        pkg.set_data(data);
-                        pkg
+                        let pkg_data = data;
+                        PkgObject::new(pkg_data)
                     }).collect();
 
                     window.package_list.replace(pkg_list.clone());
