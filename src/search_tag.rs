@@ -65,10 +65,8 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            let obj = self.obj();
-
             // Bind properties to widgets
-            obj.bind_property("text", &self.label.get(), "label")
+            self.obj().bind_property("text", &self.label.get(), "label")
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
         }
@@ -84,9 +82,7 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_close_button_clicked(&self) {
-            let obj =self.obj();
-
-            obj.set_visible(false);
+            self.obj().set_visible(false);
         }
     }
 }
