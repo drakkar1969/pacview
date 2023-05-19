@@ -134,6 +134,8 @@ mod imp {
             self.setup_pkgview();
             self.setup_infopane();
             self.setup_preferences();
+
+            self.setup_alpm();
         }
     }
 
@@ -274,7 +276,7 @@ mod imp {
             refresh_action.connect_activate(clone!(@weak self as window => move |_, _| {
                 window.search_header.set_active(false);
                 
-                window.on_show_window();
+                window.setup_alpm();
             }));
             pkgview_group.add_action(&refresh_action);
 
@@ -349,17 +351,16 @@ mod imp {
         }
 
         //-----------------------------------
-        // Show window signal handler
+        // Setup alpm
         //-----------------------------------
-        #[template_callback]
-        fn on_show_window(&self) {
+        fn setup_alpm(&self) {
             self.get_pacman_config();
             self.populate_sidebar();
             self.load_packages_async();
         }
 
         //-----------------------------------
-        // On show: get pacman configuration
+        // Setup alpm: get pacman configuration
         //-----------------------------------
         fn get_pacman_config(&self) {
             let pacman_config = pacmanconf::Config::new().unwrap();
@@ -377,7 +378,7 @@ mod imp {
         }
 
         //-----------------------------------
-        // On show: populate sidebar listboxes
+        // Setup alpm: populate sidebar listboxes
         //-----------------------------------
         fn populate_sidebar(&self) {
             // Clear sidebar rows
@@ -438,7 +439,7 @@ mod imp {
         }
 
         //-----------------------------------
-        // On show: load alpm packages
+        // Setup alpm: load alpm packages
         //-----------------------------------
         fn load_packages_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<Vec<PkgData>>(glib::PRIORITY_DEFAULT);
@@ -501,7 +502,7 @@ mod imp {
         }
 
         //-----------------------------------
-        // On show: get package updates
+        // Setup alpm: get package updates
         //-----------------------------------
         fn get_package_updates_async(&self) {
             pub struct UpdateResult {
