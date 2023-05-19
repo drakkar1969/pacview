@@ -249,10 +249,8 @@ mod imp {
             pkgview_group.add_action(&refresh_action);
 
             // Create pkgview copy list action
-            let window = self;
-
             let copy_action = gio::SimpleAction::new("copy-list", None);
-            copy_action.connect_activate(clone!(@weak window => move |_, _| {
+            copy_action.connect_activate(clone!(@weak self as window => move |_, _| {
                 let item_list: Vec<String> = IntoIterator::into_iter(0..window.pkgview_selection.n_items())
                     .map(|i| {
                         let pkg: PkgObject = window.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
@@ -435,11 +433,9 @@ mod imp {
                 sender.send(data_list).expect("Could not send through channel");
             });
 
-            let window = self;
-
             receiver.attach(
                 None,
-                clone!(@weak window => @default-return Continue(false), move |data_list| {
+                clone!(@weak self as window => @default-return Continue(false), move |data_list| {
                     let pkg_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
                         let pkg_data = data;
                         PkgObject::new(pkg_data)
@@ -500,7 +496,7 @@ mod imp {
 
             receiver.attach(
                 None,
-                clone!(@strong pkg_list, @strong update_row => @default-return Continue(false), move |result| {
+                clone!(@strong update_row => @default-return Continue(false), move |result| {
                     if result.success == true && result.map.len() > 0 {
                         let update_list = pkg_list.iter()
                             .filter(|pkg| result.map.contains_key(&pkg.name()));
