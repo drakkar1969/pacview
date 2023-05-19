@@ -598,6 +598,7 @@ dependencies = [
  "lazy_static",
  "libadwaita",
  "pacmanconf",
+ "shell-words",
  "titlecase",
  "url",
 ]
@@ -750,6 +751,12 @@ checksum = "0efd8caf556a6cebd3b285caf480045fcc1ac04f6bd786b09a6f11af30c4fcf4"
 dependencies = [
  "serde",
 ]
+
+[[package]]
+name = "shell-words"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24188a676b6ae68c3b2cb3a01be17fbf7240ce009799bb56d5b1409051e78fde"
 
 [[package]]
 name = "slab"

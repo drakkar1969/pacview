@@ -507,23 +507,42 @@ mod imp {
         fn get_package_updates_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::PRIORITY_DEFAULT);
 
+            let aur_command = self.prefs_window.aur_command();
+
             thread::spawn(move || {
                 let mut success = false;
                 let mut update_map = HashMap::new();
 
-                if let Ok(output) = Command::new("checkupdates").output() {
+                if let Ok(output) = Command::new("/usr/bin/checkupdates").output() {
                     if output.status.code() == Some(0) || output.status.code() == Some(2) {
                         success = true;
                     }
 
                     if success {
+                        let pac_out = String::from_utf8(output.stdout).unwrap_or_default();
+
+                        let mut aur_out = String::from("");
+
+                        if let Ok(aur_params) = shell_words::split(&aur_command) {
+                            if !aur_params.is_empty() {
+                                let aur_prog = &aur_params[0];
+                                let aur_args = &aur_params[1..aur_params.len()];
+
+                                if let Ok(output) = Command::new(aur_prog).args(aur_args).output() {
+                                    aur_out = String::from_utf8(output.stdout).unwrap_or_default();
+                                }
+                            }
+                        }
+
+                        let mut update_list: Vec<&str> = pac_out.split_terminator("\n").into_iter().collect();
+
+                        update_list.extend(aur_out.split_terminator("\n"));
+
                         lazy_static! {
                             static ref EXPR: Regex = Regex::new("(\\S+) (\\S+ -> \\S+)").unwrap();
                         }
 
-                        let stdout = String::from_utf8(output.stdout).unwrap_or_default();
-
-                        for update in stdout.split_terminator("\n") {
+                        for update in update_list {
                             if EXPR.is_match(update).unwrap_or_default() {
                                 update_map.insert(EXPR.replace_all(&update, "$1").to_string(), EXPR.replace_all(&update, "$2").to_string());
                             }
