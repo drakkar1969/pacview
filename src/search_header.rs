@@ -262,9 +262,7 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_search_started(&self) {
-            let obj = self.obj();
-
-            obj.set_active(true);
+            self.obj().set_active(true);
         }
 
         #[template_callback]
