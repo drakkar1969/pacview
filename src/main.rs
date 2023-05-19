@@ -4,6 +4,7 @@ mod search_header;
 mod search_tag;
 mod filter_row;
 mod value_row;
+mod preferences_window;
 mod pkg_object;
 mod prop_object;
 

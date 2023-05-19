@@ -22,6 +22,7 @@ use crate::prop_object::PropObject;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
 use crate::value_row::ValueRow;
+use crate::preferences_window::PreferencesWindow;
 
 //------------------------------------------------------------------------------
 // MODULE: PACVIEWWINDOW
@@ -75,6 +76,9 @@ mod imp {
         #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
 
+        #[template_child]
+        pub prefs_window: TemplateChild<PreferencesWindow>,
+
         update_row: RefCell<FilterRow>,
 
         default_repo_names: RefCell<Vec<String>>,
@@ -122,6 +126,7 @@ mod imp {
             self.setup_toolbar();
             self.setup_pkgview();
             self.setup_infopane();
+            self.setup_preferences();
         }
     }
 
@@ -299,6 +304,23 @@ mod imp {
                 window.infopane_display_next();
             }));
             infopane_group.add_action(&next_action);
+        }
+
+        //-----------------------------------
+        // Setup preferences
+        //-----------------------------------
+        fn setup_preferences(&self) {
+            let obj = self.obj();
+
+            // Add show preferences action
+            let prefs_action = gio::SimpleAction::new("show-preferences", None);
+            prefs_action.connect_activate(clone!(@weak self as window, @weak obj => move |_, _| {
+                if let Some(app) = obj.application() {
+                    window.prefs_window.set_transient_for(Some(&app.active_window().unwrap()));
+                    window.prefs_window.present();
+                }
+            }));
+            obj.add_action(&prefs_action);
         }
 
         //-----------------------------------

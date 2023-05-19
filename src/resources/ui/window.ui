@@ -498,7 +498,7 @@
     <section>
       <item>
         <attribute name="label">Preferences</attribute>
-        <!-- <attribute name="action">win.show-preferences</attribute> -->
+        <attribute name="action">win.show-preferences</attribute>
       </item>
       <item>
         <attribute name="label">Keyboard Shortcuts</attribute>
@@ -514,6 +514,6 @@
   </menu>
 
   <!--// PREFERENCES WINDOW //-->
-  <!-- <object class="PreferencesWindow" id="prefs_window">
-  </object> -->
+  <object class="PreferencesWindow" id="prefs_window">
+  </object>
 </interface>

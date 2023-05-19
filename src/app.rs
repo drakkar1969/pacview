@@ -72,6 +72,7 @@ impl PacViewApplication {
 
         self.set_accels_for_action("win.show-sidebar", &["<ctrl>B"]);
         self.set_accels_for_action("win.show-infopane", &["<ctrl>I"]);
+        self.set_accels_for_action("win.show-preferences", &["<ctrl>comma"]);
 
         self.set_accels_for_action("search.start", &["<ctrl>F"]);
         self.set_accels_for_action("search.stop", &["Escape"]);
