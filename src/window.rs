@@ -371,17 +371,17 @@ mod imp {
                 ("updates", PkgFlags::UPDATES),
             ];
 
-            for status in status_map {
-                let row = FilterRow::new(&format!("status-{}-symbolic", status.0), &titlecase::titlecase(status.0));
-                row.set_status_id(status.1);
+            for (text, flag) in status_map {
+                let row = FilterRow::new(&format!("status-{}-symbolic", text), &titlecase::titlecase(text));
+                row.set_status_id(flag);
 
                 self.status_listbox.append(&row);
 
-                if status.1 == PkgFlags::INSTALLED {
+                if flag == PkgFlags::INSTALLED {
                     self.status_listbox.select_row(Some(&row));
                 }
 
-                if status.1 == PkgFlags::UPDATES {
+                if flag == PkgFlags::UPDATES {
                     row.set_spinning(true);
                     row.set_sensitive(false);
 
