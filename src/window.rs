@@ -32,8 +32,7 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::PacViewWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -76,17 +75,12 @@ mod imp {
         #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
 
-        #[property(get, set)]
         update_row: RefCell<FilterRow>,
 
-        #[property(get, set)]
-        pacman_root_dir: RefCell<String>,
-        #[property(get, set)]
-        pacman_db_path: RefCell<String>,
-        #[property(get, set)]
-        pacman_repo_names: RefCell<Vec<String>>,
-        #[property(get, set)]
         default_repo_names: RefCell<Vec<String>>,
+        pacman_repo_names: RefCell<Vec<String>>,
+
+        pacman_config: RefCell<pacmanconf::Config>,
 
         package_list: RefCell<Vec<PkgObject>>,
 
@@ -118,21 +112,6 @@ mod imp {
     }
 
     impl ObjectImpl for PacViewWindow {
-        //-----------------------------------
-        // Default property functions
-        //-----------------------------------
-        fn properties() -> &'static [glib::ParamSpec] {
-            Self::derived_properties()
-        }
-
-        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
-            self.derived_set_property(id, value, pspec)
-        }
-
-        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
-            self.derived_property(id, pspec)
-        }
-
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -343,23 +322,19 @@ mod imp {
             let mut repo_list: Vec<String> = pacman_config.repos.iter().map(|r| r.name.to_string()).collect();
             repo_list.push(String::from("foreign"));
 
-            let obj = self.obj();
+            self.pacman_config.replace(pacman_config);
 
-            obj.set_pacman_root_dir(pacman_config.root_dir);
-            obj.set_pacman_db_path(pacman_config.db_path);
-            obj.set_pacman_repo_names(repo_list);
+            self.pacman_repo_names.replace(repo_list);
 
             let default_repo_names: Vec<String> = vec![String::from("core"), String::from("extra"), String::from("community"), String::from("multilib")];
 
-            obj.set_default_repo_names(&default_repo_names);
+            self.default_repo_names.replace(default_repo_names);
         }
 
         //-----------------------------------
         // On show: populate sidebar listboxes
         //-----------------------------------
         fn populate_sidebar(&self) {
-            let obj = self.obj();
-
             // Clear sidebar rows
             while let Some(row) = self.repo_listbox.row_at_index(0) {
                 self.repo_listbox.remove(&row);
@@ -377,7 +352,9 @@ mod imp {
 
             self.repo_listbox.select_row(Some(&row));
 
-            for repo in obj.pacman_repo_names() {
+            let repo_names = self.pacman_repo_names.borrow().to_vec();
+
+            for repo in repo_names {
                 let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo));
                 row.set_repo_id(repo.to_lowercase());
 
@@ -410,7 +387,7 @@ mod imp {
                     row.set_spinning(true);
                     row.set_sensitive(false);
 
-                    obj.set_update_row(row);
+                    self.update_row.replace(row);
                 }
             }
         }
@@ -419,13 +396,14 @@ mod imp {
         // On show: load alpm packages
         //-----------------------------------
         fn load_packages_async(&self) {
-            let obj = self.obj();
-
             let (sender, receiver) = glib::MainContext::channel::<Vec<PkgData>>(glib::PRIORITY_DEFAULT);
 
-            let root_dir = obj.pacman_root_dir();
-            let db_path = obj.pacman_db_path();
-            let repo_names = obj.pacman_repo_names();
+            let pacman_config = self.pacman_config.borrow();
+
+            let root_dir = pacman_config.root_dir.to_string();
+            let db_path = pacman_config.db_path.to_string();
+
+            let repo_names = self.pacman_repo_names.borrow().to_vec();
 
             thread::spawn(move || {
                 let handle = alpm::Alpm::new(root_dir, db_path).unwrap();
@@ -518,7 +496,7 @@ mod imp {
             });
 
             let pkg_list = self.package_list.borrow().to_vec();
-            let update_row: FilterRow = self.obj().update_row().clone();
+            let update_row = self.update_row.borrow();
 
             receiver.attach(
                 None,
@@ -699,12 +677,12 @@ mod imp {
             self.infopane_model.remove_all();
 
             if let Some(pkg) = pkg {
-                let obj = self.obj();
-
                 let mut required_by: Vec<String> = vec![];
                 let mut optional_for: Vec<String> = vec![];
-    
-                let handle = alpm::Alpm::new(obj.pacman_root_dir(), obj.pacman_db_path()).unwrap();
+
+                let pacman_config = self.pacman_config.borrow();
+
+                let handle = alpm::Alpm::new(pacman_config.root_dir.to_string(), pacman_config.db_path.to_string()).unwrap();
 
                 let db = if pkg.flags().intersects(PkgFlags::INSTALLED) {
                     handle.localdb()
@@ -733,7 +711,7 @@ mod imp {
                     "Description", &self.prop_to_esc_string(&pkg.description()), None
                 ));
                 // Package/AUR URL
-                if obj.default_repo_names().contains(&pkg.repository()) {
+                if self.default_repo_names.borrow().contains(&pkg.repository()) {
                     self.infopane_model.append(&PropObject::new(
                         "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repository(), arch=pkg.architecture(), name=pkg.name())), None
                     ));
