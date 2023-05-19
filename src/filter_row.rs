@@ -41,7 +41,9 @@ mod imp {
         #[property(get, set)]
         spinning: Cell<bool>,
 
+        #[property(get, set)]
         pub repo_id: RefCell<String>,
+        #[property(get, set)]
         pub status_id: Cell<PkgFlags>,
     }
 
@@ -134,25 +136,6 @@ impl FilterRow {
             .property("icon", icon)
             .property("text", text)
             .build()
-    }
-
-    //-----------------------------------
-    // Public id getters/setters
-    //-----------------------------------
-    pub fn repo_id(&self) -> String {
-        self.imp().repo_id.borrow().to_string()
-    }
-
-    pub fn set_repo_id(&self, id: &str) {
-        self.imp().repo_id.replace(id.to_string());
-    }
-
-    pub fn status_id(&self) -> PkgFlags {
-        self.imp().status_id.get()
-    }
-
-    pub fn set_status_id(&self, id: PkgFlags) {
-        self.imp().status_id.replace(id);
     }
 }
 

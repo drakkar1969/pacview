@@ -379,7 +379,7 @@ mod imp {
 
             for repo in obj.pacman_repo_names() {
                 let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo));
-                row.set_repo_id(&repo.to_lowercase());
+                row.set_repo_id(repo.to_lowercase());
 
                 self.repo_listbox.append(&row);
             }
