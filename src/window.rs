@@ -7,7 +7,7 @@ use std::borrow::Borrow;
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, once_cell::sync::OnceCell};
 
 use pacmanconf;
 use alpm;
@@ -28,6 +28,8 @@ use crate::preferences_window::PreferencesWindow;
 // MODULE: PACVIEWWINDOW
 //------------------------------------------------------------------------------
 mod imp {
+    use crate::APP_ID;
+
     use super::*;
 
     //-----------------------------------
@@ -79,6 +81,8 @@ mod imp {
         #[template_child]
         pub prefs_window: TemplateChild<PreferencesWindow>,
 
+        gsettings: OnceCell<gio::Settings>,
+
         update_row: RefCell<FilterRow>,
 
         default_repo_names: RefCell<Vec<String>>,
@@ -122,6 +126,9 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
+            self.init_gsettings();
+            self.load_gsettings();
+
             self.setup_search();
             self.setup_toolbar();
             self.setup_pkgview();
@@ -137,6 +144,24 @@ mod imp {
 
     #[gtk::template_callbacks]
     impl PacViewWindow {
+        //-----------------------------------
+        // Init gsettings
+        //-----------------------------------
+        fn init_gsettings(&self) {
+            let gsettings = gio::Settings::new(APP_ID);
+
+            self.gsettings.set(gsettings).unwrap();
+        }
+
+        //-----------------------------------
+        // Load gsettings
+        //-----------------------------------
+        fn load_gsettings(&self) {
+            if let Some(gsettings) = self.gsettings.get() {
+                self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
+            }
+        }
+
         //-----------------------------------
         // Setup search header
         //-----------------------------------

@@ -20,8 +20,8 @@ mod imp {
     #[properties(wrapper_type = super::PreferencesWindow)]
     #[template(resource = "/com/github/PacView/ui/preferences_window.ui")]
     pub struct PreferencesWindow {
-        // #[template_child]
-        // pub stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub aur_row: TemplateChild<adw::EntryRow>,
 
         #[property(get, set)]
         aur_command: RefCell<String>,
@@ -66,6 +66,14 @@ mod imp {
         //-----------------------------------
         fn constructed(&self) {
             self.parent_constructed();
+
+            let obj = self.obj();
+
+            // Bind properties to widgets
+            obj.bind_property("aur-command", &self.aur_row.get(), "text")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
         }
     }
 

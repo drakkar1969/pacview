@@ -7,7 +7,7 @@
     <property name="modal">True</property>
     <property name="hide-on-close">True</property>
     <property name="search-enabled">False</property>
-    <!-- <property name="aur_update_command" bind-source="aur_entryrow" bind-property="text" bind-flags="sync-create|bidirectional"/>
+    <!-- 
     <property name="remember_columns" bind-source="column_switch" bind-property="active" bind-flags="sync-create|bidirectional"/>
     <property name="remember_sorting" bind-source="sorting_switch" bind-property="active" bind-flags="sync-create|bidirectional"/>
     <property name="custom_font" bind-source="font_expander" bind-property="expanded" bind-flags="sync-create|bidirectional"/> -->
