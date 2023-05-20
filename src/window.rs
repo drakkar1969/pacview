@@ -140,7 +140,16 @@ mod imp {
     }
 
     impl WidgetImpl for PacViewWindow {}
-    impl WindowImpl for PacViewWindow {}
+    impl WindowImpl for PacViewWindow {
+        //-----------------------------------
+        // Window close handler
+        //-----------------------------------
+        fn close_request(&self) -> glib::signal::Inhibit {
+            self.save_gsettings();
+
+            glib::signal::Inhibit(false)
+        }
+    }
     impl ApplicationWindowImpl for PacViewWindow {}
     impl AdwApplicationWindowImpl for PacViewWindow {}
 
@@ -160,7 +169,35 @@ mod imp {
         //-----------------------------------
         fn load_gsettings(&self) {
             if let Some(gsettings) = self.gsettings.get() {
+                let obj = self.obj();
+
+                obj.set_default_size(gsettings.int("window-width"), gsettings.int("window-height"));
+                obj.set_maximized(gsettings.boolean("window-maximized"));
+
+                self.flap.set_reveal_flap(gsettings.boolean("show-sidebar"));
+                self.infopane_overlay.set_visible(gsettings.boolean("show-infopane"));
+
                 self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
+            }
+        }
+
+        //-----------------------------------
+        // Save gsettings
+        //-----------------------------------
+        fn save_gsettings(&self) {
+            if let Some(gsettings) = self.gsettings.get() {
+                let obj = self.obj();
+
+                let (width, height) = obj.default_size();
+
+                gsettings.set_int("window-width", width).unwrap();
+                gsettings.set_int("window-height", height).unwrap();
+                gsettings.set_boolean("window-maximized", obj.is_maximized()).unwrap();
+
+                gsettings.set_boolean("show-sidebar", self.flap.reveals_flap()).unwrap();
+                gsettings.set_boolean("show-infopane", self.infopane_overlay.is_visible()).unwrap();
+
+                gsettings.set_string("aur-update-command", &self.prefs_window.aur_command()).unwrap();
             }
         }
 

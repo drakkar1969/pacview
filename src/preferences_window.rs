@@ -68,7 +68,7 @@ mod imp {
 
             // Bind properties to widgets
             obj.bind_property("aur-command", &self.aur_row.get(), "text")
-                .flags(glib::BindingFlags::SYNC_CREATE)
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
 
         }
