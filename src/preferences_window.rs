@@ -1,11 +1,8 @@
 use std::cell::RefCell;
 
 use gtk::glib;
-use gtk::subclass::prelude::*;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-
-// use crate::pkg_object::PkgFlags;
 
 //------------------------------------------------------------------------------
 // MODULE: PREFERENCESWINDOW
@@ -94,15 +91,6 @@ glib::wrapper! {
 
 impl PreferencesWindow {
     pub fn new() -> Self {
-        glib::Object::builder()
-            // .property("icon", icon)
-            // .property("text", text)
-            .build()
+        glib::Object::builder().build()
     }
 }
-
-// impl Default for FilterRow {
-//     fn default() -> Self {
-//         Self::new("", "")
-//     }
-// }
