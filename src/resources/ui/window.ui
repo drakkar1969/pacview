@@ -216,18 +216,19 @@
                                         </property>
                                       </object>
                                     </property>
-                                    <!-- <child>
-                                      <object class="GtkGestureClick" id="click_gesture">
+                                    <child>
+                                      <object class="GtkGestureClick" id="pkgview_click_gesture">
                                         <property name="button">0</property>
+                                        <signal name="pressed" handler="on_pkgview_clicked" swapped="true"/>
                                       </object>
-                                    </child> -->
-                                    <!-- <child>
-                                      <object class="GtkPopoverMenu" id="popover_menu">
-                                        <property name="menu-model">popup_menu</property>
+                                    </child>
+                                    <child>
+                                      <object class="GtkPopoverMenu" id="pkgview_popover_menu">
+                                        <property name="menu-model">pkgview_popup_menu</property>
                                         <property name="has-arrow">False</property>
                                         <property name="halign">start</property>
                                       </object>
-                                    </child> -->
+                                    </child>
                                     <child>
                                       <object class="GtkColumnViewColumn" id="pkgview_package_column">
                                         <property name="id">package</property>
@@ -520,6 +521,26 @@
       <item>
         <attribute name="label">About PacView</attribute>
         <attribute name="action">app.show-about</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!--// PKGVIEW POPUP MENU //-->
+  <menu id="pkgview_popup_menu">
+    <section>
+      <item>
+        <attribute name="label">Refresh</attribute>
+        <attribute name="action">view.refresh</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Show Statistics</attribute>
+        <attribute name="action">view.show-stats</attribute>
+      </item>
+      <item>
+        <attribute name="label">Copy List</attribute>
+        <attribute name="action">view.copy-list</attribute>
       </item>
     </section>
   </menu>

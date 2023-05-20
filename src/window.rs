@@ -4,7 +4,7 @@ use std::process::Command;
 use std::collections::HashMap;
 use std::borrow::Borrow;
 
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, once_cell::sync::OnceCell};
@@ -55,6 +55,10 @@ mod imp {
         pub pkgview_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub pkgview: TemplateChild<gtk::ColumnView>,
+        #[template_child]
+        pub pkgview_click_gesture: TemplateChild<gtk::GestureClick>,
+        #[template_child]
+        pub pkgview_popover_menu: TemplateChild<gtk::PopoverMenu>,
         #[template_child]
         pub pkgview_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
@@ -776,6 +780,20 @@ mod imp {
 
                 self.history_list.replace(vec![]);
                 self.history_index.replace(0);
+            }
+        }
+
+        #[template_callback]
+        fn on_pkgview_clicked(&self, _n_press: i32, x: f64, y: f64) {
+            let button = self.pkgview_click_gesture.current_button();
+
+            if button == gdk::BUTTON_PRIMARY {
+
+            } else if button == gdk::BUTTON_SECONDARY {
+                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+
+                self.pkgview_popover_menu.set_pointing_to(Some(&rect));
+                self.pkgview_popover_menu.popup();
             }
         }
 
