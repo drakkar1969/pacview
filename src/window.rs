@@ -74,6 +74,8 @@ mod imp {
         pub infopane_overlay: TemplateChild<gtk::Overlay>,
         #[template_child]
         pub infopane_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub infopane_empty_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
@@ -937,6 +939,8 @@ mod imp {
                     ));
                 }
             }
+
+            self.infopane_empty_label.set_visible(!pkg.is_some());
         }
 
         fn infopane_display_prev(&self) {
