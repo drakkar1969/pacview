@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// STATS WINDOW //-->
+  <!--// StatsWindow template //-->
   <template class="StatsWindow" parent="AdwWindow">
     <property name="default-width">520</property>
     <property name="modal">True</property>

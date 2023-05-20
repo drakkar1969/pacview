@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// SEARCH TAG //-->
+  <!--// SearchTag template //-->
   <template class="SearchTag" parent="GtkBox">
     <property name="margin-start">3</property>
     <property name="margin-end">3</property>

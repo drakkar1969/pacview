@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// SEARCH HEADER //-->
+  <!--// SearchHeader template //-->
   <template class="SearchHeader" parent="GtkBox">
     <property name="width-request">860</property>
     <property name="by-name">true</property>
@@ -104,7 +104,7 @@
     </child>
   </template>
 
-  <!--// SEARCH MENU //-->
+  <!--// Search menu //-->
   <menu id="search_menu">
     <section>
       <attribute name="label">Search By</attribute>
