@@ -16,20 +16,20 @@ use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
 
+use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
 use crate::search_header::SearchHeader;
 use crate::filter_row::FilterRow;
 use crate::value_row::ValueRow;
+use crate::stats_window::StatsWindow;
 use crate::preferences_window::PreferencesWindow;
 
 //------------------------------------------------------------------------------
 // MODULE: PACVIEWWINDOW
 //------------------------------------------------------------------------------
 mod imp {
-    use crate::APP_ID;
-
     use super::*;
 
     //-----------------------------------
@@ -309,6 +309,21 @@ mod imp {
                 }))
                 .build();
 
+            // Add pkgview stats window action
+            let stats_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-stats")
+                .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
+                    if let Some(app) = obj.application() {
+                        let repo_names = win.pacman_repo_names.borrow().to_vec();
+                        let pkg_list = win.package_list.borrow().to_vec();
+
+                        let stats_window = StatsWindow::new(&repo_names, &pkg_list);
+                        stats_window.set_transient_for(Some(&app.active_window().unwrap()));
+                    
+                        stats_window.present();
+                    }
+                }))
+                .build();
+
             // Add pkgview copy list action
             let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
                 .activate(clone!(@weak self as win => move |_, _, _| {
@@ -329,7 +344,7 @@ mod imp {
                 .build();
 
             // Add actions to view group
-            pkgview_group.add_action_entries([refresh_action, copy_action]);
+            pkgview_group.add_action_entries([refresh_action, stats_action, copy_action]);
 
             // Set pkgview sorting
             let sort_column = self.pkgview.columns().item(0);

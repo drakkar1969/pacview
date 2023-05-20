@@ -478,7 +478,7 @@
     <section>
       <item>
         <attribute name="label">Show Statistics</attribute>
-        <!-- <attribute name="action">win.show-stats-window</attribute> -->
+        <attribute name="action">view.show-stats</attribute>
       </item>
       <item>
         <attribute name="label">Copy List</attribute>

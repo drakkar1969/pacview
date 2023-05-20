@@ -29,10 +29,15 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/date_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/groups_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/repository_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/packages_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/preferences_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/value_row.ui</file>
   </gresource>
