@@ -54,7 +54,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: StatsObject
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct StatsObject(ObjectSubclass<imp::StatsObject>);

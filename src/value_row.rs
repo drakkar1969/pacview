@@ -7,7 +7,7 @@ use gtk::prelude::*;
 use crate::prop_object::PropObject;
 
 //------------------------------------------------------------------------------
-// MODULE: VALUEROW
+// MODULE: ValueRow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -60,7 +60,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: ValueRow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ValueRow(ObjectSubclass<imp::ValueRow>)

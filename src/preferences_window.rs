@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
 //------------------------------------------------------------------------------
-// MODULE: PREFERENCESWINDOW
+// MODULE: PreferencesWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -81,7 +81,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: PreferencesWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PreferencesWindow(ObjectSubclass<imp::PreferencesWindow>)

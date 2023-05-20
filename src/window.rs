@@ -27,7 +27,7 @@ use crate::stats_window::StatsWindow;
 use crate::preferences_window::PreferencesWindow;
 
 //------------------------------------------------------------------------------
-// MODULE: PACVIEWWINDOW
+// MODULE: PacViewWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -1149,7 +1149,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: PacViewWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PacViewWindow(ObjectSubclass<imp::PacViewWindow>)

@@ -52,7 +52,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: PropObject
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PropObject(ObjectSubclass<imp::PropObject>);

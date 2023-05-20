@@ -5,7 +5,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 
 //------------------------------------------------------------------------------
-// MODULE: SEARCHTAG
+// MODULE: SearchTag
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -88,7 +88,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: SearchTag
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchTag(ObjectSubclass<imp::SearchTag>)

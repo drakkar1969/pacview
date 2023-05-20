@@ -10,7 +10,7 @@ use glib::once_cell::sync::Lazy;
 use crate::search_tag::SearchTag;
 
 //------------------------------------------------------------------------------
-// MODULE: SEARCHHEADER
+// MODULE: SearchHeader
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -292,7 +292,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: SearchHeader
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchHeader(ObjectSubclass<imp::SearchHeader>)

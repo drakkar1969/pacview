@@ -7,7 +7,7 @@ use gtk::prelude::*;
 use crate::pkg_object::PkgFlags;
 
 //------------------------------------------------------------------------------
-// MODULE: FILTERROW
+// MODULE: FilterRow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -122,7 +122,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: FilterRow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct FilterRow(ObjectSubclass<imp::FilterRow>)

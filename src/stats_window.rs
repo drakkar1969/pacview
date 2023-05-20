@@ -8,7 +8,7 @@ use crate::pkg_object::{PkgObject, PkgFlags, PkgUtils};
 use crate::stats_object::StatsObject;
 
 //------------------------------------------------------------------------------
-// MODULE: STATSWINDOW
+// MODULE: StatsWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -71,7 +71,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION
+// PUBLIC IMPLEMENTATION: StatsWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct StatsWindow(ObjectSubclass<imp::StatsWindow>)
