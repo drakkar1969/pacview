@@ -219,7 +219,7 @@
                                         <property name="title">Package</property>
                                         <property name="resizable">True</property>
                                         <property name="expand">True</property>
-                                        <!-- <property name="header-menu">header_menu</property> -->
+                                        <property name="header-menu">pkgview_header_menu</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
                                             <property name="resource">/com/github/PacView/ui/pkgview/package_item.ui</property>
@@ -239,7 +239,7 @@
                                         <property name="id">version</property>
                                         <property name="title">Version</property>
                                         <property name="resizable">True</property>
-                                        <!-- <property name="header-menu">header_menu</property> -->
+                                        <property name="header-menu">pkgview_header_menu</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
                                             <property name="resource">/com/github/PacView/ui/pkgview/version_item.ui</property>
@@ -259,7 +259,7 @@
                                         <property name="id">repository</property>
                                         <property name="title">Repository</property>
                                         <property name="resizable">True</property>
-                                        <!-- <property name="header-menu">header_menu</property> -->
+                                        <property name="header-menu">pkgview_header_menu</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
                                             <property name="resource">/com/github/PacView/ui/pkgview/repository_item.ui</property>
@@ -279,7 +279,7 @@
                                         <property name="id">status</property>
                                         <property name="title">Status</property>
                                         <property name="resizable">True</property>
-                                        <!-- <property name="header-menu">header_menu</property> -->
+                                        <property name="header-menu">pkgview_header_menu</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
                                             <property name="resource">/com/github/PacView/ui/pkgview/status_item.ui</property>
@@ -299,7 +299,7 @@
                                         <property name="id">date</property>
                                         <property name="title">Date</property>
                                         <property name="resizable">True</property>
-                                        <!-- <property name="header-menu">header_menu</property> -->
+                                        <property name="header-menu">pkgview_header_menu</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
                                             <property name="resource">/com/github/PacView/ui/pkgview/date_item.ui</property>
@@ -319,7 +319,7 @@
                                         <property name="id">size</property>
                                         <property name="title">Size</property>
                                         <property name="resizable">True</property>
-                                        <!-- <property name="header-menu">header_menu</property> -->
+                                        <property name="header-menu">pkgview_header_menu</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
                                             <property name="resource">/com/github/PacView/ui/pkgview/size_item.ui</property>
@@ -335,11 +335,11 @@
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkColumnViewColumn" id="pkgview_group_column">
-                                        <property name="id">group</property>
-                                        <property name="title">Group</property>
+                                      <object class="GtkColumnViewColumn" id="pkgview_groups_column">
+                                        <property name="id">groups</property>
+                                        <property name="title">Groups</property>
                                         <property name="resizable">True</property>
-                                        <!-- <property name="header-menu">header_menu</property> -->
+                                        <property name="header-menu">pkgview_header_menu</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
                                             <property name="resource">/com/github/PacView/ui/pkgview/groups_item.ui</property>
@@ -507,6 +507,43 @@
         <attribute name="action">app.show-about</attribute>
       </item>
     </section>
+  </menu>
+
+  <!--// Package viee header menu //-->
+  <menu id="pkgview_header_menu">
+    <section>
+      <attribute name="label">Show Columns</attribute>
+      <item>
+        <attribute name="label">Version</attribute>
+        <attribute name="action">view.show-column-version</attribute>
+      </item>
+      <item>
+        <attribute name="label">Repository</attribute>
+        <attribute name="action">view.show-column-repository</attribute>
+      </item>
+      <item>
+        <attribute name="label">Status</attribute>
+        <attribute name="action">view.show-column-status</attribute>
+      </item>
+      <item>
+        <attribute name="label">Date</attribute>
+        <attribute name="action">view.show-column-date</attribute>
+      </item>
+      <item>
+        <attribute name="label">Size</attribute>
+        <attribute name="action">view.show-column-size</attribute>
+      </item>
+      <item>
+        <attribute name="label">Groups</attribute>
+        <attribute name="action">view.show-column-groups</attribute>
+      </item>
+    </section>
+    <!-- <section>
+      <item>
+        <attribute name="label">Reset Columns</attribute>
+        <attribute name="action">win.reset-view-columns</attribute>
+      </item>
+    </section> -->
   </menu>
 
   <!--// Package view popup menu //-->

@@ -78,6 +78,19 @@ mod imp {
         pub pkgview_empty_label: TemplateChild<gtk::Label>,
 
         #[template_child]
+        pub pkgview_version_column: TemplateChild<gtk::ColumnViewColumn>,
+        #[template_child]
+        pub pkgview_repository_column: TemplateChild<gtk::ColumnViewColumn>,
+        #[template_child]
+        pub pkgview_status_column: TemplateChild<gtk::ColumnViewColumn>,
+        #[template_child]
+        pub pkgview_date_column: TemplateChild<gtk::ColumnViewColumn>,
+        #[template_child]
+        pub pkgview_size_column: TemplateChild<gtk::ColumnViewColumn>,
+        #[template_child]
+        pub pkgview_groups_column: TemplateChild<gtk::ColumnViewColumn>,
+
+        #[template_child]
         pub infopane_overlay: TemplateChild<gtk::Overlay>,
         #[template_child]
         pub infopane_model: TemplateChild<gio::ListStore>,
@@ -356,6 +369,25 @@ mod imp {
 
             // Add actions to view group
             pkgview_group.add_action_entries([refresh_action, stats_action, copy_action]);
+
+            // Add pkgview header menu actions
+            let col_action = gio::PropertyAction::new("show-column-version", &self.pkgview_version_column.get(), "visible");
+            pkgview_group.add_action(&col_action);
+
+            let col_action = gio::PropertyAction::new("show-column-repository", &self.pkgview_repository_column.get(), "visible");
+            pkgview_group.add_action(&col_action);
+
+            let col_action = gio::PropertyAction::new("show-column-status", &self.pkgview_status_column.get(), "visible");
+            pkgview_group.add_action(&col_action);
+
+            let col_action = gio::PropertyAction::new("show-column-date", &self.pkgview_date_column.get(), "visible");
+            pkgview_group.add_action(&col_action);
+
+            let col_action = gio::PropertyAction::new("show-column-size", &self.pkgview_size_column.get(), "visible");
+            pkgview_group.add_action(&col_action);
+
+            let col_action = gio::PropertyAction::new("show-column-groups", &self.pkgview_groups_column.get(), "visible");
+            pkgview_group.add_action(&col_action);
 
             // Set pkgview sorting
             let sort_column = self.pkgview.columns().item(0);
