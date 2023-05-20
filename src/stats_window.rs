@@ -2,6 +2,8 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
+use titlecase;
+
 use crate::pkg_object::{PkgObject, PkgFlags, PkgUtils};
 use crate::stats_object::StatsObject;
 
@@ -110,7 +112,7 @@ impl StatsWindow {
             total_isize += isize;
 
             imp.model.append(&StatsObject::new(
-                repo,
+                &titlecase::titlecase(repo),
                 &pcount.to_string(),
                 &icount.to_string(),
                 &PkgUtils::size_to_string(isize as f64, 2)
