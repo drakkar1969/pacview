@@ -26,12 +26,12 @@
                 <property name="title">Toggle Info Pane</property>
               </object>
             </child>
-            <!-- <child>
+            <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;comma</property>
                 <property name="title">Preferences</property>
               </object>
-            </child> -->
+            </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;question</property>
@@ -61,12 +61,12 @@
                 <property name="title">Refresh</property>
               </object>
             </child>
-            <!-- <child>
+            <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;S</property>
                 <property name="title">Show Statistics</property>
               </object>
-            </child> -->
+            </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;L</property>
