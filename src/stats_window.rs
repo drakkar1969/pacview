@@ -2,9 +2,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
-use bytesize;
-
-use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::pkg_object::{PkgObject, PkgFlags, PkgUtils};
 use crate::stats_object::StatsObject;
 
 //------------------------------------------------------------------------------
@@ -115,7 +113,7 @@ impl StatsWindow {
                 repo,
                 &pcount.to_string(),
                 &icount.to_string(),
-                &bytesize::to_string(isize as u64, true)
+                &PkgUtils::size_to_string(isize as f64, 2)
             ));
         }
 
@@ -123,7 +121,7 @@ impl StatsWindow {
             "<b>Total</b>",
             &format!("<b>{}</b>", total_pcount.to_string()),
             &format!("<b>{}</b>", total_icount.to_string()),
-            &format!("<b>{}</b>", bytesize::to_string(total_isize as u64, true))
+            &format!("<b>{}</b>", &PkgUtils::size_to_string(total_isize as f64, 2))
         ));
 
         window
