@@ -17,26 +17,12 @@
                 <signal name="search-changed" handler="on_search_changed" swapped="true"/>
               </object>
             </property>
-            <child type="start">
-              <object class="GtkToggleButton" id="sidebar_button">
-                <property name="icon-name">sidebar-show-symbolic</property>
-                <property name="tooltip-text">Toggle sidebar</property>
-                <property name="action-name">win.show-sidebar</property>
-              </object>
-            </child>
             <child type="end">
               <object class="GtkMenuButton" id="mainmenu_button">
                 <property name="icon-name">open-menu-symbolic</property>
                 <property name="primary">True</property>
                 <property name="tooltip-text">Main menu</property>
                 <property name="menu-model">primary_menu</property>
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkToggleButton" id="infopane_buttin">
-                <property name="icon-name">sidebar-show-right-symbolic</property>
-                <property name="tooltip-text">Toggle info pane</property>
-                <property name="action-name">win.show-infopane</property>
               </object>
             </child>
             <child type="end">
@@ -129,7 +115,7 @@
               <object class="GtkPaned" id="pane">
                 <property name="orientation">vertical</property>
                 <property name="wide-handle">True</property>
-                <!-- <property name="position">375</property> -->
+                <property name="position">375</property>
                 <property name="shrink-start-child">False</property>
                 <property name="shrink-end-child">False</property>
                 <property name="start-child">

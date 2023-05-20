@@ -52,6 +52,9 @@ mod imp {
         pub status_listbox: TemplateChild<gtk::ListBox>,
 
         #[template_child]
+        pub pane: TemplateChild<gtk::Paned>,
+
+        #[template_child]
         pub pkgview_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub pkgview: TemplateChild<gtk::ColumnView>,
@@ -182,6 +185,7 @@ mod imp {
 
                 self.flap.set_reveal_flap(gsettings.boolean("show-sidebar"));
                 self.infopane_overlay.set_visible(gsettings.boolean("show-infopane"));
+                self.pane.set_position(gsettings.int("infopane-position"));
 
                 self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
             }
@@ -202,6 +206,7 @@ mod imp {
 
                 gsettings.set_boolean("show-sidebar", self.flap.reveals_flap()).unwrap();
                 gsettings.set_boolean("show-infopane", self.infopane_overlay.is_visible()).unwrap();
+                gsettings.set_int("infopane-position", self.pane.position()).unwrap();
 
                 gsettings.set_string("aur-update-command", &self.prefs_window.aur_command()).unwrap();
             }
