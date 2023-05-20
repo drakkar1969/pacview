@@ -168,59 +168,51 @@ mod imp {
         // Setup search header
         //-----------------------------------
         fn setup_search(&self) {
-            let obj = self.obj();
-
             // Create search action group
             let search_group = gio::SimpleActionGroup::new();
 
-            obj.insert_action_group("search", Some(&search_group));
+            self.obj().insert_action_group("search", Some(&search_group));
 
-            // Create actions to start/stop search
-            let search_start_action = gio::SimpleAction::new("start", None);
-            search_start_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                window.search_header.set_active(true);
-            }));
-            search_group.add_action(&search_start_action);
+            // Add start/stop search action
+            let search_start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    win.search_header.set_active(true)
+                }))
+                .build();
+            let search_stop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("stop")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    win.search_header.set_active(false)
+                }))
+                .build();
 
-            let search_stop_action = gio::SimpleAction::new("stop", None);
-            search_stop_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                window.search_header.set_active(false);
-            }));
-            search_group.add_action(&search_stop_action);
-
-            // Create actions for search header search by properties
+            // Add select all/reset search header search by property actions
             let prop_array = ["name", "desc", "group", "deps", "optdeps", "provides", "files"];
 
-            for prop in prop_array {
-                let action_name = format!("toggle-{}", prop);
-                let prop_name = format!("by-{}", prop);
+            let selectall_action = gio::ActionEntry::builder("selectall")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    for prop in prop_array {
+                        win.search_header.set_property(&format!("by-{}", prop), true);
+                    }
+                }))
+                .build();
+            let reset_action = gio::ActionEntry::builder("reset")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    for prop in prop_array {
+                        win.search_header.set_property(&format!("by-{}", prop), prop == "name");
+                    }
+                }))
+                .build();
 
-                let action = gio::PropertyAction::new(&action_name, &self.search_header.get(), &prop_name);
+            // Add actions to search group
+            search_group.add_action_entries([search_start_action, search_stop_action, selectall_action, reset_action]);
+
+            // Add search header search by property actions
+            for prop in prop_array {
+                let action = gio::PropertyAction::new(&format!("toggle-{}", prop), &self.search_header.get(), &format!("by-{}", prop));
                 search_group.add_action(&action);
             }
 
-            // Create actions to select all/reset search header search by properties
-            let selectall_action = gio::SimpleAction::new("selectall", None);
-            selectall_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                for prop in prop_array {
-                    let prop_name = format!("by-{}", prop);
-
-                    window.search_header.set_property(&prop_name, true);
-                }
-            }));
-            search_group.add_action(&selectall_action);
-
-            let reset_action = gio::SimpleAction::new("reset", None);
-            reset_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                for prop in prop_array {
-                    let prop_name = format!("by-{}", prop);
-
-                    window.search_header.set_property(&prop_name, prop == "name");
-                }
-            }));
-            search_group.add_action(&reset_action);
-
-            // Create action for search header search exact property
+            // Add search header search exact property action
             let action = gio::PropertyAction::new("toggle-exact", &self.search_header.get(), "exact");
             search_group.add_action(&action);
         }
@@ -231,7 +223,7 @@ mod imp {
         fn setup_toolbar(&self) {
             let obj = self.obj();
 
-            // Add sidebar/infopane visibility actions
+            // Add sidebar/infopane visibility property actions
             let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &self.flap.get(), "reveal-flap");
             obj.add_action(&show_sidebar_action);
 
@@ -271,33 +263,36 @@ mod imp {
 
             obj.insert_action_group("view", Some(&pkgview_group));
 
-            // Create pkgview refresh action
-            let refresh_action = gio::SimpleAction::new("refresh", None);
-            refresh_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                window.search_header.set_active(false);
+            // Add pkgview refresh action
+            let refresh_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("refresh")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    win.search_header.set_active(false);
                 
-                window.setup_alpm();
-            }));
-            pkgview_group.add_action(&refresh_action);
+                    win.setup_alpm();
+                }))
+                .build();
 
-            // Create pkgview copy list action
-            let copy_action = gio::SimpleAction::new("copy-list", None);
-            copy_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                let item_list: Vec<String> = IntoIterator::into_iter(0..window.pkgview_selection.n_items())
+            // Add pkgview copy list action
+            let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    let item_list: Vec<String> = IntoIterator::into_iter(0..win.pkgview_selection.n_items())
                     .map(|i| {
-                        let pkg: PkgObject = window.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
+                        let pkg: PkgObject = win.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
 
                         format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
                     }
-                ).collect();
+                    ).collect();
 
-                let copy_text = item_list.join("\n");
+                    let copy_text = item_list.join("\n");
 
-                let clipboard = window.obj().clipboard();
+                    let clipboard = win.obj().clipboard();
 
-                clipboard.set_text(&copy_text);
-            }));
-            pkgview_group.add_action(&copy_action);
+                    clipboard.set_text(&copy_text);
+                }))
+                .build();
+
+            // Add actions to view group
+            pkgview_group.add_action_entries([refresh_action, copy_action]);
 
             // Set pkgview sorting
             let sort_column = self.pkgview.columns().item(0);
@@ -319,18 +314,20 @@ mod imp {
 
             obj.insert_action_group("info", Some(&infopane_group));
 
-            // Create info pane prev/next actions
-            let prev_action = gio::SimpleAction::new("previous", None);
-            prev_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                window.infopane_display_prev();
-            }));
-            infopane_group.add_action(&prev_action);
+            // Add info pane prev/next actions
+            let prev_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("previous")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    win.infopane_display_prev();
+                }))
+                .build();
+            let next_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("next")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    win.infopane_display_next();
+                }))
+                .build();
 
-            let next_action = gio::SimpleAction::new("next", None);
-            next_action.connect_activate(clone!(@weak self as window => move |_, _| {
-                window.infopane_display_next();
-            }));
-            infopane_group.add_action(&next_action);
+            // Add actions to info pane group
+            infopane_group.add_action_entries([prev_action, next_action]);
         }
 
         //-----------------------------------
@@ -1088,6 +1085,9 @@ glib::wrapper! {
 }
 
 impl PacViewWindow {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
     }
