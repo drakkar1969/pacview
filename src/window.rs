@@ -1068,7 +1068,7 @@ mod imp {
         }
 
         fn prop_to_esc_url(&self, prop: &str) -> String {
-            format!("<a href=\"{0}\">{0}</a>", glib::markup_escape_text(prop).to_string())
+            format!("<a href=\"{url}\">{url}</a>", url=glib::markup_escape_text(prop).to_string())
         }
 
         fn prop_to_packager(&self, prop: &str) -> String {
