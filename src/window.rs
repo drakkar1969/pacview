@@ -494,7 +494,7 @@ mod imp {
 
             self.pacman_repo_names.replace(repo_list);
 
-            let default_repo_names: Vec<String> = vec![String::from("core"), String::from("extra"), String::from("community"), String::from("multilib")];
+            let default_repo_names: Vec<String> = vec![String::from("core"), String::from("extra"), String::from("multilib")];
 
             self.default_repo_names.replace(default_repo_names);
         }
