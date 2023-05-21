@@ -11,6 +11,7 @@
       <object class="GtkLabel" id="label">
         <style>
           <class name="caption-heading"/>
+          <class name="searchtag"/>
         </style>
       </object>
     </child>

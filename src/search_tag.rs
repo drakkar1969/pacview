@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -19,9 +19,13 @@ mod imp {
     pub struct SearchTag {
         #[template_child]
         pub label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
         text: RefCell<Option<String>>,
+        #[property(get, set)]
+        can_close: Cell<bool>,
     }
 
     //-----------------------------------
@@ -67,6 +71,9 @@ mod imp {
 
             // Bind properties to widgets
             self.obj().bind_property("text", &self.label.get(), "label")
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+            self.obj().bind_property("can-close", &self.button.get(), "visible")
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
         }
