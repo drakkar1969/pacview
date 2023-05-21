@@ -24,7 +24,6 @@
                   <object class="GtkSearchEntry" id="search_entry">
                     <property name="hexpand">True</property>
                     <signal name="search-started" handler="on_search_started" swapped="true"/>
-                    <!-- <signal name="stop-search" handler="on_search_stopped" swapped="no"/> -->
                     <signal name="search-changed" handler="on_search_changed" swapped="true"/>
                     <child>
                       <object class="GtkImage" id="filter_image">
