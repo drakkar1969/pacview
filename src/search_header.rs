@@ -76,6 +76,9 @@ mod imp {
 
         #[property(get, set)]
         exact: Cell<bool>,
+
+        #[property(get, set)]
+        block_notify: Cell<bool>,
     }
 
     //-----------------------------------
@@ -176,19 +179,9 @@ mod imp {
 
                     // Connect notify signals handlers for search by properties
                     obj.connect_notify(Some(&prop_name), move |header, _| {
-                        let imp = header.imp();
-
-                        header.emit_by_name::<()>("search-changed",
-                            &[&imp.search_entry.text().to_string(),
-                            &header.by_name(),
-                            &header.by_desc(),
-                            &header.by_group(),
-                            &header.by_deps(),
-                            &header.by_optdeps(),
-                            &header.by_provides(),
-                            &header.by_files(),
-                            &header.exact()]
-                        );
+                        if !header.block_notify() {
+                            header.imp().emit_search_changed_signal();
+                        }
                     });
 
                     // Bind search by properties to search tag visibility
@@ -200,19 +193,7 @@ mod imp {
 
             // Connect notify signal handler for search exact property
             obj.connect_notify(Some("exact"), move |header, _| {
-                let imp = header.imp();
-
-                header.emit_by_name::<()>("search-changed",
-                    &[&imp.search_entry.text().to_string(),
-                    &header.by_name(),
-                    &header.by_desc(),
-                    &header.by_group(),
-                    &header.by_deps(),
-                    &header.by_optdeps(),
-                    &header.by_provides(),
-                    &header.by_files(),
-                    &header.exact()]
-                );
+                header.imp().emit_search_changed_signal();
             });
 
             // Bind search exact property to search tag visibility
@@ -267,6 +248,13 @@ mod imp {
 
         #[template_callback]
         fn on_search_changed(&self) {
+            self.emit_search_changed_signal();
+        }
+
+        //-----------------------------------
+        // Signal emit helper functions
+        //-----------------------------------
+        fn emit_search_changed_signal(&self) {
             let obj = self.obj();
 
             obj.emit_by_name::<()>("search-changed",

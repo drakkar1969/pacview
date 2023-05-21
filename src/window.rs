@@ -251,16 +251,56 @@ mod imp {
 
             let selectall_action = gio::ActionEntry::builder("selectall")
                 .activate(clone!(@weak self as win => move |_, _, _| {
+                    let header = &win.search_header;
+
+                    header.set_block_notify(true);
+
                     for prop in prop_array {
-                        win.search_header.set_property(&format!("by-{}", prop), true);
+                        header.set_property(&format!("by-{}", prop), true);
                     }
+
+                    header.set_block_notify(false);
+
+                    let imp = header.imp();
+
+                    header.emit_by_name::<()>("search-changed",
+                        &[&imp.search_entry.text().to_string(),
+                        &header.by_name(),
+                        &header.by_desc(),
+                        &header.by_group(),
+                        &header.by_deps(),
+                        &header.by_optdeps(),
+                        &header.by_provides(),
+                        &header.by_files(),
+                        &header.exact()]
+                    );
                 }))
                 .build();
             let reset_action = gio::ActionEntry::builder("reset")
                 .activate(clone!(@weak self as win => move |_, _, _| {
+                    let header = &win.search_header;
+
+                    header.set_block_notify(true);
+
                     for prop in prop_array {
-                        win.search_header.set_property(&format!("by-{}", prop), prop == "name");
+                        header.set_property(&format!("by-{}", prop), prop == "name");
                     }
+
+                    header.set_block_notify(false);
+
+                    let imp = header.imp();
+
+                    header.emit_by_name::<()>("search-changed",
+                        &[&imp.search_entry.text().to_string(),
+                        &header.by_name(),
+                        &header.by_desc(),
+                        &header.by_group(),
+                        &header.by_deps(),
+                        &header.by_optdeps(),
+                        &header.by_provides(),
+                        &header.by_files(),
+                        &header.exact()]
+                    );
                 }))
                 .build();
 
