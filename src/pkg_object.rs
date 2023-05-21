@@ -58,6 +58,7 @@ pub struct PkgData {
     pub sha256sum: String,
     pub md5sum: String,
     pub files: Vec<String>,
+    pub backup: Vec<String>,
     pub has_update: bool,
 }
 
@@ -66,10 +67,11 @@ impl PkgData {
     // Public builder function
     //-----------------------------------
     pub fn from_alpm_package(repo: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
-        // Defaults for package status flags, install date and files (non-installed)
+        // Defaults for package status flags, install date, files and backup (non-installed)
         let mut iflags = PkgFlags::NONE;
         let mut idate = 0;
         let mut files_vec: Vec<String> = vec![];
+        let mut backup_vec: Vec<String> = vec![];
 
         if let Ok(pkg) = localpkg {
             // Get package status flags
@@ -92,6 +94,9 @@ impl PkgData {
 
             // Get package files
             files_vec.extend(Self::alpm_filelist_to_vec(&pkg.files()));
+
+            // Get package backup
+            backup_vec.extend(Self::alpm_backuplist_to_vec(&pkg.backup()));
         }
 
         // Get package groups
@@ -144,6 +149,7 @@ impl PkgData {
             sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
             md5sum: syncpkg.md5sum().unwrap_or_default().to_string(),
             files: files_vec,
+            backup: backup_vec,
             has_update: false,
         }
     }
@@ -163,6 +169,13 @@ impl PkgData {
         file_vec.sort_unstable();
 
         file_vec
+    }
+
+    fn alpm_backuplist_to_vec(list: &alpm::AlpmList<alpm::Backup>) -> Vec<String> {
+        let mut backup_vec: Vec<String> = list.iter().map(|bck| bck.name().to_string()).collect();
+        backup_vec.sort_unstable();
+
+        backup_vec
     }
 }
 
@@ -247,6 +260,7 @@ mod imp {
         #[property(name = "sha256sum",     get, type = String,      member = sha256sum)]
         #[property(name = "md5sum",        get, type = String,      member = md5sum)]
         #[property(name = "files",         get, type = Vec<String>, member = files)]
+        #[property(name = "backup",        get, type = Vec<String>, member = backup)]
         pub data: RefCell<PkgData>,
 
         // Read-only properties with custom getter
