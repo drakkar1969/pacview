@@ -82,9 +82,19 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkSeparator" id="separator_exact">
+                          <object class="GtkSeparator">
                             <property name="margin-start">3</property>
                             <property name="margin-end">3</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="searchtag_any">
+                            <property name="text">any</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="searchtag_all">
+                            <property name="text">all</property>
                           </object>
                         </child>
                         <child>
@@ -148,9 +158,21 @@
       </item>
     </section>
     <section>
+      <attribute name="label">Search Mode</attribute>
+      <item>
+        <attribute name="label">Match All Terms</attribute>
+        <attribute name="action">search.toggle-mode</attribute>
+        <attribute name="target">all</attribute>
+      </item>
+      <item>
+        <attribute name="label">Match Any Term</attribute>
+        <attribute name="action">search.toggle-mode</attribute>
+        <attribute name="target">any</attribute>
+      </item>
       <item>
         <attribute name="label">Exact Match</attribute>
-        <attribute name="action">search.toggle-exact</attribute>
+        <attribute name="action">search.toggle-mode</attribute>
+        <attribute name="target">exact</attribute>
       </item>
     </section>
   </menu>

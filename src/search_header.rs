@@ -10,6 +10,27 @@ use glib::once_cell::sync::Lazy;
 use crate::search_tag::SearchTag;
 
 //------------------------------------------------------------------------------
+// ENUM: SearchMode
+//------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "SearchMode")]
+pub enum SearchMode {
+    #[enum_value(name = "All")]
+    All = 0,
+    #[enum_value(name = "Any")]
+    Any = 1,
+    #[enum_value(name = "Exact")]
+    Exact = 2,
+}
+
+impl Default for SearchMode {
+    fn default() -> Self {
+        SearchMode::All
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: SearchHeader
 //------------------------------------------------------------------------------
 mod imp {
@@ -45,10 +66,14 @@ mod imp {
         #[template_child]
         pub searchtag_files: TemplateChild<SearchTag>,
         #[template_child]
-        pub separator_exact: TemplateChild<gtk::Separator>,
+
+        pub searchtag_all: TemplateChild<SearchTag>,
+        #[template_child]
+        pub searchtag_any: TemplateChild<SearchTag>,
         #[template_child]
         pub searchtag_exact: TemplateChild<SearchTag>,
         #[template_child]
+
         pub filter_popover: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set)]
@@ -74,8 +99,8 @@ mod imp {
         #[property(get, set)]
         by_files: Cell<bool>,
 
-        #[property(get, set)]
-        exact: Cell<bool>,
+        #[property(get, set, builder(SearchMode::default()))]
+        mode: Cell<SearchMode>,
 
         #[property(get, set)]
         block_notify: Cell<bool>,
@@ -92,6 +117,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             SearchTag::static_type();
+            SearchMode::static_type();
 
             klass.bind_template();
             klass.bind_template_callbacks();
@@ -119,7 +145,7 @@ mod imp {
                         bool::static_type(),
                         bool::static_type(),
                         bool::static_type(),
-                        bool::static_type()])
+                        SearchMode::static_type()])
                     .build(),
                     Signal::builder("search-activated")
                     .param_types([bool::static_type()])
@@ -180,7 +206,7 @@ mod imp {
                     // Connect notify signals handlers for search by properties
                     obj.connect_notify(Some(&prop_name), move |header, _| {
                         if !header.block_notify() {
-                            header.imp().emit_search_changed_signal();
+                            header.emit_search_changed_signal();
                         }
                     });
 
@@ -191,18 +217,25 @@ mod imp {
                 }
             }
 
-            // Connect notify signal handler for search exact property
-            obj.connect_notify(Some("exact"), move |header, _| {
-                header.imp().emit_search_changed_signal();
+            // Connect notify signal handler for search mode property
+            obj.connect_notify(Some("mode"), move |header, _| {
+                header.emit_search_changed_signal();
             });
 
-            // Bind search exact property to search tag visibility
-            obj.bind_property("exact", &self.separator_exact.get(), "visible")
-                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            // Bind search mode property to search mode tag visibility
+            obj.bind_property("mode", &self.searchtag_all.get(), "visible")
+                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::All))
+                .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
-            obj.bind_property("exact", &self.searchtag_exact.get(), "visible")
-                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            obj.bind_property("mode", &self.searchtag_any.get(), "visible")
+                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Any))
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            obj.bind_property("mode", &self.searchtag_exact.get(), "visible")
+                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Exact))
+                .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
             // Connect notify signal handler for search active property
@@ -248,25 +281,7 @@ mod imp {
 
         #[template_callback]
         fn on_search_changed(&self) {
-            self.emit_search_changed_signal();
-        }
-
-        //-----------------------------------
-        // Signal emit helper functions
-        //-----------------------------------
-        fn emit_search_changed_signal(&self) {
-            let obj = self.obj();
-
-            obj.emit_by_name::<()>("search-changed",
-                &[&self.search_entry.text().to_string(),
-                &obj.by_name(),
-                &obj.by_desc(),
-                &obj.by_group(),
-                &obj.by_deps(),
-                &obj.by_optdeps(),
-                &obj.by_provides(),
-                &obj.by_files(),
-                &obj.exact()]);
+            self.obj().emit_search_changed_signal();
         }
 
         //-----------------------------------
@@ -289,8 +304,27 @@ glib::wrapper! {
 }
 
 impl SearchHeader {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder()
             .build()
+    }
+
+    //-----------------------------------
+    // Public signal emit helper function
+    //-----------------------------------
+    pub fn emit_search_changed_signal(&self) {
+        self.emit_by_name::<()>("search-changed",
+            &[&self.imp().search_entry.text().to_string(),
+            &self.by_name(),
+            &self.by_desc(),
+            &self.by_group(),
+            &self.by_deps(),
+            &self.by_optdeps(),
+            &self.by_provides(),
+            &self.by_files(),
+            &self.mode()]);
     }
 }

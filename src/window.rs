@@ -20,7 +20,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
-use crate::search_header::SearchHeader;
+use crate::search_header::{SearchHeader, SearchMode};
 use crate::filter_row::FilterRow;
 use crate::value_row::ValueRow;
 use crate::stats_window::StatsWindow;
@@ -261,19 +261,7 @@ mod imp {
 
                     header.set_block_notify(false);
 
-                    let imp = header.imp();
-
-                    header.emit_by_name::<()>("search-changed",
-                        &[&imp.search_entry.text().to_string(),
-                        &header.by_name(),
-                        &header.by_desc(),
-                        &header.by_group(),
-                        &header.by_deps(),
-                        &header.by_optdeps(),
-                        &header.by_provides(),
-                        &header.by_files(),
-                        &header.exact()]
-                    );
+                    header.emit_search_changed_signal();
                 }))
                 .build();
             let reset_action = gio::ActionEntry::builder("reset")
@@ -288,19 +276,7 @@ mod imp {
 
                     header.set_block_notify(false);
 
-                    let imp = header.imp();
-
-                    header.emit_by_name::<()>("search-changed",
-                        &[&imp.search_entry.text().to_string(),
-                        &header.by_name(),
-                        &header.by_desc(),
-                        &header.by_group(),
-                        &header.by_deps(),
-                        &header.by_optdeps(),
-                        &header.by_provides(),
-                        &header.by_files(),
-                        &header.exact()]
-                    );
+                    header.emit_search_changed_signal();
                 }))
                 .build();
 
@@ -313,9 +289,23 @@ mod imp {
                 search_group.add_action(&action);
             }
 
-            // Add search header search exact property action
-            let action = gio::PropertyAction::new("toggle-exact", &self.search_header.get(), "exact");
-            search_group.add_action(&action);
+            // Add search header search mode stateful action
+            let mode_action = gio::SimpleAction::new_stateful("toggle-mode", Some(&String::static_variant_type()), "all".to_variant());
+            mode_action.connect_change_state(clone!(@weak self as window => move |action, param| {
+                let param = param.unwrap().get::<String>().unwrap();
+
+                window.search_header.set_mode(
+                    match param.as_str() {
+                        "all" => SearchMode::All,
+                        "any" => SearchMode::Any,
+                        "exact" => SearchMode::Exact,
+                        _ => unreachable!()
+                    }
+                );
+
+                action.set_state(param.to_variant());
+            }));
+            search_group.add_action(&mode_action);
         }
 
         //-----------------------------------
@@ -763,7 +753,6 @@ mod imp {
                     app.set_accels_for_action("search.toggle-optdeps", &["<ctrl>5"]);
                     app.set_accels_for_action("search.toggle-provides", &["<ctrl>6"]);
                     app.set_accels_for_action("search.toggle-files", &["<ctrl>7"]);
-                    app.set_accels_for_action("search.toggle-exact", &["<ctrl>E"]);
 
                     app.set_accels_for_action("search.selectall", &["<ctrl>L"]);
                     app.set_accels_for_action("search.reset", &["<ctrl>R"]);
@@ -780,7 +769,6 @@ mod imp {
                     app.set_accels_for_action("search.toggle-optdeps", &[]);
                     app.set_accels_for_action("search.toggle-provides", &[]);
                     app.set_accels_for_action("search.toggle-files", &[]);
-                    app.set_accels_for_action("search.toggle-exact", &[]);
 
                     app.set_accels_for_action("search.selectall", &[]);
                     app.set_accels_for_action("search.reset", &[]);
@@ -789,13 +777,13 @@ mod imp {
         }
 
         #[template_callback]
-        fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, exact: bool) {
+        fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode) {
             let search_term = term.to_lowercase();
 
             if search_term == "" {
                 self.pkgview_search_filter.unset_filter_func();
             } else {
-                if exact {
+                if mode == SearchMode::Exact {
                     self.pkgview_search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
@@ -835,7 +823,11 @@ mod imp {
                             results.push(term_results.into_iter().any(|x| x));
                         }
 
-                        results.into_iter().all(|x| x)
+                        if mode == SearchMode::All {
+                            results.into_iter().all(|x| x)
+                        } else {
+                            results.into_iter().any(|x| x)
+                        }
                     });
                 }
             }
