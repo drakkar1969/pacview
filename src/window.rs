@@ -333,7 +333,7 @@ mod imp {
                 }))
                 .build();
 
-            // Add pkgview stats window action
+            // Add pkgview show stats action
             let stats_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-stats")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
                     if let Some(app) = obj.application() {
@@ -370,7 +370,7 @@ mod imp {
             // Add actions to view group
             pkgview_group.add_action_entries([refresh_action, stats_action, copy_action]);
 
-            // Add pkgview header menu actions
+            // Add pkgview header menu property actions
             let col_action = gio::PropertyAction::new("show-column-version", &self.pkgview_version_column.get(), "visible");
             pkgview_group.add_action(&col_action);
 
