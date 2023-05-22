@@ -107,6 +107,8 @@ mod imp {
 
         update_row: RefCell<FilterRow>,
 
+        alpm_handle: OnceCell<alpm::Alpm>,
+
         default_repo_names: RefCell<Vec<String>>,
         pacman_repo_names: RefCell<Vec<String>>,
 
@@ -358,7 +360,7 @@ mod imp {
             let refresh_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("refresh")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     win.search_header.set_active(false);
-                
+
                     win.setup_alpm();
                 }))
                 .build();
@@ -372,7 +374,7 @@ mod imp {
 
                         let stats_window = StatsWindow::new(&repo_names, &pkg_list);
                         stats_window.set_transient_for(Some(&app.active_window().unwrap()));
-                    
+
                         stats_window.present();
                     }
                 }))
@@ -564,7 +566,7 @@ mod imp {
         // Setup alpm: load alpm packages
         //-----------------------------------
         fn load_packages_async(&self) {
-            let (sender, receiver) = glib::MainContext::channel::<Vec<PkgData>>(glib::PRIORITY_DEFAULT);
+            let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
 
             let pacman_config = self.pacman_config.borrow();
 
@@ -600,15 +602,19 @@ mod imp {
                     })
                 );
 
-                sender.send(data_list).expect("Could not send through channel");
+                sender.send((handle, data_list)).expect("Could not send through channel");
             });
 
             receiver.attach(
                 None,
-                clone!(@weak self as window => @default-return Continue(false), move |data_list| {
+                clone!(@weak self as window => @default-return Continue(false), move |(handle, data_list)| {
                     let pkg_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
                         PkgObject::new(data)
                     }).collect();
+
+                    if !window.alpm_handle.get().is_some() {
+                        window.alpm_handle.set(handle).unwrap();
+                    }
 
                     window.package_list.replace(pkg_list.clone());
 
@@ -687,13 +693,13 @@ mod imp {
 
                         for pkg in update_list {
                             let version = update_map.get(&pkg.name());
-    
+
                             if let Some(version) = version {
                                 pkg.set_version(version.borrow());
-    
+
                                 let mut flags = pkg.flags();
                                 flags.set(PkgFlags::UPDATES, true);
-    
+
                                 pkg.set_flags(flags);
 
                                 pkg.set_has_update(true);
@@ -876,22 +882,22 @@ mod imp {
                 let mut required_by: Vec<String> = vec![];
                 let mut optional_for: Vec<String> = vec![];
 
-                let pacman_config = self.pacman_config.borrow();
-
-                let handle = alpm::Alpm::new(pacman_config.root_dir.to_string(), pacman_config.db_path.to_string()).unwrap();
+                let handle = self.alpm_handle.get().unwrap();
 
                 let db = if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                    handle.localdb()
+                    Some(handle.localdb())
                 } else {
-                    handle.register_syncdb(pkg.repository(), alpm::SigLevel::DATABASE_OPTIONAL).unwrap()
+                    handle.syncdbs().iter().find(|db| db.name() == pkg.repository())
                 };
 
-                if let Ok(alpm_pkg) = db.pkg(pkg.name()) {
-                    required_by.extend(alpm_pkg.required_by().iter().map(|dep| dep.to_string()));
-                    required_by.sort_unstable();
+                if let Some(db) = db {
+                    if let Ok(alpm_pkg) = db.pkg(pkg.name()) {
+                        required_by.extend(alpm_pkg.required_by().iter().map(|dep| dep.to_string()));
+                        required_by.sort_unstable();
 
-                    optional_for.extend(alpm_pkg.optional_for().iter().map(|dep| dep.to_string()));
-                    optional_for.sort_unstable();
+                        optional_for.extend(alpm_pkg.optional_for().iter().map(|dep| dep.to_string()));
+                        optional_for.sort_unstable();
+                    }
                 }
 
                 // Name
