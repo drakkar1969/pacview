@@ -1166,7 +1166,7 @@ mod imp {
 
                         if !new_pkg.is_some() {
                             new_pkg = pkg_list.iter().find(|pkg| {
-                                pkg.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name))
+                                pkg.provides().iter().any(|s| s.contains(&pkg_name))
                             });
                         }
 
