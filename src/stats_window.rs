@@ -91,18 +91,14 @@ impl StatsWindow {
 
         for repo in repo_names {
             let repo_list: Vec<&PkgObject> = pkg_list.iter()
-                .filter(|pkg| {
-                    pkg.repository() == *repo
-                })
+                .filter(|pkg| pkg.repository() == *repo)
                 .collect();
 
             let pcount = repo_list.len();
             total_pcount += pcount;
 
             let installed_list: Vec<&PkgObject> = repo_list.into_iter()
-                .filter(|pkg| {
-                    pkg.flags().intersects(PkgFlags::INSTALLED)
-                })
+                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                 .collect();
 
             let icount = installed_list.len();

@@ -1160,24 +1160,14 @@ mod imp {
             if let Ok(url) = Url::parse(link) {
                 if url.scheme() == "pkg" {
                     if let Some(pkg_name) = url.domain() {
-                        let mut new_pkg: Option<&PkgObject> = None;
-
                         let pkg_list = self.package_list.borrow().to_vec();
 
-                        let new_pkg_list: Vec<&PkgObject> = pkg_list.iter()
-                            .filter(|pkg| pkg.name() == pkg_name)
-                            .collect();
+                        let mut new_pkg = pkg_list.iter().find(|pkg| pkg.name() == pkg_name);
 
-                        if new_pkg_list.len() > 0 {
-                            new_pkg = Some(new_pkg_list[0]);
-                        } else {
-                            let new_pkg_list: Vec<&PkgObject> = pkg_list.iter()
-                                .filter(|pkg| pkg.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name)))
-                                .collect();
-
-                            if new_pkg_list.len() > 0 {
-                                new_pkg = Some(new_pkg_list[0]);
-                            }
+                        if !new_pkg.is_some() {
+                            new_pkg = pkg_list.iter().find(|pkg| {
+                                pkg.provides().iter().any(|s| s.to_lowercase().contains(&pkg_name))
+                            });
                         }
 
                         if let Some(new_pkg) = new_pkg {
