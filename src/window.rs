@@ -2,7 +2,6 @@ use std::cell::{Cell, RefCell};
 use std::thread;
 use std::process::Command;
 use std::collections::HashMap;
-use std::borrow::Borrow;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -584,6 +583,7 @@ mod imp {
 
                 for repo in repo_names {
                     let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
+                    
                     data_list.extend(db.pkgs().iter()
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());
@@ -612,9 +612,7 @@ mod imp {
                         PkgObject::new(data)
                     }).collect();
 
-                    if !window.alpm_handle.get().is_some() {
-                        window.alpm_handle.set(handle).unwrap();
-                    }
+                    window.alpm_handle.set(handle).unwrap_or_default();
 
                     window.package_list.replace(pkg_list.clone());
 
@@ -647,9 +645,7 @@ mod imp {
                     }
 
                     if success {
-                        let pac_out = String::from_utf8(output.stdout).unwrap_or_default();
-
-                        let mut aur_out = String::from("");
+                        let mut update_str = String::from_utf8(output.stdout).unwrap_or_default();
 
                         if let Ok(aur_params) = shell_words::split(&aur_command) {
                             if !aur_params.is_empty() {
@@ -657,24 +653,21 @@ mod imp {
                                 let aur_args = &aur_params[1..aur_params.len()];
 
                                 if let Ok(output) = Command::new(aur_prog).args(aur_args).output() {
-                                    aur_out = String::from_utf8(output.stdout).unwrap_or_default();
+                                    update_str += &String::from_utf8(output.stdout).unwrap_or_default();
                                 }
                             }
                         }
-
-                        let mut update_list: Vec<&str> = pac_out.split_terminator("\n").into_iter().collect();
-
-                        update_list.extend(aur_out.split_terminator("\n"));
 
                         lazy_static! {
                             static ref EXPR: Regex = Regex::new("(\\S+) (\\S+ -> \\S+)").unwrap();
                         }
 
-                        for update in update_list {
-                            if EXPR.is_match(update).unwrap_or_default() {
-                                update_map.insert(EXPR.replace_all(&update, "$1").to_string(), EXPR.replace_all(&update, "$2").to_string());
-                            }
-                        }
+                        update_map = update_str.split_terminator("\n")
+                            .filter(|s| EXPR.is_match(s).unwrap_or_default())
+                            .map(|s| 
+                                (EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string())
+                            )
+                            .collect();
                     }
                 }
 
@@ -687,15 +680,10 @@ mod imp {
             receiver.attach(
                 None,
                 clone!(@strong update_row => @default-return Continue(false), move |(success, update_map)| {
-                    if success == true && update_map.len() > 0 {
-                        let update_list = pkg_list.iter()
-                            .filter(|pkg| update_map.contains_key(&pkg.name()));
-
-                        for pkg in update_list {
-                            let version = update_map.get(&pkg.name());
-
-                            if let Some(version) = version {
-                                pkg.set_version(version.borrow());
+                    if success == true {
+                        for (name, version) in update_map.iter() {
+                            if let Some(pkg) = pkg_list.iter().find(|pkg| pkg.name().eq(name)) {
+                                pkg.set_version(version.to_string());
 
                                 let mut flags = pkg.flags();
                                 flags.set(PkgFlags::UPDATES, true);
