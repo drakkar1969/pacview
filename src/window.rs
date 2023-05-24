@@ -867,26 +867,9 @@ mod imp {
             self.infopane_model.remove_all();
 
             if let Some(pkg) = pkg {
-                let mut required_by: Vec<String> = vec![];
-                let mut optional_for: Vec<String> = vec![];
-
                 let handle = self.alpm_handle.get().unwrap();
 
-                let db = if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                    Some(handle.localdb())
-                } else {
-                    handle.syncdbs().iter().find(|db| db.name() == pkg.repository())
-                };
-
-                if let Some(db) = db {
-                    if let Ok(alpm_pkg) = db.pkg(pkg.name()) {
-                        required_by.extend(alpm_pkg.required_by().iter().map(|dep| dep.to_string()));
-                        required_by.sort_unstable();
-
-                        optional_for.extend(alpm_pkg.optional_for().iter().map(|dep| dep.to_string()));
-                        optional_for.sort_unstable();
-                    }
-                }
+                let (required_by, optional_for) = pkg.compute_requirements(handle);
 
                 // Name
                 self.infopane_model.append(&PropObject::new(

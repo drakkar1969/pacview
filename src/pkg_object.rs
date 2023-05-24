@@ -337,4 +337,30 @@ impl PkgObject {
             datetime.format(format).expect("error").to_string()
         }
     }
+
+    //-----------------------------------
+    // Public compute requirements function
+    //-----------------------------------
+    pub fn compute_requirements(&self, handle: &alpm::Alpm) -> (Vec<String>, Vec<String>) {
+        let mut required_by: Vec<String> = vec![];
+        let mut optional_for: Vec<String> = vec![];
+
+        let db = if self.flags().intersects(PkgFlags::INSTALLED) {
+            Some(handle.localdb())
+        } else {
+            handle.syncdbs().iter().find(|db| db.name() == self.repository())
+        };
+
+        if let Some(db) = db {
+            if let Ok(alpm_pkg) = db.pkg(self.name()) {
+                required_by.extend(alpm_pkg.required_by().iter().map(|dep| dep.to_string()));
+                required_by.sort_unstable();
+
+                optional_for.extend(alpm_pkg.optional_for().iter().map(|dep| dep.to_string()));
+                optional_for.sort_unstable();
+            }
+        }
+
+        (required_by, optional_for)
+    }
 }
