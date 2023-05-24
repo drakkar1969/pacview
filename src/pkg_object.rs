@@ -180,46 +180,6 @@ impl PkgData {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: PkgUtils
-//------------------------------------------------------------------------------
-pub struct PkgUtils;
-
-//-----------------------------------
-// Public utility functions
-//-----------------------------------
-impl PkgUtils {
-    pub fn size_to_string(mut size: f64, decimals: usize) -> String {
-        if size == 0.0 {
-            String::from("0 B")
-        } else {
-            let mut unit = "";
-    
-            for u in ["B", "KiB", "MiB", "GiB", "TiB", "PiB"] {
-                unit = u;
-    
-                if size < 1024.0 || u == "PiB" {
-                    break;
-                }
-    
-                size /= 1024.0;
-            }
-    
-            format!("{size:.prec$} {unit}", size=size, prec=decimals, unit=unit)
-        }
-    }
-
-    fn date_to_string(date: i64, format: &str) -> String {
-        if date == 0 {
-            String::from("")
-        } else {
-            let datetime = glib::DateTime::from_unix_local(date).expect("error");
-
-            datetime.format(format).expect("error").to_string()
-        }
-    }
-}
-
-//------------------------------------------------------------------------------
 // MODULE: PkgObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -307,23 +267,23 @@ mod imp {
         // Read-only property getters
         //-----------------------------------
         fn install_date_short(&self) -> String {
-            PkgUtils::date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
+            super::PkgObject::date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
         }
 
         fn install_date_long(&self) -> String {
-            PkgUtils::date_to_string(self.obj().install_date(), "%d %B %Y %H:%M")
+            super::PkgObject::date_to_string(self.obj().install_date(), "%d %B %Y %H:%M")
         }
 
         fn install_size_string(&self) -> String {
-            PkgUtils::size_to_string(self.obj().install_size() as f64, 1)
+            super::PkgObject::size_to_string(self.obj().install_size() as f64, 1)
         }
 
         fn build_date_long(&self) -> String {
-            PkgUtils::date_to_string(self.obj().build_date(), "%d %B %Y %H:%M")
+            super::PkgObject::date_to_string(self.obj().build_date(), "%d %B %Y %H:%M")
         }
 
         fn download_size_string(&self) -> String {
-            PkgUtils::size_to_string(self.obj().download_size() as f64, 1)
+            super::PkgObject::size_to_string(self.obj().download_size() as f64, 1)
         }
     }
 }
@@ -343,5 +303,38 @@ impl PkgObject {
         let pkg: Self = glib::Object::builder().build();
         pkg.imp().data.replace(data);
         pkg
+    }
+
+    //-----------------------------------
+    // Public auxiliary functions
+    //-----------------------------------
+    pub fn size_to_string(mut size: f64, decimals: usize) -> String {
+        if size == 0.0 {
+            String::from("0 B")
+        } else {
+            let mut unit = "";
+    
+            for u in ["B", "KiB", "MiB", "GiB", "TiB", "PiB"] {
+                unit = u;
+    
+                if size < 1024.0 || u == "PiB" {
+                    break;
+                }
+    
+                size /= 1024.0;
+            }
+    
+            format!("{size:.prec$} {unit}", size=size, prec=decimals, unit=unit)
+        }
+    }
+
+    pub fn date_to_string(date: i64, format: &str) -> String {
+        if date == 0 {
+            String::from("")
+        } else {
+            let datetime = glib::DateTime::from_unix_local(date).expect("error");
+
+            datetime.format(format).expect("error").to_string()
+        }
     }
 }

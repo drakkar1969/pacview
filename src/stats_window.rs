@@ -4,7 +4,7 @@ use gtk::prelude::*;
 
 use titlecase;
 
-use crate::pkg_object::{PkgObject, PkgFlags, PkgUtils};
+use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::stats_object::StatsObject;
 
 //------------------------------------------------------------------------------
@@ -111,7 +111,7 @@ impl StatsWindow {
                 &titlecase::titlecase(repo),
                 &pcount.to_string(),
                 &icount.to_string(),
-                &PkgUtils::size_to_string(isize as f64, 2)
+                &PkgObject::size_to_string(isize as f64, 2)
             ));
         }
 
@@ -119,7 +119,7 @@ impl StatsWindow {
             "<b>Total</b>",
             &format!("<b>{}</b>", total_pcount.to_string()),
             &format!("<b>{}</b>", total_icount.to_string()),
-            &format!("<b>{}</b>", &PkgUtils::size_to_string(total_isize as f64, 2))
+            &format!("<b>{}</b>", &PkgObject::size_to_string(total_isize as f64, 2))
         ));
 
         window
