@@ -614,9 +614,9 @@ mod imp {
 
                     window.alpm_handle.set(handle).unwrap_or_default();
 
-                    window.package_list.replace(pkg_list.clone());
+                    window.package_list.replace(pkg_list);
 
-                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &pkg_list);
+                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &window.package_list.borrow());
 
                     window.pkgview_stack.set_visible_child_name("view");
 
