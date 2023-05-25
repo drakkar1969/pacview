@@ -628,49 +628,69 @@ mod imp {
         }
 
         //-----------------------------------
+        // Setup alpm: run command helper function
+        //-----------------------------------
+        fn run_command(cmd: &str, args: &[String]) -> (Option<i32>, String) {
+            let mut stdout: String = String::from("");
+            let mut code: Option<i32> = None;
+
+            if let Ok(output) = Command::new(cmd).args(args).output() {
+                code = output.status.code();
+                stdout = String::from_utf8(output.stdout).unwrap_or_default();
+            }
+
+            (code, stdout)
+        }
+
+        //-----------------------------------
         // Setup alpm: get package updates
         //-----------------------------------
         fn get_package_updates_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::PRIORITY_DEFAULT);
 
+            // Get custom command for AUR updates
             let aur_command = self.prefs_window.aur_command();
 
+            // Spawn thread to check for updates
             thread::spawn(move || {
-                let mut success = false;
                 let mut update_map = HashMap::new();
+                let mut update_str = String::from("");
 
-                if let Ok(output) = Command::new("/usr/bin/checkupdates").output() {
-                    if output.status.code() == Some(0) || output.status.code() == Some(2) {
-                        success = true;
-                    }
+                // Check for pacman updates
+                let (code, stdout) = PacViewWindow::run_command("/usr/bin/checkupdates", &[]);
 
-                    if success {
-                        let mut update_str = String::from_utf8(output.stdout).unwrap_or_default();
-
-                        if let Ok(aur_params) = shell_words::split(&aur_command) {
-                            if !aur_params.is_empty() {
-                                let aur_prog = &aur_params[0];
-                                let aur_args = &aur_params[1..aur_params.len()];
-
-                                if let Ok(output) = Command::new(aur_prog).args(aur_args).output() {
-                                    update_str += &String::from_utf8(output.stdout).unwrap_or_default();
-                                }
-                            }
-                        }
-
-                        lazy_static! {
-                            static ref EXPR: Regex = Regex::new("(\\S+) (\\S+ -> \\S+)").unwrap();
-                        }
-
-                        update_map = update_str.split_terminator("\n")
-                            .filter(|s| EXPR.is_match(s).unwrap_or_default())
-                            .map(|s| 
-                                (EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string())
-                            )
-                            .collect();
-                    }
+                if code == Some(0) {
+                    update_str += &stdout;
                 }
 
+                let success = code == Some(0) || code == Some(2);
+
+                // If no error on pacman updates, check for AUR updates
+                if success {
+                    if let Ok(aur_params) = shell_words::split(&aur_command) {
+                        if !aur_params.is_empty() {
+                            let (code, stdout) = PacViewWindow::run_command(&aur_params[0], &aur_params[1..]);
+
+                            if code == Some(0) {
+                                update_str += &stdout;
+                            }
+                        }
+                    }
+
+                    lazy_static! {
+                        static ref EXPR: Regex = Regex::new("(\\S+) (\\S+ -> \\S+)").unwrap();
+                    }
+
+                    // Build update map (package name, version)
+                    update_map = update_str.split_terminator("\n")
+                        .filter(|s| EXPR.is_match(s).unwrap_or_default())
+                        .map(|s| 
+                            (EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string())
+                        )
+                        .collect();
+                }
+
+                // Return thread result
                 sender.send((success, update_map)).expect("Could not send through channel");
             });
 
@@ -680,7 +700,9 @@ mod imp {
             receiver.attach(
                 None,
                 clone!(@strong update_row => @default-return Continue(false), move |(success, update_map)| {
+                    // If no error on pacman updates
                     if success == true {
+                        // Update status of packages with updates
                         for (name, version) in update_map.iter() {
                             if let Some(pkg) = pkg_list.iter().find(|pkg| pkg.name().eq(name)) {
                                 pkg.set_version(version.to_string());
@@ -695,6 +717,7 @@ mod imp {
                         }
                     }
 
+                    // Show update status/count in sidebar
                     update_row.set_spinning(false);
                     update_row.set_icon(if success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
                     update_row.set_count(if success && update_map.len() > 0 {update_map.len().to_string()} else {String::from("")});
