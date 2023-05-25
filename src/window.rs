@@ -94,6 +94,14 @@ mod imp {
         #[template_child]
         pub infopane_model: TemplateChild<gio::ListStore>,
         #[template_child]
+        pub infopane_toolbar: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub infopane_navbutton_box: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub infopane_prev_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub infopane_next_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub infopane_empty_label: TemplateChild<gtk::Label>,
 
         #[template_child]
@@ -857,15 +865,16 @@ mod imp {
         fn on_package_selected(&self) {
             if let Some(item) = self.pkgview_selection.selected_item() {
                 let pkg = item.downcast::<PkgObject>().expect("Must be a PkgObject");
-                self.infopane_display_package(Some(&pkg));
 
-                self.history_list.replace(vec![pkg]);
+                self.history_list.replace(vec![pkg.clone()]);
                 self.history_index.replace(0);
-            } else {
-                self.infopane_display_package(None);
 
+                self.infopane_display_package(Some(&pkg));
+            } else {
                 self.history_list.replace(vec![]);
                 self.history_index.replace(0);
+
+                self.infopane_display_package(None);
             }
         }
 
@@ -887,6 +896,16 @@ mod imp {
         // Infopane package display functions
         //-----------------------------------
         fn infopane_display_package(&self, pkg: Option<&PkgObject>) {
+            let hlist = self.history_list.borrow().to_vec();
+            let hindex = self.history_index.get();
+
+            self.infopane_toolbar.set_visible(pkg.is_some());
+
+            self.infopane_navbutton_box.set_visible(hlist.len() > 1);
+
+            self.infopane_prev_button.set_sensitive(hindex > 0);
+            self.infopane_next_button.set_sensitive(hindex < hlist.len() - 1);
+
             self.infopane_model.remove_all();
 
             if let Some(pkg) = pkg {

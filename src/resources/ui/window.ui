@@ -426,6 +426,67 @@
                       </object>
                     </child>
                     <child type="overlay">
+                      <object class="GtkBox" id="infopane_toolbar">
+                        <property name="halign">end</property>
+                        <property name="valign">start</property>
+                        <property name="margin-start">8</property>
+                        <property name="margin-end">8</property>
+                        <property name="margin-top">8</property>
+                        <property name="margin-bottom">8</property>
+                        <style>
+                          <class name="osd"/>
+                          <class name="rounded"/>
+                        </style>
+                        <child>
+                          <object class="GtkBox" id="infopane_navbutton_box">
+                            <property name="visible">False</property>
+                            <property name="margin-start">4</property>
+                            <property name="margin-end">4</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkButton" id="infopane_prev_button">
+                                <property name="icon-name">go-previous-symbolic</property>
+                                <property name="tooltip-text">Previous</property>
+                                <property name="action-name">info.previous</property>
+                                <style>
+                                  <class name="circular"/>
+                                  <class name="flat"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkButton" id="infopane_next_button">
+                                <property name="icon-name">go-next-symbolic</property>
+                                <property name="tooltip-text">Next</property>
+                                <property name="action-name">info.next</property>
+                                <style>
+                                  <class name="circular"/>
+                                  <class name="flat"/>
+                                </style>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="infopane_details_button">
+                            <property name="margin-start">4</property>
+                            <property name="margin-end">4</property>
+                            <property name="margin-top">4</property>
+                            <property name="margin-bottom">4</property>
+                            <property name="icon-name">dialog-information-symbolic</property>
+                            <property name="tooltip-text">Show package details</property>
+                            <!-- <property name="action-name">win.show-details-window</property> -->
+                            <style>
+                              <class name="circular"/>
+                              <class name="flat"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child type="overlay">
                       <object class="GtkLabel" id="infopane_empty_label">
                         <property name="halign">center</property>
                         <property name="valign">center</property>
