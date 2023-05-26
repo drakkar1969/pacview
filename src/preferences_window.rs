@@ -2,7 +2,8 @@ use std::cell::RefCell;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
+use glib::clone;
 
 //------------------------------------------------------------------------------
 // MODULE: PreferencesWindow
@@ -35,6 +36,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+            klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -78,6 +80,28 @@ mod imp {
     impl WindowImpl for PreferencesWindow {}
     impl AdwWindowImpl for PreferencesWindow {} 
     impl PreferencesWindowImpl for PreferencesWindow {}
+
+    #[gtk::template_callbacks]
+    impl PreferencesWindow {
+        //-----------------------------------
+        // Reset button signal handler
+        //-----------------------------------
+        #[template_callback]
+        fn on_reset_button_clicked(&self) {
+            let win = self.obj().root().unwrap().downcast::<gtk::Window>().unwrap();
+
+            let reset_dialog = adw::MessageDialog::new(Some(&win), Some("Reset Preferences?"), Some("Reset all preferences to their default values."));
+
+            reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+            reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
+
+            reset_dialog.connect_response(Some("reset"), clone!(@weak self as prefs => move |_, _| {
+                prefs.aur_row.set_text("");
+            }));
+
+            reset_dialog.present();
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
