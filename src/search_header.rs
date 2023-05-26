@@ -78,7 +78,7 @@ mod imp {
 
         #[property(get, set)]
         title: RefCell<Option<String>>,
-        #[property(get, set = Self::set_key_capture_widget)]
+        #[property(set = Self::set_key_capture_widget)]
         key_capture_widget: RefCell<Option<gtk::Widget>>,
 
         #[property(get, set)]
