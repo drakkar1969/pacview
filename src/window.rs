@@ -904,7 +904,7 @@ mod imp {
             self.infopane_navbutton_box.set_visible(hlist.len() > 1);
 
             self.infopane_prev_button.set_sensitive(hindex > 0);
-            self.infopane_next_button.set_sensitive(hindex < hlist.len() - 1);
+            self.infopane_next_button.set_sensitive(hlist.len() > 0 && hindex < hlist.len() - 1);
 
             self.infopane_model.remove_all();
 
@@ -1068,7 +1068,7 @@ mod imp {
             let hlist = self.history_list.borrow().to_vec();
             let mut hindex = self.history_index.get();
 
-            if hindex < hlist.len() - 1 {
+            if hlist.len() > 0 && hindex < hlist.len() - 1 {
                 hindex += 1;
 
                 if let Some(pkg) = hlist.get(hindex) {
