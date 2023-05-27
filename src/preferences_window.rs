@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use adw::subclass::prelude::*;
@@ -20,9 +20,17 @@ mod imp {
     pub struct PreferencesWindow {
         #[template_child]
         pub aur_row: TemplateChild<adw::EntryRow>,
+        #[template_child]
+        pub column_switch: TemplateChild<gtk::Switch>,
+        #[template_child]
+        pub sort_switch: TemplateChild<gtk::Switch>,
 
         #[property(get, set)]
         aur_command: RefCell<String>,
+        #[property(get, set)]
+        remember_columns: Cell<bool>,
+        #[property(get, set)]
+        remember_sort: Cell<bool>,
     }
 
     //-----------------------------------
@@ -73,6 +81,12 @@ mod imp {
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
 
+            obj.bind_property("remember-columns", &self.column_switch.get(), "active")
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
+            obj.bind_property("remember-sort", &self.sort_switch.get(), "active")
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
         }
     }
 
@@ -97,6 +111,8 @@ mod imp {
 
             reset_dialog.connect_response(Some("reset"), clone!(@weak self as prefs => move |_, _| {
                 prefs.aur_row.set_text("");
+                prefs.column_switch.set_active(true);
+                prefs.sort_switch.set_active(false);
             }));
 
             reset_dialog.present();

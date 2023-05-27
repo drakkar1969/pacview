@@ -210,6 +210,8 @@ mod imp {
                 self.pane.set_position(gsettings.int("infopane-position"));
 
                 self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
+                self.prefs_window.set_remember_columns(gsettings.boolean("remember-columns"));
+                self.prefs_window.set_remember_sort(gsettings.boolean("remember-sorting"));
             }
         }
 
@@ -231,6 +233,8 @@ mod imp {
                 gsettings.set_int("infopane-position", self.pane.position()).unwrap();
 
                 gsettings.set_string("aur-update-command", &self.prefs_window.aur_command()).unwrap();
+                gsettings.set_boolean("remember-columns", self.prefs_window.remember_columns()).unwrap();
+                gsettings.set_boolean("remember-sorting", self.prefs_window.remember_sort()).unwrap();
             }
         }
 

@@ -8,8 +8,6 @@
     <property name="hide-on-close">True</property>
     <property name="search-enabled">False</property>
     <!-- 
-    <property name="remember_columns" bind-source="column_switch" bind-property="active" bind-flags="sync-create|bidirectional"/>
-    <property name="remember_sorting" bind-source="sorting_switch" bind-property="active" bind-flags="sync-create|bidirectional"/>
     <property name="custom_font" bind-source="font_expander" bind-property="expanded" bind-flags="sync-create|bidirectional"/> -->
     <child>
       <object class="AdwPreferencesPage">
@@ -29,7 +27,7 @@
             </child>
           </object>
         </child>
-        <!-- <child>
+        <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Package List</property>
             <child>
@@ -50,16 +48,16 @@
                 <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package list sort order</property>
                 <property name="use-underline">True</property>
-                <property name="activatable-widget">sorting_switch</property>
+                <property name="activatable-widget">sort_switch</property>
                 <child>
-                  <object class="GtkSwitch" id="sorting_switch">
+                  <object class="GtkSwitch" id="sort_switch">
                     <property name="valign">center</property>
                   </object>
                 </child>
               </object>
             </child>
           </object>
-        </child> -->
+        </child>
         <!-- <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Package Details</property>
