@@ -212,6 +212,42 @@ mod imp {
                 self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
                 self.prefs_window.set_remember_columns(gsettings.boolean("remember-columns"));
                 self.prefs_window.set_remember_sort(gsettings.boolean("remember-sorting"));
+
+                if self.prefs_window.remember_columns() {
+                    let column_ids = gsettings.strv("view-columns");
+
+                    let mut col_index = 0;
+
+                    for id in &column_ids {
+                        for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
+                            if let Ok(col) = col {
+                                if col.id().unwrap() == *id {
+                                    self.pkgview.insert_column(col_index, &col);
+                                    col_index += 1;
+                                }
+                            }
+                        }
+                    }
+
+                    for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
+                        if let Ok(col) = col {
+                            if !column_ids.contains(col.id().unwrap()) {
+                                col.set_visible(false);
+                            }
+                        }
+                    }
+                }
+
+                let sort_asc = gsettings.boolean("sort-ascending");
+                let sort_col = gsettings.string("sort-column");
+
+                for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
+                    if let Ok(col) = col {
+                        if col.id().unwrap() == sort_col {
+                            self.pkgview.sort_by_column(Some(&col), if sort_asc {gtk::SortType::Ascending} else {gtk::SortType::Descending});
+                        }
+                    }
+                }
             }
         }
 
@@ -235,6 +271,37 @@ mod imp {
                 gsettings.set_string("aur-update-command", &self.prefs_window.aur_command()).unwrap();
                 gsettings.set_boolean("remember-columns", self.prefs_window.remember_columns()).unwrap();
                 gsettings.set_boolean("remember-sorting", self.prefs_window.remember_sort()).unwrap();
+
+                if self.prefs_window.remember_columns() {
+                    let column_ids: Vec<String> = self.pkgview.columns()
+                        .iter::<gtk::ColumnViewColumn>()
+                        .filter(|col| col.as_ref().unwrap().is_visible())
+                        .map(|col| col.unwrap().id().unwrap().to_string())
+                        .collect();
+
+                    gsettings.set_strv("view-columns", column_ids).unwrap();
+                } else {
+                    gsettings.reset("view-columns");
+                }
+
+                if self.prefs_window.remember_sort() {
+                    let mut sort_col = String::from("");
+                    let mut sort_asc = gtk::SortType::Ascending;
+
+                    if let Some(sorter) = self.pkgview.sorter().and_downcast_ref::<gtk::ColumnViewSorter>() {
+                        if let Some(col) = sorter.primary_sort_column() {
+                            sort_col = col.id().unwrap().to_string();
+                        }
+
+                        sort_asc = sorter.primary_sort_order();
+                    }
+
+                    gsettings.set_string("sort-column", &sort_col).unwrap();
+                    gsettings.set_boolean("sort-ascending", if sort_asc == gtk::SortType::Ascending {true} else {false}).unwrap();
+                } else {
+                    gsettings.reset("sort-column");
+                    gsettings.reset("sort-ascending");
+                }
             }
         }
 
@@ -431,11 +498,6 @@ mod imp {
 
             let col_action = gio::PropertyAction::new("show-column-groups", &self.pkgview_groups_column.get(), "visible");
             pkgview_group.add_action(&col_action);
-
-            // Set pkgview sorting
-            let sort_column = self.pkgview.columns().item(0);
-
-            self.pkgview.sort_by_column(sort_column.and_downcast_ref(), gtk::SortType::Ascending);
 
             // Set initial focus on pkgview
             self.pkgview.grab_focus();
