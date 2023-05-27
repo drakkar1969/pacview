@@ -309,11 +309,6 @@ mod imp {
         // Setup search header
         //-----------------------------------
         fn setup_search(&self) {
-            // Create search action group
-            let search_group = gio::SimpleActionGroup::new();
-
-            self.obj().insert_action_group("search", Some(&search_group));
-
             // Add start/stop search action
             let search_start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
                 .activate(clone!(@weak self as win => move |_, _, _| {
@@ -361,6 +356,10 @@ mod imp {
                 .build();
 
             // Add actions to search group
+            let search_group = gio::SimpleActionGroup::new();
+
+            self.obj().insert_action_group("search", Some(&search_group));
+
             search_group.add_action_entries([search_start_action, search_stop_action, selectall_action, reset_action]);
 
             // Add search header search by property actions
@@ -429,11 +428,6 @@ mod imp {
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
-            // Create view action group
-            let pkgview_group = gio::SimpleActionGroup::new();
-
-            obj.insert_action_group("view", Some(&pkgview_group));
-
             // Add pkgview refresh action
             let refresh_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("refresh")
                 .activate(clone!(@weak self as win => move |_, _, _| {
@@ -478,6 +472,10 @@ mod imp {
                 .build();
 
             // Add actions to view group
+            let pkgview_group = gio::SimpleActionGroup::new();
+
+            obj.insert_action_group("view", Some(&pkgview_group));
+
             pkgview_group.add_action_entries([refresh_action, stats_action, copy_action]);
 
             // Add pkgview header menu property actions
@@ -509,11 +507,6 @@ mod imp {
         fn setup_infopane(&self) {
             let obj = self.obj();
 
-            // Create info pane action group
-            let infopane_group = gio::SimpleActionGroup::new();
-
-            obj.insert_action_group("info", Some(&infopane_group));
-
             // Add info pane prev/next actions
             let prev_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("previous")
                 .activate(clone!(@weak self as win => move |_, _, _| {
@@ -527,6 +520,10 @@ mod imp {
                 .build();
 
             // Add actions to info pane group
+            let infopane_group = gio::SimpleActionGroup::new();
+
+            obj.insert_action_group("info", Some(&infopane_group));
+
             infopane_group.add_action_entries([prev_action, next_action]);
         }
 
