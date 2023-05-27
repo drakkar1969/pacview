@@ -975,7 +975,7 @@ mod imp {
             let button = self.pkgview_click_gesture.current_button();
 
             if button == gdk::BUTTON_PRIMARY {
-
+                self.on_package_selected();
             } else if button == gdk::BUTTON_SECONDARY {
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
