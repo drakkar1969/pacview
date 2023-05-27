@@ -313,12 +313,13 @@ mod imp {
         // Setup search header
         //-----------------------------------
         fn setup_search(&self) {
-            // Add start/stop search action
+            // Add start/stop search actions
             let search_start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     win.search_header.set_active(true)
                 }))
                 .build();
+
             let search_stop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("stop")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     win.search_header.set_active(false)
@@ -343,6 +344,7 @@ mod imp {
                     win.on_search_changed(&header.imp().search_entry.text().to_string(), header.by_name(), header.by_desc(), header.by_group(), header.by_deps(), header.by_optdeps(), header.by_provides(), header.by_files(), header.mode());
                 }))
                 .build();
+
             let reset_action = gio::ActionEntry::builder("reset")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     let header = &win.search_header;
@@ -374,10 +376,10 @@ mod imp {
 
             // Add search header search mode stateful action
             let mode_action = gio::SimpleAction::new_stateful("toggle-mode", Some(&String::static_variant_type()), "all".to_variant());
-            mode_action.connect_change_state(clone!(@weak self as window => move |action, param| {
+            mode_action.connect_change_state(clone!(@weak self as win => move |action, param| {
                 let param = param.unwrap().get::<String>().unwrap();
 
-                window.search_header.set_mode(
+                win.search_header.set_mode(
                     match param.as_str() {
                         "all" => SearchMode::All,
                         "any" => SearchMode::Any,
@@ -475,7 +477,7 @@ mod imp {
                 }))
                 .build();
 
-            // Add pkgview copy list action
+            // Add pkgview reset columns action
             let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     let column_ids: Vec<String> = vec![String::from("package"), String::from("version"), String::from("repository"), String::from("status"), String::from("date"), String::from("size"), String::from("groups")];
@@ -542,6 +544,7 @@ mod imp {
                     win.infopane_display_prev();
                 }))
                 .build();
+            
             let next_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("next")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     win.infopane_display_next();
@@ -564,10 +567,10 @@ mod imp {
 
             // Add show preferences action
             let prefs_action = gio::SimpleAction::new("show-preferences", None);
-            prefs_action.connect_activate(clone!(@weak self as window, @weak obj => move |_, _| {
+            prefs_action.connect_activate(clone!(@weak self as win, @weak obj => move |_, _| {
                 if let Some(app) = obj.application() {
-                    window.prefs_window.set_transient_for(Some(&app.active_window().unwrap()));
-                    window.prefs_window.present();
+                    win.prefs_window.set_transient_for(Some(&app.active_window().unwrap()));
+                    win.prefs_window.present();
                 }
             }));
             obj.add_action(&prefs_action);
@@ -613,7 +616,7 @@ mod imp {
                 self.status_listbox.remove(&row);
             }
 
-            // Repository rows
+            // Add repository rows
             let row = FilterRow::new("repository-symbolic", "All");
             row.set_repo_id("");
 
@@ -630,7 +633,7 @@ mod imp {
                 self.repo_listbox.append(&row);
             }
 
-            // Package status rows (enumerate PkgStatusFlags)
+            // Add package status rows (enumerate PkgStatusFlags)
             let status_map = [
                 ("all", PkgFlags::ALL),
                 ("installed", PkgFlags::INSTALLED),
@@ -707,20 +710,20 @@ mod imp {
 
             receiver.attach(
                 None,
-                clone!(@weak self as window => @default-return Continue(false), move |(handle, data_list)| {
+                clone!(@weak self as win => @default-return Continue(false), move |(handle, data_list)| {
                     let pkg_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
                         PkgObject::new(data)
                     }).collect();
 
-                    window.alpm_handle.set(handle).unwrap_or_default();
+                    win.alpm_handle.set(handle).unwrap_or_default();
 
-                    window.package_list.replace(pkg_list);
+                    win.package_list.replace(pkg_list);
 
-                    window.pkgview_model.splice(0, window.pkgview_model.n_items(), &window.package_list.borrow());
+                    win.pkgview_model.splice(0, win.pkgview_model.n_items(), &win.package_list.borrow());
 
-                    window.pkgview_stack.set_visible_child_name("view");
+                    win.pkgview_stack.set_visible_child_name("view");
 
-                    window.get_package_updates_async();
+                    win.get_package_updates_async();
 
                     Continue(false)
                 }),
@@ -1246,7 +1249,7 @@ mod imp {
 
             let label = &value_row.imp().label;
 
-            let signal = label.connect_activate_link(clone!(@weak self as window => @default-return gtk::Inhibit(true), move |_, link| window.infopane_link_handler(link)));
+            let signal = label.connect_activate_link(clone!(@weak self as win => @default-return gtk::Inhibit(true), move |_, link| win.infopane_link_handler(link)));
 
             value_row.add_label_signal(signal);
         }

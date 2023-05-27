@@ -133,9 +133,9 @@ mod imp {
                 Some(&win),
                 Some(&FontDescription::from_string(&self.font_row.title())),
                 None::<&gio::Cancellable>,
-                clone!(@weak self as win => move |result| {
+                clone!(@weak self as prefs => move |result| {
                 if let Ok(font_desc) = result {
-                    win.font_row.set_title(&font_desc.to_string());
+                    prefs.font_row.set_title(&font_desc.to_string());
                 }
             }));
         }
