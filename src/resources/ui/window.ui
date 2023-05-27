@@ -599,12 +599,12 @@
         <attribute name="action">view.show-column-groups</attribute>
       </item>
     </section>
-    <!-- <section>
+    <section>
       <item>
         <attribute name="label">Reset Columns</attribute>
-        <attribute name="action">win.reset-view-columns</attribute>
+        <attribute name="action">view.reset-columns</attribute>
       </item>
-    </section> -->
+    </section>
   </menu>
 
   <!--// Package view popup menu //-->

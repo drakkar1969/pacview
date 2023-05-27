@@ -471,12 +471,37 @@ mod imp {
                 }))
                 .build();
 
+            // Add pkgview copy list action
+            let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    let column_ids: Vec<String> = vec![String::from("package"), String::from("version"), String::from("repository"), String::from("status"), String::from("date"), String::from("size"), String::from("groups")];
+                    let mut col_index = 0;
+
+                    for id in &column_ids {
+                        for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
+                            if let Ok(col) = col {
+                                if col.id().unwrap() == *id {
+                                    win.pkgview.insert_column(col_index, &col);
+                                    col_index += 1;
+                                }
+                            }
+                        }
+                    }
+
+                    for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
+                        if let Ok(col) = col {
+                            col.set_visible(true);
+                        }
+                    }
+                }))
+                .build();
+
             // Add actions to view group
             let pkgview_group = gio::SimpleActionGroup::new();
 
             obj.insert_action_group("view", Some(&pkgview_group));
 
-            pkgview_group.add_action_entries([refresh_action, stats_action, copy_action]);
+            pkgview_group.add_action_entries([refresh_action, stats_action, copy_action, columns_action]);
 
             // Add pkgview header menu property actions
             let col_action = gio::PropertyAction::new("show-column-version", &self.pkgview_version_column.get(), "visible");
