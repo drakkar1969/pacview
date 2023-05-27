@@ -7,8 +7,6 @@
     <property name="modal">True</property>
     <property name="hide-on-close">True</property>
     <property name="search-enabled">False</property>
-    <!-- 
-    <property name="custom_font" bind-source="font_expander" bind-property="expanded" bind-flags="sync-create|bidirectional"/> -->
     <child>
       <object class="AdwPreferencesPage">
         <child>
@@ -58,7 +56,7 @@
             </child>
           </object>
         </child>
-        <!-- <child>
+        <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Package Details</property>
             <child>
@@ -66,7 +64,6 @@
                 <property name="title">Custom Monospace _Font</property>
                 <property name="subtitle">Use custom font for dependency tree</property>
                 <property name="use-underline">True</property>
-                <property name="expanded" bind-source="font_switch" bind-property="active" bind-flags="sync-create|bidirectional"/>
                 <child type="action">
                   <object class="GtkSwitch" id="font_switch">
                     <property name="valign">center</property>
@@ -74,16 +71,16 @@
                 </child>
                 <child>
                   <object class="AdwActionRow" id="font_row">
-                    <property name="title">Font _Name</property>
                     <property name="use-underline">True</property>
                     <property name="activatable-widget">font_button</property>
                     <child>
-                      <object class="GtkFontDialogButton" id="font_button">
+                      <object class="GtkButton" id="font_button">
                         <property name="valign">center</property>
-                        <property name="dialog">
-                          <object class="GtkFontDialog" id="font_dialog">
-                          </object>
-                        </property>
+                        <property name="icon-name">go-next-symbolic</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                        <signal name="clicked" handler="on_font_button_clicked" swapped="true"/>
                       </object>
                     </child>
                   </object>
@@ -91,7 +88,7 @@
               </object>
             </child>
           </object>
-        </child> -->
+        </child>
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Preferences</property>

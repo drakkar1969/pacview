@@ -1,9 +1,10 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::glib;
+use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
+use gtk::pango::FontDescription;
 
 //------------------------------------------------------------------------------
 // MODULE: PreferencesWindow
@@ -24,6 +25,12 @@ mod imp {
         pub column_switch: TemplateChild<gtk::Switch>,
         #[template_child]
         pub sort_switch: TemplateChild<gtk::Switch>,
+        #[template_child]
+        pub font_expander: TemplateChild<adw::ExpanderRow>,
+        #[template_child]
+        pub font_switch: TemplateChild<gtk::Switch>,
+        #[template_child]
+        pub font_row: TemplateChild<adw::ActionRow>,
 
         #[property(get, set)]
         aur_command: RefCell<String>,
@@ -31,6 +38,10 @@ mod imp {
         remember_columns: Cell<bool>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
+        #[property(get, set)]
+        custom_font: Cell<bool>,
+        #[property(get, set)]
+        monospace_font: RefCell<String>,
     }
 
     //-----------------------------------
@@ -76,6 +87,11 @@ mod imp {
 
             let obj = self.obj();
 
+            // Bind widget states
+            self.font_expander.bind_property("expanded", &self.font_switch.get(), "active")
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
+
             // Bind properties to widgets
             obj.bind_property("aur-command", &self.aur_row.get(), "text")
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
@@ -85,6 +101,13 @@ mod imp {
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
             obj.bind_property("remember-sort", &self.sort_switch.get(), "active")
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
+
+            obj.bind_property("custom-font", &self.font_switch.get(), "active")
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
+            obj.bind_property("monospace-font", &self.font_row.get(), "title")
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
         }
@@ -97,6 +120,26 @@ mod imp {
 
     #[gtk::template_callbacks]
     impl PreferencesWindow {
+        //-----------------------------------
+        // Font button signal handler
+        //-----------------------------------
+        #[template_callback]
+        fn on_font_button_clicked(&self) {
+            let win = self.obj().root().unwrap().downcast::<gtk::Window>().unwrap();
+
+            let font_dialog = gtk::FontDialog::new();
+
+            font_dialog.choose_font(
+                Some(&win),
+                Some(&FontDescription::from_string(&self.font_row.title())),
+                None::<&gio::Cancellable>,
+                clone!(@weak self as win => move |result| {
+                if let Ok(font_desc) = result {
+                    win.font_row.set_title(&font_desc.to_string());
+                }
+            }));
+        }
+
         //-----------------------------------
         // Reset button signal handler
         //-----------------------------------
@@ -113,6 +156,8 @@ mod imp {
                 prefs.aur_row.set_text("");
                 prefs.column_switch.set_active(true);
                 prefs.sort_switch.set_active(false);
+                prefs.font_switch.set_active(false);
+                prefs.font_row.set_title("Source Code Pro 11");
             }));
 
             reset_dialog.present();

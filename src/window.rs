@@ -212,6 +212,8 @@ mod imp {
                 self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
                 self.prefs_window.set_remember_columns(gsettings.boolean("remember-columns"));
                 self.prefs_window.set_remember_sort(gsettings.boolean("remember-sorting"));
+                self.prefs_window.set_custom_font(gsettings.boolean("custom-font"));
+                self.prefs_window.set_monospace_font(gsettings.string("monospace-font"));
 
                 if self.prefs_window.remember_columns() {
                     let column_ids = gsettings.strv("view-columns");
@@ -271,6 +273,8 @@ mod imp {
                 gsettings.set_string("aur-update-command", &self.prefs_window.aur_command()).unwrap();
                 gsettings.set_boolean("remember-columns", self.prefs_window.remember_columns()).unwrap();
                 gsettings.set_boolean("remember-sorting", self.prefs_window.remember_sort()).unwrap();
+                gsettings.set_boolean("custom-font", self.prefs_window.custom_font()).unwrap();
+                gsettings.set_string("monospace-font", &self.prefs_window.monospace_font()).unwrap();
 
                 if self.prefs_window.remember_columns() {
                     let column_ids: Vec<String> = self.pkgview.columns()
