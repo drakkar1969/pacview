@@ -861,7 +861,7 @@ mod imp {
                     }
 
                     // Build update map (package name, version)
-                    update_map = update_str.split_terminator("\n")
+                    update_map = update_str.lines()
                         .filter(|s| EXPR.is_match(s).unwrap_or_default())
                         .map(|s| 
                             (EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string())
