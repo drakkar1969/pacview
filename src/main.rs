@@ -9,6 +9,7 @@ mod stats_window;
 mod pkg_object;
 mod prop_object;
 mod stats_object;
+mod aur;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;

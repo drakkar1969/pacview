@@ -14,11 +14,13 @@ use titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
+use reqwest;
 
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
+use crate::aur::AurInfo;
 use crate::search_header::{SearchHeader, SearchMode};
 use crate::filter_row::FilterRow;
 use crate::value_row::ValueRow;
@@ -465,9 +467,9 @@ mod imp {
                     .map(|i| {
                         let pkg: PkgObject = win.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
 
-                        format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
-                    }
-                    ).collect();
+                        format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())
+                    })
+                    .collect();
 
                     let copy_text = item_list.join("\n");
 
@@ -723,6 +725,7 @@ mod imp {
 
                     win.pkgview_stack.set_visible_child_name("view");
 
+                    win.check_aur_packages_async();
                     win.get_package_updates_async();
 
                     Continue(false)
@@ -828,6 +831,49 @@ mod imp {
                     update_row.set_tooltip_text(if success {Some("")} else {Some("Update error")});
 
                     update_row.set_sensitive(success);
+
+                    Continue(false)
+                }),
+            );
+        }
+
+        //-----------------------------------
+        // Setup alpm: check AUR packages
+        //-----------------------------------
+        fn check_aur_packages_async(&self) {
+            let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
+
+            let pkg_list = self.package_list.borrow().to_vec();
+
+            let aur_params = pkg_list.iter()
+                .filter(|pkg| pkg.repository() == "foreign")
+                .map(|pkg| format!("&arg[]={name}", name=pkg.name()))
+                .collect::<Vec<String>>()
+                .concat();
+
+            thread::spawn(move || {
+                let mut aur_list: Vec<String> = vec![]; 
+
+                let aur_url = String::from("https://aur.archlinux.org/rpc/?v=5&type=info") + &aur_params;
+
+                if let Ok(response) = reqwest::blocking::get(aur_url) {
+                    if response.status() == 200 {
+                        if let Ok(data) = response.json::<AurInfo>() {
+                            aur_list.extend(data.results.into_iter().map(|item| item.Name));
+                        }
+                    }
+                }
+
+                // Return thread result
+                sender.send(aur_list).expect("Could not send through channel");
+            });
+
+            receiver.attach(
+                None,
+                clone!(@weak self as win => @default-return Continue(false), move |aur_list| {
+                    for pkg in pkg_list.iter().filter(|pkg| aur_list.contains(&pkg.name())) {
+                        pkg.set_repo_show("aur")
+                    }
 
                     Continue(false)
                 }),
@@ -1021,9 +1067,13 @@ mod imp {
                     "Description", &self.prop_to_esc_string(&pkg.description()), None
                 ));
                 // Package/AUR URL
-                if self.default_repo_names.borrow().contains(&pkg.repository()) {
+                if self.default_repo_names.borrow().contains(&pkg.repo_show()) {
                     self.infopane_model.append(&PropObject::new(
-                        "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repository(), arch=pkg.architecture(), name=pkg.name())), None
+                        "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name())), None
+                    ));
+                } else if &pkg.repo_show() == "aur" {
+                    self.infopane_model.append(&PropObject::new(
+                        "AUR URL", &self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())), None
                     ));
                 }
                 // URL
@@ -1045,7 +1095,7 @@ mod imp {
                 ));
                 // Repository
                 self.infopane_model.append(&PropObject::new(
-                    "Repository", &pkg.repository(), None
+                    "Repository", &pkg.repo_show(), None
                 ));
                 // Groups
                 if pkg.groups() != "" {
