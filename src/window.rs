@@ -725,8 +725,6 @@ mod imp {
 
                     win.pkgview_stack.set_visible_child_name("view");
 
-                    win.pkgview_selection.set_selected(26);
-
                     win.check_aur_packages_async();
                     win.get_package_updates_async();
 
@@ -766,11 +764,34 @@ mod imp {
                 sender.send(aur_list).expect("Could not send through channel");
             });
 
+            let hlist = self.history_list.borrow().to_vec();
+            let hindex = self.history_index.get();
+
+            let infopane_model = self.infopane_model.get();
+
             receiver.attach(
                 None,
-                clone!(@weak self as win => @default-return Continue(false), move |aur_list| {
+                clone!(@weak self as win, @weak infopane_model => @default-return Continue(false), move |aur_list| {
                     for pkg in pkg_list.iter().filter(|pkg| aur_list.contains(&pkg.name())) {
-                        pkg.set_repo_show("aur")
+                        pkg.set_repo_show("aur");
+
+                        if let Some(info_pkg) = hlist.get(hindex) {
+                            if info_pkg.name() == pkg.name() {
+                                for i in IntoIterator::into_iter(0..infopane_model.n_items()) {
+                                    let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
+
+                                    if prop.label() == "Repository" {
+                                        prop.set_value(pkg.repo_show());
+                                    }
+
+                                    if prop.label() == "Description" {
+                                        infopane_model.insert(i+1, &PropObject::new(
+                                            "AUR URL", &win.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())), None
+                                        ));
+                                    }
+                                }
+                            }
+                        }
                     }
 
                     Continue(false)
