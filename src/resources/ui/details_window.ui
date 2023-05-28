@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// PACKAGE DETAILS WINDOW //-->
+  <!--// DetailsWindow template //-->
   <template class="DetailsWindow" parent="AdwApplicationWindow">
     <property name="default-width">650</property>
     <property name="default-height">650</property>
@@ -56,58 +56,58 @@
                 </child>
               </object>
             </child>
-            <!-- <child>
+            <child>
               <object class="GtkBox" id="button_box">
                 <property name="homogeneous">True</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="StackToggleButton" id="files_button">
+                  <object class="ToggleButton" id="files_button">
                     <property name="hexpand">True</property>
                     <property name="active">True</property>
                     <property name="icon">details-files-symbolic</property>
                     <property name="text">Files</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
-                  <object class="StackToggleButton" id="tree_button">
+                  <object class="ToggleButton" id="tree_button">
                     <property name="hexpand">True</property>
                     <property name="group">files_button</property>
                     <property name="icon">details-tree-symbolic</property>
                     <property name="text">Tree</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
-                  <object class="StackToggleButton" id="log_button">
+                  <object class="ToggleButton" id="log_button">
                     <property name="hexpand">True</property>
                     <property name="group">files_button</property>
                     <property name="icon">details-log-symbolic</property>
                     <property name="text">Log</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
-                  <object class="StackToggleButton" id="cache_button">
+                  <object class="ToggleButton" id="cache_button">
                     <property name="hexpand">True</property>
                     <property name="group">files_button</property>
                     <property name="icon">details-cache-symbolic</property>
                     <property name="text">Cache</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
-                  <object class="StackToggleButton" id="backup_button">
+                  <object class="ToggleButton" id="backup_button">
                     <property name="hexpand">True</property>
                     <property name="group">files_button</property>
                     <property name="icon">details-backup-symbolic</property>
                     <property name="text">Backup</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="no"/>
+                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
               </object>
-            </child> -->
-            <!-- <child>
+            </child>
+            <child>
               <object class="GtkStack" id="content_stack">
                 <child>
                   <object class="GtkStackPage" id="files_page">
@@ -151,7 +151,7 @@
                                 <child>
                                   <object class="GtkSearchEntry" id="files_search_entry">
                                     <property name="tooltip-text">Search for files</property>
-                                    <signal name="search-changed" handler="on_files_search_changed" swapped="no"/>
+                                    <signal name="search-changed" handler="on_files_search_changed" swapped="true"/>
                                     <style>
                                       <class name="rounded"/>
                                     </style>
@@ -168,7 +168,7 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="clicked" handler="on_files_open_button_clicked" swapped="no"/>
+                                        <signal name="clicked" handler="on_files_open_button_clicked" swapped="true"/>
                                       </object>
                                     </child>
                                     <child>
@@ -179,7 +179,7 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="clicked" handler="on_files_copy_button_clicked" swapped="no"/>
+                                        <signal name="clicked" handler="on_files_copy_button_clicked" swapped="true"/>
                                       </object>
                                     </child>
                                   </object>
@@ -217,10 +217,10 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details/file-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_window/file_item.ui</property>
                                   </object>
                                 </property>
-                                <signal name="activate" handler="on_files_view_activated" swapped="no"/>
+                                <!-- <signal name="activate" handler="on_files_view_activated" swapped="no"/> -->
                               </object>
                             </property>
                           </object>
@@ -295,7 +295,7 @@
                                       <mark value="5" position="bottom"></mark>
                                       <mark value="6" position="bottom"></mark>
                                     </marks>
-                                    <signal name="value-changed" handler="on_tree_depth_changed" swapped="no"/>
+                                    <!-- <signal name="value-changed" handler="on_tree_depth_changed" swapped="no"/> -->
                                   </object>
                                 </child>
                                 <child>
@@ -309,7 +309,7 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="toggled" handler="on_tree_reverse_toggled" swapped="no"/>
+                                        <!-- <signal name="toggled" handler="on_tree_reverse_toggled" swapped="no"/> -->
                                       </object>
                                     </child>
                                     <child>
@@ -320,7 +320,7 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="clicked" handler="on_tree_copy_button_clicked" swapped="no"/>
+                                        <!-- <signal name="clicked" handler="on_tree_copy_button_clicked" swapped="no"/> -->
                                       </object>
                                     </child>
                                   </object>
@@ -348,7 +348,7 @@
                     </property>
                   </object>
                 </child>
-                <child>
+                <!-- <child>
                   <object class="GtkStackPage" id="log_page">
                     <property name="name">log</property>
                     <property name="child">
@@ -424,8 +424,8 @@
                       </object>
                     </property>
                   </object>
-                </child>
-                <child>
+                </child> -->
+                <!-- <child>
                   <object class="GtkStackPage" id="cache_page">
                     <property name="name">cache</property>
                     <property name="child">
@@ -519,8 +519,8 @@
                       </object>
                     </property>
                   </object>
-                </child>
-                <child>
+                </child> -->
+                <!-- <child>
                   <object class="GtkStackPage" id="backup_page">
                     <property name="name">backup</property>
                     <property name="child">
@@ -616,9 +616,9 @@
                       </object>
                     </property>
                   </object>
-                </child>
+                </child> -->
               </object>
-            </child> -->
+            </child>
           </object>
         </child>
       </object>

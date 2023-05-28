@@ -167,7 +167,7 @@ impl PkgData {
     }
 
     fn alpm_filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
-        let mut file_vec: Vec<String> = list.files().iter().map(|file| file.name().to_string()).collect();
+        let mut file_vec: Vec<String> = list.files().iter().map(|file| format!("/{}", file.name())).collect();
         file_vec.sort_unstable();
 
         file_vec
