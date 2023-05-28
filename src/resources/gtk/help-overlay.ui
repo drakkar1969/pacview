@@ -95,12 +95,12 @@
         <child>
           <object class="GtkShortcutsGroup">
             <property name="title">Info Pane</property>
-            <!-- <child>
+            <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;Return</property>
                 <property name="title">Show Package Details</property>
               </object>
-            </child> -->
+            </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;Left</property>
