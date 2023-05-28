@@ -307,38 +307,38 @@ impl DetailsWindow {
     // Setup files page
     //-----------------------------------
     fn setup_files(&self) {
-        if let Some(pkg) = self.pkg() {
-            let imp = self.imp();
+        let imp = self.imp();
 
+        // Set files search entry key capture widget
+        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
+
+        // Bind files count to files header label
+        imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
+            .transform_to(|_, n_items: u32| {
+                Some(format!("Files ({})", n_items))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind files count to files open/copy button states
+        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| {
+                Some(n_items != 0)
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| {
+                Some(n_items != 0)
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Populate files list
+        if let Some(pkg) = self.pkg() {
             let files = pkg.files();
 
-            // Set files search entry key capture widget
-            imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
-
-            // Bind files count to files header label
-            imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-                .transform_to(|_, n_items: u32| {
-                    Some(format!("Files ({})", n_items))
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            // Bind files count to files open/copy button states
-            imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
-                .transform_to(|_, n_items: u32| {
-                    Some(n_items != 0)
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
-                .transform_to(|_, n_items: u32| {
-                    Some(n_items != 0)
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            // Populate files list
             imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
         }
     }
@@ -380,16 +380,16 @@ impl DetailsWindow {
     fn setup_logs(&self, log_file: &str) {
         let imp = self.imp();
 
-        if let Some(pkg) = self.pkg() {
-            // Bind log message count to log copy button state
-            imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
-                .transform_to(|_, n_items: u32| {
-                    Some(n_items != 0)
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+        // Bind log message count to log copy button state
+        imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| {
+                Some(n_items != 0)
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
 
-            // Populate log messages
+        // Populate log messages
+        if let Some(pkg) = self.pkg() {
             if let Ok(log) = fs::read_to_string(log_file) {
                 let match_str = format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) {} (.+)", pkg.name());
 
