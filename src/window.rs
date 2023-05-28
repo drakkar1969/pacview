@@ -1,6 +1,5 @@
 use std::cell::{Cell, RefCell};
 use std::thread;
-use std::process::Command;
 use std::collections::HashMap;
 
 use gtk::{gio, glib, gdk};
@@ -27,6 +26,7 @@ use crate::value_row::ValueRow;
 use crate::stats_window::StatsWindow;
 use crate::preferences_window::PreferencesWindow;
 use crate::details_window::DetailsWindow;
+use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -838,7 +838,7 @@ mod imp {
                 let mut update_str = String::from("");
 
                 // Check for pacman updates
-                let (code, stdout) = super::PacViewWindow::run_command("/usr/bin/checkupdates", &[]);
+                let (code, stdout) = Utils::run_command("/usr/bin/checkupdates");
 
                 if code == Some(0) {
                     update_str += &stdout;
@@ -848,14 +848,10 @@ mod imp {
 
                 // If no error on pacman updates, check for AUR updates
                 if success {
-                    if let Ok(aur_params) = shell_words::split(&aur_command) {
-                        if !aur_params.is_empty() {
-                            let (code, stdout) = super::PacViewWindow::run_command(&aur_params[0], &aur_params[1..]);
+                    let (code, stdout) = Utils::run_command(&aur_command);
 
-                            if code == Some(0) {
-                                update_str += &stdout;
-                            }
-                        }
+                    if code == Some(0) {
+                        update_str += &stdout;
                     }
 
                     lazy_static! {
@@ -1437,20 +1433,5 @@ impl PacViewWindow {
     //-----------------------------------
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
-    }
-
-    //-----------------------------------
-    // Public run command helper function
-    //-----------------------------------
-    pub fn run_command(cmd: &str, args: &[String]) -> (Option<i32>, String) {
-        let mut stdout: String = String::from("");
-        let mut code: Option<i32> = None;
-
-        if let Ok(output) = Command::new(cmd).args(args).output() {
-            code = output.status.code();
-            stdout = String::from_utf8(output.stdout).unwrap_or_default();
-        }
-
-        (code, stdout)
     }
 }

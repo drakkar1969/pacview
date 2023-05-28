@@ -12,6 +12,7 @@ mod pkg_object;
 mod prop_object;
 mod stats_object;
 mod aur;
+mod utils;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;

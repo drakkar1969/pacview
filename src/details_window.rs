@@ -11,7 +11,7 @@ use lazy_static::lazy_static;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
-use crate::window::PacViewWindow;
+use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
 // MODULE: DetailsWindow
@@ -194,13 +194,9 @@ mod imp {
     
                 let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", local_flag=local_flag, depth_flag=depth_flag, reverse_flag=reverse_flag, name=pkg.name());
     
-                if let Ok(params) = shell_words::split(&cmd) {
-                    if !params.is_empty() {
-                        let (_code, stdout) = PacViewWindow::run_command(&params[0], &params[1..]);
-    
-                        self.tree_label.set_label(&stdout);
-                    }
-                }
+                let (_code, stdout) = Utils::run_command(&cmd);
+
+                self.tree_label.set_label(&stdout);
             }
         }
 
