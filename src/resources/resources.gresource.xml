@@ -29,6 +29,7 @@
     <file compressed="true">icons/pkg-orphan.svg</file>
     <file compressed="true">icons/pkg-update.svg</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/file_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/infopane/label_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/package_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/pkgview/version_item.ui</file>

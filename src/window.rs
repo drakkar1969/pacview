@@ -566,7 +566,9 @@ mod imp {
                         let font: Option<String> = if win.prefs_window.custom_font() {Some(monospace_font)} else {None};
 
                         if let Some(pkg) = hlist.get(hindex) {
-                            let details_window = DetailsWindow::new(Some(pkg.clone()), font);
+                            let pacman_config = win.pacman_config.borrow();
+
+                            let details_window = DetailsWindow::new(Some(pkg.clone()), font, &pacman_config.log_file);
                             details_window.set_transient_for(Some(&app.active_window().unwrap()));
     
                             details_window.present();

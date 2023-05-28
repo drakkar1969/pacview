@@ -1,9 +1,13 @@
 use std::cell::{Cell, RefCell};
+use std::fs;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::pango::AttrList;
+
+use fancy_regex::Regex;
+use lazy_static::lazy_static;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
@@ -55,6 +59,13 @@ mod imp {
         pub tree_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub tree_label: TemplateChild<gtk::Label>,
+
+        #[template_child]
+        pub log_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub log_model: TemplateChild<gtk::StringList>,
+        #[template_child]
+        pub log_selection: TemplateChild<gtk::NoSelection>,
 
         #[property(get, set)]
         pkg: RefCell<Option<PkgObject>>,
@@ -222,6 +233,26 @@ mod imp {
         }
 
         //-----------------------------------
+        // Log page signal handlers
+        //-----------------------------------
+        #[template_callback]
+        fn on_log_copy_button_clicked(&self) {
+            let log_list: Vec<String> = IntoIterator::into_iter(0..self.log_selection.n_items())
+            .map(|i| {
+                let item: gtk::StringObject = self.log_selection.item(i).and_downcast().expect("Must be a StringObject");
+
+                item.string().to_string()
+            })
+            .collect();
+
+            let copy_text = log_list.join("\n");
+
+            let clipboard = self.obj().clipboard();
+
+            clipboard.set_text(&copy_text);
+        }
+
+        //-----------------------------------
         // Key press signal handler
         //-----------------------------------
         #[template_callback]
@@ -251,12 +282,13 @@ impl DetailsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(pkg: Option<PkgObject>, font: Option<String>) -> Self {
+    pub fn new(pkg: Option<PkgObject>, font: Option<String>, log_file: &str) -> Self {
         let win: Self = glib::Object::builder().property("pkg", pkg).build();
 
         win.setup_banner();
         win.setup_files();
         win.setup_tree(font);
+        win.setup_logs(log_file);
 
         win
     }
@@ -340,5 +372,40 @@ impl DetailsWindow {
 
         // Populate dependency tree
         imp.populate_dependency_tree(6.0, false);
+    }
+
+    //-----------------------------------
+    // Setup logs page
+    //-----------------------------------
+    fn setup_logs(&self, log_file: &str) {
+        let imp = self.imp();
+
+        if let Some(pkg) = self.pkg() {
+            // Bind log message count to log copy button state
+            imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
+                .transform_to(|_, n_items: u32| {
+                    Some(n_items != 0)
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            // Populate log messages
+            if let Ok(log) = fs::read_to_string(log_file) {
+                let match_str = format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) {} (.+)", pkg.name());
+
+                let match_expr = Regex::new(&match_str).unwrap();
+    
+                lazy_static! {
+                    static ref EXPR: Regex = Regex::new("\\[(.+)T(.+)\\+.+\\] (.+)").unwrap();
+                }
+    
+                let log_lines: Vec<String> = log.lines().rev()
+                    .filter(|s| match_expr.is_match(s).unwrap_or_default())
+                    .map(|s| EXPR.replace_all(s, "[$1 $2]  $3").to_string())
+                    .collect();
+
+                imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+            }
+        }
     }
 }

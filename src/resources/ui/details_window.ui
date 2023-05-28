@@ -349,7 +349,7 @@
                     </property>
                   </object>
                 </child>
-                <!-- <child>
+                <child>
                   <object class="GtkStackPage" id="log_page">
                     <property name="name">log</property>
                     <property name="child">
@@ -392,7 +392,7 @@
                                   <class name="flat"/>
                                   <class name="circular"/>
                                 </style>
-                                <signal name="clicked" handler="on_log_copy_button_clicked" swapped="no"/>
+                                <signal name="clicked" handler="on_log_copy_button_clicked" swapped="true"/>
                               </object>
                             </child>
                           </object>
@@ -415,7 +415,7 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details/log-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_window/log_item.ui</property>
                                   </object>
                                 </property>
                               </object>
@@ -425,7 +425,7 @@
                       </object>
                     </property>
                   </object>
-                </child> -->
+                </child>
                 <!-- <child>
                   <object class="GtkStackPage" id="cache_page">
                     <property name="name">cache</property>
