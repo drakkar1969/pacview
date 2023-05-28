@@ -568,7 +568,7 @@ mod imp {
                         if let Some(pkg) = hlist.get(hindex) {
                             let pacman_config = win.pacman_config.borrow();
 
-                            let details_window = DetailsWindow::new(Some(pkg.clone()), font, &pacman_config.log_file);
+                            let details_window = DetailsWindow::new(Some(pkg), font, &pacman_config.log_file);
                             details_window.set_transient_for(Some(&app.active_window().unwrap()));
     
                             details_window.present();

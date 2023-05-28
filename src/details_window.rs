@@ -278,7 +278,7 @@ impl DetailsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(pkg: Option<PkgObject>, font: Option<String>, log_file: &str) -> Self {
+    pub fn new(pkg: Option<&PkgObject>, font: Option<String>, log_file: &str) -> Self {
         let win: Self = glib::Object::builder().property("pkg", pkg).build();
 
         win.setup_banner();
