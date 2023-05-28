@@ -725,6 +725,8 @@ mod imp {
 
                     win.pkgview_stack.set_visible_child_name("view");
 
+                    win.pkgview_selection.set_selected(26);
+
                     win.check_aur_packages_async();
                     win.get_package_updates_async();
 
@@ -803,9 +805,14 @@ mod imp {
             let pkg_list = self.package_list.borrow().to_vec();
             let update_row = self.update_row.borrow();
 
+            let hlist = self.history_list.borrow().to_vec();
+            let hindex = self.history_index.get();
+
+            let infopane_model = self.infopane_model.get();
+
             receiver.attach(
                 None,
-                clone!(@strong update_row => @default-return Continue(false), move |(success, update_map)| {
+                clone!(@strong update_row, @weak infopane_model => @default-return Continue(false), move |(success, update_map)| {
                     // If no error on pacman updates
                     if success == true {
                         // Update status of packages with updates
@@ -819,6 +826,19 @@ mod imp {
                                 pkg.set_flags(flags);
 
                                 pkg.set_has_update(true);
+
+                                if let Some(info_pkg) = hlist.get(hindex) {
+                                    if &info_pkg.name() == name {
+                                        for i in IntoIterator::into_iter(0..infopane_model.n_items()) {
+                                            let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
+
+                                            if prop.label() == "Version" {
+                                                prop.set_value(pkg.version());
+                                                prop.set_icon("pkg-update");
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
