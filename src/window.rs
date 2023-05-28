@@ -561,12 +561,16 @@ mod imp {
                         let hlist = win.history_list.borrow().to_vec();
                         let hindex = win.history_index.get();
 
-                        let pkg = hlist.get(hindex);
+                        let monospace_font = win.prefs_window.monospace_font();
 
-                        let details_window = DetailsWindow::new(pkg.cloned());
-                        details_window.set_transient_for(Some(&app.active_window().unwrap()));
+                        let font: Option<String> = if win.prefs_window.custom_font() {Some(monospace_font)} else {None};
 
-                        details_window.present();
+                        if let Some(pkg) = hlist.get(hindex) {
+                            let details_window = DetailsWindow::new(Some(pkg.clone()), font);
+                            details_window.set_transient_for(Some(&app.active_window().unwrap()));
+    
+                            details_window.present();
+                        }
                     }
                 }))
                 .build();
@@ -818,21 +822,6 @@ mod imp {
         }
 
         //-----------------------------------
-        // Setup alpm: run command helper function
-        //-----------------------------------
-        fn run_command(cmd: &str, args: &[String]) -> (Option<i32>, String) {
-            let mut stdout: String = String::from("");
-            let mut code: Option<i32> = None;
-
-            if let Ok(output) = Command::new(cmd).args(args).output() {
-                code = output.status.code();
-                stdout = String::from_utf8(output.stdout).unwrap_or_default();
-            }
-
-            (code, stdout)
-        }
-
-        //-----------------------------------
         // Setup alpm: get package updates
         //-----------------------------------
         fn get_package_updates_async(&self) {
@@ -847,7 +836,7 @@ mod imp {
                 let mut update_str = String::from("");
 
                 // Check for pacman updates
-                let (code, stdout) = PacViewWindow::run_command("/usr/bin/checkupdates", &[]);
+                let (code, stdout) = super::PacViewWindow::run_command("/usr/bin/checkupdates", &[]);
 
                 if code == Some(0) {
                     update_str += &stdout;
@@ -859,7 +848,7 @@ mod imp {
                 if success {
                     if let Ok(aur_params) = shell_words::split(&aur_command) {
                         if !aur_params.is_empty() {
-                            let (code, stdout) = PacViewWindow::run_command(&aur_params[0], &aur_params[1..]);
+                            let (code, stdout) = super::PacViewWindow::run_command(&aur_params[0], &aur_params[1..]);
 
                             if code == Some(0) {
                                 update_str += &stdout;
@@ -1446,5 +1435,20 @@ impl PacViewWindow {
     //-----------------------------------
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
+    }
+
+    //-----------------------------------
+    // Public run command helper function
+    //-----------------------------------
+    pub fn run_command(cmd: &str, args: &[String]) -> (Option<i32>, String) {
+        let mut stdout: String = String::from("");
+        let mut code: Option<i32> = None;
+
+        if let Ok(output) = Command::new(cmd).args(args).output() {
+            code = output.status.code();
+            stdout = String::from_utf8(output.stdout).unwrap_or_default();
+        }
+
+        (code, stdout)
     }
 }

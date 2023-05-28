@@ -277,6 +277,7 @@
                                   <object class="GtkScale" id="tree_depth_scale">
                                     <property name="width-request">100</property>
                                     <property name="tooltip-text">Adjust tree depth</property>
+                                    <property name="round-digits">0</property>
                                     <property name="adjustment">
                                       <object class="GtkAdjustment">
                                         <property name="lower">0</property>
@@ -295,7 +296,7 @@
                                       <mark value="5" position="bottom"></mark>
                                       <mark value="6" position="bottom"></mark>
                                     </marks>
-                                    <!-- <signal name="value-changed" handler="on_tree_depth_changed" swapped="no"/> -->
+                                    <signal name="value-changed" handler="on_tree_depth_changed" swapped="true"/>
                                   </object>
                                 </child>
                                 <child>
@@ -309,7 +310,7 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <!-- <signal name="toggled" handler="on_tree_reverse_toggled" swapped="no"/> -->
+                                        <signal name="toggled" handler="on_tree_reverse_toggled" swapped="true"/>
                                       </object>
                                     </child>
                                     <child>
@@ -320,7 +321,7 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <!-- <signal name="clicked" handler="on_tree_copy_button_clicked" swapped="no"/> -->
+                                        <signal name="clicked" handler="on_tree_copy_button_clicked" swapped="true"/>
                                       </object>
                                     </child>
                                   </object>

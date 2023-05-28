@@ -1,9 +1,13 @@
+use std::cell::{Cell, RefCell};
+
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+use gtk::pango::AttrList;
 
-use crate::pkg_object::PkgObject;
+use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
+use crate::window::PacViewWindow;
 
 //------------------------------------------------------------------------------
 // MODULE: DetailsWindow
@@ -14,7 +18,8 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::DetailsWindow)]
     #[template(resource = "/com/github/PacView/ui/details_window.ui")]
     pub struct DetailsWindow {
         #[template_child]
@@ -39,6 +44,22 @@ mod imp {
         pub files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub files_filter: TemplateChild<gtk::StringFilter>,
+
+        #[template_child]
+        pub tree_depth_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub tree_depth_scale: TemplateChild<gtk::Scale>,
+        #[template_child]
+        pub tree_reverse_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
+        pub tree_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub tree_label: TemplateChild<gtk::Label>,
+
+        #[property(get, set)]
+        pkg: RefCell<Option<PkgObject>>,
+
+        pub default_tree_depth: Cell<f64>,
     }
 
     //-----------------------------------
@@ -63,6 +84,21 @@ mod imp {
     }
 
     impl ObjectImpl for DetailsWindow {
+        //-----------------------------------
+        // Default property functions
+        //-----------------------------------
+        fn properties() -> &'static [glib::ParamSpec] {
+            Self::derived_properties()
+        }
+
+        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
+            self.derived_set_property(id, value, pspec)
+        }
+
+        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
+            self.derived_property(id, pspec)
+        }
+
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -134,6 +170,58 @@ mod imp {
         }
 
         //-----------------------------------
+        // Populate dependency tree helper function
+        //-----------------------------------
+        pub fn populate_dependency_tree(&self, depth: f64, reverse: bool) {
+            if let Some(pkg) = self.obj().pkg() {
+                let custom_depth_flag = format!(" -d{}", depth);
+
+                let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {" -s"};
+                let depth_flag = if depth == self.default_tree_depth.get() {""} else {&custom_depth_flag
+                };
+                let reverse_flag = if reverse {" -r"} else {""};
+    
+                let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", local_flag=local_flag, depth_flag=depth_flag, reverse_flag=reverse_flag, name=pkg.name());
+    
+                if let Ok(params) = shell_words::split(&cmd) {
+                    if !params.is_empty() {
+                        let (_code, stdout) = PacViewWindow::run_command(&params[0], &params[1..]);
+    
+                        self.tree_label.set_label(&stdout);
+                    }
+                }
+            }
+        }
+
+        //-----------------------------------
+        // Tree page signal handlers
+        //-----------------------------------
+        #[template_callback]
+        fn on_tree_depth_changed(&self, scale: gtk::Scale) {
+            let depth = scale.value();
+
+            self.populate_dependency_tree(depth, self.tree_reverse_button.is_active());
+
+            let depth_str = depth.to_string();
+
+            self.tree_depth_label.set_label(if depth == self.default_tree_depth.get() {"Default"} else {&depth_str});
+        }
+
+        #[template_callback]
+        fn on_tree_reverse_toggled(&self, button: gtk::ToggleButton) {
+            self.populate_dependency_tree(self.tree_depth_scale.value(), button.is_active());
+        }
+
+        #[template_callback]
+        fn on_tree_copy_button_clicked(&self) {
+            let copy_text = self.tree_label.label();
+
+            let clipboard = self.obj().clipboard();
+
+            clipboard.set_text(&copy_text);
+        }
+
+        //-----------------------------------
         // Key press signal handler
         //-----------------------------------
         #[template_callback]
@@ -163,13 +251,12 @@ impl DetailsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(pkg: Option<PkgObject>) -> Self {
-        let win: Self = glib::Object::builder().build();
+    pub fn new(pkg: Option<PkgObject>, font: Option<String>) -> Self {
+        let win: Self = glib::Object::builder().property("pkg", pkg).build();
 
-        if let Some(pkg) = pkg {
-            win.setup_banner(&pkg);
-            win.setup_files(&pkg);
-        }
+        win.setup_banner();
+        win.setup_files();
+        win.setup_tree(font);
 
         win
     }
@@ -177,46 +264,81 @@ impl DetailsWindow {
     //-----------------------------------
     // Setup banner
     //-----------------------------------
-    fn setup_banner(&self, pkg: &PkgObject) {
+    fn setup_banner(&self) {
         // Set package name in banner
-        self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
+        if let Some(pkg) = self.pkg() {
+            self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
+        }
     }
 
     //-----------------------------------
     // Setup files page
     //-----------------------------------
-    fn setup_files(&self, pkg: &PkgObject) {
+    fn setup_files(&self) {
+        if let Some(pkg) = self.pkg() {
+            let imp = self.imp();
+
+            let files = pkg.files();
+
+            // Set files search entry key capture widget
+            imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
+
+            // Bind files count to files header label
+            imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
+                .transform_to(|_, n_items: u32| {
+                    Some(format!("Files ({})", n_items))
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            // Bind files count to files open/copy button states
+            imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
+                .transform_to(|_, n_items: u32| {
+                    Some(n_items != 0)
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
+                .transform_to(|_, n_items: u32| {
+                    Some(n_items != 0)
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            // Populate files list
+            imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+        }
+    }
+
+    //-----------------------------------
+    // Setup tree page
+    //-----------------------------------
+    fn setup_tree(&self, font: Option<String>) {
         let imp = self.imp();
 
-        let files = pkg.files();
+        // Get monospace font
+        let font_str = if font.is_none() {
+            let gsettings = gio::Settings::new("org.gnome.desktop.interface");
 
-        // Set files search entry key capture widget
-        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
+            let font_str = gsettings.string("monospace-font-name");
 
-        // Bind files count to files header label
-        imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(|_, n_items: u32| {
-                Some(format!("Files ({})", n_items))
-            })
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
+            font_str.to_string()
+        } else {
+            font.unwrap()
+        };
 
-        // Bind files count to files open/copy button states
-        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| {
-                Some(n_items != 0)
-            })
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
+        // Set tree label font
+        let format_str = format!("0 -1 font-desc \"{}\"", font_str);
 
-        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| {
-                Some(n_items != 0)
-            })
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
+        if let Ok(attr) = AttrList::from_string(&format_str) {
+            imp.tree_label.set_attributes(Some(&attr));
+        }
 
-        // Populate files list
-        imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+        // Set default tree depth
+        imp.default_tree_depth.set(6.0);
+
+        // Populate dependency tree
+        imp.populate_dependency_tree(6.0, false);
     }
 }
