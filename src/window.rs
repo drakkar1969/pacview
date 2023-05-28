@@ -26,6 +26,7 @@ use crate::filter_row::FilterRow;
 use crate::value_row::ValueRow;
 use crate::stats_window::StatsWindow;
 use crate::preferences_window::PreferencesWindow;
+use crate::details_window::DetailsWindow;
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -553,12 +554,29 @@ mod imp {
                 }))
                 .build();
 
+            // Add info pane show details action
+            let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
+                .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
+                    if let Some(app) = obj.application() {
+                        let hlist = win.history_list.borrow().to_vec();
+                        let hindex = win.history_index.get();
+
+                        let pkg = hlist.get(hindex);
+
+                        let details_window = DetailsWindow::new(pkg.cloned());
+                        details_window.set_transient_for(Some(&app.active_window().unwrap()));
+
+                        details_window.present();
+                    }
+                }))
+                .build();
+
             // Add actions to info pane group
             let infopane_group = gio::SimpleActionGroup::new();
 
             obj.insert_action_group("info", Some(&infopane_group));
 
-            infopane_group.add_action_entries([prev_action, next_action]);
+            infopane_group.add_action_entries([prev_action, next_action, details_action]);
         }
 
         //-----------------------------------

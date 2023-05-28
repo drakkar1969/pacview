@@ -6,6 +6,7 @@ mod filter_row;
 mod value_row;
 mod preferences_window;
 mod stats_window;
+mod details_window;
 mod pkg_object;
 mod prop_object;
 mod stats_object;

@@ -83,6 +83,7 @@ impl PacViewApplication {
 
         self.set_accels_for_action("info.previous", &["<alt>Left"]);
         self.set_accels_for_action("info.next", &["<alt>Right"]);
+        self.set_accels_for_action("info.show-details", &["<alt>Return"]);
     }
 
     fn show_about(&self) {
