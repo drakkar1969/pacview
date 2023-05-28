@@ -736,6 +736,49 @@ mod imp {
         }
 
         //-----------------------------------
+        // Setup alpm: check AUR packages
+        //-----------------------------------
+        fn check_aur_packages_async(&self) {
+            let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
+
+            let pkg_list = self.package_list.borrow().to_vec();
+
+            let aur_params = pkg_list.iter()
+                .filter(|pkg| pkg.repository() == "foreign")
+                .map(|pkg| format!("&arg[]={name}", name=pkg.name()))
+                .collect::<Vec<String>>()
+                .concat();
+
+            thread::spawn(move || {
+                let mut aur_list: Vec<String> = vec![]; 
+
+                let aur_url = String::from("https://aur.archlinux.org/rpc/?v=5&type=info") + &aur_params;
+
+                if let Ok(response) = reqwest::blocking::get(aur_url) {
+                    if response.status() == 200 {
+                        if let Ok(data) = response.json::<AurInfo>() {
+                            aur_list.extend(data.results.into_iter().map(|item| item.Name));
+                        }
+                    }
+                }
+
+                // Return thread result
+                sender.send(aur_list).expect("Could not send through channel");
+            });
+
+            receiver.attach(
+                None,
+                clone!(@weak self as win => @default-return Continue(false), move |aur_list| {
+                    for pkg in pkg_list.iter().filter(|pkg| aur_list.contains(&pkg.name())) {
+                        pkg.set_repo_show("aur")
+                    }
+
+                    Continue(false)
+                }),
+            );
+        }
+
+        //-----------------------------------
         // Setup alpm: run command helper function
         //-----------------------------------
         fn run_command(cmd: &str, args: &[String]) -> (Option<i32>, String) {
@@ -851,49 +894,6 @@ mod imp {
                     update_row.set_tooltip_text(if success {Some("")} else {Some("Update error")});
 
                     update_row.set_sensitive(success);
-
-                    Continue(false)
-                }),
-            );
-        }
-
-        //-----------------------------------
-        // Setup alpm: check AUR packages
-        //-----------------------------------
-        fn check_aur_packages_async(&self) {
-            let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
-
-            let pkg_list = self.package_list.borrow().to_vec();
-
-            let aur_params = pkg_list.iter()
-                .filter(|pkg| pkg.repository() == "foreign")
-                .map(|pkg| format!("&arg[]={name}", name=pkg.name()))
-                .collect::<Vec<String>>()
-                .concat();
-
-            thread::spawn(move || {
-                let mut aur_list: Vec<String> = vec![]; 
-
-                let aur_url = String::from("https://aur.archlinux.org/rpc/?v=5&type=info") + &aur_params;
-
-                if let Ok(response) = reqwest::blocking::get(aur_url) {
-                    if response.status() == 200 {
-                        if let Ok(data) = response.json::<AurInfo>() {
-                            aur_list.extend(data.results.into_iter().map(|item| item.Name));
-                        }
-                    }
-                }
-
-                // Return thread result
-                sender.send(aur_list).expect("Could not send through channel");
-            });
-
-            receiver.attach(
-                None,
-                clone!(@weak self as win => @default-return Continue(false), move |aur_list| {
-                    for pkg in pkg_list.iter().filter(|pkg| aur_list.contains(&pkg.name())) {
-                        pkg.set_repo_show("aur")
-                    }
 
                     Continue(false)
                 }),
