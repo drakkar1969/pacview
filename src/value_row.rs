@@ -45,15 +45,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for ValueRow {
-        //-----------------------------------
-        // Constructor
-        //-----------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-        }
-    }
-
+    impl ObjectImpl for ValueRow {}
     impl WidgetImpl for ValueRow {}
     impl BoxImpl for ValueRow {}
     impl ValueRow {}

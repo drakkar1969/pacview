@@ -44,15 +44,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for StatsWindow {
-        //-----------------------------------
-        // Constructor
-        //-----------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-        }
-    }
-
+    impl ObjectImpl for StatsWindow {}
     impl WidgetImpl for StatsWindow {}
     impl WindowImpl for StatsWindow {}
     impl AdwWindowImpl for StatsWindow {}
