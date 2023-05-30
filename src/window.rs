@@ -556,7 +556,7 @@ mod imp {
             // Add info pane show details action
             let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
-                    let hlist = win.history_list.borrow().to_vec();
+                    let hlist = win.history_list.borrow();
                     let hindex = win.history_index.get();
 
                     let monospace_font = win.prefs_window.monospace_font();
@@ -693,10 +693,8 @@ mod imp {
         fn load_packages_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
 
-            let pacman_config = self.pacman_config.borrow();
-
-            let root_dir = pacman_config.root_dir.to_string();
-            let db_path = pacman_config.db_path.to_string();
+            let root_dir = self.pacman_config.borrow().root_dir.to_string();
+            let db_path = self.pacman_config.borrow().db_path.to_string();
 
             let repo_names = self.pacman_repo_names.borrow().to_vec();
 
@@ -760,9 +758,7 @@ mod imp {
         fn check_aur_packages_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
 
-            let pkg_list = self.package_list.borrow().to_vec();
-
-            let aur_params = pkg_list.iter()
+            let aur_params = self.package_list.borrow().iter()
                 .filter(|pkg| pkg.repository() == "foreign")
                 .map(|pkg| format!("&arg[]={name}", name=pkg.name()))
                 .collect::<Vec<String>>()
@@ -785,17 +781,19 @@ mod imp {
                 sender.send(aur_list).expect("Could not send through channel");
             });
 
-            let hlist = self.history_list.borrow().to_vec();
-            let hindex = self.history_index.get();
-
-            let infopane_model = self.infopane_model.get();
-
             receiver.attach(
                 None,
-                clone!(@weak self as win, @weak infopane_model => @default-return Continue(false), move |aur_list| {
+                clone!(@weak self as win => @default-return Continue(false), move |aur_list| {
+                    let pkg_list = win.package_list.borrow();
+
                     for pkg in pkg_list.iter().filter(|pkg| aur_list.contains(&pkg.name())) {
                         pkg.set_repo_show("aur");
 
+                        let hlist = win.history_list.borrow();
+                        let hindex = win.history_index.get();
+            
+                        let infopane_model = win.infopane_model.get();
+            
                         if let Some(info_pkg) = hlist.get(hindex) {
                             if info_pkg.name() == pkg.name() {
                                 for i in IntoIterator::into_iter(0..infopane_model.n_items()) {
@@ -868,20 +866,14 @@ mod imp {
                 sender.send((success, update_map)).expect("Could not send through channel");
             });
 
-            let pkg_list = self.package_list.borrow().to_vec();
-            let update_row = self.update_row.borrow();
-
-            let hlist = self.history_list.borrow().to_vec();
-            let hindex = self.history_index.get();
-
-            let infopane_model = self.infopane_model.get();
-
             receiver.attach(
                 None,
-                clone!(@strong update_row, @weak infopane_model => @default-return Continue(false), move |(success, update_map)| {
+                clone!(@weak self as win => @default-return Continue(false), move |(success, update_map)| {
                     // If no error on pacman updates
                     if success == true {
                         // Update status of packages with updates
+                        let pkg_list = win.package_list.borrow();
+
                         for (name, version) in update_map.iter() {
                             if let Some(pkg) = pkg_list.iter().find(|pkg| pkg.name().eq(name)) {
                                 pkg.set_version(version.to_string());
@@ -892,6 +884,11 @@ mod imp {
                                 pkg.set_flags(flags);
 
                                 pkg.set_has_update(true);
+
+                                let hlist = win.history_list.borrow();
+                                let hindex = win.history_index.get();
+
+                                let infopane_model = win.infopane_model.get();
 
                                 if let Some(info_pkg) = hlist.get(hindex) {
                                     if &info_pkg.name() == name {
@@ -910,6 +907,8 @@ mod imp {
                     }
 
                     // Show update status/count in sidebar
+                    let update_row = win.update_row.borrow();
+
                     update_row.set_spinning(false);
                     update_row.set_icon(if success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
                     update_row.set_count(if success && update_map.len() > 0 {update_map.len().to_string()} else {String::from("")});
@@ -1080,7 +1079,7 @@ mod imp {
         // Infopane package display functions
         //-----------------------------------
         fn infopane_display_package(&self, pkg: Option<&PkgObject>) {
-            let hlist = self.history_list.borrow().to_vec();
+            let hlist = self.history_list.borrow();
             let hindex = self.history_index.get();
 
             self.infopane_toolbar.set_visible(pkg.is_some());
@@ -1238,7 +1237,7 @@ mod imp {
         }
 
         fn infopane_display_prev(&self) {
-            let hlist = self.history_list.borrow().to_vec();
+            let hlist = self.history_list.borrow();
             let mut hindex = self.history_index.get();
 
             if hindex > 0 {
@@ -1253,7 +1252,7 @@ mod imp {
         }
 
         fn infopane_display_next(&self) {
-            let hlist = self.history_list.borrow().to_vec();
+            let hlist = self.history_list.borrow();
             let mut hindex = self.history_index.get();
 
             if hlist.len() > 0 && hindex < hlist.len() - 1 {
@@ -1367,7 +1366,7 @@ mod imp {
             if let Ok(url) = Url::parse(link) {
                 if url.scheme() == "pkg" {
                     if let Some(pkg_name) = url.domain() {
-                        let pkg_list = self.package_list.borrow().to_vec();
+                        let pkg_list = self.package_list.borrow();
 
                         let mut new_pkg = pkg_list.iter().find(|pkg| pkg.name() == pkg_name);
 
