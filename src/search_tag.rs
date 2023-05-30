@@ -85,7 +85,7 @@ mod imp {
     #[gtk::template_callbacks]
     impl SearchTag {
         //-----------------------------------
-        // Signal handlers
+        // Close button signal handler
         //-----------------------------------
         #[template_callback]
         fn on_close_button_clicked(&self) {
@@ -104,8 +104,10 @@ glib::wrapper! {
 }
 
 impl SearchTag {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new() -> Self {
-        glib::Object::builder()
-            .build()
+        glib::Object::builder().build()
     }
 }
