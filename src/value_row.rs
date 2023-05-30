@@ -24,7 +24,7 @@ mod imp {
         pub label: TemplateChild<gtk::Label>,
 
         pub bindings: RefCell<Vec<glib::Binding>>,
-        pub signals: RefCell<Vec<glib::SignalHandlerId>>,
+        pub signal: RefCell<Option<glib::SignalHandlerId>>,
     }
 
     //-----------------------------------
@@ -69,11 +69,16 @@ glib::wrapper! {
 }
 
 impl ValueRow {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new() -> Self {
-        glib::Object::builder()
-            .build()
+        glib::Object::builder().build()
     }
 
+    //-----------------------------------
+    // Public property binding functions
+    //-----------------------------------
     pub fn bind_properties(&self, property: &PropObject) {
         let imp = self.imp();
 
@@ -82,10 +87,10 @@ impl ValueRow {
 
         let mut bindings = imp.bindings.borrow_mut();
 
+        // Bind PropObject properties to widget properties and save bindings
         let binding = property.bind_property("icon", &image, "visible")
             .transform_to(|_, icon: Option<&str>| {
-                let icon = icon.unwrap_or_default();
-                Some(icon != "")
+                Some(icon.is_some())
             })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
@@ -103,19 +108,26 @@ impl ValueRow {
     }
 
     pub fn unbind_properties(&self) {
+        // Unbind PropObject properties from widgets
         for binding in self.imp().bindings.borrow_mut().drain(..) {
             binding.unbind();
         }
     }
 
+    //-----------------------------------
+    // Public signal binding functions
+    //-----------------------------------
     pub fn add_label_signal(&self, signal: SignalHandlerId) {
-        let mut signals = self.imp().signals.borrow_mut();
-        signals.push(signal);
+        // Save label signal
+        self.imp().signal.replace(Some(signal));
     }
 
-    pub fn drop_label_signals(&self) {
-        for signal in self.imp().signals.borrow_mut().drain(..) {
-            self.imp().label.disconnect(signal);
+    pub fn drop_label_signal(&self) {
+        // Disconnect label signal
+        let imp = self.imp();
+
+        if let Some(signal) = imp.signal.take() {
+            imp.label.disconnect(signal);
         }
     }
 }

@@ -1360,7 +1360,7 @@ mod imp {
                 .expect("The child has to be a `Box`.");
 
             value_row.unbind_properties();
-            value_row.drop_label_signals();
+            value_row.drop_label_signal();
         }
 
         //-----------------------------------
