@@ -61,6 +61,9 @@ glib::wrapper! {
 }
 
 impl StatsObject {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new(repository: &str, packages: &str, installed: &str, size: &str) -> Self {
         // Build StatsObject
         glib::Object::builder()
