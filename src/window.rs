@@ -643,8 +643,7 @@ mod imp {
             }
 
             // Add repository rows
-            let row = FilterRow::new("repository-symbolic", "All");
-            row.set_repo_id("");
+            let row = FilterRow::new("repository-symbolic", "All", "", PkgFlags::default());
 
             self.repo_listbox.append(&row);
 
@@ -653,8 +652,7 @@ mod imp {
             let repo_names = self.pacman_repo_names.borrow().to_vec();
 
             for repo in repo_names {
-                let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo));
-                row.set_repo_id(repo.to_lowercase());
+                let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo), &repo.to_lowercase(), PkgFlags::default());
 
                 self.repo_listbox.append(&row);
             }
@@ -672,8 +670,7 @@ mod imp {
             ];
 
             for (text, flag) in status_map {
-                let row = FilterRow::new(&format!("status-{}-symbolic", text), &titlecase::titlecase(text));
-                row.set_status_id(flag);
+                let row = FilterRow::new(&format!("status-{}-symbolic", text), &titlecase::titlecase(text), "", flag);
 
                 self.status_listbox.append(&row);
 

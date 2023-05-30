@@ -42,9 +42,9 @@ mod imp {
         spinning: Cell<bool>,
 
         #[property(get, set)]
-        pub repo_id: RefCell<String>,
+        repo_id: RefCell<String>,
         #[property(get, set)]
-        pub status_id: Cell<PkgFlags>,
+        status_id: Cell<PkgFlags>,
     }
 
     //-----------------------------------
@@ -91,9 +91,7 @@ mod imp {
 
             // Bind properties to widgets
             obj.bind_property("spinning", &self.stack.get(), "visible_child_name")
-                .transform_to(|_, spinning: bool| {
-                    Some(if spinning {"spinner"} else {"icon"})
-                })
+                .transform_to(|_, spinning: bool| Some(if spinning {"spinner"} else {"icon"}))
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
             obj.bind_property("spinning", &self.spinner.get(), "spinning")
@@ -109,9 +107,7 @@ mod imp {
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
             obj.bind_property("count", &self.count_box.get(), "visible")
-                .transform_to(|_, count: &str| {
-                    Some(if count != "" {true} else {false})
-                })
+                .transform_to(|_, count: &str| Some(count != ""))
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
         }
@@ -131,16 +127,24 @@ glib::wrapper! {
 }
 
 impl FilterRow {
-    pub fn new(icon: &str, text: &str) -> Self {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
+    pub fn new(icon: &str, text: &str, repo_id: &str, status_id: PkgFlags) -> Self {
         glib::Object::builder()
             .property("icon", icon)
             .property("text", text)
+            .property("repo-id", repo_id)
+            .property("status-id", status_id)
             .build()
     }
 }
 
 impl Default for FilterRow {
+    //-----------------------------------
+    // Public default constructor
+    //-----------------------------------
     fn default() -> Self {
-        Self::new("", "")
+        Self::new("", "", "", PkgFlags::default())
     }
 }
