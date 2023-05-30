@@ -68,7 +68,7 @@ mod imp {
         pub log_selection: TemplateChild<gtk::NoSelection>,
 
         #[property(get, set)]
-        pkg: RefCell<Option<PkgObject>>,
+        pkg: RefCell<PkgObject>,
 
         pub default_tree_depth: Cell<f64>,
     }
@@ -184,20 +184,20 @@ mod imp {
         // Populate dependency tree helper function
         //-----------------------------------
         pub fn populate_dependency_tree(&self, depth: f64, reverse: bool) {
-            if let Some(pkg) = self.obj().pkg() {
-                let custom_depth_flag = format!(" -d{}", depth);
+            let custom_depth_flag = format!(" -d{}", depth);
 
-                let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {" -s"};
-                let depth_flag = if depth == self.default_tree_depth.get() {""} else {&custom_depth_flag
-                };
-                let reverse_flag = if reverse {" -r"} else {""};
-    
-                let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", local_flag=local_flag, depth_flag=depth_flag, reverse_flag=reverse_flag, name=pkg.name());
-    
-                let (_code, stdout) = Utils::run_command(&cmd);
+            let pkg = self.obj().pkg();
 
-                self.tree_label.set_label(&stdout);
-            }
+            let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {" -s"};
+            let depth_flag = if depth == self.default_tree_depth.get() {""} else {&custom_depth_flag
+            };
+            let reverse_flag = if reverse {" -r"} else {""};
+
+            let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", local_flag=local_flag, depth_flag=depth_flag, reverse_flag=reverse_flag, name=pkg.name());
+
+            let (_code, stdout) = Utils::run_command(&cmd);
+
+            self.tree_label.set_label(&stdout);
         }
 
         //-----------------------------------
@@ -278,7 +278,7 @@ impl DetailsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(pkg: Option<&PkgObject>, font: Option<String>, log_file: &str) -> Self {
+    pub fn new(pkg: &PkgObject, font: Option<String>, log_file: &str) -> Self {
         let win: Self = glib::Object::builder().property("pkg", pkg).build();
 
         win.setup_banner();
@@ -294,9 +294,7 @@ impl DetailsWindow {
     //-----------------------------------
     fn setup_banner(&self) {
         // Set package name in banner
-        if let Some(pkg) = self.pkg() {
-            self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
-        }
+        self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=self.pkg().repo_show(), name=self.pkg().name()));
     }
 
     //-----------------------------------
@@ -332,11 +330,9 @@ impl DetailsWindow {
             .build();
 
         // Populate files list
-        if let Some(pkg) = self.pkg() {
-            let files = pkg.files();
+        let files = self.pkg().files();
 
-            imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
-        }
+        imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
     }
 
     //-----------------------------------
@@ -385,23 +381,21 @@ impl DetailsWindow {
             .build();
 
         // Populate log messages
-        if let Some(pkg) = self.pkg() {
-            if let Ok(log) = fs::read_to_string(log_file) {
-                let match_str = format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) {} (.+)", pkg.name());
+        if let Ok(log) = fs::read_to_string(log_file) {
+            let match_str = format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) {} (.+)", self.pkg().name());
 
-                let match_expr = Regex::new(&match_str).unwrap();
-    
-                lazy_static! {
-                    static ref EXPR: Regex = Regex::new("\\[(.+)T(.+)\\+.+\\] (.+)").unwrap();
-                }
-    
-                let log_lines: Vec<String> = log.lines().rev()
-                    .filter(|s| match_expr.is_match(s).unwrap_or_default())
-                    .map(|s| EXPR.replace_all(s, "[$1 $2]  $3").to_string())
-                    .collect();
+            let match_expr = Regex::new(&match_str).unwrap();
 
-                imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+            lazy_static! {
+                static ref EXPR: Regex = Regex::new("\\[(.+)T(.+)\\+.+\\] (.+)").unwrap();
             }
+
+            let log_lines: Vec<String> = log.lines().rev()
+                .filter(|s| match_expr.is_match(s).unwrap_or_default())
+                .map(|s| EXPR.replace_all(s, "[$1 $2]  $3").to_string())
+                .collect();
+
+            imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
         }
     }
 }

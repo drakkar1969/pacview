@@ -369,3 +369,12 @@ impl PkgObject {
         (required_by, optional_for)
     }
 }
+
+impl Default for PkgObject {
+    //-----------------------------------
+    // Public default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new(PkgData::default())
+    }
+}

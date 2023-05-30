@@ -565,7 +565,7 @@ mod imp {
 
                     if let Some(pkg) = hlist.get(hindex) {
                         let details_window = DetailsWindow::new(
-                            Some(pkg),
+                            pkg,
                             font,
                             &win.pacman_config.borrow().log_file
                         );
