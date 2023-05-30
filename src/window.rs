@@ -463,13 +463,13 @@ mod imp {
             // Add pkgview copy list action
             let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    let item_list: Vec<String> = IntoIterator::into_iter(0..win.pkgview_selection.n_items())
-                    .map(|i| {
-                        let pkg: PkgObject = win.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
+                    let item_list: Vec<String> = (0..win.pkgview_selection.n_items()).into_iter()
+                        .map(|i| {
+                            let pkg: PkgObject = win.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
 
-                        format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())
-                    })
-                    .collect();
+                            format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())
+                        })
+                        .collect();
 
                     let copy_text = item_list.join("\n");
 
@@ -796,7 +796,7 @@ mod imp {
             
                         if let Some(info_pkg) = hlist.get(hindex) {
                             if info_pkg.name() == pkg.name() {
-                                for i in IntoIterator::into_iter(0..infopane_model.n_items()) {
+                                for i in (0..infopane_model.n_items()).into_iter() {
                                     let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
 
                                     if prop.label() == "Repository" {
@@ -892,7 +892,7 @@ mod imp {
 
                                 if let Some(info_pkg) = hlist.get(hindex) {
                                     if &info_pkg.name() == name {
-                                        for i in IntoIterator::into_iter(0..infopane_model.n_items()) {
+                                        for i in (0..infopane_model.n_items()).into_iter() {
                                             let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
 
                                             if prop.label() == "Version" {

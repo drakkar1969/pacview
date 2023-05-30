@@ -165,13 +165,13 @@ mod imp {
 
         #[template_callback]
         fn on_files_copy_button_clicked(&self) {
-            let files_list: Vec<String> = IntoIterator::into_iter(0..self.files_selection.n_items())
-            .map(|i| {
-                let item: gtk::StringObject = self.files_selection.item(i).and_downcast().expect("Must be a StringObject");
+            let files_list: Vec<String> = (0..self.files_selection.n_items()).into_iter()
+                .map(|i| {
+                    let item: gtk::StringObject = self.files_selection.item(i).and_downcast().expect("Must be a StringObject");
 
-                item.string().to_string()
-            })
-            .collect();
+                    item.string().to_string()
+                })
+                .collect();
 
             let copy_text = files_list.join("\n");
 
@@ -184,16 +184,16 @@ mod imp {
         // Populate dependency tree helper function
         //-----------------------------------
         pub fn populate_dependency_tree(&self, depth: f64, reverse: bool) {
-            let custom_depth_flag = format!(" -d{}", depth);
+            let depth_str = format!("-d{}", depth);
 
             let pkg = self.obj().pkg();
 
-            let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {" -s"};
-            let depth_flag = if depth == self.default_tree_depth.get() {""} else {&custom_depth_flag
-            };
-            let reverse_flag = if reverse {" -r"} else {""};
-
-            let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", local_flag=local_flag, depth_flag=depth_flag, reverse_flag=reverse_flag, name=pkg.name());
+            let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", 
+                local_flag=if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"},
+                depth_flag=if depth == self.default_tree_depth.get() {""} else {&depth_str},
+                reverse_flag=if reverse {"-r"} else {""},
+                name=pkg.name()
+            );
 
             let (_code, stdout) = Utils::run_command(&cmd);
 
@@ -233,13 +233,13 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_log_copy_button_clicked(&self) {
-            let log_list: Vec<String> = IntoIterator::into_iter(0..self.log_selection.n_items())
-            .map(|i| {
-                let item: gtk::StringObject = self.log_selection.item(i).and_downcast().expect("Must be a StringObject");
+            let log_list: Vec<String> = (0..self.log_selection.n_items()).into_iter()
+                .map(|i| {
+                    let item: gtk::StringObject = self.log_selection.item(i).and_downcast().expect("Must be a StringObject");
 
-                item.string().to_string()
-            })
-            .collect();
+                    item.string().to_string()
+                })
+                .collect();
 
             let copy_text = log_list.join("\n");
 
@@ -308,24 +308,18 @@ impl DetailsWindow {
 
         // Bind files count to files header label
         imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(|_, n_items: u32| {
-                Some(format!("Files ({})", n_items))
-            })
+            .transform_to(|_, n_items: u32|  Some(format!("Files ({})", n_items)))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
         // Bind files count to files open/copy button states
         imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| {
-                Some(n_items != 0)
-            })
+            .transform_to(|_, n_items: u32| Some(n_items != 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
         imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| {
-                Some(n_items != 0)
-            })
+            .transform_to(|_, n_items: u32| Some(n_items != 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
