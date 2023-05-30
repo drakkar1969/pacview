@@ -59,6 +59,9 @@ glib::wrapper! {
 }
 
 impl PropObject {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new(label: &str, value: &str, icon: Option<&str>) -> Self {
         // Build PropObject
         glib::Object::builder()
