@@ -17,11 +17,11 @@ mod imp {
     #[properties(wrapper_type = super::PropObject)]
     pub struct PropObject {
         #[property(get, set)]
-        pub label: RefCell<String>,
+        label: RefCell<String>,
         #[property(get, set)]
-        pub value: RefCell<String>,
+        value: RefCell<String>,
         #[property(get, set)]
-        pub icon: RefCell<Option<String>>,
+        icon: RefCell<Option<String>>,
     }
 
     //-----------------------------------

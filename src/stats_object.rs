@@ -17,13 +17,13 @@ mod imp {
     #[properties(wrapper_type = super::StatsObject)]
     pub struct StatsObject {
         #[property(get, set)]
-        pub repository: RefCell<String>,
+        repository: RefCell<String>,
         #[property(get, set)]
-        pub packages: RefCell<String>,
+        packages: RefCell<String>,
         #[property(get, set)]
-        pub installed: RefCell<String>,
+        installed: RefCell<String>,
         #[property(get, set)]
-        pub size: RefCell<String>,
+        size: RefCell<String>,
     }
 
     //-----------------------------------
