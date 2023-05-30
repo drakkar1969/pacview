@@ -1372,8 +1372,8 @@ mod imp {
                         }
 
                         if let Some(new_pkg) = new_pkg {
-                            let hlist = self.history_list.borrow().to_vec();
-                            let hindex = self.history_index.get();
+                            let mut hlist = self.history_list.borrow().to_vec();
+                            let mut hindex = self.history_index.get();
 
                             let i = hlist.iter().position(|pkg| pkg.name() == new_pkg.name());
 
@@ -1384,13 +1384,16 @@ mod imp {
                                     self.infopane_display_package(Some(new_pkg));
                                 }
                             } else {
-                                let j = if hlist.len() > 0 {hindex + 1} else {hindex};
-                                let mut hslice = hlist[..j].to_vec();
+                                if hlist.len() > 0 {
+                                    hindex +=1;
 
-                                hslice.push(new_pkg.clone());
+                                    hlist.drain(hindex..);
+                                }
 
-                                self.history_list.replace(hslice);
-                                self.history_index.replace(j);
+                                hlist.push(new_pkg.clone());
+
+                                self.history_list.replace(hlist);
+                                self.history_index.replace(hindex);
 
                                 self.infopane_display_package(Some(new_pkg));
                             }
