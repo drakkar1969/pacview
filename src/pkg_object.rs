@@ -278,7 +278,7 @@ mod imp {
         }
 
         fn install_size_string(&self) -> String {
-            super::PkgObject::size_to_string(self.obj().install_size() as f64, 1)
+            super::PkgObject::size_to_string(self.obj().install_size(), 1)
         }
 
         fn build_date_long(&self) -> String {
@@ -286,7 +286,7 @@ mod imp {
         }
 
         fn download_size_string(&self) -> String {
-            super::PkgObject::size_to_string(self.obj().download_size() as f64, 1)
+            super::PkgObject::size_to_string(self.obj().download_size(), 1)
         }
     }
 }
@@ -311,7 +311,9 @@ impl PkgObject {
     //-----------------------------------
     // Public auxiliary functions
     //-----------------------------------
-    pub fn size_to_string(mut size: f64, decimals: usize) -> String {
+    pub fn size_to_string(size: i64, decimals: usize) -> String {
+        let mut size = size as f64;
+
         if size == 0.0 {
             String::from("0 B")
         } else {

@@ -57,6 +57,9 @@ mod imp {
     impl WindowImpl for StatsWindow {}
     impl AdwWindowImpl for StatsWindow {}
 
+    //-----------------------------------
+    // Key press signal handler
+    //-----------------------------------
     #[gtk::template_callbacks]
     impl StatsWindow {
         #[template_callback]
@@ -80,6 +83,9 @@ glib::wrapper! {
 }
 
 impl StatsWindow {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new(repo_names: &Vec<String>, pkg_list: &Vec<PkgObject>) -> Self {
         let window: Self = glib::Object::builder().build();
 
@@ -89,16 +95,19 @@ impl StatsWindow {
         let mut total_icount = 0;
         let mut total_isize = 0;
 
+        // For each repository
         for repo in repo_names {
-            let repo_list: Vec<&PkgObject> = pkg_list.iter()
-                .filter(|pkg| pkg.repository() == *repo)
+            // Find packages in repository and get count
+            let repo_list: Vec<&PkgObject> = pkg_list.into_iter()
+                .filter(|&pkg| pkg.repository() == *repo)
                 .collect();
 
             let pcount = repo_list.len();
             total_pcount += pcount;
 
+            // Find installed packages and get count + total size
             let installed_list: Vec<&PkgObject> = repo_list.into_iter()
-                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                .filter(|&pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                 .collect();
 
             let icount = installed_list.len();
@@ -107,19 +116,21 @@ impl StatsWindow {
             let isize: i64 = installed_list.iter().map(|pkg| pkg.install_size()).sum();
             total_isize += isize;
 
+            // Add repository item to stats column view
             imp.model.append(&StatsObject::new(
                 &titlecase::titlecase(repo),
                 &pcount.to_string(),
                 &icount.to_string(),
-                &PkgObject::size_to_string(isize as f64, 2)
+                &PkgObject::size_to_string(isize, 2)
             ));
         }
 
+        // Add item with totals to stats column view
         imp.model.append(&StatsObject::new(
             "<b>Total</b>",
             &format!("<b>{}</b>", total_pcount.to_string()),
             &format!("<b>{}</b>", total_icount.to_string()),
-            &format!("<b>{}</b>", &PkgObject::size_to_string(total_isize as f64, 2))
+            &format!("<b>{}</b>", &PkgObject::size_to_string(total_isize, 2))
         ));
 
         window
