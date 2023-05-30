@@ -556,16 +556,13 @@ mod imp {
             // Add info pane show details action
             let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
-                    let hlist = win.history_list.borrow();
-                    let hindex = win.history_index.get();
-
                     let monospace_font = win.prefs_window.monospace_font();
 
                     let font: Option<String> = if win.prefs_window.custom_font() {Some(monospace_font)} else {None};
 
-                    if let Some(pkg) = hlist.get(hindex) {
+                    if let Some(pkg) = win.infopane_pkg() {
                         let details_window = DetailsWindow::new(
-                            pkg,
+                            &pkg,
                             font,
                             &win.pacman_config.borrow().log_file
                         );
@@ -789,12 +786,9 @@ mod imp {
                     for pkg in pkg_list.iter().filter(|pkg| aur_list.contains(&pkg.name())) {
                         pkg.set_repo_show("aur");
 
-                        let hlist = win.history_list.borrow();
-                        let hindex = win.history_index.get();
-            
                         let infopane_model = win.infopane_model.get();
             
-                        if let Some(info_pkg) = hlist.get(hindex) {
+                        if let Some(info_pkg) = win.infopane_pkg() {
                             if info_pkg.name() == pkg.name() {
                                 for i in (0..infopane_model.n_items()).into_iter() {
                                     let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
@@ -885,12 +879,9 @@ mod imp {
 
                                 pkg.set_has_update(true);
 
-                                let hlist = win.history_list.borrow();
-                                let hindex = win.history_index.get();
-
                                 let infopane_model = win.infopane_model.get();
 
-                                if let Some(info_pkg) = hlist.get(hindex) {
+                                if let Some(info_pkg) = win.infopane_pkg() {
                                     if &info_pkg.name() == name {
                                         for i in (0..infopane_model.n_items()).into_iter() {
                                             let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
@@ -1073,6 +1064,13 @@ mod imp {
                 self.pkgview_popover_menu.set_pointing_to(Some(&rect));
                 self.pkgview_popover_menu.popup();
             }
+        }
+
+        //-----------------------------------
+        // Infopane get package function
+        //-----------------------------------
+        fn infopane_pkg(&self) -> Option<PkgObject> {
+            self.history_list.borrow().get(self.history_index.get()).cloned()
         }
 
         //-----------------------------------
