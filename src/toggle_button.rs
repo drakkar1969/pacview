@@ -95,6 +95,9 @@ glib::wrapper! {
 }
 
 impl ToggleButton {
+    //-----------------------------------
+    // Public new function
+    //-----------------------------------
     pub fn new(icon: &str, text: &str) -> Self {
         glib::Object::builder()
             .property("icon", icon)
