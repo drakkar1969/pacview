@@ -1279,15 +1279,10 @@ mod imp {
 
         fn prop_to_packager(&self, prop: &str) -> String {
             lazy_static! {
-                static ref MATCH: Regex = Regex::new("^([^<]+)<([^>]+)>$").unwrap();
-                static ref EXPR: Regex = Regex::new("([^<]+)<?([^>]+)?>?").unwrap();
+                static ref EXPR: Regex = Regex::new("^([^<]+)<([^>]+)>$").unwrap();
             }
 
-            if MATCH.is_match(prop).unwrap_or_default() {
-                EXPR.replace_all(&prop, "$1&lt;<a href='mailto:$2'>$2</a>&gt;").to_string()
-            } else {
-                prop.to_string()
-            }
+            EXPR.replace_all(&prop, "$1&lt;<a href='mailto:$2'>$2</a>&gt;").to_string()
         }
 
         fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
