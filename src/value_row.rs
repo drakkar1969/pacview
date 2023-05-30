@@ -81,9 +81,7 @@ impl ValueRow {
 
         // Bind PropObject properties to widget properties and save bindings
         let binding = property.bind_property("icon", &image, "visible")
-            .transform_to(|_, icon: Option<&str>| {
-                Some(icon.is_some())
-            })
+            .transform_to(|_, icon: Option<&str>| Some(icon.is_some()))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         bindings.push(binding);

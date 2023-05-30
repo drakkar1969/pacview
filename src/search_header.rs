@@ -79,7 +79,7 @@ mod imp {
         #[property(get, set)]
         title: RefCell<Option<String>>,
         #[property(set = Self::set_key_capture_widget)]
-        key_capture_widget: RefCell<Option<gtk::Widget>>,
+        _key_capture_widget: RefCell<Option<gtk::Widget>>,
 
         #[property(get, set)]
         active: Cell<bool>,
@@ -267,8 +267,6 @@ mod imp {
         //-----------------------------------
         fn set_key_capture_widget(&self, widget: gtk::Widget) {
             self.search_entry.set_key_capture_widget(Some(&widget));
-
-            *self.key_capture_widget.borrow_mut() = Some(widget);
         }
 
         //-----------------------------------
@@ -326,7 +324,6 @@ impl SearchHeader {
     // Public new function
     //-----------------------------------
     pub fn new() -> Self {
-        glib::Object::builder()
-            .build()
+        glib::Object::builder().build()
     }
 }
