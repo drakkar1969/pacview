@@ -358,10 +358,10 @@ impl PkgObject {
 
         if let Some(db) = db {
             if let Ok(alpm_pkg) = db.pkg(self.name()) {
-                required_by.extend(alpm_pkg.required_by().iter().map(|dep| dep.to_string()));
+                required_by.extend(alpm_pkg.required_by());
                 required_by.sort_unstable();
 
-                optional_for.extend(alpm_pkg.optional_for().iter().map(|dep| dep.to_string()));
+                optional_for.extend(alpm_pkg.optional_for());
                 optional_for.sort_unstable();
             }
         }
