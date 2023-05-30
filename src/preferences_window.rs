@@ -125,12 +125,10 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_font_button_clicked(&self) {
-            let win = self.obj().root().unwrap().downcast::<gtk::Window>().unwrap();
-
             let font_dialog = gtk::FontDialog::new();
 
             font_dialog.choose_font(
-                Some(&win),
+                Some(&*self.obj()),
                 Some(&FontDescription::from_string(&self.font_row.title())),
                 None::<&gio::Cancellable>,
                 clone!(@weak self as prefs => move |result| {
@@ -145,9 +143,11 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_reset_button_clicked(&self) {
-            let win = self.obj().root().unwrap().downcast::<gtk::Window>().unwrap();
-
-            let reset_dialog = adw::MessageDialog::new(Some(&win), Some("Reset Preferences?"), Some("Reset all preferences to their default values."));
+            let reset_dialog = adw::MessageDialog::new(
+                Some(&*self.obj()),
+                Some("Reset Preferences?"),
+                Some("Reset all preferences to their default values.")
+            );
 
             reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
             reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);

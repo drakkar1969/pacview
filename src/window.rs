@@ -448,16 +448,15 @@ mod imp {
 
             // Add pkgview show stats action
             let stats_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-stats")
-                .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
-                    if let Some(app) = obj.application() {
-                        let repo_names = win.pacman_repo_names.borrow().to_vec();
-                        let pkg_list = win.package_list.borrow().to_vec();
+                .activate(clone!(@weak self as win => move |_, _, _| {
+                    let stats_window = StatsWindow::new(
+                        &win.pacman_repo_names.borrow(),
+                        &win.package_list.borrow()
+                    );
 
-                        let stats_window = StatsWindow::new(&repo_names, &pkg_list);
-                        stats_window.set_transient_for(Some(&app.active_window().unwrap()));
+                    stats_window.set_transient_for(Some(&*win.obj()));
 
-                        stats_window.present();
-                    }
+                    stats_window.present();
                 }))
                 .build();
 
@@ -557,22 +556,23 @@ mod imp {
             // Add info pane show details action
             let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
-                    if let Some(app) = obj.application() {
-                        let hlist = win.history_list.borrow().to_vec();
-                        let hindex = win.history_index.get();
+                    let hlist = win.history_list.borrow().to_vec();
+                    let hindex = win.history_index.get();
 
-                        let monospace_font = win.prefs_window.monospace_font();
+                    let monospace_font = win.prefs_window.monospace_font();
 
-                        let font: Option<String> = if win.prefs_window.custom_font() {Some(monospace_font)} else {None};
+                    let font: Option<String> = if win.prefs_window.custom_font() {Some(monospace_font)} else {None};
 
-                        if let Some(pkg) = hlist.get(hindex) {
-                            let pacman_config = win.pacman_config.borrow();
+                    if let Some(pkg) = hlist.get(hindex) {
+                        let details_window = DetailsWindow::new(
+                            Some(pkg),
+                            font,
+                            &win.pacman_config.borrow().log_file
+                        );
 
-                            let details_window = DetailsWindow::new(Some(pkg), font, &pacman_config.log_file);
-                            details_window.set_transient_for(Some(&app.active_window().unwrap()));
-    
-                            details_window.present();
-                        }
+                        details_window.set_transient_for(Some(&*win.obj()));
+
+                        details_window.present();
                     }
                 }))
                 .build();
@@ -591,13 +591,13 @@ mod imp {
         fn setup_preferences(&self) {
             let obj = self.obj();
 
+            // Set preferences window parent
+            self.prefs_window.set_transient_for(Some(&*obj));
+
             // Add show preferences action
             let prefs_action = gio::SimpleAction::new("show-preferences", None);
             prefs_action.connect_activate(clone!(@weak self as win, @weak obj => move |_, _| {
-                if let Some(app) = obj.application() {
-                    win.prefs_window.set_transient_for(Some(&app.active_window().unwrap()));
-                    win.prefs_window.present();
-                }
+                win.prefs_window.present();
             }));
             obj.add_action(&prefs_action);
         }
