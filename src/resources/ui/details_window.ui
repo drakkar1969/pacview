@@ -220,7 +220,7 @@
                                     <property name="resource">/com/github/PacView/ui/details_window/file_item.ui</property>
                                   </object>
                                 </property>
-                                <!-- <signal name="activate" handler="on_files_view_activated" swapped="no"/> -->
+                                <signal name="activate" handler="on_files_view_activated" swapped="true"/>
                               </object>
                             </property>
                           </object>
@@ -512,7 +512,7 @@
                                     <property name="resource">/com/github/PacView/ui/details_window/cache_item.ui</property>
                                   </object>
                                 </property>
-                                <!-- <signal name="activate" handler="on_cache_view_activated" swapped="no"/> -->
+                                <signal name="activate" handler="on_cache_view_activated" swapped="true"/>
                               </object>
                             </property>
                           </object>

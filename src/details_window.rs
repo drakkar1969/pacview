@@ -173,6 +173,11 @@ mod imp {
         }
 
         #[template_callback]
+        fn on_files_view_activated(&self) {
+            self.on_files_open_button_clicked();
+        }
+
+        #[template_callback]
         fn on_files_open_button_clicked(&self) {
             if let Some(item) = self.files_selection.selected_item() {
                 if let Some(file) = item.downcast_ref::<gtk::StringObject>() {
@@ -269,6 +274,11 @@ mod imp {
         //-----------------------------------
         // Cache page signal handlers
         //-----------------------------------
+        #[template_callback]
+        fn on_cache_view_activated(&self) {
+            self.on_cache_open_button_clicked();
+        }
+
         #[template_callback]
         fn on_cache_open_button_clicked(&self) {
             if let Some(item) = self.cache_selection.selected_item() {
