@@ -7,7 +7,6 @@ use gtk::prelude::*;
 use gtk::pango::AttrList;
 
 use fancy_regex::Regex;
-use lazy_static::lazy_static;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
@@ -368,25 +367,17 @@ impl DetailsWindow {
 
         // Bind log message count to log copy button state
         imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| {
-                Some(n_items != 0)
-            })
+            .transform_to(|_, n_items: u32| Some(n_items != 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
         // Populate log messages
         if let Ok(log) = fs::read_to_string(log_file) {
-            let match_str = format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) {} (.+)", self.pkg().name());
-
-            let match_expr = Regex::new(&match_str).unwrap();
-
-            lazy_static! {
-                static ref EXPR: Regex = Regex::new("\\[(.+)T(.+)\\+.+\\] (.+)").unwrap();
-            }
+            let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.pkg().name())).unwrap();
 
             let log_lines: Vec<String> = log.lines().rev()
                 .filter(|s| match_expr.is_match(s).unwrap_or_default())
-                .map(|s| EXPR.replace_all(s, "[$1 $2]  $3").to_string())
+                .map(|s| match_expr.replace_all(s, "[$1 $2]  $3 $4 $5").to_string())
                 .collect();
 
             imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
