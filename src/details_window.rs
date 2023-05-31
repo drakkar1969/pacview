@@ -66,10 +66,24 @@ mod imp {
         #[template_child]
         pub log_selection: TemplateChild<gtk::NoSelection>,
 
+        #[template_child]
+        pub cache_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub cache_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub cache_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub cache_model: TemplateChild<gtk::StringList>,
+        #[template_child]
+        pub cache_selection: TemplateChild<gtk::SingleSelection>,
+
         #[property(get, set)]
         pkg: RefCell<PkgObject>,
 
         pub default_tree_depth: Cell<f64>,
+
+        #[property(get, set)]
+        pub cache_dir: RefCell<String>
     }
 
     //-----------------------------------
@@ -248,6 +262,35 @@ mod imp {
         }
 
         //-----------------------------------
+        // Cache page signal handlers
+        //-----------------------------------
+        #[template_callback]
+        fn on_cache_open_button_clicked(&self) {
+            if let Some(item) = self.cache_selection.selected_item() {
+                if let Some(cache) = item.downcast_ref::<gtk::StringObject>() {
+                    self.open_file_manager(&format!("{}{}", self.obj().cache_dir(), cache.string()));
+                }
+            }
+        }
+
+        #[template_callback]
+        fn on_cache_copy_button_clicked(&self) {
+            let cache_list: Vec<String> = (0..self.cache_selection.n_items()).into_iter()
+                .map(|i| {
+                    let item: gtk::StringObject = self.cache_selection.item(i).and_downcast().expect("Must be a StringObject");
+
+                    item.string().to_string()
+                })
+                .collect();
+
+            let copy_text = cache_list.join("\n");
+
+            let clipboard = self.obj().clipboard();
+
+            clipboard.set_text(&copy_text);
+        }
+
+        //-----------------------------------
         // Key press signal handler
         //-----------------------------------
         #[template_callback]
@@ -277,13 +320,17 @@ impl DetailsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(pkg: &PkgObject, font: Option<String>, log_file: &str) -> Self {
-        let win: Self = glib::Object::builder().property("pkg", pkg).build();
+    pub fn new(pkg: &PkgObject, font: Option<String>, log_file: &str, cache_dir: &str) -> Self {
+        let win: Self = glib::Object::builder()
+            .property("pkg", pkg)
+            .property("cache-dir", cache_dir)
+            .build();
 
         win.setup_banner();
         win.setup_files();
         win.setup_tree(font);
         win.setup_logs(log_file);
+        win.setup_cache();
 
         win
     }
@@ -382,5 +429,40 @@ impl DetailsWindow {
 
             imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
         }
+    }
+
+    //-----------------------------------
+    // Setup cache page
+    //-----------------------------------
+    fn setup_cache(&self) {
+        let imp = self.imp();
+
+        // Bind cache count to cache header label
+        imp.cache_selection.bind_property("n-items", &imp.cache_header_label.get(), "label")
+            .transform_to(|_, n_items: u32|  Some(format!("Cache ({})", n_items)))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind cache count to cache open/copy button states
+        imp.cache_selection.bind_property("n-items", &imp.cache_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items != 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.cache_selection.bind_property("n-items", &imp.cache_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items != 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Populate cache files list
+        let cmd = format!("/usr/bin/paccache -vdk0 {}", self.pkg().name());
+
+        let (_code, stdout) = Utils::run_command(&cmd);
+
+        let cache_lines: Vec<&str> = stdout.lines()
+            .filter(|s| !s.is_empty() && !s.starts_with("==>") && !s.ends_with(".sig"))
+            .collect();
+
+        imp.cache_model.splice(0, 0, &cache_lines);
     }
 }

@@ -426,7 +426,7 @@
                     </property>
                   </object>
                 </child>
-                <!-- <child>
+                <child>
                   <object class="GtkStackPage" id="cache_page">
                     <property name="name">cache</property>
                     <property name="child">
@@ -473,7 +473,7 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_cache_open_button_clicked" swapped="no"/>
+                                    <signal name="clicked" handler="on_cache_open_button_clicked" swapped="true"/>
                                   </object>
                                 </child>
                                 <child>
@@ -484,7 +484,7 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_cache_copy_button_clicked" swapped="no"/>
+                                    <signal name="clicked" handler="on_cache_copy_button_clicked" swapped="true"/>
                                   </object>
                                 </child>
                               </object>
@@ -509,10 +509,10 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details/cache-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_window/cache_item.ui</property>
                                   </object>
                                 </property>
-                                <signal name="activate" handler="on_cache_view_activated" swapped="no"/>
+                                <!-- <signal name="activate" handler="on_cache_view_activated" swapped="no"/> -->
                               </object>
                             </property>
                           </object>
@@ -520,7 +520,7 @@
                       </object>
                     </property>
                   </object>
-                </child> -->
+                </child>
                 <!-- <child>
                   <object class="GtkStackPage" id="backup_page">
                     <property name="name">backup</property>

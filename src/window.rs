@@ -564,7 +564,8 @@ mod imp {
                         let details_window = DetailsWindow::new(
                             &pkg,
                             font,
-                            &win.pacman_config.borrow().log_file
+                            &win.pacman_config.borrow().log_file,
+                            &win.pacman_config.borrow().cache_dir[0]
                         );
 
                         details_window.set_transient_for(Some(&*win.obj()));
