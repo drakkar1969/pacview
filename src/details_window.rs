@@ -80,10 +80,15 @@ mod imp {
         #[property(get, set)]
         pkg: RefCell<PkgObject>,
 
-        pub default_tree_depth: Cell<f64>,
+        #[property(get, set)]
+        tree_font: RefCell<Option<String>>,
+        #[property(get, set)]
+        log_file: RefCell<String>,
+        #[property(get, set)]
+        cache_dir: RefCell<String>,
 
         #[property(get, set)]
-        pub cache_dir: RefCell<String>
+        default_tree_depth: Cell<f64>,
     }
 
     //-----------------------------------
@@ -203,7 +208,7 @@ mod imp {
 
             let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", 
                 local_flag=if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"},
-                depth_flag=if depth == self.default_tree_depth.get() {""} else {&depth_str},
+                depth_flag=if depth == self.obj().default_tree_depth() {""} else {&depth_str},
                 reverse_flag=if reverse {"-r"} else {""},
                 name=pkg.name()
             );
@@ -224,7 +229,7 @@ mod imp {
 
             let depth_str = depth.to_string();
 
-            self.tree_depth_label.set_label(if depth == self.default_tree_depth.get() {"Default"} else {&depth_str});
+            self.tree_depth_label.set_label(if depth == self.obj().default_tree_depth() {"Default"} else {&depth_str});
         }
 
         #[template_callback]
@@ -320,16 +325,18 @@ impl DetailsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(pkg: &PkgObject, font: Option<String>, log_file: &str, cache_dir: &str) -> Self {
+    pub fn new(pkg: &PkgObject, tree_font: Option<String>, log_file: &str, cache_dir: &str) -> Self {
         let win: Self = glib::Object::builder()
             .property("pkg", pkg)
+            .property("tree-font", tree_font)
+            .property("log-file", log_file)
             .property("cache-dir", cache_dir)
             .build();
 
         win.setup_banner();
         win.setup_files();
-        win.setup_tree(font);
-        win.setup_logs(log_file);
+        win.setup_tree();
+        win.setup_logs();
         win.setup_cache();
 
         win
@@ -378,8 +385,10 @@ impl DetailsWindow {
     //-----------------------------------
     // Setup tree page
     //-----------------------------------
-    fn setup_tree(&self, font: Option<String>) {
+    fn setup_tree(&self) {
         let imp = self.imp();
+
+        let font = self.tree_font();
 
         // Get monospace font
         let font_str = if font.is_none() {
@@ -400,16 +409,16 @@ impl DetailsWindow {
         }
 
         // Set default tree depth
-        imp.default_tree_depth.set(6.0);
+        self.set_default_tree_depth(imp.tree_depth_scale.adjustment().upper());
 
         // Populate dependency tree
-        imp.populate_dependency_tree(6.0, false);
+        imp.populate_dependency_tree(self.default_tree_depth(), false);
     }
 
     //-----------------------------------
     // Setup logs page
     //-----------------------------------
-    fn setup_logs(&self, log_file: &str) {
+    fn setup_logs(&self) {
         let imp = self.imp();
 
         // Bind log message count to log copy button state
@@ -419,7 +428,7 @@ impl DetailsWindow {
             .build();
 
         // Populate log messages
-        if let Ok(log) = fs::read_to_string(log_file) {
+        if let Ok(log) = fs::read_to_string(self.log_file()) {
             let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.pkg().name())).unwrap();
 
             let log_lines: Vec<String> = log.lines().rev()
