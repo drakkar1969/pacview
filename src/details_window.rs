@@ -427,12 +427,12 @@ impl DetailsWindow {
 
         // Bind files count to files open/copy button states
         imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items != 0))
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
         imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items != 0))
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -481,12 +481,6 @@ impl DetailsWindow {
     fn setup_logs(&self) {
         let imp = self.imp();
 
-        // Bind log message count to log copy button state
-        imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items != 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
         // Populate log messages
         if let Ok(log) = fs::read_to_string(self.log_file()) {
             let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.pkg().name())).unwrap();
@@ -498,6 +492,11 @@ impl DetailsWindow {
 
             imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
         }
+
+        // Set copy button state
+        let n_files = imp.log_selection.n_items();
+
+        imp.log_copy_button.set_sensitive(n_files > 0);
     }
 
     //-----------------------------------
@@ -505,23 +504,6 @@ impl DetailsWindow {
     //-----------------------------------
     fn setup_cache(&self) {
         let imp = self.imp();
-
-        // Bind cache count to cache header label
-        imp.cache_selection.bind_property("n-items", &imp.cache_header_label.get(), "label")
-            .transform_to(|_, n_items: u32|  Some(format!("Cache ({})", n_items)))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        // Bind cache count to cache open/copy button states
-        imp.cache_selection.bind_property("n-items", &imp.cache_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items != 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.cache_selection.bind_property("n-items", &imp.cache_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items != 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
 
         // Populate cache files list
         let cmd = format!("/usr/bin/paccache -vdk0 {}", self.pkg().name());
@@ -533,6 +515,15 @@ impl DetailsWindow {
             .collect();
 
         imp.cache_model.splice(0, 0, &cache_lines);
+
+        // Set cache header label
+        let n_files = imp.cache_selection.n_items();
+
+        imp.cache_header_label.set_label(&format!("Cache ({})", n_files));
+
+        // Set open/copy button states
+        imp.cache_open_button.set_sensitive(n_files > 0);
+        imp.cache_copy_button.set_sensitive(n_files > 0);
     }
 
     //-----------------------------------
