@@ -194,18 +194,20 @@ mod imp {
 
         #[template_callback]
         fn on_files_open_button_clicked(&self) {
-            if let Some(item) = self.files_selection.selected_item() {
-                if let Some(file) = item.downcast_ref::<gtk::StringObject>() {
-                    self.open_file_manager(&file.string());
-                }
-            }
+            let item = self.files_selection.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .expect("Must be a 'StringObject'");
+
+            self.open_file_manager(&item.string());
         }
 
         #[template_callback]
         fn on_files_copy_button_clicked(&self) {
             let files_list: Vec<String> = (0..self.files_selection.n_items()).into_iter()
                 .map(|i| {
-                    let item: gtk::StringObject = self.files_selection.item(i).and_downcast().expect("Must be a StringObject");
+                    let item = self.files_selection.item(i)
+                        .and_downcast::<gtk::StringObject>()
+                        .expect("Must be a 'StringObject'");
 
                     item.string().to_string()
                 })
@@ -273,7 +275,9 @@ mod imp {
         fn on_log_copy_button_clicked(&self) {
             let log_list: Vec<String> = (0..self.log_selection.n_items()).into_iter()
                 .map(|i| {
-                    let item: gtk::StringObject = self.log_selection.item(i).and_downcast().expect("Must be a StringObject");
+                    let item = self.log_selection.item(i)
+                        .and_downcast::<gtk::StringObject>()
+                        .expect("Must be a 'StringObject'");
 
                     item.string().to_string()
                 })
@@ -296,18 +300,20 @@ mod imp {
 
         #[template_callback]
         fn on_cache_open_button_clicked(&self) {
-            if let Some(item) = self.cache_selection.selected_item() {
-                if let Some(cache) = item.downcast_ref::<gtk::StringObject>() {
-                    self.open_file_manager(&format!("{}{}", self.obj().cache_dir(), cache.string()));
-                }
-            }
+            let item = self.cache_selection.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .expect("Must be a 'StringObject'");
+
+            self.open_file_manager(&format!("{}{}", self.obj().cache_dir(), item.string()));
         }
 
         #[template_callback]
         fn on_cache_copy_button_clicked(&self) {
             let cache_list: Vec<String> = (0..self.cache_selection.n_items()).into_iter()
                 .map(|i| {
-                    let item: gtk::StringObject = self.cache_selection.item(i).and_downcast().expect("Must be a StringObject");
+                    let item = self.cache_selection.item(i)
+                        .and_downcast::<gtk::StringObject>()
+                        .expect("Must be a 'StringObject'");
 
                     item.string().to_string()
                 })
@@ -330,18 +336,20 @@ mod imp {
 
         #[template_callback]
         fn on_backup_open_button_clicked(&self) {
-            if let Some(item) = self.backup_selection.selected_item() {
-                if let Some(backup) = item.downcast_ref::<BackupObject>() {
-                    self.open_file_manager(&backup.filename());
-                }
-            }
+            let item = self.backup_selection.selected_item()
+                .and_downcast::<BackupObject>()
+                .expect("Must be a 'BackupObject'");
+
+            self.open_file_manager(&item.filename());
         }
 
         #[template_callback]
         fn on_backup_copy_button_clicked(&self) {
             let backup_list: Vec<String> = (0..self.backup_selection.n_items()).into_iter()
                 .map(|i| {
-                    let item: BackupObject = self.backup_selection.item(i).and_downcast().expect("Must be a BackupObject");
+                    let item = self.backup_selection.item(i)
+                        .and_downcast::<BackupObject>()
+                        .expect("Must be a 'BackupObject'");
 
                     format!("{filename} ({status})", filename=item.filename(), status=item.status())
                 })
@@ -421,7 +429,7 @@ impl DetailsWindow {
 
         // Bind files count to files header label
         imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(|_, n_items: u32|  Some(format!("Files ({})", n_items)))
+            .transform_to(|_, n_items: u32| Some(format!("Files ({})", n_items)))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
