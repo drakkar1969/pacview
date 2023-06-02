@@ -81,7 +81,15 @@ mod imp {
         pub cache_selection: TemplateChild<gtk::SingleSelection>,
 
         #[template_child]
+        pub backup_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub backup_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub backup_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub backup_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub backup_selection: TemplateChild<gtk::SingleSelection>,
 
         #[property(get, set)]
         pkg: RefCell<PkgObject>,
@@ -313,6 +321,40 @@ mod imp {
         }
 
         //-----------------------------------
+        // Backup page signal handlers
+        //-----------------------------------
+        #[template_callback]
+        fn on_backup_view_activated(&self) {
+            self.on_backup_open_button_clicked();
+        }
+
+        #[template_callback]
+        fn on_backup_open_button_clicked(&self) {
+            if let Some(item) = self.backup_selection.selected_item() {
+                if let Some(backup) = item.downcast_ref::<BackupObject>() {
+                    self.open_file_manager(&backup.filename());
+                }
+            }
+        }
+
+        #[template_callback]
+        fn on_backup_copy_button_clicked(&self) {
+            let backup_list: Vec<String> = (0..self.backup_selection.n_items()).into_iter()
+                .map(|i| {
+                    let item: BackupObject = self.backup_selection.item(i).and_downcast().expect("Must be a BackupObject");
+
+                    format!("{filename} ({status})", filename=item.filename(), status=item.status())
+                })
+                .collect();
+
+            let copy_text = backup_list.join("\n");
+
+            let clipboard = self.obj().clipboard();
+
+            clipboard.set_text(&copy_text);
+        }
+
+        //-----------------------------------
         // Key press signal handler
         //-----------------------------------
         #[template_callback]
@@ -497,6 +539,8 @@ impl DetailsWindow {
     // Setup backup page
     //-----------------------------------
     fn setup_backup(&self) {
+        let imp = self.imp();
+
         // Populate backup list
         let backup = self.pkg().backup();
 
@@ -553,6 +597,15 @@ impl DetailsWindow {
             })
             .collect();
 
-        self.imp().backup_model.splice(0, 0, &backup_list);
+        imp.backup_model.splice(0, 0, &backup_list);
+
+        // Set backup header label
+        let n_files = imp.backup_selection.n_items();
+
+        imp.backup_header_label.set_label(&format!("Backup Files ({})", n_files));
+
+        // Set open/copy button states
+        imp.backup_open_button.set_sensitive(n_files > 0);
+        imp.backup_copy_button.set_sensitive(n_files > 0);
     }
 }
