@@ -521,7 +521,7 @@
                     </property>
                   </object>
                 </child>
-                <!-- <child>
+                <child>
                   <object class="GtkStackPage" id="backup_page">
                     <property name="name">backup</property>
                     <property name="child">
@@ -568,7 +568,7 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_backup_open_button_clicked" swapped="no"/>
+                                    <!-- <signal name="clicked" handler="on_backup_open_button_clicked" swapped="true"/> -->
                                   </object>
                                 </child>
                                 <child>
@@ -579,7 +579,7 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_backup_copy_button_clicked" swapped="no"/>
+                                    <!-- <signal name="clicked" handler="on_backup_copy_button_clicked" swapped="true"/> -->
                                   </object>
                                 </child>
                               </object>
@@ -599,17 +599,17 @@
                                   <object class="GtkSingleSelection" id="backup_selection">
                                     <property name="model">
                                       <object class="GListStore" id="backup_model">
-                                        <property name="item-type">PkgBackup</property>
+                                        <property name="item-type">BackupObject</property>
                                       </object>
                                     </property>
                                   </object>
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details/backup-item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_window/backup_item.ui</property>
                                   </object>
                                 </property>
-                                <signal name="activate" handler="on_backup_view_activated" swapped="no"/>
+                                <!-- <signal name="activate" handler="on_backup_view_activated" swapped="true"/> -->
                               </object>
                             </property>
                           </object>
@@ -617,7 +617,7 @@
                       </object>
                     </property>
                   </object>
-                </child> -->
+                </child>
               </object>
             </child>
           </object>

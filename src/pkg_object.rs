@@ -174,7 +174,9 @@ impl PkgData {
     }
 
     fn alpm_backuplist_to_vec(list: &alpm::AlpmList<alpm::Backup>) -> Vec<String> {
-        let mut backup_vec: Vec<String> = list.iter().map(|bck| bck.name().to_string()).collect();
+        let mut backup_vec: Vec<String> = list.iter().map(|bck| {
+            format!("/{name} || {hash}", name=bck.name(), hash=bck.hash())
+        }).collect();
         backup_vec.sort_unstable();
 
         backup_vec

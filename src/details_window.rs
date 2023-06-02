@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::fs;
+use std::io::{BufReader, BufRead};
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -7,9 +8,11 @@ use gtk::prelude::*;
 use gtk::pango::AttrList;
 
 use fancy_regex::Regex;
+use md5;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
+use crate::backup_object::BackupObject;
 use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
@@ -77,6 +80,9 @@ mod imp {
         #[template_child]
         pub cache_selection: TemplateChild<gtk::SingleSelection>,
 
+        #[template_child]
+        pub backup_model: TemplateChild<gio::ListStore>,
+
         #[property(get, set)]
         pkg: RefCell<PkgObject>,
 
@@ -102,6 +108,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             ToggleButton::static_type();
+            BackupObject::static_type();
 
             klass.bind_template();
             klass.bind_template_callbacks();
@@ -348,6 +355,7 @@ impl DetailsWindow {
         win.setup_tree();
         win.setup_logs();
         win.setup_cache();
+        win.setup_backup();
 
         win
     }
@@ -483,5 +491,68 @@ impl DetailsWindow {
             .collect();
 
         imp.cache_model.splice(0, 0, &cache_lines);
+    }
+
+    //-----------------------------------
+    // Setup backup page
+    //-----------------------------------
+    fn setup_backup(&self) {
+        // Populate backup list
+        let backup = self.pkg().backup();
+
+        let backup_list: Vec<BackupObject> = backup.iter()
+            .map(|backup| {
+                let (name, hash) = backup.split_once(" || ").unwrap();
+
+                let mut status_icon = "backup-error";
+                let mut status = "read error";
+
+                // Open backup file
+                if let Ok(file) = fs::File::open(name) {
+                    // Get file size
+                    let file_len = file.metadata().unwrap().len();
+
+                    // Define buffer size
+                    let buffer_len = file_len.min(4096) as usize;
+
+                    // Create read buffer
+                    let mut buffer = BufReader::with_capacity(buffer_len, file);
+
+                    // Create new MD5 context
+                    let mut context = md5::Context::new();
+
+                    loop {
+                        // Get a chunk of the file
+                        let chunk = buffer.fill_buf().unwrap();
+
+                        // Break if chunk is empty (EOF reached)
+                        if chunk.is_empty() {
+                            break;
+                        }
+                        // Add chunk to the MD5 context
+                        context.consume(chunk);
+
+                        // Tell the buffer that the chunk is consumed
+                        let chunk_len = chunk.len();
+                        buffer.consume(chunk_len);
+                    }
+
+                    // Compute MD5 hash for file
+                    let u8_hash = context.compute();
+
+                    // Convert MD5 hash to string
+                    let file_hash = format!("{:x}", u8_hash);
+
+                    status_icon = if file_hash == hash {"backup-unchanged"} else {"backup-changed"};
+                    status = if file_hash == hash {"unchanged"} else {"changed"};
+                } else {
+                    
+                }
+
+                BackupObject::new(name, status_icon, status)
+            })
+            .collect();
+
+        self.imp().backup_model.splice(0, 0, &backup_list);
     }
 }

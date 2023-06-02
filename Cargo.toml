@@ -11,6 +11,7 @@ alpm = "2.2.1"
 fancy-regex = "0.11.0"
 gtk = { version = "0.6.6", package = "gtk4", features = ["v4_10"] }
 lazy_static = "1.4.0"
+md5 = "0.7.0"
 pacmanconf = "2.0.0"
 reqwest = { version = "0.11.18", features = ["json", "blocking"] }
 serde = { version = "1.0.163", features = ["derive"] }

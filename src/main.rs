@@ -11,6 +11,7 @@ mod details_window;
 mod pkg_object;
 mod prop_object;
 mod stats_object;
+mod backup_object;
 mod aur;
 mod utils;
 
