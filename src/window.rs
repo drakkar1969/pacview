@@ -778,19 +778,13 @@ mod imp {
                         let infopane_model = win.infopane_model.get();
             
                         if win.infopane_pkg().is_some() && win.infopane_pkg().unwrap() == *pkg {
-                            for i in (0..infopane_model.n_items()).into_iter() {
-                                let prop: PropObject = infopane_model.item(i)
-                                    .and_downcast()
-                                    .expect("Must be a 'PropObject'");
+                            for prop in infopane_model.iter::<PropObject>().flatten() {
+                                if prop.label() == "Package URL" {
+                                    prop.set_value(win.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())));
+                                }
 
                                 if prop.label() == "Repository" {
                                     prop.set_value(pkg.repo_show());
-                                }
-
-                                if prop.label() == "Description" {
-                                    infopane_model.insert(i+1, &PropObject::new(
-                                        "AUR URL", &win.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())), None
-                                    ));
                                 }
                             }
                         }
@@ -1091,16 +1085,18 @@ mod imp {
                 self.infopane_model.append(&PropObject::new(
                     "Description", &self.prop_to_esc_string(&pkg.description()), None
                 ));
-                // Package/AUR URL
+                // Package URL
+                let mut url = "Unknown".to_string();
+
                 if self.default_repo_names.borrow().contains(&pkg.repo_show()) {
-                    self.infopane_model.append(&PropObject::new(
-                        "Package URL", &self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name())), None
-                    ));
+                    url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
                 } else if &pkg.repo_show() == "aur" {
-                    self.infopane_model.append(&PropObject::new(
-                        "AUR URL", &self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())), None
-                    ));
+                    url = self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name()))
                 }
+
+                self.infopane_model.append(&PropObject::new(
+                    "Package URL", &url, None
+                ));
                 // URL
                 if pkg.url() != "" {
                     self.infopane_model.append(&PropObject::new(
