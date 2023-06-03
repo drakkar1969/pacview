@@ -478,8 +478,13 @@ impl DetailsWindow {
             let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.pkg().name())).unwrap();
 
             let log_lines: Vec<String> = log.lines().rev()
-                .filter(|s| match_expr.is_match(s).unwrap_or_default())
-                .map(|s| match_expr.replace_all(s, "[$1 $2]  $3 $4 $5").to_string())
+                .filter_map(|s|
+                    if match_expr.is_match(s).unwrap_or_default() {
+                        Some(match_expr.replace_all(s, "[$1 $2]  $3 $4 $5").to_string())
+                    } else {
+                        None
+                    }
+                )
                 .collect();
 
             imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());

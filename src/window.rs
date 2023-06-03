@@ -224,21 +224,17 @@ mod imp {
                     let mut col_index = 0;
 
                     for id in &column_ids {
-                        for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
-                            if let Ok(col) = col {
-                                if col.id().unwrap() == *id {
-                                    self.pkgview.insert_column(col_index, &col);
-                                    col_index += 1;
-                                }
+                        for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                            if col.id().unwrap() == *id {
+                                self.pkgview.insert_column(col_index, &col);
+                                col_index += 1;
                             }
                         }
                     }
 
-                    for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
-                        if let Ok(col) = col {
-                            if !column_ids.contains(col.id().unwrap()) {
-                                col.set_visible(false);
-                            }
+                    for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                        if !column_ids.contains(col.id().unwrap()) {
+                            col.set_visible(false);
                         }
                     }
                 }
@@ -246,11 +242,9 @@ mod imp {
                 let sort_asc = gsettings.boolean("sort-ascending");
                 let sort_col = gsettings.string("sort-column");
 
-                for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
-                    if let Ok(col) = col {
-                        if col.id().unwrap() == sort_col {
-                            self.pkgview.sort_by_column(Some(&col), if sort_asc {gtk::SortType::Ascending} else {gtk::SortType::Descending});
-                        }
+                for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                    if col.id().unwrap() == sort_col {
+                        self.pkgview.sort_by_column(Some(&col), if sort_asc {gtk::SortType::Ascending} else {gtk::SortType::Descending});
                     }
                 }
             }
@@ -282,9 +276,8 @@ mod imp {
                 if self.prefs_window.remember_columns() {
                     let column_ids: Vec<glib::GString> = self.pkgview.columns()
                         .iter::<gtk::ColumnViewColumn>()
-                        .filter_map(|col| col.ok()
-                            .filter(|col| col.is_visible())
-                            .and_then(|col| Some(col.id().unwrap())))
+                        .flatten()
+                        .filter_map(|col| if col.is_visible() {Some(col.id().unwrap())} else {None})
                         .collect();
 
                     gsettings.set_strv("view-columns", column_ids).unwrap();
@@ -381,7 +374,10 @@ mod imp {
             // Add search header search mode stateful action
             let mode_action = gio::SimpleAction::new_stateful("toggle-mode", Some(&String::static_variant_type()), "all".to_variant());
             mode_action.connect_change_state(clone!(@weak self as win => move |action, param| {
-                let param = param.unwrap().get::<String>().unwrap();
+                let param = param
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
 
                 win.search_header.set_mode(
                     match param.as_str() {
@@ -464,21 +460,14 @@ mod imp {
             // Add pkgview copy list action
             let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    let item_list: Vec<String> = (0..win.pkgview_selection.n_items()).into_iter()
-                        .map(|i| {
-                            let pkg: PkgObject = win.pkgview_selection.item(i)
-                                .and_downcast()
-                                .expect("Must be a 'PkgObject'");
-
+                    let copy_text = win.pkgview_selection.iter::<PkgObject>().flatten()
+                        .map(|pkg| {
                             format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())
                         })
-                        .collect();
+                        .collect::<Vec<String>>()
+                        .join("\n");
 
-                    let copy_text = item_list.join("\n");
-
-                    let clipboard = win.obj().clipboard();
-
-                    clipboard.set_text(&copy_text);
+                    win.obj().clipboard().set_text(&copy_text);
                 }))
                 .build();
 
@@ -489,20 +478,16 @@ mod imp {
                     let mut col_index = 0;
 
                     for id in &column_ids {
-                        for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
-                            if let Ok(col) = col {
-                                if col.id().unwrap() == *id {
-                                    win.pkgview.insert_column(col_index, &col);
-                                    col_index += 1;
-                                }
+                        for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                            if col.id().unwrap() == *id {
+                                win.pkgview.insert_column(col_index, &col);
+                                col_index += 1;
                             }
                         }
                     }
 
-                    for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>() {
-                        if let Ok(col) = col {
-                            col.set_visible(true);
-                        }
+                    for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                        col.set_visible(true);
                     }
                 }))
                 .build();
@@ -559,11 +544,11 @@ mod imp {
             // Add info pane show details action
             let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
-                    let monospace_font = win.prefs_window.monospace_font();
-
-                    let font: Option<String> = if win.prefs_window.custom_font() {Some(monospace_font)} else {None};
-
                     if let Some(pkg) = win.infopane_pkg() {
+                        let monospace_font = win.prefs_window.monospace_font();
+
+                        let font: Option<String> = if win.prefs_window.custom_font() {Some(monospace_font)} else {None};
+    
                         let details_window = DetailsWindow::new(
                             &pkg,
                             font,
@@ -618,7 +603,10 @@ mod imp {
         fn get_pacman_config(&self) {
             let pacman_config = pacmanconf::Config::new().unwrap();
 
-            let mut repo_list: Vec<String> = pacman_config.repos.iter().map(|r| r.name.to_string()).collect();
+            let mut repo_list: Vec<String> = pacman_config.repos.iter()
+                .map(|r| r.name.to_string())
+                .collect();
+            
             repo_list.push(String::from("foreign"));
 
             self.pacman_config.replace(pacman_config);
@@ -850,9 +838,12 @@ mod imp {
 
                     // Build update map (package name, version)
                     update_map = update_str.lines()
-                        .filter(|&s| EXPR.is_match(s).unwrap_or_default())
-                        .map(|s| 
-                            (EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string())
+                        .filter_map(|s|
+                            if EXPR.is_match(s).unwrap_or_default() {
+                                Some((EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string()))
+                            } else {
+                                None
+                            }
                         )
                         .collect();
                 }
@@ -880,11 +871,7 @@ mod imp {
                         let infopane_model = win.infopane_model.get();
 
                         if win.infopane_pkg().is_some() && win.infopane_pkg().unwrap() == *pkg {
-                            for i in (0..infopane_model.n_items()).into_iter() {
-                                let prop: PropObject = infopane_model.item(i)
-                                    .and_downcast()
-                                    .expect("Must be a 'PropObject'");
-
+                            for prop in infopane_model.iter::<PropObject>().flatten() {
                                 if prop.label() == "Version" {
                                     prop.set_value(pkg.version());
                                     prop.set_icon("pkg-update");
