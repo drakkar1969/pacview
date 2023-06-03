@@ -485,7 +485,7 @@ mod imp {
             // Add pkgview reset columns action
             let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    let column_ids: Vec<String> = vec![String::from("package"), String::from("version"), String::from("repository"), String::from("status"), String::from("date"), String::from("size"), String::from("groups")];
+                    let column_ids = ["package", "version", "repository", "status", "date", "size", "groups"];
                     let mut col_index = 0;
 
                     for id in &column_ids {
@@ -625,9 +625,9 @@ mod imp {
 
             self.pacman_repo_names.replace(repo_list);
 
-            let default_repo_names: Vec<String> = vec![String::from("core"), String::from("extra"), String::from("multilib")];
+            let def_names: Vec<String> = ["core", "extra", "multilib"].map(String::from).to_vec();
 
-            self.default_repo_names.replace(default_repo_names);
+            self.default_repo_names.replace(def_names);
         }
 
         //-----------------------------------
