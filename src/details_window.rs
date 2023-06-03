@@ -203,21 +203,18 @@ mod imp {
 
         #[template_callback]
         fn on_files_copy_button_clicked(&self) {
-            let files_list: Vec<String> = (0..self.files_selection.n_items()).into_iter()
+            let copy_text = (0..self.files_selection.n_items()).into_iter()
                 .map(|i| {
                     let item = self.files_selection.item(i)
                         .and_downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
-                    item.string().to_string()
+                    item.string()
                 })
-                .collect();
+                .collect::<Vec<glib::GString>>()
+                .join("\n");
 
-            let copy_text = files_list.join("\n");
-
-            let clipboard = self.obj().clipboard();
-
-            clipboard.set_text(&copy_text);
+            self.obj().clipboard().set_text(&copy_text);
         }
 
         //-----------------------------------
@@ -261,11 +258,7 @@ mod imp {
 
         #[template_callback]
         fn on_tree_copy_button_clicked(&self) {
-            let copy_text = self.tree_label.label();
-
-            let clipboard = self.obj().clipboard();
-
-            clipboard.set_text(&copy_text);
+            self.obj().clipboard().set_text(&self.tree_label.label());
         }
 
         //-----------------------------------
@@ -273,21 +266,18 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_log_copy_button_clicked(&self) {
-            let log_list: Vec<String> = (0..self.log_selection.n_items()).into_iter()
+            let copy_text = (0..self.log_selection.n_items()).into_iter()
                 .map(|i| {
                     let item = self.log_selection.item(i)
                         .and_downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
-                    item.string().to_string()
+                    item.string()
                 })
-                .collect();
+                .collect::<Vec<glib::GString>>()
+                .join("\n");
 
-            let copy_text = log_list.join("\n");
-
-            let clipboard = self.obj().clipboard();
-
-            clipboard.set_text(&copy_text);
+            self.obj().clipboard().set_text(&copy_text);
         }
 
         //-----------------------------------
@@ -309,21 +299,18 @@ mod imp {
 
         #[template_callback]
         fn on_cache_copy_button_clicked(&self) {
-            let cache_list: Vec<String> = (0..self.cache_selection.n_items()).into_iter()
+            let copy_text = (0..self.cache_selection.n_items()).into_iter()
                 .map(|i| {
                     let item = self.cache_selection.item(i)
                         .and_downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
-                    item.string().to_string()
+                    item.string()
                 })
-                .collect();
+                .collect::<Vec<glib::GString>>()
+                .join("\n");
 
-            let copy_text = cache_list.join("\n");
-
-            let clipboard = self.obj().clipboard();
-
-            clipboard.set_text(&copy_text);
+            self.obj().clipboard().set_text(&copy_text);
         }
 
         //-----------------------------------
@@ -345,7 +332,7 @@ mod imp {
 
         #[template_callback]
         fn on_backup_copy_button_clicked(&self) {
-            let backup_list: Vec<String> = (0..self.backup_selection.n_items()).into_iter()
+            let copy_text = (0..self.backup_selection.n_items()).into_iter()
                 .map(|i| {
                     let item = self.backup_selection.item(i)
                         .and_downcast::<BackupObject>()
@@ -353,13 +340,10 @@ mod imp {
 
                     format!("{filename} ({status})", filename=item.filename(), status=item.status())
                 })
-                .collect();
+                .collect::<Vec<String>>()
+                .join("\n");
 
-            let copy_text = backup_list.join("\n");
-
-            let clipboard = self.obj().clipboard();
-
-            clipboard.set_text(&copy_text);
+            self.obj().clipboard().set_text(&copy_text);
         }
 
         //-----------------------------------
