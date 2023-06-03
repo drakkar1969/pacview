@@ -13,13 +13,12 @@ use titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
-use reqwest;
+use raur::blocking::Raur;
 
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
-use crate::aur::AurInfo;
 use crate::search_header::{SearchHeader, SearchMode};
 use crate::filter_row::FilterRow;
 use crate::value_row::ValueRow;
@@ -751,19 +750,16 @@ mod imp {
 
             let aur_params = self.package_list.borrow().iter()
                 .filter(|&pkg| pkg.repository() == "foreign")
-                .map(|pkg| format!("&arg[]={name}", name=pkg.name()))
-                .collect::<Vec<String>>()
-                .concat();
+                .map(|pkg| pkg.name())
+                .collect::<Vec<String>>();
 
             thread::spawn(move || {
-                let mut aur_list: Vec<String> = vec![]; 
+                let mut aur_list: Vec<String> = vec![];
 
-                let aur_url = String::from("https://aur.archlinux.org/rpc/?v=5&type=info") + &aur_params;
+                let handle = raur::blocking::Handle::new();
 
-                if let Some(response) = reqwest::blocking::get(aur_url).ok().filter(|response| response.status() == 200) {
-                    if let Ok(data) = response.json::<AurInfo>() {
-                        aur_list.extend(data.results.into_iter().map(|item| item.Name));
-                    }
+                if let Ok(aur_pkgs) = handle.info(&aur_params) {
+                    aur_list.extend(aur_pkgs.iter().map(|pkg| pkg.name.clone()));
                 }
 
                 // Return thread result
