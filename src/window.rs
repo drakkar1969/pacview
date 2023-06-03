@@ -280,10 +280,11 @@ mod imp {
                 gsettings.set_string("monospace-font", &self.prefs_window.monospace_font()).unwrap();
 
                 if self.prefs_window.remember_columns() {
-                    let column_ids: Vec<String> = self.pkgview.columns()
+                    let column_ids: Vec<glib::GString> = self.pkgview.columns()
                         .iter::<gtk::ColumnViewColumn>()
-                        .filter(|col| col.as_ref().unwrap().is_visible())
-                        .map(|col| col.unwrap().id().unwrap().to_string())
+                        .filter_map(|col| col.ok()
+                            .filter(|col| col.is_visible())
+                            .and_then(|col| Some(col.id().unwrap())))
                         .collect();
 
                     gsettings.set_strv("view-columns", column_ids).unwrap();
@@ -292,19 +293,19 @@ mod imp {
                 }
 
                 if self.prefs_window.remember_sort() {
-                    let mut sort_col = String::from("");
-                    let mut sort_asc = gtk::SortType::Ascending;
+                    let sorter = self.pkgview.sorter()
+                        .and_downcast::<gtk::ColumnViewSorter>()
+                        .expect("Must be a 'ColumnViewSorter'");
 
-                    if let Some(sorter) = self.pkgview.sorter().and_downcast_ref::<gtk::ColumnViewSorter>() {
-                        if let Some(col) = sorter.primary_sort_column() {
-                            sort_col = col.id().unwrap().to_string();
-                        }
+                    let sort_col = sorter.primary_sort_column().map_or(
+                        glib::GString::from(""),
+                        |col| col.id().unwrap()
+                    );
 
-                        sort_asc = sorter.primary_sort_order();
-                    }
+                    let sort_asc = sorter.primary_sort_order() == gtk::SortType::Ascending;
 
                     gsettings.set_string("sort-column", &sort_col).unwrap();
-                    gsettings.set_boolean("sort-ascending", if sort_asc == gtk::SortType::Ascending {true} else {false}).unwrap();
+                    gsettings.set_boolean("sort-ascending", sort_asc).unwrap();
                 } else {
                     gsettings.reset("sort-column");
                     gsettings.reset("sort-ascending");
@@ -465,7 +466,9 @@ mod imp {
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     let item_list: Vec<String> = (0..win.pkgview_selection.n_items()).into_iter()
                         .map(|i| {
-                            let pkg: PkgObject = win.pkgview_selection.item(i).and_downcast().expect("Must be a PkgObject");
+                            let pkg: PkgObject = win.pkgview_selection.item(i)
+                                .and_downcast()
+                                .expect("Must be a 'PkgObject'");
 
                             format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())
                         })
@@ -716,12 +719,11 @@ mod imp {
                 }
 
                 data_list.extend(localdb.pkgs().iter()
-                    .filter(|pkg| {
-                        !handle.syncdbs().find_satisfier(pkg.name()).is_some()
-                    })
-                    .map(|pkg| {
-                        PkgData::from_alpm_package("foreign", pkg, Ok(pkg))
-                    })
+                    .filter_map(|pkg| {
+                        handle.syncdbs().find_satisfier(pkg.name()).map_or_else(
+                            || Some(PkgData::from_alpm_package("foreign", pkg, Ok(pkg))),
+                            |_| None
+                    )})
                 );
 
                 sender.send((handle, data_list)).expect("Could not send through channel");
@@ -757,7 +759,7 @@ mod imp {
             let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
 
             let aur_params = self.package_list.borrow().iter()
-                .filter(|pkg| pkg.repository() == "foreign")
+                .filter(|&pkg| pkg.repository() == "foreign")
                 .map(|pkg| format!("&arg[]={name}", name=pkg.name()))
                 .collect::<Vec<String>>()
                 .concat();
@@ -767,11 +769,9 @@ mod imp {
 
                 let aur_url = String::from("https://aur.archlinux.org/rpc/?v=5&type=info") + &aur_params;
 
-                if let Ok(response) = reqwest::blocking::get(aur_url) {
-                    if response.status() == 200 {
-                        if let Ok(data) = response.json::<AurInfo>() {
-                            aur_list.extend(data.results.into_iter().map(|item| item.Name));
-                        }
+                if let Some(response) = reqwest::blocking::get(aur_url).ok().filter(|response| response.status() == 200) {
+                    if let Ok(data) = response.json::<AurInfo>() {
+                        aur_list.extend(data.results.into_iter().map(|item| item.Name));
                     }
                 }
 
@@ -784,25 +784,25 @@ mod imp {
                 clone!(@weak self as win => @default-return Continue(false), move |aur_list| {
                     let pkg_list = win.package_list.borrow();
 
-                    for pkg in pkg_list.iter().filter(|pkg| aur_list.contains(&pkg.name())) {
+                    for pkg in pkg_list.iter().filter(|&pkg| aur_list.contains(&pkg.name())) {
                         pkg.set_repo_show("aur");
 
                         let infopane_model = win.infopane_model.get();
             
-                        if let Some(info_pkg) = win.infopane_pkg() {
-                            if info_pkg.name() == pkg.name() {
-                                for i in (0..infopane_model.n_items()).into_iter() {
-                                    let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
+                        if win.infopane_pkg().is_some() && win.infopane_pkg().unwrap() == *pkg {
+                            for i in (0..infopane_model.n_items()).into_iter() {
+                                let prop: PropObject = infopane_model.item(i)
+                                    .and_downcast()
+                                    .expect("Must be a 'PropObject'");
 
-                                    if prop.label() == "Repository" {
-                                        prop.set_value(pkg.repo_show());
-                                    }
+                                if prop.label() == "Repository" {
+                                    prop.set_value(pkg.repo_show());
+                                }
 
-                                    if prop.label() == "Description" {
-                                        infopane_model.insert(i+1, &PropObject::new(
-                                            "AUR URL", &win.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())), None
-                                        ));
-                                    }
+                                if prop.label() == "Description" {
+                                    infopane_model.insert(i+1, &PropObject::new(
+                                        "AUR URL", &win.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())), None
+                                    ));
                                 }
                             }
                         }
@@ -850,7 +850,7 @@ mod imp {
 
                     // Build update map (package name, version)
                     update_map = update_str.lines()
-                        .filter(|s| EXPR.is_match(s).unwrap_or_default())
+                        .filter(|&s| EXPR.is_match(s).unwrap_or_default())
                         .map(|s| 
                             (EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string())
                         )
@@ -864,35 +864,30 @@ mod imp {
             receiver.attach(
                 None,
                 clone!(@weak self as win => @default-return Continue(false), move |(success, update_map)| {
-                    // If no error on pacman updates
-                    if success == true {
-                        // Update status of packages with updates
-                        let pkg_list = win.package_list.borrow();
+                    // Update status of packages with updates
+                    let pkg_list = win.package_list.borrow();
 
-                        for (name, version) in update_map.iter() {
-                            if let Some(pkg) = pkg_list.iter().find(|pkg| pkg.name().eq(name)) {
-                                pkg.set_version(version.to_string());
+                    for pkg in pkg_list.iter().filter(|&pkg| update_map.contains_key(&pkg.name())) {
+                        pkg.set_version(update_map[&pkg.name()].to_string());
 
-                                let mut flags = pkg.flags();
-                                flags.set(PkgFlags::UPDATES, true);
+                        let mut flags = pkg.flags();
+                        flags.set(PkgFlags::UPDATES, true);
 
-                                pkg.set_flags(flags);
+                        pkg.set_flags(flags);
 
-                                pkg.set_has_update(true);
+                        pkg.set_has_update(true);
 
-                                let infopane_model = win.infopane_model.get();
+                        let infopane_model = win.infopane_model.get();
 
-                                if let Some(info_pkg) = win.infopane_pkg() {
-                                    if &info_pkg.name() == name {
-                                        for i in (0..infopane_model.n_items()).into_iter() {
-                                            let prop: PropObject = infopane_model.item(i).and_downcast().expect("Must be a PropObject");
+                        if win.infopane_pkg().is_some() && win.infopane_pkg().unwrap() == *pkg {
+                            for i in (0..infopane_model.n_items()).into_iter() {
+                                let prop: PropObject = infopane_model.item(i)
+                                    .and_downcast()
+                                    .expect("Must be a 'PropObject'");
 
-                                            if prop.label() == "Version" {
-                                                prop.set_value(pkg.version());
-                                                prop.set_icon("pkg-update");
-                                            }
-                                        }
-                                    }
+                                if prop.label() == "Version" {
+                                    prop.set_value(pkg.version());
+                                    prop.set_icon("pkg-update");
                                 }
                             }
                         }
@@ -930,7 +925,7 @@ mod imp {
                 self.pkgview_status_filter.set_filter_func(move |item| {
                     let pkg: &PkgObject = item
                         .downcast_ref::<PkgObject>()
-                        .expect("Needs to be a PkgObject");
+                        .expect("Must be a 'PkgObject'");
 
                     pkg.flags().intersects(row.status_id())
                 });
@@ -1039,7 +1034,9 @@ mod imp {
         #[template_callback]
         fn on_package_selected(&self) {
             if let Some(item) = self.pkgview_selection.selected_item() {
-                let pkg = item.downcast::<PkgObject>().expect("Must be a PkgObject");
+                let pkg = item
+                    .downcast::<PkgObject>()
+                    .expect("Must be a 'PkgObject'");
 
                 self.history_list.replace(vec![pkg.clone()]);
                 self.history_index.replace(0);
@@ -1364,7 +1361,7 @@ mod imp {
 
                         let mut new_pkg = pkg_list.iter().find(|pkg| pkg.name() == pkg_name);
 
-                        if !new_pkg.is_some() {
+                        if new_pkg.is_none() {
                             new_pkg = pkg_list.iter().find(|pkg| {
                                 pkg.provides().iter().any(|s| s.contains(&pkg_name))
                             });
