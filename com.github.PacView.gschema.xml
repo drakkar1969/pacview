@@ -38,7 +38,7 @@
       <default>false</default>
     </key>
     <key name="custom-font" type="b">
-      <default>false</default>
+      <default>true</default>
     </key>
     <key name="monospace-font" type="s">
       <default>'Source Code Pro 11'</default>

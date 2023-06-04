@@ -162,7 +162,7 @@ mod imp {
                 prefs.aur_row.set_text("");
                 prefs.column_switch.set_active(true);
                 prefs.sort_switch.set_active(false);
-                prefs.font_switch.set_active(false);
+                prefs.font_switch.set_active(true);
                 prefs.font_row.set_title("Source Code Pro 11");
             }));
 
