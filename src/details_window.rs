@@ -97,8 +97,6 @@ mod imp {
         pkg: RefCell<PkgObject>,
 
         #[property(get, set)]
-        tree_font: RefCell<Option<String>>,
-        #[property(get, set)]
         tree_text: RefCell<String>,
         #[property(get, set)]
         tree_rev_text: RefCell<String>,
@@ -397,17 +395,16 @@ impl DetailsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(pkg: &PkgObject, tree_font: Option<String>, log_file: &str, cache_dir: &str) -> Self {
+    pub fn new(pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dir: &str) -> Self {
         let win: Self = glib::Object::builder()
             .property("pkg", pkg)
-            .property("tree-font", tree_font)
             .property("log-file", log_file)
             .property("cache-dir", cache_dir)
             .build();
 
         win.setup_banner();
         win.setup_files();
-        win.setup_tree();
+        win.setup_tree(custom_font, monospace_font);
         win.setup_logs();
         win.setup_cache();
         win.setup_backup();
@@ -459,20 +456,16 @@ impl DetailsWindow {
     //-----------------------------------
     // Setup tree page
     //-----------------------------------
-    fn setup_tree(&self) {
+    fn setup_tree(&self, custom_font: bool, monospace_font: &str) {
         let imp = self.imp();
 
-        let font = self.tree_font();
-
         // Get monospace font
-        let font_str = if font.is_none() {
+        let font_str = if custom_font {
+            monospace_font.to_string()
+        } else {
             let gsettings = gio::Settings::new("org.gnome.desktop.interface");
 
-            let font_str = gsettings.string("monospace-font-name");
-
-            font_str.to_string()
-        } else {
-            font.unwrap()
+            gsettings.string("monospace-font-name").to_string()
         };
 
         // Set tree label font

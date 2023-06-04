@@ -539,11 +539,10 @@ mod imp {
             let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
                     if let Some(pkg) = win.infopane_pkg() {
-                        let font: Option<String> = if win.prefs_window.custom_font() {Some(win.prefs_window.monospace_font())} else {None};
-    
                         let details_window = DetailsWindow::new(
                             &pkg,
-                            font,
+                            win.prefs_window.custom_font(),
+                            &win.prefs_window.monospace_font(),
                             &win.pacman_config.borrow().log_file,
                             &win.pacman_config.borrow().cache_dir[0]
                         );
