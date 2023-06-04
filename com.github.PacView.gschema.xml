@@ -17,7 +17,7 @@
       <default>true</default>
     </key>
     <key name="infopane-position" type="i">
-      <default>375</default>
+      <default>370</default>
     </key>
     <key name="view-columns" type="as">
       <default>['package', 'version', 'repository', 'status', 'date', 'size', 'groups']</default>
