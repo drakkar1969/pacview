@@ -1118,7 +1118,7 @@ mod imp {
                 }
                 // Depends
                 self.infopane_model.append(&PropObject::new(
-                    "Dependencies", &self.propvec_to_linkstring(&pkg.depends()), None
+                    "Dependencies ", &self.propvec_to_linkstring(&pkg.depends()), None
                 ));
                 // Optdepends
                 if !pkg.optdepends().is_empty() {
