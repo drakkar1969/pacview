@@ -16,6 +16,11 @@
               <object class="AdwEntryRow" id="aur_row">
                 <property name="title">Command to check for _AUR updates (optional)</property>
                 <property name="use-underline">True</property>
+                <child type="suffix">
+                  <object class="GtkImage" id="aur_image">
+                    <property name="icon-name">dialog-question-symbolic</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

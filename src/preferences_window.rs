@@ -22,6 +22,8 @@ mod imp {
         #[template_child]
         pub aur_row: TemplateChild<adw::EntryRow>,
         #[template_child]
+        pub aur_image: TemplateChild<gtk::Image>,
+        #[template_child]
         pub column_switch: TemplateChild<gtk::Switch>,
         #[template_child]
         pub sort_switch: TemplateChild<gtk::Switch>,
@@ -113,8 +115,8 @@ mod imp {
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
 
-            // Set AUR row tooltip
-            self.aur_row.set_tooltip_markup(Some(
+            // Set AUR image tooltip
+            self.aur_image.set_tooltip_markup(Some(
                 "The command should return a list of AUR updates in the format:\n\n\
                 <tt>package_name current_version -> new_version</tt>")
             );
