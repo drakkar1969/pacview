@@ -131,7 +131,7 @@ mod imp {
     #[gtk::template_callbacks]
     impl PreferencesWindow {
         //-----------------------------------
-        // Font button signal handler
+        // Font button signal handlers
         //-----------------------------------
         #[template_callback]
         fn on_font_reset_button_clicked(&self) {
@@ -142,15 +142,18 @@ mod imp {
         fn on_font_choose_button_clicked(&self) {
             let font_dialog = gtk::FontDialog::new();
 
+            font_dialog.set_title("Select Font");
+
             font_dialog.choose_font(
                 Some(&*self.obj()),
                 Some(&FontDescription::from_string(&self.font_row.title())),
                 None::<&gio::Cancellable>,
                 clone!(@weak self as prefs => move |result| {
-                if let Ok(font_desc) = result {
-                    prefs.font_row.set_title(&font_desc.to_string());
-                }
-            }));
+                    if let Ok(font_desc) = result {
+                        prefs.font_row.set_title(&font_desc.to_string());
+                    }
+                })
+            );
         }
 
         //-----------------------------------
