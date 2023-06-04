@@ -110,6 +110,12 @@ mod imp {
             obj.bind_property("monospace-font", &self.font_row.get(), "title")
                 .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
                 .build();
+
+            // Set AUR row tooltip
+            self.aur_row.set_tooltip_markup(Some(
+                "The command should return a list of AUR updates in the format:\n\n\
+                <tt>package_name current_version -> new_version</tt>")
+            );
         }
     }
 
