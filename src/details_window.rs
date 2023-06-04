@@ -97,16 +97,14 @@ mod imp {
         pkg: RefCell<PkgObject>,
 
         #[property(get, set)]
+        default_tree_depth: Cell<f64>,
+        #[property(get, set)]
         tree_text: RefCell<String>,
         #[property(get, set)]
         tree_rev_text: RefCell<String>,
-        #[property(get, set)]
-        log_file: RefCell<String>,
-        #[property(get, set)]
-        cache_dir: RefCell<String>,
 
         #[property(get, set)]
-        default_tree_depth: Cell<f64>,
+        cache_dir: RefCell<String>,
     }
 
     //-----------------------------------
@@ -398,14 +396,13 @@ impl DetailsWindow {
     pub fn new(pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dir: &str) -> Self {
         let win: Self = glib::Object::builder()
             .property("pkg", pkg)
-            .property("log-file", log_file)
             .property("cache-dir", cache_dir)
             .build();
 
         win.setup_banner();
         win.setup_files();
         win.setup_tree(custom_font, monospace_font);
-        win.setup_logs();
+        win.setup_logs(log_file);
         win.setup_cache();
         win.setup_backup();
 
@@ -509,11 +506,11 @@ impl DetailsWindow {
     //-----------------------------------
     // Setup logs page
     //-----------------------------------
-    fn setup_logs(&self) {
+    fn setup_logs(&self, log_file: &str) {
         let imp = self.imp();
 
         // Populate log messages
-        if let Ok(log) = fs::read_to_string(self.log_file()) {
+        if let Ok(log) = fs::read_to_string(log_file) {
             let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.pkg().name())).unwrap();
 
             let log_lines: Vec<Cow<str>> = log.lines().rev()
