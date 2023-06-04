@@ -1072,7 +1072,7 @@ mod imp {
                     "Description", &self.prop_to_esc_string(&pkg.description()), None
                 ));
                 // Package URL
-                let mut url = "Unknown".to_string();
+                let mut url = String::from("");
 
                 if self.default_repo_names.borrow().contains(&pkg.repo_show()) {
                     url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
