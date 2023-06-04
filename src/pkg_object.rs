@@ -11,14 +11,14 @@ use alpm;
 //------------------------------------------------------------------------------
 #[glib::flags(name = "PkgFlags")]
 pub enum PkgFlags {
+    ALL        = Self::INSTALLED.bits() | Self::NONE.bits(),
+    INSTALLED  = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
     EXPLICIT   = 0b00000001,
     DEPENDENCY = 0b00000010,
     OPTIONAL   = 0b00000100,
     ORPHAN     = 0b00001000,
     NONE       = 0b00010000,
     UPDATES    = 0b00100000,
-    ALL        = Self::INSTALLED.bits() | Self::NONE.bits(),
-    INSTALLED  = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
 }
 
 impl Default for PkgFlags {

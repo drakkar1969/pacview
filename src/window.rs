@@ -636,31 +636,24 @@ mod imp {
             }
 
             // Add package status rows (enumerate PkgStatusFlags)
-            let status_map = [
-                ("all", PkgFlags::ALL),
-                ("installed", PkgFlags::INSTALLED),
-                ("explicit", PkgFlags::EXPLICIT),
-                ("dependency", PkgFlags::DEPENDENCY),
-                ("optional", PkgFlags::OPTIONAL),
-                ("orphan", PkgFlags::ORPHAN),
-                ("none", PkgFlags::NONE),
-                ("updates", PkgFlags::UPDATES),
-            ];
+            if let Some(flags) = glib::FlagsClass::new(PkgFlags::static_type()) {
+                for f in flags.values() {
+                    let flag = PkgFlags::from_bits_truncate(f.value());
 
-            for (text, flag) in status_map {
-                let row = FilterRow::new(&format!("status-{}-symbolic", text), &titlecase::titlecase(text), "", flag);
+                    let row = FilterRow::new(&format!("status-{}-symbolic", f.nick()), f.name(), "", flag);
 
-                self.status_listbox.append(&row);
+                    self.status_listbox.append(&row);
 
-                if flag == PkgFlags::INSTALLED {
-                    self.status_listbox.select_row(Some(&row));
-                }
+                    if flag == PkgFlags::INSTALLED {
+                        self.status_listbox.select_row(Some(&row));
+                    }
 
-                if flag == PkgFlags::UPDATES {
-                    row.set_spinning(true);
-                    row.set_sensitive(false);
+                    if flag == PkgFlags::UPDATES {
+                        row.set_spinning(true);
+                        row.set_sensitive(false);
 
-                    self.update_row.replace(row);
+                        self.update_row.replace(row);
+                    }
                 }
             }
         }
