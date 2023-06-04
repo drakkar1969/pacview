@@ -327,17 +327,20 @@ mod imp {
                 }))
                 .build();
 
-            // Add select all/reset search header search by property actions
-            let prop_array = ["name", "desc", "group", "deps", "optdeps", "provides", "files"];
+            // Get list of search header by-* properties
+            let by_prop_array: Vec<String> = self.search_header.list_properties().iter()
+                .filter_map(|p| if p.name().contains("by-") {Some(p.name().to_string())} else {None})
+                .collect();
 
+            // Add select all/reset search header search by property actions
             let selectall_action = gio::ActionEntry::builder("selectall")
-                .activate(clone!(@weak self as win => move |_, _, _| {
+                .activate(clone!(@weak self as win, @strong by_prop_array => move |_, _, _| {
                     let header = &win.search_header;
 
                     header.set_block_notify(true);
 
-                    for prop in prop_array {
-                        header.set_property(&format!("by-{}", prop), true);
+                    for prop in &by_prop_array {
+                        header.set_property(prop, true);
                     }
 
                     header.set_block_notify(false);
@@ -345,13 +348,13 @@ mod imp {
                 .build();
 
             let reset_action = gio::ActionEntry::builder("reset")
-                .activate(clone!(@weak self as win => move |_, _, _| {
+                .activate(clone!(@weak self as win, @strong by_prop_array => move |_, _, _| {
                     let header = &win.search_header;
 
                     header.set_block_notify(true);
 
-                    for prop in prop_array {
-                        header.set_property(&format!("by-{}", prop), prop == "name");
+                    for prop in &by_prop_array {
+                        header.set_property(prop, prop == &by_prop_array[0]);
                     }
 
                     header.set_block_notify(false);
@@ -366,8 +369,8 @@ mod imp {
             search_group.add_action_entries([search_start_action, search_stop_action, selectall_action, reset_action]);
 
             // Add search header search by property actions
-            for prop in prop_array {
-                let action = gio::PropertyAction::new(&format!("toggle-{}", prop), &self.search_header.get(), &format!("by-{}", prop));
+            for prop in &by_prop_array {
+                let action = gio::PropertyAction::new(&prop.replace("by-", "toggle-"), &self.search_header.get(), prop);
                 search_group.add_action(&action);
             }
 
