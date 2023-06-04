@@ -488,7 +488,7 @@ mod imp {
             let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     // Get default column IDs
-                    let column_ids = ["package", "version", "repository", "status", "date", "size", "groups"];
+                    let column_ids = ["package", "version", "repository", "status", "date", "size"];
 
                     // Iterate through column IDs
                     for (i, id) in column_ids.iter().enumerate() {
@@ -498,9 +498,9 @@ mod imp {
                         }
                     }
 
-                    // Show all columns
+                    // Show/hide columns
                     for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
-                        col.set_visible(true);
+                        col.set_visible(column_ids.contains(&col.id().unwrap().as_str()));
                     }
                 }))
                 .build();

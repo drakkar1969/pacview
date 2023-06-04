@@ -20,7 +20,7 @@
       <default>370</default>
     </key>
     <key name="view-columns" type="as">
-      <default>['package', 'version', 'repository', 'status', 'date', 'size', 'groups']</default>
+      <default>['package', 'version', 'repository', 'status', 'date', 'size']</default>
     </key>
     <key name="sort-column" type="s">
       <default>'package'</default>
