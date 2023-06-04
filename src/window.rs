@@ -94,6 +94,8 @@ mod imp {
         #[template_child]
         pub infopane_overlay: TemplateChild<gtk::Overlay>,
         #[template_child]
+        pub infopane_view: TemplateChild<gtk::ColumnView>,
+        #[template_child]
         pub infopane_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub infopane_toolbar: TemplateChild<gtk::Box>,
@@ -521,6 +523,13 @@ mod imp {
         //-----------------------------------
         fn setup_infopane(&self) {
             let obj = self.obj();
+
+            // Hide info pane header
+            if let Some(list_header) = self.infopane_view.first_child() {
+                if list_header.type_().name() == "GtkListItemWidget" {
+                    list_header.set_visible(false);
+                }
+            }
 
             // Add info pane prev/next actions
             let prev_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("previous")

@@ -383,7 +383,7 @@
                         <property name="hexpand">True</property>
                         <property name="vexpand">True</property>
                         <property name="child">
-                          <object class="GtkColumnView" id="infopane">
+                          <object class="GtkColumnView" id="infopane_view">
                             <property name="show-row-separators">True</property>
                             <property name="show-column-separators">True</property>
                             <property name="reorderable">False</property>
