@@ -67,15 +67,27 @@
                 <child>
                   <object class="AdwActionRow" id="font_row">
                     <property name="use-underline">True</property>
-                    <property name="activatable-widget">font_button</property>
+                    <property name="activatable-widget">font_choose_button</property>
                     <child>
-                      <object class="GtkButton" id="font_button">
+                      <object class="GtkButton" id="font_reset_button">
                         <property name="valign">center</property>
-                        <property name="icon-name">go-next-symbolic</property>
+                        <property name="icon-name">edit-undo-symbolic</property>
+                        <property name="tooltip-text">Reset to default</property>
                         <style>
                           <class name="flat"/>
                         </style>
-                        <signal name="clicked" handler="on_font_button_clicked" swapped="true"/>
+                        <signal name="clicked" handler="on_font_reset_button_clicked" swapped="true"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="font_choose_button">
+                        <property name="valign">center</property>
+                        <property name="icon-name">go-next-symbolic</property>
+                        <property name="tooltip-text">Choose font</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
+                        <signal name="clicked" handler="on_font_choose_button_clicked" swapped="true"/>
                       </object>
                     </child>
                   </object>

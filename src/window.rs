@@ -219,6 +219,10 @@ mod imp {
                 self.prefs_window.set_custom_font(gsettings.boolean("custom-font"));
                 self.prefs_window.set_monospace_font(gsettings.string("monospace-font"));
 
+                let default_font = gsettings.default_value("monospace-font").unwrap().to_string().replace("'", "");
+
+                self.prefs_window.set_default_monospace_font(default_font);
+
                 // Restore pkgview columns only if setting active
                 if self.prefs_window.remember_columns() {
                     // Get saved column IDs

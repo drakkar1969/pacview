@@ -42,6 +42,8 @@ mod imp {
         custom_font: Cell<bool>,
         #[property(get, set)]
         monospace_font: RefCell<String>,
+        #[property(get, set)]
+        default_monospace_font: RefCell<String>,
     }
 
     //-----------------------------------
@@ -130,7 +132,12 @@ mod imp {
         // Font button signal handler
         //-----------------------------------
         #[template_callback]
-        fn on_font_button_clicked(&self) {
+        fn on_font_reset_button_clicked(&self) {
+            self.font_row.set_title(&self.obj().default_monospace_font());
+        }
+
+        #[template_callback]
+        fn on_font_choose_button_clicked(&self) {
             let font_dialog = gtk::FontDialog::new();
 
             font_dialog.choose_font(
@@ -163,7 +170,7 @@ mod imp {
                 prefs.column_switch.set_active(true);
                 prefs.sort_switch.set_active(false);
                 prefs.font_switch.set_active(true);
-                prefs.font_row.set_title("Source Code Pro 11");
+                prefs.font_row.set_title(&prefs.obj().default_monospace_font());
             }));
 
             reset_dialog.present();
