@@ -570,7 +570,7 @@
     </section>
   </menu>
 
-  <!--// Package viee header menu //-->
+  <!--// Package view header menu //-->
   <menu id="pkgview_header_menu">
     <section>
       <attribute name="label">Show Columns</attribute>
