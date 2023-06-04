@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::fs;
 use std::io::{BufReader, BufRead};
+use std::borrow::Cow;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -8,6 +9,7 @@ use gtk::prelude::*;
 use gtk::pango::AttrList;
 
 use fancy_regex::Regex;
+use lazy_static::lazy_static;
 use md5;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -96,6 +98,10 @@ mod imp {
 
         #[property(get, set)]
         tree_font: RefCell<Option<String>>,
+        #[property(get, set)]
+        tree_text: RefCell<String>,
+        #[property(get, set)]
+        tree_rev_text: RefCell<String>,
         #[property(get, set)]
         log_file: RefCell<String>,
         #[property(get, set)]
@@ -218,23 +224,38 @@ mod imp {
         }
 
         //-----------------------------------
-        // Populate dependency tree helper function
+        // Filter dependency tree helper function
         //-----------------------------------
-        pub fn populate_dependency_tree(&self, depth: f64, reverse: bool) {
-            let depth_str = format!("-d{}", depth);
+        fn filter_dependency_tree(&self) {
+            let obj = self.obj();
 
-            let pkg = self.obj().pkg();
+            let depth = self.tree_depth_scale.value();
+            let reverse = self.tree_reverse_button.is_active();
 
-            let cmd = format!("/usr/bin/pactree {local_flag} {depth_flag} {reverse_flag} {name}", 
-                local_flag=if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"},
-                depth_flag=if depth == self.obj().default_tree_depth() {""} else {&depth_str},
-                reverse_flag=if reverse {"-r"} else {""},
-                name=pkg.name()
-            );
+            let tree_text = if reverse {obj.tree_rev_text()} else {obj.tree_text()};
 
-            let (_code, stdout) = Utils::run_command(&cmd);
+            lazy_static! {
+                static ref EXPR: Regex = Regex::new("([└|─|│|├| ]+)?(.+)").unwrap();
+            }
 
-            self.tree_label.set_label(&stdout);
+            let filter_text = if depth == obj.default_tree_depth() {
+                tree_text
+            } else {
+                tree_text.lines()
+                .filter_map(|s| {
+                    let ascii = EXPR.replace(s, "$1");
+
+                    if ascii.chars().count() as f64 > depth * 2.0 {
+                        None
+                    } else {
+                        Some(s)
+                    }
+                })
+                .collect::<Vec<&str>>()
+                .join("\n")
+            };
+
+            self.tree_label.set_label(&filter_text);
         }
 
         //-----------------------------------
@@ -242,18 +263,18 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_tree_depth_changed(&self, scale: gtk::Scale) {
-            let depth = scale.value();
+            if scale.value() == self.obj().default_tree_depth() {
+                self.tree_depth_label.set_label("Default");
+            } else {
+                self.tree_depth_label.set_label(&scale.value().to_string());
+            }
 
-            self.populate_dependency_tree(depth, self.tree_reverse_button.is_active());
-
-            let depth_str = depth.to_string();
-
-            self.tree_depth_label.set_label(if depth == self.obj().default_tree_depth() {"Default"} else {&depth_str});
+            self.filter_dependency_tree();
         }
 
         #[template_callback]
-        fn on_tree_reverse_toggled(&self, button: gtk::ToggleButton) {
-            self.populate_dependency_tree(self.tree_depth_scale.value(), button.is_active());
+        fn on_tree_reverse_toggled(&self) {
+            self.filter_dependency_tree();
         }
 
         #[template_callback]
@@ -463,8 +484,32 @@ impl DetailsWindow {
         // Set default tree depth
         self.set_default_tree_depth(imp.tree_depth_scale.adjustment().upper());
 
-        // Populate dependency tree
-        imp.populate_dependency_tree(self.default_tree_depth(), false);
+        // Get dependency tree text
+        let pkg = self.pkg();
+
+        let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
+
+        let cmd = format!("/usr/bin/pactree {local_flag} {name}", 
+            local_flag=local_flag,
+            name=pkg.name()
+        );
+
+        let (_code, stdout) = Utils::run_command(&cmd);
+
+        self.set_tree_text(stdout);
+
+        // Get dependency tree reverse text
+        let cmd = format!("/usr/bin/pactree -r {local_flag} {name}", 
+            local_flag=local_flag,
+            name=pkg.name()
+        );
+
+        let (_code, stdout) = Utils::run_command(&cmd);
+
+        self.set_tree_rev_text(stdout);
+
+        // Set tree label text
+        imp.tree_label.set_label(&self.tree_text());
     }
 
     //-----------------------------------
@@ -477,17 +522,17 @@ impl DetailsWindow {
         if let Ok(log) = fs::read_to_string(self.log_file()) {
             let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.pkg().name())).unwrap();
 
-            let log_lines: Vec<String> = log.lines().rev()
+            let log_lines: Vec<Cow<str>> = log.lines().rev()
                 .filter_map(|s|
                     if match_expr.is_match(s).unwrap_or_default() {
-                        Some(match_expr.replace_all(s, "[$1 $2]  $3 $4 $5").to_string())
+                        Some(match_expr.replace_all(s, "[$1 $2]  $3 $4 $5"))
                     } else {
                         None
                     }
                 )
                 .collect();
 
-            imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+            imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_ref()).collect::<Vec<&str>>());
         }
 
         // Set copy button state
@@ -577,8 +622,6 @@ impl DetailsWindow {
 
                     status_icon = if file_hash == hash {"backup-unchanged"} else {"backup-changed"};
                     status = if file_hash == hash {"unchanged"} else {"changed"};
-                } else {
-                    
                 }
 
                 BackupObject::new(name, status_icon, status)
