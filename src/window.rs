@@ -8,7 +8,7 @@ use gtk::prelude::*;
 use glib::{clone, once_cell::sync::OnceCell};
 
 use pacmanconf;
-use alpm;
+use alpm::{Alpm, SigLevel};
 use titlecase::titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
@@ -116,7 +116,7 @@ mod imp {
 
         update_row: RefCell<FilterRow>,
 
-        alpm_handle: OnceCell<alpm::Alpm>,
+        alpm_handle: OnceCell<Alpm>,
 
         default_repo_names: RefCell<Vec<String>>,
         pacman_repo_names: RefCell<Vec<String>>,
@@ -592,21 +592,26 @@ mod imp {
         // Setup alpm: get pacman configuration
         //-----------------------------------
         fn get_pacman_config(&self) {
+            // Get standard repository names
+            let def_names: Vec<String> = ["core", "extra", "multilib"].map(String::from).to_vec();
+
+            self.default_repo_names.replace(def_names);
+
+            // Get pacman config
             let pacman_config = pacmanconf::Config::new().unwrap();
 
+            // Get pacman repositories
             let mut repo_list: Vec<String> = pacman_config.repos.iter()
                 .map(|r| r.name.to_string())
                 .collect();
             
-            repo_list.push(String::from("foreign"));
+            // Add local to pacman repositories
+            repo_list.push(String::from("local"));
 
+            // Store pacman config and repositories
             self.pacman_config.replace(pacman_config);
 
             self.pacman_repo_names.replace(repo_list);
-
-            let def_names: Vec<String> = ["core", "extra", "multilib"].map(String::from).to_vec();
-
-            self.default_repo_names.replace(def_names);
         }
 
         //-----------------------------------
@@ -622,7 +627,7 @@ mod imp {
                 self.status_listbox.remove(&row);
             }
 
-            // Add repository rows
+            // Add repository rows (enumerate pacman repositories)
             let row = FilterRow::new("repository-symbolic", "All", "", PkgFlags::default());
 
             self.repo_listbox.append(&row);
@@ -638,24 +643,24 @@ mod imp {
             }
 
             // Add package status rows (enumerate PkgStatusFlags)
-            if let Some(flags) = glib::FlagsClass::new(PkgFlags::static_type()) {
-                for f in flags.values() {
-                    let flag = PkgFlags::from_bits_truncate(f.value());
+            let flags = glib::FlagsClass::new(PkgFlags::static_type()).unwrap();
 
-                    let row = FilterRow::new(&format!("status-{}-symbolic", f.nick()), f.name(), "", flag);
+            for f in flags.values() {
+                let flag = PkgFlags::from_bits_truncate(f.value());
 
-                    self.status_listbox.append(&row);
+                let row = FilterRow::new(&format!("status-{}-symbolic", f.nick()), f.name(), "", flag);
 
-                    if flag == PkgFlags::INSTALLED {
-                        self.status_listbox.select_row(Some(&row));
-                    }
+                self.status_listbox.append(&row);
 
-                    if flag == PkgFlags::UPDATES {
-                        row.set_spinning(true);
-                        row.set_sensitive(false);
+                if flag == PkgFlags::INSTALLED {
+                    self.status_listbox.select_row(Some(&row));
+                }
 
-                        self.update_row.replace(row);
-                    }
+                if flag == PkgFlags::UPDATES {
+                    row.set_spinning(true);
+                    row.set_sensitive(false);
+
+                    self.update_row.replace(row);
                 }
             }
         }
@@ -664,7 +669,7 @@ mod imp {
         // Setup alpm: load alpm packages
         //-----------------------------------
         fn load_packages_async(&self) {
-            let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
+            let (sender, receiver) = glib::MainContext::channel::<(Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
 
             let root_dir = self.pacman_config.borrow().root_dir.to_string();
             let db_path = self.pacman_config.borrow().db_path.to_string();
@@ -672,28 +677,28 @@ mod imp {
             let repo_names = self.pacman_repo_names.borrow().to_vec();
 
             thread::spawn(move || {
-                let handle = alpm::Alpm::new(root_dir, db_path).unwrap();
+                let handle = Alpm::new(root_dir, db_path).unwrap();
 
                 let localdb = handle.localdb();
 
                 let mut data_list: Vec<PkgData> = vec![];
 
                 for repo in repo_names {
-                    let db = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL).unwrap();
-                    
-                    data_list.extend(db.pkgs().iter()
-                        .map(|syncpkg| {
-                            let localpkg = localdb.pkg(syncpkg.name());
+                    if let Ok(db) = handle.register_syncdb(repo, SigLevel::DATABASE_OPTIONAL) {
+                        data_list.extend(db.pkgs().iter()
+                            .map(|syncpkg| {
+                                let localpkg = localdb.pkg(syncpkg.name());
 
-                            PkgData::from_alpm_package(db.name(), syncpkg, localpkg)
-                        })
-                    );
+                                PkgData::from_alpm_package(syncpkg, localpkg)
+                            })
+                        );
+                    }
                 }
 
                 data_list.extend(localdb.pkgs().iter()
                     .filter_map(|pkg| {
                         handle.syncdbs().find_satisfier(pkg.name()).map_or_else(
-                            || Some(PkgData::from_alpm_package("foreign", pkg, Ok(pkg))),
+                            || Some(PkgData::from_alpm_package(pkg, Ok(pkg))),
                             |_| None
                     )})
                 );
@@ -731,7 +736,7 @@ mod imp {
             let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
 
             let aur_params = self.package_list.borrow().iter()
-                .filter(|&pkg| pkg.repository() == "foreign")
+                .filter(|&pkg| pkg.repository() == "local")
                 .map(|pkg| pkg.name())
                 .collect::<Vec<String>>();
 

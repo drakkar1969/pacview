@@ -67,13 +67,14 @@ impl PkgData {
     //-----------------------------------
     // Public builder function
     //-----------------------------------
-    pub fn from_alpm_package(repo: &str, syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
+    pub fn from_alpm_package(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
         // Defaults for package status flags, install date, files and backup (non-installed)
         let mut iflags = PkgFlags::NONE;
         let mut idate = 0;
         let mut files_vec: Vec<String> = vec![];
         let mut backup_vec: Vec<String> = vec![];
 
+        // Get properties from local package
         if let Ok(pkg) = localpkg {
             // Get package status flags
             if pkg.reason() == alpm::PackageReason::Explicit {
@@ -99,6 +100,9 @@ impl PkgData {
             // Get package backup
             backup_vec.extend(Self::alpm_backuplist_to_vec(&pkg.backup()));
         }
+
+        // Get package repository
+        let repo = syncpkg.db().unwrap().name();
 
         // Get package groups
         let mut group_list: Vec<&str> = syncpkg.groups().iter().collect();
