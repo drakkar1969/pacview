@@ -177,7 +177,7 @@ mod imp {
             if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
                 let path = format!("file://{}", path);
 
-                desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>).unwrap();
+                let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
             }
         }
 
@@ -480,7 +480,7 @@ impl DetailsWindow {
 
         let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
 
-        let cmd = format!("/usr/bin/pactree {local_flag} {name}", 
+        let cmd = format!("/usr/bin/pactree {local_flag} {name}",
             local_flag=local_flag,
             name=pkg.name()
         );
@@ -490,7 +490,7 @@ impl DetailsWindow {
         self.set_tree_text(stdout);
 
         // Get dependency tree reverse text
-        let cmd = format!("/usr/bin/pactree -r {local_flag} {name}", 
+        let cmd = format!("/usr/bin/pactree -r {local_flag} {name}",
             local_flag=local_flag,
             name=pkg.name()
         );
@@ -578,41 +578,48 @@ impl DetailsWindow {
                 // Open backup file
                 if let Ok(file) = fs::File::open(name) {
                     // Get file size
-                    let file_len = file.metadata().unwrap().len();
+                    if let Ok(file_len) = file.metadata().and_then(|m| Ok(m.len())) {
+                        // Define buffer size
+                        let buffer_len = file_len.min(4096) as usize;
 
-                    // Define buffer size
-                    let buffer_len = file_len.min(4096) as usize;
+                        // Create read buffer
+                        let mut buffer = BufReader::with_capacity(buffer_len, file);
 
-                    // Create read buffer
-                    let mut buffer = BufReader::with_capacity(buffer_len, file);
+                        // Create new MD5 context
+                        let mut context = md5::Context::new();
 
-                    // Create new MD5 context
-                    let mut context = md5::Context::new();
+                        let res = loop {
+                            // Get a chunk of the file
+                            if let Ok(chunk) = buffer.fill_buf() {
+                                // Break with true if chunk is empty (EOF reached)
+                                if chunk.is_empty() {
+                                    break true;
+                                }
 
-                    loop {
-                        // Get a chunk of the file
-                        let chunk = buffer.fill_buf().unwrap();
+                                // Add chunk to the MD5 context
+                                context.consume(chunk);
 
-                        // Break if chunk is empty (EOF reached)
-                        if chunk.is_empty() {
-                            break;
+                                // Tell the buffer that the chunk is consumed
+                                let chunk_len = chunk.len();
+                                buffer.consume(chunk_len);
+                            } else {
+                                // Break with false if buffer error
+                                break false;
+                            }
+                        };
+
+                        if res {
+                            // Compute MD5 hash for file
+                            let u8_hash = context.compute();
+
+                            // Convert MD5 hash to string
+                            let file_hash = format!("{:x}", u8_hash);
+
+                            // Get item status icon and text
+                            status_icon = if file_hash == hash {"backup-unmodified"} else {"backup-modified"};
+                            status = if file_hash == hash {"unmodified"} else {"modified"};
                         }
-                        // Add chunk to the MD5 context
-                        context.consume(chunk);
-
-                        // Tell the buffer that the chunk is consumed
-                        let chunk_len = chunk.len();
-                        buffer.consume(chunk_len);
                     }
-
-                    // Compute MD5 hash for file
-                    let u8_hash = context.compute();
-
-                    // Convert MD5 hash to string
-                    let file_hash = format!("{:x}", u8_hash);
-
-                    status_icon = if file_hash == hash {"backup-unmodified"} else {"backup-modified"};
-                    status = if file_hash == hash {"unmodified"} else {"modified"};
                 }
 
                 BackupObject::new(name, status_icon, status)
