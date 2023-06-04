@@ -504,23 +504,10 @@ mod imp {
             pkgview_group.add_action_entries([refresh_action, stats_action, copy_action, columns_action]);
 
             // Add pkgview header menu property actions
-            let col_action = gio::PropertyAction::new("show-column-version", &self.pkgview_version_column.get(), "visible");
-            pkgview_group.add_action(&col_action);
-
-            let col_action = gio::PropertyAction::new("show-column-repository", &self.pkgview_repository_column.get(), "visible");
-            pkgview_group.add_action(&col_action);
-
-            let col_action = gio::PropertyAction::new("show-column-status", &self.pkgview_status_column.get(), "visible");
-            pkgview_group.add_action(&col_action);
-
-            let col_action = gio::PropertyAction::new("show-column-date", &self.pkgview_date_column.get(), "visible");
-            pkgview_group.add_action(&col_action);
-
-            let col_action = gio::PropertyAction::new("show-column-size", &self.pkgview_size_column.get(), "visible");
-            pkgview_group.add_action(&col_action);
-
-            let col_action = gio::PropertyAction::new("show-column-groups", &self.pkgview_groups_column.get(), "visible");
-            pkgview_group.add_action(&col_action);
+            for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                let col_action = gio::PropertyAction::new(&format!("show-column-{}", col.id().unwrap()), &col, "visible");
+                pkgview_group.add_action(&col_action);
+            }
 
             // Set initial focus on pkgview
             self.pkgview.grab_focus();
