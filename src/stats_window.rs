@@ -2,7 +2,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
-use titlecase;
+use titlecase::titlecase;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::stats_object::StatsObject;
@@ -110,7 +110,7 @@ impl StatsWindow {
 
             // Add repository item to stats column view
             imp.model.append(&StatsObject::new(
-                &titlecase::titlecase(repo),
+                &titlecase(repo),
                 &pcount.to_string(),
                 &icount.to_string(),
                 &PkgObject::size_to_string(isize, 2)

@@ -9,7 +9,7 @@ use glib::{clone, once_cell::sync::OnceCell};
 
 use pacmanconf;
 use alpm;
-use titlecase;
+use titlecase::titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
@@ -630,7 +630,7 @@ mod imp {
             let repo_names = self.pacman_repo_names.borrow().to_vec();
 
             for repo in repo_names {
-                let row = FilterRow::new("repository-symbolic", &titlecase::titlecase(&repo), &repo.to_lowercase(), PkgFlags::default());
+                let row = FilterRow::new("repository-symbolic", &titlecase(&repo), &repo.to_lowercase(), PkgFlags::default());
 
                 self.repo_listbox.append(&row);
             }
