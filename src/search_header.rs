@@ -254,6 +254,13 @@ mod imp {
 
                 header.emit_by_name::<()>("search-activated", &[&header.active()]);
             });
+
+            // Connect notify signal handler for block notify property
+            obj.connect_notify(Some("block-notify"), |header, _| {
+                if header.block_notify() == false {
+                    header.imp().emit_search_changed_signal();
+                }
+            });
         }
     }
 

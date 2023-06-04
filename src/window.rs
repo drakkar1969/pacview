@@ -341,8 +341,6 @@ mod imp {
                     }
 
                     header.set_block_notify(false);
-
-                    win.on_search_changed(&header.imp().search_entry.text().to_string(), header.by_name(), header.by_desc(), header.by_group(), header.by_deps(), header.by_optdeps(), header.by_provides(), header.by_files(), header.mode());
                 }))
                 .build();
 
@@ -357,8 +355,6 @@ mod imp {
                     }
 
                     header.set_block_notify(false);
-
-                    win.on_search_changed(&header.imp().search_entry.text().to_string(), header.by_name(), header.by_desc(), header.by_group(), header.by_deps(), header.by_optdeps(), header.by_provides(), header.by_files(), header.mode());
                 }))
                 .build();
 
