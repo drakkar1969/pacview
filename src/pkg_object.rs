@@ -69,67 +69,52 @@ impl PkgData {
     //-----------------------------------
     pub fn from_alpm_package(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
         // Defaults for package status flags, install date, files and backup (non-installed)
-        let mut iflags = PkgFlags::NONE;
+        let mut flags = PkgFlags::NONE;
         let mut idate = 0;
         let mut files_vec: Vec<String> = vec![];
         let mut backup_vec: Vec<String> = vec![];
 
-        // Get properties from local package
+        // If package is installed, update properties from local package
         if let Ok(pkg) = localpkg {
-            // Get package status flags
-            if pkg.reason() == alpm::PackageReason::Explicit {
-                iflags = PkgFlags::EXPLICIT;
+            // Get status flags
+            flags = if pkg.reason() == alpm::PackageReason::Explicit {
+                PkgFlags::EXPLICIT
             } else {
                 if !pkg.required_by().is_empty() {
-                    iflags = PkgFlags::DEPENDENCY;
+                    PkgFlags::DEPENDENCY
                 } else {
-                    if !pkg.optional_for().is_empty() {
-                        iflags = PkgFlags::OPTIONAL;
-                    } else {
-                        iflags = PkgFlags::ORPHAN;
-                    }
+                    if !pkg.optional_for().is_empty() {PkgFlags::OPTIONAL} else {PkgFlags::ORPHAN}
                 }
-            }
+            };
 
-            // Get package installed date
+            // Get installed date
             idate = pkg.install_date().unwrap_or(0);
 
-            // Get package files
+            // Get files
             files_vec.extend(Self::alpm_filelist_to_vec(&pkg.files()));
 
-            // Get package backup
+            // Get backup
             backup_vec.extend(Self::alpm_backuplist_to_vec(&pkg.backup()));
         }
 
         // Get package repository
         let repo = syncpkg.db().unwrap().name();
 
-        // Get package groups
-        let mut group_list: Vec<&str> = syncpkg.groups().iter().collect();
-        group_list.sort_unstable();
-
-        let pgroups = group_list.join(", ");
-
-        // Get package licenses
-        let mut license_list: Vec<&str> = syncpkg.licenses().iter().collect();
-        license_list.sort_unstable();
-
-        let plicenses = license_list.join(", ");
-
+        // Build PkgData
         Self {
-            flags: iflags,
+            flags,
             name: syncpkg.name().to_string(),
             version: syncpkg.version().to_string(),
             repository: repo.to_string(),
             repo_show: repo.to_string(),
-            status: match iflags {
+            status: match flags {
                 PkgFlags::EXPLICIT => "explicit".to_string(),
                 PkgFlags::DEPENDENCY => "dependency".to_string(),
                 PkgFlags::OPTIONAL => "optional".to_string(),
                 PkgFlags::ORPHAN => "orphan".to_string(),
                 _ => "".to_string()
             },
-            status_icon: match iflags {
+            status_icon: match flags {
                 PkgFlags::EXPLICIT => "pkg-explicit".to_string(),
                 PkgFlags::DEPENDENCY => "pkg-dependency".to_string(),
                 PkgFlags::OPTIONAL => "pkg-optional".to_string(),
@@ -138,10 +123,10 @@ impl PkgData {
             },
             install_date: idate,
             install_size: syncpkg.isize(),
-            groups: pgroups,
+            groups: Self::alpm_list_to_string(&syncpkg.groups()),
             description: syncpkg.desc().unwrap_or_default().to_string(),
             url: syncpkg.url().unwrap_or_default().to_string(),
-            licenses: plicenses,
+            licenses: Self::alpm_list_to_string(&syncpkg.licenses()),
             provides: Self::alpm_deplist_to_vec(&syncpkg.provides()),
             depends: Self::alpm_deplist_to_vec(&syncpkg.depends()),
             optdepends: Self::alpm_deplist_to_vec(&syncpkg.optdepends()),
@@ -163,6 +148,13 @@ impl PkgData {
     //-----------------------------------
     // Helper functions
     //-----------------------------------
+    fn alpm_list_to_string(list: &alpm::AlpmList<&str>) -> String {
+        let mut list_vec: Vec<&str> = list.iter().collect();
+        list_vec.sort_unstable();
+
+        list_vec.join(", ")
+    }
+
     fn alpm_deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
         let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
         dep_vec.sort_unstable();
@@ -363,11 +355,11 @@ impl PkgObject {
         };
 
         if let Some(db) = db {
-            if let Ok(alpm_pkg) = db.pkg(self.name()) {
-                required_by.extend(alpm_pkg.required_by());
+            if let Ok(pkg) = db.pkg(self.name()) {
+                required_by.extend(pkg.required_by());
                 required_by.sort_unstable();
 
-                optional_for.extend(alpm_pkg.optional_for());
+                optional_for.extend(pkg.optional_for());
                 optional_for.sort_unstable();
             }
         }
