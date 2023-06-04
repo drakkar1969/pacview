@@ -464,8 +464,12 @@ mod imp {
             // Add pkgview copy list action
             let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    let copy_text = win.pkgview_selection.iter::<PkgObject>().flatten()
-                        .map(|pkg| {
+                    let copy_text = (0..win.pkgview_selection.n_items()).into_iter()
+                        .map(|i| {
+                            let pkg = win.pkgview_selection.item(i)
+                                .and_downcast::<PkgObject>()
+                                .expect("Must be a 'PkgObject'");
+
                             format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())
                         })
                         .collect::<Vec<String>>()
