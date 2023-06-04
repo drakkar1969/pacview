@@ -147,6 +147,7 @@
                               <object class="GtkBox">
                                 <property name="hexpand">True</property>
                                 <property name="halign">end</property>
+                                <property name="margin-start">20</property>
                                 <property name="spacing">20</property>
                                 <child>
                                   <object class="GtkSearchEntry" id="files_search_entry">
@@ -163,7 +164,7 @@
                                     <child>
                                       <object class="GtkButton" id="files_open_button">
                                         <property name="icon-name">folder-open-symbolic</property>
-                                        <property name="tooltip-text">Open in file manager</property>
+                                        <property name="tooltip-text">Show selected in file manager</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>
@@ -468,7 +469,7 @@
                                 <child>
                                   <object class="GtkButton" id="cache_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
-                                    <property name="tooltip-text">Open in file manager</property>
+                                    <property name="tooltip-text">Show selected in file manager</property>
                                     <style>
                                       <class name="flat"/>
                                       <class name="circular"/>
@@ -563,7 +564,7 @@
                                 <child>
                                   <object class="GtkButton" id="backup_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
-                                    <property name="tooltip-text">Open in file manager</property>
+                                    <property name="tooltip-text">Show selected in file manager</property>
                                     <style>
                                       <class name="flat"/>
                                       <class name="circular"/>

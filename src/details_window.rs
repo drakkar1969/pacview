@@ -432,9 +432,15 @@ impl DetailsWindow {
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
 
+        // Populate files list
+        let files = self.pkg().files();
+        let files_len = files.len();
+
+        imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+
         // Bind files count to files header label
         imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(|_, n_items: u32| Some(format!("Files ({})", n_items)))
+            .transform_to(move |_, n_items: u32| Some(format!("Files ({} of {})", n_items, files_len)))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -448,11 +454,6 @@ impl DetailsWindow {
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-        // Populate files list
-        let files = self.pkg().files();
-
-        imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
     }
 
     //-----------------------------------
@@ -561,7 +562,7 @@ impl DetailsWindow {
         // Set cache header label
         let n_files = imp.cache_selection.n_items();
 
-        imp.cache_header_label.set_label(&format!("Cache ({})", n_files));
+        imp.cache_header_label.set_label(&format!("Cache Files ({})", n_files));
 
         // Set open/copy button states
         imp.cache_open_button.set_sensitive(n_files > 0);
@@ -620,8 +621,8 @@ impl DetailsWindow {
                     // Convert MD5 hash to string
                     let file_hash = format!("{:x}", u8_hash);
 
-                    status_icon = if file_hash == hash {"backup-unchanged"} else {"backup-changed"};
-                    status = if file_hash == hash {"unchanged"} else {"changed"};
+                    status_icon = if file_hash == hash {"backup-unmodified"} else {"backup-modified"};
+                    status = if file_hash == hash {"unmodified"} else {"modified"};
                 }
 
                 BackupObject::new(name, status_icon, status)
