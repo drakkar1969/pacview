@@ -28,6 +28,20 @@ use crate::details_window::DetailsWindow;
 use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
+// STRUCT: PacmanConfig
+//------------------------------------------------------------------------------
+#[derive(Default, Clone, Debug, PartialEq, Eq, glib::Boxed)]
+#[boxed_type(name = "PacmanConfig")]
+pub struct PacmanConfig {
+    pub default_repos: Vec<String>,
+    pub pacman_repos: Vec<String>,
+    pub root_dir: String,
+    pub db_path: String,
+    pub log_file: String,
+    pub cache_dir: String
+}
+
+//------------------------------------------------------------------------------
 // MODULE: PacViewWindow
 //------------------------------------------------------------------------------
 mod imp {
@@ -121,12 +135,10 @@ mod imp {
 
         alpm_handle: OnceCell<Alpm>,
 
-        default_repo_names: RefCell<Vec<String>>,
-        pacman_repo_names: RefCell<Vec<String>>,
-
-        pacman_config: RefCell<pacmanconf::Config>,
-
         package_list: RefCell<Vec<PkgObject>>,
+
+        #[property(get, set)]
+        pacman_config: RefCell<PacmanConfig>,
 
         #[property(get, set)]
         history_model: RefCell<gio::ListStore>,
@@ -473,8 +485,10 @@ mod imp {
             // Add pkgview show stats action
             let stats_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-stats")
                 .activate(clone!(@weak self as win => move |_, _, _| {
+                    let pacman_config = win.obj().pacman_config();
+                    
                     let stats_window = StatsWindow::new(
-                        &win.pacman_repo_names.borrow(),
+                        &pacman_config.pacman_repos,
                         &win.package_list.borrow()
                     );
 
@@ -573,12 +587,14 @@ mod imp {
                         .and_downcast::<PkgObject>();
 
                     if let Some(pkg) = infopane_pkg {
+                        let pacman_config = obj.pacman_config();
+
                         let details_window = DetailsWindow::new(
                             &pkg,
                             win.prefs_window.custom_font(),
                             &win.prefs_window.monospace_font(),
-                            &win.pacman_config.borrow().log_file,
-                            &win.pacman_config.borrow().cache_dir[0]
+                            &pacman_config.log_file,
+                            &pacman_config.cache_dir
                         );
 
                         details_window.set_transient_for(Some(&*win.obj()));
@@ -631,25 +647,28 @@ mod imp {
         //-----------------------------------
         fn get_pacman_config(&self) {
             // Get standard repository names
-            let def_names: Vec<String> = ["core", "extra", "multilib"].map(String::from).to_vec();
-
-            self.default_repo_names.replace(def_names);
+            let default_repos: Vec<String> = ["core", "extra", "multilib"].map(String::from).to_vec();
 
             // Get pacman config
             let pacman_config = pacmanconf::Config::new().unwrap();
 
             // Get pacman repositories
-            let mut repo_list: Vec<String> = pacman_config.repos.iter()
+            let mut pacman_repos: Vec<String> = pacman_config.repos.iter()
                 .map(|r| r.name.to_string())
                 .collect();
             
-            // Add local to pacman repositories
-            repo_list.push(String::from("local"));
+            // Add 'local' to pacman repositories
+            pacman_repos.push(String::from("local"));
 
-            // Store pacman config and repositories
-            self.pacman_config.replace(pacman_config);
-
-            self.pacman_repo_names.replace(repo_list);
+            // Store pacman config
+            self.obj().set_pacman_config(PacmanConfig{
+                default_repos,
+                pacman_repos,
+                root_dir: pacman_config.root_dir,
+                db_path: pacman_config.db_path,
+                log_file: pacman_config.log_file,
+                cache_dir: pacman_config.cache_dir[0].clone()
+            });
         }
 
         //-----------------------------------
@@ -672,9 +691,7 @@ mod imp {
 
             self.repo_listbox.select_row(Some(&row));
 
-            let repo_names = self.pacman_repo_names.borrow().to_vec();
-
-            for repo in repo_names {
+            for repo in self.obj().pacman_config().pacman_repos {
                 let row = FilterRow::new("repository-symbolic", &titlecase(&repo), &repo.to_lowercase(), PkgFlags::default());
 
                 self.repo_listbox.append(&row);
@@ -709,19 +726,16 @@ mod imp {
         fn load_packages_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<(Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
 
-            let root_dir = self.pacman_config.borrow().root_dir.to_string();
-            let db_path = self.pacman_config.borrow().db_path.to_string();
-
-            let repo_names = self.pacman_repo_names.borrow().to_vec();
+            let pacman_config = self.obj().pacman_config();
 
             thread::spawn(move || {
-                let handle = Alpm::new(root_dir, db_path).unwrap();
+                let handle = Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
 
                 let localdb = handle.localdb();
 
                 let mut data_list: Vec<PkgData> = vec![];
 
-                for repo in repo_names {
+                for repo in pacman_config.pacman_repos {
                     if let Ok(db) = handle.register_syncdb(repo, SigLevel::DATABASE_OPTIONAL) {
                         data_list.extend(db.pkgs().iter()
                             .map(|syncpkg| {
@@ -1076,7 +1090,9 @@ mod imp {
         // Infopane package display functions
         //-----------------------------------
         fn infopane_display_package(&self, pkg: Option<&PkgObject>) {
-            let hist_sel = self.obj().history_selection();
+            let obj = self.obj();
+
+            let hist_sel = obj.history_selection();
 
             // Set infopane toolbar visibility
             self.infopane_toolbar.set_visible(pkg.is_some());
@@ -1113,7 +1129,7 @@ mod imp {
                 // Package URL
                 let mut url = String::from("None");
 
-                if self.default_repo_names.borrow().contains(&pkg.repo_show()) {
+                if obj.pacman_config().default_repos.contains(&pkg.repo_show()) {
                     url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
                 } else if &pkg.repo_show() == "aur" {
                     url = self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name()))
