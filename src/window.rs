@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::thread;
 use std::collections::HashMap;
 
@@ -36,7 +36,8 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::PacViewWindow)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -127,8 +128,10 @@ mod imp {
 
         package_list: RefCell<Vec<PkgObject>>,
 
-        history_list: RefCell<Vec<PkgObject>>,
-        history_index: Cell<usize>,
+        #[property(get, set)]
+        history_model: RefCell<gio::ListStore>,
+        #[property(get, set)]
+        history_selection: RefCell<gtk::SingleSelection>,
     }
 
     //-----------------------------------
@@ -155,6 +158,21 @@ mod imp {
     }
 
     impl ObjectImpl for PacViewWindow {
+        //-----------------------------------
+        // Default property functions
+        //-----------------------------------
+        fn properties() -> &'static [glib::ParamSpec] {
+            Self::derived_properties()
+        }
+
+        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
+            self.derived_set_property(id, value, pspec)
+        }
+
+        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
+            self.derived_property(id, pspec)
+        }
+
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -551,7 +569,10 @@ mod imp {
             // Add info pane show details action
             let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
-                    if let Some(pkg) = win.infopane_pkg() {
+                    let infopane_pkg = obj.history_selection().selected_item()
+                        .and_downcast::<PkgObject>();
+
+                    if let Some(pkg) = infopane_pkg {
                         let details_window = DetailsWindow::new(
                             &pkg,
                             win.prefs_window.custom_font(),
@@ -573,6 +594,10 @@ mod imp {
             obj.insert_action_group("info", Some(&infopane_group));
 
             infopane_group.add_action_entries([prev_action, next_action, details_action]);
+
+            // Initialize history model/selection
+            obj.set_history_model(gio::ListStore::new(PkgObject::static_type()));
+            obj.set_history_selection(gtk::SingleSelection::new(Some(obj.history_model())));
         }
 
         //-----------------------------------
@@ -775,8 +800,11 @@ mod imp {
                         pkg.set_repo_show("aur");
 
                         let infopane_model = win.infopane_model.get();
-            
-                        if win.infopane_pkg().is_some() && win.infopane_pkg().unwrap() == *pkg {
+
+                        let infopane_pkg = win.obj().history_selection().selected_item()
+                            .and_downcast::<PkgObject>();
+
+                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == *pkg {
                             for prop in infopane_model.iter::<PropObject>().flatten() {
                                 if prop.label() == "Package URL" {
                                     prop.set_value(win.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())));
@@ -863,7 +891,10 @@ mod imp {
 
                         let infopane_model = win.infopane_model.get();
 
-                        if win.infopane_pkg().is_some() && win.infopane_pkg().unwrap() == *pkg {
+                        let infopane_pkg = win.obj().history_selection().selected_item()
+                            .and_downcast::<PkgObject>();
+
+                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == *pkg {
                             for prop in infopane_model.iter::<PropObject>().flatten() {
                                 if prop.label() == "Version" {
                                     prop.set_value(pkg.version());
@@ -1013,20 +1044,17 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_package_selected(&self) {
-            if let Some(item) = self.pkgview_selection.selected_item() {
-                let pkg = item
-                    .downcast::<PkgObject>()
-                    .expect("Must be a 'PkgObject'");
+            let hist_model = self.obj().history_model();
 
-                self.history_list.replace(vec![pkg.clone()]);
-                self.history_index.replace(0);
+            hist_model.remove_all();
 
-                self.infopane_display_package(Some(&pkg));
-            } else {
-                self.history_list.replace(vec![]);
-                self.history_index.replace(0);
+            let pkg = self.pkgview_selection.selected_item()
+                .and_downcast::<PkgObject>();
 
-                self.infopane_display_package(None);
+            self.infopane_display_package(pkg.as_ref());
+
+            if let Some(pkg) = pkg {
+                hist_model.append(&pkg);
             }
         }
 
@@ -1045,29 +1073,27 @@ mod imp {
         }
 
         //-----------------------------------
-        // Infopane get package function
-        //-----------------------------------
-        fn infopane_pkg(&self) -> Option<PkgObject> {
-            self.history_list.borrow().get(self.history_index.get()).cloned()
-        }
-
-        //-----------------------------------
         // Infopane package display functions
         //-----------------------------------
         fn infopane_display_package(&self, pkg: Option<&PkgObject>) {
-            let hlist = self.history_list.borrow();
-            let hindex = self.history_index.get();
+            let hist_sel = self.obj().history_selection();
 
+            // Set infopane toolbar visibility
             self.infopane_toolbar.set_visible(pkg.is_some());
 
-            self.infopane_navbutton_box.set_visible(hlist.len() > 1);
-
-            self.infopane_prev_button.set_sensitive(hindex > 0);
-            self.infopane_next_button.set_sensitive(hlist.len() > 0 && hindex < hlist.len() - 1);
-
+            // Clear infopane
             self.infopane_model.remove_all();
 
+            // If package is not none, display it
             if let Some(pkg) = pkg {
+                // Set infopane previous/next box visibility
+                self.infopane_navbutton_box.set_visible(hist_sel.n_items() > 1);
+
+                // Set infopane prev/next button states
+                self.infopane_prev_button.set_sensitive(hist_sel.selected() > 0);
+                self.infopane_next_button.set_sensitive(hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1);
+
+                // Get package required by and optional for
                 let handle = self.alpm_handle.get().unwrap();
 
                 let (required_by, optional_for) = pkg.compute_requirements(handle);
@@ -1215,31 +1241,29 @@ mod imp {
         }
 
         fn infopane_display_prev(&self) {
-            let hlist = self.history_list.borrow();
-            let mut hindex = self.history_index.get();
+            let hist_sel = self.obj().history_selection();
 
-            if hindex > 0 {
-                hindex -= 1;
+            let hist_index = hist_sel.selected();
 
-                if let Some(pkg) = hlist.get(hindex) {
-                    self.history_index.replace(hindex);
+            if hist_index > 0 {
+                hist_sel.set_selected(hist_index - 1);
 
-                    self.infopane_display_package(Some(pkg));
+                if let Some(pkg) = hist_sel.selected_item().and_downcast::<PkgObject>() {
+                    self.infopane_display_package(Some(&pkg));
                 }
             }
         }
 
         fn infopane_display_next(&self) {
-            let hlist = self.history_list.borrow();
-            let mut hindex = self.history_index.get();
+            let hist_sel = self.obj().history_selection();
 
-            if hlist.len() > 0 && hindex < hlist.len() - 1 {
-                hindex += 1;
+            let hist_index = hist_sel.selected();
 
-                if let Some(pkg) = hlist.get(hindex) {
-                    self.history_index.replace(hindex);
+            if hist_sel.n_items() > 0 && hist_index < hist_sel.n_items() - 1 {
+                hist_sel.set_selected(hist_index + 1);
 
-                    self.infopane_display_package(Some(pkg));
+                if let Some(pkg) = hist_sel.selected_item().and_downcast::<PkgObject>() {
+                    self.infopane_display_package(Some(&pkg));
                 }
             }
         }
@@ -1341,50 +1365,54 @@ mod imp {
                     if let Some(pkg_name) = url.domain() {
                         let pkg_list = self.package_list.borrow();
 
+                        // Find link package by name
                         let mut new_pkg = pkg_list.iter().find(|pkg| pkg.name() == pkg_name);
 
+                        // If link package is none, find by provides
                         if new_pkg.is_none() {
                             new_pkg = pkg_list.iter().find(|pkg| {
                                 pkg.provides().iter().any(|s| s.contains(&pkg_name))
                             });
                         }
 
+                        // If link package found
                         if let Some(new_pkg) = new_pkg {
-                            let mut hlist = self.history_list.borrow().to_vec();
-                            let mut hindex = self.history_index.get();
+                            let obj = self.obj();
 
-                            let i = hlist.iter().position(|pkg| pkg.name() == new_pkg.name());
+                            let hist_model = obj.history_model();
+                            let hist_sel = obj.history_selection();
 
-                            if let Some(i) = i {
-                                if i != hindex {
-                                    self.history_index.replace(i);
-
-                                    self.infopane_display_package(Some(new_pkg));
-                                }
+                            // If link package is in infopane history, select it
+                            if let Some(i) = hist_model.find(new_pkg) {
+                                hist_sel.set_selected(i);
                             } else {
-                                if hlist.len() > 0 {
-                                    hindex +=1;
+                                // If link package is not in history, get current history package
+                                let hist_index = hist_sel.selected();
 
-                                    hlist.drain(hindex..);
+                                // If history package is not the last one in history, truncate history list
+                                if hist_index < hist_model.n_items() - 1 {
+                                    hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
                                 }
 
-                                hlist.push(new_pkg.clone());
+                                // Add link package to history
+                                hist_model.append(new_pkg);
 
-                                self.history_list.replace(hlist);
-                                self.history_index.replace(hindex);
-
-                                self.infopane_display_package(Some(new_pkg));
+                                // Update history selection to link package
+                                hist_sel.set_selected(hist_index + 1);
                             }
+
+                            // Display link package
+                            self.infopane_display_package(Some(new_pkg));
                         }
                     }
 
-                    gtk::Inhibit(true)
-                } else {
-                    gtk::Inhibit(false)
-                }
-            } else {
-                gtk::Inhibit(true)
+                    // Link handled
+                    return gtk::Inhibit(true)
+                } 
             }
+
+            // Link not handled (use default handler)
+            gtk::Inhibit(false)
         }
     }
 }
