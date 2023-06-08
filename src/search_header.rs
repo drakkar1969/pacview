@@ -47,42 +47,47 @@ mod imp {
         pub stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub title_widget: TemplateChild<adw::WindowTitle>,
+
         #[template_child]
-        pub search_entry: TemplateChild<gtk::SearchEntry>,
+        pub search_text: TemplateChild<gtk::Text>,
         #[template_child]
-        pub searchtag_box: TemplateChild<gtk::Box>,
+        pub search_buffer: TemplateChild<gtk::EntryBuffer>,
+
         #[template_child]
-        pub searchtag_name: TemplateChild<SearchTag>,
+        pub tag_box: TemplateChild<gtk::Box>,
         #[template_child]
-        pub searchtag_desc: TemplateChild<SearchTag>,
+        pub tag_name: TemplateChild<SearchTag>,
         #[template_child]
-        pub searchtag_group: TemplateChild<SearchTag>,
+        pub tag_desc: TemplateChild<SearchTag>,
         #[template_child]
-        pub searchtag_deps: TemplateChild<SearchTag>,
+        pub tag_group: TemplateChild<SearchTag>,
         #[template_child]
-        pub searchtag_optdeps: TemplateChild<SearchTag>,
+        pub tag_deps: TemplateChild<SearchTag>,
         #[template_child]
-        pub searchtag_provides: TemplateChild<SearchTag>,
+        pub tag_optdeps: TemplateChild<SearchTag>,
         #[template_child]
-        pub searchtag_files: TemplateChild<SearchTag>,
+        pub tag_provides: TemplateChild<SearchTag>,
+        #[template_child]
+        pub tag_files: TemplateChild<SearchTag>,
         #[template_child]
 
-        pub searchtag_all: TemplateChild<SearchTag>,
+        pub tag_all: TemplateChild<SearchTag>,
         #[template_child]
-        pub searchtag_any: TemplateChild<SearchTag>,
+        pub tag_any: TemplateChild<SearchTag>,
         #[template_child]
-        pub searchtag_exact: TemplateChild<SearchTag>,
-        #[template_child]
+        pub tag_exact: TemplateChild<SearchTag>,
 
-        pub filter_popover: TemplateChild<gtk::PopoverMenu>,
+        #[template_child]
+        pub clear_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
         title: RefCell<Option<String>>,
-        #[property(set = Self::set_key_capture_widget)]
-        _key_capture_widget: RefCell<Option<gtk::Widget>>,
 
         #[property(get, set)]
         active: Cell<bool>,
+
+        #[property(get, set, builder(SearchMode::default()))]
+        mode: Cell<SearchMode>,
 
         #[property(get, set)]
         by_name: Cell<bool>,
@@ -99,9 +104,6 @@ mod imp {
         #[property(get, set)]
         by_files: Cell<bool>,
 
-        #[property(get, set, builder(SearchMode::default()))]
-        mode: Cell<SearchMode>,
-
         #[property(get, set)]
         block_notify: Cell<bool>,
     }
@@ -113,7 +115,7 @@ mod imp {
     impl ObjectSubclass for SearchHeader {
         const NAME: &'static str = "SearchHeader";
         type Type = super::SearchHeader;
-        type ParentType = gtk::Box;
+        type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
             SearchTag::static_type();
@@ -121,6 +123,7 @@ mod imp {
 
             klass.bind_template();
             klass.bind_template_callbacks();
+            klass.set_layout_manager_type::<gtk::BoxLayout>();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -135,7 +138,7 @@ mod imp {
         fn signals() -> &'static [Signal] {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
                 vec![
-                    Signal::builder("search-changed")
+                    Signal::builder("changed")
                     .param_types([
                         String::static_type(),
                         bool::static_type(),
@@ -147,7 +150,7 @@ mod imp {
                         bool::static_type(),
                         SearchMode::static_type()])
                     .build(),
-                    Signal::builder("search-activated")
+                    Signal::builder("activated")
                     .param_types([bool::static_type()])
                     .build(),
                 ]
@@ -178,63 +181,8 @@ mod imp {
 
             let obj = self.obj();
 
-            // Position search tags
-            if let Some(widget) = self.search_entry.get().first_child() {
-                gtk::Widget::insert_after(&self.searchtag_box.get().upcast(), &self.search_entry.get(), Some(&widget));
-            }
-
             // Bind title property to title widget
             obj.bind_property("title", &self.title_widget.get(), "title")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            // Bind search by properties
-            let tag_array = [
-                self.searchtag_name.get(),
-                self.searchtag_desc.get(),
-                self.searchtag_group.get(),
-                self.searchtag_deps.get(),
-                self.searchtag_optdeps.get(),
-                self.searchtag_provides.get(),
-                self.searchtag_files.get(),
-            ];
-
-            for tag in tag_array {
-                if let Some(text) = tag.text() {
-                    let prop_name = format!("by-{}", text);
-
-                    // Connect notify signals handlers for search by properties
-                    obj.connect_notify(Some(&prop_name), move |header, _| {
-                        if !header.block_notify() {
-                            header.imp().emit_search_changed_signal();
-                        }
-                    });
-
-                    // Bind search by properties to search tag visibility
-                    obj.bind_property(&prop_name, &tag, "visible")
-                        .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                        .build();
-                }
-            }
-
-            // Connect notify signal handler for search mode property
-            obj.connect_notify(Some("mode"), move |header, _| {
-                header.imp().emit_search_changed_signal();
-            });
-
-            // Bind search mode property to search mode tag visibility
-            obj.bind_property("mode", &self.searchtag_all.get(), "visible")
-                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::All))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            obj.bind_property("mode", &self.searchtag_any.get(), "visible")
-                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Any))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            obj.bind_property("mode", &self.searchtag_exact.get(), "visible")
-                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Exact))
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
@@ -245,58 +193,109 @@ mod imp {
                 if header.active() {
                     imp.stack.set_visible_child_name("search");
 
-                    imp.search_entry.grab_focus();
+                    imp.search_text.grab_focus();
                 } else {
-                    imp.search_entry.set_text("");
+                    imp.search_text.set_text("");
 
                     imp.stack.set_visible_child_name("title");
                 }
 
-                header.emit_by_name::<()>("search-activated", &[&header.active()]);
+                header.emit_by_name::<()>("activated", &[&header.active()]);
             });
+
+            // Connect notify signal handler for search mode property
+            obj.connect_notify(Some("mode"), move |header, _| {
+                header.imp().emit_changed_signal();
+            });
+
+            // Bind search mode property to search mode tag visibility
+            obj.bind_property("mode", &self.tag_all.get(), "visible")
+                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::All))
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            obj.bind_property("mode", &self.tag_any.get(), "visible")
+                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Any))
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            obj.bind_property("mode", &self.tag_exact.get(), "visible")
+                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Exact))
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            // Bind search by properties
+            let tag_array = [
+                self.tag_name.get(),
+                self.tag_desc.get(),
+                self.tag_group.get(),
+                self.tag_deps.get(),
+                self.tag_optdeps.get(),
+                self.tag_provides.get(),
+                self.tag_files.get(),
+            ];
+
+            for tag in tag_array {
+                if let Some(text) = tag.text() {
+                    let prop_name = format!("by-{}", text);
+
+                    // Connect notify signals handlers for search by properties
+                    obj.connect_notify(Some(&prop_name), move |header, _| {
+                        if !header.block_notify() {
+                            header.imp().emit_changed_signal();
+                        }
+                    });
+
+                    // Bind search by properties to search tag visibility
+                    obj.bind_property(&prop_name, &tag, "visible")
+                        .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                        .build();
+                }
+            }
 
             // Connect notify signal handler for block notify property
             obj.connect_notify(Some("block-notify"), |header, _| {
                 if header.block_notify() == false {
-                    header.imp().emit_search_changed_signal();
+                    header.imp().emit_changed_signal();
                 }
             });
+
+            // Bind search text to clear button visibility
+            self.search_buffer.bind_property("text", &self.clear_button.get(), "visible")
+                .transform_to(|_, text: &str| Some(text != ""))
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
         }
     }
 
     impl WidgetImpl for SearchHeader {}
-    impl BoxImpl for SearchHeader {}
 
     #[gtk::template_callbacks]
     impl SearchHeader {
         //-----------------------------------
-        // Property getters/setters
+        // Search buffer signal handler
         //-----------------------------------
-        fn set_key_capture_widget(&self, widget: gtk::Widget) {
-            self.search_entry.set_key_capture_widget(Some(&widget));
+        #[template_callback]
+        fn on_text_changed(&self) {
+            self.emit_changed_signal();
         }
 
         //-----------------------------------
-        // Search entry signal handlers
+        // Clear button signal handler
         //-----------------------------------
         #[template_callback]
-        fn on_search_started(&self) {
-            self.obj().set_active(true);
-        }
-
-        #[template_callback]
-        fn on_search_changed(&self) {
-            self.emit_search_changed_signal();
+        fn on_clear_button_clicked(&self) {
+            self.search_buffer.set_text("");
         }
 
         //-----------------------------------
         // Emit changed signal helper function
         //-----------------------------------
-        fn emit_search_changed_signal(&self) {
+        fn emit_changed_signal(&self) {
             let obj = self.obj();
 
-            obj.emit_by_name::<()>("search-changed",
-                &[&self.search_entry.text().to_string(),
+            obj.emit_by_name::<()>("changed",
+                &[&self.search_buffer.text(),
                 &obj.by_name(),
                 &obj.by_desc(),
                 &obj.by_group(),
@@ -306,14 +305,6 @@ mod imp {
                 &obj.by_files(),
                 &obj.mode()]);
         }
-    
-        //-----------------------------------
-        // Filter image signal handler
-        //-----------------------------------
-        #[template_callback]
-        fn on_filter_image_clicked(&self) {
-            self.filter_popover.popup();
-        }
     }
 }
 
@@ -322,7 +313,7 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchHeader(ObjectSubclass<imp::SearchHeader>)
-        @extends gtk::Box, gtk::Widget,
+        @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 

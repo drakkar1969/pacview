@@ -369,7 +369,7 @@ mod imp {
                 .collect();
 
             // Add select all/reset search header search by property actions
-            let selectall_action = gio::ActionEntry::builder("selectall")
+            let selectall_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("selectall")
                 .activate(clone!(@weak self as win, @strong by_prop_array => move |_, _, _| {
                     let header = &win.search_header;
 
@@ -383,7 +383,7 @@ mod imp {
                 }))
                 .build();
 
-            let reset_action = gio::ActionEntry::builder("reset")
+            let reset_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset")
                 .activate(clone!(@weak self as win, @strong by_prop_array => move |_, _, _| {
                     let header = &win.search_header;
 
@@ -403,12 +403,6 @@ mod imp {
             self.obj().insert_action_group("search", Some(&search_group));
 
             search_group.add_action_entries([search_start_action, search_stop_action, selectall_action, reset_action]);
-
-            // Add search header search by property actions
-            for prop in &by_prop_array {
-                let action = gio::PropertyAction::new(&prop.replace("by-", "toggle-"), &self.search_header.get(), prop);
-                search_group.add_action(&action);
-            }
 
             // Add search header search mode stateful action
             let mode_action = gio::SimpleAction::new_stateful("toggle-mode", Some(&String::static_variant_type()), "all".to_variant());
@@ -430,6 +424,12 @@ mod imp {
                 action.set_state(param.to_variant());
             }));
             search_group.add_action(&mode_action);
+
+            // Add search header search by property actions
+            for prop in &by_prop_array {
+                let action = gio::PropertyAction::new(&prop.replace("by-", "toggle-"), &self.search_header.get(), prop);
+                search_group.add_action(&action);
+            }
         }
 
         //-----------------------------------

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// SearchHeader template //-->
-  <template class="SearchHeader" parent="GtkBox">
+  <template class="SearchHeader" parent="GtkWidget">
     <property name="width-request">860</property>
     <property name="by-name">true</property>
     <child>
@@ -18,98 +18,107 @@
           <object class="GtkStackPage" id="search_page">
             <property name="name">search</property>
             <property name="child">
-              <object class="GtkBox" id="search_box">
-                <property name="spacing">6</property>
+              <object class="GtkBox">
+                <property name="css-name">searchheader</property>
                 <child>
-                  <object class="GtkSearchEntry" id="search_entry">
-                    <property name="hexpand">True</property>
-                    <signal name="search-started" handler="on_search_started" swapped="true"/>
-                    <signal name="search-changed" handler="on_search_changed" swapped="true"/>
+                  <object class="GtkImage">
+                    <property name="margin-start">12</property>
+                    <property name="icon-name">search-symbolic</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="tag_box">
+                    <property name="valign">center</property>
+                    <property name="margin-start">6</property>
                     <child>
-                      <object class="GtkImage" id="filter_image">
-                        <property name="margin-start">6</property>
-                        <property name="icon-name">funnel-symbolic</property>
-                        <child>
-                          <object class="GtkGestureClick">
-                            <property name="button">1</property>
-                            <signal name="pressed" handler="on_filter_image_clicked" swapped="true"/>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkPopoverMenu" id="filter_popover">
-                            <property name="menu-model">search_menu</property>
-                          </object>
-                        </child>
+                      <object class="SearchTag" id="tag_any">
+                        <property name="text">any</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkBox" id="searchtag_box">
-                        <property name="valign">center</property>
-                        <child>
-                          <object class="SearchTag" id="searchtag_any">
-                            <property name="text">any</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_all">
-                            <property name="text">all</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_exact">
-                            <property name="text">exact</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator">
-                            <property name="margin-start">3</property>
-                            <property name="margin-end">3</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_name">
-                            <property name="text">name</property>
-                            <property name="can-close">true</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_desc">
-                            <property name="text">desc</property>
-                            <property name="can-close">true</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_group">
-                            <property name="text">group</property>
-                            <property name="can-close">true</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_deps">
-                            <property name="text">deps</property>
-                            <property name="can-close">true</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_optdeps">
-                            <property name="text">optdeps</property>
-                            <property name="can-close">true</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_provides">
-                            <property name="text">provides</property>
-                            <property name="can-close">true</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="searchtag_files">
-                            <property name="text">files</property>
-                            <property name="can-close">true</property>
-                          </object>
-                        </child>
+                      <object class="SearchTag" id="tag_all">
+                        <property name="text">all</property>
                       </object>
                     </child>
+                    <child>
+                      <object class="SearchTag" id="tag_exact">
+                        <property name="text">exact</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparator">
+                        <property name="margin-start">3</property>
+                        <property name="margin-end">3</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="SearchTag" id="tag_name">
+                        <property name="text">name</property>
+                        <property name="can-close">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="SearchTag" id="tag_desc">
+                        <property name="text">desc</property>
+                        <property name="can-close">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="SearchTag" id="tag_group">
+                        <property name="text">group</property>
+                        <property name="can-close">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="SearchTag" id="tag_deps">
+                        <property name="text">deps</property>
+                        <property name="can-close">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="SearchTag" id="tag_optdeps">
+                        <property name="text">optdeps</property>
+                        <property name="can-close">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="SearchTag" id="tag_provides">
+                        <property name="text">provides</property>
+                        <property name="can-close">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="SearchTag" id="tag_files">
+                        <property name="text">files</property>
+                        <property name="can-close">true</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkText" id="search_text">
+                    <property name="hexpand">true</property>
+                    <property name="margin-start">6</property>
+                    <property name="buffer">
+                      <object class="GtkEntryBuffer" id="search_buffer">
+                        <signal name="notify::text" handler="on_text_changed" swapped="true"/>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="clear_button">
+                    <property name="can-focus">false</property>
+                    <property name="margin-start">6</property>
+                    <property name="icon-name">edit-clear-symbolic</property>
+                    <signal name="clicked" handler="on_clear_button_clicked" swapped="true"/>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkMenuButton" id="filter_button">
+                    <property name="margin-end">6</property>
+                    <property name="icon-name">funnel-symbolic</property>
+                    <property name="menu-model">search_menu</property>
                   </object>
                 </child>
               </object>
