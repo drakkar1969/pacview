@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell};
 
 use gtk::glib;
-use gtk::subclass::prelude::*;
+use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
 //------------------------------------------------------------------------------
@@ -35,7 +35,7 @@ mod imp {
     impl ObjectSubclass for SearchTag {
         const NAME: &'static str = "SearchTag";
         type Type = super::SearchTag;
-        type ParentType = gtk::Box;
+        type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -80,7 +80,7 @@ mod imp {
     }
 
     impl WidgetImpl for SearchTag {}
-    impl BoxImpl for SearchTag {}
+    impl BinImpl for SearchTag {}
 
     #[gtk::template_callbacks]
     impl SearchTag {
@@ -99,8 +99,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchTag(ObjectSubclass<imp::SearchTag>)
-        @extends gtk::Box, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl SearchTag {
