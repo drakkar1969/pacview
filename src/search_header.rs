@@ -1,11 +1,11 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::glib;
+use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 
 use glib::subclass::Signal;
-use glib::once_cell::sync::Lazy;
+use glib::{clone, once_cell::sync::Lazy};
 
 use crate::search_tag::SearchTag;
 
@@ -82,6 +82,11 @@ mod imp {
 
         #[property(get, set)]
         title: RefCell<Option<String>>,
+
+        #[property(get, set)]
+        capture_widget: RefCell<Option<gtk::Widget>>,
+        #[property(get, set)]
+        capture_controller: RefCell<Option<gtk::EventControllerKey>>,
 
         #[property(get, set)]
         active: Cell<bool>,
@@ -193,7 +198,7 @@ mod imp {
                 if header.active() {
                     imp.stack.set_visible_child_name("search");
 
-                    imp.search_text.grab_focus();
+                    imp.search_text.grab_focus_without_selecting();
                 } else {
                     imp.search_text.set_text("");
 
@@ -323,5 +328,36 @@ impl SearchHeader {
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Public set capture widget function
+    //-----------------------------------
+    pub fn set_key_capture_widget(&self, widget: &gtk::Widget) {
+        if let Some(current_widget) = self.capture_widget() {
+            current_widget.remove_controller(&self.capture_controller().unwrap());
+        }
+
+        self.set_capture_widget(widget);
+
+        let controller = gtk::EventControllerKey::new();
+
+        self.set_capture_controller(&controller);
+
+        let excl_keys = [
+            gdk::Key::Tab, gdk::Key::Caps_Lock, gdk::Key::Num_Lock, gdk::Key::F1, gdk::Key::F2, gdk::Key::F3, gdk::Key::F4, gdk::Key::F5, gdk::Key::F6, gdk::Key::F7, gdk::Key::F8, gdk::Key::F9, gdk::Key::F10, gdk::Key::F11, gdk::Key::F12, gdk::Key::BackSpace, gdk::Key::Delete, gdk::Key::KP_Delete, gdk::Key::Insert, gdk::Key::KP_Insert, gdk::Key::Shift_L, gdk::Key::Shift_R, gdk::Key::Control_L, gdk::Key::Control_R, gdk::Key::Alt_L, gdk::Key::Alt_R, gdk::Key::KP_Begin, gdk::Key::ISO_Level3_Shift
+            ];
+
+        controller.connect_key_pressed(clone!(@weak self as header => @default-return gtk::Inhibit(false), move |controller, key, _, state| {
+            if !(state.contains(gdk::ModifierType::ALT_MASK) || state.contains(gdk::ModifierType::CONTROL_MASK) || excl_keys.contains(&key)) {
+                if controller.forward(&header.imp().search_text.get()) {
+                    header.set_active(true);
+                }
+            }
+
+            gtk::Inhibit(false)
+        }));
+
+        widget.add_controller(controller);
     }
 }

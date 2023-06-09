@@ -350,6 +350,9 @@ mod imp {
         // Setup search header
         //-----------------------------------
         fn setup_search(&self) {
+            // Set key capture widget
+            self.search_header.set_key_capture_widget(&self.pkgview.upcast_ref());
+
             // Add start/stop search actions
             let search_start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
                 .activate(clone!(@weak self as win => move |_, _, _| {
