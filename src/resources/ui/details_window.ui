@@ -6,12 +6,6 @@
     <property name="default-height">650</property>
     <property name="modal">True</property>
     <property name="title"></property>
-    <child>
-      <object class="GtkEventControllerKey">
-        <property name="propagation-phase">capture</property>
-        <signal name="key-pressed" handler="on_key_pressed" swapped="true"/>
-      </object>
-    </child>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>

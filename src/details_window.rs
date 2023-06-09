@@ -7,7 +7,7 @@ use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::pango::AttrList;
-use glib::translate::IntoGlib;
+use glib::clone;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
@@ -151,6 +151,26 @@ mod imp {
         //-----------------------------------
         fn constructed(&self) {
             self.parent_constructed();
+
+            let obj = self.obj();
+
+            // Close window on ESC
+            let controller = gtk::EventControllerKey::new();
+
+            controller.set_propagation_phase(gtk::PropagationPhase::Capture);
+
+            controller.connect_key_pressed(clone!(@weak obj => @default-return gtk::Inhibit(false), move |_, key, _, state| {
+                if key == gdk::Key::Escape && state.is_empty() {
+                    obj.close();
+
+                    gtk::Inhibit(true)
+                } else {
+                    gtk::Inhibit(false)
+                }
+
+            }));
+
+            obj.add_controller(controller);
         }
     }
 
@@ -362,20 +382,6 @@ mod imp {
                 .join("\n");
 
             self.obj().clipboard().set_text(&copy_text);
-        }
-
-        //-----------------------------------
-        // Key press signal handler
-        //-----------------------------------
-        #[template_callback]
-        fn on_key_pressed(&self, key: u32, _: u32, state: gdk::ModifierType) -> bool {
-            if key == gdk::Key::Escape.into_glib() && state.is_empty() {
-                self.obj().close();
-
-                true
-            } else {
-                false
-            }
         }
     }
 }

@@ -1,7 +1,7 @@
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::translate::IntoGlib;
+use glib::clone;
 
 use titlecase::titlecase;
 
@@ -37,7 +37,6 @@ mod imp {
             StatsObject::static_type();
 
             klass.bind_template();
-            klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -45,25 +44,36 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for StatsWindow {}
+    impl ObjectImpl for StatsWindow {
+        //-----------------------------------
+        // Constructor
+        //-----------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            // Close window on ESC
+            let controller = gtk::EventControllerKey::new();
+
+            controller.connect_key_pressed(clone!(@weak obj => @default-return gtk::Inhibit(false), move |_, key, _, state| {
+                if key == gdk::Key::Escape && state.is_empty() {
+                    obj.close();
+
+                    gtk::Inhibit(true)
+                } else {
+                    gtk::Inhibit(false)
+                }
+
+            }));
+
+            obj.add_controller(controller);
+        }
+    }
+
     impl WidgetImpl for StatsWindow {}
     impl WindowImpl for StatsWindow {}
     impl AdwWindowImpl for StatsWindow {}
-
-    //-----------------------------------
-    // Key press signal handler
-    //-----------------------------------
-    #[gtk::template_callbacks]
-    impl StatsWindow {
-        #[template_callback]
-        fn on_key_pressed(&self, key: u32, _: u32, state: gdk::ModifierType) -> bool {
-            if key == gdk::Key::Escape.into_glib() && state.is_empty() {
-                self.obj().close();
-            }
-
-            true
-        }
-    }
 }
 
 //------------------------------------------------------------------------------

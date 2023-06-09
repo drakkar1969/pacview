@@ -5,11 +5,6 @@
     <property name="default-width">520</property>
     <property name="modal">True</property>
     <property name="title">Package Statistics</property>
-    <child>
-      <object class="GtkEventControllerKey">
-        <signal name="key-pressed" handler="on_key_pressed" swapped="true"/>
-      </object>
-    </child>
     <property name="content">
       <object class="GtkBox" id="window_box">
         <property name="orientation">vertical</property>
