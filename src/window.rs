@@ -1080,7 +1080,14 @@ mod imp {
             let button = self.pkgview_click_gesture.current_button();
 
             if button == gdk::BUTTON_PRIMARY {
-                self.on_package_selected();
+                let pkgview_pkg = self.pkgview_selection.selected_item()
+                    .and_downcast::<PkgObject>();
+                let infopane_pkg = self.obj().history_selection().selected_item()
+                    .and_downcast::<PkgObject>();
+
+                if pkgview_pkg != infopane_pkg {
+                    self.on_package_selected();
+                }
             } else if button == gdk::BUTTON_SECONDARY {
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
