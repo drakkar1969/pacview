@@ -144,20 +144,20 @@ mod imp {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
                 vec![
                     Signal::builder("changed")
-                    .param_types([
-                        String::static_type(),
-                        bool::static_type(),
-                        bool::static_type(),
-                        bool::static_type(),
-                        bool::static_type(),
-                        bool::static_type(),
-                        bool::static_type(),
-                        bool::static_type(),
-                        SearchMode::static_type()])
-                    .build(),
+                        .param_types([
+                            String::static_type(),
+                            bool::static_type(),
+                            bool::static_type(),
+                            bool::static_type(),
+                            bool::static_type(),
+                            bool::static_type(),
+                            bool::static_type(),
+                            bool::static_type(),
+                            SearchMode::static_type()])
+                        .build(),
                     Signal::builder("activated")
-                    .param_types([bool::static_type()])
-                    .build(),
+                        .param_types([bool::static_type()])
+                        .build(),
                 ]
             });
             SIGNALS.as_ref()
@@ -192,7 +192,7 @@ mod imp {
                 .build();
 
             // Connect notify signal handler for search active property
-            obj.connect_notify(Some("active"), |header, _| {
+            obj.connect_active_notify(|header| {
                 let imp = header.imp();
 
                 if header.active() {
@@ -209,23 +209,23 @@ mod imp {
             });
 
             // Connect notify signal handler for search mode property
-            obj.connect_notify(Some("mode"), move |header, _| {
+            obj.connect_mode_notify(|header| {
                 header.imp().emit_changed_signal();
             });
 
             // Bind search mode property to search mode tag visibility
             obj.bind_property("mode", &self.tag_all.get(), "visible")
-                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::All))
+                .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::All))
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
             obj.bind_property("mode", &self.tag_any.get(), "visible")
-                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Any))
+                .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Any))
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
             obj.bind_property("mode", &self.tag_exact.get(), "visible")
-                .transform_to(move |_, mode: SearchMode| Some(mode == SearchMode::Exact))
+                .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Exact))
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
@@ -245,7 +245,7 @@ mod imp {
                     let prop_name = format!("by-{}", text);
 
                     // Connect notify signals handlers for search by properties
-                    obj.connect_notify(Some(&prop_name), move |header, _| {
+                    obj.connect_notify(Some(&prop_name), |header, _| {
                         if !header.block_notify() {
                             header.imp().emit_changed_signal();
                         }
@@ -259,7 +259,7 @@ mod imp {
             }
 
             // Connect notify signal handler for block notify property
-            obj.connect_notify(Some("block-notify"), |header, _| {
+            obj.connect_block_notify_notify(|header| {
                 if header.block_notify() == false {
                     header.imp().emit_changed_signal();
                 }
@@ -300,15 +300,17 @@ mod imp {
             let obj = self.obj();
 
             obj.emit_by_name::<()>("changed",
-                &[&self.search_buffer.text(),
-                &obj.by_name(),
-                &obj.by_desc(),
-                &obj.by_group(),
-                &obj.by_deps(),
-                &obj.by_optdeps(),
-                &obj.by_provides(),
-                &obj.by_files(),
-                &obj.mode()]);
+                &[
+                    &self.search_buffer.text(),
+                    &obj.by_name(),
+                    &obj.by_desc(),
+                    &obj.by_group(),
+                    &obj.by_deps(),
+                    &obj.by_optdeps(),
+                    &obj.by_provides(),
+                    &obj.by_files(),
+                    &obj.mode()
+                ]);
         }
     }
 }
@@ -344,12 +346,19 @@ impl SearchHeader {
 
         self.set_capture_controller(&controller);
 
-        let excl_keys = [
-            gdk::Key::Tab, gdk::Key::Caps_Lock, gdk::Key::Num_Lock, gdk::Key::F1, gdk::Key::F2, gdk::Key::F3, gdk::Key::F4, gdk::Key::F5, gdk::Key::F6, gdk::Key::F7, gdk::Key::F8, gdk::Key::F9, gdk::Key::F10, gdk::Key::F11, gdk::Key::F12, gdk::Key::BackSpace, gdk::Key::Delete, gdk::Key::KP_Delete, gdk::Key::Insert, gdk::Key::KP_Insert, gdk::Key::Shift_L, gdk::Key::Shift_R, gdk::Key::Control_L, gdk::Key::Control_R, gdk::Key::Alt_L, gdk::Key::Alt_R, gdk::Key::KP_Begin, gdk::Key::ISO_Level3_Shift
-            ];
+        let exclude_keys = [
+            gdk::Key::Tab, gdk::Key::Caps_Lock, gdk::Key::Num_Lock, gdk::Key::F1, gdk::Key::F2,
+            gdk::Key::F3, gdk::Key::F4, gdk::Key::F5, gdk::Key::F6, gdk::Key::F7, gdk::Key::F8,
+            gdk::Key::F9, gdk::Key::F10, gdk::Key::F11, gdk::Key::F12, gdk::Key::BackSpace,
+            gdk::Key::Delete, gdk::Key::KP_Delete, gdk::Key::Insert, gdk::Key::KP_Insert,
+            gdk::Key::Shift_L, gdk::Key::Shift_R, gdk::Key::Control_L, gdk::Key::Control_R,
+            gdk::Key::Alt_L, gdk::Key::Alt_R, gdk::Key::KP_Begin, gdk::Key::ISO_Level3_Shift
+        ];
 
         controller.connect_key_pressed(clone!(@weak self as header => @default-return gtk::Inhibit(false), move |controller, key, _, state| {
-            if !(state.contains(gdk::ModifierType::ALT_MASK) || state.contains(gdk::ModifierType::CONTROL_MASK) || excl_keys.contains(&key)) {
+            if !(state.contains(gdk::ModifierType::ALT_MASK) ||
+                 state.contains(gdk::ModifierType::CONTROL_MASK) ||
+                 exclude_keys.contains(&key)) {
                 if controller.forward(&header.imp().search_text.get()) {
                     header.set_active(true);
                 }
