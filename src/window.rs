@@ -1001,11 +1001,11 @@ mod imp {
 
         #[template_callback]
         fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode) {
-            let search_term = term.to_lowercase();
-
-            if search_term == "" {
+            if term == "" {
                 self.pkgview_search_filter.unset_filter_func();
             } else {
+                let search_term = term.to_lowercase();
+
                 if mode == SearchMode::Exact {
                     self.pkgview_search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
@@ -1022,7 +1022,7 @@ mod imp {
                             by_files && pkg.files().iter().any(|s| s.to_lowercase().eq(&search_term)),
                         ];
 
-                        results.into_iter().any(|x| x)
+                        results.iter().any(|&x| x)
                     });
                 } else {
                     self.pkgview_search_filter.set_filter_func(move |item| {
@@ -1043,13 +1043,13 @@ mod imp {
                                 by_files && pkg.files().iter().any(|s| s.to_lowercase().contains(&term)),
                             ];
 
-                            results.push(term_results.into_iter().any(|x| x));
+                            results.push(term_results.iter().any(|&x| x));
                         }
 
                         if mode == SearchMode::All {
-                            results.into_iter().all(|x| x)
+                            results.iter().all(|&x| x)
                         } else {
-                            results.into_iter().any(|x| x)
+                            results.iter().any(|&x| x)
                         }
                     });
                 }
