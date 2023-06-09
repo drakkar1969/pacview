@@ -1,6 +1,7 @@
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+use glib::translate::IntoGlib;
 
 use titlecase::titlecase;
 
@@ -56,7 +57,7 @@ mod imp {
     impl StatsWindow {
         #[template_callback]
         fn on_key_pressed(&self, key: u32, _: u32, state: gdk::ModifierType) -> bool {
-            if key == 65307 && state.is_empty() {
+            if key == gdk::Key::Escape.into_glib() && state.is_empty() {
                 self.obj().close();
             }
 

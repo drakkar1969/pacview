@@ -7,6 +7,7 @@ use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::pango::AttrList;
+use glib::translate::IntoGlib;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
@@ -368,7 +369,7 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_key_pressed(&self, key: u32, _: u32, state: gdk::ModifierType) -> bool {
-            if key == 65307 && state.is_empty() {
+            if key == gdk::Key::Escape.into_glib() && state.is_empty() {
                 self.obj().close();
 
                 true
