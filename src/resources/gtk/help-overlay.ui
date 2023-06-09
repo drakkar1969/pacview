@@ -172,6 +172,12 @@
                 <property name="title">Reset Search By Options</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;M</property>
+                <property name="title">Cycle Search Mode</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

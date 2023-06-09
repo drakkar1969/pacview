@@ -407,8 +407,8 @@ mod imp {
 
             search_group.add_action_entries([search_start_action, search_stop_action, selectall_action, reset_action]);
 
-            // Add search header search mode stateful action
-            let mode_action = gio::SimpleAction::new_stateful("toggle-mode", Some(&String::static_variant_type()), "all".to_variant());
+            // Add search header set search mode stateful action
+            let mode_action = gio::SimpleAction::new_stateful("set-mode", Some(&String::static_variant_type()), "all".to_variant());
             mode_action.connect_change_state(clone!(@weak self as win => move |action, param| {
                 let param = param
                     .expect("Must be a 'Variant'")
@@ -427,6 +427,27 @@ mod imp {
                 action.set_state(param.to_variant());
             }));
             search_group.add_action(&mode_action);
+
+            // Add search header cycle search mode action
+            let cycle_mode_action = gio::SimpleAction::new("cycle-mode", None);
+            cycle_mode_action.connect_activate(clone!(@weak self as win, @weak search_group => move |_, _| {
+                if let Some(mode_action) = search_group.lookup_action("set-mode") {
+                    let state = mode_action.state()
+                        .expect("Must be a 'Variant'")
+                        .get::<String>()
+                        .expect("Must be a 'String'");
+
+                    let new_state = match state.as_str() {
+                        "all" => "any",
+                        "any" => "exact",
+                        "exact" => "all",
+                        _ => unreachable!()
+                    };
+
+                    mode_action.change_state(&new_state.to_variant());
+                }
+            }));
+            search_group.add_action(&cycle_mode_action);
 
             // Add search header search by property actions
             for prop in &by_prop_array {
@@ -979,6 +1000,8 @@ mod imp {
 
                     app.set_accels_for_action("search.selectall", &["<ctrl>L"]);
                     app.set_accels_for_action("search.reset", &["<ctrl>R"]);
+
+                    app.set_accels_for_action("search.cycle-mode", &["<ctrl>M"]);
                 }
 
             } else {
@@ -995,6 +1018,8 @@ mod imp {
 
                     app.set_accels_for_action("search.selectall", &[]);
                     app.set_accels_for_action("search.reset", &[]);
+
+                    app.set_accels_for_action("search.cycle-mode", &[]);
                 }
             }
         }

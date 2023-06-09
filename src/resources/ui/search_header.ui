@@ -176,17 +176,17 @@
       <attribute name="label">Search Mode</attribute>
       <item>
         <attribute name="label">Match All Terms</attribute>
-        <attribute name="action">search.toggle-mode</attribute>
+        <attribute name="action">search.set-mode</attribute>
         <attribute name="target">all</attribute>
       </item>
       <item>
         <attribute name="label">Match Any Term</attribute>
-        <attribute name="action">search.toggle-mode</attribute>
+        <attribute name="action">search.set-mode</attribute>
         <attribute name="target">any</attribute>
       </item>
       <item>
         <attribute name="label">Exact Match</attribute>
-        <attribute name="action">search.toggle-mode</attribute>
+        <attribute name="action">search.set-mode</attribute>
         <attribute name="target">exact</attribute>
       </item>
     </section>
