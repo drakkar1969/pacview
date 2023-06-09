@@ -36,6 +36,16 @@ mod imp {
 
         #[template_child]
         pub content_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub files_button: TemplateChild<ToggleButton>,
+        #[template_child]
+        pub tree_button: TemplateChild<ToggleButton>,
+        #[template_child]
+        pub log_button: TemplateChild<ToggleButton>,
+        #[template_child]
+        pub cache_button: TemplateChild<ToggleButton>,
+        #[template_child]
+        pub backup_button: TemplateChild<ToggleButton>,
 
         #[template_child]
         pub files_header_label: TemplateChild<gtk::Label>,
@@ -406,12 +416,16 @@ impl DetailsWindow {
             .property("cache-dir", cache_dir)
             .build();
 
+        let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
+
         win.setup_banner();
-        win.setup_files();
+        win.setup_stack(installed);
+
+        if installed { win.setup_files(); }
         win.setup_tree(custom_font, monospace_font);
-        win.setup_logs(log_file);
-        win.setup_cache();
-        win.setup_backup();
+        if installed { win.setup_logs(log_file); }
+        if installed { win.setup_cache(); }
+        if installed { win.setup_backup(); }
 
         win
     }
@@ -422,6 +436,22 @@ impl DetailsWindow {
     fn setup_banner(&self) {
         // Set package name in banner
         self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=self.pkg().repo_show(), name=self.pkg().name()));
+    }
+
+    //-----------------------------------
+    // Setup stack
+    //-----------------------------------
+    fn setup_stack(&self, installed: bool) {
+        let imp = self.imp();
+
+        imp.files_button.set_sensitive(installed);
+        imp.log_button.set_sensitive(installed);
+        imp.cache_button.set_sensitive(installed);
+        imp.backup_button.set_sensitive(installed);
+
+        if !installed {
+            imp.tree_button.set_active(true);
+        }
     }
 
     //-----------------------------------
