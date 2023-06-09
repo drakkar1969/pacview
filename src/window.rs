@@ -1155,8 +1155,10 @@ mod imp {
                 }
                 // Status
                 let status = &pkg.status();
+                let status_icon = pkg.status_icon();
+
                 self.infopane_model.append(&PropObject::new(
-                    "Status", if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, Some(&pkg.status_icon())
+                    "Status", if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
                 ));
                 // Repository
                 self.infopane_model.append(&PropObject::new(
