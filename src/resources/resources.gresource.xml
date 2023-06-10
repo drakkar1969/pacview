@@ -49,6 +49,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/preferences_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>

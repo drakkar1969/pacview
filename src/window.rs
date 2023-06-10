@@ -12,7 +12,6 @@ use alpm::{Alpm, SigLevel};
 use titlecase::titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
-use url::Url;
 use raur::blocking::Raur;
 
 use crate::APP_ID;
@@ -20,8 +19,8 @@ use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
 use crate::search_header::{SearchHeader, SearchMode};
+use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
-use crate::value_row::ValueRow;
 use crate::stats_window::StatsWindow;
 use crate::preferences_window::PreferencesWindow;
 use crate::details_window::DetailsWindow;
@@ -107,21 +106,7 @@ mod imp {
         pub pkgview_groups_column: TemplateChild<gtk::ColumnViewColumn>,
 
         #[template_child]
-        pub infopane_overlay: TemplateChild<gtk::Overlay>,
-        #[template_child]
-        pub infopane_view: TemplateChild<gtk::ColumnView>,
-        #[template_child]
-        pub infopane_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub infopane_toolbar: TemplateChild<gtk::Box>,
-        #[template_child]
-        pub infopane_navbutton_box: TemplateChild<gtk::Box>,
-        #[template_child]
-        pub infopane_prev_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub infopane_next_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub infopane_empty_label: TemplateChild<gtk::Label>,
+        pub info_pane: TemplateChild<InfoPane>,
 
         #[template_child]
         pub status_label: TemplateChild<gtk::Label>,
@@ -133,17 +118,12 @@ mod imp {
 
         update_row: RefCell<FilterRow>,
 
-        alpm_handle: OnceCell<Alpm>,
+        pub alpm_handle: OnceCell<Alpm>,
 
-        package_list: RefCell<Vec<PkgObject>>,
+        pub package_list: RefCell<Vec<PkgObject>>,
 
         #[property(get, set)]
         pacman_config: RefCell<PacmanConfig>,
-
-        #[property(get, set)]
-        history_model: RefCell<gio::ListStore>,
-        #[property(get, set)]
-        history_selection: RefCell<gtk::SingleSelection>,
     }
 
     //-----------------------------------
@@ -157,8 +137,8 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             PkgObject::static_type();
-            PropObject::static_type();
             SearchHeader::static_type();
+            InfoPane::static_type();
 
             klass.bind_template();
             klass.bind_template_callbacks();
@@ -240,7 +220,7 @@ mod imp {
                 obj.set_maximized(gsettings.boolean("window-maximized"));
 
                 self.flap.set_reveal_flap(gsettings.boolean("show-sidebar"));
-                self.infopane_overlay.set_visible(gsettings.boolean("show-infopane"));
+                self.info_pane.set_visible(gsettings.boolean("show-infopane"));
                 self.pane.set_position(gsettings.int("infopane-position"));
 
                 self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
@@ -299,7 +279,7 @@ mod imp {
                 gsettings.set_boolean("window-maximized", obj.is_maximized()).unwrap();
 
                 gsettings.set_boolean("show-sidebar", self.flap.reveals_flap()).unwrap();
-                gsettings.set_boolean("show-infopane", self.infopane_overlay.is_visible()).unwrap();
+                gsettings.set_boolean("show-infopane", self.info_pane.is_visible()).unwrap();
                 gsettings.set_int("infopane-position", self.pane.position()).unwrap();
 
                 gsettings.set_string("aur-update-command", &self.prefs_window.aur_command()).unwrap();
@@ -466,7 +446,7 @@ mod imp {
             let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &self.flap.get(), "reveal-flap");
             obj.add_action(&show_sidebar_action);
 
-            let show_infopane_action = gio::PropertyAction::new("show-infopane", &self.infopane_overlay.get(), "visible");
+            let show_infopane_action = gio::PropertyAction::new("show-infopane", &self.info_pane.get(), "visible");
             obj.add_action(&show_infopane_action);
 
             // Bind search button state to search header active state
@@ -584,33 +564,26 @@ mod imp {
         fn setup_infopane(&self) {
             let obj = self.obj();
 
-            // Hide info pane header
-            if let Some(list_header) = self.infopane_view.first_child() {
-                if list_header.type_().name() == "GtkListItemWidget" {
-                    list_header.set_visible(false);
-                }
-            }
+            // Set info pane main window
+            self.info_pane.set_main_window(&*obj);
 
             // Add info pane prev/next actions
             let prev_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("previous")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    win.infopane_display_prev();
+                    win.info_pane.display_prev();
                 }))
                 .build();
             
             let next_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("next")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    win.infopane_display_next();
+                    win.info_pane.display_next();
                 }))
                 .build();
 
             // Add info pane show details action
             let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
                 .activate(clone!(@weak self as win, @weak obj => move |_, _, _| {
-                    let infopane_pkg = obj.history_selection().selected_item()
-                        .and_downcast::<PkgObject>();
-
-                    if let Some(pkg) = infopane_pkg {
+                    if let Some(pkg) = win.info_pane.pkg() {
                         let pacman_config = obj.pacman_config();
 
                         let details_window = DetailsWindow::new(
@@ -634,10 +607,6 @@ mod imp {
             obj.insert_action_group("info", Some(&infopane_group));
 
             infopane_group.add_action_entries([prev_action, next_action, details_action]);
-
-            // Initialize history model/selection
-            obj.set_history_model(gio::ListStore::new(PkgObject::static_type()));
-            obj.set_history_selection(gtk::SingleSelection::new(Some(obj.history_model())));
         }
 
         //-----------------------------------
@@ -837,15 +806,14 @@ mod imp {
                     for pkg in pkg_list.iter().filter(|&pkg| aur_list.contains(&pkg.name())) {
                         pkg.set_repo_show("aur");
 
-                        let infopane_model = win.infopane_model.get();
+                        let infopane_model = win.info_pane.imp().model.get();
 
-                        let infopane_pkg = win.obj().history_selection().selected_item()
-                            .and_downcast::<PkgObject>();
+                        let infopane_pkg = win.info_pane.pkg();
 
                         if infopane_pkg.is_some() && infopane_pkg.unwrap() == *pkg {
                             for prop in infopane_model.iter::<PropObject>().flatten() {
                                 if prop.label() == "Package URL" {
-                                    prop.set_value(win.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())));
+                                    prop.set_value(win.info_pane.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())));
                                 }
 
                                 if prop.label() == "Repository" {
@@ -927,10 +895,9 @@ mod imp {
 
                         pkg.set_has_update(true);
 
-                        let infopane_model = win.infopane_model.get();
+                        let infopane_model = win.info_pane.imp().model.get();
 
-                        let infopane_pkg = win.obj().history_selection().selected_item()
-                            .and_downcast::<PkgObject>();
+                        let infopane_pkg = win.info_pane.pkg();
 
                         if infopane_pkg.is_some() && infopane_pkg.unwrap() == *pkg {
                             for prop in infopane_model.iter::<PropObject>().flatten() {
@@ -1086,14 +1053,14 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_package_selected(&self) {
-            let hist_model = self.obj().history_model();
+            let hist_model = self.info_pane.history_model();
 
             hist_model.remove_all();
 
             let pkg = self.pkgview_selection.selected_item()
                 .and_downcast::<PkgObject>();
 
-            self.infopane_display_package(pkg.as_ref());
+            self.info_pane.display_package(pkg.as_ref());
 
             if let Some(pkg) = pkg {
                 hist_model.append(&pkg);
@@ -1104,368 +1071,12 @@ mod imp {
         fn on_pkgview_clicked(&self, _n_press: i32, x: f64, y: f64) {
             let button = self.pkgview_click_gesture.current_button();
 
-            if button == gdk::BUTTON_PRIMARY {
-                let pkgview_pkg = self.pkgview_selection.selected_item()
-                    .and_downcast::<PkgObject>();
-                let infopane_pkg = self.obj().history_selection().selected_item()
-                    .and_downcast::<PkgObject>();
-
-                if pkgview_pkg != infopane_pkg {
-                    self.on_package_selected();
-                }
-            } else if button == gdk::BUTTON_SECONDARY {
+            if button == gdk::BUTTON_SECONDARY {
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
                 self.pkgview_popover_menu.set_pointing_to(Some(&rect));
                 self.pkgview_popover_menu.popup();
             }
-        }
-
-        //-----------------------------------
-        // Infopane package display functions
-        //-----------------------------------
-        fn infopane_display_package(&self, pkg: Option<&PkgObject>) {
-            let obj = self.obj();
-
-            let hist_sel = obj.history_selection();
-
-            // Set infopane toolbar visibility
-            self.infopane_toolbar.set_visible(pkg.is_some());
-
-            // Clear infopane
-            self.infopane_model.remove_all();
-
-            // If package is not none, display it
-            if let Some(pkg) = pkg {
-                // Set infopane previous/next box visibility
-                self.infopane_navbutton_box.set_visible(hist_sel.n_items() > 1);
-
-                // Set infopane prev/next button states
-                self.infopane_prev_button.set_sensitive(hist_sel.selected() > 0);
-                self.infopane_next_button.set_sensitive(hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1);
-
-                // Get package required by and optional for
-                let handle = self.alpm_handle.get().unwrap();
-
-                let (required_by, optional_for) = pkg.compute_requirements(handle);
-
-                // Name
-                self.infopane_model.append(&PropObject::new(
-                    "Name", &format!("<b>{}</b>", pkg.name()), None
-                ));
-                // Version
-                self.infopane_model.append(&PropObject::new(
-                    "Version", &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None}
-                ));
-                // Description
-                self.infopane_model.append(&PropObject::new(
-                    "Description", &self.prop_to_esc_string(&pkg.description()), None
-                ));
-                // Package URL
-                let mut url = String::from("None");
-
-                if obj.pacman_config().default_repos.contains(&pkg.repo_show()) {
-                    url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
-                } else if &pkg.repo_show() == "aur" {
-                    url = self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name()))
-                }
-
-                self.infopane_model.append(&PropObject::new(
-                    "Package URL", &url, None
-                ));
-                // URL
-                if pkg.url() != "" {
-                    self.infopane_model.append(&PropObject::new(
-                        "URL", &self.prop_to_esc_url(&pkg.url()), None
-                    ));
-                }
-                // Licenses
-                if pkg.licenses() != "" {
-                    self.infopane_model.append(&PropObject::new(
-                        "Licenses", &self.prop_to_esc_string(&pkg.licenses()), None
-                    ));
-                }
-                // Status
-                let status = &pkg.status();
-                let status_icon = pkg.status_icon();
-
-                self.infopane_model.append(&PropObject::new(
-                    "Status", if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
-                ));
-                // Repository
-                self.infopane_model.append(&PropObject::new(
-                    "Repository", &pkg.repo_show(), None
-                ));
-                // Groups
-                if pkg.groups() != "" {
-                    self.infopane_model.append(&PropObject::new(
-                        "Groups", &pkg.groups(), None
-                    ));
-                }
-                // Provides
-                if !pkg.provides().is_empty() {
-                    self.infopane_model.append(&PropObject::new(
-                        "Provides", &self.propvec_to_wrapstring(&pkg.provides()), None
-                    ));
-                }
-                // Depends
-                self.infopane_model.append(&PropObject::new(
-                    "Dependencies ", &self.propvec_to_linkstring(&pkg.depends()), None
-                ));
-                // Optdepends
-                if !pkg.optdepends().is_empty() {
-                    self.infopane_model.append(&PropObject::new(
-                        "Optional", &self.propvec_to_linkstring(&pkg.optdepends()), None
-                    ));
-                }
-                // Required by
-                self.infopane_model.append(&PropObject::new(
-                    "Required by", &self.propvec_to_linkstring(&required_by), None
-                ));
-                // Optional for
-                if !optional_for.is_empty() {
-                    self.infopane_model.append(&PropObject::new(
-                        "Optional For", &self.propvec_to_linkstring(&optional_for), None
-                    ));
-                }
-                // Conflicts
-                if !pkg.conflicts().is_empty() {
-                    self.infopane_model.append(&PropObject::new(
-                        "Conflicts With", &self.propvec_to_linkstring(&pkg.conflicts()), None
-                    ));
-                }
-                // Replaces
-                if !pkg.replaces().is_empty() {
-                    self.infopane_model.append(&PropObject::new(
-                        "Replaces", &self.propvec_to_linkstring(&pkg.replaces()), None
-                    ));
-                }
-                // Architecture
-                if pkg.architecture() != "" {
-                    self.infopane_model.append(&PropObject::new(
-                        "Architecture", &pkg.architecture(), None
-                    ));
-                }
-                // Packager
-                if pkg.packager() != "" {
-                    self.infopane_model.append(&PropObject::new(
-                        "Packager", &self.prop_to_packager(&pkg.packager()), None
-                    ));
-                }
-                // Build date
-                self.infopane_model.append(&PropObject::new(
-                    "Build Date", &pkg.build_date_long(), None
-                ));
-                // Install date
-                if pkg.install_date() != 0 {
-                    self.infopane_model.append(&PropObject::new(
-                        "Install Date", &pkg.install_date_long(), None
-                    ));
-                }
-                // Download size
-                if pkg.download_size() != 0 {
-                    self.infopane_model.append(&PropObject::new(
-                        "Download Size", &pkg.download_size_string(), None
-                    ));
-                }
-                // Installed size
-                self.infopane_model.append(&PropObject::new(
-                    "Installed Size", &pkg.install_size_string(), None
-                ));
-                // Has script
-                self.infopane_model.append(&PropObject::new(
-                    "Install Script", if pkg.has_script() {"Yes"} else {"No"}, None
-                ));
-                // SHA256 sum
-                if pkg.sha256sum() != "" {
-                    self.infopane_model.append(&PropObject::new(
-                        "SHA256 Sum", &pkg.sha256sum(), None
-                    ));
-                }
-                // MD5 sum
-                if pkg.md5sum() != "" {
-                    self.infopane_model.append(&PropObject::new(
-                        "MD5 Sum", &pkg.md5sum(), None
-                    ));
-                }
-            }
-
-            self.infopane_empty_label.set_visible(!pkg.is_some());
-        }
-
-        fn infopane_display_prev(&self) {
-            let hist_sel = self.obj().history_selection();
-
-            let hist_index = hist_sel.selected();
-
-            if hist_index > 0 {
-                hist_sel.set_selected(hist_index - 1);
-
-                if let Some(pkg) = hist_sel.selected_item().and_downcast::<PkgObject>() {
-                    self.infopane_display_package(Some(&pkg));
-                }
-            }
-        }
-
-        fn infopane_display_next(&self) {
-            let hist_sel = self.obj().history_selection();
-
-            let hist_index = hist_sel.selected();
-
-            if hist_sel.n_items() > 0 && hist_index < hist_sel.n_items() - 1 {
-                hist_sel.set_selected(hist_index + 1);
-
-                if let Some(pkg) = hist_sel.selected_item().and_downcast::<PkgObject>() {
-                    self.infopane_display_package(Some(&pkg));
-                }
-            }
-        }
-
-        //-----------------------------------
-        // Infopane helper functions
-        //-----------------------------------
-        fn prop_to_esc_string(&self, prop: &str) -> String {
-            glib::markup_escape_text(prop).to_string()
-        }
-
-        fn prop_to_esc_url(&self, prop: &str) -> String {
-            format!("<a href=\"{url}\">{url}</a>", url=glib::markup_escape_text(prop).to_string())
-        }
-
-        fn prop_to_packager(&self, prop: &str) -> String {
-            lazy_static! {
-                static ref EXPR: Regex = Regex::new("^([^<]+)<([^>]+)>$").unwrap();
-            }
-
-            EXPR.replace_all(&prop, "$1&lt;<a href='mailto:$2'>$2</a>&gt;").to_string()
-        }
-
-        fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
-            glib::markup_escape_text(&prop_vec.join("   ")).to_string()
-        }
-
-        fn propvec_to_linkstring(&self, prop_vec: &Vec<String>) -> String {
-            if prop_vec.is_empty() {
-                String::from("None")
-            } else {
-                lazy_static! {
-                    static ref EXPR: Regex = Regex::new("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)").unwrap();
-                }
-
-                let prop_str = self.propvec_to_wrapstring(prop_vec);
-
-                EXPR.replace_all(&prop_str, "$1<a href='pkg://$2'>$2</a>").to_string()
-            }
-        }
-
-        //-----------------------------------
-        // Infopane value factory signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_infopane_setup_value(&self, item: glib::Object) {
-            let value_row = ValueRow::new();
-
-            item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .set_child(Some(&value_row));
-        }
-
-        #[template_callback]
-        fn on_infopane_bind_value(&self, item: glib::Object) {
-            let prop_obj = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .item()
-                .and_downcast::<PropObject>()
-                .expect("The item has to be a `PropObject`.");
-
-            let value_row = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .child()
-                .and_downcast::<ValueRow>()
-                .expect("The child has to be a `Box`.");
-
-            value_row.bind_properties(&prop_obj);
-
-            let label = &value_row.imp().label;
-
-            let signal = label.connect_activate_link(clone!(@weak self as win => @default-return gtk::Inhibit(true), move |_, link| win.infopane_link_handler(link)));
-
-            value_row.add_label_signal(signal);
-        }
-
-        #[template_callback]
-        fn on_infopane_unbind_value(&self, item: glib::Object) {
-            let value_row = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .child()
-                .and_downcast::<ValueRow>()
-                .expect("The child has to be a `Box`.");
-
-            value_row.unbind_properties();
-            value_row.drop_label_signal();
-        }
-
-        //-----------------------------------
-        // Infopane value label link handler
-        //-----------------------------------
-        fn infopane_link_handler(&self, link: &str) -> gtk::Inhibit {
-            if let Ok(url) = Url::parse(link) {
-                if url.scheme() == "pkg" {
-                    if let Some(pkg_name) = url.domain() {
-                        let pkg_list = self.package_list.borrow();
-
-                        // Find link package by name
-                        let mut new_pkg = pkg_list.iter().find(|pkg| pkg.name() == pkg_name);
-
-                        // If link package is none, find by provides
-                        if new_pkg.is_none() {
-                            new_pkg = pkg_list.iter().find(|pkg| {
-                                pkg.provides().iter().any(|s| s.contains(&pkg_name))
-                            });
-                        }
-
-                        // If link package found
-                        if let Some(new_pkg) = new_pkg {
-                            let obj = self.obj();
-
-                            let hist_model = obj.history_model();
-                            let hist_sel = obj.history_selection();
-
-                            // If link package is in infopane history, select it
-                            if let Some(i) = hist_model.find(new_pkg) {
-                                hist_sel.set_selected(i);
-                            } else {
-                                // If link package is not in history, get current history package
-                                let hist_index = hist_sel.selected();
-
-                                // If history package is not the last one in history, truncate history list
-                                if hist_index < hist_model.n_items() - 1 {
-                                    hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
-                                }
-
-                                // Add link package to history
-                                hist_model.append(new_pkg);
-
-                                // Update history selection to link package
-                                hist_sel.set_selected(hist_index + 1);
-                            }
-
-                            // Display link package
-                            self.infopane_display_package(Some(new_pkg));
-                        }
-                    }
-
-                    // Link handled
-                    return gtk::Inhibit(true)
-                } 
-            }
-
-            // Link not handled (use default handler)
-            gtk::Inhibit(false)
         }
     }
 }
