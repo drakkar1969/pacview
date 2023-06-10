@@ -187,14 +187,14 @@ mod imp {
 
                         let main_window = obj.main_window().unwrap();
 
-                        let pkg_list = main_window.imp().package_list.borrow();
+                        let pkg_model = main_window.imp().package_view.imp().model.get();
 
                         // Find link package by name
-                        let mut new_pkg = pkg_list.iter().find(|pkg| pkg.name() == pkg_name);
+                        let mut new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| pkg.name() == pkg_name);
 
                         // If link package is none, find by provides
                         if new_pkg.is_none() {
-                            new_pkg = pkg_list.iter().find(|pkg| {
+                            new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| {
                                 pkg.provides().iter().any(|s| s.contains(&pkg_name))
                             });
                         }
@@ -205,7 +205,7 @@ mod imp {
                             let hist_sel = obj.history_selection();
 
                             // If link package is in infopane history, select it
-                            if let Some(i) = hist_model.find(new_pkg) {
+                            if let Some(i) = hist_model.find(&new_pkg) {
                                 hist_sel.set_selected(i);
                             } else {
                                 // If link package is not in history, get current history package
@@ -217,14 +217,14 @@ mod imp {
                                 }
 
                                 // Add link package to history
-                                hist_model.append(new_pkg);
+                                hist_model.append(&new_pkg);
 
                                 // Update history selection to link package
                                 hist_sel.set_selected(hist_index + 1);
                             }
 
                             // Display link package
-                            obj.display_package(Some(new_pkg));
+                            obj.display_package(Some(&new_pkg));
                         }
                     }
 

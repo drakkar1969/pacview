@@ -89,7 +89,7 @@ impl StatsWindow {
     //-----------------------------------
     // Public new function
     //-----------------------------------
-    pub fn new(repo_names: &Vec<String>, pkg_list: &Vec<PkgObject>) -> Self {
+    pub fn new(repo_names: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
         let window: Self = glib::Object::builder().build();
 
         let imp = window.imp();
@@ -101,15 +101,15 @@ impl StatsWindow {
         // For each repository
         for repo in repo_names {
             // Find packages in repository and get count
-            let repo_list: Vec<&PkgObject> = pkg_list.into_iter()
-                .filter(|&pkg| pkg.repository() == *repo)
+            let repo_list: Vec<PkgObject> = pkg_model.iter::<PkgObject>().flatten()
+                .filter(|pkg| pkg.repository() == *repo)
                 .collect();
 
             let pcount = repo_list.len();
             total_pcount += pcount;
 
             // Find installed packages and get count + total size
-            let installed_list: Vec<&PkgObject> = repo_list.into_iter()
+            let installed_list: Vec<&PkgObject> = repo_list.iter()
                 .filter(|&pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                 .collect();
 

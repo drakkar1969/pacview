@@ -88,8 +88,6 @@ mod imp {
 
         pub alpm_handle: OnceCell<Alpm>,
 
-        pub package_list: RefCell<Vec<PkgObject>>,
-
         #[property(get, set)]
         pacman_config: RefCell<PacmanConfig>,
     }
@@ -456,7 +454,7 @@ mod imp {
                     
                     let stats_window = StatsWindow::new(
                         &pacman_config.pacman_repos,
-                        &win.package_list.borrow()
+                        &win.package_view.imp().model
                     );
 
                     stats_window.set_transient_for(Some(&*win.obj()));
@@ -725,9 +723,7 @@ mod imp {
 
                     win.alpm_handle.set(handle).unwrap_or_default();
 
-                    win.package_list.replace(pkg_list);
-
-                    win.package_view.imp().model.splice(0, win.package_view.imp().model.n_items(), &win.package_list.borrow());
+                    win.package_view.imp().model.splice(0, win.package_view.imp().model.n_items(), &pkg_list);
 
                     win.package_view.imp().stack.set_visible_child_name("view");
 
@@ -745,8 +741,8 @@ mod imp {
         fn check_aur_packages_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
 
-            let aur_params = self.package_list.borrow().iter()
-                .filter(|&pkg| pkg.repository() == "local")
+            let local_pkgs = self.package_view.imp().model.iter::<PkgObject>().flatten()
+                .filter(|pkg| pkg.repository() == "local")
                 .map(|pkg| pkg.name())
                 .collect::<Vec<String>>();
 
@@ -755,7 +751,7 @@ mod imp {
 
                 let handle = raur::blocking::Handle::new();
 
-                if let Ok(aur_pkgs) = handle.info(&aur_params) {
+                if let Ok(aur_pkgs) = handle.info(&local_pkgs) {
                     aur_list.extend(aur_pkgs.iter().map(|pkg| pkg.name.clone()));
                 }
 
@@ -766,16 +762,14 @@ mod imp {
             receiver.attach(
                 None,
                 clone!(@weak self as win => @default-return Continue(false), move |aur_list| {
-                    let pkg_list = win.package_list.borrow();
-
-                    for pkg in pkg_list.iter().filter(|&pkg| aur_list.contains(&pkg.name())) {
+                    for pkg in win.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| aur_list.contains(&pkg.name())) {
                         pkg.set_repo_show("aur");
 
                         let infopane_model = win.info_pane.imp().model.get();
 
                         let infopane_pkg = win.info_pane.pkg();
 
-                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == *pkg {
+                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
                             for prop in infopane_model.iter::<PropObject>().flatten() {
                                 if prop.label() == "Package URL" {
                                     prop.set_value(win.info_pane.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())));
@@ -848,9 +842,7 @@ mod imp {
                 None,
                 clone!(@weak self as win => @default-return Continue(false), move |(success, update_map)| {
                     // Update status of packages with updates
-                    let pkg_list = win.package_list.borrow();
-
-                    for pkg in pkg_list.iter().filter(|&pkg| update_map.contains_key(&pkg.name())) {
+                    for pkg in win.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| update_map.contains_key(&pkg.name())) {
                         pkg.set_version(update_map[&pkg.name()].to_string());
 
                         let mut flags = pkg.flags();
@@ -864,7 +856,7 @@ mod imp {
 
                         let infopane_pkg = win.info_pane.pkg();
 
-                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == *pkg {
+                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
                             for prop in infopane_model.iter::<PropObject>().flatten() {
                                 if prop.label() == "Version" {
                                     prop.set_value(pkg.version());
