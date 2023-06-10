@@ -4,6 +4,7 @@ mod search_header;
 mod search_tag;
 mod filter_row;
 mod value_row;
+mod package_view;
 mod info_pane;
 mod preferences_window;
 mod stats_window;

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::thread;
 use std::collections::HashMap;
 
-use gtk::{gio, glib, gdk};
+use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, once_cell::sync::OnceCell};
@@ -19,6 +19,7 @@ use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
 use crate::search_header::{SearchHeader, SearchMode};
+use crate::package_view::PackageView;
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
@@ -70,40 +71,7 @@ mod imp {
         pub pane: TemplateChild<gtk::Paned>,
 
         #[template_child]
-        pub pkgview_stack: TemplateChild<gtk::Stack>,
-        #[template_child]
-        pub pkgview: TemplateChild<gtk::ColumnView>,
-        #[template_child]
-        pub pkgview_click_gesture: TemplateChild<gtk::GestureClick>,
-        #[template_child]
-        pub pkgview_popover_menu: TemplateChild<gtk::PopoverMenu>,
-        #[template_child]
-        pub pkgview_selection: TemplateChild<gtk::SingleSelection>,
-        #[template_child]
-        pub pkgview_repo_filter: TemplateChild<gtk::StringFilter>,
-        #[template_child]
-        pub pkgview_status_filter: TemplateChild<gtk::CustomFilter>,
-        #[template_child]
-        pub pkgview_search_filter: TemplateChild<gtk::CustomFilter>,
-        #[template_child]
-        pub pkgview_filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
-        pub pkgview_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub pkgview_empty_label: TemplateChild<gtk::Label>,
-
-        #[template_child]
-        pub pkgview_version_column: TemplateChild<gtk::ColumnViewColumn>,
-        #[template_child]
-        pub pkgview_repository_column: TemplateChild<gtk::ColumnViewColumn>,
-        #[template_child]
-        pub pkgview_status_column: TemplateChild<gtk::ColumnViewColumn>,
-        #[template_child]
-        pub pkgview_date_column: TemplateChild<gtk::ColumnViewColumn>,
-        #[template_child]
-        pub pkgview_size_column: TemplateChild<gtk::ColumnViewColumn>,
-        #[template_child]
-        pub pkgview_groups_column: TemplateChild<gtk::ColumnViewColumn>,
+        pub package_view: TemplateChild<PackageView>,
 
         #[template_child]
         pub info_pane: TemplateChild<InfoPane>,
@@ -138,6 +106,7 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             PkgObject::static_type();
             SearchHeader::static_type();
+            PackageView::static_type();
             InfoPane::static_type();
 
             klass.bind_template();
@@ -176,7 +145,7 @@ mod imp {
 
             self.setup_search();
             self.setup_toolbar();
-            self.setup_pkgview();
+            self.setup_packageview();
             self.setup_infopane();
             self.setup_preferences();
 
@@ -233,34 +202,36 @@ mod imp {
 
                 self.prefs_window.set_default_monospace_font(default_font);
 
-                // Restore pkgview columns only if setting active
+                // Restore package view columns only if setting active
                 if self.prefs_window.remember_columns() {
                     // Get saved column IDs
                     let column_ids = gsettings.strv("view-columns");
 
+                    let columns = self.package_view.imp().view.columns();
+
                     // Iterate through column IDs
                     for (i, id) in column_ids.iter().enumerate() {
                         // If column exists with given ID, insert it at position
-                        if let Some(col) = self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
-                            self.pkgview.insert_column(i as u32, &col);
+                        if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
+                            self.package_view.imp().view.insert_column(i as u32, &col);
                         }
                     }
 
                     // Hide columns that are not in saved column IDs
-                    for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                    for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
                         if !column_ids.contains(col.id().unwrap()) {
                             col.set_visible(false);
                         }
                     }
                 }
 
-                // Get saved pkgview sort column/sort order
+                // Get saved package view sort column/sort order
                 let sort_asc = gsettings.boolean("sort-ascending");
                 let sort_col = gsettings.string("sort-column");
 
                 // Find and set sort column
-                if let Some(col) = self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == sort_col) {
-                    self.pkgview.sort_by_column(Some(&col), if sort_asc {gtk::SortType::Ascending} else {gtk::SortType::Descending});
+                if let Some(col) = self.package_view.imp().view.columns().iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == sort_col) {
+                    self.package_view.imp().view.sort_by_column(Some(&col), if sort_asc {gtk::SortType::Ascending} else {gtk::SortType::Descending});
                 }
             }
         }
@@ -288,9 +259,9 @@ mod imp {
                 gsettings.set_boolean("custom-font", self.prefs_window.custom_font()).unwrap();
                 gsettings.set_string("monospace-font", &self.prefs_window.monospace_font()).unwrap();
 
-                // Save pkgview column order if setting active
+                // Save package view column order if setting active
                 if self.prefs_window.remember_columns() {
-                    let column_ids: Vec<glib::GString> = self.pkgview.columns()
+                    let column_ids: Vec<glib::GString> = self.package_view.imp().view.columns()
                         .iter::<gtk::ColumnViewColumn>()
                         .flatten()
                         .filter_map(|col| if col.is_visible() {Some(col.id().unwrap())} else {None})
@@ -301,10 +272,10 @@ mod imp {
                     gsettings.reset("view-columns");
                 }
 
-                // Save pkgview sort column/order if setting active
+                // Save package view sort column/order if setting active
                 if self.prefs_window.remember_sort() {
-                    // Get pkgview sorter
-                    let sorter = self.pkgview.sorter()
+                    // Get package view sorter
+                    let sorter = self.package_view.imp().view.sorter()
                         .and_downcast::<gtk::ColumnViewSorter>()
                         .expect("Must be a 'ColumnViewSorter'");
 
@@ -331,7 +302,7 @@ mod imp {
         //-----------------------------------
         fn setup_search(&self) {
             // Set key capture widget
-            self.search_header.set_key_capture_widget(&self.pkgview.upcast_ref());
+            self.search_header.set_key_capture_widget(&self.package_view.imp().view.upcast_ref());
 
             // Add start/stop search actions
             let search_start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
@@ -458,26 +429,18 @@ mod imp {
         //-----------------------------------
         // Setup package column view
         //-----------------------------------
-        fn setup_pkgview(&self) {
+        fn setup_packageview(&self) {
             let obj = self.obj();
 
-            // Bind pkgview item count to empty label visibility
-            self.pkgview_filter_model.bind_property("n-items", &self.pkgview_empty_label.get(), "visible")
-                .transform_to(|_, n_items: u32| {
-                    Some(n_items == 0)
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            // Bind pkgview item count to status label text
-            self.pkgview_filter_model.bind_property("n-items", &self.status_label.get(), "label")
+            // Bind package view item count to status label text
+            self.package_view.imp().filter_model.bind_property("n-items", &self.status_label.get(), "label")
                 .transform_to(|_, n_items: u32| {
                     Some(format!("{} matching package{}", n_items, if n_items != 1 {"s"} else {""}))
                 })
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
 
-            // Add pkgview refresh action
+            // Add package view refresh action
             let refresh_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("refresh")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     win.search_header.set_active(false);
@@ -486,7 +449,7 @@ mod imp {
                 }))
                 .build();
 
-            // Add pkgview show stats action
+            // Add package view show stats action
             let stats_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-stats")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     let pacman_config = win.obj().pacman_config();
@@ -502,10 +465,10 @@ mod imp {
                 }))
                 .build();
 
-            // Add pkgview copy list action
+            // Add package view copy list action
             let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    let copy_text = win.pkgview_filter_model.iter::<glib::Object>().flatten()
+                    let copy_text = win.package_view.imp().filter_model.iter::<glib::Object>().flatten()
                         .map(|item| {
                             let pkg = item
                                 .downcast::<PkgObject>()
@@ -520,42 +483,44 @@ mod imp {
                 }))
                 .build();
 
-            // Add pkgview reset columns action
+            // Add package view reset columns action
             let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     // Get default column IDs
                     let column_ids = ["package", "version", "repository", "status", "date", "size"];
 
+                    let columns = win.package_view.imp().view.columns();
+
                     // Iterate through column IDs
                     for (i, id) in column_ids.iter().enumerate() {
                         // If column exists with given ID, insert it at position
-                        if let Some(col) = win.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
-                            win.pkgview.insert_column(i as u32, &col);
+                        if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
+                            win.package_view.imp().view.insert_column(i as u32, &col);
                         }
                     }
 
                     // Show/hide columns
-                    for col in win.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+                    for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
                         col.set_visible(column_ids.contains(&col.id().unwrap().as_str()));
                     }
                 }))
                 .build();
 
             // Add actions to view group
-            let pkgview_group = gio::SimpleActionGroup::new();
+            let view_group = gio::SimpleActionGroup::new();
 
-            obj.insert_action_group("view", Some(&pkgview_group));
+            obj.insert_action_group("view", Some(&view_group));
 
-            pkgview_group.add_action_entries([refresh_action, stats_action, copy_action, columns_action]);
+            view_group.add_action_entries([refresh_action, stats_action, copy_action, columns_action]);
 
-            // Add pkgview header menu property actions
-            for col in self.pkgview.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+            // Add package view header menu property actions
+            for col in self.package_view.imp().view.columns().iter::<gtk::ColumnViewColumn>().flatten() {
                 let col_action = gio::PropertyAction::new(&format!("show-column-{}", col.id().unwrap()), &col, "visible");
-                pkgview_group.add_action(&col_action);
+                view_group.add_action(&col_action);
             }
 
-            // Set initial focus on pkgview
-            self.pkgview.grab_focus();
+            // Set initial focus on package view
+            self.package_view.imp().view.grab_focus();
         }
 
         //-----------------------------------
@@ -762,9 +727,9 @@ mod imp {
 
                     win.package_list.replace(pkg_list);
 
-                    win.pkgview_model.splice(0, win.pkgview_model.n_items(), &win.package_list.borrow());
+                    win.package_view.imp().model.splice(0, win.package_view.imp().model.n_items(), &win.package_list.borrow());
 
-                    win.pkgview_stack.set_visible_child_name("view");
+                    win.package_view.imp().stack.set_visible_child_name("view");
 
                     win.check_aur_packages_async();
                     win.get_package_updates_async();
@@ -931,14 +896,14 @@ mod imp {
         #[template_callback]
         fn on_repo_selected(&self, row: Option<FilterRow>) {
             if let Some(row) = row {
-                self.pkgview_repo_filter.set_search(Some(&row.repo_id()));
+                self.package_view.imp().repo_filter.set_search(Some(&row.repo_id()));
             }
         }
 
         #[template_callback]
         fn on_status_selected(&self, row: Option<FilterRow>) {
             if let Some(row) = row {
-                self.pkgview_status_filter.set_filter_func(move |item| {
+                self.package_view.imp().status_filter.set_filter_func(move |item| {
                     let pkg: &PkgObject = item
                         .downcast_ref::<PkgObject>()
                         .expect("Must be a 'PkgObject'");
@@ -972,7 +937,7 @@ mod imp {
                 }
 
             } else {
-                self.pkgview.grab_focus();
+                self.package_view.imp().view.grab_focus();
 
                 if let Some(app) = &obj.application() {
                     app.set_accels_for_action("search.toggle-name", &[]);
@@ -994,12 +959,12 @@ mod imp {
         #[template_callback]
         fn on_search_changed(&self, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode) {
             if term == "" {
-                self.pkgview_search_filter.unset_filter_func();
+                self.package_view.imp().search_filter.unset_filter_func();
             } else {
                 let search_term = term.to_lowercase();
 
                 if mode == SearchMode::Exact {
-                    self.pkgview_search_filter.set_filter_func(move |item| {
+                    self.package_view.imp().search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
                             .expect("Needs to be a PkgObject");
@@ -1017,7 +982,7 @@ mod imp {
                         results.iter().any(|&x| x)
                     });
                 } else {
-                    self.pkgview_search_filter.set_filter_func(move |item| {
+                    self.package_view.imp().search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
                             .expect("Needs to be a PkgObject");
@@ -1049,33 +1014,18 @@ mod imp {
         }
 
         //-----------------------------------
-        // Pkgview signal handlers
+        // Package view signal handlers
         //-----------------------------------
         #[template_callback]
-        fn on_package_selected(&self) {
+        fn on_package_view_selected(&self, pkg: Option<PkgObject>) {
             let hist_model = self.info_pane.history_model();
 
             hist_model.remove_all();
-
-            let pkg = self.pkgview_selection.selected_item()
-                .and_downcast::<PkgObject>();
 
             self.info_pane.display_package(pkg.as_ref());
 
             if let Some(pkg) = pkg {
                 hist_model.append(&pkg);
-            }
-        }
-
-        #[template_callback]
-        fn on_pkgview_clicked(&self, _n_press: i32, x: f64, y: f64) {
-            let button = self.pkgview_click_gesture.current_button();
-
-            if button == gdk::BUTTON_SECONDARY {
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-                self.pkgview_popover_menu.set_pointing_to(Some(&rect));
-                self.pkgview_popover_menu.popup();
             }
         }
     }
