@@ -461,7 +461,7 @@ mod imp {
         fn setup_pkgview(&self) {
             let obj = self.obj();
 
-            // Bind pkgview item count to empty label visisility
+            // Bind pkgview item count to empty label visibility
             self.pkgview_filter_model.bind_property("n-items", &self.pkgview_empty_label.get(), "visible")
                 .transform_to(|_, n_items: u32| {
                     Some(n_items == 0)
@@ -505,10 +505,10 @@ mod imp {
             // Add pkgview copy list action
             let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    let copy_text = (0..win.pkgview_selection.n_items()).into_iter()
-                        .map(|i| {
-                            let pkg = win.pkgview_selection.item(i)
-                                .and_downcast::<PkgObject>()
+                    let copy_text = win.pkgview_filter_model.iter::<glib::Object>().flatten()
+                        .map(|item| {
+                            let pkg = item
+                                .downcast::<PkgObject>()
                                 .expect("Must be a 'PkgObject'");
 
                             format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())

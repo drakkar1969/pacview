@@ -79,8 +79,6 @@ mod imp {
         pub log_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub log_model: TemplateChild<gtk::StringList>,
-        #[template_child]
-        pub log_selection: TemplateChild<gtk::NoSelection>,
 
         #[template_child]
         pub cache_header_label: TemplateChild<gtk::Label>,
@@ -236,13 +234,13 @@ mod imp {
 
         #[template_callback]
         fn on_files_copy_button_clicked(&self) {
-            let copy_text = (0..self.files_selection.n_items()).into_iter()
-                .map(|i| {
-                    let item = self.files_selection.item(i)
-                        .and_downcast::<gtk::StringObject>()
+            let copy_text = self.files_selection.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let s = item
+                        .downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
-                    item.string()
+                    s.string()
                 })
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
@@ -314,13 +312,13 @@ mod imp {
         //-----------------------------------
         #[template_callback]
         fn on_log_copy_button_clicked(&self) {
-            let copy_text = (0..self.log_selection.n_items()).into_iter()
-                .map(|i| {
-                    let item = self.log_selection.item(i)
-                        .and_downcast::<gtk::StringObject>()
+            let copy_text = self.log_model.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let s = item
+                        .downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
-                    item.string()
+                    s.string()
                 })
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
@@ -347,13 +345,13 @@ mod imp {
 
         #[template_callback]
         fn on_cache_copy_button_clicked(&self) {
-            let copy_text = (0..self.cache_selection.n_items()).into_iter()
-                .map(|i| {
-                    let item = self.cache_selection.item(i)
-                        .and_downcast::<gtk::StringObject>()
+            let copy_text = self.cache_model.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let s = item
+                        .downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
-                    item.string()
+                    s.string()
                 })
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
@@ -380,13 +378,13 @@ mod imp {
 
         #[template_callback]
         fn on_backup_copy_button_clicked(&self) {
-            let copy_text = (0..self.backup_selection.n_items()).into_iter()
-                .map(|i| {
-                    let item = self.backup_selection.item(i)
-                        .and_downcast::<BackupObject>()
+            let copy_text = self.backup_model.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let bck = item
+                        .downcast::<BackupObject>()
                         .expect("Must be a 'BackupObject'");
 
-                    format!("{filename} ({status})", filename=item.filename(), status=item.status())
+                    format!("{filename} ({status})", filename=bck.filename(), status=bck.status())
                 })
                 .collect::<Vec<String>>()
                 .join("\n");
@@ -564,7 +562,7 @@ impl DetailsWindow {
         }
 
         // Set copy button state
-        let n_files = imp.log_selection.n_items();
+        let n_files = imp.log_model.n_items();
 
         imp.log_copy_button.set_sensitive(n_files > 0);
     }
@@ -587,7 +585,7 @@ impl DetailsWindow {
         imp.cache_model.splice(0, 0, &cache_lines);
 
         // Set cache header label
-        let n_files = imp.cache_selection.n_items();
+        let n_files = imp.cache_model.n_items();
 
         imp.cache_header_label.set_label(&format!("Cache Files ({})", n_files));
 
@@ -666,7 +664,7 @@ impl DetailsWindow {
         imp.backup_model.splice(0, 0, &backup_list);
 
         // Set backup header label
-        let n_files = imp.backup_selection.n_items();
+        let n_files = imp.backup_model.n_items();
 
         imp.backup_header_label.set_label(&format!("Backup Files ({})", n_files));
 
