@@ -250,16 +250,16 @@ mod imp {
             // Set key capture widget
             self.search_header.set_key_capture_widget(&self.package_view.imp().view.upcast_ref());
 
-            // Add start/stop search actions
-            let start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
+            // Add toggle/stop search actions
+            let toggle_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("toggle")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    win.search_header.set_active(true)
+                    win.search_header.set_active(!win.search_header.active());
                 }))
                 .build();
 
             let stop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("stop")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    win.search_header.set_active(false)
+                    win.search_header.set_active(false);
                 }))
                 .build();
 
@@ -349,7 +349,7 @@ mod imp {
 
             self.obj().insert_action_group("search", Some(&search_group));
 
-            search_group.add_action_entries([start_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
+            search_group.add_action_entries([toggle_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
 
             // Add search header search by-* property actions
             for prop in &by_prop_array {
