@@ -117,7 +117,7 @@ mod imp {
 
             // Set AUR image tooltip
             self.aur_image.set_tooltip_markup(Some(
-                "The command should return a list of AUR updates in the format:\n\n\
+                "The command must return a list of AUR updates in the format:\n\n\
                 <tt>package_name current_version -> new_version</tt>")
             );
         }
