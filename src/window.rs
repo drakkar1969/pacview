@@ -690,8 +690,7 @@ mod imp {
 
             let local_pkgs = self.package_view.imp().model.iter::<PkgObject>()
                 .flatten()
-                .filter(|pkg| pkg.repository() == "local")
-                .map(|pkg| pkg.name())
+                .filter_map(|pkg| if pkg.repository() == "local" {Some(pkg.name())} else {None})
                 .collect::<Vec<String>>();
 
             thread::spawn(move || {
