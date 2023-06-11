@@ -18,7 +18,7 @@
           <object class="GtkStackPage" id="search_page">
             <property name="name">search</property>
             <property name="child">
-              <object class="GtkBox">
+              <object class="GtkBox" id="search_box">
                 <property name="css-name">searchheader</property>
                 <child>
                   <object class="GtkImage">
