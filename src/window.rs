@@ -173,6 +173,8 @@ mod imp {
         fn init_gsettings(&self) {
             let gsettings = gio::Settings::new(APP_ID);
 
+            gsettings.delay();
+
             self.gsettings.set(gsettings).unwrap();
         }
 
@@ -183,19 +185,22 @@ mod imp {
             if let Some(gsettings) = self.gsettings.get() {
                 let obj = self.obj();
 
-                obj.set_default_size(gsettings.int("window-width"), gsettings.int("window-height"));
-                obj.set_maximized(gsettings.boolean("window-maximized"));
+                // Bind gsettings
+                gsettings.bind("window-width", &*obj, "default-width").build();
+                gsettings.bind("window-height", &*obj, "default-height").build();
+                gsettings.bind("window-maximized", &*obj, "maximized").build();
 
-                self.flap.set_reveal_flap(gsettings.boolean("show-sidebar"));
-                self.info_pane.set_visible(gsettings.boolean("show-infopane"));
-                self.pane.set_position(gsettings.int("infopane-position"));
+                gsettings.bind("show-sidebar", &self.flap.get(), "reveal-flap").build();
+                gsettings.bind("show-infopane", &self.info_pane.get(), "visible").build();
+                gsettings.bind("infopane-position", &self.pane.get(), "position").build();
 
-                self.prefs_window.set_aur_command(gsettings.string("aur-update-command"));
-                self.prefs_window.set_remember_columns(gsettings.boolean("remember-columns"));
-                self.prefs_window.set_remember_sort(gsettings.boolean("remember-sorting"));
-                self.prefs_window.set_custom_font(gsettings.boolean("custom-font"));
-                self.prefs_window.set_monospace_font(gsettings.string("monospace-font"));
+                gsettings.bind("aur-update-command", &self.prefs_window.get(), "aur-command").build();
+                gsettings.bind("remember-columns", &self.prefs_window.get(), "remember-columns").build();
+                gsettings.bind("remember-sorting", &self.prefs_window.get(), "remember-sort").build();
+                gsettings.bind("custom-font", &self.prefs_window.get(), "custom-font").build();
+                gsettings.bind("monospace-font", &self.prefs_window.get(), "monospace-font").build();
 
+                // Get default value for monospace font
                 let default_font = gsettings.default_value("monospace-font").unwrap().to_string().replace("'", "");
 
                 self.prefs_window.set_default_monospace_font(default_font);
@@ -215,23 +220,8 @@ mod imp {
         //-----------------------------------
         fn save_gsettings(&self) {
             if let Some(gsettings) = self.gsettings.get() {
-                let obj = self.obj();
-
-                let (width, height) = obj.default_size();
-
-                gsettings.set_int("window-width", width).unwrap();
-                gsettings.set_int("window-height", height).unwrap();
-                gsettings.set_boolean("window-maximized", obj.is_maximized()).unwrap();
-
-                gsettings.set_boolean("show-sidebar", self.flap.reveals_flap()).unwrap();
-                gsettings.set_boolean("show-infopane", self.info_pane.is_visible()).unwrap();
-                gsettings.set_int("infopane-position", self.pane.position()).unwrap();
-
-                gsettings.set_string("aur-update-command", &self.prefs_window.aur_command()).unwrap();
-                gsettings.set_boolean("remember-columns", self.prefs_window.remember_columns()).unwrap();
-                gsettings.set_boolean("remember-sorting", self.prefs_window.remember_sort()).unwrap();
-                gsettings.set_boolean("custom-font", self.prefs_window.custom_font()).unwrap();
-                gsettings.set_string("monospace-font", &self.prefs_window.monospace_font()).unwrap();
+                // Save bound gsettings
+                gsettings.apply();
 
                 // Save package view column order if setting active
                 if self.prefs_window.remember_columns() {
