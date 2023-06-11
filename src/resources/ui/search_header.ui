@@ -135,31 +135,31 @@
       <attribute name="label">Search By</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">search.toggle-name</attribute>
+        <attribute name="action">search.by-name</attribute>
       </item>
       <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">search.toggle-desc</attribute>
+        <attribute name="action">search.by-desc</attribute>
       </item>
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">search.toggle-group</attribute>
+        <attribute name="action">search.by-group</attribute>
       </item>
       <item>
         <attribute name="label">Dependencies</attribute>
-        <attribute name="action">search.toggle-deps</attribute>
+        <attribute name="action">search.by-deps</attribute>
       </item>
       <item>
         <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">search.toggle-optdeps</attribute>
+        <attribute name="action">search.by-optdeps</attribute>
       </item>
       <item>
         <attribute name="label">Provides</attribute>
-        <attribute name="action">search.toggle-provides</attribute>
+        <attribute name="action">search.by-provides</attribute>
       </item>
       <item>
         <attribute name="label">Files</attribute>
-        <attribute name="action">search.toggle-files</attribute>
+        <attribute name="action">search.by-files</attribute>
       </item>
     </section>
     <section>

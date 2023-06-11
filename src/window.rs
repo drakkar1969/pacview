@@ -325,7 +325,7 @@ mod imp {
                 .filter_map(|p| if p.name().contains("by-") {Some(p.name().to_string())} else {None})
                 .collect();
 
-            // Add select all/reset search header search by property actions
+            // Add select all/reset search header search by-* property actions
             let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("selectall")
                 .activate(clone!(@weak self as win, @strong by_prop_array => move |_, _, _| {
                     let header = &win.search_header;
@@ -361,9 +361,9 @@ mod imp {
 
             search_group.add_action_entries([start_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
 
-            // Add search header search by property actions
+            // Add search header search by-* property actions
             for prop in &by_prop_array {
-                let action = gio::PropertyAction::new(&prop.replace("by-", "toggle-"), &self.search_header.get(), prop);
+                let action = gio::PropertyAction::new(&prop, &self.search_header.get(), prop);
                 search_group.add_action(&action);
             }
         }
@@ -866,13 +866,13 @@ mod imp {
 
             if active {
                 if let Some(app) = &obj.application() {
-                    app.set_accels_for_action("search.toggle-name", &["<ctrl>1"]);
-                    app.set_accels_for_action("search.toggle-desc", &["<ctrl>2"]);
-                    app.set_accels_for_action("search.toggle-group", &["<ctrl>3"]);
-                    app.set_accels_for_action("search.toggle-deps", &["<ctrl>4"]);
-                    app.set_accels_for_action("search.toggle-optdeps", &["<ctrl>5"]);
-                    app.set_accels_for_action("search.toggle-provides", &["<ctrl>6"]);
-                    app.set_accels_for_action("search.toggle-files", &["<ctrl>7"]);
+                    app.set_accels_for_action("search.by-name", &["<ctrl>1"]);
+                    app.set_accels_for_action("search.by-desc", &["<ctrl>2"]);
+                    app.set_accels_for_action("search.by-group", &["<ctrl>3"]);
+                    app.set_accels_for_action("search.by-deps", &["<ctrl>4"]);
+                    app.set_accels_for_action("search.by-optdeps", &["<ctrl>5"]);
+                    app.set_accels_for_action("search.by-provides", &["<ctrl>6"]);
+                    app.set_accels_for_action("search.by-files", &["<ctrl>7"]);
 
                     app.set_accels_for_action("search.selectall", &["<ctrl>L"]);
                     app.set_accels_for_action("search.reset", &["<ctrl>R"]);
@@ -884,13 +884,13 @@ mod imp {
                 self.package_view.imp().view.grab_focus();
 
                 if let Some(app) = &obj.application() {
-                    app.set_accels_for_action("search.toggle-name", &[]);
-                    app.set_accels_for_action("search.toggle-desc", &[]);
-                    app.set_accels_for_action("search.toggle-group", &[]);
-                    app.set_accels_for_action("search.toggle-deps", &[]);
-                    app.set_accels_for_action("search.toggle-optdeps", &[]);
-                    app.set_accels_for_action("search.toggle-provides", &[]);
-                    app.set_accels_for_action("search.toggle-files", &[]);
+                    app.set_accels_for_action("search.by-name", &[]);
+                    app.set_accels_for_action("search.by-desc", &[]);
+                    app.set_accels_for_action("search.by-group", &[]);
+                    app.set_accels_for_action("search.by-deps", &[]);
+                    app.set_accels_for_action("search.by-optdeps", &[]);
+                    app.set_accels_for_action("search.by-provides", &[]);
+                    app.set_accels_for_action("search.by-files", &[]);
 
                     app.set_accels_for_action("search.selectall", &[]);
                     app.set_accels_for_action("search.reset", &[]);
