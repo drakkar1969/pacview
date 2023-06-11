@@ -102,10 +102,10 @@ mod imp {
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
-            PkgObject::static_type();
-            SearchHeader::static_type();
-            PackageView::static_type();
-            InfoPane::static_type();
+            PkgObject::ensure_type();
+            SearchHeader::ensure_type();
+            PackageView::ensure_type();
+            InfoPane::ensure_type();
 
             klass.bind_template();
             klass.bind_template_callbacks();

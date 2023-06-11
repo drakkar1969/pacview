@@ -123,8 +123,8 @@ mod imp {
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            SearchTag::static_type();
-            SearchMode::static_type();
+            SearchTag::ensure_type();
+            SearchMode::ensure_type();
 
             klass.bind_template();
             klass.bind_template_callbacks();

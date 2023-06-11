@@ -34,7 +34,7 @@ mod imp {
         type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
-            StatsObject::static_type();
+            StatsObject::ensure_type();
 
             klass.bind_template();
         }

@@ -126,8 +126,8 @@ mod imp {
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
-            ToggleButton::static_type();
-            BackupObject::static_type();
+            ToggleButton::ensure_type();
+            BackupObject::ensure_type();
 
             klass.bind_template();
             klass.bind_template_callbacks();

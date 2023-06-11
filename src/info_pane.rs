@@ -64,7 +64,7 @@ mod imp {
         type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
-            PropObject::static_type();
+            PropObject::ensure_type();
 
             klass.bind_template();
             klass.bind_template_callbacks();
