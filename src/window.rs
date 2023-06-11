@@ -84,12 +84,12 @@ mod imp {
 
         gsettings: OnceCell<gio::Settings>,
 
-        update_row: RefCell<FilterRow>,
-
         pub alpm_handle: OnceCell<Alpm>,
 
         #[property(get, set)]
         pacman_config: RefCell<PacmanConfig>,
+
+        update_row: RefCell<FilterRow>,
     }
 
     //-----------------------------------
@@ -424,7 +424,8 @@ mod imp {
             // Add package view copy list action
             let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    let copy_text = win.package_view.imp().filter_model.iter::<glib::Object>().flatten()
+                    let copy_text = win.package_view.imp().filter_model.iter::<glib::Object>()
+                        .flatten()
                         .map(|item| {
                             let pkg = item
                                 .downcast::<PkgObject>()
@@ -683,7 +684,8 @@ mod imp {
         fn check_aur_packages_async(&self) {
             let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
 
-            let local_pkgs = self.package_view.imp().model.iter::<PkgObject>().flatten()
+            let local_pkgs = self.package_view.imp().model.iter::<PkgObject>()
+                .flatten()
                 .filter(|pkg| pkg.repository() == "local")
                 .map(|pkg| pkg.name())
                 .collect::<Vec<String>>();
@@ -784,25 +786,27 @@ mod imp {
                 None,
                 clone!(@weak self as win => @default-return Continue(false), move |(success, update_map)| {
                     // Update status of packages with updates
-                    for pkg in win.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| update_map.contains_key(&pkg.name())) {
-                        pkg.set_version(update_map[&pkg.name()].to_string());
-
-                        let mut flags = pkg.flags();
-                        flags.set(PkgFlags::UPDATES, true);
-
-                        pkg.set_flags(flags);
-
-                        pkg.set_has_update(true);
-
-                        let infopane_model = win.info_pane.imp().model.get();
-
-                        let infopane_pkg = win.info_pane.pkg();
-
-                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
-                            for prop in infopane_model.iter::<PropObject>().flatten() {
-                                if prop.label() == "Version" {
-                                    prop.set_value(pkg.version());
-                                    prop.set_icon("pkg-update");
+                    if update_map.len() > 0 {
+                        for pkg in win.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| update_map.contains_key(&pkg.name())) {
+                            pkg.set_version(update_map[&pkg.name()].to_string());
+    
+                            let mut flags = pkg.flags();
+                            flags.set(PkgFlags::UPDATES, true);
+    
+                            pkg.set_flags(flags);
+    
+                            pkg.set_has_update(true);
+    
+                            let infopane_model = win.info_pane.imp().model.get();
+    
+                            let infopane_pkg = win.info_pane.pkg();
+    
+                            if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
+                                for prop in infopane_model.iter::<PropObject>().flatten() {
+                                    if prop.label() == "Version" {
+                                        prop.set_value(pkg.version());
+                                        prop.set_icon("pkg-update");
+                                    }
                                 }
                             }
                         }
