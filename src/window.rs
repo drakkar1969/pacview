@@ -200,37 +200,13 @@ mod imp {
 
                 self.prefs_window.set_default_monospace_font(default_font);
 
-                // Restore package view columns only if setting active
+                // Restore package view columns if setting active
                 if self.prefs_window.remember_columns() {
-                    // Get saved column IDs
-                    let column_ids = gsettings.strv("view-columns");
-
-                    let columns = self.package_view.imp().view.columns();
-
-                    // Iterate through column IDs
-                    for (i, id) in column_ids.iter().enumerate() {
-                        // If column exists with given ID, insert it at position
-                        if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
-                            self.package_view.imp().view.insert_column(i as u32, &col);
-                        }
-                    }
-
-                    // Hide columns that are not in saved column IDs
-                    for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
-                        if !column_ids.contains(col.id().unwrap()) {
-                            col.set_visible(false);
-                        }
-                    }
+                    self.package_view.set_columns(&gsettings.strv("view-columns"));
                 }
 
-                // Get saved package view sort column/sort order
-                let sort_asc = gsettings.boolean("sort-ascending");
-                let sort_col = gsettings.string("sort-column");
-
-                // Find and set sort column
-                if let Some(col) = self.package_view.imp().view.columns().iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == sort_col) {
-                    self.package_view.imp().view.sort_by_column(Some(&col), if sort_asc {gtk::SortType::Ascending} else {gtk::SortType::Descending});
-                }
+                // Restore package view sort column/sort order
+                self.package_view.set_sorting(&gsettings.string("sort-column"), gsettings.boolean("sort-ascending"));
             }
         }
 
@@ -259,32 +235,14 @@ mod imp {
 
                 // Save package view column order if setting active
                 if self.prefs_window.remember_columns() {
-                    let column_ids: Vec<glib::GString> = self.package_view.imp().view.columns()
-                        .iter::<gtk::ColumnViewColumn>()
-                        .flatten()
-                        .filter_map(|col| if col.is_visible() {Some(col.id().unwrap())} else {None})
-                        .collect();
-
-                    gsettings.set_strv("view-columns", column_ids).unwrap();
+                    gsettings.set_strv("view-columns", self.package_view.columns()).unwrap();
                 } else {
                     gsettings.reset("view-columns");
                 }
 
                 // Save package view sort column/order if setting active
                 if self.prefs_window.remember_sort() {
-                    // Get package view sorter
-                    let sorter = self.package_view.imp().view.sorter()
-                        .and_downcast::<gtk::ColumnViewSorter>()
-                        .expect("Must be a 'ColumnViewSorter'");
-
-                    // Get sort column
-                    let sort_col = sorter.primary_sort_column().map_or(
-                        glib::GString::from(""),
-                        |col| col.id().unwrap()
-                    );
-
-                    // Get sort order
-                    let sort_asc = sorter.primary_sort_order() == gtk::SortType::Ascending;
+                    let (sort_col, sort_asc) = self.package_view.sorting();
 
                     gsettings.set_string("sort-column", &sort_col).unwrap();
                     gsettings.set_boolean("sort-ascending", sort_asc).unwrap();
@@ -484,23 +442,7 @@ mod imp {
             // Add package view reset columns action
             let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
                 .activate(clone!(@weak self as win => move |_, _, _| {
-                    // Get default column IDs
-                    let column_ids = ["package", "version", "repository", "status", "date", "size"];
-
-                    let columns = win.package_view.imp().view.columns();
-
-                    // Iterate through column IDs
-                    for (i, id) in column_ids.iter().enumerate() {
-                        // If column exists with given ID, insert it at position
-                        if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
-                            win.package_view.imp().view.insert_column(i as u32, &col);
-                        }
-                    }
-
-                    // Show/hide columns
-                    for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
-                        col.set_visible(column_ids.contains(&col.id().unwrap().as_str()));
-                    }
+                    win.package_view.reset_columns();
                 }))
                 .build();
 

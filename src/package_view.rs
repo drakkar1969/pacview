@@ -137,4 +137,73 @@ impl PackageView {
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
+
+    //-----------------------------------
+    // Sort columns helper function
+    //-----------------------------------
+    fn sort_columns(&self, column_ids: &glib::StrV) {
+        let columns = self.imp().view.columns();
+
+        // Iterate through column IDs
+        for (i, id) in column_ids.iter().enumerate() {
+            // If column exists with given ID, insert it at position
+            if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
+                self.imp().view.insert_column(i as u32, &col);
+            }
+        }
+
+        // Show/hide columns
+        for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
+            col.set_visible(column_ids.contains(&col.id().unwrap()));
+        }
+    }
+
+    //-----------------------------------
+    // Public column functions
+    //-----------------------------------
+    pub fn reset_columns(&self) {
+        self.sort_columns(&["package", "version", "repository", "status", "date", "size"].into());
+    }
+
+    pub fn set_columns(&self, column_ids: &glib::StrV) {
+        self.sort_columns(column_ids);
+    }
+
+    pub fn columns(&self) -> glib::StrV {
+        // Get visible column IDs
+        self.imp().view.columns()
+            .iter::<gtk::ColumnViewColumn>()
+            .flatten()
+            .filter_map(|col| if col.is_visible() {Some(col.id().unwrap())} else {None})
+            .collect::<Vec<glib::GString>>()
+            .into()
+    }
+
+    pub fn set_sorting(&self, id: &glib::GString, ascending: bool) {
+        // Find sort column by ID
+        let col = self.imp().view.columns().iter::<gtk::ColumnViewColumn>()
+            .flatten()
+            .find(|col| col.id().unwrap() == *id);
+
+        // Set sort column/order
+        self.imp().view.sort_by_column(col.as_ref(), if ascending {gtk::SortType::Ascending} else {gtk::SortType::Descending});
+    }
+
+    pub fn sorting(&self) -> (glib::GString, bool) {
+        // Get view sorter
+        let sorter = self.imp().view.sorter()
+            .and_downcast::<gtk::ColumnViewSorter>()
+            .expect("Must be a 'ColumnViewSorter'");
+
+        // Get sort column ID
+        let sort_col = sorter.primary_sort_column().map_or(
+            glib::GString::from(""),
+            |col| col.id().unwrap()
+        );
+
+        // Get sort order
+        let sort_asc = sorter.primary_sort_order() == gtk::SortType::Ascending;
+
+        (sort_col, sort_asc)
+    }
 }
