@@ -282,17 +282,22 @@ mod imp {
                         .expect("Must be a 'Variant'")
                         .get::<String>()
                         .expect("Must be a 'String'");
-    
-                    win.search_header.set_mode(
-                        match param.as_str() {
-                            "all" => SearchMode::All,
-                            "any" => SearchMode::Any,
-                            "exact" => SearchMode::Exact,
-                            _ => unreachable!()
-                        }
-                    );
-    
-                    action.set_state(param.to_variant());
+
+                    match param.as_str() {
+                        "all" => {
+                            win.search_header.set_mode(SearchMode::All);
+                            action.set_state(param.to_variant());
+                        },
+                        "any" => {
+                            win.search_header.set_mode(SearchMode::Any);
+                            action.set_state(param.to_variant());
+                        },
+                        "exact" => {
+                            win.search_header.set_mode(SearchMode::Exact);
+                            action.set_state(param.to_variant());
+                        },
+                        _ => unreachable!()
+                    }
                 }))
                 .build();
 
@@ -304,15 +309,13 @@ mod imp {
                             .expect("Must be a 'Variant'")
                             .get::<String>()
                             .expect("Must be a 'String'");
-    
-                        let new_state = match state.as_str() {
-                            "all" => "any",
-                            "any" => "exact",
-                            "exact" => "all",
+
+                        match state.as_str() {
+                            "all" => mode_action.change_state(&"any".to_variant()),
+                            "any" => mode_action.change_state(&"exact".to_variant()),
+                            "exact" => mode_action.change_state(&"all".to_variant()),
                             _ => unreachable!()
                         };
-    
-                        mode_action.change_state(&new_state.to_variant());
                     }
                 }))
                 .build();
