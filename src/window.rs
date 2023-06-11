@@ -261,15 +261,59 @@ mod imp {
             self.search_header.set_key_capture_widget(&self.package_view.imp().view.upcast_ref());
 
             // Add start/stop search actions
-            let search_start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
+            let start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     win.search_header.set_active(true)
                 }))
                 .build();
 
-            let search_stop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("stop")
+            let stop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("stop")
                 .activate(clone!(@weak self as win => move |_, _, _| {
                     win.search_header.set_active(false)
+                }))
+                .build();
+
+            // Add search header set search mode stateful action
+            let mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode")
+                .parameter_type(Some(&String::static_variant_type()))
+                .state("all".to_variant())
+                .change_state(clone!(@weak self as win => move |_, action, param| {
+                    let param = param
+                        .expect("Must be a 'Variant'")
+                        .get::<String>()
+                        .expect("Must be a 'String'");
+    
+                    win.search_header.set_mode(
+                        match param.as_str() {
+                            "all" => SearchMode::All,
+                            "any" => SearchMode::Any,
+                            "exact" => SearchMode::Exact,
+                            _ => unreachable!()
+                        }
+                    );
+    
+                    action.set_state(param.to_variant());
+                }))
+                .build();
+
+            // Add search header cycle search mode action
+            let cycle_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
+                .activate(clone!(@weak self as win => move |group, _, _| {
+                    if let Some(mode_action) = group.lookup_action("set-mode") {
+                        let state = mode_action.state()
+                            .expect("Must be a 'Variant'")
+                            .get::<String>()
+                            .expect("Must be a 'String'");
+    
+                        let new_state = match state.as_str() {
+                            "all" => "any",
+                            "any" => "exact",
+                            "exact" => "all",
+                            _ => unreachable!()
+                        };
+    
+                        mode_action.change_state(&new_state.to_variant());
+                    }
                 }))
                 .build();
 
@@ -279,7 +323,7 @@ mod imp {
                 .collect();
 
             // Add select all/reset search header search by property actions
-            let selectall_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("selectall")
+            let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("selectall")
                 .activate(clone!(@weak self as win, @strong by_prop_array => move |_, _, _| {
                     let header = &win.search_header;
 
@@ -312,49 +356,7 @@ mod imp {
 
             self.obj().insert_action_group("search", Some(&search_group));
 
-            search_group.add_action_entries([search_start_action, search_stop_action, selectall_action, reset_action]);
-
-            // Add search header set search mode stateful action
-            let mode_action = gio::SimpleAction::new_stateful("set-mode", Some(&String::static_variant_type()), "all".to_variant());
-            mode_action.connect_change_state(clone!(@weak self as win => move |action, param| {
-                let param = param
-                    .expect("Must be a 'Variant'")
-                    .get::<String>()
-                    .expect("Must be a 'String'");
-
-                win.search_header.set_mode(
-                    match param.as_str() {
-                        "all" => SearchMode::All,
-                        "any" => SearchMode::Any,
-                        "exact" => SearchMode::Exact,
-                        _ => unreachable!()
-                    }
-                );
-
-                action.set_state(param.to_variant());
-            }));
-            search_group.add_action(&mode_action);
-
-            // Add search header cycle search mode action
-            let cycle_mode_action = gio::SimpleAction::new("cycle-mode", None);
-            cycle_mode_action.connect_activate(clone!(@weak self as win, @weak search_group => move |_, _| {
-                if let Some(mode_action) = search_group.lookup_action("set-mode") {
-                    let state = mode_action.state()
-                        .expect("Must be a 'Variant'")
-                        .get::<String>()
-                        .expect("Must be a 'String'");
-
-                    let new_state = match state.as_str() {
-                        "all" => "any",
-                        "any" => "exact",
-                        "exact" => "all",
-                        _ => unreachable!()
-                    };
-
-                    mode_action.change_state(&new_state.to_variant());
-                }
-            }));
-            search_group.add_action(&cycle_mode_action);
+            search_group.add_action_entries([start_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
 
             // Add search header search by property actions
             for prop in &by_prop_array {
@@ -455,7 +457,9 @@ mod imp {
             view_group.add_action_entries([refresh_action, stats_action, copy_action, columns_action]);
 
             // Add package view header menu property actions
-            for col in self.package_view.imp().view.columns().iter::<gtk::ColumnViewColumn>().flatten() {
+            let columns = self.package_view.imp().view.columns();
+
+            for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
                 let col_action = gio::PropertyAction::new(&format!("show-column-{}", col.id().unwrap()), &col, "visible");
                 view_group.add_action(&col_action);
             }
