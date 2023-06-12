@@ -594,7 +594,7 @@ impl PacViewWindow {
                     imp.package_view.imp().search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
-                            .expect("Needs to be a PkgObject");
+                            .expect("Must be a 'PkgObject'");
 
                         let results = [
                             by_name && pkg.name().to_lowercase().eq(&search_term),
@@ -612,7 +612,7 @@ impl PacViewWindow {
                     imp.package_view.imp().search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
-                            .expect("Needs to be a PkgObject");
+                            .expect("Must be a 'PkgObject'");
 
                         let mut results = vec![];
 

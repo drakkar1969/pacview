@@ -62,9 +62,9 @@ impl Utils {
         if date == 0 {
             String::from("")
         } else {
-            let datetime = glib::DateTime::from_unix_local(date).expect("error");
+            let datetime = glib::DateTime::from_unix_local(date).expect("Datetime from Unix error");
 
-            datetime.format(format).expect("error").to_string()
+            datetime.format(format).expect("Datetime format error").to_string()
         }
     }
 }

@@ -165,7 +165,7 @@ impl InfoPane {
 
             item
                 .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
+                .expect("Must be a 'ListItem'")
                 .set_child(Some(&value_row));
         });
 
@@ -173,17 +173,17 @@ impl InfoPane {
         imp.value_factory.connect_bind(clone!(@weak self as obj => move |_, item| {
             let prop_obj = item
                 .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
+                .expect("Must be a 'ListItem'")
                 .item()
                 .and_downcast::<PropObject>()
-                .expect("The item has to be a `PropObject`.");
+                .expect("Must be a 'PropObject'");
 
             let value_row = item
                 .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
+                .expect("Must be a 'ListItem'")
                 .child()
                 .and_downcast::<ValueRow>()
-                .expect("The child has to be a `Box`.");
+                .expect("Must be a 'ValueRow'");
 
             value_row.bind_properties(&prop_obj);
 
@@ -198,10 +198,10 @@ impl InfoPane {
         imp.value_factory.connect_unbind(|_, item| {
             let value_row = item
                 .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
+                .expect("Must be a 'ListItem'")
                 .child()
                 .and_downcast::<ValueRow>()
-                .expect("The child has to be a `Box`.");
+                .expect("Must be a 'ValueRow'");
 
             value_row.unbind_properties();
             value_row.drop_label_signal();
