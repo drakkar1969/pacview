@@ -5,6 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
+use alpm::Alpm;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
@@ -55,6 +56,8 @@ mod imp {
 
         #[property(get = Self::pkg)]
         _pkg: RefCell<Option<PkgObject>>,
+
+        pub alpm_handle: RefCell<Option<Alpm>>,
     }
 
     //-----------------------------------
@@ -291,9 +294,7 @@ impl InfoPane {
             imp.next_button.set_sensitive(hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1);
 
             // Get package required by and optional for
-            let main_window = self.main_window().unwrap();
-
-            let handle = main_window.imp().alpm_handle.borrow();
+            let handle = imp.alpm_handle.borrow();
 
             let (required_by, optional_for) = pkg.compute_requirements(&handle);
 
@@ -506,5 +507,12 @@ impl InfoPane {
 
             EXPR.replace_all(&prop_str, "$1<a href='pkg://$2'>$2</a>").to_string()
         }
+    }
+
+    //-----------------------------------
+    // Public set alpm handle function
+    //-----------------------------------
+    pub fn set_alpm_handle(&self, handle: Option<Alpm>) {
+        self.imp().alpm_handle.replace(handle);
     }
 }
