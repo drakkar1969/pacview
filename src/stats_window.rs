@@ -7,6 +7,7 @@ use titlecase::titlecase;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::stats_object::StatsObject;
+use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
 // MODULE: StatsWindow
@@ -124,7 +125,7 @@ impl StatsWindow {
                 &titlecase(repo),
                 &pcount.to_string(),
                 &icount.to_string(),
-                &PkgObject::size_to_string(isize, 2)
+                &Utils::size_to_string(isize, 2)
             ));
         }
 
@@ -133,7 +134,7 @@ impl StatsWindow {
             "<b>Total</b>",
             &format!("<b>{}</b>", total_pcount.to_string()),
             &format!("<b>{}</b>", total_icount.to_string()),
-            &format!("<b>{}</b>", &PkgObject::size_to_string(total_isize, 2))
+            &format!("<b>{}</b>", &Utils::size_to_string(total_isize, 2))
         ));
 
         window
