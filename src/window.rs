@@ -544,11 +544,9 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Search header activated signal
-        imp.search_header.connect_closure("activated", false, closure_local!(@weak-allow-none self as obj => move |_: SearchHeader, active: bool| {
-            let win = obj.unwrap();
-
+        imp.search_header.connect_closure("activated", false, closure_local!(@watch self as obj => move |_: SearchHeader, active: bool| {
             if active {
-                if let Some(app) = win.application() {
+                if let Some(app) = obj.application() {
                     app.set_accels_for_action("search.by-name", &["<ctrl>1"]);
                     app.set_accels_for_action("search.by-desc", &["<ctrl>2"]);
                     app.set_accels_for_action("search.by-group", &["<ctrl>3"]);
@@ -564,9 +562,9 @@ impl PacViewWindow {
                 }
 
             } else {
-                win.imp().package_view.imp().view.grab_focus();
+                obj.imp().package_view.imp().view.grab_focus();
 
-                if let Some(app) = win.application() {
+                if let Some(app) = obj.application() {
                     app.set_accels_for_action("search.by-name", &[]);
                     app.set_accels_for_action("search.by-desc", &[]);
                     app.set_accels_for_action("search.by-group", &[]);
@@ -584,10 +582,8 @@ impl PacViewWindow {
         }));
 
         // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(@weak-allow-none self as obj => move |_: SearchHeader, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode| {
-            let win = obj.unwrap();
-
-            let imp = win.imp();
+        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |_: SearchHeader, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode| {
+            let imp = obj.imp();
 
             if term == "" {
                 imp.package_view.imp().search_filter.unset_filter_func();
@@ -675,8 +671,8 @@ impl PacViewWindow {
         }));
 
         // Package view selected signal
-        imp.package_view.connect_closure("selected", false, closure_local!(@weak-allow-none imp => move |_: PackageView, pkg: Option<PkgObject>| {
-            let imp = imp.unwrap();
+        imp.package_view.connect_closure("selected", false, closure_local!(@watch self as obj => move |_: PackageView, pkg: Option<PkgObject>| {
+            let imp = obj.imp();
 
             let hist_model = imp.info_pane.history_model();
 
