@@ -48,11 +48,10 @@ mod imp {
     impl ObjectImpl for ValueRow {}
     impl WidgetImpl for ValueRow {}
     impl BoxImpl for ValueRow {}
-    impl ValueRow {}
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: ValueRow
+// IMPLEMENTATION: ValueRow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ValueRow(ObjectSubclass<imp::ValueRow>)
@@ -62,7 +61,7 @@ glib::wrapper! {
 
 impl ValueRow {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()

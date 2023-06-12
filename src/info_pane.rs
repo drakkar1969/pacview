@@ -32,6 +32,9 @@ mod imp {
         #[template_child]
         pub model: TemplateChild<gio::ListStore>,
         #[template_child]
+        pub value_factory: TemplateChild<gtk::SignalListItemFactory>,
+        #[template_child]
+
         pub toolbar: TemplateChild<gtk::Box>,
         #[template_child]
         pub navbutton_box: TemplateChild<gtk::Box>,
@@ -51,7 +54,7 @@ mod imp {
         history_selection: RefCell<gtk::SingleSelection>,
 
         #[property(get = Self::pkg)]
-        pub pkg: RefCell<Option<PkgObject>>,
+        _pkg: RefCell<Option<PkgObject>>,
     }
 
     //-----------------------------------
@@ -67,7 +70,6 @@ mod imp {
             PropObject::ensure_type();
 
             klass.bind_template();
-            klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -97,25 +99,16 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            // Hide info pane header
-            if let Some(list_header) = self.view.first_child() {
-                if list_header.type_().name() == "GtkListItemWidget" {
-                    list_header.set_visible(false);
-                }
-            }
-
-            // Initialize history model/selection
             let obj = self.obj();
 
-            obj.set_history_model(gio::ListStore::new(PkgObject::static_type()));
-            obj.set_history_selection(gtk::SingleSelection::new(Some(obj.history_model())));
+            obj.setup_widgets();
+            obj.setup_signals();
         }
     }
 
     impl WidgetImpl for InfoPane {}
     impl BinImpl for InfoPane {}
 
-    #[gtk::template_callbacks]
     impl InfoPane {
         //-----------------------------------
         // Custom property getters
@@ -124,22 +117,60 @@ mod imp {
             self.obj().history_selection().selected_item()
                 .and_downcast::<PkgObject>()
         }
+    }
+}
 
-        //-----------------------------------
-        // Value factory signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_setup_value(&self, item: glib::Object) {
+//------------------------------------------------------------------------------
+// IMPLEMENTATION: InfoPane
+//------------------------------------------------------------------------------
+glib::wrapper! {
+    pub struct InfoPane(ObjectSubclass<imp::InfoPane>)
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+}
+
+impl InfoPane {
+    //-----------------------------------
+    // New function
+    //-----------------------------------
+    pub fn new() -> Self {
+        glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        // Hide info pane header
+        if let Some(list_header) = self.imp().view.first_child() {
+            if list_header.type_().name() == "GtkListItemWidget" {
+                list_header.set_visible(false);
+            }
+        }
+
+        // Initialize history model/selection
+        self.set_history_model(gio::ListStore::new(PkgObject::static_type()));
+        self.set_history_selection(gtk::SingleSelection::new(Some(self.history_model())));
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Value factory setup signal
+        imp.value_factory.connect_setup(|_, item| {
             let value_row = ValueRow::new();
 
             item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
                 .set_child(Some(&value_row));
-        }
+        });
 
-        #[template_callback]
-        fn on_bind_value(&self, item: glib::Object) {
+        // Value factory bind signal
+        imp.value_factory.connect_bind(clone!(@weak self as obj => move |_, item| {
             let prop_obj = item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
@@ -158,13 +189,13 @@ mod imp {
 
             let label = &value_row.imp().label;
 
-            let signal = label.connect_activate_link(clone!(@weak self as win => @default-return gtk::Inhibit(true), move |_, link| win.link_handler(link)));
+            let signal = label.connect_activate_link(clone!(@weak obj => @default-return gtk::Inhibit(true), move |_, link| obj.link_handler(link)));
 
             value_row.add_label_signal(signal);
-        }
+        }));
 
-        #[template_callback]
-        fn on_unbind_value(&self, item: glib::Object) {
+        // Value factory unbind signal
+        imp.value_factory.connect_unbind(|_, item| {
             let value_row = item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Needs to be ListItem")
@@ -174,86 +205,66 @@ mod imp {
 
             value_row.unbind_properties();
             value_row.drop_label_signal();
-        }
+        });
+    }
 
-        //-----------------------------------
-        // Value label link handler
-        //-----------------------------------
-        fn link_handler(&self, link: &str) -> gtk::Inhibit {
-            if let Ok(url) = Url::parse(link) {
-                if url.scheme() == "pkg" {
-                    if let Some(pkg_name) = url.domain() {
-                        let obj = self.obj();
+    //-----------------------------------
+    // Value label link handler
+    //-----------------------------------
+    fn link_handler(&self, link: &str) -> gtk::Inhibit {
+        if let Ok(url) = Url::parse(link) {
+            if url.scheme() == "pkg" {
+                if let Some(pkg_name) = url.domain() {
+                    let main_window = self.main_window().unwrap();
 
-                        let main_window = obj.main_window().unwrap();
+                    let pkg_model = main_window.imp().package_view.imp().model.get();
 
-                        let pkg_model = main_window.imp().package_view.imp().model.get();
+                    // Find link package by name
+                    let mut new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| pkg.name() == pkg_name);
 
-                        // Find link package by name
-                        let mut new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| pkg.name() == pkg_name);
-
-                        // If link package is none, find by provides
-                        if new_pkg.is_none() {
-                            new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| {
-                                pkg.provides().iter().any(|s| s.contains(&pkg_name))
-                            });
-                        }
-
-                        // If link package found
-                        if let Some(new_pkg) = new_pkg {
-                            let hist_model = obj.history_model();
-                            let hist_sel = obj.history_selection();
-
-                            // If link package is in infopane history, select it
-                            if let Some(i) = hist_model.find(&new_pkg) {
-                                hist_sel.set_selected(i);
-                            } else {
-                                // If link package is not in history, get current history package
-                                let hist_index = hist_sel.selected();
-
-                                // If history package is not the last one in history, truncate history list
-                                if hist_index < hist_model.n_items() - 1 {
-                                    hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
-                                }
-
-                                // Add link package to history
-                                hist_model.append(&new_pkg);
-
-                                // Update history selection to link package
-                                hist_sel.set_selected(hist_index + 1);
-                            }
-
-                            // Display link package
-                            obj.display_package(Some(&new_pkg));
-                        }
+                    // If link package is none, find by provides
+                    if new_pkg.is_none() {
+                        new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| {
+                            pkg.provides().iter().any(|s| s.contains(&pkg_name))
+                        });
                     }
 
-                    // Link handled
-                    return gtk::Inhibit(true)
-                } 
-            }
+                    // If link package found
+                    if let Some(new_pkg) = new_pkg {
+                        let hist_model = self.history_model();
+                        let hist_sel = self.history_selection();
 
-            // Link not handled (use default handler)
-            gtk::Inhibit(false)
+                        // If link package is in infopane history, select it
+                        if let Some(i) = hist_model.find(&new_pkg) {
+                            hist_sel.set_selected(i);
+                        } else {
+                            // If link package is not in history, get current history package
+                            let hist_index = hist_sel.selected();
+
+                            // If history package is not the last one in history, truncate history list
+                            if hist_index < hist_model.n_items() - 1 {
+                                hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
+                            }
+
+                            // Add link package to history
+                            hist_model.append(&new_pkg);
+
+                            // Update history selection to link package
+                            hist_sel.set_selected(hist_index + 1);
+                        }
+
+                        // Display link package
+                        self.display_package(Some(&new_pkg));
+                    }
+                }
+
+                // Link handled
+                return gtk::Inhibit(true)
+            } 
         }
-    }
-}
 
-//------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: InfoPane
-//------------------------------------------------------------------------------
-glib::wrapper! {
-    pub struct InfoPane(ObjectSubclass<imp::InfoPane>)
-        @extends adw::Bin, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
-}
-
-impl InfoPane {
-    //-----------------------------------
-    // Public new function
-    //-----------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+        // Link not handled (use default handler)
+        gtk::Inhibit(false)
     }
 
     //-----------------------------------

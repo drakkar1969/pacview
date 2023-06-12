@@ -52,23 +52,7 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            let obj = self.obj();
-
-            // Close window on ESC
-            let controller = gtk::EventControllerKey::new();
-
-            controller.connect_key_pressed(clone!(@weak obj => @default-return gtk::Inhibit(false), move |_, key, _, state| {
-                if key == gdk::Key::Escape && state.is_empty() {
-                    obj.close();
-
-                    gtk::Inhibit(true)
-                } else {
-                    gtk::Inhibit(false)
-                }
-
-            }));
-
-            obj.add_controller(controller);
+            self.obj().setup_controllers();
         }
     }
 
@@ -78,7 +62,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: StatsWindow
+// IMPLEMENTATION: StatsWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct StatsWindow(ObjectSubclass<imp::StatsWindow>)
@@ -88,12 +72,42 @@ glib::wrapper! {
 
 impl StatsWindow {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new(repo_names: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
         let window: Self = glib::Object::builder().build();
 
-        let imp = window.imp();
+        window.setup_widgets(repo_names, pkg_model);
+
+        window
+    }
+
+    //-----------------------------------
+    // Setup controllers
+    //-----------------------------------
+    fn setup_controllers(&self) {
+        // Key controller (close window on ESC)
+        let controller = gtk::EventControllerKey::new();
+
+        controller.connect_key_pressed(clone!(@weak self as obj => @default-return gtk::Inhibit(false), move |_, key, _, state| {
+            if key == gdk::Key::Escape && state.is_empty() {
+                obj.close();
+
+                gtk::Inhibit(true)
+            } else {
+                gtk::Inhibit(false)
+            }
+
+        }));
+
+        self.add_controller(controller);
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
+        let imp = self.imp();
 
         let mut total_pcount = 0;
         let mut total_icount = 0;
@@ -136,7 +150,5 @@ impl StatsWindow {
             &format!("<b>{}</b>", total_icount.to_string()),
             &format!("<b>{}</b>", &Utils::size_to_string(total_isize, 2))
         ));
-
-        window
     }
 }

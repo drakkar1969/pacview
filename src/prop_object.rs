@@ -52,7 +52,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: PropObject
+// IMPLEMENTATION: PropObject
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PropObject(ObjectSubclass<imp::PropObject>);
@@ -60,7 +60,7 @@ glib::wrapper! {
 
 impl PropObject {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new(label: &str, value: &str, icon: Option<&str>) -> Self {
         // Build PropObject

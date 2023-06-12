@@ -18,7 +18,6 @@
           <object class="GtkButton" id="button">
             <property name="margin-start">3</property>
             <property name="icon-name">window-close-symbolic</property>
-            <signal name="clicked" handler="on_close_button_clicked" swapped="true"/>
             <style>
               <class name="circular"/>
             </style>

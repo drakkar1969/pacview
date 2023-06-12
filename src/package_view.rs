@@ -4,6 +4,7 @@ use gtk::prelude::*;
 
 use glib::subclass::Signal;
 use glib::once_cell::sync::Lazy;
+use glib::clone;
 
 use crate::pkg_object::PkgObject;
 
@@ -22,11 +23,9 @@ mod imp {
         #[template_child]
         pub stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub view: TemplateChild<gtk::ColumnView>,
-        #[template_child]
-        pub click_gesture: TemplateChild<gtk::GestureClick>,
-        #[template_child]
         pub popover_menu: TemplateChild<gtk::PopoverMenu>,
+        #[template_child]
+        pub view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
@@ -54,7 +53,6 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -83,46 +81,20 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            // Bind item count to empty label visibility
-            self.filter_model.bind_property("n-items", &self.empty_label.get(), "visible")
-                .transform_to(|_, n_items: u32| Some(n_items == 0))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            let obj = self.obj();
+
+            obj.setup_widgets();
+            obj.setup_controllers();
+            obj.setup_signals();
         }
     }
 
     impl WidgetImpl for PackageView {}
     impl BinImpl for PackageView {}
-
-    #[gtk::template_callbacks]
-    impl PackageView {
-        //-----------------------------------
-        // Signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_selected(&self) {
-            let selected_item = self.selection.selected_item()
-                .and_downcast::<PkgObject>();
-
-            self.obj().emit_by_name::<()>("selected", &[&selected_item]);
-        }
-
-        #[template_callback]
-        fn on_clicked(&self, _n_press: i32, x: f64, y: f64) {
-            let button = self.click_gesture.current_button();
-
-            if button == gdk::BUTTON_SECONDARY {
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-                self.popover_menu.set_pointing_to(Some(&rect));
-                self.popover_menu.popup();
-            }
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: PackageView
+// IMPLEMENTATION: PackageView
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PackageView(ObjectSubclass<imp::PackageView>)
@@ -132,12 +104,64 @@ glib::wrapper! {
 
 impl PackageView {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
 
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind item count to empty label visibility
+        imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
+            .transform_to(|_, n_items: u32| Some(n_items == 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+    }
+
+    //-----------------------------------
+    // Setup controllers
+    //-----------------------------------
+    fn setup_controllers(&self) {
+        let imp = self.imp();
+
+        // Column view click gesture
+        let gesture = gtk::GestureClick::new();
+
+        gesture.set_button(0);
+
+        gesture.connect_pressed(clone!(@weak imp => move |gesture, _, x, y| {
+            let button = gesture.current_button();
+
+            if button == gdk::BUTTON_SECONDARY {
+                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+
+                imp.popover_menu.set_pointing_to(Some(&rect));
+                imp.popover_menu.popup();
+            }
+        }));
+
+        self.add_controller(gesture);
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Column view selected item property notify signal
+        imp.selection.connect_selected_item_notify(clone!(@weak self as obj => move |selection| {
+            let selected_item = selection.selected_item()
+                .and_downcast::<PkgObject>();
+
+            obj.emit_by_name::<()>("selected", &[&selected_item]);
+        }));
+    }
     //-----------------------------------
     // Sort columns helper function
     //-----------------------------------

@@ -4,12 +4,21 @@ use adw::subclass::prelude::*;
 
 use crate::window::PacViewWindow;
 
+//------------------------------------------------------------------------------
+// MODULE: PacViewApplication
+//------------------------------------------------------------------------------
 mod imp {
     use super::*;
 
+    //-----------------------------------
+    // Private structure
+    //-----------------------------------
     #[derive(Default)]
     pub struct PacViewApplication {}
 
+    //-----------------------------------
+    // Subclass
+    //-----------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PacViewApplication {
         const NAME: &'static str = "PacViewApplication";
@@ -18,6 +27,9 @@ mod imp {
     }
 
     impl ObjectImpl for PacViewApplication {
+        //-----------------------------------
+        // Constructor
+        //-----------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -26,6 +38,9 @@ mod imp {
     }
 
     impl ApplicationImpl for PacViewApplication {
+        //-----------------------------------
+        // Activate handler
+        //-----------------------------------
         fn activate(&self) {
             let application = self.obj();
 
@@ -44,6 +59,9 @@ mod imp {
     impl AdwApplicationImpl for PacViewApplication {}
 }
 
+//------------------------------------------------------------------------------
+// IMPLEMENTATION: PacViewApplication
+//------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PacViewApplication(ObjectSubclass<imp::PacViewApplication>)
         @extends gio::Application, gtk::Application, adw::Application,
@@ -51,6 +69,9 @@ glib::wrapper! {
 }
 
 impl PacViewApplication {
+    //-----------------------------------
+    // New function
+    //-----------------------------------
     pub fn new(application_id: &str, flags: &gio::ApplicationFlags) -> Self {
         glib::Object::builder()
             .property("application-id", application_id)
@@ -58,6 +79,9 @@ impl PacViewApplication {
             .build()
     }
 
+    //-----------------------------------
+    // Setup actions
+    //-----------------------------------
     fn setup_actions(&self) {
         let quit_action = gio::ActionEntry::builder("quit-app")
             .activate(move |app: &Self, _, _| app.quit())
@@ -86,6 +110,9 @@ impl PacViewApplication {
         self.set_accels_for_action("info.show-details", &["<alt>Return", "<alt>KP_Enter"]);
     }
 
+    //-----------------------------------
+    // Show about window
+    //-----------------------------------
     fn show_about(&self) {
         let window = self.active_window().unwrap();
 

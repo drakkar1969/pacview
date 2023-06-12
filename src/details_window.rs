@@ -87,6 +87,8 @@ mod imp {
         #[template_child]
         pub cache_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub cache_view: TemplateChild<gtk::ListView>,
+        #[template_child]
         pub cache_model: TemplateChild<gtk::StringList>,
         #[template_child]
         pub cache_selection: TemplateChild<gtk::SingleSelection>,
@@ -97,6 +99,8 @@ mod imp {
         pub backup_open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub backup_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub backup_view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub backup_model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -130,7 +134,6 @@ mod imp {
             BackupObject::ensure_type();
 
             klass.bind_template();
-            klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -162,23 +165,8 @@ mod imp {
 
             let obj = self.obj();
 
-            // Close window on ESC
-            let controller = gtk::EventControllerKey::new();
-
-            controller.set_propagation_phase(gtk::PropagationPhase::Capture);
-
-            controller.connect_key_pressed(clone!(@weak obj => @default-return gtk::Inhibit(false), move |_, key, _, state| {
-                if key == gdk::Key::Escape && state.is_empty() {
-                    obj.close();
-
-                    gtk::Inhibit(true)
-                } else {
-                    gtk::Inhibit(false)
-                }
-
-            }));
-
-            obj.add_controller(controller);
+            obj.setup_controllers();
+            obj.setup_signals();
         }
     }
 
@@ -186,216 +174,10 @@ mod imp {
     impl WindowImpl for DetailsWindow {}
     impl ApplicationWindowImpl for DetailsWindow {}
     impl AdwApplicationWindowImpl for DetailsWindow {}
-
-    #[gtk::template_callbacks]
-    impl DetailsWindow {
-        //-----------------------------------
-        // Stack button signal handler
-        //-----------------------------------
-        #[template_callback]
-        fn on_stack_button_toggled(&self, button: ToggleButton) {
-            if button.is_active() {
-                self.content_stack.set_visible_child_name(&button.text().to_lowercase());
-            }
-        }
-
-        //-----------------------------------
-        // Open file manager helper function
-        //-----------------------------------
-        fn open_file_manager(&self, path: &str) {
-            if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-                let path = format!("file://{}", path);
-
-                let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
-            }
-        }
-
-        //-----------------------------------
-        // Files page signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_files_search_changed(&self, entry: &gtk::SearchEntry) {
-            self.files_filter.set_search(Some(&entry.text()));
-        }
-
-        #[template_callback]
-        fn on_files_view_activated(&self) {
-            self.on_files_open_button_clicked();
-        }
-
-        #[template_callback]
-        fn on_files_open_button_clicked(&self) {
-            let item = self.files_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
-
-            self.open_file_manager(&item.string());
-        }
-
-        #[template_callback]
-        fn on_files_copy_button_clicked(&self) {
-            let copy_text = self.files_selection.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let s = item
-                        .downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'");
-
-                    s.string()
-                })
-                .collect::<Vec<glib::GString>>()
-                .join("\n");
-
-            self.obj().clipboard().set_text(&copy_text);
-        }
-
-        //-----------------------------------
-        // Filter dependency tree helper function
-        //-----------------------------------
-        fn filter_dependency_tree(&self) {
-            let obj = self.obj();
-
-            let depth = self.tree_depth_scale.value();
-            let reverse = self.tree_reverse_button.is_active();
-
-            let tree_text = if reverse {obj.tree_rev_text()} else {obj.tree_text()};
-
-            lazy_static! {
-                static ref EXPR: Regex = Regex::new("([└|─|│|├| ]+)?(.+)").unwrap();
-            }
-
-            let filter_text = if depth == obj.default_tree_depth() {
-                tree_text
-            } else {
-                tree_text.lines()
-                .filter_map(|s| {
-                    let ascii = EXPR.replace(s, "$1");
-
-                    if ascii.chars().count() as f64 > depth * 2.0 {
-                        None
-                    } else {
-                        Some(s)
-                    }
-                })
-                .collect::<Vec<&str>>()
-                .join("\n")
-            };
-
-            self.tree_label.set_label(&filter_text);
-        }
-
-        //-----------------------------------
-        // Tree page signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_tree_depth_changed(&self, scale: gtk::Scale) {
-            if scale.value() == self.obj().default_tree_depth() {
-                self.tree_depth_label.set_label("Default");
-            } else {
-                self.tree_depth_label.set_label(&scale.value().to_string());
-            }
-
-            self.filter_dependency_tree();
-        }
-
-        #[template_callback]
-        fn on_tree_reverse_toggled(&self) {
-            self.filter_dependency_tree();
-        }
-
-        #[template_callback]
-        fn on_tree_copy_button_clicked(&self) {
-            self.obj().clipboard().set_text(&self.tree_label.label());
-        }
-
-        //-----------------------------------
-        // Log page signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_log_copy_button_clicked(&self) {
-            let copy_text = self.log_model.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let s = item
-                        .downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'");
-
-                    s.string()
-                })
-                .collect::<Vec<glib::GString>>()
-                .join("\n");
-
-            self.obj().clipboard().set_text(&copy_text);
-        }
-
-        //-----------------------------------
-        // Cache page signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_cache_view_activated(&self) {
-            self.on_cache_open_button_clicked();
-        }
-
-        #[template_callback]
-        fn on_cache_open_button_clicked(&self) {
-            let item = self.cache_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
-
-            self.open_file_manager(&format!("{}{}", self.obj().cache_dir(), item.string()));
-        }
-
-        #[template_callback]
-        fn on_cache_copy_button_clicked(&self) {
-            let copy_text = self.cache_model.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let s = item
-                        .downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'");
-
-                    s.string()
-                })
-                .collect::<Vec<glib::GString>>()
-                .join("\n");
-
-            self.obj().clipboard().set_text(&copy_text);
-        }
-
-        //-----------------------------------
-        // Backup page signal handlers
-        //-----------------------------------
-        #[template_callback]
-        fn on_backup_view_activated(&self) {
-            self.on_backup_open_button_clicked();
-        }
-
-        #[template_callback]
-        fn on_backup_open_button_clicked(&self) {
-            let item = self.backup_selection.selected_item()
-                .and_downcast::<BackupObject>()
-                .expect("Must be a 'BackupObject'");
-
-            self.open_file_manager(&item.filename());
-        }
-
-        #[template_callback]
-        fn on_backup_copy_button_clicked(&self) {
-            let copy_text = self.backup_model.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let bck = item
-                        .downcast::<BackupObject>()
-                        .expect("Must be a 'BackupObject'");
-
-                    format!("{filename} ({status})", filename=bck.filename(), status=bck.status())
-                })
-                .collect::<Vec<String>>()
-                .join("\n");
-
-            self.obj().clipboard().set_text(&copy_text);
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: DetailsWindow
+// IMPLEMENTATION: DetailsWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct DetailsWindow(ObjectSubclass<imp::DetailsWindow>)
@@ -406,7 +188,7 @@ glib::wrapper! {
 
 impl DetailsWindow {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new(pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dir: &str) -> Self {
         let win: Self = glib::Object::builder()
@@ -426,6 +208,244 @@ impl DetailsWindow {
         if installed { win.setup_backup(); }
 
         win
+    }
+
+    //-----------------------------------
+    // Setup controllers
+    //-----------------------------------
+    fn setup_controllers(&self) {
+        // Key controller (close window on ESC)
+        let controller = gtk::EventControllerKey::new();
+
+        controller.set_propagation_phase(gtk::PropagationPhase::Capture);
+
+        controller.connect_key_pressed(clone!(@weak self as obj => @default-return gtk::Inhibit(false), move |_, key, _, state| {
+            if key == gdk::Key::Escape && state.is_empty() {
+                obj.close();
+
+                gtk::Inhibit(true)
+            } else {
+                gtk::Inhibit(false)
+            }
+
+        }));
+
+        self.add_controller(controller);
+    }
+
+    //-----------------------------------
+    // Open file manager helper function
+    //-----------------------------------
+    fn open_file_manager(&self, path: &str) {
+        if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
+            let path = format!("file://{}", path);
+
+            let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
+        }
+    }
+
+    //-----------------------------------
+    // Filter dependency tree helper function
+    //-----------------------------------
+    fn filter_dependency_tree(&self) {
+        let imp = self.imp();
+
+        let depth = imp.tree_depth_scale.value();
+        let reverse = imp.tree_reverse_button.is_active();
+
+        let tree_text = if reverse {self.tree_rev_text()} else {self.tree_text()};
+
+        lazy_static! {
+            static ref EXPR: Regex = Regex::new("([└|─|│|├| ]+)?(.+)").unwrap();
+        }
+
+        let filter_text = if depth == self.default_tree_depth() {
+            tree_text
+        } else {
+            tree_text.lines()
+            .filter_map(|s| {
+                let ascii = EXPR.replace(s, "$1");
+
+                if ascii.chars().count() as f64 > depth * 2.0 {
+                    None
+                } else {
+                    Some(s)
+                }
+            })
+            .collect::<Vec<&str>>()
+            .join("\n")
+        };
+
+        imp.tree_label.set_label(&filter_text);
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Stack button toggled signals
+        let stack_buttons = [
+            imp.files_button.get(),
+            imp.tree_button.get(),
+            imp.log_button.get(),
+            imp.cache_button.get(),
+            imp.backup_button.get()
+        ];
+
+        for button in stack_buttons {
+            button.connect_toggled(clone!(@weak imp => move |button| {
+                if button.is_active() {
+                    imp.content_stack.set_visible_child_name(&button.text().to_lowercase());
+                }
+            }));
+        }
+
+        // Files search entry search changed signal
+        imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
+            imp.files_filter.set_search(Some(&entry.text()));
+        }));
+
+        // Files open button clicked signal
+        imp.files_open_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            let item = imp.files_selection.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .expect("Must be a 'StringObject'");
+
+            obj.open_file_manager(&item.string());
+        }));
+
+        // Files copy button clicked signal
+        imp.files_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let s = item
+                        .downcast::<gtk::StringObject>()
+                        .expect("Must be a 'StringObject'");
+
+                    s.string()
+                })
+                .collect::<Vec<glib::GString>>()
+                .join("\n");
+
+            obj.clipboard().set_text(&copy_text);
+        }));
+
+        // Files listview activate signal
+        imp.files_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+            let item = imp.files_selection.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .expect("Must be a 'StringObject'");
+
+            obj.open_file_manager(&item.string());
+        }));
+
+        // Tree scale value changed signal
+        imp.tree_depth_scale.connect_value_changed(clone!(@weak self as obj, @weak imp => move |scale| {
+            if scale.value() == obj.default_tree_depth() {
+                imp.tree_depth_label.set_label("Default");
+            } else {
+                imp.tree_depth_label.set_label(&scale.value().to_string());
+            }
+
+            obj.filter_dependency_tree();
+
+        }));
+
+        // Tree reverse button toggled signal
+        imp.tree_reverse_button.connect_toggled(clone!(@weak self as obj => move |_| {
+            obj.filter_dependency_tree();
+        }));
+
+        // Tree copy button clicked signal
+        imp.tree_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            obj.clipboard().set_text(&imp.tree_label.label());
+        }));
+
+        // Log copy button clicked signal
+        imp.log_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            let copy_text = imp.log_model.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let s = item
+                        .downcast::<gtk::StringObject>()
+                        .expect("Must be a 'StringObject'");
+
+                    s.string()
+                })
+                .collect::<Vec<glib::GString>>()
+                .join("\n");
+
+            obj.clipboard().set_text(&copy_text);
+        }));
+
+        // Cache open button clicked signal
+        imp.cache_open_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            let item = imp.cache_selection.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .expect("Must be a 'StringObject'");
+
+            obj.open_file_manager(&format!("{}{}", obj.cache_dir(), item.string()));
+        }));
+
+        // Cache copy button clicked signal
+        imp.cache_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            let copy_text = imp.cache_model.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let s = item
+                        .downcast::<gtk::StringObject>()
+                        .expect("Must be a 'StringObject'");
+
+                    s.string()
+                })
+                .collect::<Vec<glib::GString>>()
+                .join("\n");
+
+            obj.clipboard().set_text(&copy_text);
+        }));
+
+        // Cache listview activate signal
+        imp.cache_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+            let item = imp.cache_selection.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .expect("Must be a 'StringObject'");
+
+            obj.open_file_manager(&format!("{}{}", obj.cache_dir(), item.string()));
+        }));
+
+        // Backup open button clicked signal
+        imp.backup_open_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            let item = imp.backup_selection.selected_item()
+                .and_downcast::<BackupObject>()
+                .expect("Must be a 'BackupObject'");
+
+            obj.open_file_manager(&item.filename());
+        }));
+
+        // Backup copy button clicked signal
+        imp.backup_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            let copy_text = imp.backup_model.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let bck = item
+                        .downcast::<BackupObject>()
+                        .expect("Must be a 'BackupObject'");
+
+                    format!("{filename} ({status})", filename=bck.filename(), status=bck.status())
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
+
+            obj.clipboard().set_text(&copy_text);
+        }));
+
+        // Backup listview activate signal
+        imp.backup_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+            let item = imp.backup_selection.selected_item()
+                .and_downcast::<BackupObject>()
+                .expect("Must be a 'BackupObject'");
+
+            obj.open_file_manager(&item.filename());
+        }));
     }
 
     //-----------------------------------

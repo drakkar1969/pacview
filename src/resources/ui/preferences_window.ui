@@ -81,7 +81,6 @@
                         <style>
                           <class name="flat"/>
                         </style>
-                        <signal name="clicked" handler="on_font_reset_button_clicked" swapped="true"/>
                       </object>
                     </child>
                     <child>
@@ -92,7 +91,6 @@
                         <style>
                           <class name="flat"/>
                         </style>
-                        <signal name="clicked" handler="on_font_choose_button_clicked" swapped="true"/>
                       </object>
                     </child>
                   </object>
@@ -114,7 +112,6 @@
                   <object class="GtkButton" id="reset_button">
                     <property name="valign">center</property>
                     <property name="label">Reset</property>
-                    <signal name="clicked" handler="on_reset_button_clicked" swapped="true"/>
                     <style>
                       <class name="destructive-action"/>
                     </style>

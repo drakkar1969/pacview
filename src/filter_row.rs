@@ -87,29 +87,7 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            let obj = self.obj();
-
-            // Bind properties to widgets
-            obj.bind_property("spinning", &self.stack.get(), "visible_child_name")
-                .transform_to(|_, spinning: bool| Some(if spinning {"spinner"} else {"icon"}))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("spinning", &self.spinner.get(), "spinning")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("icon", &self.image.get(), "icon-name")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("text", &self.text_label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("count", &self.count_label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("count", &self.count_box.get(), "visible")
-                .transform_to(|_, count: &str| Some(count != ""))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            self.obj().setup_widgets();
         }
     }
 
@@ -118,7 +96,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: FilterRow
+// IMPLEMENTATION: FilterRow
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct FilterRow(ObjectSubclass<imp::FilterRow>)
@@ -128,7 +106,7 @@ glib::wrapper! {
 
 impl FilterRow {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new(icon: &str, text: &str, repo_id: &str, status_id: PkgFlags) -> Self {
         glib::Object::builder()
@@ -138,11 +116,40 @@ impl FilterRow {
             .property("status-id", status_id)
             .build()
     }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind properties to widgets
+        self.bind_property("spinning", &imp.stack.get(), "visible_child_name")
+            .transform_to(|_, spinning: bool| Some(if spinning {"spinner"} else {"icon"}))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("spinning", &imp.spinner.get(), "spinning")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("icon", &imp.image.get(), "icon-name")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("text", &imp.text_label.get(), "label")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("count", &imp.count_label.get(), "label")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("count", &imp.count_box.get(), "visible")
+            .transform_to(|_, count: &str| Some(count != ""))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+    }
 }
 
 impl Default for FilterRow {
     //-----------------------------------
-    // Public default constructor
+    // Default constructor
     //-----------------------------------
     fn default() -> Self {
         Self::new("", "", "", PkgFlags::default())

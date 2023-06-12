@@ -12,8 +12,6 @@
             <property name="title-widget">
               <object class="SearchHeader" id="search_header">
                 <property name="title">PacView</property>
-                <signal name="activated" handler="on_search_activated" swapped="true"/>
-                <signal name="changed" handler="on_search_changed" swapped="true"/>
               </object>
             </property>
             <child type="end">
@@ -68,7 +66,6 @@
                         <child>
                           <object class="GtkListBox" id="repo_listbox">
                             <property name="margin-bottom">6</property>
-                            <signal name="row-selected" handler="on_repo_selected" swapped="true"/>
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>
@@ -95,7 +92,6 @@
                         </child>
                         <child>
                           <object class="GtkListBox" id="status_listbox">
-                            <signal name="row-selected" handler="on_status_selected" swapped="true"/>
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>
@@ -120,7 +116,6 @@
                 <property name="start-child">
                   <object class="PackageView" id="package_view">
                     <property name="height-request">160</property>
-                    <signal name="selected" handler="on_package_view_selected" swapped="true"/>
                   </object>
                 </property>
                 <property name="end-child">

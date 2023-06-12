@@ -52,7 +52,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: BackupObject
+// IMPLEMENTATION: BackupObject
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct BackupObject(ObjectSubclass<imp::BackupObject>);
@@ -60,7 +60,7 @@ glib::wrapper! {
 
 impl BackupObject {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new(filename: &str, status_icon: &str, status: &str) -> Self {
         // Build BackupObject

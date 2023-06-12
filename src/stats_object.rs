@@ -54,7 +54,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: StatsObject
+// IMPLEMENTATION: StatsObject
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct StatsObject(ObjectSubclass<imp::StatsObject>);
@@ -62,7 +62,7 @@ glib::wrapper! {
 
 impl StatsObject {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new(repository: &str, packages: &str, installed: &str, size: &str) -> Self {
         // Build StatsObject

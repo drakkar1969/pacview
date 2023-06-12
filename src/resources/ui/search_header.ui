@@ -101,7 +101,6 @@
                     <property name="margin-start">6</property>
                     <property name="buffer">
                       <object class="GtkEntryBuffer" id="search_buffer">
-                        <signal name="notify::text" handler="on_text_changed" swapped="true"/>
                       </object>
                     </property>
                   </object>
@@ -111,7 +110,6 @@
                     <property name="can-focus">false</property>
                     <property name="margin-start">6</property>
                     <property name="icon-name">edit-clear-symbolic</property>
-                    <signal name="clicked" handler="on_clear_button_clicked" swapped="true"/>
                   </object>
                 </child>
                 <child>

@@ -47,7 +47,6 @@
                       <object class="GtkColumnView" id="view">
                         <property name="model">
                           <object class="GtkSingleSelection" id="selection">
-                            <signal name="notify::selected-item" handler="on_selected" swapped="true"/>
                             <property name="model">
                               <object class="GtkSortListModel" id="sort_model">
                                 <property name="model">
@@ -84,12 +83,6 @@
                             </property>
                           </object>
                         </property>
-                        <child>
-                          <object class="GtkGestureClick" id="click_gesture">
-                            <property name="button">0</property>
-                            <signal name="pressed" handler="on_clicked" swapped="true"/>
-                          </object>
-                        </child>
                         <child>
                           <object class="GtkPopoverMenu" id="popover_menu">
                             <property name="menu-model">popup_menu</property>

@@ -127,7 +127,6 @@ mod imp {
             SearchMode::ensure_type();
 
             klass.bind_template();
-            klass.bind_template_callbacks();
             klass.set_layout_manager_type::<gtk::BoxLayout>();
         }
 
@@ -186,137 +185,16 @@ mod imp {
 
             let obj = self.obj();
 
-            // Bind title property to title widget
-            obj.bind_property("title", &self.title_widget.get(), "title")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            // Connect notify signal handler for search active property
-            obj.connect_active_notify(|header| {
-                let imp = header.imp();
-
-                if header.active() {
-                    imp.stack.set_visible_child_name("search");
-
-                    imp.search_text.grab_focus_without_selecting();
-                } else {
-                    imp.search_text.set_text("");
-
-                    imp.stack.set_visible_child_name("title");
-                }
-
-                header.emit_by_name::<()>("activated", &[&header.active()]);
-            });
-
-            // Connect notify signal handler for search mode property
-            obj.connect_mode_notify(|header| {
-                header.imp().emit_changed_signal();
-            });
-
-            // Bind search mode property to search mode tag visibility
-            obj.bind_property("mode", &self.tag_all.get(), "visible")
-                .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::All))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            obj.bind_property("mode", &self.tag_any.get(), "visible")
-                .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Any))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            obj.bind_property("mode", &self.tag_exact.get(), "visible")
-                .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Exact))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-
-            // Bind search by properties
-            let tag_array = [
-                self.tag_name.get(),
-                self.tag_desc.get(),
-                self.tag_group.get(),
-                self.tag_deps.get(),
-                self.tag_optdeps.get(),
-                self.tag_provides.get(),
-                self.tag_files.get(),
-            ];
-
-            for tag in tag_array {
-                if let Some(text) = tag.text() {
-                    let prop_name = format!("by-{}", text);
-
-                    // Connect notify signals handlers for search by properties
-                    obj.connect_notify(Some(&prop_name), |header, _| {
-                        if !header.block_notify() {
-                            header.imp().emit_changed_signal();
-                        }
-                    });
-
-                    // Bind search by properties to search tag visibility
-                    obj.bind_property(&prop_name, &tag, "visible")
-                        .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                        .build();
-                }
-            }
-
-            // Connect notify signal handler for block notify property
-            obj.connect_block_notify_notify(|header| {
-                if header.block_notify() == false {
-                    header.imp().emit_changed_signal();
-                }
-            });
-
-            // Bind search text to clear button visibility
-            self.search_buffer.bind_property("text", &self.clear_button.get(), "visible")
-                .transform_to(|_, text: &str| Some(text != ""))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            obj.setup_widgets();
+            obj.setup_signals();
         }
     }
 
     impl WidgetImpl for SearchHeader {}
-
-    #[gtk::template_callbacks]
-    impl SearchHeader {
-        //-----------------------------------
-        // Search buffer signal handler
-        //-----------------------------------
-        #[template_callback]
-        fn on_text_changed(&self) {
-            self.emit_changed_signal();
-        }
-
-        //-----------------------------------
-        // Clear button signal handler
-        //-----------------------------------
-        #[template_callback]
-        fn on_clear_button_clicked(&self) {
-            self.search_buffer.set_text("");
-        }
-
-        //-----------------------------------
-        // Emit changed signal helper function
-        //-----------------------------------
-        fn emit_changed_signal(&self) {
-            let obj = self.obj();
-
-            obj.emit_by_name::<()>("changed",
-                &[
-                    &self.search_buffer.text(),
-                    &obj.by_name(),
-                    &obj.by_desc(),
-                    &obj.by_group(),
-                    &obj.by_deps(),
-                    &obj.by_optdeps(),
-                    &obj.by_provides(),
-                    &obj.by_files(),
-                    &obj.mode()
-                ]);
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: SearchHeader
+// IMPLEMENTATION: SearchHeader
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchHeader(ObjectSubclass<imp::SearchHeader>)
@@ -326,10 +204,154 @@ glib::wrapper! {
 
 impl SearchHeader {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind title property to title widget
+        self.bind_property("title", &imp.title_widget.get(), "title")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind search mode property to search mode tag visibility
+        self.bind_property("mode", &imp.tag_all.get(), "visible")
+            .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::All))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        self.bind_property("mode", &imp.tag_any.get(), "visible")
+            .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Any))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        self.bind_property("mode", &imp.tag_exact.get(), "visible")
+            .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Exact))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind search by-* properties to search tag visibility
+        let tag_array = [
+            imp.tag_name.get(),
+            imp.tag_desc.get(),
+            imp.tag_group.get(),
+            imp.tag_deps.get(),
+            imp.tag_optdeps.get(),
+            imp.tag_provides.get(),
+            imp.tag_files.get(),
+        ];
+
+        for tag in tag_array {
+            if let Some(text) = tag.text() {
+                let prop_name = format!("by-{}", text);
+
+                self.bind_property(&prop_name, &tag, "visible")
+                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                    .build();
+            }
+        }
+
+        // Bind search text to clear button visibility
+        imp.search_buffer.bind_property("text", &imp.clear_button.get(), "visible")
+            .transform_to(|_, text: &str| Some(text != ""))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+        
+        // Search active property notify signal
+        self.connect_active_notify(|header| {
+            let imp = header.imp();
+
+            if header.active() {
+                imp.stack.set_visible_child_name("search");
+
+                imp.search_text.grab_focus_without_selecting();
+            } else {
+                imp.search_text.set_text("");
+
+                imp.stack.set_visible_child_name("title");
+            }
+
+            header.emit_by_name::<()>("activated", &[&header.active()]);
+        });
+
+        // Search mode property notify signal
+        self.connect_mode_notify(|header| {
+            header.emit_changed_signal();
+        });
+
+        // Search by-* properties notify signals
+        let tag_array = [
+            imp.tag_name.get(),
+            imp.tag_desc.get(),
+            imp.tag_group.get(),
+            imp.tag_deps.get(),
+            imp.tag_optdeps.get(),
+            imp.tag_provides.get(),
+            imp.tag_files.get(),
+        ];
+
+        for tag in tag_array {
+            if let Some(text) = tag.text() {
+                let prop_name = format!("by-{}", text);
+
+                self.connect_notify(Some(&prop_name), |header, _| {
+                    if !header.block_notify() {
+                        header.emit_changed_signal();
+                    }
+                });
+            }
+        }
+
+        // Block notify property notify signal
+        self.connect_block_notify_notify(|header| {
+            if header.block_notify() == false {
+                header.emit_changed_signal();
+            }
+        });
+
+        // Search buffer text changed signal
+        imp.search_buffer.connect_text_notify(clone!(@weak self as obj => move |_| {
+            obj.emit_changed_signal();
+        }));
+
+        // Clear button clicked signal
+        imp.clear_button.connect_clicked(clone!(@weak imp => move |_| {
+            imp.search_buffer.set_text("");
+        }));
+    }
+
+    //-----------------------------------
+    // Emit changed signal helper function
+    //-----------------------------------
+    fn emit_changed_signal(&self) {
+        let imp = self.imp();
+
+        self.emit_by_name::<()>("changed",
+            &[
+                &imp.search_buffer.text(),
+                &self.by_name(),
+                &self.by_desc(),
+                &self.by_group(),
+                &self.by_deps(),
+                &self.by_optdeps(),
+                &self.by_provides(),
+                &self.by_files(),
+                &self.mode()
+            ]);
     }
 
     //-----------------------------------

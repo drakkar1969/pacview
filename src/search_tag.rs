@@ -3,6 +3,7 @@ use std::cell::{Cell, RefCell};
 use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+use glib::clone;
 
 //------------------------------------------------------------------------------
 // MODULE: SearchTag
@@ -39,7 +40,6 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.bind_template_callbacks();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -69,33 +69,19 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            // Bind properties to widgets
-            self.obj().bind_property("text", &self.label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            self.obj().bind_property("can-close", &self.button.get(), "visible")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            let obj = self.obj();
+
+            obj.setup_widgets();
+            obj.setup_signals();
         }
     }
 
     impl WidgetImpl for SearchTag {}
     impl BinImpl for SearchTag {}
-
-    #[gtk::template_callbacks]
-    impl SearchTag {
-        //-----------------------------------
-        // Close button signal handler
-        //-----------------------------------
-        #[template_callback]
-        fn on_close_button_clicked(&self) {
-            self.obj().set_visible(false);
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: SearchTag
+// IMPLEMENTATION: SearchTag
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchTag(ObjectSubclass<imp::SearchTag>)
@@ -105,9 +91,34 @@ glib::wrapper! {
 
 impl SearchTag {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind properties to widgets
+        self.bind_property("text", &imp.label.get(), "label")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("can-close", &imp.button.get(), "visible")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        // Close button clicked signal
+        self.imp().button.connect_clicked(clone!(@weak self as obj => move |_| {
+            obj.set_visible(false);
+        }));
     }
 }

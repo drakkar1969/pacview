@@ -68,15 +68,7 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            let obj = self.obj();
-
-            // Bind properties to widgets
-            obj.bind_property("icon", &self.image.get(), "icon-name")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-            obj.bind_property("text", &self.label.get(), "label")
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
+            self.obj().setup_widgets();
         }
     }
 
@@ -86,7 +78,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: ToggleButton
+// IMPLEMENTATION: ToggleButton
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ToggleButton(ObjectSubclass<imp::ToggleButton>)
@@ -96,12 +88,27 @@ glib::wrapper! {
 
 impl ToggleButton {
     //-----------------------------------
-    // Public new function
+    // New function
     //-----------------------------------
     pub fn new(icon: &str, text: &str) -> Self {
         glib::Object::builder()
             .property("icon", icon)
             .property("text", text)
             .build()
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind properties to widgets
+        self.bind_property("icon", &imp.image.get(), "icon-name")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        self.bind_property("text", &imp.label.get(), "label")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 }

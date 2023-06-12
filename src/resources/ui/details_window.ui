@@ -60,7 +60,6 @@
                     <property name="active">True</property>
                     <property name="icon">details-files-symbolic</property>
                     <property name="text">Files</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
@@ -69,7 +68,6 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-tree-symbolic</property>
                     <property name="text">Tree</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
@@ -78,7 +76,6 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-log-symbolic</property>
                     <property name="text">Log</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
@@ -87,7 +84,6 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-cache-symbolic</property>
                     <property name="text">Cache</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
                 <child>
@@ -96,7 +92,6 @@
                     <property name="group">files_button</property>
                     <property name="icon">details-backup-symbolic</property>
                     <property name="text">Backup</property>
-                    <signal name="toggled" handler="on_stack_button_toggled" swapped="true"/>
                   </object>
                 </child>
               </object>
@@ -146,7 +141,6 @@
                                 <child>
                                   <object class="GtkSearchEntry" id="files_search_entry">
                                     <property name="tooltip-text">Search for files</property>
-                                    <signal name="search-changed" handler="on_files_search_changed" swapped="true"/>
                                     <style>
                                       <class name="rounded"/>
                                     </style>
@@ -163,7 +157,6 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="clicked" handler="on_files_open_button_clicked" swapped="true"/>
                                       </object>
                                     </child>
                                     <child>
@@ -174,7 +167,6 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="clicked" handler="on_files_copy_button_clicked" swapped="true"/>
                                       </object>
                                     </child>
                                   </object>
@@ -215,7 +207,6 @@
                                     <property name="resource">/com/github/PacView/ui/details_window/file_item.ui</property>
                                   </object>
                                 </property>
-                                <signal name="activate" handler="on_files_view_activated" swapped="true"/>
                               </object>
                             </property>
                           </object>
@@ -291,7 +282,6 @@
                                       <mark value="5" position="bottom"></mark>
                                       <mark value="6" position="bottom"></mark>
                                     </marks>
-                                    <signal name="value-changed" handler="on_tree_depth_changed" swapped="true"/>
                                   </object>
                                 </child>
                                 <child>
@@ -305,7 +295,6 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="toggled" handler="on_tree_reverse_toggled" swapped="true"/>
                                       </object>
                                     </child>
                                     <child>
@@ -316,7 +305,6 @@
                                           <class name="flat"/>
                                           <class name="circular"/>
                                         </style>
-                                        <signal name="clicked" handler="on_tree_copy_button_clicked" swapped="true"/>
                                       </object>
                                     </child>
                                   </object>
@@ -387,7 +375,6 @@
                                   <class name="flat"/>
                                   <class name="circular"/>
                                 </style>
-                                <signal name="clicked" handler="on_log_copy_button_clicked" swapped="true"/>
                               </object>
                             </child>
                           </object>
@@ -468,7 +455,6 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_cache_open_button_clicked" swapped="true"/>
                                   </object>
                                 </child>
                                 <child>
@@ -479,7 +465,6 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_cache_copy_button_clicked" swapped="true"/>
                                   </object>
                                 </child>
                               </object>
@@ -507,7 +492,6 @@
                                     <property name="resource">/com/github/PacView/ui/details_window/cache_item.ui</property>
                                   </object>
                                 </property>
-                                <signal name="activate" handler="on_cache_view_activated" swapped="true"/>
                               </object>
                             </property>
                           </object>
@@ -563,7 +547,6 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_backup_open_button_clicked" swapped="true"/>
                                   </object>
                                 </child>
                                 <child>
@@ -574,7 +557,6 @@
                                       <class name="flat"/>
                                       <class name="circular"/>
                                     </style>
-                                    <signal name="clicked" handler="on_backup_copy_button_clicked" swapped="true"/>
                                   </object>
                                 </child>
                               </object>
@@ -604,7 +586,6 @@
                                     <property name="resource">/com/github/PacView/ui/details_window/backup_item.ui</property>
                                   </object>
                                 </property>
-                                <signal name="activate" handler="on_backup_view_activated" swapped="true"/>
                               </object>
                             </property>
                           </object>
