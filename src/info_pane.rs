@@ -293,9 +293,9 @@ impl InfoPane {
             // Get package required by and optional for
             let main_window = self.main_window().unwrap();
 
-            let handle = main_window.imp().alpm_handle.get().unwrap();
+            let handle = main_window.imp().alpm_handle.borrow();
 
-            let (required_by, optional_for) = pkg.compute_requirements(handle);
+            let (required_by, optional_for) = pkg.compute_requirements(&handle);
 
             // Name
             imp.model.append(&PropObject::new(

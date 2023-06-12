@@ -84,7 +84,7 @@ mod imp {
 
         pub gsettings: OnceCell<gio::Settings>,
 
-        pub alpm_handle: OnceCell<Alpm>,
+        pub alpm_handle: RefCell<Option<Alpm>>,
 
         #[property(get, set)]
         pacman_config: RefCell<PacmanConfig>,
@@ -843,7 +843,7 @@ impl PacViewWindow {
                     PkgObject::new(data)
                 }).collect();
 
-                imp.alpm_handle.set(handle).unwrap_or_default();
+                imp.alpm_handle.replace(Some(handle));
 
                 imp.package_view.imp().model.splice(0, imp.package_view.imp().model.n_items(), &pkg_list);
 
