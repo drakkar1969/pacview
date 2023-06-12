@@ -67,7 +67,7 @@ pub struct PkgData {
 
 impl PkgData {
     //-----------------------------------
-    // Public builder function
+    // Builder function
     //-----------------------------------
     pub fn from_alpm_package(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
         // Defaults for package status flags, install date, files and backup (non-installed)
@@ -228,15 +228,15 @@ mod imp {
 
         // Read-only properties with custom getter
         #[property(get = Self::install_date_short)]
-        pub install_date_short: RefCell<String>,
+        _install_date_short: RefCell<String>,
         #[property(get = Self::install_date_long)]
-        pub install_date_long: RefCell<String>,
+        _install_date_long: RefCell<String>,
         #[property(get = Self::install_size_string)]
-        pub install_size_string: RefCell<String>,
+        _install_size_string: RefCell<String>,
         #[property(get = Self::build_date_long)]
-        pub build_date_long: RefCell<String>,
+        _build_date_long: RefCell<String>,
         #[property(get = Self::download_size_string)]
-        pub download_size_string: RefCell<String>,
+        _download_size_string: RefCell<String>,
     }
 
     //-----------------------------------
@@ -292,7 +292,7 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// PUBLIC IMPLEMENTATION: PkgObject
+// IMPLEMENTATION: PkgObject
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PkgObject(ObjectSubclass<imp::PkgObject>);
@@ -300,7 +300,7 @@ glib::wrapper! {
 
 impl PkgObject {
     //-----------------------------------
-    // Public constructor
+    // New function
     //-----------------------------------
     pub fn new(data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
@@ -339,7 +339,7 @@ impl PkgObject {
 
 impl Default for PkgObject {
     //-----------------------------------
-    // Public default constructor
+    // Default constructor
     //-----------------------------------
     fn default() -> Self {
         Self::new(PkgData::default())
