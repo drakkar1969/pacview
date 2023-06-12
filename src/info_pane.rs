@@ -10,7 +10,6 @@ use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
 
-use crate::window::PacViewWindow;
 use crate::value_row::ValueRow;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::prop_object::PropObject;
@@ -47,7 +46,7 @@ mod imp {
         pub empty_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
-        main_window: RefCell<Option<PacViewWindow>>,
+        pkg_model: RefCell<gio::ListStore>,
 
         #[property(get, set)]
         history_model: RefCell<gio::ListStore>,
@@ -218,16 +217,12 @@ impl InfoPane {
         if let Ok(url) = Url::parse(link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
-                    let main_window = self.main_window().unwrap();
-
-                    let pkg_model = main_window.imp().package_view.imp().model.get();
-
                     // Find link package by name
-                    let mut new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| pkg.name() == pkg_name);
+                    let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| pkg.name() == pkg_name);
 
                     // If link package is none, find by provides
                     if new_pkg.is_none() {
-                        new_pkg = pkg_model.iter::<PkgObject>().flatten().find(|pkg| {
+                        new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| {
                             pkg.provides().iter().any(|s| s.contains(&pkg_name))
                         });
                     }

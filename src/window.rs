@@ -472,8 +472,10 @@ impl PacViewWindow {
     fn setup_infopane(&self) {
         let imp = self.imp();
 
-        // Set info pane main window
-        imp.info_pane.set_main_window(self);
+        // Bind package view model to info pane package model
+        imp.package_view.imp().filter_model.bind_property("model", &imp.info_pane.get(), "pkg-model")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
 
         // Add info pane prev/next actions
         let prev_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("previous")
