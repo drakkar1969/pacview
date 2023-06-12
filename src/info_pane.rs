@@ -312,7 +312,9 @@ impl InfoPane {
             // Package URL
             let mut url = String::from("None");
 
-            if main_window.imp().pacman_config.borrow().default_repos.contains(&pkg.repo_show()) {
+            let default_repos = ["core", "extra", "multilib"];
+
+            if default_repos.contains(&pkg.repo_show().as_str()) {
                 url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
             } else if &pkg.repo_show() == "aur" {
                 url = self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name()))

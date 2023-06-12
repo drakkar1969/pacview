@@ -33,7 +33,6 @@ use crate::utils::Utils;
 #[derive(Default, Clone, Debug, PartialEq, Eq, glib::Boxed)]
 #[boxed_type(name = "PacmanConfig")]
 pub struct PacmanConfig {
-    pub default_repos: Vec<String>,
     pub pacman_repos: Vec<String>,
     pub root_dir: String,
     pub db_path: String,
@@ -699,9 +698,6 @@ impl PacViewWindow {
     // Setup alpm: get pacman configuration
     //-----------------------------------
     fn get_pacman_config(&self) {
-        // Get standard repository names
-        let default_repos: Vec<String> = ["core", "extra", "multilib"].map(String::from).to_vec();
-
         // Get pacman config
         let pacman_config = pacmanconf::Config::new().unwrap();
 
@@ -715,7 +711,6 @@ impl PacViewWindow {
 
         // Store pacman config
         self.imp().pacman_config.replace(PacmanConfig{
-            default_repos,
             pacman_repos,
             root_dir: pacman_config.root_dir,
             db_path: pacman_config.db_path,
