@@ -50,8 +50,7 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::PacViewWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -86,8 +85,7 @@ mod imp {
 
         pub alpm_handle: RefCell<Option<Alpm>>,
 
-        #[property(get, set)]
-        pacman_config: RefCell<PacmanConfig>,
+        pub pacman_config: RefCell<PacmanConfig>,
 
         pub update_row: RefCell<FilterRow>,
     }
@@ -116,21 +114,6 @@ mod imp {
     }
 
     impl ObjectImpl for PacViewWindow {
-        //-----------------------------------
-        // Default property functions
-        //-----------------------------------
-        fn properties() -> &'static [glib::ParamSpec] {
-            Self::derived_properties()
-        }
-
-        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
-            self.derived_set_property(id, value, pspec)
-        }
-
-        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
-            self.derived_property(id, pspec)
-        }
-
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -428,7 +411,7 @@ impl PacViewWindow {
         // Add package view show stats action
         let stats_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-stats")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
-                let pacman_config = obj.pacman_config();
+                let pacman_config = imp.pacman_config.borrow();
                 
                 let stats_window = StatsWindow::new(
                     &pacman_config.pacman_repos,
@@ -512,7 +495,7 @@ impl PacViewWindow {
         let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
                 if let Some(pkg) = imp.info_pane.pkg() {
-                    let pacman_config = obj.pacman_config();
+                    let pacman_config = imp.pacman_config.borrow();
 
                     let details_window = DetailsWindow::new(
                         &pkg,
@@ -735,7 +718,7 @@ impl PacViewWindow {
         pacman_repos.push(String::from("local"));
 
         // Store pacman config
-        self.set_pacman_config(PacmanConfig{
+        self.imp().pacman_config.replace(PacmanConfig{
             default_repos,
             pacman_repos,
             root_dir: pacman_config.root_dir,
@@ -767,7 +750,7 @@ impl PacViewWindow {
 
         imp.repo_listbox.select_row(Some(&row));
 
-        for repo in self.pacman_config().pacman_repos {
+        for repo in &imp.pacman_config.borrow().pacman_repos {
             let row = FilterRow::new("repository-symbolic", &titlecase(&repo), &repo.to_lowercase(), PkgFlags::default());
 
             imp.repo_listbox.append(&row);
@@ -804,7 +787,7 @@ impl PacViewWindow {
 
         let (sender, receiver) = glib::MainContext::channel::<(Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
 
-        let pacman_config = self.pacman_config();
+        let pacman_config = imp.pacman_config.borrow().clone();
 
         thread::spawn(move || {
             let handle = Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
