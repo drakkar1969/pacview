@@ -18,7 +18,7 @@ impl Utils {
         let mut stdout: String = String::from("");
         let mut code: Option<i32> = None;
 
-        if let Ok(params) = shell_words::split(cmd) {
+        if let Some(params) = shlex::split(cmd) {
             if !params.is_empty() {
                 if let Ok(output) = Command::new(&params[0]).args(&params[1..]).output() {
                     code = output.status.code();
