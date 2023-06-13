@@ -86,7 +86,7 @@ mod imp {
         #[property(get, set)]
         capture_widget: RefCell<Option<gtk::Widget>>,
         #[property(get, set)]
-        capture_controller: RefCell<Option<gtk::EventControllerKey>>,
+        capture_controller: RefCell<gtk::EventControllerKey>,
 
         #[property(get, set)]
         active: Cell<bool>,
@@ -359,7 +359,7 @@ impl SearchHeader {
     //-----------------------------------
     pub fn set_key_capture_widget(&self, widget: &gtk::Widget) {
         if let Some(current_widget) = self.capture_widget() {
-            current_widget.remove_controller(&self.capture_controller().unwrap());
+            current_widget.remove_controller(&self.capture_controller());
         }
 
         self.set_capture_widget(widget);
