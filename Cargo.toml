@@ -14,6 +14,7 @@ lazy_static = "1.4.0"
 md5 = "0.7.0"
 pacmanconf = "2.0.0"
 raur = { version = "7.0.0", features = ["blocking"] }
+regex = "1.8.4"
 shlex = "1.1.0"
 titlecase = "2.2.1"
 url = "2.3.1"

@@ -969,6 +969,7 @@ dependencies = [
  "md5",
  "pacmanconf",
  "raur",
+ "regex",
  "shlex",
  "titlecase",
  "url",

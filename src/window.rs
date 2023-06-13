@@ -10,7 +10,7 @@ use glib::{clone, closure_local, once_cell::sync::OnceCell};
 use pacmanconf;
 use alpm::{Alpm, SigLevel};
 use titlecase::titlecase;
-use fancy_regex::Regex;
+use regex::Regex;
 use lazy_static::lazy_static;
 use raur::blocking::Raur;
 
@@ -842,6 +842,7 @@ impl PacViewWindow {
 
         let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
 
+        // Get list of local packages (not in sync DBs)
         let local_pkgs = imp.package_view.imp().model.iter::<PkgObject>()
             .flatten()
             .filter_map(|pkg| if pkg.repository() == "local" {Some(pkg.name())} else {None})
@@ -850,6 +851,7 @@ impl PacViewWindow {
         thread::spawn(move || {
             let mut aur_list: Vec<String> = vec![];
 
+            // Check if local packages are in AUR
             let handle = raur::blocking::Handle::new();
 
             if let Ok(aur_pkgs) = handle.info(&local_pkgs) {
@@ -863,15 +865,15 @@ impl PacViewWindow {
         receiver.attach(
             None,
             clone!(@weak imp => @default-return Continue(false), move |aur_list| {
+                // Update repository for AUR packages
                 for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| aur_list.contains(&pkg.name())) {
                     pkg.set_repo_show("aur");
 
-                    let infopane_model = imp.info_pane.imp().model.get();
-
+                    // Update info pane if currently displayed package is in AUR
                     let infopane_pkg = imp.info_pane.pkg();
 
                     if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
-                        for prop in infopane_model.iter::<PropObject>().flatten() {
+                        for prop in imp.info_pane.imp().model.get().iter::<PropObject>().flatten() {
                             if prop.label() == "Package URL" {
                                 prop.set_value(imp.info_pane.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())));
                             }
@@ -928,13 +930,11 @@ impl PacViewWindow {
                 // Build update map (package name, version)
                 update_map = update_str.lines()
                     .filter_map(|s|
-                        if EXPR.is_match(s).unwrap_or_default() {
-                            Some((EXPR.replace_all(s, "$1").to_string(), EXPR.replace_all(s, "$2").to_string()))
-                        } else {
-                            None
-                        }
+                        EXPR.captures(s)
+                            .filter(|caps| caps.len() == 3)
+                            .map(|caps| (caps[1].to_string(), caps[2].to_string()))
                     )
-                    .collect();
+                    .collect::<HashMap<String, String>>();
             }
 
             // Return thread result
@@ -949,19 +949,15 @@ impl PacViewWindow {
                     for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| update_map.contains_key(&pkg.name())) {
                         pkg.set_version(update_map[&pkg.name()].to_string());
 
-                        let mut flags = pkg.flags();
-                        flags.set(PkgFlags::UPDATES, true);
-
-                        pkg.set_flags(flags);
+                        pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
 
                         pkg.set_has_update(true);
 
-                        let infopane_model = imp.info_pane.imp().model.get();
-
+                        // Update info pane if currently displayed package has update
                         let infopane_pkg = imp.info_pane.pkg();
 
                         if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
-                            for prop in infopane_model.iter::<PropObject>().flatten() {
+                            for prop in imp.info_pane.imp().model.iter::<PropObject>().flatten() {
                                 if prop.label() == "Version" {
                                     prop.set_value(pkg.version());
                                     prop.set_icon("pkg-update");
