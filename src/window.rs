@@ -673,7 +673,10 @@ impl PacViewWindow {
         imp.package_view.connect_closure("selected", false, closure_local!(@watch self as obj => move |_: PackageView, pkg: Option<PkgObject>| {
             let imp = obj.imp();
 
-            let hist_model = imp.info_pane.history_model();
+            let hist_model = imp.info_pane.history_selection().model()
+                .expect("Must be a 'ListModel'")
+                .downcast::<gio::ListStore>()
+                .expect("Must be a 'ListStore'");
 
             hist_model.remove_all();
 

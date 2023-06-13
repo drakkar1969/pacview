@@ -49,8 +49,6 @@ mod imp {
         pkg_model: RefCell<gio::ListStore>,
 
         #[property(get, set)]
-        history_model: RefCell<gio::ListStore>,
-        #[property(get, set)]
         history_selection: RefCell<gtk::SingleSelection>,
 
         #[property(get = Self::pkg)]
@@ -150,9 +148,10 @@ impl InfoPane {
             }
         }
 
-        // Initialize history model/selection
-        self.set_history_model(gio::ListStore::new(PkgObject::static_type()));
-        self.set_history_selection(gtk::SingleSelection::new(Some(self.history_model())));
+        // Initialize history selection
+        let history_model = gio::ListStore::new(PkgObject::static_type());
+
+        self.set_history_selection(gtk::SingleSelection::new(Some(history_model)));
     }
 
     //-----------------------------------
@@ -229,8 +228,12 @@ impl InfoPane {
 
                     // If link package found
                     if let Some(new_pkg) = new_pkg {
-                        let hist_model = self.history_model();
                         let hist_sel = self.history_selection();
+
+                        let hist_model = hist_sel.model()
+                            .expect("Must be a 'ListModel'")
+                            .downcast::<gio::ListStore>()
+                            .expect("Must be a 'ListStore'");
 
                         // If link package is in infopane history, select it
                         if let Some(i) = hist_model.find(&new_pkg) {
