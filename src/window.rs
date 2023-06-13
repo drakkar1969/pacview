@@ -853,7 +853,7 @@ impl PacViewWindow {
             let handle = raur::blocking::Handle::new();
 
             if let Ok(aur_pkgs) = handle.info(&local_pkgs) {
-                aur_list.extend(aur_pkgs.iter().map(|pkg| pkg.name.clone()));
+                aur_list.extend(aur_pkgs.iter().map(|pkg| pkg.name.to_string()));
             }
 
             // Return thread result
