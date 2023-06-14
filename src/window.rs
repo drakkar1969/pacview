@@ -875,7 +875,7 @@ impl PacViewWindow {
                     if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
                         for prop in imp.info_pane.imp().model.get().iter::<PropObject>().flatten() {
                             if prop.label() == "Package URL" {
-                                prop.set_value(imp.info_pane.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name())));
+                                prop.set_value(imp.info_pane.prop_to_package_url(&pkg));
                             }
 
                             if prop.label() == "Repository" {

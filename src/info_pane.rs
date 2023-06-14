@@ -309,18 +309,8 @@ impl InfoPane {
                 "Description", &self.prop_to_esc_string(&pkg.description()), None
             ));
             // Package URL
-            let mut url = String::from("None");
-
-            let default_repos = ["core", "extra", "multilib"];
-
-            if default_repos.contains(&pkg.repo_show().as_str()) {
-                url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
-            } else if &pkg.repo_show() == "aur" {
-                url = self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name()))
-            }
-
             imp.model.append(&PropObject::new(
-                "Package URL", &url, None
+                "Package URL", &self.prop_to_package_url(&pkg), None
             ));
             // URL
             if pkg.url() != "" {
@@ -471,17 +461,34 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // Public display helper functions
+    // Public display helper function
     //-----------------------------------
-    pub fn prop_to_esc_string(&self, prop: &str) -> String {
+    pub fn prop_to_package_url(&self, pkg: &PkgObject) -> String {
+        let mut url = String::from("None");
+
+        let default_repos = ["core", "extra", "multilib"];
+
+        if default_repos.contains(&pkg.repo_show().as_str()) {
+            url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
+        } else if &pkg.repo_show() == "aur" {
+            url = self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name()))
+        }
+
+        url
+    }
+
+    //-----------------------------------
+    // Private display helper functions
+    //-----------------------------------
+    fn prop_to_esc_string(&self, prop: &str) -> String {
         glib::markup_escape_text(prop).to_string()
     }
 
-    pub fn prop_to_esc_url(&self, prop: &str) -> String {
+    fn prop_to_esc_url(&self, prop: &str) -> String {
         format!("<a href=\"{url}\">{url}</a>", url=glib::markup_escape_text(prop).to_string())
     }
 
-    pub fn prop_to_packager(&self, prop: &str) -> String {
+    fn prop_to_packager(&self, prop: &str) -> String {
         lazy_static! {
             static ref EXPR: Regex = Regex::new("^([^<]+)<([^>]+)>$").unwrap();
         }
@@ -489,11 +496,11 @@ impl InfoPane {
         EXPR.replace_all(&prop, "$1&lt;<a href='mailto:$2'>$2</a>&gt;").to_string()
     }
 
-    pub fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
+    fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
         glib::markup_escape_text(&prop_vec.join("   ")).to_string()
     }
 
-    pub fn propvec_to_linkstring(&self, prop_vec: &Vec<String>) -> String {
+    fn propvec_to_linkstring(&self, prop_vec: &Vec<String>) -> String {
         if prop_vec.is_empty() {
             String::from("None")
         } else {
