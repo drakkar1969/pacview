@@ -117,7 +117,7 @@ mod imp {
         tree_rev_text: RefCell<String>,
 
         #[property(get, set)]
-        cache_dir: RefCell<String>,
+        cache_dir: RefCell<Option<String>>,
     }
 
     //-----------------------------------
@@ -190,7 +190,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dir: &str) -> Self {
+    pub fn new(pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dir: &Option<String>) -> Self {
         let win: Self = glib::Object::builder()
             .property("pkg", pkg)
             .property("cache-dir", cache_dir)
@@ -381,11 +381,13 @@ impl DetailsWindow {
 
         // Cache open button clicked signal
         imp.cache_open_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            let item = imp.cache_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
+            if let Some(cache_dir) = obj.cache_dir() {
+                let item = imp.cache_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .expect("Must be a 'StringObject'");
 
-            obj.open_file_manager(&format!("{}{}", obj.cache_dir(), item.string()));
+                obj.open_file_manager(&format!("{}{}", cache_dir, item.string()));
+            }
         }));
 
         // Cache copy button clicked signal
@@ -406,11 +408,13 @@ impl DetailsWindow {
 
         // Cache listview activate signal
         imp.cache_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
-            let item = imp.cache_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
+            if let Some(cache_dir) = obj.cache_dir() {
+                let item = imp.cache_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .expect("Must be a 'StringObject'");
 
-            obj.open_file_manager(&format!("{}{}", obj.cache_dir(), item.string()));
+                obj.open_file_manager(&format!("{}{}", cache_dir, item.string()));
+            }
         }));
 
         // Backup open button clicked signal
@@ -610,7 +614,7 @@ impl DetailsWindow {
         imp.cache_header_label.set_label(&format!("Cache Files ({})", n_files));
 
         // Set open/copy button states
-        imp.cache_open_button.set_sensitive(n_files > 0);
+        imp.cache_open_button.set_sensitive(n_files > 0 && self.cache_dir().is_some());
         imp.cache_copy_button.set_sensitive(n_files > 0);
     }
 
