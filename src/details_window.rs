@@ -198,14 +198,14 @@ impl DetailsWindow {
 
         let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
 
-        win.setup_banner();
-        win.setup_stack(installed);
+        win.init_banner();
+        win.init_stack(installed);
 
-        if installed { win.setup_files(); }
-        win.setup_tree(custom_font, monospace_font);
-        if installed { win.setup_logs(log_file); }
-        if installed { win.setup_cache(); }
-        if installed { win.setup_backup(); }
+        if installed { win.init_files_page(); }
+        win.init_tree_page(custom_font, monospace_font);
+        if installed { win.init_logs_page(log_file); }
+        if installed { win.init_cache_page(); }
+        if installed { win.init_backup_page(); }
 
         win
     }
@@ -453,17 +453,17 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Setup banner
+    // Initialize banner
     //-----------------------------------
-    fn setup_banner(&self) {
+    fn init_banner(&self) {
         // Set package name in banner
         self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=self.pkg().repo_show(), name=self.pkg().name()));
     }
 
     //-----------------------------------
-    // Setup stack
+    // Initialize stack
     //-----------------------------------
-    fn setup_stack(&self, installed: bool) {
+    fn init_stack(&self, installed: bool) {
         let imp = self.imp();
 
         imp.files_button.set_sensitive(installed);
@@ -477,9 +477,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Setup files page
+    // Initialize files page
     //-----------------------------------
-    fn setup_files(&self) {
+    fn init_files_page(&self) {
         let imp = self.imp();
 
         // Set files search entry key capture widget
@@ -510,9 +510,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Setup tree page
+    // Initialize tree page
     //-----------------------------------
-    fn setup_tree(&self, custom_font: bool, monospace_font: &str) {
+    fn init_tree_page(&self, custom_font: bool, monospace_font: &str) {
         let imp = self.imp();
 
         // Get monospace font
@@ -563,9 +563,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Setup logs page
+    // Initialize logs page
     //-----------------------------------
-    fn setup_logs(&self, log_file: &str) {
+    fn init_logs_page(&self, log_file: &str) {
         let imp = self.imp();
 
         // Populate log messages
@@ -592,9 +592,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Setup cache page
+    // Initialize cache page
     //-----------------------------------
-    fn setup_cache(&self) {
+    fn init_cache_page(&self) {
         let imp = self.imp();
 
         // Populate cache files list
@@ -619,9 +619,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Setup backup page
+    // Initialize backup page
     //-----------------------------------
-    fn setup_backup(&self) {
+    fn init_backup_page(&self) {
         let imp = self.imp();
 
         // Populate backup list

@@ -77,7 +77,7 @@ impl StatsWindow {
     pub fn new(repo_names: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
         let window: Self = glib::Object::builder().build();
 
-        window.setup_widgets(repo_names, pkg_model);
+        window.init_widgets(repo_names, pkg_model);
 
         window
     }
@@ -104,9 +104,9 @@ impl StatsWindow {
     }
 
     //-----------------------------------
-    // Setup widgets
+    // Initialize widgets
     //-----------------------------------
-    fn setup_widgets(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
+    fn init_widgets(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         let mut total_pcount = 0;
