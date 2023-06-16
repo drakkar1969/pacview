@@ -816,9 +816,9 @@ impl PacViewWindow {
         receiver.attach(
             None,
             clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(handle, data_list)| {
-                let pkg_list: Vec<PkgObject> = data_list.into_iter().map(|data| {
-                    PkgObject::new(data)
-                }).collect();
+                let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                    .map(|data| PkgObject::new(data))
+                    .collect();
 
                 imp.info_pane.set_alpm_handle(Some(handle));
 
@@ -866,7 +866,9 @@ impl PacViewWindow {
             None,
             clone!(@weak imp => @default-return Continue(false), move |aur_list| {
                 // Update repository for AUR packages
-                for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| aur_list.contains(&pkg.name())) {
+                for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten()
+                    .filter(|pkg| aur_list.contains(&pkg.name()))
+                {
                     pkg.set_repo_show("aur");
 
                     // Update info pane if currently displayed package is in AUR
@@ -946,7 +948,9 @@ impl PacViewWindow {
             clone!(@weak imp => @default-return Continue(false), move |(success, update_map)| {
                 // Update status of packages with updates
                 if update_map.len() > 0 {
-                    for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten().filter(|pkg| update_map.contains_key(&pkg.name())) {
+                    for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten()
+                        .filter(|pkg| update_map.contains_key(&pkg.name()))
+                    {
                         pkg.set_version(update_map[&pkg.name()].to_string());
 
                         pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);

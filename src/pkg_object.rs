@@ -165,16 +165,18 @@ impl PkgData {
     }
 
     fn alpm_filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
-        let mut file_vec: Vec<String> = list.files().iter().map(|file| format!("/{}", file.name())).collect();
+        let mut file_vec: Vec<String> = list.files().iter()
+            .map(|file| format!("/{}", file.name()))
+            .collect();
         file_vec.sort_unstable();
 
         file_vec
     }
 
     fn alpm_backuplist_to_vec(list: &alpm::AlpmList<alpm::Backup>) -> Vec<String> {
-        let mut backup_vec: Vec<String> = list.iter().map(|bck| {
-            format!("/{name} || {hash}", name=bck.name(), hash=bck.hash())
-        }).collect();
+        let mut backup_vec: Vec<String> = list.iter()
+            .map(|bck| format!("/{name} || {hash}", name=bck.name(), hash=bck.hash()))
+            .collect();
         backup_vec.sort_unstable();
 
         backup_vec

@@ -217,7 +217,8 @@ impl InfoPane {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     // Find link package by name
-                    let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| pkg.name() == pkg_name);
+                    let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten()
+                        .find(|pkg| pkg.name() == pkg_name);
 
                     // If link package is none, find by provides
                     if new_pkg.is_none() {

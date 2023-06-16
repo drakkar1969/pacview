@@ -171,7 +171,9 @@ impl PackageView {
         // Iterate through column IDs
         for (i, id) in column_ids.iter().enumerate() {
             // If column exists with given ID, insert it at position
-            if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten().find(|col| col.id().unwrap() == *id) {
+            if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten()
+                .find(|col| col.id().unwrap() == *id)
+            {
                 self.imp().view.insert_column(i as u32, &col);
             }
         }
