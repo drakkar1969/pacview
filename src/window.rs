@@ -581,33 +581,35 @@ impl PacViewWindow {
         }));
 
         // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |_: SearchHeader, term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode| {
+        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |_: SearchHeader, search_term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode| {
             let imp = obj.imp();
 
-            if term == "" {
+            if search_term == "" {
                 imp.package_view.imp().search_filter.unset_filter_func();
             } else {
-                let search_term = term.to_lowercase();
-
                 if mode == SearchMode::Exact {
+                    let term = search_term.to_string();
+
                     imp.package_view.imp().search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
                             .expect("Must be a 'PkgObject'");
 
                         let results = [
-                            by_name && pkg.name().to_lowercase().eq(&search_term),
-                            by_desc && pkg.description().to_lowercase().eq(&search_term),
-                            by_group && pkg.groups().to_lowercase().eq(&search_term),
-                            by_deps && pkg.depends().iter().any(|s| s.to_lowercase().eq(&search_term)),
-                            by_optdeps && pkg.optdepends().iter().any(|s| s.to_lowercase().eq(&search_term)),
-                            by_provides && pkg.provides().iter().any(|s| s.to_lowercase().eq(&search_term)),
-                            by_files && pkg.files().iter().any(|s| s.to_lowercase().eq(&search_term)),
+                            by_name && pkg.name().eq_ignore_ascii_case(&term),
+                            by_desc && pkg.description().eq_ignore_ascii_case(&term),
+                            by_group && pkg.groups().eq_ignore_ascii_case(&term),
+                            by_deps && pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            by_optdeps && pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            by_provides && pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            by_files && pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)),
                         ];
 
                         results.iter().any(|&x| x)
                     });
                 } else {
+                    let term = search_term.to_ascii_lowercase();
+
                     imp.package_view.imp().search_filter.set_filter_func(move |item| {
                         let pkg: &PkgObject = item
                             .downcast_ref::<PkgObject>()
@@ -615,18 +617,18 @@ impl PacViewWindow {
 
                         let mut results = vec![];
 
-                        for term in search_term.split_whitespace() {
-                            let term_results = [
-                                by_name && pkg.name().to_lowercase().contains(&term),
-                                by_desc && pkg.description().to_lowercase().contains(&term),
-                                by_group && pkg.groups().to_lowercase().contains(&term),
-                                by_deps && pkg.depends().iter().any(|s| s.to_lowercase().contains(&term)),
-                                by_optdeps && pkg.optdepends().iter().any(|s| s.to_lowercase().contains(&term)),
-                                by_provides && pkg.provides().iter().any(|s| s.to_lowercase().contains(&term)),
-                                by_files && pkg.files().iter().any(|s| s.to_lowercase().contains(&term)),
+                        for t in term.split_whitespace() {
+                            let t_results = [
+                                by_name && pkg.name().to_ascii_lowercase().contains(&t),
+                                by_desc && pkg.description().to_ascii_lowercase().contains(&t),
+                                by_group && pkg.groups().to_ascii_lowercase().contains(&t),
+                                by_deps && pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                by_optdeps && pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                by_provides && pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                by_files && pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
                             ];
 
-                            results.push(term_results.iter().any(|&x| x));
+                            results.push(t_results.iter().any(|&x| x));
                         }
 
                         if mode == SearchMode::All {
@@ -745,7 +747,7 @@ impl PacViewWindow {
         imp.repo_listbox.select_row(Some(&row));
 
         for repo in &imp.pacman_config.borrow().pacman_repos {
-            let row = FilterRow::new("repository-symbolic", &titlecase(&repo), &repo.to_lowercase(), PkgFlags::default());
+            let row = FilterRow::new("repository-symbolic", &titlecase(&repo), &repo, PkgFlags::default());
 
             imp.repo_listbox.append(&row);
         }
