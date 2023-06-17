@@ -190,8 +190,9 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dir: &Option<String>) -> Self {
+    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dir: &Option<String>) -> Self {
         let win: Self = glib::Object::builder()
+            .property("transient-for", parent)
             .property("pkg", pkg)
             .property("cache-dir", cache_dir)
             .build();

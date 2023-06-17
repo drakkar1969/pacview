@@ -411,11 +411,10 @@ impl PacViewWindow {
                 let pacman_config = imp.pacman_config.borrow();
                 
                 let stats_window = StatsWindow::new(
+                    &obj.upcast_ref(),
                     &pacman_config.pacman_repos,
                     &imp.package_view.imp().model
                 );
-
-                stats_window.set_transient_for(Some(&obj));
 
                 stats_window.present();
             }))
@@ -497,14 +496,13 @@ impl PacViewWindow {
                     let pacman_config = imp.pacman_config.borrow();
 
                     let details_window = DetailsWindow::new(
+                        &obj.upcast_ref(),
                         &pkg,
                         imp.prefs_window.custom_font(),
                         &imp.prefs_window.monospace_font(),
                         &pacman_config.log_file,
                         &pacman_config.cache_dir
                     );
-
-                    details_window.set_transient_for(Some(&obj));
 
                     details_window.present();
                 }
