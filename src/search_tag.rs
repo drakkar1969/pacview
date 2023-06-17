@@ -25,7 +25,7 @@ mod imp {
 
         #[property(get, set)]
         text: RefCell<Option<String>>,
-        #[property(get, set)]
+        #[property(get, set, default = true, construct)]
         can_close: Cell<bool>,
     }
 

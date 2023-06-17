@@ -33,16 +33,19 @@
                     <child>
                       <object class="SearchTag" id="tag_any">
                         <property name="text">any</property>
+                        <property name="can-close">false</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_all">
                         <property name="text">all</property>
+                        <property name="can-close">false</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_exact">
                         <property name="text">exact</property>
+                        <property name="can-close">false</property>
                       </object>
                     </child>
                     <child>
@@ -54,43 +57,36 @@
                     <child>
                       <object class="SearchTag" id="tag_name">
                         <property name="text">name</property>
-                        <property name="can-close">true</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_desc">
                         <property name="text">desc</property>
-                        <property name="can-close">true</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_group">
                         <property name="text">group</property>
-                        <property name="can-close">true</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_deps">
                         <property name="text">deps</property>
-                        <property name="can-close">true</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_optdeps">
                         <property name="text">optdeps</property>
-                        <property name="can-close">true</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_provides">
                         <property name="text">provides</property>
-                        <property name="can-close">true</property>
                       </object>
                     </child>
                     <child>
                       <object class="SearchTag" id="tag_files">
                         <property name="text">files</property>
-                        <property name="can-close">true</property>
                       </object>
                     </child>
                   </object>
