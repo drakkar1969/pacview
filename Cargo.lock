@@ -957,7 +957,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pacview-rust"
+name = "pacview"
 version = "0.1.0"
 dependencies = [
  "alpm",
