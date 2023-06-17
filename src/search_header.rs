@@ -358,19 +358,9 @@ impl SearchHeader {
 
         self.set_capture_controller(&controller);
 
-        let exclude_keys = [
-            gdk::Key::Tab, gdk::Key::Caps_Lock, gdk::Key::Num_Lock, gdk::Key::F1, gdk::Key::F2,
-            gdk::Key::F3, gdk::Key::F4, gdk::Key::F5, gdk::Key::F6, gdk::Key::F7, gdk::Key::F8,
-            gdk::Key::F9, gdk::Key::F10, gdk::Key::F11, gdk::Key::F12, gdk::Key::BackSpace,
-            gdk::Key::Delete, gdk::Key::KP_Delete, gdk::Key::Insert, gdk::Key::KP_Insert,
-            gdk::Key::Shift_L, gdk::Key::Shift_R, gdk::Key::Control_L, gdk::Key::Control_R,
-            gdk::Key::Alt_L, gdk::Key::Alt_R, gdk::Key::KP_Begin, gdk::Key::ISO_Level3_Shift
-        ];
-
-        controller.connect_key_pressed(clone!(@weak self as header => @default-return gtk::Inhibit(false), move |controller, key, _, state| {
-            if !(state.contains(gdk::ModifierType::ALT_MASK) ||
-                 state.contains(gdk::ModifierType::CONTROL_MASK) ||
-                 exclude_keys.contains(&key)) {
+        controller.connect_key_pressed(clone!(@weak self as header => @default-return gtk::Inhibit(false), move |controller, _, _, state| {
+            if !(state.contains(gdk::ModifierType::ALT_MASK) || state.contains(gdk::ModifierType::CONTROL_MASK))
+            {
                 if controller.forward(&header.imp().search_text.get()) {
                     header.set_active(true);
                 }
