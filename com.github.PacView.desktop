@@ -2,7 +2,7 @@
 Name=PacView
 GenericName=Package Browser
 Comment=An application for browsing pacman databases and the AUR
-Exec=/usr/share/pacview/pacview.py
+Exec=/usr/bin/pacview
 Terminal=false
 Type=Application
 Icon=software-properties
