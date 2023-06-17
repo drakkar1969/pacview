@@ -31,20 +31,8 @@
                     <property name="valign">center</property>
                     <property name="margin-start">6</property>
                     <child>
-                      <object class="SearchTag" id="tag_any">
-                        <property name="text">any</property>
-                        <property name="can-close">false</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_all">
+                      <object class="SearchTag" id="tag_mode">
                         <property name="text">all</property>
-                        <property name="can-close">false</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_exact">
-                        <property name="text">exact</property>
                         <property name="can-close">false</property>
                       </object>
                     </child>

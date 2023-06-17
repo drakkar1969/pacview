@@ -54,6 +54,9 @@ mod imp {
         pub search_buffer: TemplateChild<gtk::EntryBuffer>,
 
         #[template_child]
+        pub tag_mode: TemplateChild<SearchTag>,
+
+        #[template_child]
         pub tag_box: TemplateChild<gtk::Box>,
         #[template_child]
         pub tag_name: TemplateChild<SearchTag>,
@@ -69,13 +72,6 @@ mod imp {
         pub tag_provides: TemplateChild<SearchTag>,
         #[template_child]
         pub tag_files: TemplateChild<SearchTag>,
-        #[template_child]
-
-        pub tag_all: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_any: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_exact: TemplateChild<SearchTag>,
 
         #[template_child]
         pub clear_button: TemplateChild<gtk::Button>,
@@ -221,19 +217,13 @@ impl SearchHeader {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        // Bind search mode property to search mode tag visibility
-        self.bind_property("mode", &imp.tag_all.get(), "visible")
-            .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::All))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        self.bind_property("mode", &imp.tag_any.get(), "visible")
-            .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Any))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        self.bind_property("mode", &imp.tag_exact.get(), "visible")
-            .transform_to(|_, mode: SearchMode| Some(mode == SearchMode::Exact))
+        // Bind search mode property to search mode tag text
+        self.bind_property("mode", &imp.tag_mode.get(), "text")
+            .transform_to(|_, mode: SearchMode| {
+                glib::EnumValue::from_value(
+                    &mode.to_value()).and_then(|(_, value)| Some(value.nick().to_string())
+                )
+            })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
