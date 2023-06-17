@@ -188,11 +188,7 @@ impl InfoPane {
 
             value_row.bind_properties(&prop_obj);
 
-            let label = &value_row.imp().label;
-
-            let signal = label.connect_activate_link(clone!(@weak obj => @default-return gtk::Inhibit(true), move |_, link| obj.link_handler(link)));
-
-            value_row.add_label_signal(signal);
+            value_row.connect_link_handler(&obj, Self::link_handler);
         }));
 
         // Value factory unbind signal
@@ -205,14 +201,13 @@ impl InfoPane {
                 .expect("Must be a 'ValueRow'");
 
             value_row.unbind_properties();
-            value_row.drop_label_signal();
         });
     }
 
     //-----------------------------------
     // Value label link handler
     //-----------------------------------
-    fn link_handler(&self, link: &str) -> gtk::Inhibit {
+    fn link_handler(&self, link: &str) -> bool {
         if let Ok(url) = Url::parse(link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
@@ -261,12 +256,12 @@ impl InfoPane {
                 }
 
                 // Link handled
-                return gtk::Inhibit(true)
+                return true
             } 
         }
 
         // Link not handled (use default handler)
-        gtk::Inhibit(false)
+        false
     }
 
     //-----------------------------------

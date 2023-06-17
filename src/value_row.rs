@@ -1,9 +1,11 @@
 use std::cell::RefCell;
 
-use gtk::glib::{self, SignalHandlerId};
+use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
+use glib::closure_local;
 
+use crate::info_pane::InfoPane;
 use crate::prop_object::PropObject;
 
 //------------------------------------------------------------------------------
@@ -24,7 +26,6 @@ mod imp {
         pub label: TemplateChild<gtk::Label>,
 
         pub bindings: RefCell<Vec<glib::Binding>>,
-        pub signal: RefCell<Option<glib::SignalHandlerId>>,
     }
 
     //-----------------------------------
@@ -103,20 +104,18 @@ impl ValueRow {
         }
     }
 
-    //-----------------------------------
-    // Public signal binding functions
-    //-----------------------------------
-    pub fn add_label_signal(&self, signal: SignalHandlerId) {
-        // Save label signal
-        self.imp().signal.replace(Some(signal));
-    }
+    pub fn connect_link_handler(&self, obj: &InfoPane, handler: fn(&InfoPane, &str) -> bool) {
+        let _label = self.imp().label.get();
 
-    pub fn drop_label_signal(&self) {
-        // Disconnect label signal
-        let imp = self.imp();
+        // Connect activate link signal handler to label
+        // With @watch signal is disconnected when label is destroyed (no disconnect needed)
+        _label.connect_closure("activate-link", false, closure_local!(@weak-allow-none obj, @watch _label => move |_: gtk::Label, link: &str| {
+            if let Some(obj) = obj {
+                handler(&obj, link)
+            } else {
+                false
+            }
 
-        if let Some(signal) = imp.signal.take() {
-            imp.label.disconnect(signal);
-        }
+        }));
     }
 }
