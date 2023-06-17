@@ -51,9 +51,6 @@ mod imp {
         #[property(get, set)]
         history_selection: RefCell<gtk::SingleSelection>,
 
-        #[property(get = Self::pkg)]
-        _pkg: RefCell<Option<PkgObject>>,
-
         pub alpm_handle: RefCell<Option<Alpm>>,
     }
 
@@ -108,16 +105,6 @@ mod imp {
 
     impl WidgetImpl for InfoPane {}
     impl BinImpl for InfoPane {}
-
-    impl InfoPane {
-        //-----------------------------------
-        // Custom property getters
-        //-----------------------------------
-        fn pkg(&self) -> Option<PkgObject> {
-            self.obj().history_selection().selected_item()
-                .and_downcast::<PkgObject>()
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -515,5 +502,28 @@ impl InfoPane {
     //-----------------------------------
     pub fn set_alpm_handle(&self, handle: Option<Alpm>) {
         self.imp().alpm_handle.replace(handle);
+    }
+
+    //-----------------------------------
+    // Public get/set pkg functions
+    //-----------------------------------
+    pub fn pkg(&self) -> Option<PkgObject> {
+        self.history_selection().selected_item()
+            .and_downcast::<PkgObject>()
+    }
+
+    pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
+        let hist_model = self.history_selection().model()
+            .expect("Must be a 'ListModel'")
+            .downcast::<gio::ListStore>()
+            .expect("Must be a 'ListStore'");
+
+        hist_model.remove_all();
+
+        self.display_package(pkg);
+
+        if let Some(pkg) = pkg {
+            hist_model.append(pkg);
+        }
     }
 }
