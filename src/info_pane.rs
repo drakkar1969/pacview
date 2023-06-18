@@ -480,7 +480,16 @@ impl InfoPane {
     }
 
     fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
-        glib::markup_escape_text(&prop_vec.join("   ")).to_string()
+        let n_items = prop_vec.len();
+        let max_items = n_items.min(80);
+
+        let mut wrap_str = prop_vec[..max_items].join("   ");
+
+        if n_items > max_items {
+            wrap_str += &format!("   ... (and {} more)", n_items - max_items);
+        }
+
+        glib::markup_escape_text(&wrap_str).to_string()
     }
 
     fn propvec_to_linkstring(&self, prop_vec: &Vec<String>) -> String {
