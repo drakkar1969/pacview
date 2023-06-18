@@ -16,11 +16,8 @@ use crate::search_tag::SearchTag;
 #[repr(u32)]
 #[enum_type(name = "SearchMode")]
 pub enum SearchMode {
-    #[enum_value(name = "All")]
     All = 0,
-    #[enum_value(name = "Any")]
     Any = 1,
-    #[enum_value(name = "Exact")]
     Exact = 2,
 }
 
@@ -266,7 +263,7 @@ impl SearchHeader {
         // Search mode property notify signal
         self.connect_mode_notify(|header| {
             if let Some(text) = glib::EnumValue::from_value(&header.mode().to_value())
-                .and_then(|(_, enum_value)| Some(enum_value.nick().to_string()))
+                .and_then(|(_, enum_value)| Some(enum_value.nick()))
             {
                 header.imp().tag_mode.set_text(text);
 
@@ -311,12 +308,12 @@ impl SearchHeader {
 
                 let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
 
-                let flags = flags_class.builder_with_value(flags).unwrap()
+                if let Some(flags) = flags_class.builder_with_value(flags).unwrap()
                     .unset_by_nick(text)
                     .build()
-                    .unwrap();
-
-                obj.set_property("flags", flags);
+                {
+                    obj.set_property("flags", flags);
+                }
             }));
         }
 

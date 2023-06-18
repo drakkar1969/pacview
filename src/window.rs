@@ -341,16 +341,10 @@ impl PacViewWindow {
         for f in flags_class.values() {
             let flag = SearchFlags::from_bits_truncate(f.value());
 
-            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, if flag == SearchFlags::NAME {true.to_variant()} else {false.to_variant()});
+            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, (flag == SearchFlags::NAME).to_variant());
 
             flag_action.connect_activate(clone!(@weak imp, @strong flag => move |_, _| {
-                let header = imp.search_header.get();
-
-                let mut flags = header.flags();
-
-                flags.toggle(flag);
-
-                header.set_flags(flags);
+                imp.search_header.set_flags(imp.search_header.flags() ^ flag);
             }));
 
             // Bind search header flags property to action state
