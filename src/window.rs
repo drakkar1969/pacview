@@ -594,13 +594,20 @@ impl PacViewWindow {
                             .expect("Must be a 'PkgObject'");
 
                         let results = [
-                            flags.contains(SearchFlags::NAME) && pkg.name().eq_ignore_ascii_case(&term),
-                            flags.contains(SearchFlags::DESC) && pkg.description().eq_ignore_ascii_case(&term),
-                            flags.contains(SearchFlags::GROUP) && pkg.groups().eq_ignore_ascii_case(&term),
-                            flags.contains(SearchFlags::DEPS) && pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            flags.contains(SearchFlags::OPTDEPS) && pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            flags.contains(SearchFlags::PROVIDES) && pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            flags.contains(SearchFlags::FILES) && pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::NAME) &&
+                                pkg.name().eq_ignore_ascii_case(&term),
+                            flags.contains(SearchFlags::DESC) &&
+                                pkg.description().eq_ignore_ascii_case(&term),
+                            flags.contains(SearchFlags::GROUP) &&
+                                pkg.groups().eq_ignore_ascii_case(&term),
+                            flags.contains(SearchFlags::DEPS) &&
+                                pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::OPTDEPS) &&
+                                pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::PROVIDES) &&
+                                pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::FILES) &&
+                                pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)),
                         ];
 
                         results.iter().any(|&x| x)
@@ -617,13 +624,20 @@ impl PacViewWindow {
 
                         for t in term.split_whitespace() {
                             let t_results = [
-                                flags.contains(SearchFlags::NAME) && pkg.name().to_ascii_lowercase().contains(&t),
-                                flags.contains(SearchFlags::DESC) && pkg.description().to_ascii_lowercase().contains(&t),
-                                flags.contains(SearchFlags::GROUP) && pkg.groups().to_ascii_lowercase().contains(&t),
-                                flags.contains(SearchFlags::DEPS) && pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                flags.contains(SearchFlags::OPTDEPS) && pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                flags.contains(SearchFlags::PROVIDES) && pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                flags.contains(SearchFlags::FILES) && pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::NAME) &&
+                                    pkg.name().to_ascii_lowercase().contains(&t),
+                                flags.contains(SearchFlags::DESC) &&
+                                    pkg.description().to_ascii_lowercase().contains(&t),
+                                flags.contains(SearchFlags::GROUP) &&
+                                    pkg.groups().to_ascii_lowercase().contains(&t),
+                                flags.contains(SearchFlags::DEPS) &&
+                                    pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::OPTDEPS) &&
+                                    pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::PROVIDES) &&
+                                    pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::FILES) &&
+                                    pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
                             ];
 
                             results.push(t_results.iter().any(|&x| x));
