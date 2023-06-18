@@ -184,6 +184,13 @@ mod imp {
             obj.setup_widgets();
             obj.setup_signals();
         }
+
+        //-----------------------------------
+        // Dispose function
+        //-----------------------------------
+        fn dispose(&self) {
+            self.dispose_template();
+        }
     }
 
     impl WidgetImpl for SearchHeader {}
