@@ -927,15 +927,15 @@ impl PacViewWindow {
                 }
 
                 lazy_static! {
-                    static ref EXPR: Regex = Regex::new("(\\S+) (\\S+ -> \\S+)").unwrap();
+                    static ref EXPR: Regex = Regex::new("(\\S+)\\s+(\\S+)\\s+->\\s+(\\S+)").unwrap();
                 }
 
                 // Build update map (package name, version)
                 update_map = update_str.lines()
                     .filter_map(|s|
                         EXPR.captures(s)
-                            .filter(|caps| caps.len() == 3)
-                            .map(|caps| (caps[1].to_string(), caps[2].to_string()))
+                            .filter(|caps| caps.len() == 4)
+                            .map(|caps| (caps[1].to_string(), format!("{} -> {}", caps[2].to_string(), caps[3].to_string())))
                     )
                     .collect::<HashMap<String, String>>();
             }
