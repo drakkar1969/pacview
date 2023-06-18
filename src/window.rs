@@ -396,6 +396,13 @@ impl PacViewWindow {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
+        // Add package view check for updates action
+        let updates_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("check-updates")
+            .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
+                obj.get_package_updates_async();
+            }))
+            .build();
+
         // Add package view refresh action
         let refresh_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("refresh")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
@@ -451,7 +458,7 @@ impl PacViewWindow {
 
         self.insert_action_group("view", Some(&view_group));
 
-        view_group.add_action_entries([refresh_action, stats_action, copy_action, columns_action]);
+        view_group.add_action_entries([refresh_action, updates_action, stats_action, copy_action, columns_action]);
 
         // Add package view header menu property actions
         let columns = imp.package_view.imp().view.columns();
@@ -898,6 +905,11 @@ impl PacViewWindow {
     //-----------------------------------
     fn get_package_updates_async(&self) {
         let imp = self.imp();
+
+        let update_row = imp.update_row.borrow();
+
+        update_row.set_spinning(true);
+        update_row.set_sensitive(false);
 
         let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::PRIORITY_DEFAULT);
 

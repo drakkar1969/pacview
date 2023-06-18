@@ -152,6 +152,12 @@
   <menu id="primary_menu">
     <section>
       <item>
+        <attribute name="label">Check for Updates</attribute>
+        <attribute name="action">view.check-updates</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="label">Refresh</attribute>
         <attribute name="action">view.refresh</attribute>
       </item>

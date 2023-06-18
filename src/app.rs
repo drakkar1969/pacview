@@ -101,6 +101,7 @@ impl PacViewApplication {
         self.set_accels_for_action("search.toggle", &["<ctrl>F"]);
         self.set_accels_for_action("search.stop", &["Escape"]);
 
+        self.set_accels_for_action("view.check-updates", &["F9"]);
         self.set_accels_for_action("view.refresh", &["F5"]);
         self.set_accels_for_action("view.show-stats", &["<alt>S"]);
         self.set_accels_for_action("view.copy-list", &["<alt>L"]);
