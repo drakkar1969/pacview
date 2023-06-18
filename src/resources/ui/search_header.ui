@@ -3,7 +3,6 @@
   <!--// SearchHeader template //-->
   <template class="SearchHeader" parent="GtkWidget">
     <property name="width-request">920</property>
-    <property name="by-name">true</property>
     <child>
       <object class="GtkStack" id="stack">
         <child>
@@ -117,41 +116,41 @@
       <attribute name="label">Search By</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">search.by-name</attribute>
+        <attribute name="action">search.flag-name</attribute>
       </item>
       <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">search.by-desc</attribute>
+        <attribute name="action">search.flag-desc</attribute>
       </item>
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">search.by-group</attribute>
+        <attribute name="action">search.flag-group</attribute>
       </item>
       <item>
         <attribute name="label">Dependencies</attribute>
-        <attribute name="action">search.by-deps</attribute>
+        <attribute name="action">search.flag-deps</attribute>
       </item>
       <item>
         <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">search.by-optdeps</attribute>
+        <attribute name="action">search.flag-optdeps</attribute>
       </item>
       <item>
         <attribute name="label">Provides</attribute>
-        <attribute name="action">search.by-provides</attribute>
+        <attribute name="action">search.flag-provides</attribute>
       </item>
       <item>
         <attribute name="label">Files</attribute>
-        <attribute name="action">search.by-files</attribute>
+        <attribute name="action">search.flag-files</attribute>
       </item>
     </section>
     <section>
       <item>
         <attribute name="label">Select All</attribute>
-        <attribute name="action">search.selectall</attribute>
+        <attribute name="action">search.all-flags</attribute>
       </item>
       <item>
         <attribute name="label">Reset</attribute>
-        <attribute name="action">search.reset</attribute>
+        <attribute name="action">search.reset-flags</attribute>
       </item>
     </section>
     <section>

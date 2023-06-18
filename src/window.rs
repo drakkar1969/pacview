@@ -18,7 +18,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::prop_object::PropObject;
-use crate::search_header::{SearchHeader, SearchMode};
+use crate::search_header::{SearchHeader, SearchMode, SearchFlags};
 use crate::package_view::PackageView;
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
@@ -315,37 +315,16 @@ impl PacViewWindow {
             })
             .build();
 
-        // Get list of search header by-* properties
-        let by_prop_array: Vec<String> = imp.search_header.list_properties().iter()
-            .filter_map(|p| if p.name().contains("by-") {Some(p.name().to_string())} else {None})
-            .collect();
-
-        // Add select all/reset search header search by-* property actions
-        let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("selectall")
-            .activate(clone!(@weak imp, @strong by_prop_array => move |_, _, _| {
-                let header = &imp.search_header;
-
-                header.set_block_notify(true);
-
-                for prop in &by_prop_array {
-                    header.set_property(prop, true);
-                }
-
-                header.set_block_notify(false);
+        // Add select all/reset search flags actions
+        let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("all-flags")
+            .activate(clone!(@weak imp => move |_, _, _| {
+                imp.search_header.set_flags(SearchFlags::all());
             }))
             .build();
 
-        let reset_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset")
-            .activate(clone!(@weak imp, @strong by_prop_array => move |_, _, _| {
-                let header = &imp.search_header;
-
-                header.set_block_notify(true);
-
-                for prop in &by_prop_array {
-                    header.set_property(prop, prop == &by_prop_array[0]);
-                }
-
-                header.set_block_notify(false);
+        let reset_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-flags")
+            .activate(clone!(@weak imp => move |_, _, _| {
+                imp.search_header.set_flags(SearchFlags::NAME);
             }))
             .build();
 
@@ -356,10 +335,31 @@ impl PacViewWindow {
 
         search_group.add_action_entries([toggle_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
 
-        // Add search header search by-* property actions
-        for prop in &by_prop_array {
-            let action = gio::PropertyAction::new(&prop, &imp.search_header.get(), prop);
-            search_group.add_action(&action);
+        // Add search header search flags stateful actions
+        let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
+
+        for f in flags_class.values() {
+            let flag = SearchFlags::from_bits_truncate(f.value());
+
+            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, if flag == SearchFlags::NAME {true.to_variant()} else {false.to_variant()});
+
+            flag_action.connect_activate(clone!(@weak imp, @strong flag => move |_, _| {
+                let header = imp.search_header.get();
+
+                let mut flags = header.flags();
+
+                flags.toggle(flag);
+
+                header.set_flags(flags);
+            }));
+
+            // Bind search header flags property to action state
+            imp.search_header.bind_property("flags", &flag_action, "state")
+                .transform_to(move |_, flags: SearchFlags| Some(flags.contains(flag).to_variant()))
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+
+            search_group.add_action(&flag_action);
         }
     }
 
@@ -544,16 +544,16 @@ impl PacViewWindow {
         imp.search_header.connect_closure("activated", false, closure_local!(@watch self as obj => move |_: SearchHeader, active: bool| {
             if active {
                 if let Some(app) = obj.application() {
-                    app.set_accels_for_action("search.by-name", &["<ctrl>1"]);
-                    app.set_accels_for_action("search.by-desc", &["<ctrl>2"]);
-                    app.set_accels_for_action("search.by-group", &["<ctrl>3"]);
-                    app.set_accels_for_action("search.by-deps", &["<ctrl>4"]);
-                    app.set_accels_for_action("search.by-optdeps", &["<ctrl>5"]);
-                    app.set_accels_for_action("search.by-provides", &["<ctrl>6"]);
-                    app.set_accels_for_action("search.by-files", &["<ctrl>7"]);
+                    app.set_accels_for_action("search.flag-name", &["<ctrl>1"]);
+                    app.set_accels_for_action("search.flag-desc", &["<ctrl>2"]);
+                    app.set_accels_for_action("search.flag-group", &["<ctrl>3"]);
+                    app.set_accels_for_action("search.flag-deps", &["<ctrl>4"]);
+                    app.set_accels_for_action("search.flag-optdeps", &["<ctrl>5"]);
+                    app.set_accels_for_action("search.flag-provides", &["<ctrl>6"]);
+                    app.set_accels_for_action("search.flag-files", &["<ctrl>7"]);
 
-                    app.set_accels_for_action("search.selectall", &["<ctrl>L"]);
-                    app.set_accels_for_action("search.reset", &["<ctrl>R"]);
+                    app.set_accels_for_action("search.all-flags", &["<ctrl>L"]);
+                    app.set_accels_for_action("search.reset-flags", &["<ctrl>R"]);
 
                     app.set_accels_for_action("search.cycle-mode", &["<ctrl>M"]);
                 }
@@ -562,16 +562,16 @@ impl PacViewWindow {
                 obj.imp().package_view.imp().view.grab_focus();
 
                 if let Some(app) = obj.application() {
-                    app.set_accels_for_action("search.by-name", &[]);
-                    app.set_accels_for_action("search.by-desc", &[]);
-                    app.set_accels_for_action("search.by-group", &[]);
-                    app.set_accels_for_action("search.by-deps", &[]);
-                    app.set_accels_for_action("search.by-optdeps", &[]);
-                    app.set_accels_for_action("search.by-provides", &[]);
-                    app.set_accels_for_action("search.by-files", &[]);
+                    app.set_accels_for_action("search.flag-name", &[]);
+                    app.set_accels_for_action("search.flag-desc", &[]);
+                    app.set_accels_for_action("search.flag-group", &[]);
+                    app.set_accels_for_action("search.flag-deps", &[]);
+                    app.set_accels_for_action("search.flag-optdeps", &[]);
+                    app.set_accels_for_action("search.flag-provides", &[]);
+                    app.set_accels_for_action("search.flag-files", &[]);
 
-                    app.set_accels_for_action("search.selectall", &[]);
-                    app.set_accels_for_action("search.reset", &[]);
+                    app.set_accels_for_action("search.all-flags", &[]);
+                    app.set_accels_for_action("search.reset-flags", &[]);
 
                     app.set_accels_for_action("search.cycle-mode", &[]);
                 }
@@ -579,7 +579,7 @@ impl PacViewWindow {
         }));
 
         // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |_: SearchHeader, search_term: &str, by_name: bool, by_desc: bool, by_group: bool, by_deps: bool, by_optdeps: bool, by_provides: bool, by_files: bool, mode: SearchMode| {
+        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |_: SearchHeader, search_term: &str, flags: SearchFlags, mode: SearchMode| {
             let imp = obj.imp();
 
             if search_term == "" {
@@ -594,13 +594,13 @@ impl PacViewWindow {
                             .expect("Must be a 'PkgObject'");
 
                         let results = [
-                            by_name && pkg.name().eq_ignore_ascii_case(&term),
-                            by_desc && pkg.description().eq_ignore_ascii_case(&term),
-                            by_group && pkg.groups().eq_ignore_ascii_case(&term),
-                            by_deps && pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            by_optdeps && pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            by_provides && pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            by_files && pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::NAME) && pkg.name().eq_ignore_ascii_case(&term),
+                            flags.contains(SearchFlags::DESC) && pkg.description().eq_ignore_ascii_case(&term),
+                            flags.contains(SearchFlags::GROUP) && pkg.groups().eq_ignore_ascii_case(&term),
+                            flags.contains(SearchFlags::DEPS) && pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::OPTDEPS) && pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::PROVIDES) && pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                            flags.contains(SearchFlags::FILES) && pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)),
                         ];
 
                         results.iter().any(|&x| x)
@@ -617,13 +617,13 @@ impl PacViewWindow {
 
                         for t in term.split_whitespace() {
                             let t_results = [
-                                by_name && pkg.name().to_ascii_lowercase().contains(&t),
-                                by_desc && pkg.description().to_ascii_lowercase().contains(&t),
-                                by_group && pkg.groups().to_ascii_lowercase().contains(&t),
-                                by_deps && pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                by_optdeps && pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                by_provides && pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                by_files && pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::NAME) && pkg.name().to_ascii_lowercase().contains(&t),
+                                flags.contains(SearchFlags::DESC) && pkg.description().to_ascii_lowercase().contains(&t),
+                                flags.contains(SearchFlags::GROUP) && pkg.groups().to_ascii_lowercase().contains(&t),
+                                flags.contains(SearchFlags::DEPS) && pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::OPTDEPS) && pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::PROVIDES) && pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                                flags.contains(SearchFlags::FILES) && pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
                             ];
 
                             results.push(t_results.iter().any(|&x| x));

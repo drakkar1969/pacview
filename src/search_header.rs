@@ -5,7 +5,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 
 use glib::subclass::Signal;
-use glib::{clone, once_cell::sync::Lazy};
+use glib::{clone, closure_local, once_cell::sync::Lazy};
 
 use crate::search_tag::SearchTag;
 
@@ -27,6 +27,26 @@ pub enum SearchMode {
 impl Default for SearchMode {
     fn default() -> Self {
         SearchMode::All
+    }
+}
+
+//------------------------------------------------------------------------------
+// FLAGS: SearchFlags
+//------------------------------------------------------------------------------
+#[glib::flags(name = "SearchFlags")]
+pub enum SearchFlags {
+    NAME     = 0b00000001,
+    DESC     = 0b00000010,
+    GROUP    = 0b00000100,
+    DEPS     = 0b00001000,
+    OPTDEPS  = 0b00010000,
+    PROVIDES = 0b00100000,
+    FILES    = 0b01000000,
+}
+
+impl Default for SearchFlags {
+    fn default() -> Self {
+        SearchFlags::NAME
     }
 }
 
@@ -54,10 +74,11 @@ mod imp {
         pub search_buffer: TemplateChild<gtk::EntryBuffer>,
 
         #[template_child]
-        pub tag_mode: TemplateChild<SearchTag>,
+        pub tag_box: TemplateChild<gtk::Box>,
 
         #[template_child]
-        pub tag_box: TemplateChild<gtk::Box>,
+        pub tag_mode: TemplateChild<SearchTag>,
+
         #[template_child]
         pub tag_name: TemplateChild<SearchTag>,
         #[template_child]
@@ -91,22 +112,7 @@ mod imp {
         mode: Cell<SearchMode>,
 
         #[property(get, set)]
-        by_name: Cell<bool>,
-        #[property(get, set)]
-        by_desc: Cell<bool>,
-        #[property(get, set)]
-        by_group: Cell<bool>,
-        #[property(get, set)]
-        by_deps: Cell<bool>,
-        #[property(get, set)]
-        by_optdeps: Cell<bool>,
-        #[property(get, set)]
-        by_provides: Cell<bool>,
-        #[property(get, set)]
-        by_files: Cell<bool>,
-
-        #[property(get, set)]
-        block_notify: Cell<bool>,
+        flags: Cell<SearchFlags>,
     }
 
     //-----------------------------------
@@ -141,13 +147,7 @@ mod imp {
                     Signal::builder("changed")
                         .param_types([
                             String::static_type(),
-                            bool::static_type(),
-                            bool::static_type(),
-                            bool::static_type(),
-                            bool::static_type(),
-                            bool::static_type(),
-                            bool::static_type(),
-                            bool::static_type(),
+                            SearchFlags::static_type(),
                             SearchMode::static_type()])
                         .build(),
                     Signal::builder("activated")
@@ -212,41 +212,19 @@ impl SearchHeader {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
+        // Set tag visibility
+        imp.tag_name.set_visible(self.flags().contains(SearchFlags::NAME));
+        imp.tag_desc.set_visible(self.flags().contains(SearchFlags::DESC));
+        imp.tag_group.set_visible(self.flags().contains(SearchFlags::GROUP));
+        imp.tag_deps.set_visible(self.flags().contains(SearchFlags::DEPS));
+        imp.tag_optdeps.set_visible(self.flags().contains(SearchFlags::OPTDEPS));
+        imp.tag_provides.set_visible(self.flags().contains(SearchFlags::PROVIDES));
+        imp.tag_files.set_visible(self.flags().contains(SearchFlags::FILES));
+
         // Bind title property to title widget
         self.bind_property("title", &imp.title_widget.get(), "title")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-        // Bind search mode property to search mode tag text
-        self.bind_property("mode", &imp.tag_mode.get(), "text")
-            .transform_to(|_, mode: SearchMode| {
-                glib::EnumValue::from_value(
-                    &mode.to_value()).and_then(|(_, value)| Some(value.nick().to_string())
-                )
-            })
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        // Bind search by-* properties to search tag visibility
-        let tag_array = [
-            imp.tag_name.get(),
-            imp.tag_desc.get(),
-            imp.tag_group.get(),
-            imp.tag_deps.get(),
-            imp.tag_optdeps.get(),
-            imp.tag_provides.get(),
-            imp.tag_files.get(),
-        ];
-
-        for tag in tag_array {
-            if let Some(text) = tag.text() {
-                let prop_name = format!("by-{}", text);
-
-                self.bind_property(&prop_name, &tag, "visible")
-                    .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                    .build();
-            }
-        }
 
         // Bind search text to clear button visibility
         imp.search_buffer.bind_property("text", &imp.clear_button.get(), "visible")
@@ -280,10 +258,36 @@ impl SearchHeader {
 
         // Search mode property notify signal
         self.connect_mode_notify(|header| {
+            if let Some(text) = glib::EnumValue::from_value(&header.mode().to_value())
+                .and_then(|(_, enum_value)| Some(enum_value.nick().to_string()))
+            {
+                header.imp().tag_mode.set_text(text);
+
+                header.emit_changed_signal();
+            }
+        });
+
+        // Search flags property notify signal
+        self.connect_flags_notify(|header| {
+            let imp = header.imp();
+
+            imp.tag_name.set_visible(header.flags().contains(SearchFlags::NAME));
+            imp.tag_desc.set_visible(header.flags().contains(SearchFlags::DESC));
+            imp.tag_group.set_visible(header.flags().contains(SearchFlags::GROUP));
+            imp.tag_deps.set_visible(header.flags().contains(SearchFlags::DEPS));
+            imp.tag_optdeps.set_visible(header.flags().contains(SearchFlags::OPTDEPS));
+            imp.tag_provides.set_visible(header.flags().contains(SearchFlags::PROVIDES));
+            imp.tag_files.set_visible(header.flags().contains(SearchFlags::FILES));
+
             header.emit_changed_signal();
         });
 
-        // Search by-* properties notify signals
+        // Search buffer text changed signal
+        imp.search_buffer.connect_text_notify(clone!(@weak self as obj => move |_| {
+            obj.emit_changed_signal();
+        }));
+
+        // Tags closed signals
         let tag_array = [
             imp.tag_name.get(),
             imp.tag_desc.get(),
@@ -295,28 +299,19 @@ impl SearchHeader {
         ];
 
         for tag in tag_array {
-            if let Some(text) = tag.text() {
-                let prop_name = format!("by-{}", text);
+            tag.connect_closure("closed", false, closure_local!(@watch self as obj => move |_: &SearchTag, text: &str| {
+                let flags = obj.property("flags");
 
-                self.connect_notify(Some(&prop_name), |header, _| {
-                    if !header.block_notify() {
-                        header.emit_changed_signal();
-                    }
-                });
-            }
+                let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
+
+                let flags = flags_class.builder_with_value(flags).unwrap()
+                    .unset_by_nick(text)
+                    .build()
+                    .unwrap();
+
+                obj.set_property("flags", flags);
+            }));
         }
-
-        // Block notify property notify signal
-        self.connect_block_notify_notify(|header| {
-            if header.block_notify() == false {
-                header.emit_changed_signal();
-            }
-        });
-
-        // Search buffer text changed signal
-        imp.search_buffer.connect_text_notify(clone!(@weak self as obj => move |_| {
-            obj.emit_changed_signal();
-        }));
 
         // Clear button clicked signal
         imp.clear_button.connect_clicked(clone!(@weak imp => move |_| {
@@ -333,13 +328,7 @@ impl SearchHeader {
         self.emit_by_name::<()>("changed",
             &[
                 &imp.search_buffer.text(),
-                &self.by_name(),
-                &self.by_desc(),
-                &self.by_group(),
-                &self.by_deps(),
-                &self.by_optdeps(),
-                &self.by_provides(),
-                &self.by_files(),
+                &self.flags(),
                 &self.mode()
             ]);
     }

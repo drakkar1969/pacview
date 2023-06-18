@@ -121,55 +121,55 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;1</property>
-                <property name="title">Toggle Search By Name</property>
+                <property name="title">Toggle Name Flag</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;2</property>
-                <property name="title">Toggle Search By Description</property>
+                <property name="title">Toggle Description Flag</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;3</property>
-                <property name="title">Toggle Search By Group</property>
+                <property name="title">Toggle Group Flag</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;4</property>
-                <property name="title">Toggle Search By Dependencies</property>
+                <property name="title">Toggle Dependencies Flag</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;5</property>
-                <property name="title">Toggle Search By Optional</property>
+                <property name="title">Toggle Optional Flag</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;6</property>
-                <property name="title">Toggle Search By Provides</property>
+                <property name="title">Toggle Provides Flag</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;7</property>
-                <property name="title">Toggle Search By Files</property>
+                <property name="title">Toggle Files Flag</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;L</property>
-                <property name="title">Select All Search By Options</property>
+                <property name="title">Select All Flags</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;R</property>
-                <property name="title">Reset Search By Options</property>
+                <property name="title">Reset Flags</property>
               </object>
             </child>
             <child>

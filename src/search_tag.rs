@@ -3,7 +3,9 @@ use std::cell::{Cell, RefCell};
 use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, once_cell::sync::Lazy};
+
+use glib::subclass::Signal;
 
 //------------------------------------------------------------------------------
 // MODULE: SearchTag
@@ -48,6 +50,20 @@ mod imp {
     }
 
     impl ObjectImpl for SearchTag {
+        //-----------------------------------
+        // Custom signals
+        //-----------------------------------
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
+                vec![
+                    Signal::builder("closed")
+                        .param_types([String::static_type()])
+                        .build(),
+                ]
+            });
+            SIGNALS.as_ref()
+        }
+
         //-----------------------------------
         // Default property functions
         //-----------------------------------
@@ -119,6 +135,8 @@ impl SearchTag {
         // Close button clicked signal
         self.imp().button.connect_clicked(clone!(@weak self as obj => move |_| {
             obj.set_visible(false);
+
+            obj.emit_by_name::<()>("closed", &[&obj.text()]);
         }));
     }
 }
