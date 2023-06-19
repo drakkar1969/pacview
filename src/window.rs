@@ -903,6 +903,7 @@ impl PacViewWindow {
         let update_row = imp.update_row.borrow();
 
         update_row.set_spinning(true);
+        update_row.set_count("");
         update_row.set_sensitive(false);
 
         let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::PRIORITY_DEFAULT);
