@@ -620,16 +620,14 @@ impl DetailsWindow {
 
         let backup_list: Vec<BackupObject> = backup.iter()
             .map(|backup| {
-                let (name, hash) = backup.split_once(" || ").unwrap();
-
-                if let Ok(file_hash) = alpm::compute_md5sum(name) {
-                    if file_hash == hash {
-                        BackupObject::new(name, "backup-unmodified", "unmodified")
+                if let Ok(file_hash) = alpm::compute_md5sum(backup.filename.to_string()) {
+                    if file_hash == backup.hash {
+                        BackupObject::new(&backup.filename, "backup-unmodified", "unmodified")
                     } else {
-                        BackupObject::new(name, "backup-modified", "modified")
+                        BackupObject::new(&backup.filename, "backup-modified", "modified")
                     }
                 } else {
-                    BackupObject::new(name, "backup-error", "read error")
+                    BackupObject::new(&backup.filename, "backup-error", "read error")
                 }
             })
             .collect();

@@ -30,6 +30,24 @@ impl Default for PkgFlags {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: PkgBackup
+//------------------------------------------------------------------------------
+#[derive(Default, Clone)]
+pub struct PkgBackup {
+    pub filename: String,
+    pub hash: String,
+}
+
+impl PkgBackup {
+    pub fn new(filename: &str, hash: &str) -> Self {
+        Self {
+            filename: filename.to_string(),
+            hash: hash.to_string()
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
 // STRUCT: PkgData
 //------------------------------------------------------------------------------
 #[derive(Default)]
@@ -61,7 +79,7 @@ pub struct PkgData {
     pub sha256sum: String,
     pub md5sum: String,
     pub files: Vec<String>,
-    pub backup: Vec<String>,
+    pub backup: Vec<PkgBackup>,
     pub has_update: bool,
 }
 
@@ -74,7 +92,7 @@ impl PkgData {
         let mut flags = PkgFlags::NONE;
         let mut idate = 0;
         let mut files_vec: Vec<String> = vec![];
-        let mut backup_vec: Vec<String> = vec![];
+        let mut backup_vec: Vec<PkgBackup> = vec![];
 
         // If package is installed, update properties from local package
         if let Ok(pkg) = localpkg {
@@ -173,11 +191,11 @@ impl PkgData {
         file_vec
     }
 
-    fn alpm_backuplist_to_vec(list: &alpm::AlpmList<alpm::Backup>) -> Vec<String> {
-        let mut backup_vec: Vec<String> = list.iter()
-            .map(|bck| format!("/{name} || {hash}", name=bck.name(), hash=bck.hash()))
+    fn alpm_backuplist_to_vec(list: &alpm::AlpmList<alpm::Backup>) -> Vec<PkgBackup> {
+        let mut backup_vec: Vec<PkgBackup> = list.iter()
+            .map(|bck| PkgBackup::new(&format!("/{}", bck.name()), bck.hash()))
             .collect();
-        backup_vec.sort_unstable();
+        backup_vec.sort_unstable_by(|a, b| a.filename.partial_cmp(&b.filename).unwrap());
 
         backup_vec
     }
@@ -199,7 +217,7 @@ mod imp {
         #[property(name = "flags",      get, set, type = PkgFlags, member = flags)]
         #[property(name = "version",    get, set, type = String,   member = version)]
         #[property(name = "has-update", get, set, type = bool,     member = has_update)]
-        #[property(name = "repo-show",  get, set, type = String,      member = repo_show)]
+        #[property(name = "repo-show",  get, set, type = String,   member = repo_show)]
 
         // Read-only properties
         #[property(name = "name",          get, type = String,      member = name)]
@@ -224,8 +242,6 @@ mod imp {
         #[property(name = "has-script",    get, type = bool,        member = has_script)]
         #[property(name = "sha256sum",     get, type = String,      member = sha256sum)]
         #[property(name = "md5sum",        get, type = String,      member = md5sum)]
-        #[property(name = "files",         get, type = Vec<String>, member = files)]
-        #[property(name = "backup",        get, type = Vec<String>, member = backup)]
         pub data: RefCell<PkgData>,
 
         // Read-only properties with custom getter
@@ -308,6 +324,24 @@ impl PkgObject {
         let pkg: Self = glib::Object::builder().build();
         pkg.imp().data.replace(data);
         pkg
+    }
+
+    //-----------------------------------
+    // Public files function
+    //-----------------------------------
+    pub fn files(&self) -> Vec<String> {
+        let data = self.imp().data.borrow();
+
+        data.files.to_owned()
+    }
+
+    //-----------------------------------
+    // Public backup function
+    //-----------------------------------
+    pub fn backup(&self) -> Vec<PkgBackup> {
+        let data = self.imp().data.borrow();
+
+        data.backup.to_owned()
     }
 
     //-----------------------------------
