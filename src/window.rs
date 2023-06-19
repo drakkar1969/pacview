@@ -347,13 +347,13 @@ impl PacViewWindow {
                 imp.search_header.set_flags(imp.search_header.flags() ^ flag);
             }));
 
+            search_group.add_action(&flag_action);
+
             // Bind search header flags property to action state
             imp.search_header.bind_property("flags", &flag_action, "state")
                 .transform_to(move |_, flags: SearchFlags| Some(flags.contains(flag).to_variant()))
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
-
-            search_group.add_action(&flag_action);
         }
     }
 
@@ -392,7 +392,7 @@ impl PacViewWindow {
 
         // Add package view check for updates action
         let updates_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("check-updates")
-            .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
+            .activate(clone!(@weak self as obj => move |_, _, _| {
                 obj.get_package_updates_async();
             }))
             .build();
