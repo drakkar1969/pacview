@@ -1,6 +1,5 @@
 use std::cell::{Cell, RefCell};
 use std::fs;
-use std::io::{BufReader, BufRead};
 use std::borrow::Cow;
 
 use gtk::{gio, glib, gdk};
@@ -11,7 +10,6 @@ use glib::clone;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
-use md5;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
@@ -632,57 +630,15 @@ impl DetailsWindow {
             .map(|backup| {
                 let (name, hash) = backup.split_once(" || ").unwrap();
 
-                let mut status_icon = "backup-error";
-                let mut status = "read error";
-
-                // Open backup file
-                if let Ok(file) = fs::File::open(name) {
-                    // Get file size
-                    if let Ok(file_len) = file.metadata().and_then(|m| Ok(m.len())) {
-                        // Define buffer size
-                        let buffer_len = file_len.min(4096) as usize;
-
-                        // Create read buffer
-                        let mut buffer = BufReader::with_capacity(buffer_len, file);
-
-                        // Create new MD5 context
-                        let mut context = md5::Context::new();
-
-                        let res = loop {
-                            // Get a chunk of the file
-                            if let Ok(chunk) = buffer.fill_buf() {
-                                // Break with true if chunk is empty (EOF reached)
-                                if chunk.is_empty() {
-                                    break true;
-                                }
-
-                                // Add chunk to the MD5 context
-                                context.consume(chunk);
-
-                                // Tell the buffer that the chunk is consumed
-                                let chunk_len = chunk.len();
-                                buffer.consume(chunk_len);
-                            } else {
-                                // Break with false if buffer error
-                                break false;
-                            }
-                        };
-
-                        if res {
-                            // Compute MD5 hash for file
-                            let u8_hash = context.compute();
-
-                            // Convert MD5 hash to string
-                            let file_hash = format!("{:x}", u8_hash);
-
-                            // Get item status icon and text
-                            status_icon = if file_hash == hash {"backup-unmodified"} else {"backup-modified"};
-                            status = if file_hash == hash {"unmodified"} else {"modified"};
-                        }
+                if let Ok(file_hash) = alpm::compute_md5sum(name) {
+                    if file_hash == hash {
+                        BackupObject::new(name, "backup-unmodified", "unmodified")
+                    } else {
+                        BackupObject::new(name, "backup-modified", "modified")
                     }
+                } else {
+                    BackupObject::new(name, "backup-error", "read error")
                 }
-
-                BackupObject::new(name, status_icon, status)
             })
             .collect();
 
