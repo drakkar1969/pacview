@@ -227,34 +227,13 @@ mod imp {
         #[property(name = "install-date",  get, type = i64,         member = install_date)]
         #[property(name = "install-size",  get, type = i64,         member = install_size)]
         #[property(name = "groups",        get, type = String,      member = groups)]
-        #[property(name = "description",   get, type = String,      member = description)]
-        #[property(name = "url",           get, type = String,      member = url)]
-        #[property(name = "licenses",      get, type = String,      member = licenses)]
-        #[property(name = "provides",      get, type = Vec<String>, member = provides)]
-        #[property(name = "depends",       get, type = Vec<String>, member = depends)]
-        #[property(name = "optdepends",    get, type = Vec<String>, member = optdepends)]
-        #[property(name = "conflicts",     get, type = Vec<String>, member = conflicts)]
-        #[property(name = "replaces",      get, type = Vec<String>, member = replaces)]
-        #[property(name = "architecture",  get, type = String,      member = architecture)]
-        #[property(name = "packager",      get, type = String,      member = packager)]
-        #[property(name = "build-date",    get, type = i64,         member = build_date)]
-        #[property(name = "download-size", get, type = i64,         member = download_size)]
-        #[property(name = "has-script",    get, type = bool,        member = has_script)]
-        #[property(name = "sha256sum",     get, type = String,      member = sha256sum)]
-        #[property(name = "md5sum",        get, type = String,      member = md5sum)]
         pub data: RefCell<PkgData>,
 
         // Read-only properties with custom getter
-        #[property(get = Self::install_date_short)]
+        #[property(name = "install-date-short", get = Self::install_date_short)]
         _install_date_short: RefCell<String>,
-        #[property(get = Self::install_date_long)]
-        _install_date_long: RefCell<String>,
-        #[property(get = Self::install_size_string)]
+        #[property(name = "install-size-string", get = Self::install_size_string)]
         _install_size_string: RefCell<String>,
-        #[property(get = Self::build_date_long)]
-        _build_date_long: RefCell<String>,
-        #[property(get = Self::download_size_string)]
-        _download_size_string: RefCell<String>,
     }
 
     //-----------------------------------
@@ -291,20 +270,8 @@ mod imp {
             Utils::date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
         }
 
-        fn install_date_long(&self) -> String {
-            Utils::date_to_string(self.obj().install_date(), "%d %B %Y %H:%M")
-        }
-
         fn install_size_string(&self) -> String {
             Utils::size_to_string(self.obj().install_size(), 1)
-        }
-
-        fn build_date_long(&self) -> String {
-            Utils::date_to_string(self.obj().build_date(), "%d %B %Y %H:%M")
-        }
-
-        fn download_size_string(&self) -> String {
-            Utils::size_to_string(self.obj().download_size(), 1)
         }
     }
 }
@@ -327,21 +294,86 @@ impl PkgObject {
     }
 
     //-----------------------------------
-    // Public files function
+    // Public data field getters
     //-----------------------------------
-    pub fn files(&self) -> Vec<String> {
-        let data = self.imp().data.borrow();
-
-        data.files.to_owned()
+    pub fn description(&self) -> String {
+        self.imp().data.borrow().description.to_owned()
     }
 
-    //-----------------------------------
-    // Public backup function
-    //-----------------------------------
-    pub fn backup(&self) -> Vec<PkgBackup> {
-        let data = self.imp().data.borrow();
+    pub fn url(&self) -> String {
+        self.imp().data.borrow().url.to_owned()
+    }
 
-        data.backup.to_owned()
+    pub fn licenses(&self) -> String {
+        self.imp().data.borrow().licenses.to_owned()
+    }
+
+    pub fn provides(&self) -> Vec<String> {
+        self.imp().data.borrow().provides.to_owned()
+    }
+
+    pub fn depends(&self) -> Vec<String> {
+        self.imp().data.borrow().depends.to_owned()
+    }
+
+    pub fn optdepends(&self) -> Vec<String> {
+        self.imp().data.borrow().optdepends.to_owned()
+    }
+
+    pub fn conflicts(&self) -> Vec<String> {
+        self.imp().data.borrow().conflicts.to_owned()
+    }
+
+    pub fn replaces(&self) -> Vec<String> {
+        self.imp().data.borrow().replaces.to_owned()
+    }
+
+    pub fn architecture(&self) -> String {
+        self.imp().data.borrow().architecture.to_owned()
+    }
+
+    pub fn packager(&self) -> String {
+        self.imp().data.borrow().packager.to_owned()
+    }
+
+    pub fn build_date(&self) -> i64 {
+        self.imp().data.borrow().build_date
+    }
+
+    pub fn download_size(&self) -> i64 {
+        self.imp().data.borrow().download_size
+    }
+
+    pub fn has_script(&self) -> bool {
+        self.imp().data.borrow().has_script
+    }
+
+    pub fn sha256sum(&self) -> String {
+        self.imp().data.borrow().sha256sum.to_owned()
+    }
+
+    pub fn md5sum(&self) -> String {
+        self.imp().data.borrow().md5sum.to_owned()
+    }
+
+    pub fn files(&self) -> Vec<String> {
+        self.imp().data.borrow().files.to_owned()
+    }
+
+    pub fn backup(&self) -> Vec<PkgBackup> {
+        self.imp().data.borrow().backup.to_owned()
+    }
+
+    pub fn install_date_long(&self) -> String {
+        Utils::date_to_string(self.install_date(), "%d %B %Y %H:%M")
+    }
+
+    pub fn build_date_long(&self) -> String {
+        Utils::date_to_string(self.build_date(), "%d %B %Y %H:%M")
+    }
+
+    pub fn download_size_string(&self) -> String {
+        Utils::size_to_string(self.download_size(), 1)
     }
 
     //-----------------------------------
