@@ -9,7 +9,7 @@
         <child>
           <object class="GtkImage">
             <binding name="icon-name">
-              <lookup name="status_icon" type="BackupObject">
+              <lookup name="status-icon" type="BackupObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>

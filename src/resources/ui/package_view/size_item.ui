@@ -4,7 +4,7 @@
     <property name="child">
       <object class="GtkLabel">
         <binding name="label">
-          <lookup name="install_size_string" type="PkgObject">
+          <lookup name="install-size-string" type="PkgObject">
             <lookup name="item">GtkListItem</lookup>
           </lookup>
         </binding>

@@ -4,7 +4,7 @@
     <property name="child">
       <object class="GtkLabel">
         <binding name="label">
-          <lookup name="install_date_short" type="PkgObject">
+          <lookup name="install-date-short" type="PkgObject">
             <lookup name="item">GtkListItem</lookup>
           </lookup>
         </binding>

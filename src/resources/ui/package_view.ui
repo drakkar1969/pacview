@@ -185,7 +185,7 @@
                             <property name="sorter">
                               <object class="GtkNumericSorter">
                                 <property name="expression">
-                                  <lookup name="install_date" type="PkgObject"/>
+                                  <lookup name="install-date" type="PkgObject"/>
                                 </property>
                               </object>
                             </property>
@@ -205,7 +205,7 @@
                             <property name="sorter">
                               <object class="GtkNumericSorter">
                                 <property name="expression">
-                                  <lookup name="install_size" type="PkgObject"/>
+                                  <lookup name="install-size" type="PkgObject"/>
                                 </property>
                               </object>
                             </property>
