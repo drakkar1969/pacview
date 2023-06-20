@@ -376,12 +376,8 @@ impl PkgObject {
         Utils::size_to_string(self.download_size(), 1)
     }
 
-    //-----------------------------------
-    // Public compute requirements function
-    //-----------------------------------
-    pub fn compute_requirements(&self, alpm_handle: &Option<alpm::Alpm>) -> (Vec<String>, Vec<String>) {
+    pub fn required_by(&self, alpm_handle: &Option<alpm::Alpm>) -> Vec<String> {
         let mut required_by: Vec<String> = vec![];
-        let mut optional_for: Vec<String> = vec![];
 
         if let Some(handle) = alpm_handle {
             let db = if self.flags().intersects(PkgFlags::INSTALLED) {
@@ -394,14 +390,32 @@ impl PkgObject {
                 if let Ok(pkg) = db.pkg(self.name()) {
                     required_by.extend(pkg.required_by());
                     required_by.sort_unstable();
+                }
+            }
+        }
 
+        required_by
+    }
+
+    pub fn optional_for(&self, alpm_handle: &Option<alpm::Alpm>) -> Vec<String> {
+        let mut optional_for: Vec<String> = vec![];
+
+        if let Some(handle) = alpm_handle {
+            let db = if self.flags().intersects(PkgFlags::INSTALLED) {
+                Some(handle.localdb())
+            } else {
+                handle.syncdbs().iter().find(|db| db.name() == self.repository())
+            };
+
+            if let Some(db) = db {
+                if let Ok(pkg) = db.pkg(self.name()) {
                     optional_for.extend(pkg.optional_for());
                     optional_for.sort_unstable();
                 }
             }
         }
 
-        (required_by, optional_for)
+        optional_for
     }
 }
 

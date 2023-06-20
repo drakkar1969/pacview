@@ -274,10 +274,8 @@ impl InfoPane {
             imp.prev_button.set_sensitive(hist_sel.selected() > 0);
             imp.next_button.set_sensitive(hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1);
 
-            // Get package required by and optional for
+            // Get alpm handle
             let handle = imp.alpm_handle.borrow();
-
-            let (required_by, optional_for) = pkg.compute_requirements(&handle);
 
             // Name
             imp.model.append(&PropObject::new(
@@ -342,9 +340,11 @@ impl InfoPane {
             }
             // Required by
             imp.model.append(&PropObject::new(
-                "Required by", &self.propvec_to_linkstring(&required_by), None
+                "Required by", &self.propvec_to_linkstring(&pkg.required_by(&handle)), None
             ));
             // Optional for
+            let optional_for = pkg.optional_for(&handle);
+            
             if !optional_for.is_empty() {
                 imp.model.append(&PropObject::new(
                     "Optional For", &self.propvec_to_linkstring(&optional_for), None
