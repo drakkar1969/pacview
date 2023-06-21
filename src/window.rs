@@ -37,6 +37,7 @@ pub struct PacmanConfig {
     pub root_dir: String,
     pub db_path: String,
     pub log_file: String,
+    pub cache_dirs: Vec<String>,
 }
 
 //------------------------------------------------------------------------------
@@ -501,6 +502,8 @@ impl PacViewWindow {
                         imp.prefs_window.custom_font(),
                         &imp.prefs_window.monospace_font(),
                         &pacman_config.log_file,
+                        &pacman_config.cache_dirs,
+                        &imp.package_view.imp().model
                     );
 
                     details_window.present();
@@ -718,6 +721,7 @@ impl PacViewWindow {
             root_dir: pacman_config.root_dir,
             db_path: pacman_config.db_path,
             log_file: pacman_config.log_file,
+            cache_dirs: pacman_config.cache_dir,
         });
     }
 

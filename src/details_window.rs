@@ -10,6 +10,7 @@ use glib::clone;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
+use glob::glob;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
@@ -185,7 +186,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str) -> Self {
+    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
             .property("pkg", pkg)
@@ -199,7 +200,7 @@ impl DetailsWindow {
         if installed { win.init_files_page(); }
         win.init_tree_page(custom_font, monospace_font);
         if installed { win.init_logs_page(log_file); }
-        if installed { win.init_cache_page(); }
+        if installed { win.init_cache_page(cache_dirs, pkg_model); }
         if installed { win.init_backup_page(); }
 
         win
@@ -585,19 +586,40 @@ impl DetailsWindow {
     //-----------------------------------
     // Initialize cache page
     //-----------------------------------
-    fn init_cache_page(&self) {
+    fn init_cache_page(&self, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        // Populate cache files list
-        let cmd = format!("/usr/bin/paccache -vvdk0 {}", self.pkg().name());
-
-        let (_code, stdout) = Utils::run_command(&cmd);
-
-        let cache_lines: Vec<&str> = stdout.lines()
-            .filter(|s| !s.is_empty() && !s.starts_with("==>") && !s.ends_with(".sig"))
+        // Get blacklist package names
+        let blacklist: Vec<String> = pkg_model.iter::<PkgObject>().flatten()
+            .filter(|pkg| 
+                pkg.flags().intersects(PkgFlags::INSTALLED) &&
+                pkg.name().starts_with(&self.pkg().name()) &&
+                pkg.name() != self.pkg().name())
+            .map(|pkg| pkg.name())
             .collect();
 
-        imp.cache_model.splice(0, 0, &cache_lines);
+        // Populate cache files list
+        for dir in cache_dirs {
+            // Find cache files that include package name
+            let cache_items = glob(&format!("{dir}{name}*.zst", dir=dir, name=self.pkg().name()))
+                .unwrap()
+                .flatten()
+                .filter_map(|entry| {
+                    let cache_file = entry.display().to_string();
+
+                    // Exclude cache files that include blacklist package names
+                    for name in &blacklist {
+                        if cache_file.contains(name) {
+                            return None;
+                        }
+                    }
+
+                    Some(cache_file)
+                })
+                .collect::<Vec<String>>();
+
+            imp.cache_model.splice(imp.cache_model.n_items(), 0, &cache_items.iter().map(|s| s.as_ref()).collect::<Vec<&str>>());
+        }
 
         // Set cache header label
         let n_files = imp.cache_model.n_items();
