@@ -214,8 +214,7 @@ impl InfoPane {
                         let hist_sel = self.history_selection();
 
                         let hist_model = hist_sel.model()
-                            .expect("Must be a 'ListModel'")
-                            .downcast::<gio::ListStore>()
+                            .and_downcast::<gio::ListStore>()
                             .expect("Must be a 'ListStore'");
 
                         // If link package is in infopane history, select it
@@ -523,8 +522,7 @@ impl InfoPane {
 
     pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
         let hist_model = self.history_selection().model()
-            .expect("Must be a 'ListModel'")
-            .downcast::<gio::ListStore>()
+            .and_downcast::<gio::ListStore>()
             .expect("Must be a 'ListStore'");
 
         hist_model.remove_all();
