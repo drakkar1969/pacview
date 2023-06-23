@@ -8,7 +8,7 @@ use gtk::prelude::*;
 use glib::{clone, closure_local, once_cell::sync::OnceCell};
 
 use pacmanconf;
-use alpm::{Alpm, SigLevel};
+use alpm;
 use titlecase::titlecase;
 use regex::Regex;
 use lazy_static::lazy_static;
@@ -782,19 +782,19 @@ impl PacViewWindow {
     fn load_packages_async(&self) {
         let imp = self.imp();
 
-        let (sender, receiver) = glib::MainContext::channel::<(Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
+        let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
 
         let pacman_config = imp.pacman_config.borrow().clone();
 
         thread::spawn(move || {
-            let handle = Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
+            let handle = alpm::Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
 
             let localdb = handle.localdb();
 
             let mut data_list: Vec<PkgData> = vec![];
 
             for repo in pacman_config.pacman_repos {
-                if let Ok(db) = handle.register_syncdb(repo, SigLevel::DATABASE_OPTIONAL) {
+                if let Ok(db) = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL) {
                     data_list.extend(db.pkgs().iter()
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());

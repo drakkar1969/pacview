@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use alpm::Alpm;
+use alpm;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
@@ -51,7 +51,7 @@ mod imp {
         #[property(get, set)]
         history_selection: RefCell<gtk::SingleSelection>,
 
-        pub alpm_handle: RefCell<Option<Alpm>>,
+        pub alpm_handle: RefCell<Option<alpm::Alpm>>,
     }
 
     //-----------------------------------
@@ -508,7 +508,7 @@ impl InfoPane {
     //-----------------------------------
     // Public set alpm handle function
     //-----------------------------------
-    pub fn set_alpm_handle(&self, handle: Option<Alpm>) {
+    pub fn set_alpm_handle(&self, handle: Option<alpm::Alpm>) {
         self.imp().alpm_handle.replace(handle);
     }
 
