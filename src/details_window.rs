@@ -194,14 +194,14 @@ impl DetailsWindow {
 
         let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
 
-        win.init_banner();
-        win.init_stack(installed);
+        win.update_ui_banner();
+        win.update_ui_stack(installed);
 
-        if installed { win.init_files_page(); }
-        win.init_tree_page(custom_font, monospace_font);
-        if installed { win.init_logs_page(log_file); }
-        if installed { win.init_cache_page(cache_dirs, pkg_model); }
-        if installed { win.init_backup_page(); }
+        if installed { win.update_ui_files_page(); }
+        win.update_ui_tree_page(custom_font, monospace_font);
+        if installed { win.update_ui_logs_page(log_file); }
+        if installed { win.update_ui_cache_page(cache_dirs, pkg_model); }
+        if installed { win.update_ui_backup_page(); }
 
         win
     }
@@ -445,17 +445,17 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Initialize banner
+    // Update banner
     //-----------------------------------
-    fn init_banner(&self) {
+    fn update_ui_banner(&self) {
         // Set package name in banner
         self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=self.pkg().repo_show(), name=self.pkg().name()));
     }
 
     //-----------------------------------
-    // Initialize stack
+    // Update stack
     //-----------------------------------
-    fn init_stack(&self, installed: bool) {
+    fn update_ui_stack(&self, installed: bool) {
         let imp = self.imp();
 
         imp.files_button.set_sensitive(installed);
@@ -469,9 +469,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Initialize files page
+    // Update files page
     //-----------------------------------
-    fn init_files_page(&self) {
+    fn update_ui_files_page(&self) {
         let imp = self.imp();
 
         // Set files search entry key capture widget
@@ -502,9 +502,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Initialize tree page
+    // Update tree page
     //-----------------------------------
-    fn init_tree_page(&self, custom_font: bool, monospace_font: &str) {
+    fn update_ui_tree_page(&self, custom_font: bool, monospace_font: &str) {
         let imp = self.imp();
 
         // Get monospace font
@@ -555,9 +555,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Initialize logs page
+    // Update logs page
     //-----------------------------------
-    fn init_logs_page(&self, log_file: &str) {
+    fn update_ui_logs_page(&self, log_file: &str) {
         let imp = self.imp();
 
         // Populate log messages
@@ -584,9 +584,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Initialize cache page
+    // Update cache page
     //-----------------------------------
-    fn init_cache_page(&self, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
+    fn update_ui_cache_page(&self, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         // Get blacklist package names
@@ -632,9 +632,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Initialize backup page
+    // Update backup page
     //-----------------------------------
-    fn init_backup_page(&self) {
+    fn update_ui_backup_page(&self) {
         let imp = self.imp();
 
         // Populate backup list

@@ -81,7 +81,7 @@ impl StatsWindow {
             .property("transient-for", parent)
             .build();
 
-        window.init_widgets(repo_names, pkg_model);
+        window.update_ui(repo_names, pkg_model);
 
         window
     }
@@ -108,9 +108,9 @@ impl StatsWindow {
     }
 
     //-----------------------------------
-    // Initialize widgets
+    // Update widgets
     //-----------------------------------
-    fn init_widgets(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
+    fn update_ui(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         // Create count, installed count, installed size maps
