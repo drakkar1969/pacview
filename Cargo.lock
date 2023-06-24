@@ -958,7 +958,7 @@ dependencies = [
 
 [[package]]
 name = "pacview"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "alpm",
  "fancy-regex",
