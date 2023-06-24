@@ -71,6 +71,7 @@
                 </child>
                 <child>
                   <object class="AdwActionRow" id="font_row">
+                    <property name="subtitle">Monospace font</property>
                     <property name="use-underline">True</property>
                     <property name="activatable-widget">font_choose_button</property>
                     <child>
