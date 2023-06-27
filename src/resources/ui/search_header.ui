@@ -2,7 +2,7 @@
 <interface>
   <!--// SearchHeader template //-->
   <template class="SearchHeader" parent="GtkWidget">
-    <property name="width-request">920</property>
+    <property name="width-request">940</property>
     <child>
       <object class="GtkStack" id="stack">
         <child>
@@ -18,10 +18,13 @@
             <property name="name">search</property>
             <property name="child">
               <object class="GtkBox" id="search_box">
-                <property name="css-name">searchheader</property>
+                <property name="css-name">entry</property>
+                <style>
+                  <class name="search-header"/>
+                </style>
                 <child>
                   <object class="GtkImage">
-                    <property name="margin-start">12</property>
+                    <property name="margin-start">6</property>
                     <property name="icon-name">search-symbolic</property>
                   </object>
                 </child>
@@ -97,7 +100,6 @@
                 </child>
                 <child>
                   <object class="GtkMenuButton" id="filter_button">
-                    <property name="margin-end">6</property>
                     <property name="icon-name">funnel-symbolic</property>
                     <property name="menu-model">search_menu</property>
                   </object>
