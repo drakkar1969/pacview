@@ -94,13 +94,11 @@ mod imp {
         #[template_child]
         pub clear_button: TemplateChild<gtk::Button>,
 
-        #[property(get, set)]
-        title: RefCell<Option<String>>,
+        pub capture_widget: RefCell<Option<gtk::Widget>>,
+        pub capture_controller: RefCell<gtk::EventControllerKey>,
 
         #[property(get, set)]
-        capture_widget: RefCell<Option<gtk::Widget>>,
-        #[property(get, set)]
-        capture_controller: RefCell<gtk::EventControllerKey>,
+        title: RefCell<Option<String>>,
 
         #[property(get, set)]
         active: Cell<bool>,
@@ -341,15 +339,15 @@ impl SearchHeader {
     // Public set capture widget function
     //-----------------------------------
     pub fn set_key_capture_widget(&self, widget: &gtk::Widget) {
-        if let Some(current_widget) = self.capture_widget() {
-            current_widget.remove_controller(&self.capture_controller());
+        let imp = self.imp();
+
+        if let Some(current_widget) = &*imp.capture_widget.borrow() {
+            current_widget.remove_controller(&*imp.capture_controller.borrow());
         }
 
-        self.set_capture_widget(widget);
+        imp.capture_widget.replace(Some(widget.clone()));
 
         let controller = gtk::EventControllerKey::new();
-
-        self.set_capture_controller(&controller);
 
         controller.connect_key_pressed(clone!(@weak self as header => @default-return gtk::Inhibit(false), move |controller, _, _, state| {
             if !(state.contains(gdk::ModifierType::ALT_MASK) || state.contains(gdk::ModifierType::CONTROL_MASK))
@@ -362,6 +360,8 @@ impl SearchHeader {
             gtk::Inhibit(false)
         }));
 
-        widget.add_controller(controller);
+        widget.add_controller(controller.clone());
+
+        imp.capture_controller.replace(controller);
     }
 }
