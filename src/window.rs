@@ -967,6 +967,11 @@ impl PacViewWindow {
 
                         pkg.set_has_update(true);
 
+                        // Update package view if update view is selected
+                        if imp.update_row.borrow().is_selected() {
+                            imp.package_view.imp().status_filter.changed(gtk::FilterChange::Different);
+                        }
+
                         // Update info pane if currently displayed package has update
                         let infopane_pkg = imp.info_pane.pkg();
 
