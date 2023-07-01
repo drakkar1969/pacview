@@ -31,8 +31,7 @@ use crate::utils::Utils;
 //------------------------------------------------------------------------------
 // STRUCT: PacmanConfig
 //------------------------------------------------------------------------------
-#[derive(Default, Clone, Debug, PartialEq, Eq, glib::Boxed)]
-#[boxed_type(name = "PacmanConfig")]
+#[derive(Default, Clone)]
 pub struct PacmanConfig {
     pub pacman_repos: Vec<String>,
     pub root_dir: String,
