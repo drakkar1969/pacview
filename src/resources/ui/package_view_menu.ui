@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// Package view popup menu //-->
+  <menu id="popup_menu">
+    <section>
+      <item>
+        <attribute name="label">Check for Updates</attribute>
+        <attribute name="action">view.check-updates</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Refresh</attribute>
+        <attribute name="action">view.refresh</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Show Statistics</attribute>
+        <attribute name="action">view.show-stats</attribute>
+      </item>
+      <item>
+        <attribute name="label">Copy List</attribute>
+        <attribute name="action">view.copy-list</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

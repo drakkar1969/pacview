@@ -3,7 +3,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
 use glib::subclass::Signal;
-use glib::once_cell::sync::Lazy;
+use glib::once_cell::sync::{Lazy, OnceCell};
 use glib::clone;
 
 use crate::pkg_object::PkgObject;
@@ -23,8 +23,6 @@ mod imp {
         #[template_child]
         pub stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
-        #[template_child]
         pub view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub selection: TemplateChild<gtk::SingleSelection>,
@@ -40,6 +38,8 @@ mod imp {
         pub model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub empty_label: TemplateChild<gtk::Label>,
+
+        pub popover_menu: OnceCell<gtk::PopoverMenu>,
     }
 
     //-----------------------------------
@@ -87,6 +87,10 @@ mod imp {
             obj.setup_controllers();
             obj.setup_signals();
         }
+
+        fn dispose(&self) {
+            self.popover_menu.get().unwrap().unparent();
+        }
     }
 
     impl WidgetImpl for PackageView {}
@@ -129,6 +133,17 @@ impl PackageView {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
+        // Create column view popover menu
+        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/package_view_menu.ui");
+        let menu: gio::MenuModel = builder.object("popup_menu").unwrap();
+
+        let popover_menu = gtk::PopoverMenu::from_model(Some(&menu));
+        popover_menu.set_parent(self);
+        popover_menu.set_has_arrow(false);
+        popover_menu.set_halign(gtk::Align::Start);
+
+        imp.popover_menu.set(popover_menu).unwrap();
+
         // Column view click gesture
         let gesture = gtk::GestureClick::new();
 
@@ -140,8 +155,10 @@ impl PackageView {
             if button == gdk::BUTTON_SECONDARY {
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
-                imp.popover_menu.set_pointing_to(Some(&rect));
-                imp.popover_menu.popup();
+                let popover_menu = imp.popover_menu.get().unwrap();
+
+                popover_menu.set_pointing_to(Some(&rect));
+                popover_menu.popup();
             }
         }));
 
