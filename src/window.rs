@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::rc::Rc;
 use std::thread;
 use std::collections::HashMap;
 
@@ -819,11 +820,11 @@ impl PacViewWindow {
         receiver.attach(
             None,
             clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(handle, data_list)| {
-                let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                    .map(|data| PkgObject::new(data))
-                    .collect();
+                let handle_ref = Rc::new(Some(handle));
 
-                imp.info_pane.set_alpm_handle(Some(handle));
+                let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                    .map(|data| PkgObject::new(handle_ref.clone(), data))
+                    .collect();
 
                 imp.package_view.imp().model.splice(0, imp.package_view.imp().model.n_items(), &pkg_list);
 

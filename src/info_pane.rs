@@ -5,7 +5,6 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use alpm;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
@@ -49,8 +48,6 @@ mod imp {
         pkg_model: RefCell<gio::ListStore>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
-
-        pub alpm_handle: RefCell<Option<alpm::Alpm>>,
     }
 
     //-----------------------------------
@@ -272,9 +269,6 @@ impl InfoPane {
             imp.prev_button.set_sensitive(hist_sel.selected() > 0);
             imp.next_button.set_sensitive(hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1);
 
-            // Get alpm handle
-            let handle = imp.alpm_handle.borrow();
-
             // Name
             imp.model.append(&PropObject::new(
                 "Name", &format!("<b>{}</b>", pkg.name()), None
@@ -338,10 +332,10 @@ impl InfoPane {
             }
             // Required by
             imp.model.append(&PropObject::new(
-                "Required by", &self.propvec_to_linkstring(&pkg.required_by(&handle)), None
+                "Required by", &self.propvec_to_linkstring(&pkg.required_by()), None
             ));
             // Optional for
-            let optional_for = pkg.optional_for(&handle);
+            let optional_for = pkg.optional_for();
             
             if !optional_for.is_empty() {
                 imp.model.append(&PropObject::new(
@@ -502,13 +496,6 @@ impl InfoPane {
 
             EXPR.replace_all(&prop_str, "$1<a href='pkg://$2'>$2</a>").to_string()
         }
-    }
-
-    //-----------------------------------
-    // Public set alpm handle function
-    //-----------------------------------
-    pub fn set_alpm_handle(&self, handle: Option<alpm::Alpm>) {
-        self.imp().alpm_handle.replace(handle);
     }
 
     //-----------------------------------

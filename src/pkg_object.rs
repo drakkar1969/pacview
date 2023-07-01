@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -213,6 +214,9 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
+        // Alpm handle
+        pub handle: RefCell<Rc<Option<alpm::Alpm>>>,
+
         // Read-write properties
         #[property(name = "flags",      get, set, type = PkgFlags, member = flags)]
         #[property(name = "version",    get, set, type = String,   member = version)]
@@ -287,9 +291,12 @@ impl PkgObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(data: PkgData) -> Self {
+    pub fn new(handle: Rc<Option<alpm::Alpm>>, data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
+
+        pkg.imp().handle.replace(handle);
         pkg.imp().data.replace(data);
+
         pkg
     }
 
@@ -376,10 +383,12 @@ impl PkgObject {
         Utils::size_to_string(self.download_size(), 1)
     }
 
-    pub fn required_by(&self, alpm_handle: &Option<alpm::Alpm>) -> Vec<String> {
+    pub fn required_by(&self) -> Vec<String> {
         let mut required_by: Vec<String> = vec![];
 
-        if let Some(handle) = alpm_handle {
+        let pkg_handle = &*self.imp().handle.borrow();
+
+        if let Some(handle) = pkg_handle.as_ref() {
             let db = if self.flags().intersects(PkgFlags::INSTALLED) {
                 Some(handle.localdb())
             } else {
@@ -397,10 +406,12 @@ impl PkgObject {
         required_by
     }
 
-    pub fn optional_for(&self, alpm_handle: &Option<alpm::Alpm>) -> Vec<String> {
+    pub fn optional_for(&self) -> Vec<String> {
         let mut optional_for: Vec<String> = vec![];
 
-        if let Some(handle) = alpm_handle {
+        let pkg_handle = &*self.imp().handle.borrow();
+
+        if let Some(handle) = pkg_handle.as_ref() {
             let db = if self.flags().intersects(PkgFlags::INSTALLED) {
                 Some(handle.localdb())
             } else {
@@ -424,6 +435,6 @@ impl Default for PkgObject {
     // Default constructor
     //-----------------------------------
     fn default() -> Self {
-        Self::new(PkgData::default())
+        Self::new(Rc::new(None), PkgData::default())
     }
 }
