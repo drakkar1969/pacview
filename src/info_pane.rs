@@ -48,8 +48,7 @@ mod imp {
         #[property(get, set)]
         pkg_model: RefCell<gio::ListStore>,
 
-        #[property(get, set)]
-        history_selection: RefCell<gtk::SingleSelection>,
+        pub history_selection: RefCell<gtk::SingleSelection>,
 
         pub alpm_handle: RefCell<Option<alpm::Alpm>>,
     }
@@ -138,7 +137,7 @@ impl InfoPane {
         // Initialize history selection
         let history_model = gio::ListStore::new(PkgObject::static_type());
 
-        self.set_history_selection(gtk::SingleSelection::new(Some(history_model)));
+        self.imp().history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
     }
 
     //-----------------------------------
@@ -211,7 +210,7 @@ impl InfoPane {
 
                     // If link package found
                     if let Some(new_pkg) = new_pkg {
-                        let hist_sel = self.history_selection();
+                        let hist_sel = self.imp().history_selection.borrow();
 
                         let hist_model = hist_sel.model()
                             .and_downcast::<gio::ListStore>()
@@ -256,7 +255,7 @@ impl InfoPane {
     pub fn display_package(&self, pkg: Option<&PkgObject>) {
         let imp = self.imp();
 
-        let hist_sel = self.history_selection();
+        let hist_sel = imp.history_selection.borrow();
 
         // Set infopane toolbar visibility
         imp.toolbar.set_visible(pkg.is_some());
@@ -415,7 +414,7 @@ impl InfoPane {
     }
 
     pub fn display_prev(&self) {
-        let hist_sel = self.history_selection();
+        let hist_sel = self.imp().history_selection.borrow();
 
         let hist_index = hist_sel.selected();
 
@@ -429,7 +428,7 @@ impl InfoPane {
     }
 
     pub fn display_next(&self) {
-        let hist_sel = self.history_selection();
+        let hist_sel = self.imp().history_selection.borrow();
 
         let hist_index = hist_sel.selected();
 
@@ -516,12 +515,12 @@ impl InfoPane {
     // Public get/set pkg functions
     //-----------------------------------
     pub fn pkg(&self) -> Option<PkgObject> {
-        self.history_selection().selected_item()
+        self.imp().history_selection.borrow().selected_item()
             .and_downcast::<PkgObject>()
     }
 
     pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
-        let hist_model = self.history_selection().model()
+        let hist_model = self.imp().history_selection.borrow().model()
             .and_downcast::<gio::ListStore>()
             .expect("Must be a 'ListStore'");
 
