@@ -26,8 +26,7 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::DetailsWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/details_window.ui")]
     pub struct DetailsWindow {
         #[template_child]
@@ -105,15 +104,11 @@ mod imp {
         #[template_child]
         pub backup_selection: TemplateChild<gtk::SingleSelection>,
 
-        #[property(get, set)]
-        pkg: RefCell<PkgObject>,
+        pub pkg: RefCell<PkgObject>,
 
-        #[property(get, set)]
-        default_tree_depth: Cell<f64>,
-        #[property(get, set)]
-        tree_text: RefCell<String>,
-        #[property(get, set)]
-        tree_rev_text: RefCell<String>,
+        pub default_tree_depth: Cell<f64>,
+        pub tree_text: RefCell<String>,
+        pub tree_rev_text: RefCell<String>,
     }
 
     //-----------------------------------
@@ -138,21 +133,6 @@ mod imp {
     }
 
     impl ObjectImpl for DetailsWindow {
-        //-----------------------------------
-        // Default property functions
-        //-----------------------------------
-        fn properties() -> &'static [glib::ParamSpec] {
-            Self::derived_properties()
-        }
-
-        fn set_property(&self, id: usize, value: &glib::Value, pspec: &glib::ParamSpec) {
-            self.derived_set_property(id, value, pspec)
-        }
-
-        fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
-            self.derived_property(id, pspec)
-        }
-
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -189,8 +169,9 @@ impl DetailsWindow {
     pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
-            .property("pkg", pkg)
             .build();
+
+        win.imp().pkg.replace(pkg.clone());
 
         let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
 
@@ -249,14 +230,14 @@ impl DetailsWindow {
         let depth = imp.tree_depth_scale.value();
         let reverse = imp.tree_reverse_button.is_active();
 
-        let tree_text = if reverse {self.tree_rev_text()} else {self.tree_text()};
+        let tree_text = if reverse {imp.tree_rev_text.borrow()} else {imp.tree_text.borrow()};
 
         lazy_static! {
             static ref EXPR: Regex = Regex::new("([└|─|│|├| ]+)?(.+)").unwrap();
         }
 
-        let filter_text = if depth == self.default_tree_depth() {
-            tree_text
+        let filter_text = if depth == imp.default_tree_depth.get() {
+            tree_text.to_string()
         } else {
             tree_text.lines()
             .filter_map(|s| {
@@ -339,7 +320,7 @@ impl DetailsWindow {
 
         // Tree scale value changed signal
         imp.tree_depth_scale.connect_value_changed(clone!(@weak self as obj, @weak imp => move |scale| {
-            if scale.value() == obj.default_tree_depth() {
+            if scale.value() == imp.default_tree_depth.get() {
                 imp.tree_depth_label.set_label("Default");
             } else {
                 imp.tree_depth_label.set_label(&scale.value().to_string());
@@ -448,8 +429,12 @@ impl DetailsWindow {
     // Update banner
     //-----------------------------------
     fn update_ui_banner(&self) {
+        let imp = self.imp();
+
+        let pkg = imp.pkg.borrow();
+
         // Set package name in banner
-        self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=self.pkg().repo_show(), name=self.pkg().name()));
+        imp.pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
     }
 
     //-----------------------------------
@@ -478,7 +463,7 @@ impl DetailsWindow {
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
 
         // Populate files list
-        let files = self.pkg().files();
+        let files = imp.pkg.borrow().files();
         let files_len = files.len();
 
         imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
@@ -524,10 +509,10 @@ impl DetailsWindow {
         }
 
         // Set default tree depth
-        self.set_default_tree_depth(imp.tree_depth_scale.adjustment().upper());
+        imp.default_tree_depth.replace(imp.tree_depth_scale.adjustment().upper());
 
         // Get dependency tree text
-        let pkg = self.pkg();
+        let pkg = imp.pkg.borrow();
 
         let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
 
@@ -538,7 +523,7 @@ impl DetailsWindow {
 
         let (_code, stdout) = Utils::run_command(&cmd);
 
-        self.set_tree_text(stdout);
+        imp.tree_text.replace(stdout);
 
         // Get dependency tree reverse text
         let cmd = format!("/usr/bin/pactree -r {local_flag} {name}",
@@ -548,10 +533,10 @@ impl DetailsWindow {
 
         let (_code, stdout) = Utils::run_command(&cmd);
 
-        self.set_tree_rev_text(stdout);
+        imp.tree_rev_text.replace(stdout);
 
         // Set tree label text
-        imp.tree_label.set_label(&self.tree_text());
+        imp.tree_label.set_label(&imp.tree_text.borrow());
     }
 
     //-----------------------------------
@@ -562,7 +547,7 @@ impl DetailsWindow {
 
         // Populate log messages
         if let Ok(log) = fs::read_to_string(log_file) {
-            let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.pkg().name())).unwrap();
+            let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", imp.pkg.borrow().name())).unwrap();
 
             let log_lines: Vec<Cow<str>> = log.lines().rev()
                 .filter_map(|s|
@@ -589,19 +574,21 @@ impl DetailsWindow {
     fn update_ui_cache_page(&self, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
+        let pkg = imp.pkg.borrow();
+
         // Get blacklist package names
         let blacklist: Vec<String> = pkg_model.iter::<PkgObject>().flatten()
             .filter(|pkg| 
                 pkg.flags().intersects(PkgFlags::INSTALLED) &&
-                pkg.name().starts_with(&self.pkg().name()) &&
-                pkg.name() != self.pkg().name())
+                pkg.name().starts_with(&pkg.name()) &&
+                pkg.name() != pkg.name())
             .map(|pkg| pkg.name())
             .collect();
 
         // Populate cache files list
         for dir in cache_dirs {
             // Find cache files that include package name
-            let cache_items = glob(&format!("{dir}{name}*.zst", dir=dir, name=self.pkg().name()))
+            let cache_items = glob(&format!("{dir}{name}*.zst", dir=dir, name=pkg.name()))
                 .unwrap()
                 .flatten()
                 .filter_map(|entry| {
@@ -638,7 +625,7 @@ impl DetailsWindow {
         let imp = self.imp();
 
         // Populate backup list
-        let backup = self.pkg().backup();
+        let backup = imp.pkg.borrow().backup();
 
         let backup_list: Vec<BackupObject> = backup.iter()
             .map(|backup| {
