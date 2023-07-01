@@ -218,19 +218,19 @@ mod imp {
         pub handle: RefCell<Rc<Option<alpm::Alpm>>>,
 
         // Read-write properties
-        #[property(name = "flags",      get, set, type = PkgFlags, member = flags)]
-        #[property(name = "version",    get, set, type = String,   member = version)]
-        #[property(name = "has-update", get, set, type = bool,     member = has_update)]
-        #[property(name = "repo-show",  get, set, type = String,   member = repo_show)]
+        #[property(name = "flags",        get, set, type = PkgFlags,   member = flags)]
+        #[property(name = "version",      get, set, type = String,     member = version)]
+        #[property(name = "has-update",   get, set, type = bool,       member = has_update)]
+        #[property(name = "repo-show",    get, set, type = String,     member = repo_show)]
 
         // Read-only properties
-        #[property(name = "name",          get, type = String,      member = name)]
-        #[property(name = "repository",    get, type = String,      member = repository)]
-        #[property(name = "status",        get, type = String,      member = status)]
-        #[property(name = "status-icon",   get, type = String,      member = status_icon)]
-        #[property(name = "install-date",  get, type = i64,         member = install_date)]
-        #[property(name = "install-size",  get, type = i64,         member = install_size)]
-        #[property(name = "groups",        get, type = String,      member = groups)]
+        #[property(name = "name",           get, type = String,   member = name)]
+        #[property(name = "repository",     get, type = String,   member = repository)]
+        #[property(name = "status",         get, type = String,   member = status)]
+        #[property(name = "status-icon",    get, type = String,   member = status_icon)]
+        #[property(name = "install-date",   get, type = i64,      member = install_date)]
+        #[property(name = "install-size",   get, type = i64,      member = install_size)]
+        #[property(name = "groups",         get, type = String,   member = groups)]
         pub data: RefCell<PkgData>,
 
         // Read-only properties with custom getter
