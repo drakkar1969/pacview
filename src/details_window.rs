@@ -574,21 +574,22 @@ impl DetailsWindow {
     fn update_ui_cache_page(&self, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        let pkg = imp.pkg.borrow();
+        let pkg_name = imp.pkg.borrow().name();
 
         // Get blacklist package names
         let blacklist: Vec<String> = pkg_model.iter::<PkgObject>().flatten()
-            .filter(|pkg| 
+            .filter(|pkg| {
                 pkg.flags().intersects(PkgFlags::INSTALLED) &&
-                pkg.name().starts_with(&pkg.name()) &&
-                pkg.name() != pkg.name())
+                pkg.name().starts_with(&pkg_name) &&
+                pkg.name() != pkg_name
+            })
             .map(|pkg| pkg.name())
             .collect();
 
         // Populate cache files list
         for dir in cache_dirs {
             // Find cache files that include package name
-            let cache_items = glob(&format!("{dir}{name}*.zst", dir=dir, name=pkg.name()))
+            let cache_items = glob(&format!("{dir}{name}*.zst", dir=dir, name=pkg_name))
                 .unwrap()
                 .flatten()
                 .filter_map(|entry| {
@@ -597,7 +598,7 @@ impl DetailsWindow {
                     // Exclude cache files that include blacklist package names
                     for name in &blacklist {
                         if cache_file.contains(name) {
-                            return None;
+                            return None
                         }
                     }
 
