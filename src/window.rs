@@ -19,7 +19,6 @@ use raur::blocking::Raur;
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
-use crate::prop_object::PropObject;
 use crate::search_header::{SearchHeader, SearchMode, SearchFlags};
 use crate::package_view::PackageView;
 use crate::info_pane::InfoPane;
@@ -876,18 +875,10 @@ impl PacViewWindow {
                     pkg.set_repo_show("aur");
 
                     // Update info pane if currently displayed package is in AUR
-                    let infopane_pkg = imp.info_pane.pkg();
+                    if imp.info_pane.pkg().unwrap_or_default() == pkg {
+                        imp.info_pane.update_prop("Package URL", &imp.info_pane.prop_to_package_url(&pkg), None);
 
-                    if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
-                        for prop in imp.info_pane.imp().model.get().iter::<PropObject>().flatten() {
-                            if prop.label() == "Package URL" {
-                                prop.set_value(imp.info_pane.prop_to_package_url(&pkg));
-                            }
-
-                            if prop.label() == "Repository" {
-                                prop.set_value(pkg.repo_show());
-                            }
-                        }
+                        imp.info_pane.update_prop("Repository", &pkg.repo_show(), None);
                     }
                 }
 
@@ -973,15 +964,8 @@ impl PacViewWindow {
                         }
 
                         // Update info pane if currently displayed package has update
-                        let infopane_pkg = imp.info_pane.pkg();
-
-                        if infopane_pkg.is_some() && infopane_pkg.unwrap() == pkg {
-                            for prop in imp.info_pane.imp().model.iter::<PropObject>().flatten() {
-                                if prop.label() == "Version" {
-                                    prop.set_value(pkg.version());
-                                    prop.set_icon("pkg-update");
-                                }
-                            }
+                        if imp.info_pane.pkg().unwrap_or_default() == pkg {
+                            imp.info_pane.update_prop("Version", &pkg.version(), Some("pkg-update"));
                         }
                     }
                 }

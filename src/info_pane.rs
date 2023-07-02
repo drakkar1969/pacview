@@ -519,4 +519,20 @@ impl InfoPane {
             hist_model.append(pkg);
         }
     }
+
+    //-----------------------------------
+    // Public update property function
+    //-----------------------------------
+    pub fn update_prop(&self, label: &str, value: &str, icon: Option<&str>) {
+        if let Some(prop) = self.imp().model.iter::<PropObject>().flatten()
+            .find(|prop| prop.label() == label)
+        {
+            prop.set_value(value);
+
+            if let Some(icon) = icon {
+                prop.set_icon(icon);
+            }
+
+        }
+    }
 }
