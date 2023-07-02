@@ -3,7 +3,8 @@ use std::cell::{Cell, RefCell};
 use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, once_cell::sync::Lazy};
+use glib::clone;
+use glib::once_cell::sync::Lazy;
 
 use glib::subclass::Signal;
 

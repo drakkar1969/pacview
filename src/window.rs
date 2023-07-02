@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, closure_local, once_cell::sync::OnceCell};
+use glib::{clone, closure_local};
+use glib::once_cell::sync::OnceCell;
 
 use pacmanconf;
 use alpm;

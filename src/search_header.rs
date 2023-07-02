@@ -5,7 +5,8 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 
 use glib::subclass::Signal;
-use glib::{clone, closure_local, once_cell::sync::Lazy};
+use glib::{clone, closure_local};
+use glib::once_cell::sync::Lazy;
 
 use crate::search_tag::SearchTag;
 
