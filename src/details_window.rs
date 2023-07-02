@@ -563,9 +563,9 @@ impl DetailsWindow {
         }
 
         // Set copy button state
-        let n_files = imp.log_model.n_items();
+        let n_items = imp.log_model.n_items();
 
-        imp.log_copy_button.set_sensitive(n_files > 0);
+        imp.log_copy_button.set_sensitive(n_items > 0);
     }
 
     //-----------------------------------
@@ -610,13 +610,13 @@ impl DetailsWindow {
         }
 
         // Set cache header label
-        let n_files = imp.cache_model.n_items();
+        let n_items = imp.cache_model.n_items();
 
-        imp.cache_header_label.set_label(&format!("Cache Files ({})", n_files));
+        imp.cache_header_label.set_label(&format!("Cache Files ({})", n_items));
 
         // Set open/copy button states
-        imp.cache_open_button.set_sensitive(n_files > 0);
-        imp.cache_copy_button.set_sensitive(n_files > 0);
+        imp.cache_open_button.set_sensitive(n_items > 0);
+        imp.cache_copy_button.set_sensitive(n_items > 0);
     }
 
     //-----------------------------------
@@ -645,12 +645,12 @@ impl DetailsWindow {
         imp.backup_model.splice(0, 0, &backup_list);
 
         // Set backup header label
-        let n_files = imp.backup_model.n_items();
+        let n_items = imp.backup_model.n_items();
 
-        imp.backup_header_label.set_label(&format!("Backup Files ({})", n_files));
+        imp.backup_header_label.set_label(&format!("Backup Files ({})", n_items));
 
         // Set open/copy button states
-        imp.backup_open_button.set_sensitive(n_files > 0);
-        imp.backup_copy_button.set_sensitive(n_files > 0);
+        imp.backup_open_button.set_sensitive(n_items > 0);
+        imp.backup_copy_button.set_sensitive(n_items > 0);
     }
 }
