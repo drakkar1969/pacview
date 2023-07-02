@@ -5,7 +5,6 @@ use std::borrow::Cow;
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use gtk::pango::AttrList;
 use glib::clone;
 
 use fancy_regex::Regex;
@@ -71,7 +70,9 @@ mod imp {
         #[template_child]
         pub tree_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub tree_label: TemplateChild<gtk::Label>,
+        pub tree_edit: TemplateChild<gtk::TextView>,
+        #[template_child]
+        pub tree_buffer: TemplateChild<gtk::TextBuffer>,
 
         #[template_child]
         pub log_copy_button: TemplateChild<gtk::Button>,
@@ -232,6 +233,7 @@ impl DetailsWindow {
 
         let tree_text = if reverse {imp.tree_rev_text.borrow()} else {imp.tree_text.borrow()};
 
+        // Filter tree text
         lazy_static! {
             static ref EXPR: Regex = Regex::new("([└|─|│|├| ]+)?(.+)").unwrap();
         }
@@ -253,7 +255,13 @@ impl DetailsWindow {
             .join("\n")
         };
 
-        imp.tree_label.set_label(&filter_text);
+        // Set tree edit text
+        imp.tree_buffer.set_text(&filter_text);
+
+        // Set tree edit font
+        if let Some(tag) = imp.tree_buffer.tag_table().lookup("font") {
+            imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
+        }
     }
 
     //-----------------------------------
@@ -337,7 +345,7 @@ impl DetailsWindow {
 
         // Tree copy button clicked signal
         imp.tree_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            obj.clipboard().set_text(&imp.tree_label.label());
+            obj.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
         }));
 
         // Log copy button clicked signal
@@ -501,12 +509,11 @@ impl DetailsWindow {
             gsettings.string("monospace-font-name").to_string()
         };
 
-        // Set tree label font
-        let format_str = format!("0 -1 font-desc \"{}\"", font_str);
+        // Create text edit font tag
+        let tag = gtk::TextTag::new(Some("font"));
+        tag.set_font(Some(&font_str));
 
-        if let Ok(attr) = AttrList::from_string(&format_str) {
-            imp.tree_label.set_attributes(Some(&attr));
-        }
+        imp.tree_buffer.tag_table().add(&tag);
 
         // Set default tree depth
         imp.default_tree_depth.replace(imp.tree_depth_scale.adjustment().upper());
@@ -535,8 +542,11 @@ impl DetailsWindow {
 
         imp.tree_rev_text.replace(stdout);
 
-        // Set tree label text
-        imp.tree_label.set_label(&imp.tree_text.borrow());
+        // Set tree edit text
+        imp.tree_buffer.set_text(&imp.tree_text.borrow());
+
+        // Set tree edit font
+        imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
     }
 
     //-----------------------------------
