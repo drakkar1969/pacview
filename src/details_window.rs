@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::fs;
 use std::borrow::Cow;
+use std::thread;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -69,6 +70,8 @@ mod imp {
         pub tree_reverse_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub tree_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub tree_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub tree_edit: TemplateChild<gtk::TextView>,
         #[template_child]
@@ -518,35 +521,52 @@ impl DetailsWindow {
         // Set default tree depth
         imp.default_tree_depth.replace(imp.tree_depth_scale.adjustment().upper());
 
-        // Get dependency tree text
+        // Get tree text async
+        let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::PRIORITY_DEFAULT);
+
         let pkg = imp.pkg.borrow();
 
+        let pkg_name = pkg.name();
         let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
 
-        let cmd = format!("/usr/bin/pactree {local_flag} {name}",
-            local_flag=local_flag,
-            name=pkg.name()
+        thread::spawn(move || {
+            // Get dependecy tree
+            let cmd = format!("/usr/bin/pactree {local_flag} {name}",
+                local_flag=local_flag,
+                name=pkg_name
+            );
+
+            let (_, deps) = Utils::run_command(&cmd);
+
+            // Get reverse dependency tree
+            let cmd = format!("/usr/bin/pactree -r {local_flag} {name}",
+                local_flag=local_flag,
+                name=pkg_name
+            );
+
+            let (_, rev_deps) = Utils::run_command(&cmd);
+
+            sender.send((deps, rev_deps)).expect("Could not send through channel");
+        });
+
+        receiver.attach(
+            None,
+            clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(deps, rev_deps)| {
+                imp.tree_text.replace(deps);
+
+                imp.tree_rev_text.replace(rev_deps);
+
+                // Set tree edit text
+                imp.tree_buffer.set_text(&imp.tree_text.borrow());
+
+                // Set tree edit font
+                imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
+
+                imp.tree_stack.set_visible_child_name("deps");
+    
+                Continue(false)
+            }),
         );
-
-        let (_code, stdout) = Utils::run_command(&cmd);
-
-        imp.tree_text.replace(stdout);
-
-        // Get dependency tree reverse text
-        let cmd = format!("/usr/bin/pactree -r {local_flag} {name}",
-            local_flag=local_flag,
-            name=pkg.name()
-        );
-
-        let (_code, stdout) = Utils::run_command(&cmd);
-
-        imp.tree_rev_text.replace(stdout);
-
-        // Set tree edit text
-        imp.tree_buffer.set_text(&imp.tree_text.borrow());
-
-        // Set tree edit font
-        imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
     }
 
     //-----------------------------------

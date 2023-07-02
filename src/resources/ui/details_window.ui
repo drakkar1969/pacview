@@ -314,23 +314,61 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow">
-                            <property name="hexpand">True</property>
-                            <property name="vexpand">True</property>
+                          <object class="GtkStack" id="tree_stack">
                             <property name="margin-bottom">16</property>
-                            <property name="child">
-                              <object class="GtkTextView" id="tree_edit">
-                                <property name="hexpand">true</property>
-                                <property name="margin-start">24</property>
-                                <property name="margin-end">16</property>
-                                <property name="editable">False</property>
-                                <property name="cursor-visible">False</property>
-                                <property name="buffer">
-                                  <object class="GtkTextBuffer" id="tree_buffer">
+                            <child>
+                              <object class="GtkStackPage" id="empty_page">
+                                <property name="name">empty</property>
+                                <property name="child">
+                                  <object class="GtkBox" id="loading_box">
+                                    <property name="halign">center</property>
+                                    <property name="valign">center</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkSpinner" id="loading_spinner">
+                                        <property name="spinning">True</property>
+                                        <style>
+                                          <class name="dim-spinner"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="loading_label">
+                                        <property name="label">Retrieving dependency tree</property>
+                                        <style>
+                                          <class name="title-4"/>
+                                          <class name="dim-label"/>
+                                        </style>
+                                      </object>
+                                    </child>
                                   </object>
                                 </property>
                               </object>
-                            </property>
+                            </child>
+                            <child>
+                              <object class="GtkStackPage" id="deps_page">
+                                <property name="name">deps</property>
+                                <property name="child">
+                                  <object class="GtkScrolledWindow">
+                                    <property name="hexpand">True</property>
+                                    <property name="vexpand">True</property>
+                                    <property name="child">
+                                      <object class="GtkTextView" id="tree_edit">
+                                        <property name="hexpand">true</property>
+                                        <property name="margin-start">24</property>
+                                        <property name="margin-end">16</property>
+                                        <property name="editable">False</property>
+                                        <property name="cursor-visible">False</property>
+                                        <property name="buffer">
+                                          <object class="GtkTextBuffer" id="tree_buffer">
+                                          </object>
+                                        </property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
