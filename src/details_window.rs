@@ -606,7 +606,7 @@ impl DetailsWindow {
                 })
                 .collect::<Vec<String>>();
 
-            imp.cache_model.splice(imp.cache_model.n_items(), 0, &cache_items.iter().map(|s| s.as_ref()).collect::<Vec<&str>>());
+            imp.cache_model.splice(imp.cache_model.n_items(), 0, &cache_items.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
         }
 
         // Set cache header label
