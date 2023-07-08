@@ -223,9 +223,6 @@ impl PacViewWindow {
         let imp = self.imp();
 
         if let Some(gsettings) = imp.gsettings.get() {
-            // Save bound gsettings
-            gsettings.apply();
-
             // Save package view column order if setting active
             if imp.prefs_window.remember_columns() {
                 gsettings.set_strv("view-columns", imp.package_view.columns()).unwrap();
@@ -243,6 +240,9 @@ impl PacViewWindow {
                 gsettings.reset("sort-column");
                 gsettings.reset("sort-ascending");
             }
+
+            // Save gsettings
+            gsettings.apply();
         }
     }
 
