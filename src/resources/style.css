@@ -69,6 +69,11 @@ box.rounded {
 	border-radius: 9999px;
 }
 
+/* Info pane value text view */
+textview.value-row {
+	background: transparent;
+}
+
 /* Details window images */
 image.bubble {
 	border-radius: 50%;

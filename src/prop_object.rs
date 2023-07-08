@@ -1,8 +1,28 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
+
+//------------------------------------------------------------------------------
+// ENUM: PropType
+//------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "PropType")]
+pub enum PropType {
+    Text = 0,
+    Title = 1,
+    Link = 2,
+    Packager = 3,
+    LinkList = 4,
+}
+
+impl Default for PropType {
+    fn default() -> Self {
+        PropType::Text
+    }
+}
 
 //------------------------------------------------------------------------------
 // MODULE: PropObject
@@ -22,6 +42,8 @@ mod imp {
         value: RefCell<String>,
         #[property(get, set)]
         icon: RefCell<Option<String>>,
+        #[property(get, set, builder(PropType::default()))]
+        ptype: Cell<PropType>,
     }
 
     //-----------------------------------
@@ -62,12 +84,13 @@ impl PropObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(label: &str, value: &str, icon: Option<&str>) -> Self {
+    pub fn new(label: &str, value: &str, icon: Option<&str>, ptype: PropType) -> Self {
         // Build PropObject
         glib::Object::builder()
             .property("label", label)
             .property("value", value)
             .property("icon", icon)
+            .property("ptype", ptype)
             .build()
     }
 }

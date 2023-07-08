@@ -5,13 +5,9 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use fancy_regex::Regex;
-use lazy_static::lazy_static;
-use url::Url;
-
 use crate::value_row::ValueRow;
 use crate::pkg_object::{PkgObject, PkgFlags};
-use crate::prop_object::PropObject;
+use crate::prop_object::{PropObject, PropType};
 
 //------------------------------------------------------------------------------
 // MODULE: InfoPane
@@ -144,14 +140,14 @@ impl InfoPane {
         let imp = self.imp();
 
         // Value factory setup signal
-        imp.value_factory.connect_setup(|_, item| {
-            let value_row = ValueRow::new();
+        imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
+            let value_row = ValueRow::new(obj);
 
             item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Must be a 'ListItem'")
                 .set_child(Some(&value_row));
-        });
+        }));
 
         // Value factory bind signal
         imp.value_factory.connect_bind(clone!(@weak self as obj => move |_, item| {
@@ -170,8 +166,6 @@ impl InfoPane {
                 .expect("Must be a 'ValueRow'");
 
             value_row.bind_properties(&prop_obj);
-
-            value_row.connect_link_handler(&obj, Self::link_handler);
         }));
 
         // Value factory unbind signal
@@ -188,62 +182,50 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // Value label link handler
+    // Public value label link handler
     //-----------------------------------
-    fn link_handler(&self, link: &str) -> bool {
-        if let Ok(url) = Url::parse(link) {
-            if url.scheme() == "pkg" {
-                if let Some(pkg_name) = url.domain() {
-                    // Find link package by name
-                    let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten()
-                        .find(|pkg| pkg.name() == pkg_name);
+    pub fn link_handler(&self, pkg_name: &str) {
+        // Find link package by name
+        let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten()
+            .find(|pkg| pkg.name() == pkg_name);
 
-                    // If link package is none, find by provides
-                    if new_pkg.is_none() {
-                        new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| {
-                            pkg.provides().iter().any(|s| s.contains(&pkg_name))
-                        });
-                    }
-
-                    // If link package found
-                    if let Some(new_pkg) = new_pkg {
-                        let hist_sel = self.imp().history_selection.borrow();
-
-                        let hist_model = hist_sel.model()
-                            .and_downcast::<gio::ListStore>()
-                            .expect("Must be a 'ListStore'");
-
-                        // If link package is in infopane history, select it
-                        if let Some(i) = hist_model.find(&new_pkg) {
-                            hist_sel.set_selected(i);
-                        } else {
-                            // If link package is not in history, get current history package
-                            let hist_index = hist_sel.selected();
-
-                            // If history package is not the last one in history, truncate history list
-                            if hist_index < hist_model.n_items() - 1 {
-                                hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
-                            }
-
-                            // Add link package to history
-                            hist_model.append(&new_pkg);
-
-                            // Update history selection to link package
-                            hist_sel.set_selected(hist_index + 1);
-                        }
-
-                        // Display link package
-                        self.display_package(Some(&new_pkg));
-                    }
-                }
-
-                // Link handled
-                return true
-            } 
+        // If link package is none, find by provides
+        if new_pkg.is_none() {
+            new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| {
+                pkg.provides().iter().any(|s| s.contains(&pkg_name))
+            });
         }
 
-        // Link not handled (use default handler)
-        false
+        // If link package found
+        if let Some(new_pkg) = new_pkg {
+            let hist_sel = self.imp().history_selection.borrow();
+
+            let hist_model = hist_sel.model()
+                .and_downcast::<gio::ListStore>()
+                .expect("Must be a 'ListStore'");
+
+            // If link package is in infopane history, select it
+            if let Some(i) = hist_model.find(&new_pkg) {
+                hist_sel.set_selected(i);
+            } else {
+                // If link package is not in history, get current history package
+                let hist_index = hist_sel.selected();
+
+                // If history package is not the last one in history, truncate history list
+                if hist_index < hist_model.n_items() - 1 {
+                    hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
+                }
+
+                // Add link package to history
+                hist_model.append(&new_pkg);
+
+                // Update history selection to link package
+                hist_sel.set_selected(hist_index + 1);
+            }
+
+            // Display link package
+            self.display_package(Some(&new_pkg));
+        }
     }
 
     //-----------------------------------
@@ -271,30 +253,30 @@ impl InfoPane {
 
             // Name
             imp.model.append(&PropObject::new(
-                "Name", &format!("<b>{}</b>", pkg.name()), None
+                "Name", &pkg.name(), None, PropType::Title
             ));
             // Version
             imp.model.append(&PropObject::new(
-                "Version", &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None}
+                "Version", &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None}, PropType::Text
             ));
             // Description
             imp.model.append(&PropObject::new(
-                "Description", &self.prop_to_esc_string(&pkg.description()), None
+                "Description", &pkg.description(), None, PropType::Text
             ));
             // Package URL
             imp.model.append(&PropObject::new(
-                "Package URL", &self.prop_to_package_url(&pkg), None
+                "Package URL", &self.prop_to_package_url(&pkg), None, PropType::Link
             ));
             // URL
             if pkg.url() != "" {
                 imp.model.append(&PropObject::new(
-                    "URL", &self.prop_to_esc_url(&pkg.url()), None
+                    "URL", &pkg.url(), None, PropType::Link
                 ));
             }
             // Licenses
             if pkg.licenses() != "" {
                 imp.model.append(&PropObject::new(
-                    "Licenses", &self.prop_to_esc_string(&pkg.licenses()), None
+                    "Licenses", &&pkg.licenses(), None, PropType::Text
                 ));
             }
             // Status
@@ -302,104 +284,104 @@ impl InfoPane {
             let status_icon = pkg.status_icon();
 
             imp.model.append(&PropObject::new(
-                "Status", if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
+                "Status", if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}, PropType::Text
             ));
             // Repository
             imp.model.append(&PropObject::new(
-                "Repository", &pkg.repo_show(), None
+                "Repository", &pkg.repo_show(), None, PropType::Text
             ));
             // Groups
             if pkg.groups() != "" {
                 imp.model.append(&PropObject::new(
-                    "Groups", &pkg.groups(), None
+                    "Groups", &pkg.groups(), None, PropType::Text
                 ));
             }
             // Provides
             if !pkg.provides().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Provides", &self.propvec_to_wrapstring(&pkg.provides()), None
+                    "Provides", &pkg.provides().join("   "), None, PropType::Text
                 ));
             }
             // Depends
             imp.model.append(&PropObject::new(
-                "Dependencies ", &self.propvec_to_linkstring(&pkg.depends()), None
+                "Dependencies ", &pkg.depends().join("   "), None, PropType::LinkList
             ));
             // Optdepends
             if !pkg.optdepends().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Optional", &self.propvec_to_linkstring(&pkg.optdepends()), None
+                    "Optional", &pkg.optdepends().join("   "), None, PropType::LinkList
                 ));
             }
             // Required by
             imp.model.append(&PropObject::new(
-                "Required by", &self.propvec_to_linkstring(&pkg.required_by()), None
+                "Required by", &pkg.required_by().join("   "), None, PropType::LinkList
             ));
             // Optional for
             let optional_for = pkg.optional_for();
             
             if !optional_for.is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Optional For", &self.propvec_to_linkstring(&optional_for), None
+                    "Optional For", &optional_for.join("   "), None, PropType::LinkList
                 ));
             }
             // Conflicts
             if !pkg.conflicts().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Conflicts With", &self.propvec_to_linkstring(&pkg.conflicts()), None
+                    "Conflicts With", &pkg.conflicts().join("   "), None, PropType::LinkList
                 ));
             }
             // Replaces
             if !pkg.replaces().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Replaces", &self.propvec_to_linkstring(&pkg.replaces()), None
+                    "Replaces", &pkg.replaces().join("   "), None, PropType::LinkList
                 ));
             }
             // Architecture
             if pkg.architecture() != "" {
                 imp.model.append(&PropObject::new(
-                    "Architecture", &pkg.architecture(), None
+                    "Architecture", &pkg.architecture(), None, PropType::Text
                 ));
             }
             // Packager
             if pkg.packager() != "" {
                 imp.model.append(&PropObject::new(
-                    "Packager", &self.prop_to_packager(&pkg.packager()), None
+                    "Packager", &pkg.packager(), None, PropType::Packager
                 ));
             }
             // Build date
             imp.model.append(&PropObject::new(
-                "Build Date", &pkg.build_date_long(), None
+                "Build Date", &pkg.build_date_long(), None, PropType::Text
             ));
             // Install date
             if pkg.install_date() != 0 {
                 imp.model.append(&PropObject::new(
-                    "Install Date", &pkg.install_date_long(), None
+                    "Install Date", &pkg.install_date_long(), None, PropType::Text
                 ));
             }
             // Download size
             if pkg.download_size() != 0 {
                 imp.model.append(&PropObject::new(
-                    "Download Size", &pkg.download_size_string(), None
+                    "Download Size", &pkg.download_size_string(), None, PropType::Text
                 ));
             }
             // Installed size
             imp.model.append(&PropObject::new(
-                "Installed Size", &pkg.install_size_string(), None
+                "Installed Size", &pkg.install_size_string(), None, PropType::Text
             ));
             // Has script
             imp.model.append(&PropObject::new(
-                "Install Script", if pkg.has_script() {"Yes"} else {"No"}, None
+                "Install Script", if pkg.has_script() {"Yes"} else {"No"}, None, PropType::Text
             ));
             // SHA256 sum
             if pkg.sha256sum() != "" {
                 imp.model.append(&PropObject::new(
-                    "SHA256 Sum", &pkg.sha256sum(), None
+                    "SHA256 Sum", &pkg.sha256sum(), None, PropType::Text
                 ));
             }
             // MD5 sum
             if pkg.md5sum() != "" {
                 imp.model.append(&PropObject::new(
-                    "MD5 Sum", &pkg.md5sum(), None
+                    "MD5 Sum", &pkg.md5sum(), None, PropType::Text
                 ));
             }
         }
@@ -439,63 +421,17 @@ impl InfoPane {
     // Public display helper function
     //-----------------------------------
     pub fn prop_to_package_url(&self, pkg: &PkgObject) -> String {
-        let mut url = String::from("None");
+        let mut url = String::from("");
 
         let default_repos = ["core", "extra", "multilib"];
 
         if default_repos.contains(&pkg.repo_show().as_str()) {
-            url = self.prop_to_esc_url(&format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name()));
+            url = format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}", repo=pkg.repo_show(), arch=pkg.architecture(), name=pkg.name());
         } else if &pkg.repo_show() == "aur" {
-            url = self.prop_to_esc_url(&format!("https://aur.archlinux.org/packages/{name}", name=pkg.name()))
+            url = format!("https://aur.archlinux.org/packages/{name}", name=pkg.name());
         }
 
         url
-    }
-
-    //-----------------------------------
-    // Private display helper functions
-    //-----------------------------------
-    fn prop_to_esc_string(&self, prop: &str) -> String {
-        glib::markup_escape_text(prop).to_string()
-    }
-
-    fn prop_to_esc_url(&self, prop: &str) -> String {
-        format!("<a href=\"{url}\">{url}</a>", url=glib::markup_escape_text(prop).to_string())
-    }
-
-    fn prop_to_packager(&self, prop: &str) -> String {
-        lazy_static! {
-            static ref EXPR: Regex = Regex::new("^([^<]+)<([^>]+)>$").unwrap();
-        }
-
-        EXPR.replace_all(&prop, "$1&lt;<a href='mailto:$2'>$2</a>&gt;").to_string()
-    }
-
-    fn propvec_to_wrapstring(&self, prop_vec: &Vec<String>) -> String {
-        let n_items = prop_vec.len();
-        let max_items = n_items.min(80);
-
-        let mut wrap_str = prop_vec[..max_items].join("   ");
-
-        if n_items > max_items {
-            wrap_str += &format!("   ... (and {} more)", n_items - max_items);
-        }
-
-        glib::markup_escape_text(&wrap_str).to_string()
-    }
-
-    fn propvec_to_linkstring(&self, prop_vec: &Vec<String>) -> String {
-        if prop_vec.is_empty() {
-            String::from("None")
-        } else {
-            lazy_static! {
-                static ref EXPR: Regex = Regex::new("(^|   |   \n)([a-zA-Z0-9@._+-]+)(?=&gt;|&lt;|<|>|=|:|   |\n|$)").unwrap();
-            }
-
-            let prop_str = self.propvec_to_wrapstring(prop_vec);
-
-            EXPR.replace_all(&prop_str, "$1<a href='pkg://$2'>$2</a>").to_string()
-        }
     }
 
     //-----------------------------------
