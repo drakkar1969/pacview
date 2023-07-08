@@ -120,7 +120,8 @@ mod imp {
                             if let Some(m) = caps.get(2) {
                                 let tag_name = format!("mailto:{}", &caps[2].to_string());
 
-                                self.add_link_tag(&tag_name, m.start() as i32, m.end() as i32);
+                                // Convert byte offsets to character offsets
+                                self.add_link_tag(&tag_name, self.bytes_to_chars(text, m.start()), self.bytes_to_chars(text, m.end()));
                             }
                         }
                     }
@@ -149,6 +150,13 @@ mod imp {
                     }
                 },
             }
+        }
+
+        //-----------------------------------
+        // Bytes to chars helper function
+        //-----------------------------------
+        fn bytes_to_chars(&self, text: &str, bytes: usize) -> i32 {
+            text[0..bytes].chars().count() as i32
         }
 
         //-----------------------------------
