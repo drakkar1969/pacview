@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, once_cell::sync::OnceCell};
 
 use crate::value_row::ValueRow;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -42,6 +42,8 @@ mod imp {
 
         #[property(get, set)]
         pkg_model: RefCell<gio::ListStore>,
+
+        pub link_rgba: OnceCell<gtk::gdk::RGBA>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
     }
@@ -120,8 +122,15 @@ impl InfoPane {
     // Setup widgets
     //-----------------------------------
     fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Initialize link color
+        let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+        imp.link_rgba.set(link_btn.color()).unwrap();
+
         // Hide info pane header
-        if let Some(list_header) = self.imp().view.first_child() {
+        if let Some(list_header) = imp.view.first_child() {
             if list_header.type_().name() == "GtkListItemWidget" {
                 list_header.set_visible(false);
             }
@@ -130,7 +139,7 @@ impl InfoPane {
         // Initialize history selection
         let history_model = gio::ListStore::new(PkgObject::static_type());
 
-        self.imp().history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
+        imp.history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
     }
 
     //-----------------------------------
@@ -140,8 +149,8 @@ impl InfoPane {
         let imp = self.imp();
 
         // Value factory setup signal
-        imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
-            let value_row = ValueRow::new(obj);
+        imp.value_factory.connect_setup(clone!(@weak self as obj, @weak imp => move |_, item| {
+            let value_row = ValueRow::new(obj, *imp.link_rgba.get().unwrap());
 
             item
                 .downcast_ref::<gtk::ListItem>()

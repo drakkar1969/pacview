@@ -38,6 +38,8 @@ mod imp {
 
         pub infopane: OnceCell<InfoPane>,
 
+        pub link_rgba: OnceCell<gtk::gdk::RGBA>,
+
         pub ptype: Cell<PropType>,
 
         pub controllers: RefCell<Vec<gtk::EventController>>,
@@ -187,16 +189,16 @@ mod imp {
         }
 
         fn add_link_tag(&self, text: &str, start: i32, end: i32) {
-            if let Ok(rgba) = gtk::gdk::RGBA::parse("#1c71d8") {
-                if self.buffer.tag_table().lookup(text).is_none() {
-                    let tag = gtk::TextTag::builder()
-                        .name(text)
-                        .foreground_rgba(&rgba)
-                        .underline(Underline::Single)
-                        .build();
+            let rgba = self.link_rgba.get().unwrap();
 
-                    self.add_tag(&tag, start, end);
-                }
+            if self.buffer.tag_table().lookup(text).is_none() {
+                let tag = gtk::TextTag::builder()
+                    .name(text)
+                    .foreground_rgba(&rgba)
+                    .underline(Underline::Single)
+                    .build();
+
+                self.add_tag(&tag, start, end);
             }
         }
     }
@@ -215,10 +217,13 @@ impl ValueRow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(infopane: InfoPane) -> Self {
+    pub fn new(infopane: InfoPane, link_rgba: gtk::gdk::RGBA) -> Self {
         let row: Self = glib::Object::builder().build();
 
-        row.imp().infopane.set(infopane).unwrap();
+        let imp = row.imp();
+
+        imp.infopane.set(infopane).unwrap();
+        imp.link_rgba.set(link_rgba).unwrap();
 
         row
     }
