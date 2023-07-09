@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, once_cell::sync::OnceCell};
+use glib::clone;
 
 use crate::value_row::ValueRow;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -42,8 +42,6 @@ mod imp {
 
         #[property(get, set)]
         pkg_model: RefCell<gio::ListStore>,
-
-        pub link_rgba: OnceCell<gtk::gdk::RGBA>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
     }
@@ -124,11 +122,6 @@ impl InfoPane {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Initialize link color
-        let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-        imp.link_rgba.set(link_btn.color()).unwrap();
-
         // Hide info pane header
         if let Some(list_header) = imp.view.first_child() {
             if list_header.type_().name() == "GtkListItemWidget" {
@@ -148,7 +141,10 @@ impl InfoPane {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        let link_rgba = *imp.link_rgba.get().unwrap();
+        // Initialize link color
+        let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+        let link_rgba = link_btn.color();
 
         // Value factory setup signal
         imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
