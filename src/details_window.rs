@@ -79,6 +79,8 @@ mod imp {
         pub log_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub log_model: TemplateChild<gtk::StringList>,
+        #[template_child]
+        pub log_selection: TemplateChild<gtk::NoSelection>,
 
         #[template_child]
         pub cache_header_label: TemplateChild<gtk::Label>,
@@ -351,7 +353,7 @@ impl DetailsWindow {
 
         // Log copy button clicked signal
         imp.log_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            let copy_text = imp.log_model.iter::<glib::Object>().flatten()
+            let copy_text = imp.log_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     let s = item
                         .downcast::<gtk::StringObject>()
@@ -376,7 +378,7 @@ impl DetailsWindow {
 
         // Cache copy button clicked signal
         imp.cache_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            let copy_text = imp.cache_model.iter::<glib::Object>().flatten()
+            let copy_text = imp.cache_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     let s = item
                         .downcast::<gtk::StringObject>()
@@ -410,7 +412,7 @@ impl DetailsWindow {
 
         // Backup copy button clicked signal
         imp.backup_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            let copy_text = imp.backup_model.iter::<glib::Object>().flatten()
+            let copy_text = imp.backup_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     let bck = item
                         .downcast::<BackupObject>()

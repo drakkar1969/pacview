@@ -424,7 +424,7 @@ impl PacViewWindow {
         // Add package view copy list action
         let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
-                let copy_text = imp.package_view.imp().filter_model.iter::<glib::Object>()
+                let copy_text = imp.package_view.imp().selection.iter::<glib::Object>()
                     .flatten()
                     .map(|item| {
                         let pkg = item
