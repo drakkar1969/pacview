@@ -412,7 +412,7 @@ impl InfoPane {
             }
         }
 
-        imp.empty_label.set_visible(!pkg.is_some());
+        imp.empty_label.set_visible(pkg.is_none());
     }
 
     pub fn display_prev(&self) {
