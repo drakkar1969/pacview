@@ -8,7 +8,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use fancy_regex::Regex;
+use regex::Regex;
 use lazy_static::lazy_static;
 use glob::glob;
 
@@ -581,7 +581,7 @@ impl DetailsWindow {
 
             let log_lines: Vec<Cow<str>> = log.lines().rev()
                 .filter_map(|s|
-                    if match_expr.is_match(s).unwrap_or_default() {
+                    if match_expr.is_match(s) {
                         Some(match_expr.replace_all(s, "[$1 $2]  $3 $4 $5"))
                     } else {
                         None
