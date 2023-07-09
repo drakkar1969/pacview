@@ -31,7 +31,7 @@ mod imp {
         #[template_child]
         pub toolbar: TemplateChild<gtk::Box>,
         #[template_child]
-        pub navbutton_box: TemplateChild<gtk::Box>,
+        pub nav_box: TemplateChild<gtk::Box>,
         #[template_child]
         pub nav_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -245,7 +245,11 @@ impl InfoPane {
         let hist_sel = imp.history_selection.borrow();
 
         // Set infopane toolbar visibility
-        imp.toolbar.set_visible(pkg.is_some());
+        let show = pkg.is_some();
+
+        if imp.toolbar.is_visible() != show {
+            imp.toolbar.set_visible(show);
+        }
 
         // Clear infopane
         imp.model.remove_all();
@@ -258,7 +262,11 @@ impl InfoPane {
             }
 
             // Set infopane previous/next box visibility
-            imp.navbutton_box.set_visible(hist_sel.n_items() > 1);
+            let show = hist_sel.n_items() > 1;
+
+            if imp.nav_box.is_visible() != show {
+                imp.nav_box.set_visible(show);
+            }
 
             // Set infopane prev/next button states
             imp.prev_button.set_sensitive(hist_sel.selected() > 0);

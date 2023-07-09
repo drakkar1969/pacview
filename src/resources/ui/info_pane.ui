@@ -60,7 +60,7 @@
               <class name="rounded"/>
             </style>
             <child>
-              <object class="GtkBox" id="navbutton_box">
+              <object class="GtkBox" id="nav_box">
                 <property name="visible">False</property>
                 <property name="margin-start">4</property>
                 <property name="margin-end">4</property>
