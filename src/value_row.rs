@@ -69,8 +69,9 @@ mod imp {
         fn signals() -> &'static [Signal] {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
                 vec![
-                    Signal::builder("pkg-clicked")
+                    Signal::builder("link-activated")
                         .param_types([String::static_type()])
+                        .return_type::<bool>()
                         .build(),
                 ]
             });
@@ -303,15 +304,9 @@ impl ValueRow {
 
         click_gesture.connect_released(clone!(@weak self as obj => move |_, _, x, y| {
             if let Some(link) = obj.tag_at_xy(x as i32, y as i32) {
-                if let Ok(url) = Url::parse(&link) {
-                    let url_scheme = url.scheme();
-
-                    if url_scheme == "pkg" {
-                        if let Some(pkg_name) = url.domain() {
-                            obj.emit_by_name::<()>("pkg-clicked", &[&pkg_name]);
-                        }
-                    } else {
-                        if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url_scheme) {
+                if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
+                    if let Ok(url) = Url::parse(&link) {
+                        if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
                             let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
                         }
                     }

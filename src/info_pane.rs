@@ -5,6 +5,8 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, closure, closure_local};
 
+use url::Url;
+
 use crate::value_row::ValueRow;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::prop_object::{PropObject, PropType};
@@ -188,8 +190,8 @@ impl InfoPane {
 
             // Connect ValueRow link activated signal handler
             // With @watch, signal handler disconnects when value_row is dropped
-            value_row.connect_closure("pkg-clicked", false, closure_local!(@watch value_row as _row => move |_: ValueRow, pkg_name: String| {
-                obj.link_handler(&pkg_name);
+            value_row.connect_closure("link-activated", false, closure_local!(@watch value_row as _row => move |_: ValueRow, link: String| -> bool {
+                obj.link_handler(&link)
             }));
         }));
     }
@@ -197,48 +199,60 @@ impl InfoPane {
     //-----------------------------------
     // Value label link handler
     //-----------------------------------
-    fn link_handler(&self, pkg_name: &str) {
-        // Find link package by name
-        let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten()
-            .find(|pkg| pkg.name() == pkg_name);
+    fn link_handler(&self, link: &str) -> bool {
+        if let Ok(url) = Url::parse(&link) {
+            if url.scheme() == "pkg" {
+                if let Some(pkg_name) = url.domain() {
+                    // Find link package by name
+                    let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten()
+                        .find(|pkg| pkg.name() == pkg_name);
 
-        // If link package is none, find by provides
-        if new_pkg.is_none() {
-            new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| {
-                pkg.provides().iter().any(|s| s.contains(&pkg_name))
-            });
-        }
+                    // If link package is none, find by provides
+                    if new_pkg.is_none() {
+                        new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| {
+                            pkg.provides().iter().any(|s| s.contains(&pkg_name))
+                        });
+                    }
 
-        // If link package found
-        if let Some(new_pkg) = new_pkg {
-            let hist_sel = self.imp().history_selection.borrow();
+                    // If link package found
+                    if let Some(new_pkg) = new_pkg {
+                        let hist_sel = self.imp().history_selection.borrow();
 
-            let hist_model = hist_sel.model()
-                .and_downcast::<gio::ListStore>()
-                .expect("Must be a 'ListStore'");
+                        let hist_model = hist_sel.model()
+                            .and_downcast::<gio::ListStore>()
+                            .expect("Must be a 'ListStore'");
 
-            // If link package is in infopane history, select it
-            if let Some(i) = hist_model.find(&new_pkg) {
-                hist_sel.set_selected(i);
-            } else {
-                // If link package is not in history, get current history package
-                let hist_index = hist_sel.selected();
+                        // If link package is in infopane history, select it
+                        if let Some(i) = hist_model.find(&new_pkg) {
+                            hist_sel.set_selected(i);
+                        } else {
+                            // If link package is not in history, get current history package
+                            let hist_index = hist_sel.selected();
 
-                // If history package is not the last one in history, truncate history list
-                if hist_index < hist_model.n_items() - 1 {
-                    hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
+                            // If history package is not the last one in history, truncate history list
+                            if hist_index < hist_model.n_items() - 1 {
+                                hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
+                            }
+
+                            // Add link package to history
+                            hist_model.append(&new_pkg);
+
+                            // Update history selection to link package
+                            hist_sel.set_selected(hist_index + 1);
+                        }
+
+                        // Display link package
+                        self.display_package(Some(&new_pkg));
+                    }
                 }
 
-                // Add link package to history
-                hist_model.append(&new_pkg);
-
-                // Update history selection to link package
-                hist_sel.set_selected(hist_index + 1);
+                // Link handled
+                return true
             }
-
-            // Display link package
-            self.display_package(Some(&new_pkg));
         }
+
+        // Link not handled
+        false
     }
 
     //-----------------------------------
