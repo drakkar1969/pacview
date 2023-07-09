@@ -148,9 +148,11 @@ impl InfoPane {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        let link_rgba = *imp.link_rgba.get().unwrap();
+
         // Value factory setup signal
-        imp.value_factory.connect_setup(clone!(@weak self as obj, @weak imp => move |_, item| {
-            let value_row = ValueRow::new(obj, *imp.link_rgba.get().unwrap());
+        imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
+            let value_row = ValueRow::new(obj, link_rgba);
 
             item
                 .downcast_ref::<gtk::ListItem>()
@@ -159,7 +161,7 @@ impl InfoPane {
         }));
 
         // Value factory bind signal
-        imp.value_factory.connect_bind(clone!(@weak self as obj => move |_, item| {
+        imp.value_factory.connect_bind(|_, item| {
             let prop_obj = item
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Must be a 'ListItem'")
@@ -175,7 +177,7 @@ impl InfoPane {
                 .expect("Must be a 'ValueRow'");
 
             value_row.bind_properties(&prop_obj);
-        }));
+        });
 
         // Value factory unbind signal
         imp.value_factory.connect_unbind(|_, item| {
