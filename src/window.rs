@@ -383,7 +383,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Bind package view item count to status label text
-        imp.package_view.imp().filter_model.bind_property("n-items", &imp.status_label.get(), "label")
+        imp.package_view.imp().selection.bind_property("n-items", &imp.status_label.get(), "label")
             .transform_to(|_, n_items: u32| {
                 Some(format!("{} matching package{}", n_items, if n_items != 1 {"s"} else {""}))
             })
@@ -454,22 +454,22 @@ impl PacViewWindow {
 
         view_group.add_action_entries([refresh_action, updates_action, stats_action, copy_action, columns_action]);
 
-        // Bind package view item count to copy list action enabled state
-        if let Some(copy_action) = view_group.lookup_action("copy-list") {
-            imp.package_view.imp().filter_model.bind_property("n-items", &copy_action, "enabled")
-                .transform_to(|_, n_items: u32| {
-                    Some(n_items > 0)
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        }
-
         // Add package view header menu property actions
         let columns = imp.package_view.imp().view.columns();
 
         for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
             let col_action = gio::PropertyAction::new(&format!("show-column-{}", col.id().unwrap()), &col, "visible");
             view_group.add_action(&col_action);
+        }
+
+        // Bind package view item count to copy list action enabled state
+        if let Some(copy_action) = view_group.lookup_action("copy-list") {
+            imp.package_view.imp().selection.bind_property("n-items", &copy_action, "enabled")
+                .transform_to(|_, n_items: u32| {
+                    Some(n_items > 0)
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
         }
 
         // Set initial focus on package view
