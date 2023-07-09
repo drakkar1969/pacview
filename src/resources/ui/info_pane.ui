@@ -68,6 +68,22 @@
                 <property name="margin-bottom">4</property>
                 <property name="spacing">6</property>
                 <child>
+                  <object class="GtkLabel" id="nav_label">
+                    <property name="margin-start">12</property>
+                    <property name="label">1/2</property>
+                    <style>
+                      <class name="caption-heading"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator" id="nav_sep">
+                    <property name="margin-start">6</property>
+                    <property name="margin-top">6</property>
+                    <property name="margin-bottom">6</property>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkButton" id="prev_button">
                     <property name="icon-name">go-previous-symbolic</property>
                     <property name="tooltip-text">Previous</property>

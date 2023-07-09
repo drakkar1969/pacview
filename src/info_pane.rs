@@ -29,10 +29,11 @@ mod imp {
         #[template_child]
         pub value_factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
-
         pub toolbar: TemplateChild<gtk::Box>,
         #[template_child]
         pub navbutton_box: TemplateChild<gtk::Box>,
+        #[template_child]
+        pub nav_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub prev_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -251,6 +252,11 @@ impl InfoPane {
 
         // If package is not none, display it
         if let Some(pkg) = pkg {
+            // Set infopane toolbar label
+            if hist_sel.n_items() > 1 {
+                imp.nav_label.set_label(&format!("{}/{}", hist_sel.selected() + 1, hist_sel.n_items()));
+            }
+
             // Set infopane previous/next box visibility
             imp.navbutton_box.set_visible(hist_sel.n_items() > 1);
 
