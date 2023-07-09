@@ -73,8 +73,6 @@ mod imp {
         #[template_child]
         pub tree_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub tree_edit: TemplateChild<gtk::TextView>,
-        #[template_child]
         pub tree_buffer: TemplateChild<gtk::TextBuffer>,
 
         #[template_child]
@@ -258,10 +256,10 @@ impl DetailsWindow {
             .join("\n")
         };
 
-        // Set tree edit text
+        // Set tree view text
         imp.tree_buffer.set_text(&filter_text);
 
-        // Set tree edit font
+        // Set tree view font
         if let Some(tag) = imp.tree_buffer.tag_table().lookup("font") {
             imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
         }
@@ -512,7 +510,7 @@ impl DetailsWindow {
             gsettings.string("monospace-font-name").to_string()
         };
 
-        // Create text edit font tag
+        // Create text view font tag
         let tag = gtk::TextTag::new(Some("font"));
         tag.set_font(Some(&font_str));
 
@@ -556,10 +554,10 @@ impl DetailsWindow {
 
                 imp.tree_rev_text.replace(rev_deps);
 
-                // Set tree edit text
+                // Set tree view text
                 imp.tree_buffer.set_text(&imp.tree_text.borrow());
 
-                // Set tree edit font
+                // Set tree view font
                 imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
 
                 imp.tree_stack.set_visible_child_name("deps");

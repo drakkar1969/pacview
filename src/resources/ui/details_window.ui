@@ -353,7 +353,7 @@
                                     <property name="hexpand">True</property>
                                     <property name="vexpand">True</property>
                                     <property name="child">
-                                      <object class="GtkTextView" id="tree_edit">
+                                      <object class="GtkTextView" id="tree_view">
                                         <property name="hexpand">true</property>
                                         <property name="margin-start">24</property>
                                         <property name="margin-end">16</property>
@@ -361,6 +361,7 @@
                                         <property name="cursor-visible">False</property>
                                         <property name="buffer">
                                           <object class="GtkTextBuffer" id="tree_buffer">
+                                            <property name="enable-undo">False</property>
                                           </object>
                                         </property>
                                       </object>
