@@ -80,6 +80,15 @@ mod imp {
         fn property(&self, id: usize, pspec: &glib::ParamSpec) -> glib::Value {
             self.derived_property(id, pspec)
         }
+
+        //-----------------------------------
+        // Constructor
+        //-----------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            self.obj().setup_controllers();
+        }
     }
 
     impl WidgetImpl for ValueRow {}
@@ -228,7 +237,7 @@ impl ValueRow {
     }
 
     //-----------------------------------
-    // TextView tag at xy helper function
+    // Controller helper functions
     //-----------------------------------
     fn tag_at_xy(&self, x: i32, y: i32) -> Option<glib::GString> {
         let imp = self.imp();
@@ -244,9 +253,6 @@ impl ValueRow {
         None
     }
 
-    //-----------------------------------
-    // Set cursor on motion function
-    //-----------------------------------
     fn set_cursor_motion(&self, x: f64, y: f64) {
         let imp = self.imp();
 
@@ -264,16 +270,12 @@ impl ValueRow {
     }
 
     //-----------------------------------
-    // Public property binding functions
+    // Setup controllers
     //-----------------------------------
-    pub fn bind_properties(&self, property: &PropObject) {
+    fn setup_controllers(&self) {
         let imp = self.imp();
 
-        let image = imp.image.get();
         let view = imp.view.get();
-
-        // Save property type (needed for text property setter)
-        imp.ptype.replace(property.ptype());
 
         // Change mouse pointer when hovering over links (add motion controller to view)
         let motion_controller = gtk::EventControllerMotion::new();
@@ -312,6 +314,18 @@ impl ValueRow {
         }));
 
         view.add_controller(click_gesture.clone());
+    }
+
+    //-----------------------------------
+    // Public property binding functions
+    //-----------------------------------
+    pub fn bind_properties(&self, property: &PropObject) {
+        let imp = self.imp();
+
+        let image = imp.image.get();
+
+        // Save property type (needed for text property setter)
+        imp.ptype.replace(property.ptype());
 
         let mut bindings = imp.bindings.borrow_mut();
 
