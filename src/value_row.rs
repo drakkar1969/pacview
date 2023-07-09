@@ -246,6 +246,25 @@ impl ValueRow {
     }
 
     //-----------------------------------
+    // Set cursor on motion function
+    //-----------------------------------
+    fn set_cursor_motion(&self, x: f64, y: f64) {
+        let imp = self.imp();
+
+        let hovering = self.tag_at_xy(x as i32, y as i32).is_some();
+
+        if hovering != imp.hovering.get() {
+            imp.hovering.replace(hovering);
+
+            if hovering {
+                imp.view.set_cursor_from_name(Some("pointer"));
+            } else {
+                imp.view.set_cursor_from_name(Some("text"));
+            }
+        }
+    }
+
+    //-----------------------------------
     // Public property binding functions
     //-----------------------------------
     pub fn bind_properties(&self, property: &PropObject) {
@@ -262,18 +281,12 @@ impl ValueRow {
         // Change mouse pointer when hovering over links (add motion controller to view)
         let motion_controller = gtk::EventControllerMotion::new();
 
-        motion_controller.connect_motion(clone!(@weak self as obj, @weak imp => move |_, x, y| {
-            let hovering = obj.tag_at_xy(x as i32, y as i32).is_some();
+        motion_controller.connect_enter(clone!(@weak self as obj => move |_, x, y| {
+            obj.set_cursor_motion(x, y);
+        }));
 
-            if hovering != imp.hovering.get() {
-                imp.hovering.replace(hovering);
-
-                if hovering {
-                    imp.view.set_cursor_from_name(Some("pointer"));
-                } else {
-                    imp.view.set_cursor_from_name(Some("text"));
-                }
-            }
+        motion_controller.connect_motion(clone!(@weak self as obj => move |_, x, y| {
+            obj.set_cursor_motion(x, y);
         }));
 
         view.add_controller(motion_controller.clone());
