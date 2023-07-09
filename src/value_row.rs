@@ -42,7 +42,6 @@ mod imp {
 
         pub ptype: Cell<PropType>,
 
-        pub controllers: RefCell<Vec<gtk::EventController>>,
         pub bindings: RefCell<Vec<glib::Binding>>,
 
         pub hovering: Cell<bool>,
@@ -276,8 +275,6 @@ impl ValueRow {
         // Save property type (needed for text property setter)
         imp.ptype.replace(property.ptype());
 
-        let mut controllers = imp.controllers.borrow_mut();
-
         // Change mouse pointer when hovering over links (add motion controller to view)
         let motion_controller = gtk::EventControllerMotion::new();
 
@@ -290,9 +287,6 @@ impl ValueRow {
         }));
 
         view.add_controller(motion_controller.clone());
-
-        // Store motion controller
-        controllers.push(motion_controller.upcast());
 
         // Activate links on click (add click gesture to view)
         let click_gesture = gtk::GestureClick::new();
@@ -319,9 +313,6 @@ impl ValueRow {
 
         view.add_controller(click_gesture.clone());
 
-        // Store click gesture
-        controllers.push(click_gesture.upcast());
-
         let mut bindings = imp.bindings.borrow_mut();
 
         // Bind PropObject properties to widget properties and save bindings
@@ -344,11 +335,6 @@ impl ValueRow {
 
     pub fn unbind_properties(&self) {
         let imp = self.imp();
-
-        // Remove controllers from view
-        for controller in imp.controllers.borrow_mut().drain(..) {
-            imp.view.remove_controller(&controller);
-        }
 
         // Unbind PropObject properties from widgets
         for binding in imp.bindings.borrow_mut().drain(..) {
