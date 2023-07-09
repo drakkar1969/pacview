@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, closure};
+use glib::{clone, closure, closure_local};
 
 use crate::value_row::ValueRow;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -150,7 +150,7 @@ impl InfoPane {
         // Value factory setup signal
         imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
             // Create ValueRow
-            let value_row = ValueRow::new(obj, link_rgba);
+            let value_row = ValueRow::new(link_rgba);
 
             let image = value_row.imp().image.get();
 
@@ -185,13 +185,19 @@ impl InfoPane {
                 .property_expression("item")
                 .chain_property::<PropObject>("value")
                 .bind(&value_row, "text", gtk::Widget::NONE);
+
+            // Connect ValueRow link activated signal handler
+            // With @watch, signal handler disconnects when value_row is dropped
+            value_row.connect_closure("pkg-link", false, closure_local!(@watch value_row as _row => move |_: ValueRow, pkg_name: String| {
+                obj.link_handler(&pkg_name);
+            }));
         }));
     }
 
     //-----------------------------------
-    // Public value label link handler
+    // Value label link handler
     //-----------------------------------
-    pub fn link_handler(&self, pkg_name: &str) {
+    fn link_handler(&self, pkg_name: &str) {
         // Find link package by name
         let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten()
             .find(|pkg| pkg.name() == pkg_name);

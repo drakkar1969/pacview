@@ -3,14 +3,15 @@ use std::cell::{Cell, RefCell};
 use gtk::{gio, glib, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, once_cell::sync::OnceCell};
+use glib::clone;
+use glib::once_cell::sync::{Lazy, OnceCell};
+use glib::subclass::Signal;
 use pango::Underline;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
 
-use crate::info_pane::InfoPane;
 use crate::prop_object::PropType;
 
 //------------------------------------------------------------------------------
@@ -38,8 +39,6 @@ mod imp {
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        pub infopane: OnceCell<InfoPane>,
-
         pub link_rgba: OnceCell<gtk::gdk::RGBA>,
 
         pub hovering: Cell<bool>,
@@ -64,6 +63,20 @@ mod imp {
     }
 
     impl ObjectImpl for ValueRow {
+        //-----------------------------------
+        // Custom signals
+        //-----------------------------------
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
+                vec![
+                    Signal::builder("pkg-link")
+                        .param_types([String::static_type()])
+                        .build(),
+                ]
+            });
+            SIGNALS.as_ref()
+        }
+
         //-----------------------------------
         // Default property functions
         //-----------------------------------
@@ -223,13 +236,10 @@ impl ValueRow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(infopane: InfoPane, link_rgba: gtk::gdk::RGBA) -> Self {
+    pub fn new(link_rgba: gtk::gdk::RGBA) -> Self {
         let row: Self = glib::Object::builder().build();
 
-        let imp = row.imp();
-
-        imp.infopane.set(infopane).unwrap();
-        imp.link_rgba.set(link_rgba).unwrap();
+        row.imp().link_rgba.set(link_rgba).unwrap();
 
         row
     }
@@ -291,16 +301,14 @@ impl ValueRow {
         // Activate links on click (add click gesture to view)
         let click_gesture = gtk::GestureClick::new();
 
-        click_gesture.connect_released(clone!(@weak self as obj, @weak imp => move |_, _, x, y| {
+        click_gesture.connect_released(clone!(@weak self as obj => move |_, _, x, y| {
             if let Some(link) = obj.tag_at_xy(x as i32, y as i32) {
                 if let Ok(url) = Url::parse(&link) {
                     let url_scheme = url.scheme();
 
                     if url_scheme == "pkg" {
                         if let Some(pkg_name) = url.domain() {
-                            let infopane = imp.infopane.get().unwrap();
-
-                            infopane.link_handler(&pkg_name);
+                            obj.emit_by_name::<()>("pkg-link", &[&pkg_name]);
                         }
                     } else {
                         if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url_scheme) {
