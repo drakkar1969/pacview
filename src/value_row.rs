@@ -11,7 +11,7 @@ use lazy_static::lazy_static;
 use url::Url;
 
 use crate::info_pane::InfoPane;
-use crate::prop_object::{PropObject, PropType};
+use crate::prop_object::PropType;
 
 //------------------------------------------------------------------------------
 // MODULE: ValueRow
@@ -41,8 +41,6 @@ mod imp {
         pub infopane: OnceCell<InfoPane>,
 
         pub link_rgba: OnceCell<gtk::gdk::RGBA>,
-
-        pub bindings: RefCell<Vec<glib::Binding>>,
 
         pub hovering: Cell<bool>,
     }
@@ -314,48 +312,5 @@ impl ValueRow {
         }));
 
         view.add_controller(click_gesture.clone());
-    }
-
-    //-----------------------------------
-    // Public property binding functions
-    //-----------------------------------
-    pub fn bind_properties(&self, property: &PropObject) {
-        let imp = self.imp();
-
-        let image = imp.image.get();
-
-        let mut bindings = imp.bindings.borrow_mut();
-
-        // Bind PropObject properties to image properties and save bindings
-        let binding = property.bind_property("icon", &image, "visible")
-            .transform_to(|_, icon: Option<&str>| Some(icon.is_some()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-        bindings.push(binding);
-
-        let binding = property.bind_property("icon", &image, "icon-name")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-        bindings.push(binding);
-
-        // Bind PropObject properties to ValueRow properties and save bindings
-        let binding = property.bind_property("ptype", self, "ptype")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-        bindings.push(binding);
-
-        let binding = property.bind_property("value", self, "text")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-        bindings.push(binding);
-    }
-
-    pub fn unbind_properties(&self) {
-        let imp = self.imp();
-
-        // Unbind PropObject properties from widgets
-        for binding in imp.bindings.borrow_mut().drain(..) {
-            binding.unbind();
-        }
     }
 }

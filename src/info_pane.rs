@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, closure};
 
 use crate::value_row::ValueRow;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -149,44 +149,43 @@ impl InfoPane {
 
         // Value factory setup signal
         imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
+            // Create ValueRow
             let value_row = ValueRow::new(obj, link_rgba);
 
+            let image = value_row.imp().image.get();
+
+            // Set ValueRow as item child
+            let item = item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Must be a 'ListItem'");
+
+            item.set_child(Some(&value_row));
+
+            // Bind PropObject properties to image properties
             item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Must be a 'ListItem'")
-                .set_child(Some(&value_row));
+                .property_expression("item")
+                .chain_property::<PropObject>("icon")
+                .chain_closure::<bool>(closure!(|_: Option<glib::Object>, icon: Option<String>| {
+                    icon.is_some()
+                }))
+                .bind(&image, "visible", gtk::Widget::NONE);
+
+            item
+                .property_expression("item")
+                .chain_property::<PropObject>("icon")
+                .bind(&image, "icon-name", gtk::Widget::NONE);
+
+            // Bind PropObject properties to ValueRow properties
+            item
+                .property_expression("item")
+                .chain_property::<PropObject>("ptype")
+                .bind(&value_row, "ptype", gtk::Widget::NONE);
+
+            item
+                .property_expression("item")
+                .chain_property::<PropObject>("value")
+                .bind(&value_row, "text", gtk::Widget::NONE);
         }));
-
-        // Value factory bind signal
-        imp.value_factory.connect_bind(|_, item| {
-            let prop_obj = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Must be a 'ListItem'")
-                .item()
-                .and_downcast::<PropObject>()
-                .expect("Must be a 'PropObject'");
-
-            let value_row = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Must be a 'ListItem'")
-                .child()
-                .and_downcast::<ValueRow>()
-                .expect("Must be a 'ValueRow'");
-
-            value_row.bind_properties(&prop_obj);
-        });
-
-        // Value factory unbind signal
-        imp.value_factory.connect_unbind(|_, item| {
-            let value_row = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Must be a 'ListItem'")
-                .child()
-                .and_downcast::<ValueRow>()
-                .expect("Must be a 'ValueRow'");
-
-            value_row.unbind_properties();
-        });
     }
 
     //-----------------------------------
