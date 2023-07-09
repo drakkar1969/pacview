@@ -188,7 +188,7 @@ impl InfoPane {
 
             // Connect ValueRow link activated signal handler
             // With @watch, signal handler disconnects when value_row is dropped
-            value_row.connect_closure("pkg-link", false, closure_local!(@watch value_row as _row => move |_: ValueRow, pkg_name: String| {
+            value_row.connect_closure("pkg-clicked", false, closure_local!(@watch value_row as _row => move |_: ValueRow, pkg_name: String| {
                 obj.link_handler(&pkg_name);
             }));
         }));

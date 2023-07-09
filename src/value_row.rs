@@ -69,7 +69,7 @@ mod imp {
         fn signals() -> &'static [Signal] {
             static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
                 vec![
-                    Signal::builder("pkg-link")
+                    Signal::builder("pkg-clicked")
                         .param_types([String::static_type()])
                         .build(),
                 ]
@@ -308,7 +308,7 @@ impl ValueRow {
 
                     if url_scheme == "pkg" {
                         if let Some(pkg_name) = url.domain() {
-                            obj.emit_by_name::<()>("pkg-link", &[&pkg_name]);
+                            obj.emit_by_name::<()>("pkg-clicked", &[&pkg_name]);
                         }
                     } else {
                         if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url_scheme) {
