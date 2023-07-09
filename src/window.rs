@@ -454,6 +454,16 @@ impl PacViewWindow {
 
         view_group.add_action_entries([refresh_action, updates_action, stats_action, copy_action, columns_action]);
 
+        // Bind package view item count to copy list action enabled state
+        if let Some(copy_action) = view_group.lookup_action("copy-list") {
+            imp.package_view.imp().filter_model.bind_property("n-items", &copy_action, "enabled")
+                .transform_to(|_, n_items: u32| {
+                    Some(n_items > 0)
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+        }
+
         // Add package view header menu property actions
         let columns = imp.package_view.imp().view.columns();
 
