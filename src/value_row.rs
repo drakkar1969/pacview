@@ -140,7 +140,7 @@ mod imp {
 
                         for caps in EXPR.captures_iter(text) {
                             if let Ok(caps) = caps {
-                                if caps.len() >= 2 {
+                                if caps.len() >= 3 {
                                     if let Some(m) = caps.get(2) {
                                         let tag_name = format!("pkg://{}", &caps[2].to_string());
 
@@ -261,6 +261,7 @@ impl ValueRow {
 
         // Change mouse pointer when hovering over links (add motion controller to view)
         let motion_controller = gtk::EventControllerMotion::new();
+
         motion_controller.connect_motion(clone!(@weak self as obj, @weak imp => move |_, x, y| {
             let hovering = obj.tag_at_xy(x as i32, y as i32).is_some();
 
@@ -282,6 +283,7 @@ impl ValueRow {
 
         // Activate links on click (add click gesture to view)
         let click_gesture = gtk::GestureClick::new();
+
         click_gesture.connect_released(clone!(@weak self as obj, @weak imp => move |_, _, x, y| {
             if let Some(link) = obj.tag_at_xy(x as i32, y as i32) {
                 if let Ok(url) = Url::parse(&link) {
