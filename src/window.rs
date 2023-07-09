@@ -829,6 +829,8 @@ impl PacViewWindow {
 
                 imp.package_view.imp().stack.set_visible_child_name("view");
 
+                imp.package_view.imp().selection.set_selected(11);
+
                 win.check_aur_packages_async();
                 win.get_package_updates_async();
 

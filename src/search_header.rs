@@ -98,7 +98,7 @@ mod imp {
         pub capture_widget: RefCell<Option<gtk::Widget>>,
         pub capture_controller: RefCell<gtk::EventControllerKey>,
 
-        #[property(get, set)]
+        #[property(get, set, nullable)]
         title: RefCell<Option<String>>,
 
         #[property(get, set)]
@@ -264,7 +264,7 @@ impl SearchHeader {
             if let Some(text) = glib::EnumValue::from_value(&header.mode().to_value())
                 .and_then(|(_, enum_value)| Some(enum_value.nick()))
             {
-                header.imp().tag_mode.set_text(text);
+                header.imp().tag_mode.set_text(Some(text));
 
                 header.emit_changed_signal();
             }

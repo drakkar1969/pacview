@@ -475,11 +475,7 @@ impl InfoPane {
             .find(|prop| prop.label() == label)
         {
             prop.set_value(value);
-
-            if let Some(icon) = icon {
-                prop.set_icon(icon);
-            }
-
+            prop.set_icon(icon);
         }
     }
 }

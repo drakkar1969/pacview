@@ -40,7 +40,7 @@ mod imp {
         label: RefCell<String>,
         #[property(get, set)]
         value: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, nullable)]
         icon: RefCell<Option<String>>,
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,

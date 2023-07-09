@@ -26,7 +26,7 @@ mod imp {
         #[template_child]
         pub button: TemplateChild<gtk::Button>,
 
-        #[property(get, set)]
+        #[property(get, set, nullable)]
         text: RefCell<Option<String>>,
         #[property(get, set, default = true, construct)]
         can_close: Cell<bool>,
