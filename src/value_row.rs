@@ -33,14 +33,14 @@ mod imp {
         #[template_child]
         pub buffer: TemplateChild<gtk::TextBuffer>,
 
+        #[property(get, set, builder(PropType::default()))]
+        ptype: Cell<PropType>,
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
         pub infopane: OnceCell<InfoPane>,
 
         pub link_rgba: OnceCell<gtk::gdk::RGBA>,
-
-        pub ptype: Cell<PropType>,
 
         pub bindings: RefCell<Vec<glib::Binding>>,
 
@@ -100,7 +100,7 @@ mod imp {
         //-----------------------------------
         fn set_text(&self, text: &str) {
             // Set TextView text
-            match self.ptype.get() {
+            match self.obj().ptype() {
                 PropType::Text => {
                     self.buffer.set_text(text);
                 },
@@ -324,12 +324,9 @@ impl ValueRow {
 
         let image = imp.image.get();
 
-        // Save property type (needed for text property setter)
-        imp.ptype.replace(property.ptype());
-
         let mut bindings = imp.bindings.borrow_mut();
 
-        // Bind PropObject properties to widget properties and save bindings
+        // Bind PropObject properties to image properties and save bindings
         let binding = property.bind_property("icon", &image, "visible")
             .transform_to(|_, icon: Option<&str>| Some(icon.is_some()))
             .flags(glib::BindingFlags::SYNC_CREATE)
@@ -337,6 +334,12 @@ impl ValueRow {
         bindings.push(binding);
 
         let binding = property.bind_property("icon", &image, "icon-name")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+        bindings.push(binding);
+
+        // Bind PropObject properties to ValueRow properties and save bindings
+        let binding = property.bind_property("ptype", self, "ptype")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         bindings.push(binding);
