@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use core::time::Duration;
 
 use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
@@ -109,6 +110,9 @@ mod imp {
 
         #[property(get, set)]
         flags: Cell<SearchFlags>,
+
+        #[property(get, set, default=150, construct)]
+        delay: Cell<u64>,
     }
 
     //-----------------------------------
@@ -286,8 +290,16 @@ impl SearchHeader {
         });
 
         // Search buffer text changed signal
-        imp.search_buffer.connect_text_notify(clone!(@weak self as obj => move |_| {
-            obj.emit_changed_signal();
+        imp.search_buffer.connect_text_notify(clone!(@weak self as obj, @weak imp => move |_| {
+            if imp.search_buffer.text() == "" {
+                obj.emit_changed_signal();
+            } else {
+                glib::timeout_add_local(Duration::from_millis(obj.delay()), move || {
+                    obj.emit_changed_signal();
+    
+                    Continue(false)
+                });
+            }
         }));
 
         // Tags closed signals
