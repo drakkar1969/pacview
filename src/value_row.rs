@@ -302,6 +302,12 @@ impl ValueRow {
         // Activate links on click (add click gesture to view)
         let click_gesture = gtk::GestureClick::new();
 
+        click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
+
+        click_gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, _, _| {
+            gesture.set_state(gtk::EventSequenceState::Claimed);
+        }));
+
         click_gesture.connect_released(clone!(@weak self as obj => move |_, _, x, y| {
             if let Some(link) = obj.tag_at_xy(x as i32, y as i32) {
                 if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
