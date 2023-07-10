@@ -255,10 +255,14 @@ impl PacViewWindow {
         // Set key capture widget
         imp.search_header.set_key_capture_widget(&imp.package_view.imp().view.upcast_ref());
 
-        // Add toggle/stop search actions
-        let toggle_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("toggle")
+        // Add start/stop search actions
+        let start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
             .activate(clone!(@weak imp => move |_, _, _| {
-                imp.search_header.set_active(!imp.search_header.active());
+                if imp.search_header.active() == false {
+                    imp.search_header.set_active(true);
+                } else {
+                    imp.search_header.imp().search_text.grab_focus_without_selecting();
+                }
             }))
             .build();
 
@@ -333,7 +337,7 @@ impl PacViewWindow {
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action_entries([toggle_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
+        search_group.add_action_entries([start_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
 
         // Add search header search flags stateful actions
         let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
