@@ -4,7 +4,7 @@ use gtk::{gio, glib, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use glib::once_cell::sync::{Lazy, OnceCell};
+use glib::once_cell::sync::Lazy;
 use glib::subclass::Signal;
 use pango::Underline;
 
@@ -41,7 +41,8 @@ mod imp {
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        pub link_rgba: OnceCell<gtk::gdk::RGBA>,
+        #[property(get, set, nullable)]
+        link_rgba: Cell<Option<gtk::gdk::RGBA>>,
 
         pub hovering: Cell<bool>,
     }
@@ -222,7 +223,7 @@ mod imp {
         }
 
         fn add_link_tag(&self, text: &str, start: i32, end: i32) {
-            let rgba = self.link_rgba.get().unwrap();
+            let rgba = self.obj().link_rgba().unwrap();
 
             if self.buffer.tag_table().lookup(text).is_none() {
                 let tag = gtk::TextTag::builder()
@@ -250,12 +251,9 @@ impl ValueRow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(link_rgba: gtk::gdk::RGBA) -> Self {
-        let row: Self = glib::Object::builder().build();
+    pub fn new() -> Self {
+        glib::Object::builder().build()
 
-        row.imp().link_rgba.set(link_rgba).unwrap();
-
-        row
     }
 
     //-----------------------------------
