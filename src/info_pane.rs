@@ -3,7 +3,7 @@ use std::cell::RefCell;
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, closure, closure_local};
+use glib::{clone, closure_local};
 
 use url::Url;
 
@@ -154,8 +154,6 @@ impl InfoPane {
             // Create ValueRow
             let value_row = ValueRow::new(link_rgba);
 
-            let image = value_row.imp().image.get();
-
             // Set ValueRow as item child
             let item = item
                 .downcast_ref::<gtk::ListItem>()
@@ -163,25 +161,16 @@ impl InfoPane {
 
             item.set_child(Some(&value_row));
 
-            // Bind PropObject properties to image properties
-            item
-                .property_expression("item")
-                .chain_property::<PropObject>("icon")
-                .chain_closure::<bool>(closure!(|_: Option<glib::Object>, icon: Option<String>| {
-                    icon.is_some()
-                }))
-                .bind(&image, "visible", gtk::Widget::NONE);
-
-            item
-                .property_expression("item")
-                .chain_property::<PropObject>("icon")
-                .bind(&image, "icon-name", gtk::Widget::NONE);
-
             // Bind PropObject properties to ValueRow properties
             item
                 .property_expression("item")
                 .chain_property::<PropObject>("ptype")
                 .bind(&value_row, "ptype", gtk::Widget::NONE);
+
+            item
+                .property_expression("item")
+                .chain_property::<PropObject>("icon")
+                .bind(&value_row, "icon", gtk::Widget::NONE);
 
             item
                 .property_expression("item")

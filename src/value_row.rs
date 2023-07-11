@@ -36,6 +36,8 @@ mod imp {
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
+        #[property(set = Self::set_icon, nullable)]
+        _icon: RefCell<Option<String>>,
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
@@ -107,6 +109,17 @@ mod imp {
     impl BoxImpl for ValueRow {}
 
     impl ValueRow {
+        //-----------------------------------
+        // Icon property custom setter
+        //-----------------------------------
+        fn set_icon(&self, icon: Option<&str>) {
+            if icon.is_some() {
+                self.image.set_icon_name(icon);
+            }
+
+            self.image.set_visible(icon.is_some());
+        }
+
         //-----------------------------------
         // Text property custom setter
         //-----------------------------------
