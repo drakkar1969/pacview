@@ -108,8 +108,6 @@ mod imp {
         #[template_child]
         pub backup_selection: TemplateChild<gtk::SingleSelection>,
 
-        pub pkg: RefCell<PkgObject>,
-
         pub default_tree_depth: Cell<f64>,
         pub tree_text: RefCell<String>,
         pub tree_rev_text: RefCell<String>,
@@ -175,18 +173,16 @@ impl DetailsWindow {
             .property("transient-for", parent)
             .build();
 
-        win.imp().pkg.replace(pkg.clone());
-
         let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
 
-        win.update_ui_banner();
+        win.update_ui_banner(pkg);
         win.update_ui_stack(installed);
 
-        if installed { win.update_ui_files_page(); }
-        win.update_ui_tree_page(custom_font, monospace_font);
-        if installed { win.update_ui_logs_page(log_file); }
-        if installed { win.update_ui_cache_page(cache_dirs, pkg_model); }
-        if installed { win.update_ui_backup_page(); }
+        if installed { win.update_ui_files_page(pkg); }
+        win.update_ui_tree_page(pkg, custom_font, monospace_font);
+        if installed { win.update_ui_logs_page(pkg, log_file); }
+        if installed { win.update_ui_cache_page(pkg, cache_dirs, pkg_model); }
+        if installed { win.update_ui_backup_page(pkg); }
 
         win
     }
@@ -439,10 +435,8 @@ impl DetailsWindow {
     //-----------------------------------
     // Update banner
     //-----------------------------------
-    fn update_ui_banner(&self) {
+    fn update_ui_banner(&self, pkg: &PkgObject) {
         let imp = self.imp();
-
-        let pkg = imp.pkg.borrow();
 
         // Set package name in banner
         imp.pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
@@ -467,14 +461,14 @@ impl DetailsWindow {
     //-----------------------------------
     // Update files page
     //-----------------------------------
-    fn update_ui_files_page(&self) {
+    fn update_ui_files_page(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
 
         // Populate files list
-        let files = imp.pkg.borrow().files();
+        let files = pkg.files();
         let files_len = files.len();
 
         imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
@@ -500,7 +494,7 @@ impl DetailsWindow {
     //-----------------------------------
     // Update tree page
     //-----------------------------------
-    fn update_ui_tree_page(&self, custom_font: bool, monospace_font: &str) {
+    fn update_ui_tree_page(&self, pkg: &PkgObject, custom_font: bool, monospace_font: &str) {
         let imp = self.imp();
 
         // Get monospace font
@@ -523,8 +517,6 @@ impl DetailsWindow {
 
         // Get tree text async
         let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::PRIORITY_DEFAULT);
-
-        let pkg = imp.pkg.borrow();
 
         let pkg_name = pkg.name();
         let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
@@ -572,12 +564,12 @@ impl DetailsWindow {
     //-----------------------------------
     // Update logs page
     //-----------------------------------
-    fn update_ui_logs_page(&self, log_file: &str) {
+    fn update_ui_logs_page(&self, pkg: &PkgObject, log_file: &str) {
         let imp = self.imp();
 
         // Populate log messages
         if let Ok(log) = fs::read_to_string(log_file) {
-            let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", imp.pkg.borrow().name())).unwrap();
+            let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).unwrap();
 
             let log_lines: Vec<Cow<str>> = log.lines().rev()
                 .filter_map(|s|
@@ -601,10 +593,10 @@ impl DetailsWindow {
     //-----------------------------------
     // Update cache page
     //-----------------------------------
-    fn update_ui_cache_page(&self, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
+    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        let pkg_name = imp.pkg.borrow().name();
+        let pkg_name = pkg.name();
 
         // Get blacklist package names
         let blacklist: Vec<String> = pkg_model.iter::<PkgObject>().flatten()
@@ -652,11 +644,11 @@ impl DetailsWindow {
     //-----------------------------------
     // Update backup page
     //-----------------------------------
-    fn update_ui_backup_page(&self) {
+    fn update_ui_backup_page(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
         // Populate backup list
-        let backup = imp.pkg.borrow().backup();
+        let backup = pkg.backup();
 
         let backup_list: Vec<BackupObject> = backup.iter()
             .map(|backup| {
