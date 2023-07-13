@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::fs;
 use std::borrow::Cow;
 use std::thread;
@@ -108,7 +108,6 @@ mod imp {
         #[template_child]
         pub backup_selection: TemplateChild<gtk::SingleSelection>,
 
-        pub default_tree_depth: Cell<f64>,
         pub tree_text: RefCell<String>,
         pub tree_rev_text: RefCell<String>,
     }
@@ -237,7 +236,7 @@ impl DetailsWindow {
             static ref EXPR: Regex = Regex::new("([└|─|│|├| ]+)?(.+)").unwrap();
         }
 
-        let filter_text = if depth == imp.default_tree_depth.get() {
+        let filter_text = if depth == imp.tree_depth_scale.adjustment().upper() {
             tree_text.to_string()
         } else {
             tree_text.lines()
@@ -327,14 +326,13 @@ impl DetailsWindow {
 
         // Tree scale value changed signal
         imp.tree_depth_scale.connect_value_changed(clone!(@weak self as obj, @weak imp => move |scale| {
-            if scale.value() == imp.default_tree_depth.get() {
+            if scale.value() == imp.tree_depth_scale.adjustment().upper() {
                 imp.tree_depth_label.set_label("Default");
             } else {
                 imp.tree_depth_label.set_label(&scale.value().to_string());
             }
 
             obj.filter_dependency_tree();
-
         }));
 
         // Tree reverse button toggled signal
@@ -511,9 +509,6 @@ impl DetailsWindow {
         tag.set_font(Some(&font_str));
 
         imp.tree_buffer.tag_table().add(&tag);
-
-        // Set default tree depth
-        imp.default_tree_depth.replace(imp.tree_depth_scale.adjustment().upper());
 
         // Get tree text async
         let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::PRIORITY_DEFAULT);
