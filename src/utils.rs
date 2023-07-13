@@ -1,6 +1,8 @@
 use std::process::Command;
 
 use gtk::glib;
+use gtk::pango::{FontMask, FontDescription, Weight, SCALE};
+use gtk::prelude::ToValue;
 
 //------------------------------------------------------------------------------
 // MODULE: Utils
@@ -66,5 +68,49 @@ impl Utils {
 
             datetime.format(format).expect("Datetime format error").to_string()
         }
+    }
+
+    //-----------------------------------
+    // Pango FontDescription to CSS function
+    //-----------------------------------
+    pub fn pango_font_description_to_css(font_desc: &FontDescription) -> String {
+        let mut css = String::from("");
+        
+        let mask = font_desc.set_fields();
+
+        if mask.contains(FontMask::FAMILY) {
+            if let Some(family) = font_desc.family() {
+                css += &format!("font-family: \"{}\"; ", family);
+            }
+        }
+
+        if mask.contains(FontMask::SIZE) {
+            css += &format!("font-size: {}pt; ", font_desc.size()/SCALE);
+        }
+
+        if mask.contains(FontMask::SIZE) {
+            match font_desc.weight() {
+                Weight::Normal => css += "font-weight: normal; ",
+                Weight::Bold => css += "font-weight: bold; ",
+                Weight::Thin => css += "font-weight: 100; ",
+                Weight::Ultralight => css += "font-weight: 200; ",
+                Weight::Light => css += "font-weight: 300; ",
+                Weight::Semilight => css += "font-weight: 300; ",
+                Weight::Book => css += "font-weight: 400; ",
+                Weight::Medium => css += "font-weight: 500; ",
+                Weight::Semibold => css += "font-weight: 600; ",
+                Weight::Ultrabold => css += "font-weight: 800; ",
+                Weight::Heavy | Weight::Ultraheavy => css += "font-weight: 900; ",
+                _ => unreachable!()
+            }
+        }
+
+        if mask.contains(FontMask::STYLE) {
+            if let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style().to_value()) {
+                css += &format!("font-style: {}; ", value.nick());
+            }
+        }
+
+        css
     }
 }

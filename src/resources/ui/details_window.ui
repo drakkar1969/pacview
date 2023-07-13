@@ -364,6 +364,9 @@
                                             <property name="enable-undo">False</property>
                                           </object>
                                         </property>
+                                        <style>
+                                          <class name="tree"/>
+                                        </style>
                                       </object>
                                     </property>
                                   </object>

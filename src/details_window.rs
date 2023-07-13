@@ -7,6 +7,7 @@ use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use gtk::pango::FontDescription;
 
 use regex::Regex;
 use lazy_static::lazy_static;
@@ -72,6 +73,8 @@ mod imp {
         pub tree_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub tree_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub tree_view: TemplateChild<gtk::TextView>,
         #[template_child]
         pub tree_buffer: TemplateChild<gtk::TextBuffer>,
 
@@ -255,11 +258,6 @@ impl DetailsWindow {
 
         // Set tree view text
         imp.tree_buffer.set_text(&filter_text);
-
-        // Set tree view font
-        if let Some(tag) = imp.tree_buffer.tag_table().lookup("font") {
-            imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
-        }
     }
 
     //-----------------------------------
@@ -504,11 +502,15 @@ impl DetailsWindow {
             gsettings.string("monospace-font-name").to_string()
         };
 
-        // Create text view font tag
-        let tag = gtk::TextTag::new(Some("font"));
-        tag.set_font(Some(&font_str));
+        // Set text view font
+        let font_desc = FontDescription::from_string(&font_str);
 
-        imp.tree_buffer.tag_table().add(&tag);
+        let font_css = Utils::pango_font_description_to_css(&font_desc);
+
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_data(&format!("textview.tree {{ {}}}", font_css));
+
+        gtk::style_context_add_provider_for_display(&imp.tree_view.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
         // Get tree text async
         let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::PRIORITY_DEFAULT);
@@ -545,9 +547,6 @@ impl DetailsWindow {
 
                 // Set tree view text
                 imp.tree_buffer.set_text(&imp.tree_text.borrow());
-
-                // Set tree view font
-                imp.tree_buffer.apply_tag(&tag, &imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter());
 
                 imp.tree_stack.set_visible_child_name("deps");
     
