@@ -432,10 +432,8 @@ impl DetailsWindow {
     // Update banner
     //-----------------------------------
     fn update_ui_banner(&self, pkg: &PkgObject) {
-        let imp = self.imp();
-
         // Set package name in banner
-        imp.pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
+        self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
     }
 
     //-----------------------------------
@@ -642,9 +640,7 @@ impl DetailsWindow {
         let imp = self.imp();
 
         // Populate backup list
-        let backup = pkg.backup();
-
-        let backup_list: Vec<BackupObject> = backup.iter()
+        let backup_list: Vec<BackupObject> = pkg.backup().iter()
             .map(|backup| {
                 if let Ok(file_hash) = alpm::compute_md5sum(backup.filename.to_string()) {
                     if file_hash == backup.hash {
