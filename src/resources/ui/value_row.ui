@@ -18,6 +18,7 @@
             <property name="editable">false</property>
             <property name="cursor-visible">false</property>
             <property name="wrap-mode">word</property>
+            <property name="pixels-inside-wrap">4</property>
             <property name="buffer">
               <object class="GtkTextBuffer" id="buffer">
                 <property name="enable-undo">false</property>

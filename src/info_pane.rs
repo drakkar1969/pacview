@@ -330,41 +330,41 @@ impl InfoPane {
             // Provides
             if !pkg.provides().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Provides", &pkg.provides().join("   "), None, PropType::Text
+                    "Provides", &pkg.provides().join("     "), None, PropType::Text
                 ));
             }
             // Depends
             imp.model.append(&PropObject::new(
-                "Dependencies ", &pkg.depends().join("   "), None, PropType::LinkList
+                "Dependencies ", &pkg.depends().join("     "), None, PropType::LinkList
             ));
             // Optdepends
             if !pkg.optdepends().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Optional", &pkg.optdepends().join("   "), None, PropType::LinkList
+                    "Optional", &pkg.optdepends().join("     "), None, PropType::LinkList
                 ));
             }
             // Required by
             imp.model.append(&PropObject::new(
-                "Required by", &pkg.required_by().join("   "), None, PropType::LinkList
+                "Required by", &pkg.required_by().join("     "), None, PropType::LinkList
             ));
             // Optional for
             let optional_for = pkg.optional_for();
             
             if !optional_for.is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Optional For", &optional_for.join("   "), None, PropType::LinkList
+                    "Optional For", &optional_for.join("     "), None, PropType::LinkList
                 ));
             }
             // Conflicts
             if !pkg.conflicts().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Conflicts With", &pkg.conflicts().join("   "), None, PropType::LinkList
+                    "Conflicts With", &pkg.conflicts().join("     "), None, PropType::LinkList
                 ));
             }
             // Replaces
             if !pkg.replaces().is_empty() {
                 imp.model.append(&PropObject::new(
-                    "Replaces", &pkg.replaces().join("   "), None, PropType::LinkList
+                    "Replaces", &pkg.replaces().join("     "), None, PropType::LinkList
                 ));
             }
             // Architecture

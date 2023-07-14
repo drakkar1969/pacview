@@ -176,7 +176,7 @@ mod imp {
                         self.buffer.set_text(text);
         
                         lazy_static! {
-                            static ref EXPR: Regex = Regex::new("(^|   )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|   |$)").unwrap();
+                            static ref EXPR: Regex = Regex::new("(^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
                         }
 
                         for caps in EXPR.captures_iter(text) {
