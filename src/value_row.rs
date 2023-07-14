@@ -315,8 +315,10 @@ impl ValueRow {
 
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        click_gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, _, _| {
-            gesture.set_state(gtk::EventSequenceState::Claimed);
+        click_gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
+            if obj.tag_at_xy(x as i32, y as i32).is_some() {
+                gesture.set_state(gtk::EventSequenceState::Claimed);
+            }
         }));
 
         click_gesture.connect_released(clone!(@weak self as obj => move |_, _, x, y| {
