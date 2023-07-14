@@ -351,14 +351,12 @@ impl SearchHeader {
     //-----------------------------------
     // Public set capture widget function
     //-----------------------------------
-    pub fn set_key_capture_widget(&self, widget: &gtk::Widget) {
+    pub fn set_key_capture_widget(&self, widget: gtk::Widget) {
         let imp = self.imp();
 
         if let Some(current_widget) = &*imp.capture_widget.borrow() {
             current_widget.remove_controller(&*imp.capture_controller.borrow());
         }
-
-        imp.capture_widget.replace(Some(widget.clone()));
 
         let controller = gtk::EventControllerKey::new();
 
@@ -374,6 +372,8 @@ impl SearchHeader {
         }));
 
         widget.add_controller(controller.clone());
+
+        imp.capture_widget.replace(Some(widget));
 
         imp.capture_controller.replace(controller);
     }

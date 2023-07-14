@@ -308,7 +308,7 @@ impl ValueRow {
             obj.set_cursor_motion(x, y);
         }));
 
-        view.add_controller(motion_controller.clone());
+        view.add_controller(motion_controller);
 
         // Activate links on click (add click gesture to view)
         let click_gesture = gtk::GestureClick::new();
@@ -331,6 +331,6 @@ impl ValueRow {
             }
         }));
 
-        view.add_controller(click_gesture.clone());
+        view.add_controller(click_gesture);
     }
 }

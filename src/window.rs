@@ -253,7 +253,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Set key capture widget
-        imp.search_header.set_key_capture_widget(&imp.package_view.imp().view.upcast_ref());
+        imp.search_header.set_key_capture_widget(imp.package_view.imp().view.get().upcast());
 
         // Add start/stop search actions
         let start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
