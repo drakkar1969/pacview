@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -45,9 +45,6 @@ mod imp {
 
         #[property(get, set)]
         pkg_model: RefCell<gio::ListStore>,
-
-        #[property(get, set, nullable)]
-        link_rgba: Cell<Option<gtk::gdk::RGBA>>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
     }
@@ -147,11 +144,6 @@ impl InfoPane {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Initialize link color
-        let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-        self.set_link_rgba(Some(link_btn.color()));
-
         // Value factory setup signal
         imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
             // Create ValueRow
@@ -163,11 +155,6 @@ impl InfoPane {
                 .expect("Must be a 'ListItem'");
 
             item.set_child(Some(&value_row));
-
-            // Bind link RGBA property to ValueRow
-            obj
-                .property_expression("link-rgba")
-                .bind(&value_row, "link-rgba", gtk::Widget::NONE);
 
             // Bind PropObject properties to ValueRow properties
             item

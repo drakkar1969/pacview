@@ -7,12 +7,14 @@ use gtk::prelude::*;
 use glib::clone;
 use glib::once_cell::sync::Lazy;
 use glib::subclass::Signal;
+use gtk::gdk::RGBA;
 use pango::Underline;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
 
+use crate::app::LINK_RGBA;
 use crate::prop_object::PropType;
 
 //------------------------------------------------------------------------------
@@ -42,8 +44,7 @@ mod imp {
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        #[property(get, set, nullable)]
-        link_rgba: Cell<Option<gtk::gdk::RGBA>>,
+        link_rgba: Cell<Option<RGBA>>,
 
         pub link_map: RefCell<HashMap<gtk::TextTag, String>>,
 
@@ -104,6 +105,11 @@ mod imp {
         //-----------------------------------
         fn constructed(&self) {
             self.parent_constructed();
+
+            // Get link color from global variable
+            LINK_RGBA.with(|rgba| {
+                self.link_rgba.replace(Some(rgba.get()));
+            });
 
             self.obj().setup_controllers();
         }
@@ -226,10 +232,8 @@ mod imp {
         }
 
         fn add_link_tag(&self, text: &str, start: i32, end: i32) {
-            let rgba = self.obj().link_rgba().unwrap();
-
             let tag = gtk::TextTag::builder()
-                .foreground_rgba(&rgba)
+                .foreground_rgba(&self.link_rgba.get().unwrap())
                 .underline(Underline::Single)
                 .build();
 

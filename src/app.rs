@@ -1,8 +1,16 @@
+use std::cell::Cell;
+
 use gtk::{gio, glib};
 use gtk::prelude::*;
 use adw::subclass::prelude::*;
+use gtk::gdk::RGBA;
 
 use crate::window::PacViewWindow;
+
+//------------------------------------------------------------------------------
+// GLOBAL VARIABLES
+//------------------------------------------------------------------------------
+thread_local!(pub static LINK_RGBA: Cell<RGBA> = Cell::new(RGBA::BLACK));
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewApplication
@@ -44,6 +52,14 @@ mod imp {
         fn activate(&self) {
             let application = self.obj();
 
+            // Get link color
+            LINK_RGBA.with(|rgba| {
+                let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+                rgba.replace(link_btn.color());
+            });
+
+            // Show main window
             let window = if let Some(window) = application.active_window() {
                 window
             } else {
