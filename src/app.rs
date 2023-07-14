@@ -10,7 +10,9 @@ use crate::window::PacViewWindow;
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
-thread_local!(pub static LINK_RGBA: Cell<RGBA> = Cell::new(RGBA::BLACK));
+thread_local! {
+    pub static LINK_RGBA: Cell<RGBA> = Cell::new(RGBA::BLUE);
+}
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewApplication
