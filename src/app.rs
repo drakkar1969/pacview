@@ -59,6 +59,25 @@ mod imp {
                 rgba.replace(link_btn.color());
             });
 
+            // Update link color when color scheme changes
+            let style_manager = adw::StyleManager::default();
+
+            style_manager.connect_dark_notify(|style| {
+                LINK_RGBA.with(|rgba| {
+                    let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+                    let btn_style = adw::StyleManager::for_display(&link_btn.display());
+
+                    if style.is_dark() {
+                        btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
+                    } else {
+                        btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
+                    }
+    
+                    rgba.replace(link_btn.color());
+                });
+            });
+
             // Show main window
             let window = if let Some(window) = application.active_window() {
                 window

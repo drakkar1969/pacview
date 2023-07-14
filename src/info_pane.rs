@@ -144,6 +144,13 @@ impl InfoPane {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Color scheme changed signal
+        let style_manager = adw::StyleManager::default();
+
+        style_manager.connect_dark_notify(clone!(@weak self as obj => move |_| {
+            obj.display_package(obj.pkg().as_ref());
+        }));
+
         // Value factory setup signal
         imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
             // Create ValueRow

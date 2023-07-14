@@ -44,7 +44,7 @@ mod imp {
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        link_rgba: Cell<Option<RGBA>>,
+        pub link_rgba: Cell<Option<RGBA>>,
 
         pub link_map: RefCell<HashMap<gtk::TextTag, String>>,
 
@@ -106,12 +106,10 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            // Get link color from global variable
-            LINK_RGBA.with(|rgba| {
-                self.link_rgba.replace(Some(rgba.get()));
-            });
+            let obj = self.obj();
 
-            self.obj().setup_controllers();
+            obj.setup_colors();
+            obj.setup_controllers();
         }
     }
 
@@ -262,6 +260,16 @@ impl ValueRow {
     pub fn new() -> Self {
         glib::Object::builder().build()
 
+    }
+
+    //-----------------------------------
+    // Setup colors
+    //-----------------------------------
+    fn setup_colors(&self) {
+        // Get link color from global variable
+        LINK_RGBA.with(|rgba| {
+            self.imp().link_rgba.replace(Some(rgba.get()));
+        });
     }
 
     //-----------------------------------
