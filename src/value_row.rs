@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::collections::HashMap;
 
 use gtk::{gio, glib, pango};
 use gtk::subclass::prelude::*;
@@ -43,6 +44,8 @@ mod imp {
 
         #[property(get, set, nullable)]
         link_rgba: Cell<Option<gtk::gdk::RGBA>>,
+
+        pub link_map: RefCell<HashMap<gtk::TextTag, String>>,
 
         pub hovering: Cell<bool>,
     }
@@ -225,15 +228,16 @@ mod imp {
         fn add_link_tag(&self, text: &str, start: i32, end: i32) {
             let rgba = self.obj().link_rgba().unwrap();
 
-            if self.buffer.tag_table().lookup(text).is_none() {
-                let tag = gtk::TextTag::builder()
-                    .name(text)
-                    .foreground_rgba(&rgba)
-                    .underline(Underline::Single)
-                    .build();
+            let tag = gtk::TextTag::builder()
+                .foreground_rgba(&rgba)
+                .underline(Underline::Single)
+                .build();
 
-                self.add_tag(&tag, start, end);
-            }
+            self.add_tag(&tag, start, end);
+
+            let mut link_map = self.link_map.borrow_mut();
+
+            link_map.insert(tag, text.to_string());
         }
     }
 }
@@ -259,14 +263,16 @@ impl ValueRow {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
-    fn tag_at_xy(&self, x: i32, y: i32) -> Option<glib::GString> {
+    fn tag_at_xy(&self, x: i32, y: i32) -> Option<String> {
         let imp = self.imp();
 
         let (bx, by) = imp.view.window_to_buffer_coords(gtk::TextWindowType::Widget, x, y);
 
         if let Some(iter) = imp.view.iter_at_location(bx, by) {
             if iter.tags().len() > 0 {
-                return iter.tags()[0].name()
+                if let Some(link) = imp.link_map.borrow().get(&iter.tags()[0]) {
+                    return Some(link.to_string())
+                }
             }
         }
 
