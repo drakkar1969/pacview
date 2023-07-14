@@ -796,9 +796,10 @@ impl PacViewWindow {
     fn load_packages_async(&self) {
         let imp = self.imp();
 
-        let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
-
         let pacman_config = imp.pacman_config.borrow().clone();
+
+        // Spawn thread to load packages
+        let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
 
         thread::spawn(move || {
             let handle = alpm::Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
@@ -830,6 +831,7 @@ impl PacViewWindow {
             sender.send((handle, data_list)).expect("Could not send through channel");
         });
 
+        // Attach thread receiver
         receiver.attach(
             None,
             clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(handle, data_list)| {
@@ -857,13 +859,14 @@ impl PacViewWindow {
     fn check_aur_packages_async(&self) {
         let imp = self.imp();
 
-        let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
-
         // Get list of local packages (not in sync DBs)
         let local_pkgs = imp.package_view.imp().model.iter::<PkgObject>()
             .flatten()
             .filter_map(|pkg| if pkg.repository() == "local" {Some(pkg.name())} else {None})
             .collect::<Vec<String>>();
+
+        // Spawn thread to check AUR packages
+        let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
 
         thread::spawn(move || {
             let mut aur_list: Vec<String> = vec![];
@@ -879,6 +882,7 @@ impl PacViewWindow {
             sender.send(aur_list).expect("Could not send through channel");
         });
 
+        // Attach thread receiver
         receiver.attach(
             None,
             clone!(@weak imp => @default-return Continue(false), move |aur_list| {
@@ -907,18 +911,19 @@ impl PacViewWindow {
     fn get_package_updates_async(&self) {
         let imp = self.imp();
 
+        // Set sidebar update row state
         let update_row = imp.update_row.borrow();
 
         update_row.set_spinning(true);
         update_row.set_count("");
         update_row.set_sensitive(false);
 
-        let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::PRIORITY_DEFAULT);
-
         // Get custom command for AUR updates
         let aur_command = imp.prefs_window.aur_command();
 
         // Spawn thread to check for updates
+        let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::PRIORITY_DEFAULT);
+
         thread::spawn(move || {
             let mut update_map = HashMap::new();
             let mut update_str = String::from("");
@@ -932,8 +937,9 @@ impl PacViewWindow {
 
             let success = code == Some(0) || code == Some(2);
 
-            // If no error on pacman updates, check for AUR updates
+            // If no error on pacman updates
             if success {
+                // Check for AUR updates
                 let (code, stdout) = Utils::run_command(&aur_command);
 
                 if code == Some(0) {
@@ -958,6 +964,7 @@ impl PacViewWindow {
             sender.send((success, update_map)).expect("Could not send through channel");
         });
 
+        // Attach thread receiver
         receiver.attach(
             None,
             clone!(@weak imp => @default-return Continue(false), move |(success, update_map)| {
