@@ -64,6 +64,8 @@ mod imp {
         pub files_filter: TemplateChild<gtk::StringFilter>,
 
         #[template_child]
+        pub tree_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub tree_depth_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub tree_depth_scale: TemplateChild<gtk::Scale>,
@@ -258,6 +260,15 @@ impl DetailsWindow {
 
         // Set tree view text
         imp.tree_buffer.set_text(&filter_text);
+
+        // Set tree header label
+        let n_lines = imp.tree_buffer.line_count();
+
+        if n_lines >= 1 {
+            imp.tree_header_label.set_label(&format!("Dependency Tree ({})", n_lines - 1));
+        } else {
+            imp.tree_header_label.set_label("Dependency Tree (0)");
+        }
     }
 
     //-----------------------------------
@@ -510,11 +521,11 @@ impl DetailsWindow {
 
         gtk::style_context_add_provider_for_display(&imp.tree_view.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-        // Get tree text async
-        let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::PRIORITY_DEFAULT);
-
+        // Spawn thread to get tree text
         let pkg_name = pkg.name();
         let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
+
+        let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::PRIORITY_DEFAULT);
 
         thread::spawn(move || {
             // Get dependecy tree
@@ -523,7 +534,13 @@ impl DetailsWindow {
                 name=pkg_name
             );
 
-            let (_, deps) = Utils::run_command(&cmd);
+            let (_, mut deps) = Utils::run_command(&cmd);
+
+            // Strip empty lines
+            deps = deps.lines().into_iter()
+                .filter(|&s| !s.is_empty())
+                .collect::<Vec<&str>>()
+                .join("\n");
 
             // Get reverse dependency tree
             let cmd = format!("/usr/bin/pactree -r {local_flag} {name}",
@@ -531,11 +548,19 @@ impl DetailsWindow {
                 name=pkg_name
             );
 
-            let (_, rev_deps) = Utils::run_command(&cmd);
+            let (_, mut rev_deps) = Utils::run_command(&cmd);
 
+            // Strip empty lines
+            rev_deps = rev_deps.lines().into_iter()
+                .filter(|&s| !s.is_empty())
+                .collect::<Vec<&str>>()
+                .join("\n");
+
+            // Return thread result
             sender.send((deps, rev_deps)).expect("Could not send through channel");
         });
 
+        // Attach thread receiver
         receiver.attach(
             None,
             clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(deps, rev_deps)| {
@@ -544,7 +569,7 @@ impl DetailsWindow {
                 imp.tree_rev_text.replace(rev_deps);
 
                 // Set tree view text
-                imp.tree_buffer.set_text(&imp.tree_text.borrow());
+                win.filter_dependency_tree();
 
                 imp.tree_stack.set_visible_child_name("deps");
     
