@@ -948,7 +948,7 @@ impl PacViewWindow {
                     .filter_map(|s|
                         EXPR.captures(s)
                             .filter(|caps| caps.len() == 4)
-                            .map(|caps| (caps[1].to_string(), format!("{} -> {}", caps[2].to_string(), caps[3].to_string())))
+                            .map(|caps| (caps[1].to_string(), format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string())))
                     )
                     .collect::<HashMap<String, String>>();
             }
