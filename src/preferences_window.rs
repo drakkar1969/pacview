@@ -199,17 +199,22 @@ impl PreferencesWindow {
             );
 
             reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+            reset_dialog.set_default_response(Some("reset"));
+
             reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
-            reset_dialog.connect_response(Some("reset"), clone!(@weak obj => move |_, _| {
-                obj.set_aur_command("");
-                obj.set_remember_columns(true);
-                obj.set_remember_sort(false);
-                obj.set_custom_font(true);
-                obj.set_monospace_font(obj.default_monospace_font());
-            }));
-
-            reset_dialog.present();
+            reset_dialog.choose(
+                None::<&gio::Cancellable>,
+                clone!(@weak obj=> move |response| {
+                    if response == "reset" {
+                        obj.set_aur_command("");
+                        obj.set_remember_columns(true);
+                        obj.set_remember_sort(false);
+                        obj.set_custom_font(true);
+                        obj.set_monospace_font(obj.default_monospace_font());
+                    }
+                })
+            );
         }));
     }
 }
