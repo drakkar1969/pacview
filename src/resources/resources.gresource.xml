@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
-    <file alias="details-item-symbolic.svg">icons/details-item-symbolic.svg</file>
-    <file alias="details-files-symbolic.svg">icons/details-files-symbolic.svg</file>
-    <file alias="details-tree-symbolic.svg">icons/details-tree-symbolic.svg</file>
-    <file alias="details-tree-reverse-symbolic.svg">icons/details-tree-reverse-symbolic.svg</file>
-    <file alias="details-log-symbolic.svg">icons/details-log-symbolic.svg</file>
-    <file alias="details-cache-symbolic.svg">icons/details-cache-symbolic.svg</file>
-    <file alias="details-backup-symbolic.svg">icons/details-backup-symbolic.svg</file>
-    <file alias="funnel-symbolic.svg">icons/funnel-symbolic.svg</file>
-    <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
-    <file alias="status-all-symbolic.svg">icons/status-all-symbolic.svg</file>
-    <file alias="status-explicit-symbolic.svg">icons/status-explicit-symbolic.svg</file>
-    <file alias="status-dependency-symbolic.svg">icons/status-dependency-symbolic.svg</file>
-    <file alias="status-installed-symbolic.svg">icons/status-installed-symbolic.svg</file>
-    <file alias="status-none-symbolic.svg">icons/status-none-symbolic.svg</file>
-    <file alias="status-optional-symbolic.svg">icons/status-optional-symbolic.svg</file>
-    <file alias="status-orphan-symbolic.svg">icons/status-orphan-symbolic.svg</file>
-    <file alias="status-updates-symbolic.svg">icons/status-updates-symbolic.svg</file>
-    <file alias="status-updates-error-symbolic.svg">icons/status-updates-error-symbolic.svg</file>
+    <file alias="details-item-symbolic.svg">icons/symbolic/details-item-symbolic.svg</file>
+    <file alias="details-files-symbolic.svg">icons/symbolic/details-files-symbolic.svg</file>
+    <file alias="details-tree-symbolic.svg">icons/symbolic/details-tree-symbolic.svg</file>
+    <file alias="details-tree-reverse-symbolic.svg">icons/symbolic/details-tree-reverse-symbolic.svg</file>
+    <file alias="details-log-symbolic.svg">icons/symbolic/details-log-symbolic.svg</file>
+    <file alias="details-cache-symbolic.svg">icons/symbolic/details-cache-symbolic.svg</file>
+    <file alias="details-backup-symbolic.svg">icons/symbolic/details-backup-symbolic.svg</file>
+    <file alias="funnel-symbolic.svg">icons/symbolic/funnel-symbolic.svg</file>
+    <file alias="repository-symbolic.svg">icons/symbolic/repository-symbolic.svg</file>
+    <file alias="status-all-symbolic.svg">icons/symbolic/status-all-symbolic.svg</file>
+    <file alias="status-explicit-symbolic.svg">icons/symbolic/status-explicit-symbolic.svg</file>
+    <file alias="status-dependency-symbolic.svg">icons/symbolic/status-dependency-symbolic.svg</file>
+    <file alias="status-installed-symbolic.svg">icons/symbolic/status-installed-symbolic.svg</file>
+    <file alias="status-none-symbolic.svg">icons/symbolic/status-none-symbolic.svg</file>
+    <file alias="status-optional-symbolic.svg">icons/symbolic/status-optional-symbolic.svg</file>
+    <file alias="status-orphan-symbolic.svg">icons/symbolic/status-orphan-symbolic.svg</file>
+    <file alias="status-updates-symbolic.svg">icons/symbolic/status-updates-symbolic.svg</file>
+    <file alias="status-updates-error-symbolic.svg">icons/symbolic/status-updates-error-symbolic.svg</file>
   </gresource>
   <gresource prefix="/com/github/PacView/">
     <file compressed="true">style.css</file>
