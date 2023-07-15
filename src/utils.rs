@@ -88,7 +88,7 @@ impl Utils {
             css += &format!("font-size: {}pt; ", font_desc.size()/SCALE);
         }
 
-        if mask.contains(FontMask::SIZE) {
+        if mask.contains(FontMask::WEIGHT) {
             match font_desc.weight() {
                 Weight::Normal => css += "font-weight: normal; ",
                 Weight::Bold => css += "font-weight: bold; ",
