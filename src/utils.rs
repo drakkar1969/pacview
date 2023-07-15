@@ -53,7 +53,7 @@ impl Utils {
                 size /= 1024.0;
             }
     
-            format!("{size:.prec$} {unit}", size=size, prec=decimals, unit=unit)
+            format!("{size:.decimals$} {unit}")
         }
     }
 
@@ -80,7 +80,7 @@ impl Utils {
 
         if mask.contains(FontMask::FAMILY) {
             if let Some(family) = font_desc.family() {
-                css += &format!("font-family: \"{}\"; ", family);
+                css += &format!("font-family: \"{family}\"; ");
             }
         }
 

@@ -389,7 +389,7 @@ impl PacViewWindow {
         // Bind package view item count to status label text
         imp.package_view.imp().selection.bind_property("n-items", &imp.status_label.get(), "label")
             .transform_to(|_, n_items: u32| {
-                Some(format!("{} matching package{}", n_items, if n_items != 1 {"s"} else {""}))
+                Some(format!("{n_items} matching package{}", if n_items != 1 {"s"} else {""}))
             })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();

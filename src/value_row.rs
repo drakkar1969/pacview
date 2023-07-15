@@ -143,7 +143,7 @@ mod imp {
                     self.buffer.set_text(text);
                 },
                 PropType::Title => {
-                    let title = format!("<b>{}</b>", text);
+                    let title = format!("<b>{text}</b>");
 
                     let mut iter = self.buffer.start_iter();
 

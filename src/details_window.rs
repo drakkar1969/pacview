@@ -219,7 +219,7 @@ impl DetailsWindow {
     //-----------------------------------
     fn open_file_manager(&self, path: &str) {
         if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-            let path = format!("file://{}", path);
+            let path = format!("file://{path}");
 
             let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
         }
@@ -480,7 +480,7 @@ impl DetailsWindow {
 
         // Bind files count to files header label
         imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(format!("Files ({} of {})", n_items, files_len)))
+            .transform_to(move |_, n_items: u32| Some(format!("Files ({n_items} of {files_len})")))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -517,7 +517,7 @@ impl DetailsWindow {
         let font_css = Utils::pango_font_description_to_css(&font_desc);
 
         let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_data(&format!("textview.tree {{ {}}}", font_css));
+        css_provider.load_from_data(&format!("textview.tree {{ {font_css}}}"));
 
         gtk::style_context_add_provider_for_display(&imp.tree_view.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
@@ -529,10 +529,7 @@ impl DetailsWindow {
 
         thread::spawn(move || {
             // Get dependecy tree
-            let cmd = format!("/usr/bin/pactree {local_flag} {name}",
-                local_flag=local_flag,
-                name=pkg_name
-            );
+            let cmd = format!("/usr/bin/pactree {local_flag} {pkg_name}");
 
             let (_, mut deps) = Utils::run_command(&cmd);
 
@@ -543,10 +540,7 @@ impl DetailsWindow {
                 .join("\n");
 
             // Get reverse dependency tree
-            let cmd = format!("/usr/bin/pactree -r {local_flag} {name}",
-                local_flag=local_flag,
-                name=pkg_name
-            );
+            let cmd = format!("/usr/bin/pactree -r {local_flag} {pkg_name}");
 
             let (_, mut rev_deps) = Utils::run_command(&cmd);
 
@@ -628,7 +622,7 @@ impl DetailsWindow {
         // Populate cache files list
         for dir in cache_dirs {
             // Find cache files that include package name
-            let cache_items = glob(&format!("{dir}{name}*.zst", dir=dir, name=pkg_name))
+            let cache_items = glob(&format!("{dir}{pkg_name}*.zst"))
                 .unwrap()
                 .flatten()
                 .filter_map(|entry| {
@@ -651,7 +645,7 @@ impl DetailsWindow {
         // Set cache header label
         let n_items = imp.cache_model.n_items();
 
-        imp.cache_header_label.set_label(&format!("Cache Files ({})", n_items));
+        imp.cache_header_label.set_label(&format!("Cache Files ({n_items})"));
 
         // Set open/copy button states
         imp.cache_open_button.set_sensitive(n_items > 0);
@@ -684,7 +678,7 @@ impl DetailsWindow {
         // Set backup header label
         let n_items = imp.backup_model.n_items();
 
-        imp.backup_header_label.set_label(&format!("Backup Files ({})", n_items));
+        imp.backup_header_label.set_label(&format!("Backup Files ({n_items})"));
 
         // Set open/copy button states
         imp.backup_open_button.set_sensitive(n_items > 0);
