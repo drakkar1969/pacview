@@ -21,7 +21,7 @@ mod imp {
         #[template_child]
         pub aur_row: TemplateChild<adw::EntryRow>,
         #[template_child]
-        pub aur_image: TemplateChild<gtk::Image>,
+        pub aur_menubutton: TemplateChild<gtk::MenuButton>,
         #[template_child]
         pub column_switch: TemplateChild<gtk::Switch>,
         #[template_child]
@@ -96,6 +96,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_actions();
             obj.setup_signals();
         }
     }
@@ -153,11 +154,43 @@ impl PreferencesWindow {
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
-        // Set AUR image tooltip
-        imp.aur_image.set_tooltip_markup(Some(
+        // Set AUR row tooltip
+        imp.aur_row.set_tooltip_markup(Some(
             "The command must return a list of AUR updates in the format:\n\n\
-            <tt>package_name current_version -> new_version</tt>")
-        );
+            <tt>package_name current_version -> new_version</tt>"
+        ));
+    }
+
+    //-----------------------------------
+    // Setup actions
+    //-----------------------------------
+    fn setup_actions(&self) {
+        // Add AUR helper command action with parameter
+        let aur_action = gio::SimpleAction::new("aur-cmd", Some(&String::static_variant_type()));
+
+        aur_action.connect_activate(clone!(@weak self as obj => move |_, param| {
+            let param = param
+                .expect("Must be a 'Variant'")
+                .get::<String>()
+                .expect("Must be a 'String'");
+
+            let cmd = match param.as_str() {
+                "paru" => "/usr/bin/paru -Qua",
+                "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
+                "trizen" => "/usr/bin/trizen -Qua --devel",
+                "yay" => "/usr/bin/yay -Qua",
+                _ => unreachable!()
+            };
+
+            obj.set_aur_command(cmd);
+        }));
+
+        // Add action to prefs group
+        let prefs_group = gio::SimpleActionGroup::new();
+
+        self.insert_action_group("prefs", Some(&prefs_group));
+
+        prefs_group.add_action(&aur_action);
     }
 
     //-----------------------------------

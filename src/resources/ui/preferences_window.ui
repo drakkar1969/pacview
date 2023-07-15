@@ -17,8 +17,13 @@
                 <property name="title">Command to check for _AUR updates (optional)</property>
                 <property name="use-underline">True</property>
                 <child type="suffix">
-                  <object class="GtkImage" id="aur_image">
-                    <property name="icon-name">dialog-question-symbolic</property>
+                  <object class="GtkMenuButton" id="aur_menubutton">
+                    <property name="valign">center</property>
+                    <property name="icon-name">pan-down-symbolic</property>
+                    <property name="menu-model">aur_helper_menu</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
                   </object>
                 </child>
               </object>
@@ -125,4 +130,31 @@
       </object>
     </child>
   </template>
+
+  <!--// AUR helper menu //-->
+  <menu id="aur_helper_menu">
+    <section>
+      <attribute name="label">AUR Helpers</attribute>
+      <item>
+        <attribute name="label">Paru</attribute>
+        <attribute name="action">prefs.aur-cmd</attribute>
+        <attribute name="target">paru</attribute>
+      </item>
+      <item>
+        <attribute name="label">Pikaur</attribute>
+        <attribute name="action">prefs.aur-cmd</attribute>
+        <attribute name="target">pikaur</attribute>
+      </item>
+      <item>
+        <attribute name="label">Trizen</attribute>
+        <attribute name="action">prefs.aur-cmd</attribute>
+        <attribute name="target">trizen</attribute>
+      </item>
+      <item>
+        <attribute name="label">Yay</attribute>
+        <attribute name="action">prefs.aur-cmd</attribute>
+        <attribute name="target">yay</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>
