@@ -265,10 +265,8 @@ impl SearchHeader {
 
         // Search mode property notify signal
         self.connect_mode_notify(|header| {
-            if let Some(text) = glib::EnumValue::from_value(&header.mode().to_value())
-                .and_then(|(_, enum_value)| Some(enum_value.nick()))
-            {
-                header.imp().tag_mode.set_text(Some(text));
+            if let Some((_, value)) = glib::EnumValue::from_value(&header.mode().to_value()) {
+                header.imp().tag_mode.set_text(Some(value.nick()));
 
                 header.emit_changed_signal();
             }
