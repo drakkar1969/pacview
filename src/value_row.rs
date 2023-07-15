@@ -18,6 +18,11 @@ use crate::app::LINK_RGBA;
 use crate::prop_object::PropType;
 
 //------------------------------------------------------------------------------
+// CONSTANTS
+//------------------------------------------------------------------------------
+const ITER_END: i32 = -1;
+
+//------------------------------------------------------------------------------
 // MODULE: ValueRow
 //------------------------------------------------------------------------------
 mod imp {
@@ -138,9 +143,11 @@ mod imp {
                     self.buffer.set_text(text);
                 },
                 PropType::Title => {
-                    self.buffer.set_text(text);
+                    let title = format!("<b>{}</b>", text);
 
-                    self.add_bold_tag(0, -1);
+                    let mut iter = self.buffer.start_iter();
+
+                    self.buffer.insert_markup(&mut iter, &title);
                 },
                 PropType::Link => {
                     if text == "" {
@@ -148,7 +155,7 @@ mod imp {
                     } else {
                         self.buffer.set_text(text);
 
-                        self.add_link_tag(text, 0, -1);
+                        self.add_link_tag(text, 0, ITER_END);
                     }
                 },
                 PropType::Packager => {
@@ -164,7 +171,11 @@ mod imp {
                                 let tag_name = format!("mailto:{}", &caps[2].to_string());
 
                                 // Convert byte offsets to character offsets
-                                self.add_link_tag(&tag_name, self.bytes_to_chars(text, m.start()), self.bytes_to_chars(text, m.end()));
+                                self.add_link_tag(
+                                    &tag_name,
+                                    self.bytes_to_chars(text, m.start()),
+                                    self.bytes_to_chars(text, m.end())
+                                );
                             }
                         }
                     }
@@ -180,13 +191,15 @@ mod imp {
                         }
 
                         for caps in EXPR.captures_iter(text) {
-                            if let Ok(caps) = caps {
-                                if caps.len() >= 3 {
-                                    if let Some(m) = caps.get(2) {
-                                        let tag_name = format!("pkg://{}", &caps[2].to_string());
+                            if let Some(caps) = caps.ok().filter(|caps| caps.len() == 3) {
+                                if let Some(m) = caps.get(2) {
+                                    let tag_name = format!("pkg://{}", &caps[2].to_string());
 
-                                        self.add_link_tag(&tag_name, m.start() as i32, m.end() as i32);
-                                    }
+                                    self.add_link_tag(
+                                        &tag_name,
+                                        m.start() as i32,
+                                        m.end() as i32
+                                    );
                                 }
                             }
                         }
@@ -203,40 +216,31 @@ mod imp {
         }
 
         //-----------------------------------
-        // TextView tag helper functions
+        // TextView tag helper function
         //-----------------------------------
-        fn add_tag(&self, tag: &gtk::TextTag, start: i32, end: i32) {
-            let start_iter = self.buffer.iter_at_offset(start);
-
-            let end_iter: gtk::TextIter;
-
-            if end == -1 {
-                end_iter = self.buffer.end_iter();
-            } else {
-                end_iter = self.buffer.iter_at_offset(end);
-            }
-
-            self.buffer.tag_table().add(tag);
-
-            self.buffer.apply_tag(tag, &start_iter, &end_iter);
-        }
-
-        fn add_bold_tag(&self, start: i32, end: i32) {
-            let tag = gtk::TextTag::builder()
-                .weight(700)
-                .build();
-
-            self.add_tag(&tag, start, end);
-        }
-
         fn add_link_tag(&self, text: &str, start: i32, end: i32) {
+            // Create tag
             let tag = gtk::TextTag::builder()
                 .foreground_rgba(&self.link_rgba.get().unwrap())
                 .underline(Underline::Single)
                 .build();
 
-            self.add_tag(&tag, start, end);
+            self.buffer.tag_table().add(&tag);
 
+            // Apply tag
+            let start_iter = self.buffer.iter_at_offset(start);
+
+            let end_iter: gtk::TextIter;
+
+            if end == ITER_END {
+                end_iter = self.buffer.end_iter();
+            } else {
+                end_iter = self.buffer.iter_at_offset(end);
+            }
+
+            self.buffer.apply_tag(&tag, &start_iter, &end_iter);
+
+            // Save tag in link map
             let mut link_map = self.link_map.borrow_mut();
 
             link_map.insert(tag, text.to_string());
@@ -275,16 +279,23 @@ impl ValueRow {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
+    fn is_tag_at_xy(&self, x: i32, y: i32) -> bool {
+        let imp = self.imp();
+
+        let (bx, by) = imp.view.window_to_buffer_coords(gtk::TextWindowType::Widget, x, y);
+
+        imp.view.iter_at_location(bx, by).filter(|iter| !iter.tags().is_empty()).is_some()
+    }
+
     fn tag_at_xy(&self, x: i32, y: i32) -> Option<String> {
         let imp = self.imp();
 
         let (bx, by) = imp.view.window_to_buffer_coords(gtk::TextWindowType::Widget, x, y);
 
-        if let Some(iter) = imp.view.iter_at_location(bx, by) {
-            if iter.tags().len() > 0 {
-                if let Some(link) = imp.link_map.borrow().get(&iter.tags()[0]) {
-                    return Some(link.to_string())
-                }
+        if let Some(iter) = imp.view.iter_at_location(bx, by).filter(|iter| !iter.tags().is_empty())
+        {
+            if let Some(link) = imp.link_map.borrow().get(&iter.tags()[0]) {
+                return Some(link.to_string())
             }
         }
 
@@ -294,7 +305,7 @@ impl ValueRow {
     fn set_cursor_motion(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let hovering = self.tag_at_xy(x as i32, y as i32).is_some();
+        let hovering = self.is_tag_at_xy(x as i32, y as i32);
 
         if hovering != imp.hovering.get() {
             imp.hovering.replace(hovering);
@@ -334,7 +345,7 @@ impl ValueRow {
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
         click_gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
-            if obj.tag_at_xy(x as i32, y as i32).is_some() {
+            if obj.is_tag_at_xy(x as i32, y as i32) {
                 gesture.set_state(gtk::EventSequenceState::Claimed);
             }
         }));
