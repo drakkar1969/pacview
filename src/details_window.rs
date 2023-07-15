@@ -7,7 +7,6 @@ use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use gtk::pango::FontDescription;
 
 use regex::Regex;
 use lazy_static::lazy_static;
@@ -512,9 +511,7 @@ impl DetailsWindow {
         };
 
         // Set text view font
-        let font_desc = FontDescription::from_string(&font_str);
-
-        let font_css = Utils::pango_font_description_to_css(&font_desc);
+        let font_css = Utils::pango_font_string_to_css(&font_str);
 
         let css_provider = gtk::CssProvider::new();
         css_provider.load_from_data(&format!("textview.tree {{ {font_css}}}"));

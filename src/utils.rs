@@ -71,11 +71,13 @@ impl Utils {
     }
 
     //-----------------------------------
-    // Pango FontDescription to CSS function
+    // Pango font string to CSS function
     //-----------------------------------
-    pub fn pango_font_description_to_css(font_desc: &FontDescription) -> String {
+    pub fn pango_font_string_to_css(font_str: &str) -> String {
         let mut css = String::from("");
         
+        let font_desc = FontDescription::from_string(font_str);
+
         let mask = font_desc.set_fields();
 
         if mask.contains(FontMask::FAMILY) {
