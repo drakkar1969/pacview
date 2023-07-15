@@ -168,23 +168,23 @@ impl PreferencesWindow {
         let imp = self.imp();
 
         // Font reset button clicked signal
-        imp.font_reset_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            imp.font_row.set_title(&obj.default_monospace_font());
+        imp.font_reset_button.connect_clicked(clone!(@weak self as obj => move |_| {
+            obj.set_monospace_font(obj.default_monospace_font());
         }));
 
         // Font choose button clicked signal
-        imp.font_choose_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.font_choose_button.connect_clicked(clone!(@weak self as obj => move |_| {
             let font_dialog = gtk::FontDialog::new();
 
             font_dialog.set_title("Select Font");
 
             font_dialog.choose_font(
                 Some(&obj),
-                Some(&FontDescription::from_string(&imp.font_row.title())),
+                Some(&FontDescription::from_string(&obj.monospace_font())),
                 None::<&gio::Cancellable>,
-                clone!(@weak imp => move |result| {
+                clone!(@weak obj => move |result| {
                     if let Ok(font_desc) = result {
-                        imp.font_row.set_title(&font_desc.to_string());
+                        obj.set_monospace_font(font_desc.to_string());
                     }
                 })
             );
@@ -201,12 +201,12 @@ impl PreferencesWindow {
             reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
             reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
-            reset_dialog.connect_response(Some("reset"), clone!(@weak obj, @weak imp => move |_, _| {
-                imp.aur_row.set_text("");
-                imp.column_switch.set_active(true);
-                imp.sort_switch.set_active(false);
-                imp.font_switch.set_active(true);
-                imp.font_row.set_title(&obj.default_monospace_font());
+            reset_dialog.connect_response(Some("reset"), clone!(@weak obj => move |_, _| {
+                obj.set_aur_command("");
+                obj.set_remember_columns(true);
+                obj.set_remember_sort(false);
+                obj.set_custom_font(true);
+                obj.set_monospace_font(obj.default_monospace_font());
             }));
 
             reset_dialog.present();
