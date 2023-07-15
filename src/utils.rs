@@ -17,8 +17,8 @@ impl Utils {
     // Run command function
     //-----------------------------------
     pub fn run_command(cmd: &str) -> (Option<i32>, String) {
-        let mut stdout: String = String::from("");
         let mut code: Option<i32> = None;
+        let mut stdout: String = String::from("");
 
         if let Some(params) = shlex::split(cmd) {
             if !params.is_empty() {
