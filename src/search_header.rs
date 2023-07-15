@@ -4,7 +4,6 @@ use core::time::Duration;
 use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-
 use glib::subclass::Signal;
 use glib::{clone, closure_local};
 use glib::once_cell::sync::Lazy;

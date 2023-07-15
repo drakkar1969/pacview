@@ -1,7 +1,6 @@
 use std::process::Command;
 
-use gtk::glib;
-use gtk::pango::{FontMask, FontDescription, Weight, SCALE};
+use gtk::{glib, pango};
 use gtk::prelude::ToValue;
 
 //------------------------------------------------------------------------------
@@ -76,38 +75,38 @@ impl Utils {
     pub fn pango_font_string_to_css(font_str: &str) -> String {
         let mut css = String::from("");
         
-        let font_desc = FontDescription::from_string(font_str);
+        let font_desc = pango::FontDescription::from_string(font_str);
 
         let mask = font_desc.set_fields();
 
-        if mask.contains(FontMask::FAMILY) {
+        if mask.contains(pango::FontMask::FAMILY) {
             if let Some(family) = font_desc.family() {
                 css += &format!("font-family: \"{family}\"; ");
             }
         }
 
-        if mask.contains(FontMask::SIZE) {
-            css += &format!("font-size: {}pt; ", font_desc.size()/SCALE);
+        if mask.contains(pango::FontMask::SIZE) {
+            css += &format!("font-size: {}pt; ", font_desc.size()/pango::SCALE);
         }
 
-        if mask.contains(FontMask::WEIGHT) {
+        if mask.contains(pango::FontMask::WEIGHT) {
             match font_desc.weight() {
-                Weight::Normal => css += "font-weight: normal; ",
-                Weight::Bold => css += "font-weight: bold; ",
-                Weight::Thin => css += "font-weight: 100; ",
-                Weight::Ultralight => css += "font-weight: 200; ",
-                Weight::Light => css += "font-weight: 300; ",
-                Weight::Semilight => css += "font-weight: 300; ",
-                Weight::Book => css += "font-weight: 400; ",
-                Weight::Medium => css += "font-weight: 500; ",
-                Weight::Semibold => css += "font-weight: 600; ",
-                Weight::Ultrabold => css += "font-weight: 800; ",
-                Weight::Heavy | Weight::Ultraheavy => css += "font-weight: 900; ",
+                pango::Weight::Normal => css += "font-weight: normal; ",
+                pango::Weight::Bold => css += "font-weight: bold; ",
+                pango::Weight::Thin => css += "font-weight: 100; ",
+                pango::Weight::Ultralight => css += "font-weight: 200; ",
+                pango::Weight::Light => css += "font-weight: 300; ",
+                pango::Weight::Semilight => css += "font-weight: 300; ",
+                pango::Weight::Book => css += "font-weight: 400; ",
+                pango::Weight::Medium => css += "font-weight: 500; ",
+                pango::Weight::Semibold => css += "font-weight: 600; ",
+                pango::Weight::Ultrabold => css += "font-weight: 800; ",
+                pango::Weight::Heavy | pango::Weight::Ultraheavy => css += "font-weight: 900; ",
                 _ => unreachable!()
             }
         }
 
-        if mask.contains(FontMask::STYLE) {
+        if mask.contains(pango::FontMask::STYLE) {
             if let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style().to_value()) {
                 css += &format!("font-style: {}; ", value.nick());
             }

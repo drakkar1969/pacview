@@ -1,7 +1,6 @@
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-
 use glib::subclass::Signal;
 use glib::once_cell::sync::{Lazy, OnceCell};
 use glib::clone;

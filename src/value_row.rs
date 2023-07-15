@@ -1,14 +1,12 @@
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 
-use gtk::{gio, glib, pango};
+use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 use glib::once_cell::sync::Lazy;
 use glib::subclass::Signal;
-use gtk::gdk::RGBA;
-use pango::Underline;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
@@ -49,7 +47,7 @@ mod imp {
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        pub link_rgba: Cell<Option<RGBA>>,
+        pub link_rgba: Cell<Option<gdk::RGBA>>,
 
         pub link_map: RefCell<HashMap<gtk::TextTag, String>>,
 
@@ -222,7 +220,7 @@ mod imp {
             // Create tag
             let tag = gtk::TextTag::builder()
                 .foreground_rgba(&self.link_rgba.get().unwrap())
-                .underline(Underline::Single)
+                .underline(pango::Underline::Single)
                 .build();
 
             self.buffer.tag_table().add(&tag);

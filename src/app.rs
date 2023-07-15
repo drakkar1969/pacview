@@ -1,9 +1,8 @@
 use std::cell::Cell;
 
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk};
 use gtk::prelude::*;
 use adw::subclass::prelude::*;
-use gtk::gdk;
 use glib::clone;
 
 use crate::window::PacViewWindow;

@@ -1,10 +1,9 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::{glib, gio};
+use gtk::{glib, gio, pango};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
-use gtk::pango::FontDescription;
 
 //------------------------------------------------------------------------------
 // MODULE: PreferencesWindow
@@ -180,7 +179,7 @@ impl PreferencesWindow {
 
             font_dialog.choose_font(
                 Some(&obj),
-                Some(&FontDescription::from_string(&obj.monospace_font())),
+                Some(&pango::FontDescription::from_string(&obj.monospace_font())),
                 None::<&gio::Cancellable>,
                 clone!(@weak obj => move |result| {
                     if let Ok(font_desc) = result {
