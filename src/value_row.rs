@@ -168,11 +168,11 @@ mod imp {
                     if let Ok(caps) = EXPR.captures(text) {
                         if let Some(caps) = caps.filter(|caps| caps.len() == 3) {
                             if let Some(m) = caps.get(2) {
-                                let tag_name = format!("mailto:{}", &caps[2].to_string());
+                                let link = format!("mailto:{}", &caps[2].to_string());
 
                                 // Convert byte offsets to character offsets
                                 self.add_link_tag(
-                                    &tag_name,
+                                    &link,
                                     self.bytes_to_chars(text, m.start()),
                                     self.bytes_to_chars(text, m.end())
                                 );
@@ -193,10 +193,10 @@ mod imp {
                         for caps in EXPR.captures_iter(text) {
                             if let Some(caps) = caps.ok().filter(|caps| caps.len() == 3) {
                                 if let Some(m) = caps.get(2) {
-                                    let tag_name = format!("pkg://{}", &caps[2].to_string());
+                                    let link = format!("pkg://{}", &caps[2].to_string());
 
                                     self.add_link_tag(
-                                        &tag_name,
+                                        &link,
                                         m.start() as i32,
                                         m.end() as i32
                                     );
@@ -218,7 +218,7 @@ mod imp {
         //-----------------------------------
         // TextView tag helper function
         //-----------------------------------
-        fn add_link_tag(&self, text: &str, start: i32, end: i32) {
+        fn add_link_tag(&self, link: &str, start: i32, end: i32) {
             // Create tag
             let tag = gtk::TextTag::builder()
                 .foreground_rgba(&self.link_rgba.get().unwrap())
@@ -243,7 +243,7 @@ mod imp {
             // Save tag in link map
             let mut link_map = self.link_map.borrow_mut();
 
-            link_map.insert(tag, text.to_string());
+            link_map.insert(tag, link.to_string());
         }
     }
 }
