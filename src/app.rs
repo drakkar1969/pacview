@@ -3,7 +3,8 @@ use std::cell::Cell;
 use gtk::{gio, glib};
 use gtk::prelude::*;
 use adw::subclass::prelude::*;
-use gtk::gdk::RGBA;
+use gtk::gdk;
+use glib::clone;
 
 use crate::window::PacViewWindow;
 
@@ -11,7 +12,7 @@ use crate::window::PacViewWindow;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static LINK_RGBA: Cell<RGBA> = Cell::new(RGBA::BLUE);
+    pub static LINK_RGBA: Cell<gdk::RGBA> = Cell::new(gdk::RGBA::BLUE);
 }
 
 //------------------------------------------------------------------------------
@@ -54,31 +55,7 @@ mod imp {
         fn activate(&self) {
             let application = self.obj();
 
-            // Get link color
-            LINK_RGBA.with(|rgba| {
-                let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-                rgba.replace(link_btn.color());
-            });
-
-            // Update link color when color scheme changes
-            let style_manager = adw::StyleManager::default();
-
-            style_manager.connect_dark_notify(|style| {
-                LINK_RGBA.with(|rgba| {
-                    let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-                    let btn_style = adw::StyleManager::for_display(&link_btn.display());
-
-                    if style.is_dark() {
-                        btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
-                    } else {
-                        btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
-                    }
-    
-                    rgba.replace(link_btn.color());
-                });
-            });
+            self.setup_styles();
 
             // Show main window
             let window = if let Some(window) = application.active_window() {
@@ -94,6 +71,77 @@ mod imp {
 
     impl GtkApplicationImpl for PacViewApplication {}
     impl AdwApplicationImpl for PacViewApplication {}
+
+    impl PacViewApplication {
+        //-----------------------------------
+        // Setup styles
+        //-----------------------------------
+        fn setup_styles(&self) {
+            // Get link color
+            LINK_RGBA.with(|rgba| {
+                let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+                rgba.replace(link_btn.color());
+            });
+
+            // Get style manager
+            let style_manager = adw::StyleManager::default();
+
+            // Get icon theme for default display
+            let display = gdk::Display::default().unwrap();
+
+            let icon_theme = gtk::IconTheme::for_display(&display);
+
+            // Set icon resource paths
+            let icons_light_path = "/com/github/PacView/icons-light/";
+            let icons_dark_path = "/com/github/PacView/icons-dark/";
+
+            if style_manager.is_dark() {
+                icon_theme.add_resource_path(icons_dark_path);
+            } else {
+                icon_theme.add_resource_path(icons_light_path);
+            }
+
+            // Connect style manager dark property notify signal
+            style_manager.connect_dark_notify(clone!(@weak style_manager => move |style| {
+                // Update link color when color scheme changes
+                LINK_RGBA.with(|rgba| {
+                    let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+                    let btn_style = adw::StyleManager::for_display(&link_btn.display());
+
+                    if style.is_dark() {
+                        btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
+                    } else {
+                        btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
+                    }
+    
+                    rgba.replace(link_btn.color());
+                });
+
+                // Update icon resource paths when color scheme changes
+                let resource_paths = icon_theme.resource_path();
+
+                let mut icon_paths: Vec<String> = resource_paths.iter()
+                    .filter_map(|s| {
+                        if s.contains(icons_light_path) || s.contains(icons_dark_path) {
+                            None
+                        } else {
+                            Some(s.to_string())
+                        }
+                    })
+                    .collect();
+
+                if style_manager.is_dark() {
+                    icon_paths.push(icons_dark_path.to_string());
+                } else {
+                    icon_paths.push(icons_light_path.to_string());
+                }
+
+                icon_theme.set_resource_path(&icon_paths.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+            }));
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
