@@ -105,7 +105,7 @@ mod imp {
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
 
-        #[property(get, set)]
+        #[property(get, set, default = SearchFlags::default(), construct)]
         flags: Cell<SearchFlags>,
 
         #[property(get, set, default = 150, construct)]
@@ -217,15 +217,6 @@ impl SearchHeader {
     //-----------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
-
-        // Set tag visibility
-        imp.tag_name.set_visible(self.flags().contains(SearchFlags::NAME));
-        imp.tag_desc.set_visible(self.flags().contains(SearchFlags::DESC));
-        imp.tag_group.set_visible(self.flags().contains(SearchFlags::GROUP));
-        imp.tag_deps.set_visible(self.flags().contains(SearchFlags::DEPS));
-        imp.tag_optdeps.set_visible(self.flags().contains(SearchFlags::OPTDEPS));
-        imp.tag_provides.set_visible(self.flags().contains(SearchFlags::PROVIDES));
-        imp.tag_files.set_visible(self.flags().contains(SearchFlags::FILES));
 
         // Bind title property to title widget
         self.bind_property("title", &imp.title_widget.get(), "title")
