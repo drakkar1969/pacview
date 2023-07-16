@@ -339,9 +339,6 @@ impl SearchHeader {
     // Setup actions
     //-----------------------------------
     fn setup_actions(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-
         // Add search mode stateful action
         let mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode")
             .parameter_type(Some(&String::static_variant_type()))
@@ -432,9 +429,6 @@ impl SearchHeader {
                 .flags(glib::BindingFlags::SYNC_CREATE)
                 .build();
         }
-
-        // Add shortcut controller to search header
-        self.add_controller(controller);
     }
 
     //-----------------------------------
