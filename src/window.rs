@@ -363,27 +363,12 @@ impl PacViewWindow {
             }))
             .build();
 
-        // Add package view reset columns action
-        let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.package_view.reset_columns();
-            }))
-            .build();
-
         // Add actions to view group
         let view_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("view", Some(&view_group));
 
-        view_group.add_action_entries([refresh_action, stats_action, copy_action, columns_action]);
-
-        // Add package view header menu property actions
-        let columns = imp.package_view.imp().view.columns();
-
-        for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
-            let col_action = gio::PropertyAction::new(&format!("show-column-{}", col.id().unwrap()), &col, "visible");
-            view_group.add_action(&col_action);
-        }
+        view_group.add_action_entries([refresh_action, stats_action, copy_action]);
 
         // Bind package view item count to copy list action enabled state
         if let Some(copy_action) = view_group.lookup_action("copy-list") {

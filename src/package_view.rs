@@ -84,6 +84,7 @@ mod imp {
 
             obj.setup_widgets();
             obj.setup_controllers();
+            obj.setup_actions();
             obj.setup_signals();
         }
 
@@ -162,6 +163,34 @@ impl PackageView {
         }));
 
         self.add_controller(gesture);
+    }
+
+    //-----------------------------------
+    // Setup actions
+    //-----------------------------------
+    fn setup_actions(&self) {
+        // Add reset columns action
+        let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
+            .activate(clone!(@weak self as obj => move |_, _, _| {
+                obj.reset_columns();
+            }))
+            .build();
+
+        // Add actions to view action group
+        let view_group = gio::SimpleActionGroup::new();
+
+        self.insert_action_group("view", Some(&view_group));
+
+        view_group.add_action_entries([columns_action]);
+
+        // Add package view header menu property actions
+        let columns = self.imp().view.columns();
+
+        for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
+            let col_action = gio::PropertyAction::new(&format!("show-column-{}", col.id().unwrap()), &col, "visible");
+
+            view_group.add_action(&col_action);
+        }
     }
 
     //-----------------------------------
