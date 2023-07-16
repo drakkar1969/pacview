@@ -4,6 +4,7 @@ use std::rc::Rc;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
+use glib::once_cell::sync::OnceCell;
 
 use alpm;
 
@@ -215,7 +216,7 @@ mod imp {
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
         // Alpm handle
-        pub handle: RefCell<Rc<Option<alpm::Alpm>>>,
+        pub handle: OnceCell<Rc<alpm::Alpm>>,
 
         // Read-write properties
         #[property(name = "flags",        get, set, type = PkgFlags,   member = flags)]
@@ -291,10 +292,10 @@ impl PkgObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(handle: Rc<Option<alpm::Alpm>>, data: PkgData) -> Self {
+    pub fn new(handle: Rc<alpm::Alpm>, data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
 
-        pkg.imp().handle.replace(handle);
+        pkg.imp().handle.set(handle).unwrap();
         pkg.imp().data.replace(data);
 
         pkg
@@ -386,9 +387,7 @@ impl PkgObject {
     pub fn required_by(&self) -> Vec<String> {
         let mut required_by: Vec<String> = vec![];
 
-        let pkg_handle = &*self.imp().handle.borrow();
-
-        if let Some(handle) = pkg_handle.as_ref() {
+        if let Some(handle) = self.imp().handle.get() {
             let db = if self.flags().intersects(PkgFlags::INSTALLED) {
                 Some(handle.localdb())
             } else {
@@ -409,9 +408,7 @@ impl PkgObject {
     pub fn optional_for(&self) -> Vec<String> {
         let mut optional_for: Vec<String> = vec![];
 
-        let pkg_handle = &*self.imp().handle.borrow();
-
-        if let Some(handle) = pkg_handle.as_ref() {
+        if let Some(handle) = self.imp().handle.get() {
             let db = if self.flags().intersects(PkgFlags::INSTALLED) {
                 Some(handle.localdb())
             } else {
@@ -427,14 +424,5 @@ impl PkgObject {
         }
 
         optional_for
-    }
-}
-
-impl Default for PkgObject {
-    //-----------------------------------
-    // Default constructor
-    //-----------------------------------
-    fn default() -> Self {
-        Self::new(Rc::new(None), PkgData::default())
     }
 }

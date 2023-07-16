@@ -828,7 +828,7 @@ impl PacViewWindow {
         receiver.attach(
             None,
             clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(handle, data_list)| {
-                let handle_ref = Rc::new(Some(handle));
+                let handle_ref = Rc::new(handle);
 
                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
                     .map(|data| PkgObject::new(handle_ref.clone(), data))
@@ -886,7 +886,9 @@ impl PacViewWindow {
                     pkg.set_repo_show("aur");
 
                     // Update info pane if currently displayed package is in AUR
-                    if imp.info_pane.pkg().unwrap_or_default() == pkg {
+                    let info_pkg = imp.info_pane.pkg();
+
+                    if info_pkg.is_some() && info_pkg.unwrap() == pkg {
                         imp.info_pane.update_prop("Package URL", &imp.info_pane.prop_to_package_url(&pkg), None);
 
                         imp.info_pane.update_prop("Repository", &pkg.repo_show(), None);
@@ -978,7 +980,9 @@ impl PacViewWindow {
                         pkg.set_has_update(true);
 
                         // Update info pane if currently displayed package has update
-                        if imp.info_pane.pkg().unwrap_or_default() == *pkg {
+                        let info_pkg = imp.info_pane.pkg();
+
+                        if info_pkg.is_some() && info_pkg.unwrap() == *pkg {
                             imp.info_pane.update_prop("Version", &pkg.version(), Some("pkg-update"));
                         }
                     }
