@@ -5,17 +5,17 @@
     <section>
       <item>
         <attribute name="label">Refresh</attribute>
-        <attribute name="action">view.refresh</attribute>
+        <attribute name="action">win.refresh</attribute>
       </item>
     </section>
     <section>
       <item>
         <attribute name="label">Show Statistics</attribute>
-        <attribute name="action">view.show-stats</attribute>
+        <attribute name="action">win.show-stats</attribute>
       </item>
       <item>
         <attribute name="label">Copy List</attribute>
-        <attribute name="action">view.copy-list</attribute>
+        <attribute name="action">win.copy-list</attribute>
       </item>
     </section>
   </menu>

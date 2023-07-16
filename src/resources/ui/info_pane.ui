@@ -87,7 +87,7 @@
                   <object class="GtkButton" id="prev_button">
                     <property name="icon-name">go-previous-symbolic</property>
                     <property name="tooltip-text">Previous</property>
-                    <property name="action-name">info.previous</property>
+                    <property name="action-name">win.previous</property>
                     <style>
                       <class name="circular"/>
                       <class name="flat"/>
@@ -98,7 +98,7 @@
                   <object class="GtkButton" id="next_button">
                     <property name="icon-name">go-next-symbolic</property>
                     <property name="tooltip-text">Next</property>
-                    <property name="action-name">info.next</property>
+                    <property name="action-name">win.next</property>
                     <style>
                       <class name="circular"/>
                       <class name="flat"/>
@@ -115,7 +115,7 @@
                 <property name="margin-bottom">4</property>
                 <property name="icon-name">dialog-information-symbolic</property>
                 <property name="tooltip-text">Show package details</property>
-                <property name="action-name">info.show-details</property>
+                <property name="action-name">win.show-details</property>
                 <style>
                   <class name="circular"/>
                   <class name="flat"/>

@@ -122,12 +122,8 @@ mod imp {
             obj.init_gsettings();
             obj.load_gsettings();
 
-            obj.setup_search();
-            obj.setup_toolbar();
-            obj.setup_packageview();
-            obj.setup_infopane();
-            obj.setup_preferences();
-
+            obj.setup_widgets();
+            obj.setup_actions();
             obj.setup_shortcuts();
             obj.setup_signals();
 
@@ -249,68 +245,23 @@ impl PacViewWindow {
     }
 
     //-----------------------------------
-    // Setup search header
+    // Setup widgets
     //-----------------------------------
-    fn setup_search(&self) {
+    fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind search delay preference
+        // Bind search header delay preference
         imp.prefs_window.bind_property("search-delay", &imp.search_header.get(), "delay")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        // Set key capture widget
+        // Set search header key capture widget
         imp.search_header.set_key_capture_widget(imp.package_view.imp().view.get().upcast());
-
-        // Add start/stop search actions
-        let start_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("start")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                if imp.search_header.active() == false {
-                    imp.search_header.set_active(true);
-                } else {
-                    imp.search_header.imp().search_text.grab_focus_without_selecting();
-                }
-            }))
-            .build();
-
-        let stop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("stop")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.search_header.set_active(false);
-            }))
-            .build();
-
-        // Add actions to search group
-        let search_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("search", Some(&search_group));
-
-        search_group.add_action_entries([start_action, stop_action]);
-    }
-
-    //-----------------------------------
-    // Setup toolbar buttons
-    //-----------------------------------
-    fn setup_toolbar(&self) {
-        let imp = self.imp();
-
-        // Add sidebar/infopane visibility property actions
-        let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.flap.get(), "reveal-flap");
-        self.add_action(&show_sidebar_action);
-
-        let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.info_pane.get(), "visible");
-        self.add_action(&show_infopane_action);
 
         // Bind search button state to search header active state
         imp.search_button.bind_property("active", &imp.search_header.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
-    }
-
-    //-----------------------------------
-    // Setup package column view
-    //-----------------------------------
-    fn setup_packageview(&self) {
-        let imp = self.imp();
 
         // Bind package view item count to status label text
         imp.package_view.imp().selection.bind_property("n-items", &imp.status_label.get(), "label")
@@ -320,8 +271,55 @@ impl PacViewWindow {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
+        // Bind package view model to info pane package model
+        imp.package_view.imp().filter_model.bind_property("model", &imp.info_pane.get(), "pkg-model")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Set preferences window parent
+        imp.prefs_window.set_transient_for(Some(self));
+
+        // Set initial focus on package view
+        imp.package_view.imp().view.grab_focus();
+    }
+
+    //-----------------------------------
+    // Setup actions
+    //-----------------------------------
+    fn setup_actions(&self) {
+        let imp = self.imp();
+
+        // Add start/stop search actions
+        let start_action = gio::ActionEntry::builder("start-search")
+            .activate(clone!(@weak imp => move |_, _, _| {
+                if imp.search_header.active() == false {
+                    imp.search_header.set_active(true);
+                } else {
+                    imp.search_header.imp().search_text.grab_focus_without_selecting();
+                }
+            }))
+            .build();
+
+        let stop_action = gio::ActionEntry::builder("stop-search")
+            .activate(clone!(@weak imp => move |_, _, _| {
+                imp.search_header.set_active(false);
+            }))
+            .build();
+
+        // Add search actions to window
+        self.add_action_entries([start_action, stop_action]);
+
+        // Add sidebar/infopane visibility property actions
+        let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.flap.get(), "reveal-flap");
+
+        self.add_action(&show_sidebar_action);
+
+        let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.info_pane.get(), "visible");
+
+        self.add_action(&show_infopane_action);
+
         // Add package view refresh action
-        let refresh_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("refresh")
+        let refresh_action = gio::ActionEntry::builder("refresh")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
                 imp.search_header.set_active(false);
 
@@ -330,7 +328,7 @@ impl PacViewWindow {
             .build();
 
         // Add package view show stats action
-        let stats_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-stats")
+        let stats_action = gio::ActionEntry::builder("show-stats")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
                 let pacman_config = imp.pacman_config.borrow();
                 
@@ -345,7 +343,7 @@ impl PacViewWindow {
             .build();
 
         // Add package view copy list action
-        let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy-list")
+        let copy_action = gio::ActionEntry::builder("copy-list")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
                 let copy_text = imp.package_view.imp().selection.iter::<glib::Object>()
                     .flatten()
@@ -363,15 +361,11 @@ impl PacViewWindow {
             }))
             .build();
 
-        // Add actions to view group
-        let view_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("view", Some(&view_group));
-
-        view_group.add_action_entries([refresh_action, stats_action, copy_action]);
+        // Add package view actions to window
+        self.add_action_entries([refresh_action, stats_action, copy_action]);
 
         // Bind package view item count to copy list action enabled state
-        if let Some(copy_action) = view_group.lookup_action("copy-list") {
+        if let Some(copy_action) = self.lookup_action("copy-list") {
             imp.package_view.imp().selection.bind_property("n-items", &copy_action, "enabled")
                 .transform_to(|_, n_items: u32| {
                     Some(n_items > 0)
@@ -380,36 +374,21 @@ impl PacViewWindow {
                 .build();
         }
 
-        // Set initial focus on package view
-        imp.package_view.imp().view.grab_focus();
-    }
-
-    //-----------------------------------
-    // Setup info pane
-    //-----------------------------------
-    fn setup_infopane(&self) {
-        let imp = self.imp();
-
-        // Bind package view model to info pane package model
-        imp.package_view.imp().filter_model.bind_property("model", &imp.info_pane.get(), "pkg-model")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
         // Add info pane prev/next actions
-        let prev_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("previous")
+        let prev_action = gio::ActionEntry::builder("previous")
             .activate(clone!(@weak imp => move |_, _, _| {
                 imp.info_pane.display_prev();
             }))
             .build();
         
-        let next_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("next")
+        let next_action = gio::ActionEntry::builder("next")
             .activate(clone!(@weak imp => move |_, _, _| {
                 imp.info_pane.display_next();
             }))
             .build();
 
         // Add info pane show details action
-        let details_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("show-details")
+        let details_action = gio::ActionEntry::builder("show-details")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
                 if let Some(pkg) = imp.info_pane.pkg() {
                     let pacman_config = imp.pacman_config.borrow();
@@ -429,29 +408,18 @@ impl PacViewWindow {
             }))
             .build();
 
-        // Add actions to info pane group
-        let infopane_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("info", Some(&infopane_group));
-
-        infopane_group.add_action_entries([prev_action, next_action, details_action]);
-    }
-
-    //-----------------------------------
-    // Setup preferences
-    //-----------------------------------
-    fn setup_preferences(&self) {
-        let imp = self.imp();
-
-        // Set preferences window parent
-        imp.prefs_window.set_transient_for(Some(self));
+        // Add info pane actions to window
+        self.add_action_entries([prev_action, next_action, details_action]);
 
         // Add show preferences action
-        let prefs_action = gio::SimpleAction::new("show-preferences", None);
-        prefs_action.connect_activate(clone!(@weak imp => move |_, _| {
-            imp.prefs_window.present();
-        }));
-        self.add_action(&prefs_action);
+        let prefs_action = gio::ActionEntry::builder("show-preferences")
+            .activate(clone!(@weak imp => move |_, _, _| {
+                imp.prefs_window.present();
+            }))
+            .build();
+
+        // Add preference actions to window
+        self.add_action_entries([prefs_action]);
     }
 
     //-----------------------------------
@@ -464,13 +432,13 @@ impl PacViewWindow {
         // Add search start shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>F"),
-            Some(gtk::NamedAction::new("search.start"))
+            Some(gtk::NamedAction::new("win.start-search"))
         ));
 
         // Add search stop shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::NamedAction::new("search.stop"))
+            Some(gtk::NamedAction::new("win.stop-search"))
         ));
 
         // Add show sidebar shortcut
@@ -494,37 +462,37 @@ impl PacViewWindow {
         // Add view refresh shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("F5"),
-            Some(gtk::NamedAction::new("view.refresh"))
+            Some(gtk::NamedAction::new("win.refresh"))
         ));
 
         // Add view show stats shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>S"),
-            Some(gtk::NamedAction::new("view.show-stats"))
+            Some(gtk::NamedAction::new("win.show-stats"))
         ));
 
         // Add view copy list shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>L"),
-            Some(gtk::NamedAction::new("view.copy-list"))
+            Some(gtk::NamedAction::new("win.copy-list"))
         ));
 
         // Add infopane previous shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>Left"),
-            Some(gtk::NamedAction::new("info.previous"))
+            Some(gtk::NamedAction::new("win.previous"))
         ));
 
         // Add infopane next shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>Right"),
-            Some(gtk::NamedAction::new("info.next"))
+            Some(gtk::NamedAction::new("win.next"))
         ));
 
         // Add infopane show details shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>Return|<alt>KP_Enter"),
-            Some(gtk::NamedAction::new("info.show-details"))
+            Some(gtk::NamedAction::new("win.show-details"))
         ));
 
         // Add shortcut controller to search header
