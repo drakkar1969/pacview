@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::thread;
 use std::collections::HashMap;
 
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk, graphene::Point};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, closure_local};
@@ -85,6 +85,8 @@ mod imp {
         pub pacman_config: RefCell<PacmanConfig>,
 
         pub update_row: RefCell<FilterRow>,
+
+        pub package_view_popup: OnceCell<gtk::PopoverMenu>,
     }
 
     //-----------------------------------
@@ -128,6 +130,13 @@ mod imp {
             obj.setup_signals();
 
             obj.setup_alpm();
+        }
+
+        //-----------------------------------
+        // Destructor
+        //-----------------------------------
+        fn dispose(&self) {
+            self.package_view_popup.get().unwrap().unparent();
         }
     }
 
@@ -262,6 +271,17 @@ impl PacViewWindow {
         imp.search_button.bind_property("active", &imp.search_header.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
+
+        // Create package view popover menu
+        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/package_view_menu.ui");
+        let menu: gio::MenuModel = builder.object("popup_menu").unwrap();
+
+        let popover_menu = gtk::PopoverMenu::from_model(Some(&menu));
+        popover_menu.set_parent(self);
+        popover_menu.set_has_arrow(false);
+        popover_menu.set_halign(gtk::Align::Start);
+
+        imp.package_view_popup.set(popover_menu).unwrap();
 
         // Bind package view item count to status label text
         imp.package_view.imp().selection.bind_property("n-items", &imp.status_label.get(), "label")
@@ -620,6 +640,22 @@ impl PacViewWindow {
         // Package view selected signal
         imp.package_view.connect_closure("selected", false, closure_local!(@watch self as obj => move |_: PackageView, pkg: Option<PkgObject>| {
             obj.imp().info_pane.set_pkg(pkg.as_ref());
+        }));
+
+        // Package view pressed signal
+        imp.package_view.connect_closure("pressed", false, closure_local!(@watch self as obj => move |_: PackageView, button: u32, x: f32, y: f32| {
+            if button == gdk::BUTTON_SECONDARY {
+                let imp = obj.imp();
+
+                if let Some(point) = imp.package_view.compute_point(obj, &Point::new(x, y)) {
+                    let rect = gdk::Rectangle::new(point.x() as i32, point.y() as i32, 0, 0);
+
+                    let popover_menu = imp.package_view_popup.get().unwrap();
+
+                    popover_menu.set_pointing_to(Some(&rect));
+                    popover_menu.popup();
+                }
+            }
         }));
     }
 

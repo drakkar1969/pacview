@@ -1,8 +1,8 @@
-use gtk::{glib, gio, gdk};
+use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
-use glib::once_cell::sync::{Lazy, OnceCell};
+use glib::once_cell::sync::Lazy;
 use glib::clone;
 
 use crate::pkg_object::PkgObject;
@@ -37,8 +37,6 @@ mod imp {
         pub model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub empty_label: TemplateChild<gtk::Label>,
-
-        pub popover_menu: OnceCell<gtk::PopoverMenu>,
     }
 
     //-----------------------------------
@@ -69,6 +67,13 @@ mod imp {
                     Signal::builder("selected")
                         .param_types([Option::<PkgObject>::static_type()])
                         .build(),
+                    Signal::builder("pressed")
+                        .param_types([
+                            u32::static_type(),
+                            f32::static_type(),
+                            f32::static_type()
+                        ])
+                        .build(),
                 ]
             });
             SIGNALS.as_ref()
@@ -86,10 +91,6 @@ mod imp {
             obj.setup_controllers();
             obj.setup_actions();
             obj.setup_signals();
-        }
-
-        fn dispose(&self) {
-            self.popover_menu.get().unwrap().unparent();
         }
     }
 
@@ -131,35 +132,15 @@ impl PackageView {
     // Setup controllers
     //-----------------------------------
     fn setup_controllers(&self) {
-        let imp = self.imp();
-
-        // Create column view popover menu
-        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/package_view_menu.ui");
-        let menu: gio::MenuModel = builder.object("popup_menu").unwrap();
-
-        let popover_menu = gtk::PopoverMenu::from_model(Some(&menu));
-        popover_menu.set_parent(self);
-        popover_menu.set_has_arrow(false);
-        popover_menu.set_halign(gtk::Align::Start);
-
-        imp.popover_menu.set(popover_menu).unwrap();
-
         // Column view click gesture
         let gesture = gtk::GestureClick::new();
 
         gesture.set_button(0);
 
-        gesture.connect_pressed(clone!(@weak imp => move |gesture, _, x, y| {
+        gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
             let button = gesture.current_button();
 
-            if button == gdk::BUTTON_SECONDARY {
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-                let popover_menu = imp.popover_menu.get().unwrap();
-
-                popover_menu.set_pointing_to(Some(&rect));
-                popover_menu.popup();
-            }
+            obj.emit_by_name::<()>("pressed", &[&button, &(x as f32), &(y as f32)]);
         }));
 
         self.add_controller(gesture);
