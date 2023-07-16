@@ -904,13 +904,6 @@ impl PacViewWindow {
     fn get_package_updates_async(&self) {
         let imp = self.imp();
 
-        // Set sidebar update row state
-        let update_row = imp.update_row.borrow();
-
-        update_row.set_spinning(true);
-        update_row.set_count("");
-        update_row.set_sensitive(false);
-
         // Get custom command for AUR updates
         let aur_command = imp.prefs_window.aur_command();
 
@@ -940,7 +933,7 @@ impl PacViewWindow {
                 }
 
                 lazy_static! {
-                    static ref EXPR: Regex = Regex::new("(\\S+)\\s+(\\S+)\\s+->\\s+(\\S+)").unwrap();
+                    static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+)\\s+(\\S+)\\s+->\\s+(\\S+)").unwrap();
                 }
 
                 // Build update map (package name, version)
@@ -948,7 +941,12 @@ impl PacViewWindow {
                     .filter_map(|s|
                         EXPR.captures(s)
                             .filter(|caps| caps.len() == 4)
-                            .map(|caps| (caps[1].to_string(), format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string())))
+                            .map(|caps| {
+                                let pkg_name = caps[1].to_string();
+                                let version = format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string());
+
+                                (pkg_name, version)
+                            })
                     )
                     .collect::<HashMap<String, String>>();
             }
@@ -961,11 +959,18 @@ impl PacViewWindow {
         receiver.attach(
             None,
             clone!(@weak imp => @default-return Continue(false), move |(success, update_map)| {
-                // Update status of packages with updates
+                let mut update_list: Vec<PkgObject> = vec![];
+
+                // If updates found
                 if update_map.len() > 0 {
-                    for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten()
+                    // Get list of packages with updates
+                    update_list = imp.package_view.imp().model.iter::<PkgObject>()
+                        .flatten()
                         .filter(|pkg| update_map.contains_key(&pkg.name()))
-                    {
+                        .collect();
+
+                    // Update status of packages with updates
+                    for pkg in update_list.iter() {
                         pkg.set_version(update_map[&pkg.name()].to_string());
 
                         pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
@@ -973,7 +978,7 @@ impl PacViewWindow {
                         pkg.set_has_update(true);
 
                         // Update info pane if currently displayed package has update
-                        if imp.info_pane.pkg().unwrap_or_default() == pkg {
+                        if imp.info_pane.pkg().unwrap_or_default() == *pkg {
                             imp.info_pane.update_prop("Version", &pkg.version(), Some("pkg-update"));
                         }
                     }
@@ -984,7 +989,7 @@ impl PacViewWindow {
 
                 update_row.set_spinning(false);
                 update_row.set_icon(if success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
-                update_row.set_count(if success && update_map.len() > 0 {update_map.len().to_string()} else {String::from("")});
+                update_row.set_count(if success && update_list.len() > 0 {update_list.len().to_string()} else {String::from("")});
 
                 update_row.set_tooltip_text(if success {Some("")} else {Some("Update error")});
 
