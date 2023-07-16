@@ -170,28 +170,15 @@ impl PacViewApplication {
         let quit_action = gio::ActionEntry::builder("quit-app")
             .activate(move |app: &Self, _, _| app.quit())
             .build();
+        
         let about_action = gio::ActionEntry::builder("show-about")
             .activate(move |app: &Self, _, _| app.show_about())
             .build();
+
         self.add_action_entries([quit_action, about_action]);
 
         self.set_accels_for_action("app.quit-app", &["<ctrl>Q"]);
         self.set_accels_for_action("app.show-about", &["F1"]);
-
-        self.set_accels_for_action("win.show-sidebar", &["<ctrl>B"]);
-        self.set_accels_for_action("win.show-infopane", &["<ctrl>I"]);
-        self.set_accels_for_action("win.show-preferences", &["<ctrl>comma"]);
-
-        self.set_accels_for_action("search.start", &["<ctrl>F"]);
-        self.set_accels_for_action("search.stop", &["Escape"]);
-
-        self.set_accels_for_action("view.refresh", &["F5"]);
-        self.set_accels_for_action("view.show-stats", &["<alt>S"]);
-        self.set_accels_for_action("view.copy-list", &["<alt>L"]);
-
-        self.set_accels_for_action("info.previous", &["<alt>Left"]);
-        self.set_accels_for_action("info.next", &["<alt>Right"]);
-        self.set_accels_for_action("info.show-details", &["<alt>Return", "<alt>KP_Enter"]);
     }
 
     //-----------------------------------

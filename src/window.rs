@@ -128,6 +128,7 @@ mod imp {
             obj.setup_infopane();
             obj.setup_preferences();
 
+            obj.setup_shortcuts();
             obj.setup_signals();
 
             obj.setup_alpm();
@@ -466,6 +467,83 @@ impl PacViewWindow {
             imp.prefs_window.present();
         }));
         self.add_action(&prefs_action);
+    }
+
+    //-----------------------------------
+    // Setup shortcuts
+    //-----------------------------------
+    fn setup_shortcuts(&self) {
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
+
+        // Add search start shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>F"),
+            Some(gtk::NamedAction::new("search.start"))
+        ));
+
+        // Add search stop shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::NamedAction::new("search.stop"))
+        ));
+
+        // Add show sidebar shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>B"),
+            Some(gtk::NamedAction::new("win.show-sidebar"))
+        ));
+
+        // Add show infopane shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>I"),
+            Some(gtk::NamedAction::new("win.show-infopane"))
+        ));
+
+        // Add show preferences shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>comma"),
+            Some(gtk::NamedAction::new("win.show-preferences"))
+        ));
+
+        // Add view refresh shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("F5"),
+            Some(gtk::NamedAction::new("view.refresh"))
+        ));
+
+        // Add view show stats shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>S"),
+            Some(gtk::NamedAction::new("view.show-stats"))
+        ));
+
+        // Add view copy list shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>L"),
+            Some(gtk::NamedAction::new("view.copy-list"))
+        ));
+
+        // Add infopane previous shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>Left"),
+            Some(gtk::NamedAction::new("info.previous"))
+        ));
+
+        // Add infopane next shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>Right"),
+            Some(gtk::NamedAction::new("info.next"))
+        ));
+
+        // Add infopane show details shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>Return|<alt>KP_Enter"),
+            Some(gtk::NamedAction::new("info.show-details"))
+        ));
+
+        // Add shortcut controller to search header
+        self.add_controller(controller);
     }
 
     //-----------------------------------
