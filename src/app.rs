@@ -178,7 +178,6 @@ impl PacViewApplication {
         self.add_action_entries([quit_action, about_action]);
 
         self.set_accels_for_action("app.quit-app", &["<ctrl>Q"]);
-        self.set_accels_for_action("app.show-about", &["F1"]);
     }
 
     //-----------------------------------
