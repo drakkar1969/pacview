@@ -278,93 +278,12 @@ impl PacViewWindow {
             }))
             .build();
 
-        // Add search header set search mode stateful action
-        let mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode")
-            .parameter_type(Some(&String::static_variant_type()))
-            .state("all".to_variant())
-            .change_state(clone!(@weak imp => move |_, action, param| {
-                let param = param
-                    .expect("Must be a 'Variant'")
-                    .get::<String>()
-                    .expect("Must be a 'String'");
-
-                match param.as_str() {
-                    "all" => {
-                        imp.search_header.set_mode(SearchMode::All);
-                        action.set_state(param.to_variant());
-                    },
-                    "any" => {
-                        imp.search_header.set_mode(SearchMode::Any);
-                        action.set_state(param.to_variant());
-                    },
-                    "exact" => {
-                        imp.search_header.set_mode(SearchMode::Exact);
-                        action.set_state(param.to_variant());
-                    },
-                    _ => unreachable!()
-                }
-            }))
-            .build();
-
-        // Add search header cycle search mode action
-        let cycle_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
-            .activate(|group, _, _| {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    let state = mode_action.state()
-                        .expect("Must be a 'Variant'")
-                        .get::<String>()
-                        .expect("Must be a 'String'");
-
-                    match state.as_str() {
-                        "all" => mode_action.change_state(&"any".to_variant()),
-                        "any" => mode_action.change_state(&"exact".to_variant()),
-                        "exact" => mode_action.change_state(&"all".to_variant()),
-                        _ => unreachable!()
-                    };
-                }
-            })
-            .build();
-
-        // Add select all/reset search flags actions
-        let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("all-flags")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.search_header.set_flags(SearchFlags::all());
-            }))
-            .build();
-
-        let reset_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-flags")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.search_header.set_flags(SearchFlags::NAME);
-            }))
-            .build();
-
         // Add actions to search group
         let search_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action_entries([start_action, stop_action, mode_action, cycle_action, all_action, reset_action]);
-
-        // Add search header search flags stateful actions
-        let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
-
-        for f in flags_class.values() {
-            let flag = SearchFlags::from_bits_truncate(f.value());
-
-            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, (flag == SearchFlags::NAME).to_variant());
-
-            flag_action.connect_activate(clone!(@weak imp, @strong flag => move |_, _| {
-                imp.search_header.set_flags(imp.search_header.flags() ^ flag);
-            }));
-
-            search_group.add_action(&flag_action);
-
-            // Bind search header flags property to action state
-            imp.search_header.bind_property("flags", &flag_action, "state")
-                .transform_to(move |_, flags: SearchFlags| Some(flags.contains(flag).to_variant()))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        }
+        search_group.add_action_entries([start_action, stop_action]);
     }
 
     //-----------------------------------
@@ -557,39 +476,8 @@ impl PacViewWindow {
 
         // Search header activated signal
         imp.search_header.connect_closure("activated", false, closure_local!(@watch self as obj => move |_: SearchHeader, active: bool| {
-            if active {
-                if let Some(app) = obj.application() {
-                    app.set_accels_for_action("search.flag-name", &["<ctrl>1"]);
-                    app.set_accels_for_action("search.flag-desc", &["<ctrl>2"]);
-                    app.set_accels_for_action("search.flag-group", &["<ctrl>3"]);
-                    app.set_accels_for_action("search.flag-deps", &["<ctrl>4"]);
-                    app.set_accels_for_action("search.flag-optdeps", &["<ctrl>5"]);
-                    app.set_accels_for_action("search.flag-provides", &["<ctrl>6"]);
-                    app.set_accels_for_action("search.flag-files", &["<ctrl>7"]);
-
-                    app.set_accels_for_action("search.all-flags", &["<ctrl>L"]);
-                    app.set_accels_for_action("search.reset-flags", &["<ctrl>R"]);
-
-                    app.set_accels_for_action("search.cycle-mode", &["<ctrl>M"]);
-                }
-
-            } else {
+            if active == false {
                 obj.imp().package_view.imp().view.grab_focus();
-
-                if let Some(app) = obj.application() {
-                    app.set_accels_for_action("search.flag-name", &[]);
-                    app.set_accels_for_action("search.flag-desc", &[]);
-                    app.set_accels_for_action("search.flag-group", &[]);
-                    app.set_accels_for_action("search.flag-deps", &[]);
-                    app.set_accels_for_action("search.flag-optdeps", &[]);
-                    app.set_accels_for_action("search.flag-provides", &[]);
-                    app.set_accels_for_action("search.flag-files", &[]);
-
-                    app.set_accels_for_action("search.all-flags", &[]);
-                    app.set_accels_for_action("search.reset-flags", &[]);
-
-                    app.set_accels_for_action("search.cycle-mode", &[]);
-                }
             }
         }));
 

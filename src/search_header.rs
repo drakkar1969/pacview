@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell};
 use core::time::Duration;
 
-use gtk::{glib, gdk};
+use gtk::{glib, gio, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
@@ -182,6 +182,7 @@ mod imp {
 
             obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_actions();
         }
 
         //-----------------------------------
@@ -331,6 +332,133 @@ impl SearchHeader {
         imp.clear_button.connect_clicked(clone!(@weak imp => move |_| {
             imp.search_text.set_text("");
         }));
+    }
+
+    //-----------------------------------
+    // Setup actions
+    //-----------------------------------
+    fn setup_actions(&self) {
+        // Create search action group
+        let search_group = gio::SimpleActionGroup::new();
+
+        self.insert_action_group("search", Some(&search_group));
+
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
+
+        // Add search mode stateful action
+        let mode_action = gio::SimpleAction::new_stateful("set-mode", Some(&String::static_variant_type()), "all".to_variant());
+
+        mode_action.connect_change_state(clone!(@weak self as obj => move |action, param| {
+            let param = param
+                .expect("Must be a 'Variant'")
+                .get::<String>()
+                .expect("Must be a 'String'");
+
+            match param.as_str() {
+                "all" => {
+                    obj.set_mode(SearchMode::All);
+                    action.set_state(param.to_variant());
+                },
+                "any" => {
+                    obj.set_mode(SearchMode::Any);
+                    action.set_state(param.to_variant());
+                },
+                "exact" => {
+                    obj.set_mode(SearchMode::Exact);
+                    action.set_state(param.to_variant());
+                },
+                _ => unreachable!()
+            }
+        }));
+
+        search_group.add_action(&mode_action);
+
+        // Add cycle search mode shortcut
+        let cycle_action = gtk::CallbackAction::new(
+            clone!(@weak search_group => @default-return true, move |_, _| {
+                if let Some(mode_action) = search_group.lookup_action("set-mode") {
+                    let state = mode_action.state()
+                        .expect("Must be a 'Variant'")
+                        .get::<String>()
+                        .expect("Must be a 'String'");
+
+                    match state.as_str() {
+                        "all" => mode_action.change_state(&"any".to_variant()),
+                        "any" => mode_action.change_state(&"exact".to_variant()),
+                        "exact" => mode_action.change_state(&"all".to_variant()),
+                        _ => unreachable!()
+                    };
+                }
+
+                true
+            })
+        );
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>M"),
+            Some(cycle_action))
+        );
+
+        // Add select all search flags action/shortcut
+        let all_action = gio::SimpleAction::new("all-flags", None);
+
+        all_action.connect_activate(clone!(@weak self as obj => move |_, _| {
+            obj.set_flags(SearchFlags::all());
+        }));
+
+        search_group.add_action(&all_action);
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>L"),
+            Some(gtk::NamedAction::new("search.all-flags"))
+        ));
+
+        // Add reset search flags action/shortcut
+        let reset_action = gio::SimpleAction::new("reset-flags", None);
+
+        reset_action.connect_activate(clone!(@weak self as obj => move |_, _| {
+            obj.set_flags(SearchFlags::NAME);
+        }));
+
+        search_group.add_action(&reset_action);
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>R"),
+            Some(gtk::NamedAction::new("search.reset-flags"))
+        ));
+
+        // Add search flags stateful actions/shortcuts
+        let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
+
+        for (i, f) in flags_class.values().iter().enumerate() {
+            let flag = SearchFlags::from_bits_truncate(f.value());
+
+            // Create stateful action
+            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, (flag == SearchFlags::NAME).to_variant());
+
+            flag_action.connect_activate(clone!(@weak self as obj, @strong flag => move |_, _| {
+                obj.set_flags(obj.flags() ^ flag);
+            }));
+
+            search_group.add_action(&flag_action);
+
+            let named_action = gtk::NamedAction::new(&format!("search.flag-{}", f.nick()));
+
+            controller.add_shortcut(gtk::Shortcut::new(
+                gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
+                Some(named_action))
+            );
+    
+            // Bind search header flags property to action state
+            self.bind_property("flags", &flag_action, "state")
+                .transform_to(move |_, flags: SearchFlags| Some(flags.contains(flag).to_variant()))
+                .flags(glib::BindingFlags::SYNC_CREATE)
+                .build();
+        }
+
+        // Add shortcut controller to search header
+        self.add_controller(controller);
     }
 
     //-----------------------------------
