@@ -322,8 +322,6 @@ impl ValueRow {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
-        let view = imp.view.get();
-
         // Change mouse pointer when hovering over links (add motion controller to view)
         let motion_controller = gtk::EventControllerMotion::new();
 
@@ -335,7 +333,7 @@ impl ValueRow {
             obj.set_cursor_motion(x, y);
         }));
 
-        view.add_controller(motion_controller);
+        imp.view.add_controller(motion_controller);
 
         // Activate links on click (add click gesture to view)
         let click_gesture = gtk::GestureClick::new();
@@ -360,6 +358,6 @@ impl ValueRow {
             }
         }));
 
-        view.add_controller(click_gesture);
+        imp.view.add_controller(click_gesture);
     }
 }
