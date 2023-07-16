@@ -27,6 +27,8 @@ mod imp {
         #[template_child]
         pub sort_switch: TemplateChild<gtk::Switch>,
         #[template_child]
+        pub delay_spin: TemplateChild<gtk::SpinButton>,
+        #[template_child]
         pub font_expander: TemplateChild<adw::ExpanderRow>,
         #[template_child]
         pub font_switch: TemplateChild<gtk::Switch>,
@@ -45,6 +47,8 @@ mod imp {
         remember_columns: Cell<bool>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
+        #[property(get, set)]
+        search_delay: Cell<f64>,
         #[property(get, set)]
         custom_font: Cell<bool>,
         #[property(get, set)]
@@ -146,6 +150,9 @@ impl PreferencesWindow {
         self.bind_property("remember-sort", &imp.sort_switch.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
+        self.bind_property("search-delay", &imp.delay_spin.get(), "value")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .build();
 
         self.bind_property("custom-font", &imp.font_switch.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
@@ -242,6 +249,7 @@ impl PreferencesWindow {
                         obj.set_aur_command("");
                         obj.set_remember_columns(true);
                         obj.set_remember_sort(false);
+                        obj.set_search_delay(150.0);
                         obj.set_custom_font(true);
                         obj.set_monospace_font(obj.default_monospace_font());
                     }

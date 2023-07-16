@@ -198,6 +198,7 @@ impl PacViewWindow {
             gsettings.bind("aur-update-command", &imp.prefs_window.get(), "aur-command").build();
             gsettings.bind("remember-columns", &imp.prefs_window.get(), "remember-columns").build();
             gsettings.bind("remember-sorting", &imp.prefs_window.get(), "remember-sort").build();
+            gsettings.bind("search-delay", &imp.prefs_window.get(), "search-delay").build();
             gsettings.bind("custom-font", &imp.prefs_window.get(), "custom-font").build();
             gsettings.bind("monospace-font", &imp.prefs_window.get(), "monospace-font").build();
 
@@ -251,6 +252,11 @@ impl PacViewWindow {
     //-----------------------------------
     fn setup_search(&self) {
         let imp = self.imp();
+
+        // Bind search delay preference
+        imp.prefs_window.bind_property("search-delay", &imp.search_header.get(), "delay")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
 
         // Set key capture widget
         imp.search_header.set_key_capture_widget(imp.package_view.imp().view.get().upcast());

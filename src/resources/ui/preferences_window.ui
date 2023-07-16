@@ -59,6 +59,30 @@
                 </child>
               </object>
             </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title">Search _Delay</property>
+                <property name="subtitle">Delay before search results are displayed (milliseconds)</property>
+                <property name="use-underline">True</property>
+                <property name="activatable-widget">delay_spin</property>
+                <child>
+                  <object class="GtkSpinButton" id="delay_spin">
+                    <property name="valign">center</property>
+                    <property name="numeric">true</property>
+                    <property name="snap-to-ticks">true</property>
+                    <property name="adjustment">
+                      <object class="GtkAdjustment">
+                        <property name="lower">0</property>
+                        <property name="page-increment">100</property>
+                        <property name="step-increment">10</property>
+                        <property name="upper">2000</property>
+                        <property name="value">150</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
         <child>
