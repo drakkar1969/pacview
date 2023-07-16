@@ -312,11 +312,7 @@ impl PacViewWindow {
         // Add start/stop search actions
         let start_action = gio::ActionEntry::<PacViewWindow>::builder("start-search")
             .activate(clone!(@weak imp => move |_, _, _| {
-                if imp.search_header.active() == false {
-                    imp.search_header.set_active(true);
-                } else {
-                    imp.search_header.imp().search_text.grab_focus_without_selecting();
-                }
+                imp.search_header.set_active(true);
             }))
             .build();
 
