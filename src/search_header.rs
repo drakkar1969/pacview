@@ -68,8 +68,6 @@ mod imp {
 
         #[template_child]
         pub search_text: TemplateChild<gtk::Text>,
-        #[template_child]
-        pub search_buffer: TemplateChild<gtk::EntryBuffer>,
 
         #[template_child]
         pub tag_box: TemplateChild<gtk::Box>,
@@ -110,8 +108,10 @@ mod imp {
         #[property(get, set)]
         flags: Cell<SearchFlags>,
 
-        #[property(get, set, default=150, construct)]
+        #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
+
+        pub delay_source_id: RefCell<Option<glib::SourceId>>,
     }
 
     //-----------------------------------
@@ -233,7 +233,7 @@ impl SearchHeader {
             .build();
 
         // Bind search text to clear button visibility
-        imp.search_buffer.bind_property("text", &imp.clear_button.get(), "visible")
+        imp.search_text.bind_property("text", &imp.clear_button.get(), "visible")
             .transform_to(|_, text: &str| Some(text != ""))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
@@ -286,16 +286,27 @@ impl SearchHeader {
             header.emit_changed_signal();
         });
 
-        // Search buffer text changed signal
-        imp.search_buffer.connect_text_notify(clone!(@weak self as obj, @weak imp => move |_| {
-            if imp.search_buffer.text() == "" {
+        // Search text changed signal
+        imp.search_text.connect_changed(clone!(@weak self as obj, @weak imp => move |search_text| {
+            // Remove delay timer if present
+            if let Some(delay_id) = imp.delay_source_id.take() {
+                delay_id.remove();
+            }
+
+            if search_text.text() == "" {
                 obj.emit_changed_signal();
             } else {
-                glib::timeout_add_local(Duration::from_millis(obj.delay()), move || {
-                    obj.emit_changed_signal();
-    
-                    Continue(false)
-                });
+                // Start delay timer
+                let delay_id = glib::timeout_add_local_once(
+                    Duration::from_millis(obj.delay()),
+                    clone!(@weak imp => move || {
+                        obj.emit_changed_signal();
+
+                        imp.delay_source_id.take();
+                    })
+                );
+
+                imp.delay_source_id.replace(Some(delay_id));
             }
         }));
 
@@ -327,7 +338,7 @@ impl SearchHeader {
 
         // Clear button clicked signal
         imp.clear_button.connect_clicked(clone!(@weak imp => move |_| {
-            imp.search_buffer.set_text("");
+            imp.search_text.set_text("");
         }));
     }
 
@@ -339,7 +350,7 @@ impl SearchHeader {
 
         self.emit_by_name::<()>("changed",
             &[
-                &imp.search_buffer.text(),
+                &imp.search_text.text(),
                 &self.flags(),
                 &self.mode()
             ]);

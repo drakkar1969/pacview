@@ -85,10 +85,6 @@
                   <object class="GtkText" id="search_text">
                     <property name="hexpand">true</property>
                     <property name="margin-start">6</property>
-                    <property name="buffer">
-                      <object class="GtkEntryBuffer" id="search_buffer">
-                      </object>
-                    </property>
                   </object>
                 </child>
                 <child>
