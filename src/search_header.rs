@@ -336,6 +336,20 @@ impl SearchHeader {
     }
 
     //-----------------------------------
+    // Emit changed signal helper function
+    //-----------------------------------
+    fn emit_changed_signal(&self) {
+        let imp = self.imp();
+
+        self.emit_by_name::<()>("changed",
+            &[
+                &imp.search_text.text(),
+                &self.flags(),
+                &self.mode()
+            ]);
+    }
+
+    //-----------------------------------
     // Setup actions
     //-----------------------------------
     fn setup_actions(&self) {
@@ -468,20 +482,6 @@ impl SearchHeader {
 
         // Add shortcut controller to search header
         self.add_controller(controller);
-    }
-
-    //-----------------------------------
-    // Emit changed signal helper function
-    //-----------------------------------
-    fn emit_changed_signal(&self) {
-        let imp = self.imp();
-
-        self.emit_by_name::<()>("changed",
-            &[
-                &imp.search_text.text(),
-                &self.flags(),
-                &self.mode()
-            ]);
     }
 
     //-----------------------------------
