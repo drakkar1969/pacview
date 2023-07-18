@@ -511,7 +511,7 @@ impl PacViewWindow {
             Some(gtk::NamedAction::new("win.show-details"))
         ));
 
-        // Add shortcut controller to search header
+        // Add shortcut controller to window
         self.add_controller(controller);
     }
 
