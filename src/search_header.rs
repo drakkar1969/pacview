@@ -5,7 +5,7 @@ use gtk::{glib, gio, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
-use glib::{clone, closure_local};
+use glib::clone;
 use glib::once_cell::sync::Lazy;
 
 use crate::search_tag::SearchTag;
@@ -48,6 +48,15 @@ impl Default for SearchFlags {
     }
 }
 
+impl SearchFlags {
+    pub fn from_nick(nick: &str) -> Self {
+        let f_class = glib::FlagsClass::new(Self::static_type()).unwrap();
+
+        f_class.from_nick_string(&nick)
+            .map_or(Self::empty(), |value| Self::from_bits_truncate(value))
+    }
+}
+
 //------------------------------------------------------------------------------
 // MODULE: SearchHeader
 //------------------------------------------------------------------------------
@@ -70,25 +79,10 @@ mod imp {
         pub search_text: TemplateChild<gtk::Text>,
 
         #[template_child]
-        pub tag_box: TemplateChild<gtk::Box>,
-
-        #[template_child]
         pub tag_mode: TemplateChild<SearchTag>,
 
         #[template_child]
-        pub tag_name: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_desc: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_group: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_deps: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_optdeps: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_provides: TemplateChild<SearchTag>,
-        #[template_child]
-        pub tag_files: TemplateChild<SearchTag>,
+        pub tag_flags_box: TemplateChild<gtk::Box>,
 
         #[template_child]
         pub clear_button: TemplateChild<gtk::Button>,
@@ -230,6 +224,39 @@ impl SearchHeader {
             .transform_to(|_, text: &str| Some(text != ""))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Bind flags property to search tag visibility
+        let mut widget = imp.tag_flags_box.first_child();
+
+        while let Some(tag) = widget.and_downcast::<SearchTag>() {
+            self.bind_property("flags", &tag, "visible")
+                .transform_to(move |binding, flags: SearchFlags| {
+                    let tag = binding.target()
+                        .and_downcast::<SearchTag>()
+                        .expect("Must be a 'SearchTag'");
+
+                    Some(flags.contains(SearchFlags::from_nick(&tag.text())))
+                })
+                .transform_from(move |binding, visible: bool| {
+                    let header = binding.source()
+                        .and_downcast::<SearchHeader>()
+                        .expect("Must be a 'SearchHeader'");
+
+                    let tag = binding.target()
+                        .and_downcast::<SearchTag>()
+                        .expect("Must be a 'SearchTag'");
+
+                    let mut flags = header.flags();
+
+                    flags.set(SearchFlags::from_nick(&tag.text()), visible);
+
+                    Some(flags)
+                })
+                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+                .build();
+            
+            widget = tag.next_sibling();
+        }
     }
 
     //-----------------------------------
@@ -266,16 +293,6 @@ impl SearchHeader {
 
         // Search flags property notify signal
         self.connect_flags_notify(|header| {
-            let imp = header.imp();
-
-            imp.tag_name.set_visible(header.flags().contains(SearchFlags::NAME));
-            imp.tag_desc.set_visible(header.flags().contains(SearchFlags::DESC));
-            imp.tag_group.set_visible(header.flags().contains(SearchFlags::GROUP));
-            imp.tag_deps.set_visible(header.flags().contains(SearchFlags::DEPS));
-            imp.tag_optdeps.set_visible(header.flags().contains(SearchFlags::OPTDEPS));
-            imp.tag_provides.set_visible(header.flags().contains(SearchFlags::PROVIDES));
-            imp.tag_files.set_visible(header.flags().contains(SearchFlags::FILES));
-
             header.emit_changed_signal();
         });
 
@@ -302,32 +319,6 @@ impl SearchHeader {
                 imp.delay_source_id.replace(Some(delay_id));
             }
         }));
-
-        // Tags closed signals
-        let tag_array = [
-            imp.tag_name.get(),
-            imp.tag_desc.get(),
-            imp.tag_group.get(),
-            imp.tag_deps.get(),
-            imp.tag_optdeps.get(),
-            imp.tag_provides.get(),
-            imp.tag_files.get(),
-        ];
-
-        for tag in tag_array {
-            tag.connect_closure("closed", false, closure_local!(@watch self as obj => move |_: &SearchTag, text: &str| {
-                let flags = obj.property("flags");
-
-                let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
-
-                if let Some(flags) = flags_class.builder_with_value(flags).unwrap()
-                    .unset_by_nick(text)
-                    .build()
-                {
-                    obj.set_property("flags", flags);
-                }
-            }));
-        }
 
         // Clear button clicked signal
         imp.clear_button.connect_clicked(clone!(@weak imp => move |_| {

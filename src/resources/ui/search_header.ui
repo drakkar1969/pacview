@@ -45,38 +45,42 @@
                       </object>
                     </child>
                     <child>
-                      <object class="SearchTag" id="tag_name">
-                        <property name="text">name</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_desc">
-                        <property name="text">desc</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_group">
-                        <property name="text">group</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_deps">
-                        <property name="text">deps</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_optdeps">
-                        <property name="text">optdeps</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_provides">
-                        <property name="text">provides</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchTag" id="tag_files">
-                        <property name="text">files</property>
+                      <object class="GtkBox" id="tag_flags_box">
+                        <child>
+                          <object class="SearchTag" id="tag_name">
+                            <property name="text">name</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="tag_desc">
+                            <property name="text">desc</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="tag_group">
+                            <property name="text">group</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="tag_deps">
+                            <property name="text">deps</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="tag_optdeps">
+                            <property name="text">optdeps</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="tag_provides">
+                            <property name="text">provides</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="SearchTag" id="tag_files">
+                            <property name="text">files</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                   </object>
