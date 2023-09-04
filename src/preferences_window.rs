@@ -182,7 +182,7 @@ impl PreferencesWindow {
                 .expect("Must be a 'String'");
 
             let cmd = match param.as_str() {
-                "paru" => "/usr/bin/paru -Qua",
+                "paru" => "/usr/bin/paru -Qu --mode=ap",
                 "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
                 "trizen" => "/usr/bin/trizen -Qua --devel",
                 "yay" => "/usr/bin/yay -Qua",
