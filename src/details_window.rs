@@ -236,24 +236,20 @@ impl DetailsWindow {
 
         // Filter tree text
         lazy_static! {
-            static ref EXPR: Regex = Regex::new("([└|─|│|├| ]+)?(.+)").unwrap();
+            static ref EXPR: Regex = Regex::new("[└|─|│|├| ]*").unwrap();
         }
 
         let filter_text = if depth == imp.tree_depth_scale.adjustment().upper() {
             tree_text.to_string()
         } else {
             tree_text.lines()
-            .filter_map(|s| {
-                let ascii = EXPR.replace(s, "$1");
-
-                if ascii.chars().count() as f64 > depth * 2.0 {
-                    None
-                } else {
-                    Some(s)
-                }
-            })
-            .collect::<Vec<&str>>()
-            .join("\n")
+                .filter(|&s| {
+                    EXPR.find(s)
+                        .filter(|ascii| ascii.as_str().chars().count() as f64 <= depth * 2.0)
+                        .is_some()
+                })
+                .collect::<Vec<&str>>()
+                .join("\n")
         };
 
         // Set tree view text
