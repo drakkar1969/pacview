@@ -196,7 +196,9 @@
                                           </object>
                                         </property>
                                         <property name="model">
-                                          <object class="GtkStringList" id="files_model"/>
+                                          <object class="GListStore" id="files_model">
+                                            <property name="item-type">GtkStringObject</property>
+                                          </object>
                                         </property>
                                       </object>
                                     </property>
@@ -438,7 +440,9 @@
                                 <property name="model">
                                   <object class="GtkNoSelection" id="log_selection">
                                     <property name="model">
-                                      <object class="GtkStringList" id="log_model"/>
+                                      <object class="GListStore" id="log_model">
+                                        <property name="item-type">GtkStringObject</property>
+                                      </object>
                                     </property>
                                   </object>
                                 </property>
@@ -530,7 +534,9 @@
                                 <property name="model">
                                   <object class="GtkSingleSelection" id="cache_selection">
                                     <property name="model">
-                                      <object class="GtkStringList" id="cache_model"/>
+                                      <object class="GListStore" id="cache_model">
+                                        <property name="item-type">GtkStringObject</property>
+                                      </object>
                                     </property>
                                   </object>
                                 </property>

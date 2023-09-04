@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::fs;
-use std::borrow::Cow;
 use std::thread;
 
 use gtk::{gio, glib, gdk};
@@ -56,7 +55,7 @@ mod imp {
         #[template_child]
         pub files_view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub files_model: TemplateChild<gtk::StringList>,
+        pub files_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
@@ -82,7 +81,7 @@ mod imp {
         #[template_child]
         pub log_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub log_model: TemplateChild<gtk::StringList>,
+        pub log_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub log_selection: TemplateChild<gtk::NoSelection>,
 
@@ -95,7 +94,7 @@ mod imp {
         #[template_child]
         pub cache_view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub cache_model: TemplateChild<gtk::StringList>,
+        pub cache_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub cache_selection: TemplateChild<gtk::SingleSelection>,
 
@@ -472,12 +471,15 @@ impl DetailsWindow {
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
 
         // Populate files list
-        let files = pkg.files();
-        let files_len = files.len();
+        let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+            .map(|s| gtk::StringObject::new(s))
+            .collect();
 
-        imp.files_model.splice(0, 0, &files.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+        imp.files_model.splice(0, 0, &files_list);
 
         // Bind files count to files header label
+        let files_len = files_list.len();
+
         imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
             .transform_to(move |_, n_items: u32| Some(format!("Files ({n_items} of {files_len})")))
             .flags(glib::BindingFlags::SYNC_CREATE)
@@ -579,17 +581,17 @@ impl DetailsWindow {
         if let Ok(log) = fs::read_to_string(log_file) {
             let match_expr = Regex::new(&format!("\\[(.+)T(.+)\\+.+\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).unwrap();
 
-            let log_lines: Vec<Cow<str>> = log.lines().rev()
+            let log_lines: Vec<gtk::StringObject> = log.lines().rev()
                 .filter_map(|s|
                     if match_expr.is_match(s) {
-                        Some(match_expr.replace_all(s, "[$1 $2]  $3 $4 $5"))
+                        Some(gtk::StringObject::new(&match_expr.replace_all(s, "[$1 $2]  $3 $4 $5")))
                     } else {
                         None
                     }
                 )
                 .collect();
 
-            imp.log_model.splice(0, 0, &log_lines.iter().map(|s| s.as_ref()).collect::<Vec<&str>>());
+            imp.log_model.splice(0, 0, &log_lines);
         }
 
         // Set copy button state
@@ -619,7 +621,7 @@ impl DetailsWindow {
         // Populate cache files list
         for dir in cache_dirs {
             // Find cache files that include package name
-            let cache_items = glob(&format!("{dir}{pkg_name}*.zst"))
+            let cache_list: Vec<gtk::StringObject> = glob(&format!("{dir}{pkg_name}*.zst"))
                 .unwrap()
                 .flatten()
                 .filter_map(|entry| {
@@ -632,11 +634,11 @@ impl DetailsWindow {
                         }
                     }
 
-                    Some(cache_file)
+                    Some(gtk::StringObject::new(&cache_file))
                 })
-                .collect::<Vec<String>>();
+                .collect();
 
-            imp.cache_model.splice(imp.cache_model.n_items(), 0, &cache_items.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+            imp.cache_model.splice(0, 0, &cache_list);
         }
 
         // Set cache header label
