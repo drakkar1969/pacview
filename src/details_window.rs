@@ -324,11 +324,7 @@ impl DetailsWindow {
 
         // Files listview activate signal
         imp.files_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
-            let item = imp.files_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
-
-            obj.open_file_manager(&item.string());
+            imp.files_open_button.emit_clicked();
         }));
 
         // Tree scale value changed signal
@@ -383,11 +379,7 @@ impl DetailsWindow {
 
         // Cache listview activate signal
         imp.cache_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
-            let item = imp.cache_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
-
-            obj.open_file_manager(&item.string());
+            imp.cache_open_button.emit_clicked();
         }));
 
         // Backup open button clicked signal
@@ -413,11 +405,7 @@ impl DetailsWindow {
 
         // Backup listview activate signal
         imp.backup_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
-            let item = imp.backup_selection.selected_item()
-                .and_downcast::<BackupObject>()
-                .expect("Must be a 'BackupObject'");
-
-            obj.open_file_manager(&item.filename());
+            imp.backup_open_button.emit_clicked();
         }));
     }
 
