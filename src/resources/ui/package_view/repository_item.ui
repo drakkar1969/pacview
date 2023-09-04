@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="GtkListItem">
+  <template class="GtkColumnViewCell">
     <property name="child">
       <object class="GtkLabel">
         <binding name="label">
           <lookup name="repo-show" type="PkgObject">
-            <lookup name="item">GtkListItem</lookup>
+            <lookup name="item">GtkColumnViewCell</lookup>
           </lookup>
         </binding>
         <property name="xalign">0</property>

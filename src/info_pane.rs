@@ -152,29 +152,29 @@ impl InfoPane {
         }));
 
         // Value factory setup signal
-        imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, item| {
+        imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, cell| {
             // Create ValueRow
             let value_row = ValueRow::new();
 
             // Set ValueRow as item child
-            let item = item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Must be a 'ListItem'");
+            let cell = cell
+                .downcast_ref::<gtk::ColumnViewCell>()
+                .expect("Must be a 'ColumnViewCell'");
 
-            item.set_child(Some(&value_row));
+            cell.set_child(Some(&value_row));
 
             // Bind PropObject properties to ValueRow properties
-            item
+            cell
                 .property_expression("item")
                 .chain_property::<PropObject>("ptype")
                 .bind(&value_row, "ptype", gtk::Widget::NONE);
 
-            item
+            cell
                 .property_expression("item")
                 .chain_property::<PropObject>("icon")
                 .bind(&value_row, "icon", gtk::Widget::NONE);
 
-            item
+            cell
                 .property_expression("item")
                 .chain_property::<PropObject>("value")
                 .bind(&value_row, "text", gtk::Widget::NONE);
