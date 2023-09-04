@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 
-use gtk::{gio, glib, gdk, pango};
+use gtk::{gio, glib, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
@@ -46,8 +46,6 @@ mod imp {
         _icon: RefCell<Option<String>>,
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
-
-        pub link_rgba: Cell<Option<gdk::RGBA>>,
 
         pub link_map: RefCell<HashMap<gtk::TextTag, String>>,
 
@@ -111,7 +109,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_colors();
             obj.setup_controllers();
         }
     }
@@ -217,31 +214,33 @@ mod imp {
         // TextView tag helper function
         //-----------------------------------
         fn add_link_tag(&self, link: &str, start: i32, end: i32) {
-            // Create tag
-            let tag = gtk::TextTag::builder()
-                .foreground_rgba(&self.link_rgba.get().unwrap())
-                .underline(pango::Underline::Single)
-                .build();
+            LINK_RGBA.with(|rgba| {
+                // Create tag
+                let tag = gtk::TextTag::builder()
+                    .foreground_rgba(&rgba.get())
+                    .underline(pango::Underline::Single)
+                    .build();
 
-            self.buffer.tag_table().add(&tag);
+                self.buffer.tag_table().add(&tag);
 
-            // Apply tag
-            let start_iter = self.buffer.iter_at_offset(start);
+                // Apply tag
+                let start_iter = self.buffer.iter_at_offset(start);
 
-            let end_iter: gtk::TextIter;
+                let end_iter: gtk::TextIter;
 
-            if end == ITER_END {
-                end_iter = self.buffer.end_iter();
-            } else {
-                end_iter = self.buffer.iter_at_offset(end);
-            }
+                if end == ITER_END {
+                    end_iter = self.buffer.end_iter();
+                } else {
+                    end_iter = self.buffer.iter_at_offset(end);
+                }
 
-            self.buffer.apply_tag(&tag, &start_iter, &end_iter);
+                self.buffer.apply_tag(&tag, &start_iter, &end_iter);
 
-            // Save tag in link map
-            let mut link_map = self.link_map.borrow_mut();
+                // Save tag in link map
+                let mut link_map = self.link_map.borrow_mut();
 
-            link_map.insert(tag, link.to_string());
+                link_map.insert(tag, link.to_string());
+            });
         }
     }
 }
@@ -262,16 +261,6 @@ impl ValueRow {
     pub fn new() -> Self {
         glib::Object::builder().build()
 
-    }
-
-    //-----------------------------------
-    // Setup colors
-    //-----------------------------------
-    fn setup_colors(&self) {
-        // Get link color from global variable
-        LINK_RGBA.with(|rgba| {
-            self.imp().link_rgba.replace(Some(rgba.get()));
-        });
     }
 
     //-----------------------------------
