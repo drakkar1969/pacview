@@ -45,6 +45,7 @@
                     <property name="vexpand">True</property>
                     <child>
                       <object class="GtkColumnView" id="view">
+                        <property name="tab-behavior">item</property>
                         <property name="model">
                           <object class="GtkSingleSelection" id="selection">
                             <property name="model">
