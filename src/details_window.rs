@@ -354,14 +354,8 @@ impl DetailsWindow {
 
         // Log copy button clicked signal
         imp.log_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            let copy_text = imp.log_selection.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let s = item
-                        .downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'");
-
-                    s.string()
-                })
+            let copy_text = imp.log_model.iter::<gtk::StringObject>().flatten()
+                .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
@@ -379,14 +373,8 @@ impl DetailsWindow {
 
         // Cache copy button clicked signal
         imp.cache_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            let copy_text = imp.cache_selection.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let s = item
-                        .downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'");
-
-                    s.string()
-                })
+            let copy_text = imp.cache_model.iter::<gtk::StringObject>().flatten()
+                .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
@@ -413,13 +401,9 @@ impl DetailsWindow {
 
         // Backup copy button clicked signal
         imp.backup_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            let copy_text = imp.backup_selection.iter::<glib::Object>().flatten()
+            let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
                 .map(|item| {
-                    let bck = item
-                        .downcast::<BackupObject>()
-                        .expect("Must be a 'BackupObject'");
-
-                    format!("{filename} ({status})", filename=bck.filename(), status=bck.status())
+                    format!("{filename} ({status})", filename=item.filename(), status=item.status())
                 })
                 .collect::<Vec<String>>()
                 .join("\n");
