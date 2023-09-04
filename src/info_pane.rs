@@ -152,7 +152,7 @@ impl InfoPane {
         let style_manager = adw::StyleManager::default();
 
         style_manager.connect_dark_notify(clone!(@weak self as obj => move |_| {
-            obj.display_package(obj.pkg().as_ref());
+            obj.update_display();
         }));
 
         // Value factory setup signal
@@ -237,7 +237,7 @@ impl InfoPane {
                         }
 
                         // Display link package
-                        self.display_package(Some(&new_pkg));
+                        self.update_display();
                     }
                 }
 
@@ -253,33 +253,38 @@ impl InfoPane {
     //-----------------------------------
     // Public display functions
     //-----------------------------------
-    pub fn display_package(&self, pkg: Option<&PkgObject>) {
+    pub fn update_display(&self) {
         let imp = self.imp();
 
-        let hist_sel = imp.history_selection.borrow();
+        let pkg = self.pkg();
 
         // Set infopane toolbar visibility
-        let show = pkg.is_some();
+        let is_pkg = pkg.is_some();
 
-        if imp.toolbar.is_visible() != show {
-            imp.toolbar.set_visible(show);
+        if imp.toolbar.is_visible() != is_pkg {
+            imp.toolbar.set_visible(is_pkg);
         }
+
+        // Set empty label overlay visibility
+        imp.empty_label.set_visible(!is_pkg);
 
         // Clear infopane
         imp.model.remove_all();
 
         // If package is not none, display it
         if let Some(pkg) = pkg {
+            let hist_sel = imp.history_selection.borrow();
+
+            let is_hist = hist_sel.n_items() > 1;
+
             // Set infopane toolbar label
-            if hist_sel.n_items() > 1 {
+            if is_hist {
                 imp.nav_label.set_label(&format!("{}/{}", hist_sel.selected() + 1, hist_sel.n_items()));
             }
 
             // Set infopane previous/next box visibility
-            let show = hist_sel.n_items() > 1;
-
-            if imp.nav_box.is_visible() != show {
-                imp.nav_box.set_visible(show);
+            if imp.nav_box.is_visible() != is_hist {
+                imp.nav_box.set_visible(is_hist);
             }
 
             // Set infopane prev/next button states
@@ -420,8 +425,6 @@ impl InfoPane {
                 ));
             }
         }
-
-        imp.empty_label.set_visible(pkg.is_none());
     }
 
     pub fn display_prev(&self) {
@@ -432,8 +435,8 @@ impl InfoPane {
         if hist_index > 0 {
             hist_sel.set_selected(hist_index - 1);
 
-            if let Some(pkg) = hist_sel.selected_item().and_downcast::<PkgObject>() {
-                self.display_package(Some(&pkg));
+            if hist_sel.selected_item().is_some() {
+                self.update_display();
             }
         }
     }
@@ -446,8 +449,8 @@ impl InfoPane {
         if hist_sel.n_items() > 0 && hist_index < hist_sel.n_items() - 1 {
             hist_sel.set_selected(hist_index + 1);
 
-            if let Some(pkg) = hist_sel.selected_item().and_downcast::<PkgObject>() {
-                self.display_package(Some(&pkg));
+            if hist_sel.selected_item().is_some() {
+                self.update_display();
             }
         }
     }
@@ -484,11 +487,11 @@ impl InfoPane {
 
         hist_model.remove_all();
 
-        self.display_package(pkg);
-
         if let Some(pkg) = pkg {
             hist_model.append(pkg);
         }
+
+        self.update_display();
     }
 
     //-----------------------------------
