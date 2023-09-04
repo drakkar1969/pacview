@@ -606,16 +606,15 @@ impl DetailsWindow {
     fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        let pkg_name = pkg.name();
+        let pkg_name = &pkg.name();
 
         // Get blacklist package names
         let blacklist: Vec<String> = pkg_model.iter::<PkgObject>().flatten()
-            .filter(|pkg| {
-                pkg.flags().intersects(PkgFlags::INSTALLED) &&
-                pkg.name().starts_with(&pkg_name) &&
-                pkg.name() != pkg_name
-            })
             .map(|pkg| pkg.name())
+            .filter(|name| {
+                name.starts_with(pkg_name) &&
+                name != pkg_name
+            })
             .collect();
 
         // Populate cache files list
@@ -628,13 +627,11 @@ impl DetailsWindow {
                     let cache_file = entry.display().to_string();
 
                     // Exclude cache files that include blacklist package names
-                    for name in &blacklist {
-                        if cache_file.contains(name) {
-                            return None
-                        }
+                    if blacklist.iter().any(|s| cache_file.contains(s)) {
+                        None
+                    } else {
+                        Some(gtk::StringObject::new(&cache_file))
                     }
-
-                    Some(gtk::StringObject::new(&cache_file))
                 })
                 .collect();
 
