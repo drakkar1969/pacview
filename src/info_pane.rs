@@ -126,9 +126,13 @@ impl InfoPane {
         let imp = self.imp();
 
         // Hide info pane header
-        if let Some(list_header) = imp.view.first_child() {
-            if list_header.type_().name() == "GtkListItemWidget" {
-                list_header.set_visible(false);
+        if let Some(header) = imp.view.first_child()
+            .filter(|header| header.type_().name() == "GtkColumnViewRowWidget")
+        {
+            if let Some(_cell) = header.first_child()
+                .filter(|cell| cell.type_().name() == "GtkColumnViewTitle")
+            {
+                header.set_visible(false);
             }
         }
 
@@ -156,7 +160,7 @@ impl InfoPane {
             // Create ValueRow
             let value_row = ValueRow::new();
 
-            // Set ValueRow as item child
+            // Set ValueRow as cell child
             let cell = cell
                 .downcast_ref::<gtk::ColumnViewCell>()
                 .expect("Must be a 'ColumnViewCell'");
