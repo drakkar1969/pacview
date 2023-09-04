@@ -44,7 +44,7 @@ mod imp {
         pub empty_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
-        pkg_model: RefCell<gio::ListStore>,
+        pkg_model: RefCell<Option<gio::ListStore>>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
     }
@@ -133,7 +133,7 @@ impl InfoPane {
         }
 
         // Initialize history selection
-        let history_model = gio::ListStore::new(PkgObject::static_type());
+        let history_model = gio::ListStore::new::<PkgObject>();
 
         imp.history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
     }
@@ -195,12 +195,12 @@ impl InfoPane {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     // Find link package by name
-                    let mut new_pkg = self.pkg_model().iter::<PkgObject>().flatten()
+                    let mut new_pkg = self.pkg_model().unwrap().iter::<PkgObject>().flatten()
                         .find(|pkg| pkg.name() == pkg_name);
 
                     // If link package is none, find by provides
                     if new_pkg.is_none() {
-                        new_pkg = self.pkg_model().iter::<PkgObject>().flatten().find(|pkg| {
+                        new_pkg = self.pkg_model().unwrap().iter::<PkgObject>().flatten().find(|pkg| {
                             pkg.provides().iter().any(|s| s.contains(&pkg_name))
                         });
                     }

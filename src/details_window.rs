@@ -199,13 +199,13 @@ impl DetailsWindow {
 
         controller.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        controller.connect_key_pressed(clone!(@weak self as obj => @default-return gtk::Inhibit(false), move |_, key, _, state| {
+        controller.connect_key_pressed(clone!(@weak self as obj => @default-return glib::Propagation::Proceed, move |_, key, _, state| {
             if key == gdk::Key::Escape && state.is_empty() {
                 obj.close();
 
-                gtk::Inhibit(true)
+                glib::Propagation::Stop
             } else {
-                gtk::Inhibit(false)
+                glib::Propagation::Proceed
             }
 
         }));
@@ -514,7 +514,7 @@ impl DetailsWindow {
         let font_css = Utils::pango_font_string_to_css(&font_str);
 
         let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_data(&format!("textview.tree {{ {font_css}}}"));
+        css_provider.load_from_string(&format!("textview.tree {{ {font_css}}}"));
 
         gtk::style_context_add_provider_for_display(&imp.tree_view.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
@@ -522,7 +522,7 @@ impl DetailsWindow {
         let pkg_name = pkg.name();
         let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
 
-        let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::PRIORITY_DEFAULT);
+        let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::Priority::DEFAULT);
 
         thread::spawn(move || {
             // Get dependecy tree
@@ -554,7 +554,7 @@ impl DetailsWindow {
         // Attach thread receiver
         receiver.attach(
             None,
-            clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(deps, rev_deps)| {
+            clone!(@weak self as win, @weak imp => @default-return glib::ControlFlow::Break, move |(deps, rev_deps)| {
                 imp.tree_text.replace(deps);
 
                 imp.tree_rev_text.replace(rev_deps);
@@ -564,7 +564,7 @@ impl DetailsWindow {
 
                 imp.tree_stack.set_visible_child_name("deps");
     
-                Continue(false)
+                glib::ControlFlow::Break
             }),
         );
     }

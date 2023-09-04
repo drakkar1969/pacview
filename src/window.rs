@@ -145,10 +145,10 @@ mod imp {
         //-----------------------------------
         // Window close handler
         //-----------------------------------
-        fn close_request(&self) -> glib::signal::Inhibit {
+        fn close_request(&self) -> glib::Propagation {
             self.obj().save_gsettings();
 
-            glib::signal::Inhibit(false)
+            glib::Propagation::Proceed
         }
     }
     impl ApplicationWindowImpl for PacViewWindow {}
@@ -696,13 +696,8 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Clear sidebar rows
-        while let Some(row) = imp.repo_listbox.row_at_index(0) {
-            imp.repo_listbox.remove(&row);
-        }
-
-        while let Some(row) = imp.status_listbox.row_at_index(0) {
-            imp.status_listbox.remove(&row);
-        }
+        imp.repo_listbox.remove_all();
+        imp.status_listbox.remove_all();
 
         // Add repository rows (enumerate pacman repositories)
         let row = FilterRow::new("repository-symbolic", "All", "", PkgFlags::default());
@@ -718,7 +713,7 @@ impl PacViewWindow {
         }
 
         // Add package status rows (enumerate PkgStatusFlags)
-        let flags = glib::FlagsClass::new(PkgFlags::static_type()).unwrap();
+        let flags = glib::FlagsClass::new::<PkgFlags>();
 
         for f in flags.values() {
             let flag = PkgFlags::from_bits_truncate(f.value());
@@ -749,7 +744,7 @@ impl PacViewWindow {
         let pacman_config = imp.pacman_config.borrow().clone();
 
         // Spawn thread to load packages
-        let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::PRIORITY_DEFAULT);
+        let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::Priority::DEFAULT);
 
         thread::spawn(move || {
             let handle = alpm::Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
@@ -784,7 +779,7 @@ impl PacViewWindow {
         // Attach thread receiver
         receiver.attach(
             None,
-            clone!(@weak self as win, @weak imp => @default-return Continue(false), move |(handle, data_list)| {
+            clone!(@weak self as win, @weak imp => @default-return glib::ControlFlow::Break, move |(handle, data_list)| {
                 let handle_ref = Rc::new(handle);
 
                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
@@ -798,7 +793,7 @@ impl PacViewWindow {
                 win.check_aur_packages_async();
                 win.get_package_updates_async();
 
-                Continue(false)
+                glib::ControlFlow::Break
             }),
         );
     }
@@ -816,7 +811,7 @@ impl PacViewWindow {
             .collect::<Vec<String>>();
 
         // Spawn thread to check AUR packages
-        let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::PRIORITY_DEFAULT);
+        let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::Priority::DEFAULT);
 
         thread::spawn(move || {
             let mut aur_list: Vec<String> = vec![];
@@ -835,7 +830,7 @@ impl PacViewWindow {
         // Attach thread receiver
         receiver.attach(
             None,
-            clone!(@weak imp => @default-return Continue(false), move |aur_list| {
+            clone!(@weak imp => @default-return glib::ControlFlow::Break, move |aur_list| {
                 // Update repository for AUR packages
                 for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten()
                     .filter(|pkg| aur_list.contains(&pkg.name()))
@@ -852,7 +847,7 @@ impl PacViewWindow {
                     }
                 }
 
-                Continue(false)
+                glib::ControlFlow::Break
             }),
         );
     }
@@ -867,7 +862,7 @@ impl PacViewWindow {
         let aur_command = imp.prefs_window.aur_command();
 
         // Spawn thread to check for updates
-        let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::PRIORITY_DEFAULT);
+        let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::Priority::DEFAULT);
 
         thread::spawn(move || {
             let mut update_map = HashMap::new();
@@ -917,7 +912,7 @@ impl PacViewWindow {
         // Attach thread receiver
         receiver.attach(
             None,
-            clone!(@weak imp => @default-return Continue(false), move |(success, update_map)| {
+            clone!(@weak imp => @default-return glib::ControlFlow::Break, move |(success, update_map)| {
                 let mut update_list: Vec<PkgObject> = vec![];
 
                 // If updates found
@@ -956,7 +951,7 @@ impl PacViewWindow {
 
                 update_row.set_sensitive(success);
 
-                Continue(false)
+                glib::ControlFlow::Break
             }),
         );
     }

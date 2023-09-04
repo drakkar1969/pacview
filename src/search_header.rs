@@ -50,7 +50,7 @@ impl Default for SearchFlags {
 
 impl SearchFlags {
     pub fn from_nick(nick: &str) -> Self {
-        let f_class = glib::FlagsClass::new(Self::static_type()).unwrap();
+        let f_class = glib::FlagsClass::new::<Self>();
 
         f_class.from_nick_string(&nick)
             .map_or(Self::empty(), |value| Self::from_bits_truncate(value))
@@ -357,15 +357,15 @@ impl SearchHeader {
                 match param.as_str() {
                     "all" => {
                         obj.set_mode(SearchMode::All);
-                        action.set_state(param.to_variant());
+                        action.set_state(&param.to_variant());
                     },
                     "any" => {
                         obj.set_mode(SearchMode::Any);
-                        action.set_state(param.to_variant());
+                        action.set_state(&param.to_variant());
                     },
                     "exact" => {
                         obj.set_mode(SearchMode::Exact);
-                        action.set_state(param.to_variant());
+                        action.set_state(&param.to_variant());
                     },
                     _ => unreachable!()
                 }
@@ -413,13 +413,13 @@ impl SearchHeader {
         search_group.add_action_entries([mode_action, cycle_action, all_action, reset_action]);
 
         // Add search flags stateful actions
-        let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
+        let flags_class = glib::FlagsClass::new::<SearchFlags>();
 
         for f in flags_class.values() {
             let flag = SearchFlags::from_bits_truncate(f.value());
 
             // Create stateful action
-            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, (flag == SearchFlags::NAME).to_variant());
+            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, &(flag == SearchFlags::NAME).to_variant());
 
             flag_action.connect_activate(clone!(@weak self as obj, @strong flag => move |_, _| {
                 obj.set_flags(obj.flags() ^ flag);
@@ -462,7 +462,7 @@ impl SearchHeader {
         ));
 
         // Add search flags shortcuts
-        let flags_class = glib::FlagsClass::new(SearchFlags::static_type()).unwrap();
+        let flags_class = glib::FlagsClass::new::<SearchFlags>();
 
         for (i, f) in flags_class.values().iter().enumerate() {
             controller.add_shortcut(gtk::Shortcut::new(
@@ -487,7 +487,7 @@ impl SearchHeader {
 
         let controller = gtk::EventControllerKey::new();
 
-        controller.connect_key_pressed(clone!(@weak self as header => @default-return gtk::Inhibit(false), move |controller, _, _, state| {
+        controller.connect_key_pressed(clone!(@weak self as header => @default-return glib::Propagation::Proceed, move |controller, _, _, state| {
             if !(state.contains(gdk::ModifierType::ALT_MASK) || state.contains(gdk::ModifierType::CONTROL_MASK))
             {
                 if controller.forward(&header.imp().search_text.get()) {
@@ -495,7 +495,7 @@ impl SearchHeader {
                 }
             }
 
-            gtk::Inhibit(false)
+            glib::Propagation::Proceed
         }));
 
         widget.add_controller(controller.clone());
