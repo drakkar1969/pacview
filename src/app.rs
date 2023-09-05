@@ -1,18 +1,9 @@
-use std::cell::Cell;
-
 use gtk::{gio, glib, gdk};
 use gtk::prelude::*;
 use adw::subclass::prelude::*;
 use glib::clone;
 
 use crate::window::PacViewWindow;
-
-//------------------------------------------------------------------------------
-// GLOBAL VARIABLES
-//------------------------------------------------------------------------------
-thread_local! {
-    pub static LINK_RGBA: Cell<gdk::RGBA> = Cell::new(gdk::RGBA::BLUE);
-}
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewApplication
@@ -76,13 +67,6 @@ mod imp {
         // Setup styles
         //-----------------------------------
         fn setup_styles(&self) {
-            // Get link color
-            LINK_RGBA.with(|rgba| {
-                let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-                rgba.replace(link_btn.color());
-            });
-
             // Get style manager
             let style_manager = adw::StyleManager::default();
 
@@ -102,22 +86,7 @@ mod imp {
             }
 
             // Connect style manager dark property notify signal
-            style_manager.connect_dark_notify(clone!(@weak style_manager => move |style| {
-                // Update link color when color scheme changes
-                LINK_RGBA.with(|rgba| {
-                    let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-                    let btn_style = adw::StyleManager::for_display(&link_btn.display());
-
-                    if style.is_dark() {
-                        btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
-                    } else {
-                        btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
-                    }
-    
-                    rgba.replace(link_btn.color());
-                });
-
+            style_manager.connect_dark_notify(clone!(@weak style_manager => move |_| {
                 // Update icon resource paths when color scheme changes
                 let resource_paths = icon_theme.resource_path();
 

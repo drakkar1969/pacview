@@ -1,18 +1,17 @@
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 
-use gtk::{gio, glib, pango};
+use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use glib::once_cell::sync::Lazy;
+use glib::once_cell::sync::{Lazy, OnceCell};
 use glib::subclass::Signal;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
 
-use crate::app::LINK_RGBA;
 use crate::prop_object::PropType;
 
 //------------------------------------------------------------------------------
@@ -48,6 +47,8 @@ mod imp {
         _text: RefCell<String>,
 
         pub link_map: RefCell<HashMap<gtk::TextTag, String>>,
+
+        pub link_rgba: OnceCell<gdk::RGBA>,
 
         pub hovering: Cell<bool>,
     }
@@ -214,33 +215,31 @@ mod imp {
         // TextView tag helper function
         //-----------------------------------
         fn add_link_tag(&self, link: &str, start: i32, end: i32) {
-            LINK_RGBA.with(|rgba| {
-                // Create tag
-                let tag = gtk::TextTag::builder()
-                    .foreground_rgba(&rgba.get())
-                    .underline(pango::Underline::Single)
-                    .build();
+            // Create tag
+            let tag = gtk::TextTag::builder()
+                .foreground_rgba(self.link_rgba.get().unwrap())
+                .underline(pango::Underline::Single)
+                .build();
 
-                self.buffer.tag_table().add(&tag);
+            self.buffer.tag_table().add(&tag);
 
-                // Apply tag
-                let start_iter = self.buffer.iter_at_offset(start);
+            // Apply tag
+            let start_iter = self.buffer.iter_at_offset(start);
 
-                let end_iter: gtk::TextIter;
+            let end_iter: gtk::TextIter;
 
-                if end == ITER_END {
-                    end_iter = self.buffer.end_iter();
-                } else {
-                    end_iter = self.buffer.iter_at_offset(end);
-                }
+            if end == ITER_END {
+                end_iter = self.buffer.end_iter();
+            } else {
+                end_iter = self.buffer.iter_at_offset(end);
+            }
 
-                self.buffer.apply_tag(&tag, &start_iter, &end_iter);
+            self.buffer.apply_tag(&tag, &start_iter, &end_iter);
 
-                // Save tag in link map
-                let mut link_map = self.link_map.borrow_mut();
+            // Save tag in link map
+            let mut link_map = self.link_map.borrow_mut();
 
-                link_map.insert(tag, link.to_string());
-            });
+            link_map.insert(tag, link.to_string());
         }
     }
 }
@@ -258,9 +257,12 @@ impl PropValueWidget {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+    pub fn new(link_rgba: gdk::RGBA) -> Self {
+        let widget: Self = glib::Object::builder().build();
 
+        widget.imp().link_rgba.set(link_rgba).unwrap();
+
+        widget
     }
 
     //-----------------------------------

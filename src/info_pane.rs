@@ -1,6 +1,6 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
-use gtk::{glib, gio};
+use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, closure_local};
@@ -47,6 +47,8 @@ mod imp {
         pkg_model: RefCell<Option<gio::ListStore>>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
+
+        pub link_rgba: Cell<Option<gdk::RGBA>>,
     }
 
     //-----------------------------------
@@ -140,6 +142,11 @@ impl InfoPane {
         let history_model = gio::ListStore::new::<PkgObject>();
 
         imp.history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
+
+        // Get link color
+        let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+        imp.link_rgba.replace(Some(link_btn.color()));
     }
 
     //-----------------------------------
@@ -151,14 +158,27 @@ impl InfoPane {
         // Color scheme changed signal
         let style_manager = adw::StyleManager::default();
 
-        style_manager.connect_dark_notify(clone!(@weak self as obj => move |_| {
+        style_manager.connect_dark_notify(clone!(@weak self as obj, @weak imp => move |style_manager| {
+            // Update link color when color scheme changes
+            let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+            let btn_style = adw::StyleManager::for_display(&link_btn.display());
+
+            if style_manager.is_dark() {
+                btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
+            } else {
+                btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
+            }
+
+            imp.link_rgba.replace(Some(link_btn.color()));
+
             obj.update_display();
         }));
 
         // Value factory setup signal
-        imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, cell| {
+        imp.value_factory.connect_setup(clone!(@weak self as obj, @weak imp => move |_, cell| {
             // Create PropValueWidget
-            let value_widget = PropValueWidget::new();
+            let value_widget = PropValueWidget::new(imp.link_rgba.get().unwrap());
 
             // Set PropValueWidget as cell child
             let cell = cell
