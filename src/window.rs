@@ -887,7 +887,7 @@ impl PacViewWindow {
                 }
 
                 lazy_static! {
-                    static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+)\\s+(\\S+)\\s+->\\s+(\\S+)").unwrap();
+                    static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
                 }
 
                 // Build update map (package name, version)

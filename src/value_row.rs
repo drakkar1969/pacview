@@ -157,13 +157,13 @@ mod imp {
                     self.buffer.set_text(text);
 
                     lazy_static! {
-                        static ref EXPR: Regex = Regex::new("^([^<]+)<([^>]+)>$").unwrap();
+                        static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").unwrap();
                     }
 
                     if let Ok(caps) = EXPR.captures(text) {
-                        if let Some(caps) = caps.filter(|caps| caps.len() == 3) {
-                            if let Some(m) = caps.get(2) {
-                                let link = format!("mailto:{}", &caps[2].to_string());
+                        if let Some(caps) = caps.filter(|caps| caps.len() == 2) {
+                            if let Some(m) = caps.get(1) {
+                                let link = format!("mailto:{}", m.as_str());
 
                                 // Convert byte offsets to character offsets
                                 self.add_link_tag(
@@ -182,13 +182,13 @@ mod imp {
                         self.buffer.set_text(text);
         
                         lazy_static! {
-                            static ref EXPR: Regex = Regex::new("(^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
+                            static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
                         }
 
                         for caps in EXPR.captures_iter(text) {
-                            if let Some(caps) = caps.ok().filter(|caps| caps.len() == 3) {
-                                if let Some(m) = caps.get(2) {
-                                    let link = format!("pkg://{}", &caps[2].to_string());
+                            if let Some(caps) = caps.ok().filter(|caps| caps.len() == 2) {
+                                if let Some(m) = caps.get(1) {
+                                    let link = format!("pkg://{}", m.as_str());
 
                                     self.add_link_tag(
                                         &link,
