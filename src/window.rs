@@ -947,7 +947,7 @@ impl PacViewWindow {
                 update_row.set_icon(if success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
                 update_row.set_count(if success && update_list.len() > 0 {update_list.len().to_string()} else {String::from("")});
 
-                update_row.set_tooltip_text(if success {Some("")} else {Some("Update error")});
+                update_row.set_tooltip_text(if success {Some("")} else {Some("Update Error")});
 
                 update_row.set_sensitive(success);
 

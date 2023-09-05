@@ -134,7 +134,7 @@
                                 <property name="spacing">20</property>
                                 <child>
                                   <object class="GtkSearchEntry" id="files_search_entry">
-                                    <property name="tooltip-text">Search for files</property>
+                                    <property name="tooltip-text">Search for Files</property>
                                     <style>
                                       <class name="rounded"/>
                                     </style>
@@ -146,7 +146,7 @@
                                     <child>
                                       <object class="GtkButton" id="files_open_button">
                                         <property name="icon-name">folder-open-symbolic</property>
-                                        <property name="tooltip-text">Show selected in file manager</property>
+                                        <property name="tooltip-text">Show Selected in File Manager</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>
@@ -156,7 +156,7 @@
                                     <child>
                                       <object class="GtkButton" id="files_copy_button">
                                         <property name="icon-name">edit-copy-symbolic</property>
-                                        <property name="tooltip-text">Copy file list</property>
+                                        <property name="tooltip-text">Copy File List</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>
@@ -255,7 +255,7 @@
                                 <child>
                                   <object class="GtkScale" id="tree_depth_scale">
                                     <property name="width-request">100</property>
-                                    <property name="tooltip-text">Adjust tree depth</property>
+                                    <property name="tooltip-text">Adjust Tree Depth</property>
                                     <property name="round-digits">0</property>
                                     <property name="adjustment">
                                       <object class="GtkAdjustment">
@@ -283,7 +283,7 @@
                                     <child>
                                       <object class="GtkToggleButton" id="tree_reverse_button">
                                         <property name="icon-name">details-tree-reverse-symbolic</property>
-                                        <property name="tooltip-text">Reverse tree</property>
+                                        <property name="tooltip-text">Reverse Tree</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>
@@ -293,7 +293,7 @@
                                     <child>
                                       <object class="GtkButton" id="tree_copy_button">
                                         <property name="icon-name">edit-copy-symbolic</property>
-                                        <property name="tooltip-text">Copy dependency tree</property>
+                                        <property name="tooltip-text">Copy Dependency Tree</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>
@@ -407,7 +407,7 @@
                             <child>
                               <object class="GtkButton" id="log_copy_button">
                                 <property name="icon-name">edit-copy-symbolic</property>
-                                <property name="tooltip-text">Copy log messages</property>
+                                <property name="tooltip-text">Copy Log Messages</property>
                                 <style>
                                   <class name="flat"/>
                                   <class name="circular"/>
@@ -486,7 +486,7 @@
                                 <child>
                                   <object class="GtkButton" id="cache_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
-                                    <property name="tooltip-text">Show selected in file manager</property>
+                                    <property name="tooltip-text">Show Selected in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                       <class name="circular"/>
@@ -496,7 +496,7 @@
                                 <child>
                                   <object class="GtkButton" id="cache_copy_button">
                                     <property name="icon-name">edit-copy-symbolic</property>
-                                    <property name="tooltip-text">Copy cache file list</property>
+                                    <property name="tooltip-text">Copy Cache File List</property>
                                     <style>
                                       <class name="flat"/>
                                       <class name="circular"/>
@@ -577,7 +577,7 @@
                                 <child>
                                   <object class="GtkButton" id="backup_open_button">
                                     <property name="icon-name">folder-open-symbolic</property>
-                                    <property name="tooltip-text">Show selected in file manager</property>
+                                    <property name="tooltip-text">Show Selected in File Manager</property>
                                     <style>
                                       <class name="flat"/>
                                       <class name="circular"/>
@@ -587,7 +587,7 @@
                                 <child>
                                   <object class="GtkButton" id="backup_copy_button">
                                     <property name="icon-name">edit-copy-symbolic</property>
-                                    <property name="tooltip-text">Copy backup file list</property>
+                                    <property name="tooltip-text">Copy Backup File List</property>
                                     <style>
                                       <class name="flat"/>
                                       <class name="circular"/>

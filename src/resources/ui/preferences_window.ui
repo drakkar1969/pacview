@@ -107,7 +107,7 @@
                       <object class="GtkButton" id="font_reset_button">
                         <property name="valign">center</property>
                         <property name="icon-name">edit-undo-symbolic</property>
-                        <property name="tooltip-text">Reset to default</property>
+                        <property name="tooltip-text">Reset to Default</property>
                         <style>
                           <class name="flat"/>
                         </style>
@@ -117,7 +117,7 @@
                       <object class="GtkButton" id="font_choose_button">
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Choose font</property>
+                        <property name="tooltip-text">Choose Font</property>
                         <style>
                           <class name="flat"/>
                         </style>

@@ -18,7 +18,7 @@
               <object class="GtkMenuButton" id="mainmenu_button">
                 <property name="icon-name">open-menu-symbolic</property>
                 <property name="primary">True</property>
-                <property name="tooltip-text">Main menu</property>
+                <property name="tooltip-text">Main Menu</property>
                 <property name="menu-model">primary_menu</property>
               </object>
             </child>
@@ -26,7 +26,7 @@
               <object class="GtkToggleButton" id="search_button">
                 <property name="active">False</property>
                 <property name="icon-name">edit-find-symbolic</property>
-                <property name="tooltip-text">Toggle search</property>
+                <property name="tooltip-text">Toggle Search</property>
               </object>
             </child>
           </object>
