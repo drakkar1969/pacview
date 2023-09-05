@@ -19,12 +19,10 @@ impl Utils {
         let mut code: Option<i32> = None;
         let mut stdout: String = String::from("");
 
-        if let Some(params) = shlex::split(cmd) {
-            if !params.is_empty() {
-                if let Ok(output) = Command::new(&params[0]).args(&params[1..]).output() {
-                    code = output.status.code();
-                    stdout = String::from_utf8(output.stdout).unwrap_or_default();
-                }
+        if let Some(params) = shlex::split(cmd).filter(|params| !params.is_empty()) {
+            if let Ok(output) = Command::new(&params[0]).args(&params[1..]).output() {
+                code = output.status.code();
+                stdout = String::from_utf8(output.stdout).unwrap_or_default();
             }
         }
 
@@ -63,9 +61,10 @@ impl Utils {
         if date == 0 {
             String::from("")
         } else {
-            let datetime = glib::DateTime::from_unix_local(date).expect("Datetime from Unix error");
-
-            datetime.format(format).expect("Datetime format error").to_string()
+            glib::DateTime::from_unix_local(date)
+                .and_then(|datetime| datetime.format(format))
+                .expect("Datetime error")
+                .to_string()
         }
     }
 
