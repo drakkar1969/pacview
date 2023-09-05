@@ -21,7 +21,7 @@ use crate::prop_object::PropType;
 const ITER_END: i32 = -1;
 
 //------------------------------------------------------------------------------
-// MODULE: ValueRow
+// MODULE: PropValueWidget
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -30,9 +30,9 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::ValueRow)]
-    #[template(resource = "/com/github/PacView/ui/value_row.ui")]
-    pub struct ValueRow {
+    #[properties(wrapper_type = super::PropValueWidget)]
+    #[template(resource = "/com/github/PacView/ui/prop_value_widget.ui")]
+    pub struct PropValueWidget {
         #[template_child]
         pub image: TemplateChild<gtk::Image>,
         #[template_child]
@@ -56,9 +56,9 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for ValueRow {
-        const NAME: &'static str = "ValueRow";
-        type Type = super::ValueRow;
+    impl ObjectSubclass for PropValueWidget {
+        const NAME: &'static str = "PropValueWidget";
+        type Type = super::PropValueWidget;
         type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
@@ -70,7 +70,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for ValueRow {
+    impl ObjectImpl for PropValueWidget {
         //-----------------------------------
         // Custom signals
         //-----------------------------------
@@ -113,10 +113,10 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for ValueRow {}
-    impl BoxImpl for ValueRow {}
+    impl WidgetImpl for PropValueWidget {}
+    impl BoxImpl for PropValueWidget {}
 
-    impl ValueRow {
+    impl PropValueWidget {
         //-----------------------------------
         // Icon property custom setter
         //-----------------------------------
@@ -246,15 +246,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: ValueRow
+// IMPLEMENTATION: PropValueWidget
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct ValueRow(ObjectSubclass<imp::ValueRow>)
+    pub struct PropValueWidget(ObjectSubclass<imp::PropValueWidget>)
         @extends gtk::Box, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl ValueRow {
+impl PropValueWidget {
     //-----------------------------------
     // New function
     //-----------------------------------

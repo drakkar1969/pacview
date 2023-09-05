@@ -61,11 +61,11 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view_menu.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/preferences_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/prop_value_widget.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/toggle_button.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/value_row.ui</file>
   </gresource>
 </gresources>

@@ -7,7 +7,7 @@ use glib::{clone, closure_local};
 
 use url::Url;
 
-use crate::value_row::ValueRow;
+use crate::prop_value_widget::PropValueWidget;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::prop_object::{PropObject, PropType};
 
@@ -157,35 +157,35 @@ impl InfoPane {
 
         // Value factory setup signal
         imp.value_factory.connect_setup(clone!(@weak self as obj => move |_, cell| {
-            // Create ValueRow
-            let value_row = ValueRow::new();
+            // Create PropValueWidget
+            let value_widget = PropValueWidget::new();
 
-            // Set ValueRow as cell child
+            // Set PropValueWidget as cell child
             let cell = cell
                 .downcast_ref::<gtk::ColumnViewCell>()
                 .expect("Must be a 'ColumnViewCell'");
 
-            cell.set_child(Some(&value_row));
+            cell.set_child(Some(&value_widget));
 
-            // Bind PropObject properties to ValueRow properties
+            // Bind PropObject properties to PropValueWidget properties
             cell
                 .property_expression("item")
                 .chain_property::<PropObject>("ptype")
-                .bind(&value_row, "ptype", gtk::Widget::NONE);
+                .bind(&value_widget, "ptype", gtk::Widget::NONE);
 
             cell
                 .property_expression("item")
                 .chain_property::<PropObject>("icon")
-                .bind(&value_row, "icon", gtk::Widget::NONE);
+                .bind(&value_widget, "icon", gtk::Widget::NONE);
 
             cell
                 .property_expression("item")
                 .chain_property::<PropObject>("value")
-                .bind(&value_row, "text", gtk::Widget::NONE);
+                .bind(&value_widget, "text", gtk::Widget::NONE);
 
-            // Connect ValueRow link activated signal handler
+            // Connect PropValueWidget link activated signal handler
             // With @watch, signal handler disconnects when value_row is dropped
-            value_row.connect_closure("link-activated", false, closure_local!(@watch value_row as _row => move |_: ValueRow, link: String| -> bool {
+            value_widget.connect_closure("link-activated", false, closure_local!(@watch value_widget as _widget => move |_: PropValueWidget, link: String| -> bool {
                 obj.link_handler(&link)
             }));
         }));
