@@ -50,7 +50,7 @@ impl Utils {
                 size /= 1024.0;
             }
     
-            format!("{size:.decimals$} {unit}")
+            format!("{size:.decimals$}\u{202F}{unit}")
         }
     }
 
