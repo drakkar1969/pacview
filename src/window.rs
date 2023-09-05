@@ -310,9 +310,9 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Add start/stop search actions
-        let start_action = gio::ActionEntry::<PacViewWindow>::builder("start-search")
+        let start_action = gio::ActionEntry::<PacViewWindow>::builder("toggle-search")
             .activate(clone!(@weak imp => move |_, _, _| {
-                imp.search_header.set_active(true);
+                imp.search_header.set_active(!imp.search_header.active());
             }))
             .build();
 
@@ -448,7 +448,7 @@ impl PacViewWindow {
         // Add search start shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>F"),
-            Some(gtk::NamedAction::new("win.start-search"))
+            Some(gtk::NamedAction::new("win.toggle-search"))
         ));
 
         // Add search stop shortcut
