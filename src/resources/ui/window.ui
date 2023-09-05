@@ -14,6 +14,13 @@
                 <property name="title">PacView</property>
               </object>
             </property>
+            <child type="start">
+              <object class="GtkButton" id="refresh_button">
+                <property name="icon-name">view-refresh-symbolic</property>
+                <property name="action-name">win.refresh</property>
+                <property name="tooltip-text">Refresh</property>
+              </object>
+            </child>
             <child type="end">
               <object class="GtkMenuButton" id="mainmenu_button">
                 <property name="icon-name">open-menu-symbolic</property>
