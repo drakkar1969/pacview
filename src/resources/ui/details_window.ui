@@ -24,30 +24,24 @@
             <property name="margin-bottom">24</property>
             <property name="spacing">16</property>
             <child>
-              <object class="GtkBox" id="banner_box">
-                <property name="orientation">vertical</property>
+              <object class="GtkImage" id="pkg_image">
+                <property name="halign">center</property>
+                <property name="icon-name">package-x-generic-symbolic</property>
+                <property name="icon-size">large</property>
+                <style>
+                  <class name="bubble"/>
+                  <class name="large"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="pkg_label">
                 <property name="margin-start">16</property>
                 <property name="margin-end">16</property>
                 <property name="margin-bottom">24</property>
-                <property name="spacing">16</property>
-                <child>
-                  <object class="GtkImage" id="pkg_image">
-                    <property name="halign">center</property>
-                    <property name="icon-name">package-x-generic-symbolic</property>
-                    <property name="icon-size">large</property>
-                    <style>
-                      <class name="bubble"/>
-                      <class name="large"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="pkg_label">
-                    <style>
-                      <class name="title-2"/>
-                    </style>
-                  </object>
-                </child>
+                <style>
+                  <class name="title-2"/>
+                </style>
               </object>
             </child>
             <child>
@@ -98,6 +92,9 @@
             </child>
             <child>
               <object class="GtkStack" id="content_stack">
+                <style>
+                  <class name="card"/>
+                </style>
                 <child>
                   <object class="GtkStackPage" id="files_page">
                     <property name="name">files</property>
@@ -105,9 +102,6 @@
                       <object class="GtkBox" id="files_box">
                         <property name="orientation">vertical</property>
                         <property name="spacing">16</property>
-                        <style>
-                          <class name="card"/>
-                        </style>
                         <child>
                           <object class="GtkBox" id="files_header_box">
                             <property name="margin-start">16</property>
@@ -224,9 +218,6 @@
                       <object class="GtkBox" id="tree_box">
                         <property name="orientation">vertical</property>
                         <property name="spacing">16</property>
-                        <style>
-                          <class name="card"/>
-                        </style>
                         <child>
                           <object class="GtkBox" id="tree_header_box">
                             <property name="margin-start">16</property>
@@ -388,9 +379,6 @@
                       <object class="GtkBox" id="log_box">
                         <property name="orientation">vertical</property>
                         <property name="spacing">16</property>
-                        <style>
-                          <class name="card"/>
-                        </style>
                         <child>
                           <object class="GtkBox" id="log_header_box">
                             <property name="margin-start">16</property>
@@ -466,9 +454,6 @@
                       <object class="GtkBox" id="cache_box">
                         <property name="orientation">vertical</property>
                         <property name="spacing">16</property>
-                        <style>
-                          <class name="card"/>
-                        </style>
                         <child>
                           <object class="GtkBox" id="cache_header_box">
                             <property name="margin-start">16</property>
@@ -560,9 +545,6 @@
                       <object class="GtkBox" id="backup_box">
                         <property name="orientation">vertical</property>
                         <property name="spacing">16</property>
-                        <style>
-                          <class name="card"/>
-                        </style>
                         <child>
                           <object class="GtkBox" id="backup_header_box">
                             <property name="margin-start">16</property>
