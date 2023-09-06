@@ -15,11 +15,6 @@ use url::Url;
 use crate::prop_object::PropType;
 
 //------------------------------------------------------------------------------
-// CONSTANTS
-//------------------------------------------------------------------------------
-const ITER_END: i32 = -1;
-
-//------------------------------------------------------------------------------
 // MODULE: PropValueWidget
 //------------------------------------------------------------------------------
 mod imp {
@@ -151,7 +146,7 @@ mod imp {
                     } else {
                         self.buffer.set_text(text);
 
-                        self.add_link_tag(text, 0, ITER_END);
+                        self.add_link_tag(text, 0, -1);
                     }
                 },
                 PropType::Packager => {
@@ -162,17 +157,13 @@ mod imp {
                     }
 
                     if let Ok(caps) = EXPR.captures(text) {
-                        if let Some(caps) = caps.filter(|caps| caps.len() == 2) {
-                            if let Some(m) = caps.get(1) {
-                                let link = format!("mailto:{}", m.as_str());
-
-                                // Convert byte offsets to character offsets
-                                self.add_link_tag(
-                                    &link,
-                                    self.bytes_to_chars(text, m.start()),
-                                    self.bytes_to_chars(text, m.end())
-                                );
-                            }
+                        if let Some(m) = caps.and_then(|caps| caps.get(1)) {
+                            // Convert byte offsets to character offsets
+                            self.add_link_tag(
+                                &format!("mailto:{}", m.as_str()),
+                                self.bytes_to_chars(text, m.start()),
+                                self.bytes_to_chars(text, m.end())
+                            );
                         }
                     }
                 },
@@ -187,16 +178,12 @@ mod imp {
                         }
 
                         for caps in EXPR.captures_iter(text) {
-                            if let Some(caps) = caps.ok().filter(|caps| caps.len() == 2) {
-                                if let Some(m) = caps.get(1) {
-                                    let link = format!("pkg://{}", m.as_str());
-
-                                    self.add_link_tag(
-                                        &link,
-                                        m.start() as i32,
-                                        m.end() as i32
-                                    );
-                                }
+                            if let Some(m) = caps.ok().and_then(|caps| caps.get(1)) {
+                                self.add_link_tag(
+                                    &format!("pkg://{}", m.as_str()),
+                                    m.start() as i32,
+                                    m.end() as i32
+                                );
                             }
                         }
                     }
@@ -226,13 +213,11 @@ mod imp {
             // Apply tag
             let start_iter = self.buffer.iter_at_offset(start);
 
-            let end_iter: gtk::TextIter;
-
-            if end == ITER_END {
-                end_iter = self.buffer.end_iter();
+            let end_iter = if end == -1 {
+                self.buffer.end_iter()
             } else {
-                end_iter = self.buffer.iter_at_offset(end);
-            }
+                self.buffer.iter_at_offset(end)
+            };
 
             self.buffer.apply_tag(&tag, &start_iter, &end_iter);
 
