@@ -9,26 +9,8 @@
       </object>
     </child>
     <child>
-      <object class="GtkScrolledWindow">
-        <property name="hscrollbar-policy">automatic</property>
-        <property name="vscrollbar-policy">never</property>
-        <property name="child">
-          <object class="GtkTextView" id="view">
-            <property name="hexpand">true</property>
-            <property name="editable">false</property>
-            <property name="cursor-visible">false</property>
-            <property name="wrap-mode">word</property>
-            <property name="pixels-inside-wrap">4</property>
-            <property name="buffer">
-              <object class="GtkTextBuffer" id="buffer">
-                <property name="enable-undo">false</property>
-              </object>
-            </property>
-            <style>
-              <class name="value-row"/>
-            </style>
-          </object>
-        </property>
+      <object class="GtkDrawingArea" id="draw_area">
+        <property name="hexpand">true</property>
       </object>
     </child>
   </template>

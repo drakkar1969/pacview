@@ -5,12 +5,13 @@ use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use glib::once_cell::sync::{Lazy, OnceCell};
+use glib::once_cell::sync::Lazy;
 use glib::subclass::Signal;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
+use pangocairo;
 
 use crate::prop_object::PropType;
 
@@ -30,9 +31,7 @@ mod imp {
         #[template_child]
         pub image: TemplateChild<gtk::Image>,
         #[template_child]
-        pub view: TemplateChild<gtk::TextView>,
-        #[template_child]
-        pub buffer: TemplateChild<gtk::TextBuffer>,
+        pub draw_area: TemplateChild<gtk::DrawingArea>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -41,9 +40,11 @@ mod imp {
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        pub link_map: RefCell<HashMap<gtk::TextTag, String>>,
+        pub link_map: RefCell<HashMap<String, String>>,
 
-        pub link_rgba: OnceCell<gdk::RGBA>,
+        pub link_rgba: Cell<Option<gdk::RGBA>>,
+
+        pub pango_layout: RefCell<Option<pango::Layout>>,
 
         pub hovering: Cell<bool>,
     }
@@ -105,7 +106,9 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_widgets();
             obj.setup_controllers();
+            obj.setup_signals();
         }
     }
 
@@ -128,103 +131,10 @@ mod imp {
         // Text property custom setter
         //-----------------------------------
         fn set_text(&self, text: &str) {
-            // Set TextView text
-            match self.obj().ptype() {
-                PropType::Text => {
-                    self.buffer.set_text(text);
-                },
-                PropType::Title => {
-                    let title = format!("<b>{text}</b>");
+            let layout = self.pango_layout.borrow();
+            let layout = layout.as_ref().unwrap();
 
-                    let mut iter = self.buffer.start_iter();
-
-                    self.buffer.insert_markup(&mut iter, &title);
-                },
-                PropType::Link => {
-                    if text == "" {
-                        self.buffer.set_text("None");
-                    } else {
-                        self.buffer.set_text(text);
-
-                        self.add_link_tag(text, 0, -1);
-                    }
-                },
-                PropType::Packager => {
-                    self.buffer.set_text(text);
-
-                    lazy_static! {
-                        static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").unwrap();
-                    }
-
-                    if let Ok(caps) = EXPR.captures(text) {
-                        if let Some(m) = caps.and_then(|caps| caps.get(1)) {
-                            // Convert byte offsets to character offsets
-                            self.add_link_tag(
-                                &format!("mailto:{}", m.as_str()),
-                                self.bytes_to_chars(text, m.start()),
-                                self.bytes_to_chars(text, m.end())
-                            );
-                        }
-                    }
-                },
-                PropType::LinkList => {
-                    if text == "" {
-                        self.buffer.set_text("None");
-                    } else {
-                        self.buffer.set_text(text);
-        
-                        lazy_static! {
-                            static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
-                        }
-
-                        for caps in EXPR.captures_iter(text) {
-                            if let Some(m) = caps.ok().and_then(|caps| caps.get(1)) {
-                                self.add_link_tag(
-                                    &format!("pkg://{}", m.as_str()),
-                                    m.start() as i32,
-                                    m.end() as i32
-                                );
-                            }
-                        }
-                    }
-                },
-            }
-        }
-
-        //-----------------------------------
-        // Bytes to chars helper function
-        //-----------------------------------
-        fn bytes_to_chars(&self, text: &str, bytes: usize) -> i32 {
-            text[0..bytes].chars().count() as i32
-        }
-
-        //-----------------------------------
-        // TextView tag helper function
-        //-----------------------------------
-        fn add_link_tag(&self, link: &str, start: i32, end: i32) {
-            // Create tag
-            let tag = gtk::TextTag::builder()
-                .foreground_rgba(self.link_rgba.get().unwrap())
-                .underline(pango::Underline::Single)
-                .build();
-
-            self.buffer.tag_table().add(&tag);
-
-            // Apply tag
-            let start_iter = self.buffer.iter_at_offset(start);
-
-            let end_iter = if end == -1 {
-                self.buffer.end_iter()
-            } else {
-                self.buffer.iter_at_offset(end)
-            };
-
-            self.buffer.apply_tag(&tag, &start_iter, &end_iter);
-
-            // Save tag in link map
-            let mut link_map = self.link_map.borrow_mut();
-
-            link_map.insert(tag, link.to_string());
+            layout.set_text(text);
         }
     }
 }
@@ -242,34 +152,194 @@ impl PropValueWidget {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(link_rgba: gdk::RGBA) -> Self {
+    pub fn new() -> Self {
         let widget: Self = glib::Object::builder().build();
 
-        widget.imp().link_rgba.set(link_rgba).unwrap();
+        let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+        widget.imp().link_rgba.replace(Some(link_btn.color()));
 
         widget
     }
 
     //-----------------------------------
-    // Controller helper functions
+    // Layout format helper functions
     //-----------------------------------
-    fn is_tag_at_xy(&self, x: i32, y: i32) -> bool {
-        let imp = self.imp();
+    fn format_text(&self, attrs: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
+        let color = self.color();
 
-        let (bx, by) = imp.view.window_to_buffer_coords(gtk::TextWindowType::Widget, x, y);
+        let mut attr = pango::AttrColor::new_foreground((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
 
-        imp.view.iter_at_location(bx, by).filter(|iter| !iter.tags().is_empty()).is_some()
+        attrs.insert(attr);
+
+        let mut attr = pango::AttrInt::new_foreground_alpha((color.alpha() * 65535.0) as u16);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
+
+        attrs.insert(attr);
+
+        let mut attr = pango::AttrInt::new_weight(weight);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
+
+        attrs.insert(attr);
     }
 
-    fn tag_at_xy(&self, x: i32, y: i32) -> Option<String> {
+    fn format_link(&self, attrs: &pango::AttrList, start: usize, end: usize) {
+        let color = self.imp().link_rgba.get().unwrap();
+
+        let mut attr = pango::AttrColor::new_foreground((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
+
+        attrs.insert(attr);
+
+        let mut attr = pango::AttrInt::new_foreground_alpha((color.alpha() * 65535.0) as u16);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
+
+        attrs.insert(attr);
+
+        let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
+
+        attrs.insert(attr);
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
         let imp = self.imp();
 
-        let (bx, by) = imp.view.window_to_buffer_coords(gtk::TextWindowType::Widget, x, y);
+        let layout = imp.draw_area.create_pango_layout(None);
+        layout.set_wrap(pango::WrapMode::Word);
 
-        if let Some(iter) = imp.view.iter_at_location(bx, by).filter(|iter| !iter.tags().is_empty())
-        {
-            if let Some(link) = imp.link_map.borrow().get(&iter.tags()[0]) {
-                return Some(link.to_string())
+        imp.pango_layout.replace(Some(layout));
+
+        imp.draw_area.set_draw_func(clone!(@weak self as obj, @weak imp => move |_, context, width, _| {
+            let layout = imp.pango_layout.borrow();
+            let layout = layout.as_ref().unwrap();
+
+            let mut link_map = imp.link_map.borrow_mut();
+
+            link_map.clear();
+
+            let attrs = pango::AttrList::new();
+
+            // Set pango layout text text
+            match obj.ptype() {
+                PropType::Text => {
+                    obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                },
+                PropType::Title => {
+                    obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Bold);
+                },
+                PropType::Link => {
+                    if layout.text().is_empty() {
+                        layout.set_text("None");
+
+                        obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                    } else {
+                        link_map.insert(layout.text().to_string(), layout.text().to_string());
+
+                        obj.format_link(&attrs, 0, layout.text().len());
+                    }
+                },
+                PropType::Packager => {
+                    lazy_static! {
+                        static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").unwrap();
+                    }
+
+                    obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+
+                    if let Some(m) = EXPR.captures(&layout.text()).ok().flatten().and_then(|caps| caps.get(1)) {
+                        link_map.insert(m.as_str().to_string(), format!("pkg://{}", m.as_str()));
+
+                        obj.format_link(&attrs, m.start(), m.end());
+                    }
+                },
+                PropType::LinkList => {
+                    if layout.text().is_empty() {
+                        layout.set_text("None");
+
+                        obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                    } else {
+                        lazy_static! {
+                            static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
+                        }
+
+                        obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+
+                        for caps in EXPR.captures_iter(&layout.text()).flatten() {
+                            if let Some(m) = caps.get(1) {
+                                link_map.insert(m.as_str().to_string(), format!("pkg://{}", m.as_str()));
+
+                                obj.format_link(&attrs, m.start(), m.end());
+                            }
+                        }
+
+                    }
+                },
+            }
+
+            layout.set_attributes(Some(&attrs));
+
+            layout.set_width(width * pango::SCALE);
+
+            pangocairo::show_layout(&context, &layout);
+        }));
+    }
+
+    //-----------------------------------
+    // Controller helper functions
+    //-----------------------------------
+    fn is_link_at_xy(&self, x: i32, y: i32) -> bool {
+        let imp = self.imp();
+
+        let layout = imp.pango_layout.borrow();
+        let layout = layout.as_ref().unwrap();
+
+        let (inside, index, _) = layout.xy_to_index(x * pango::SCALE, y * pango::SCALE);
+
+        if inside {
+            if let Some(attrs) = layout.attributes() {
+                if let Some(_) = attrs.attributes().into_iter()
+                    .filter(|a| a.attr_class().type_() == pango::AttrType::Underline)
+                    .find(|a| a.start_index() as i32 <= index && a.end_index() as i32 > index)
+                {
+                    return true
+                }
+            }
+        }
+
+        false
+    }
+
+    fn link_at_xy(&self, x: i32, y: i32) -> Option<String> {
+        let imp = self.imp();
+
+        let layout = imp.pango_layout.borrow();
+        let layout = layout.as_ref().unwrap();
+
+        let (inside, index, _) = layout.xy_to_index(x * pango::SCALE, y * pango::SCALE);
+
+        if inside {
+            if let Some(attrs) = layout.attributes() {
+                if let Some(a) = attrs.attributes().into_iter()
+                    .filter(|a| a.attr_class().type_() == pango::AttrType::Underline)
+                    .find(|a| a.start_index() as i32 <= index && a.end_index() as i32 > index)
+                {
+                    let link_map = imp.link_map.borrow();
+
+                    if let Some(link) = link_map.get(&layout.text()[a.start_index() as usize..a.end_index() as usize])
+                    {
+                        return Some(link.to_string())
+                    }
+                }
             }
         }
 
@@ -279,15 +349,15 @@ impl PropValueWidget {
     fn set_cursor_motion(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let hovering = self.is_tag_at_xy(x as i32, y as i32);
+        let hovering = self.is_link_at_xy(x as i32, y as i32);
 
         if hovering != imp.hovering.get() {
             imp.hovering.replace(hovering);
 
             if hovering {
-                imp.view.set_cursor_from_name(Some("pointer"));
+                imp.draw_area.set_cursor_from_name(Some("pointer"));
             } else {
-                imp.view.set_cursor_from_name(Some("text"));
+                imp.draw_area.set_cursor_from_name(Some("default"));
             }
         }
     }
@@ -309,7 +379,7 @@ impl PropValueWidget {
             obj.set_cursor_motion(x, y);
         }));
 
-        imp.view.add_controller(motion_controller);
+        imp.draw_area.add_controller(motion_controller);
 
         // Activate links on click (add click gesture to view)
         let click_gesture = gtk::GestureClick::new();
@@ -317,13 +387,13 @@ impl PropValueWidget {
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
         click_gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
-            if obj.is_tag_at_xy(x as i32, y as i32) {
+            if obj.is_link_at_xy(x as i32, y as i32) {
                 gesture.set_state(gtk::EventSequenceState::Claimed);
             }
         }));
 
         click_gesture.connect_released(clone!(@weak self as obj => move |_, _, x, y| {
-            if let Some(link) = obj.tag_at_xy(x as i32, y as i32) {
+            if let Some(link) = obj.link_at_xy(x as i32, y as i32) {
                 if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
                     if let Ok(url) = Url::parse(&link) {
                         if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
@@ -334,6 +404,31 @@ impl PropValueWidget {
             }
         }));
 
-        imp.view.add_controller(click_gesture);
+        imp.draw_area.add_controller(click_gesture);
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Color scheme changed signal
+        let style_manager = adw::StyleManager::default();
+
+        style_manager.connect_dark_notify(clone!(@weak imp => move |style_manager| {
+            // Update link color when color scheme changes
+            let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+            let btn_style = adw::StyleManager::for_display(&link_btn.display());
+
+            if style_manager.is_dark() {
+                btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
+            } else {
+                btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
+            }
+
+            imp.link_rgba.replace(Some(link_btn.color()));
+        }));
     }
 }
