@@ -27,6 +27,8 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
+        pub stack: TemplateChild<gtk::Stack>,
+        #[template_child]
         pub grid: TemplateChild<gtk::Grid>,
 
         #[template_child]
@@ -39,8 +41,6 @@ mod imp {
         pub prev_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub next_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub empty_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
         pkg_model: RefCell<Option<gio::ListStore>>,
@@ -259,15 +259,8 @@ impl InfoPane {
 
         let pkg = self.pkg();
 
-        // Set infopane toolbar visibility
-        let is_pkg = pkg.is_some();
-
-        if imp.toolbar.is_visible() != is_pkg {
-            imp.toolbar.set_visible(is_pkg);
-        }
-
-        // Set empty label overlay visibility
-        imp.empty_label.set_visible(!is_pkg);
+        // Set stack visible page
+        imp.stack.set_visible_child_name(if pkg.is_some() {"properties"} else {"empty"});
 
         // If package is not none, display it
         if let Some(pkg) = pkg {
