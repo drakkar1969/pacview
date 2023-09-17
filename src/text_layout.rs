@@ -34,7 +34,7 @@ impl Default for PropType {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: PropValueWidget
+// MODULE: TextLayout
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -43,9 +43,9 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::PropValueWidget)]
-    #[template(resource = "/com/github/PacView/ui/prop_value_widget.ui")]
-    pub struct PropValueWidget {
+    #[properties(wrapper_type = super::TextLayout)]
+    #[template(resource = "/com/github/PacView/ui/text_layout.ui")]
+    pub struct TextLayout {
         #[template_child]
         pub draw_area: TemplateChild<gtk::DrawingArea>,
 
@@ -67,9 +67,9 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for PropValueWidget {
-        const NAME: &'static str = "PropValueWidget";
-        type Type = super::PropValueWidget;
+    impl ObjectSubclass for TextLayout {
+        const NAME: &'static str = "TextLayout";
+        type Type = super::TextLayout;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
@@ -81,7 +81,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for PropValueWidget {
+    impl ObjectImpl for TextLayout {
         //-----------------------------------
         // Custom signals
         //-----------------------------------
@@ -137,7 +137,7 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for PropValueWidget {
+    impl WidgetImpl for TextLayout {
         fn request_mode(&self) -> gtk::SizeRequestMode {
             gtk::SizeRequestMode::HeightForWidth
         }
@@ -169,7 +169,7 @@ mod imp {
         }
     }
 
-    impl PropValueWidget {
+    impl TextLayout {
         //-----------------------------------
         // Text property custom setter
         //-----------------------------------
@@ -184,15 +184,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: PropValueWidget
+// IMPLEMENTATION: TextLayout
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct PropValueWidget(ObjectSubclass<imp::PropValueWidget>)
+    pub struct TextLayout(ObjectSubclass<imp::TextLayout>)
         @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl PropValueWidget {
+impl TextLayout {
     //-----------------------------------
     // New function
     //-----------------------------------

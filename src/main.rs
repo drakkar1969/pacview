@@ -5,7 +5,7 @@ mod search_tag;
 mod filter_row;
 mod package_view;
 mod info_pane;
-mod prop_value_widget;
+mod text_layout;
 mod preferences_window;
 mod stats_window;
 mod toggle_button;

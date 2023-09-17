@@ -8,7 +8,7 @@ use glib::closure_local;
 
 use url::Url;
 
-use crate::prop_value_widget::{PropValueWidget, PropType};
+use crate::text_layout::{TextLayout, PropType};
 use crate::pkg_object::{PkgObject, PkgFlags};
 
 //------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ mod imp {
         type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
-            PropValueWidget::ensure_type();
+            TextLayout::ensure_type();
 
             klass.bind_template();
         }
@@ -141,11 +141,11 @@ impl InfoPane {
 
         let image = gtk::Image::new();
 
-        let widget = PropValueWidget::new();
-        widget.set_ptype(ptype);
-        widget.set_hexpand(true);
+        let text_layout = TextLayout::new();
+        text_layout.set_ptype(ptype);
+        text_layout.set_hexpand(true);
 
-        widget.connect_closure("link-activated", false, closure_local!(@watch self as obj => move |_: PropValueWidget, link: String| -> bool {
+        text_layout.connect_closure("link-activated", false, closure_local!(@watch self as obj => move |_: TextLayout, link: String| -> bool {
             obj.link_handler(&link)
         }));
 
@@ -156,7 +156,7 @@ impl InfoPane {
         widget_box.set_margin_bottom(8);
 
         widget_box.append(&image);
-        widget_box.append(&widget);
+        widget_box.append(&text_layout);
 
         let value_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         value_box.add_css_class("property-box");
@@ -184,8 +184,8 @@ impl InfoPane {
                         image.set_visible(icon.is_some());
                     }
 
-                    if let Some(widget) = widget_box.last_child().and_downcast::<PropValueWidget>() {
-                        widget.set_text(value);
+                    if let Some(text_layout) = widget_box.last_child().and_downcast::<TextLayout>() {
+                        text_layout.set_text(value);
                     }
                 }
             }
@@ -463,8 +463,8 @@ impl InfoPane {
                     image.set_visible(icon.is_some());
                 }
 
-                if let Some(widget) = widget_box.last_child().and_downcast::<PropValueWidget>() {
-                    widget.set_text(value);
+                if let Some(text_layout) = widget_box.last_child().and_downcast::<TextLayout>() {
+                    text_layout.set_text(value);
                 }
             }
         }
