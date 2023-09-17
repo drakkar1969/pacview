@@ -70,16 +70,24 @@ box.rounded {
 }
 
 /* Info pane property rows */
-box.property-box {
+box.propertybox {
 	background: @view_bg_color;
 }
 
-box.property-box:not(:nth-last-child(-n+2)) {
+box.propertybox:not(:nth-last-child(-n+2)) {
 	border-bottom: 1px solid @borders;
 }
 
-box.property-box-label {
+box.propertylabel {
 	border-right: 1px solid @borders;
+}
+
+.propertyvalue {
+	color: @view_bg_color;
+}
+
+text-layout {
+	color: @view_fg_color;
 }
 
 /* Details window images */

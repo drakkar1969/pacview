@@ -74,6 +74,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+            klass.set_css_name("text-layout");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -206,9 +207,11 @@ impl TextLayout {
     fn format_text(&self, attrs: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
         let color = self.color();
 
-        let red = (1.0 - color.alpha()) + (color.red() * color.alpha());
-        let green = (1.0 - color.alpha()) + (color.green() * color.alpha());
-        let blue = (1.0 - color.alpha()) + (color.blue() * color.alpha());
+        let bg_color = self.parent().unwrap().color();
+
+        let red = ((1.0 - color.alpha()) * bg_color.red()) + (color.red() * color.alpha());
+        let green = ((1.0 - color.alpha()) * bg_color.green()) + (color.green() * color.alpha());
+        let blue = ((1.0 - color.alpha()) * bg_color.blue()) + (color.blue() * color.alpha());
 
         let mut attr = pango::AttrColor::new_foreground((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16);
         attr.set_start_index(start as u32);
@@ -226,9 +229,11 @@ impl TextLayout {
     fn format_link(&self, attrs: &pango::AttrList, start: usize, end: usize) {
         let color = self.imp().link_rgba.get().unwrap();
 
-        let red = (1.0 - color.alpha()) + (color.red() * color.alpha());
-        let green = (1.0 - color.alpha()) + (color.green() * color.alpha());
-        let blue = (1.0 - color.alpha()) + (color.blue() * color.alpha());
+        let bg_color = self.parent().unwrap().color();
+
+        let red = ((1.0 - color.alpha()) * bg_color.red()) + (color.red() * color.alpha());
+        let green = ((1.0 - color.alpha()) * bg_color.green()) + (color.green() * color.alpha());
+        let blue = ((1.0 - color.alpha()) * bg_color.blue()) + (color.blue() * color.alpha());
 
         let mut attr = pango::AttrColor::new_foreground((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16);
         attr.set_start_index(start as u32);

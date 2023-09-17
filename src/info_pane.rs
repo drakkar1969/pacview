@@ -132,8 +132,8 @@ impl InfoPane {
         label.set_margin_bottom(8);
 
         let label_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        label_box.add_css_class("property-box");
-        label_box.add_css_class("property-box-label");
+        label_box.add_css_class("propertybox");
+        label_box.add_css_class("propertylabel");
 
         label_box.append(&label);
 
@@ -157,9 +157,10 @@ impl InfoPane {
 
         widget_box.append(&image);
         widget_box.append(&text_layout);
+        widget_box.add_css_class("propertyvalue");
 
         let value_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-        value_box.add_css_class("property-box");
+        value_box.add_css_class("propertybox");
 
         value_box.append(&widget_box);
 
