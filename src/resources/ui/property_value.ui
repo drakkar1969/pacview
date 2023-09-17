@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// PropertyValue template //-->
+  <template class="PropertyValue" parent="GtkBox">
+    <style>
+      <class name="propertybox"/>
+    </style>
+    <child>
+      <object class="GtkBox">
+        <style>
+          <class name="propertyvalue"/>
+        </style>
+        <property name="margin-start">10</property>
+        <property name="margin-end">70</property>
+        <property name="margin-top">8</property>
+        <property name="margin-bottom">8</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkImage" id="image">
+          </object>
+        </child>
+        <child>
+          <object class="TextLayout" id="layout">
+            <property name="hexpand">true</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

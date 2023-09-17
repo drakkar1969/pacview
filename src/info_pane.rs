@@ -9,6 +9,8 @@ use glib::closure_local;
 use url::Url;
 
 use crate::text_layout::{TextLayout, PropType};
+use crate::property_label::PropertyLabel;
+use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
 
 //------------------------------------------------------------------------------
@@ -45,7 +47,7 @@ mod imp {
 
         pub history_selection: RefCell<gtk::SingleSelection>,
 
-        pub property_map: RefCell<HashMap<String, (gtk::Box, gtk::Box)>>,
+        pub property_map: RefCell<HashMap<String, (PropertyLabel, PropertyValue)>>,
     }
 
     //-----------------------------------
@@ -123,72 +125,30 @@ impl InfoPane {
     fn add_property_row(&self, row: i32, ptype: PropType, text: &str) {
         let imp = self.imp();
 
-        let label = gtk::Label::new(Some(text));
-        label.set_xalign(0.0);
-        label.set_valign(gtk::Align::Start);
-        label.set_margin_start(6);
-        label.set_margin_end(10);
-        label.set_margin_top(8);
-        label.set_margin_bottom(8);
+        let property_label = PropertyLabel::new(text);
 
-        let label_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        label_box.add_css_class("propertybox");
-        label_box.add_css_class("propertylabel");
+        imp.grid.attach(&property_label, 0, row, 1, 1);
 
-        label_box.append(&label);
-
-        imp.grid.attach(&label_box, 0, row, 1, 1);
-
-        let image = gtk::Image::new();
-
-        let text_layout = TextLayout::new();
-        text_layout.set_ptype(ptype);
-        text_layout.set_hexpand(true);
-
-        text_layout.connect_closure("link-activated", false, closure_local!(@watch self as obj => move |_: TextLayout, link: String| -> bool {
+        let property_value = PropertyValue::new(ptype, closure_local!(@watch self as obj => move |_: TextLayout, link: String| -> bool {
             obj.link_handler(&link)
         }));
 
-        let widget_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
-        widget_box.set_margin_start(10);
-        widget_box.set_margin_end(70);
-        widget_box.set_margin_top(8);
-        widget_box.set_margin_bottom(8);
+        imp.grid.attach(&property_value, 1, row, 1, 1);
 
-        widget_box.append(&image);
-        widget_box.append(&text_layout);
-        widget_box.add_css_class("propertyvalue");
-
-        let value_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-        value_box.add_css_class("propertybox");
-
-        value_box.append(&widget_box);
-
-        imp.grid.attach(&value_box, 1, row, 1, 1);
-
-        imp.property_map.borrow_mut().insert(text.to_string(), (label_box, value_box));
+        imp.property_map.borrow_mut().insert(text.to_string(), (property_label, property_value));
     }
 
     //-----------------------------------
     // Set property row function
     //-----------------------------------
     fn set_property_row(&self, label: &str, visible: bool, value: &str, icon: Option<&str>) {
-        if let Some((label_box, value_box)) = self.imp().property_map.borrow().get(label) {
-            label_box.set_visible(visible);
-            value_box.set_visible(visible);
+        if let Some((property_label, property_value)) = self.imp().property_map.borrow().get(label) {
+            property_label.set_visible(visible);
+            property_value.set_visible(visible);
 
             if visible {
-                if let Some(widget_box) = value_box.first_child().and_downcast::<gtk::Box>() {
-                    if let Some(image) = widget_box.first_child().and_downcast::<gtk::Image>() {
-                        image.set_icon_name(icon);
-
-                        image.set_visible(icon.is_some());
-                    }
-
-                    if let Some(text_layout) = widget_box.last_child().and_downcast::<TextLayout>() {
-                        text_layout.set_text(value);
-                    }
-                }
+                property_value.set_icon(icon);
+                property_value.set_text(value);
             }
         }
     }
@@ -456,18 +416,9 @@ impl InfoPane {
     // Public update property row function
     //-----------------------------------
     pub fn update_property_row(&self, label: &str, value: &str, icon: Option<&str>) {
-        if let Some((_, value_box)) = self.imp().property_map.borrow().get(label) {
-            if let Some(widget_box) = value_box.first_child().and_downcast::<gtk::Box>() {
-                if let Some(image) = widget_box.first_child().and_downcast::<gtk::Image>() {
-                    image.set_icon_name(icon);
-
-                    image.set_visible(icon.is_some());
-                }
-
-                if let Some(text_layout) = widget_box.last_child().and_downcast::<TextLayout>() {
-                    text_layout.set_text(value);
-                }
-            }
+        if let Some((_, property_value)) = self.imp().property_map.borrow().get(label) {
+            property_value.set_icon(icon);
+            property_value.set_text(value);
         }
     }
 }

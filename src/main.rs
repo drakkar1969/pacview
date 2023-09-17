@@ -6,6 +6,8 @@ mod filter_row;
 mod package_view;
 mod info_pane;
 mod text_layout;
+mod property_label;
+mod property_value;
 mod preferences_window;
 mod stats_window;
 mod toggle_button;
