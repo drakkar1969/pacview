@@ -286,7 +286,9 @@ impl TextLayout {
                 PropType::Link => {
                     if layout.text().is_empty() {
                         layout.set_text("None");
+                    }
 
+                    if layout.text() == "None" {
                         obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
                     } else {
                         link_map.insert(layout.text().to_string(), layout.text().to_string());
@@ -310,7 +312,9 @@ impl TextLayout {
                 PropType::LinkList => {
                     if layout.text().is_empty() {
                         layout.set_text("None");
+                    }
 
+                    if layout.text() == "None" {
                         obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
                     } else {
                         lazy_static! {
