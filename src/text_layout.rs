@@ -302,7 +302,7 @@ impl TextLayout {
                     obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
 
                     if let Some(m) = EXPR.captures(&layout.text()).ok().flatten().and_then(|caps| caps.get(1)) {
-                        link_map.insert(m.as_str().to_string(), format!("pkg://{}", m.as_str()));
+                        link_map.insert(m.as_str().to_string(), format!("mailto:{}", m.as_str()));
 
                         obj.format_link(&attrs, m.start(), m.end());
                     }
