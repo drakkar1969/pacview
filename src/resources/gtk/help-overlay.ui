@@ -74,12 +74,6 @@
             <property name="title">Package List</property>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">F9</property>
-                <property name="title">Check for Updates</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">F5</property>
                 <property name="title">Refresh</property>
               </object>
