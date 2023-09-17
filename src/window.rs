@@ -841,9 +841,9 @@ impl PacViewWindow {
                     let info_pkg = imp.info_pane.pkg();
 
                     if info_pkg.is_some() && info_pkg.unwrap() == pkg {
-                        imp.info_pane.update_prop("Package URL", &imp.info_pane.prop_to_package_url(&pkg), None);
+                        imp.info_pane.update_property_row("Package URL", &imp.info_pane.prop_to_package_url(&pkg), None);
 
-                        imp.info_pane.update_prop("Repository", &pkg.repo_show(), None);
+                        imp.info_pane.update_property_row("Repository", &pkg.repo_show(), None);
                     }
                 }
 
@@ -935,7 +935,7 @@ impl PacViewWindow {
                         let info_pkg = imp.info_pane.pkg();
 
                         if info_pkg.is_some() && info_pkg.unwrap() == *pkg {
-                            imp.info_pane.update_prop("Version", &pkg.version(), Some("pkg-update"));
+                            imp.info_pane.update_property_row("Version", &pkg.version(), Some("pkg-update"));
                         }
                     }
                 }

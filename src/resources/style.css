@@ -69,9 +69,17 @@ box.rounded {
 	border-radius: 9999px;
 }
 
-/* Info pane value text view */
-textview.value-row {
-	background: transparent;
+/* Info pane property rows */
+box.property-box {
+	background: @view_bg_color;
+}
+
+box.property-box:not(:nth-last-child(-n+2)) {
+	border-bottom: 1px solid @borders;
+}
+
+box.property-box-label {
+	border-right: 1px solid @borders;
 }
 
 /* Details window images */

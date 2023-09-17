@@ -5,7 +5,7 @@ use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use glib::once_cell::sync::Lazy;
+use glib::once_cell::sync::{Lazy, OnceCell};
 use glib::subclass::Signal;
 
 use fancy_regex::Regex;
@@ -13,7 +13,25 @@ use lazy_static::lazy_static;
 use url::Url;
 use pangocairo;
 
-use crate::prop_object::PropType;
+//------------------------------------------------------------------------------
+// ENUM: PropType
+//------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "PropType")]
+pub enum PropType {
+    Text = 0,
+    Title = 1,
+    Link = 2,
+    Packager = 3,
+    LinkList = 4,
+}
+
+impl Default for PropType {
+    fn default() -> Self {
+        PropType::Text
+    }
+}
 
 //------------------------------------------------------------------------------
 // MODULE: PropValueWidget
@@ -29,22 +47,18 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/prop_value_widget.ui")]
     pub struct PropValueWidget {
         #[template_child]
-        pub image: TemplateChild<gtk::Image>,
-        #[template_child]
         pub draw_area: TemplateChild<gtk::DrawingArea>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
-        #[property(set = Self::set_icon, nullable)]
-        _icon: RefCell<Option<String>>,
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        pub link_map: RefCell<HashMap<String, String>>,
-
         pub link_rgba: Cell<Option<gdk::RGBA>>,
 
-        pub pango_layout: RefCell<Option<pango::Layout>>,
+        pub pango_layout: OnceCell<pango::Layout>,
+
+        pub link_map: RefCell<HashMap<String, String>>,
 
         pub hovering: Cell<bool>,
     }
@@ -56,7 +70,7 @@ mod imp {
     impl ObjectSubclass for PropValueWidget {
         const NAME: &'static str = "PropValueWidget";
         type Type = super::PropValueWidget;
-        type ParentType = gtk::Box;
+        type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -104,37 +118,67 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
+            let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+            self.link_rgba.replace(Some(link_btn.color()));
+
             let obj = self.obj();
 
             obj.setup_widgets();
             obj.setup_controllers();
             obj.setup_signals();
         }
+
+        //-----------------------------------
+        // Dispose function
+        //-----------------------------------
+        fn dispose(&self) {
+            self.dispose_template();
+        }
     }
 
-    impl WidgetImpl for PropValueWidget {}
-    impl BoxImpl for PropValueWidget {}
-
-    impl PropValueWidget {
-        //-----------------------------------
-        // Icon property custom setter
-        //-----------------------------------
-        fn set_icon(&self, icon: Option<&str>) {
-            if icon.is_some() {
-                self.image.set_icon_name(icon);
-            }
-
-            self.image.set_visible(icon.is_some());
+    impl WidgetImpl for PropValueWidget {
+        fn request_mode(&self) -> gtk::SizeRequestMode {
+            gtk::SizeRequestMode::HeightForWidth
         }
 
+        fn measure(&self, orientation: gtk::Orientation, for_size: i32) -> (i32, i32, i32, i32) {
+            let layout = self.pango_layout.get().unwrap();
+
+            let measure_layout = layout.copy();
+
+            if orientation == gtk::Orientation::Horizontal {
+                measure_layout.set_width(pango::SCALE);
+
+                (measure_layout.pixel_size().0, measure_layout.pixel_size().0, -1, -1)
+            } else {
+                if for_size != -1 {
+                    measure_layout.set_width(for_size * pango::SCALE);
+                }
+
+                (measure_layout.pixel_size().1, measure_layout.pixel_size().1, -1, -1)
+            }
+        }
+
+        fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
+            let layout = self.pango_layout.get().unwrap();
+
+            layout.set_width(width * pango::SCALE);
+
+            self.draw_area.allocate(width, height, baseline, None);
+        }
+    }
+
+    impl PropValueWidget {
         //-----------------------------------
         // Text property custom setter
         //-----------------------------------
         fn set_text(&self, text: &str) {
-            let layout = self.pango_layout.borrow();
-            let layout = layout.as_ref().unwrap();
+            let layout = self.pango_layout.get().unwrap();
 
             layout.set_text(text);
+
+            self.draw_area.queue_resize();
         }
     }
 }
@@ -144,8 +188,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PropValueWidget(ObjectSubclass<imp::PropValueWidget>)
-        @extends gtk::Box, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+        @extends gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl PropValueWidget {
@@ -153,13 +197,7 @@ impl PropValueWidget {
     // New function
     //-----------------------------------
     pub fn new() -> Self {
-        let widget: Self = glib::Object::builder().build();
-
-        let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-        widget.imp().link_rgba.replace(Some(link_btn.color()));
-
-        widget
+        glib::Object::builder().build()
     }
 
     //-----------------------------------
@@ -168,13 +206,11 @@ impl PropValueWidget {
     fn format_text(&self, attrs: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
         let color = self.color();
 
-        let mut attr = pango::AttrColor::new_foreground((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16);
-        attr.set_start_index(start as u32);
-        attr.set_end_index(end as u32);
+        let red = (1.0 - color.alpha()) + (color.red() * color.alpha());
+        let green = (1.0 - color.alpha()) + (color.green() * color.alpha());
+        let blue = (1.0 - color.alpha()) + (color.blue() * color.alpha());
 
-        attrs.insert(attr);
-
-        let mut attr = pango::AttrInt::new_foreground_alpha((color.alpha() * 65535.0) as u16);
+        let mut attr = pango::AttrColor::new_foreground((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16);
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
@@ -190,7 +226,11 @@ impl PropValueWidget {
     fn format_link(&self, attrs: &pango::AttrList, start: usize, end: usize) {
         let color = self.imp().link_rgba.get().unwrap();
 
-        let mut attr = pango::AttrColor::new_foreground((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16);
+        let red = (1.0 - color.alpha()) + (color.red() * color.alpha());
+        let green = (1.0 - color.alpha()) + (color.green() * color.alpha());
+        let blue = (1.0 - color.alpha()) + (color.blue() * color.alpha());
+
+        let mut attr = pango::AttrColor::new_foreground((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16);
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
@@ -217,12 +257,12 @@ impl PropValueWidget {
 
         let layout = imp.draw_area.create_pango_layout(None);
         layout.set_wrap(pango::WrapMode::Word);
+        layout.set_line_spacing(1.15);
 
-        imp.pango_layout.replace(Some(layout));
+        imp.pango_layout.set(layout).unwrap();
 
-        imp.draw_area.set_draw_func(clone!(@weak self as obj, @weak imp => move |_, context, width, _| {
-            let layout = imp.pango_layout.borrow();
-            let layout = layout.as_ref().unwrap();
+        imp.draw_area.set_draw_func(clone!(@weak self as obj, @weak imp => move |_, context, _, _| {
+            let layout = imp.pango_layout.get().unwrap();
 
             let mut link_map = imp.link_map.borrow_mut();
 
@@ -288,8 +328,6 @@ impl PropValueWidget {
 
             layout.set_attributes(Some(&attrs));
 
-            layout.set_width(width * pango::SCALE);
-
             pangocairo::show_layout(&context, &layout);
         }));
     }
@@ -300,8 +338,7 @@ impl PropValueWidget {
     fn is_link_at_xy(&self, x: i32, y: i32) -> bool {
         let imp = self.imp();
 
-        let layout = imp.pango_layout.borrow();
-        let layout = layout.as_ref().unwrap();
+        let layout = imp.pango_layout.get().unwrap();
 
         let (inside, index, _) = layout.xy_to_index(x * pango::SCALE, y * pango::SCALE);
 
@@ -322,8 +359,7 @@ impl PropValueWidget {
     fn link_at_xy(&self, x: i32, y: i32) -> Option<String> {
         let imp = self.imp();
 
-        let layout = imp.pango_layout.borrow();
-        let layout = layout.as_ref().unwrap();
+        let layout = imp.pango_layout.get().unwrap();
 
         let (inside, index, _) = layout.xy_to_index(x * pango::SCALE, y * pango::SCALE);
 

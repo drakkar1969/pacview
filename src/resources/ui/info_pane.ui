@@ -9,40 +9,7 @@
             <property name="hexpand">True</property>
             <property name="vexpand">True</property>
             <property name="child">
-              <object class="GtkColumnView" id="view">
-                <property name="show-row-separators">True</property>
-                <property name="show-column-separators">True</property>
-                <property name="reorderable">False</property>
-                <property name="model">
-                  <object class="GtkNoSelection" id="selection">
-                    <property name="model">
-                      <object class="GListStore" id="model">
-                        <property name="item-type">PropObject</property>
-                      </object>
-                    </property>
-                  </object>
-                </property>
-                <child>
-                  <object class="GtkColumnViewColumn" id="label_column">
-                    <property name="title">Property</property>
-                    <property name="resizable">False</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/infopane/label_item.ui</property>
-                      </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkColumnViewColumn" id="value_column">
-                    <property name="title">Value</property>
-                    <property name="resizable">False</property>
-                    <property name="expand">True</property>
-                    <property name="factory">
-                      <object class="GtkSignalListItemFactory" id="value_factory"/>
-                    </property>
-                  </object>
-                </child>
+              <object class="GtkGrid" id="grid">
               </object>
             </property>
           </object>

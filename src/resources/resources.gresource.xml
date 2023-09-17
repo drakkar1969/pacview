@@ -43,7 +43,6 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/cache_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/backup_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/infopane/label_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/package_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/version_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/repository_item.ui</file>

@@ -11,7 +11,6 @@ mod stats_window;
 mod toggle_button;
 mod details_window;
 mod pkg_object;
-mod prop_object;
 mod stats_object;
 mod backup_object;
 mod utils;

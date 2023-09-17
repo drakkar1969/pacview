@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PropValueWidget template //-->
-  <template class="PropValueWidget" parent="GtkBox">
-    <property name="margin-start">4</property>
-    <property name="spacing">6</property>
-    <child>
-      <object class="GtkImage" id="image">
-      </object>
-    </child>
+  <template class="PropValueWidget" parent="GtkWidget">
     <child>
       <object class="GtkDrawingArea" id="draw_area">
         <property name="hexpand">true</property>
+        <property name="vexpand">true</property>
       </object>
     </child>
   </template>

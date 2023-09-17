@@ -1,15 +1,15 @@
 use std::cell::RefCell;
+use std::collections::HashMap;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, closure_local};
+use glib::closure_local;
 
 use url::Url;
 
-use crate::prop_value_widget::PropValueWidget;
+use crate::prop_value_widget::{PropValueWidget, PropType};
 use crate::pkg_object::{PkgObject, PkgFlags};
-use crate::prop_object::{PropObject, PropType};
 
 //------------------------------------------------------------------------------
 // MODULE: InfoPane
@@ -25,11 +25,8 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
-        pub view: TemplateChild<gtk::ColumnView>,
-        #[template_child]
-        pub model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub value_factory: TemplateChild<gtk::SignalListItemFactory>,
+        pub grid: TemplateChild<gtk::Grid>,
+
         #[template_child]
         pub toolbar: TemplateChild<gtk::Box>,
         #[template_child]
@@ -47,6 +44,8 @@ mod imp {
         pkg_model: RefCell<Option<gio::ListStore>>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
+
+        pub property_map: RefCell<HashMap<String, (gtk::Box, gtk::Box)>>,
     }
 
     //-----------------------------------
@@ -59,7 +58,7 @@ mod imp {
         type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
-            PropObject::ensure_type();
+            PropValueWidget::ensure_type();
 
             klass.bind_template();
         }
@@ -94,7 +93,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_signals();
         }
     }
 
@@ -120,68 +118,117 @@ impl InfoPane {
     }
 
     //-----------------------------------
+    // Add property row function
+    //-----------------------------------
+    fn add_property_row(&self, row: i32, ptype: PropType, text: &str) {
+        let imp = self.imp();
+
+        let label = gtk::Label::new(Some(text));
+        label.set_xalign(0.0);
+        label.set_valign(gtk::Align::Start);
+        label.set_margin_start(6);
+        label.set_margin_end(10);
+        label.set_margin_top(8);
+        label.set_margin_bottom(8);
+
+        let label_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        label_box.add_css_class("property-box");
+        label_box.add_css_class("property-box-label");
+
+        label_box.append(&label);
+
+        imp.grid.attach(&label_box, 0, row, 1, 1);
+
+        let image = gtk::Image::new();
+
+        let widget = PropValueWidget::new();
+        widget.set_ptype(ptype);
+        widget.set_hexpand(true);
+
+        widget.connect_closure("link-activated", false, closure_local!(@watch self as obj => move |_: PropValueWidget, link: String| -> bool {
+            obj.link_handler(&link)
+        }));
+
+        let widget_box = gtk::Box::new(gtk::Orientation::Horizontal, 6);
+        widget_box.set_margin_start(10);
+        widget_box.set_margin_end(70);
+        widget_box.set_margin_top(8);
+        widget_box.set_margin_bottom(8);
+
+        widget_box.append(&image);
+        widget_box.append(&widget);
+
+        let value_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        value_box.add_css_class("property-box");
+
+        value_box.append(&widget_box);
+
+        imp.grid.attach(&value_box, 1, row, 1, 1);
+
+        imp.property_map.borrow_mut().insert(text.to_string(), (label_box, value_box));
+    }
+
+    //-----------------------------------
+    // Set property row function
+    //-----------------------------------
+    fn set_property_row(&self, label: &str, visible: bool, value: &str, icon: Option<&str>) {
+        if let Some((label_box, value_box)) = self.imp().property_map.borrow().get(label) {
+            label_box.set_visible(visible);
+            value_box.set_visible(visible);
+
+            if visible {
+                if let Some(widget_box) = value_box.first_child().and_downcast::<gtk::Box>() {
+                    if let Some(image) = widget_box.first_child().and_downcast::<gtk::Image>() {
+                        image.set_icon_name(icon);
+
+                        image.set_visible(icon.is_some());
+                    }
+
+                    if let Some(widget) = widget_box.last_child().and_downcast::<PropValueWidget>() {
+                        widget.set_text(value);
+                    }
+                }
+            }
+        }
+    }
+
+    //-----------------------------------
     // Setup widgets
     //-----------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Hide info pane header
-        if let Some(header) = imp.view.first_child()
-            .filter(|header| header.type_().name() == "GtkColumnViewRowWidget")
-        {
-            if let Some(_cell) = header.first_child()
-                .filter(|cell| cell.type_().name() == "GtkColumnViewTitle")
-            {
-                header.set_visible(false);
-            }
-        }
-
         // Initialize history selection
         let history_model = gio::ListStore::new::<PkgObject>();
 
         imp.history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
-    }
 
-    //-----------------------------------
-    // Setup signals
-    //-----------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
-
-        // Value factory setup signal
-        imp.value_factory.connect_setup(clone!(@weak self as obj, @weak imp => move |_, cell| {
-            // Create PropValueWidget
-            let value_widget = PropValueWidget::new();
-
-            // Set PropValueWidget as cell child
-            let cell = cell
-                .downcast_ref::<gtk::ColumnViewCell>()
-                .expect("Must be a 'ColumnViewCell'");
-
-            cell.set_child(Some(&value_widget));
-
-            // Bind PropObject properties to PropValueWidget properties
-            cell
-                .property_expression("item")
-                .chain_property::<PropObject>("ptype")
-                .bind(&value_widget, "ptype", gtk::Widget::NONE);
-
-            cell
-                .property_expression("item")
-                .chain_property::<PropObject>("icon")
-                .bind(&value_widget, "icon", gtk::Widget::NONE);
-
-            cell
-                .property_expression("item")
-                .chain_property::<PropObject>("value")
-                .bind(&value_widget, "text", gtk::Widget::NONE);
-
-            // Connect PropValueWidget link activated signal handler
-            // With @watch, signal handler disconnects when value_row is dropped
-            value_widget.connect_closure("link-activated", false, closure_local!(@watch value_widget as _widget => move |_: PropValueWidget, link: String| -> bool {
-                obj.link_handler(&link)
-            }));
-        }));
+        // Add property rows
+        self.add_property_row(0, PropType::Title, "Name");
+        self.add_property_row(1, PropType::Text, "Version");
+        self.add_property_row(2, PropType::Text, "Description");
+        self.add_property_row(3, PropType::Link, "Package URL");
+        self.add_property_row(4, PropType::Link, "URL");
+        self.add_property_row(5, PropType::Text, "Licenses");
+        self.add_property_row(6, PropType::Text, "Status");
+        self.add_property_row(7, PropType::Text, "Repository");
+        self.add_property_row(8, PropType::Text, "Groups");
+        self.add_property_row(9, PropType::Text, "Provides");
+        self.add_property_row(10, PropType::LinkList, "Dependencies ");
+        self.add_property_row(11, PropType::LinkList, "Optional");
+        self.add_property_row(12, PropType::LinkList, "Required By");
+        self.add_property_row(13, PropType::LinkList, "Optional For");
+        self.add_property_row(14, PropType::LinkList, "Conflicts With");
+        self.add_property_row(15, PropType::LinkList, "Replaces");
+        self.add_property_row(16, PropType::Text, "Architecture");
+        self.add_property_row(17, PropType::Packager, "Packager");
+        self.add_property_row(18, PropType::Text, "Build Date");
+        self.add_property_row(19, PropType::Text, "Install Date");
+        self.add_property_row(20, PropType::Text, "Download Size");
+        self.add_property_row(21, PropType::Text, "Installed Size");
+        self.add_property_row(22, PropType::Text, "Install Script");
+        self.add_property_row(23, PropType::Text, "SHA256 Sum");
+        self.add_property_row(24, PropType::Text, "MD5 Sum");
     }
 
     //-----------------------------------
@@ -261,9 +308,6 @@ impl InfoPane {
         // Set empty label overlay visibility
         imp.empty_label.set_visible(!is_pkg);
 
-        // Clear infopane
-        imp.model.remove_all();
-
         // If package is not none, display it
         if let Some(pkg) = pkg {
             let hist_sel = imp.history_selection.borrow();
@@ -285,138 +329,58 @@ impl InfoPane {
             imp.next_button.set_sensitive(hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1);
 
             // Name
-            imp.model.append(&PropObject::new(
-                "Name", &pkg.name(), None, PropType::Title
-            ));
+            self.set_property_row("Name", true, &pkg.name(), None);
             // Version
-            imp.model.append(&PropObject::new(
-                "Version", &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None}, PropType::Text
-            ));
+            self.set_property_row("Version", true, &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None});
             // Description
-            imp.model.append(&PropObject::new(
-                "Description", &pkg.description(), None, PropType::Text
-            ));
+            self.set_property_row("Description", true, &pkg.description(), None);
             // Package URL
-            imp.model.append(&PropObject::new(
-                "Package URL", &self.prop_to_package_url(&pkg), None, PropType::Link
-            ));
+            self.set_property_row("Package URL", true, &self.prop_to_package_url(&pkg), None);
             // URL
-            if pkg.url() != "" {
-                imp.model.append(&PropObject::new(
-                    "URL", &pkg.url(), None, PropType::Link
-                ));
-            }
+            self.set_property_row("URL", pkg.url() != "", &pkg.url(), None);
             // Licenses
-            if pkg.licenses() != "" {
-                imp.model.append(&PropObject::new(
-                    "Licenses", &&pkg.licenses(), None, PropType::Text
-                ));
-            }
+            self.set_property_row("Licenses", pkg.licenses() != "", &pkg.licenses(), None);
             // Status
             let status = &pkg.status();
             let status_icon = pkg.status_icon();
-
-            imp.model.append(&PropObject::new(
-                "Status", if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}, PropType::Text
-            ));
+            self.set_property_row("Status", true, if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
             // Repository
-            imp.model.append(&PropObject::new(
-                "Repository", &pkg.repo_show(), None, PropType::Text
-            ));
+            self.set_property_row("Repository", true, &pkg.repo_show(), None);
             // Groups
-            if pkg.groups() != "" {
-                imp.model.append(&PropObject::new(
-                    "Groups", &pkg.groups(), None, PropType::Text
-                ));
-            }
+            self.set_property_row("Groups", pkg.groups() != "", &pkg.groups(), None);
             // Provides
-            if !pkg.provides().is_empty() {
-                imp.model.append(&PropObject::new(
-                    "Provides", &pkg.provides().join("     "), None, PropType::Text
-                ));
-            }
+            self.set_property_row("Provides", !pkg.provides().is_empty(), &pkg.provides().join("     "), None);
             // Depends
-            imp.model.append(&PropObject::new(
-                "Dependencies ", &pkg.depends().join("     "), None, PropType::LinkList
-            ));
+            self.set_property_row("Dependencies ", true, &pkg.depends().join("     "), None);
             // Optdepends
-            if !pkg.optdepends().is_empty() {
-                imp.model.append(&PropObject::new(
-                    "Optional", &pkg.optdepends().join("     "), None, PropType::LinkList
-                ));
-            }
+            self.set_property_row("Optional", !pkg.optdepends().is_empty(), &pkg.optdepends().join("     "), None);
             // Required by
-            imp.model.append(&PropObject::new(
-                "Required by", &pkg.required_by().join("     "), None, PropType::LinkList
-            ));
+            self.set_property_row("Required By", true, &pkg.required_by().join("     "), None);
             // Optional for
             let optional_for = pkg.optional_for();
-            
-            if !optional_for.is_empty() {
-                imp.model.append(&PropObject::new(
-                    "Optional For", &optional_for.join("     "), None, PropType::LinkList
-                ));
-            }
+            self.set_property_row("Optional For", !optional_for.is_empty(), &optional_for.join("     "), None);
             // Conflicts
-            if !pkg.conflicts().is_empty() {
-                imp.model.append(&PropObject::new(
-                    "Conflicts With", &pkg.conflicts().join("     "), None, PropType::LinkList
-                ));
-            }
+            self.set_property_row("Conflicts With", !pkg.conflicts().is_empty(), &pkg.conflicts().join("     "), None);
             // Replaces
-            if !pkg.replaces().is_empty() {
-                imp.model.append(&PropObject::new(
-                    "Replaces", &pkg.replaces().join("     "), None, PropType::LinkList
-                ));
-            }
+            self.set_property_row("Replaces", !pkg.replaces().is_empty(), &pkg.replaces().join("     "), None);
             // Architecture
-            if pkg.architecture() != "" {
-                imp.model.append(&PropObject::new(
-                    "Architecture", &pkg.architecture(), None, PropType::Text
-                ));
-            }
+            self.set_property_row("Architecture", pkg.architecture() != "", &pkg.architecture(), None);
             // Packager
-            if pkg.packager() != "" {
-                imp.model.append(&PropObject::new(
-                    "Packager", &pkg.packager(), None, PropType::Packager
-                ));
-            }
+            self.set_property_row("Packager", true, &pkg.packager(), None);
             // Build date
-            imp.model.append(&PropObject::new(
-                "Build Date", &pkg.build_date_long(), None, PropType::Text
-            ));
+            self.set_property_row("Build Date", true, &pkg.build_date_long(), None);
             // Install date
-            if pkg.install_date() != 0 {
-                imp.model.append(&PropObject::new(
-                    "Install Date", &pkg.install_date_long(), None, PropType::Text
-                ));
-            }
+            self.set_property_row("Install Date", pkg.install_date() != 0, &pkg.install_date_long(), None);
             // Download size
-            if pkg.download_size() != 0 {
-                imp.model.append(&PropObject::new(
-                    "Download Size", &pkg.download_size_string(), None, PropType::Text
-                ));
-            }
+            self.set_property_row("Download Size", pkg.download_size() != 0, &pkg.download_size_string(), None);
             // Installed size
-            imp.model.append(&PropObject::new(
-                "Installed Size", &pkg.install_size_string(), None, PropType::Text
-            ));
+            self.set_property_row("Installed Size", true, &pkg.install_size_string(), None);
             // Has script
-            imp.model.append(&PropObject::new(
-                "Install Script", if pkg.has_script() {"Yes"} else {"No"}, None, PropType::Text
-            ));
+            self.set_property_row("Install Script", true, if pkg.has_script() {"Yes"} else {"No"}, None);
             // SHA256 sum
-            if pkg.sha256sum() != "" {
-                imp.model.append(&PropObject::new(
-                    "SHA256 Sum", &pkg.sha256sum(), None, PropType::Text
-                ));
-            }
+            self.set_property_row("SHA256 Sum", pkg.sha256sum() != "", &pkg.sha256sum(), None);
             // MD5 sum
-            if pkg.md5sum() != "" {
-                imp.model.append(&PropObject::new(
-                    "MD5 Sum", &pkg.md5sum(), None, PropType::Text
-                ));
-            }
+            self.set_property_row("MD5 Sum", pkg.md5sum() != "", &pkg.md5sum(), None);
         }
     }
 
@@ -488,14 +452,21 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // Public update property function
+    // Public update property row function
     //-----------------------------------
-    pub fn update_prop(&self, label: &str, value: &str, icon: Option<&str>) {
-        if let Some(prop) = self.imp().model.iter::<PropObject>().flatten()
-            .find(|prop| prop.label() == label)
-        {
-            prop.set_value(value);
-            prop.set_icon(icon);
+    pub fn update_property_row(&self, label: &str, value: &str, icon: Option<&str>) {
+        if let Some((_, value_box)) = self.imp().property_map.borrow().get(label) {
+            if let Some(widget_box) = value_box.first_child().and_downcast::<gtk::Box>() {
+                if let Some(image) = widget_box.first_child().and_downcast::<gtk::Image>() {
+                    image.set_icon_name(icon);
+
+                    image.set_visible(icon.is_some());
+                }
+
+                if let Some(widget) = widget_box.last_child().and_downcast::<PropValueWidget>() {
+                    widget.set_text(value);
+                }
+            }
         }
     }
 }
