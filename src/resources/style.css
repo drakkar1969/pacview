@@ -59,6 +59,11 @@ label.count-indicator {
 	padding: 0;
 }
 
+/* Package view/info pane background */
+stack.empty {
+	background: @view_bg_color;
+}
+
 /* Package view spinner */
 spinner.dim-spinner {
 	opacity: 0.5;
