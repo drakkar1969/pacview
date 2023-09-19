@@ -14,6 +14,65 @@ use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
 
 //------------------------------------------------------------------------------
+// ENUM: PropID
+//------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "PropID")]
+pub enum PropID {
+    #[enum_value(name = "Name")]
+    Name = 0,
+    #[enum_value(name = "Version")]
+    Version = 1,
+    #[enum_value(name = "Description")]
+    Description = 2,
+    #[enum_value(name = "Package URL")]
+    PackageUrl = 3,
+    #[enum_value(name = "URL")]
+    Url = 4,
+    #[enum_value(name = "Licenses")]
+    Licenses = 5,
+    #[enum_value(name = "Status")]
+    Status = 6,
+    #[enum_value(name = "Repository")]
+    Repository = 7,
+    #[enum_value(name = "Groups")]
+    Groups = 8,
+    #[enum_value(name = "Provides")]
+    Provides = 9,
+    #[enum_value(name = "Dependencies ")]
+    Dependencies = 10,
+    #[enum_value(name = "Optional")]
+    Optional = 11,
+    #[enum_value(name = "Required By")]
+    RequiredBy = 12,
+    #[enum_value(name = "Optional For")]
+    OptionalFor = 13,
+    #[enum_value(name = "Conflicts With")]
+    ConflictsWith = 14,
+    #[enum_value(name = "Replaces")]
+    Replaces = 15,
+    #[enum_value(name = "Architecture")]
+    Architecture = 16,
+    #[enum_value(name = "Packager")]
+    Packager = 17,
+    #[enum_value(name = "Build Date")]
+    BuildDate = 18,
+    #[enum_value(name = "Install Date")]
+    InstallDate = 19,
+    #[enum_value(name = "Download Size")]
+    DownloadSize = 20,
+    #[enum_value(name = "Installed Size")]
+    InstalledSize = 21,
+    #[enum_value(name = "Install Script")]
+    InstallScript = 22,
+    #[enum_value(name = "SHA256 Sum")]
+    SHA256Sum = 23,
+    #[enum_value(name = "MD5 Sum")]
+    MD5Sum = 24,
+}
+
+//------------------------------------------------------------------------------
 // MODULE: InfoPane
 //------------------------------------------------------------------------------
 mod imp {
@@ -46,7 +105,7 @@ mod imp {
         #[property(name = "pkg", type = Option<PkgObject>, get = Self::pkg, set = Self::set_pkg, nullable)]
         pub history_selection: RefCell<gtk::SingleSelection>,
 
-        pub property_map: RefCell<HashMap<String, (PropertyLabel, PropertyValue)>>,
+        pub property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
     }
 
     //-----------------------------------
@@ -207,27 +266,31 @@ impl InfoPane {
     //-----------------------------------
     // Add property function
     //-----------------------------------
-    fn add_property(&self, row: i32, ptype: PropType, label: &str) {
+    fn add_property(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let property_label = PropertyLabel::new(label);
+        let value = id.to_value();
 
-        imp.grid.attach(&property_label, 0, row, 1, 1);
+        let (_, enum_value) = glib::EnumValue::from_value(&value).unwrap();
+
+        let property_label = PropertyLabel::new(enum_value.name());
+
+        imp.grid.attach(&property_label, 0, enum_value.value(), 1, 1);
 
         let property_value = PropertyValue::new(ptype, closure_local!(@watch self as obj => move |_: TextLayout, link: String| -> bool {
             obj.link_handler(&link)
         }));
 
-        imp.grid.attach(&property_value, 1, row, 1, 1);
+        imp.grid.attach(&property_value, 1, enum_value.value(), 1, 1);
 
-        imp.property_map.borrow_mut().insert(label.to_string(), (property_label, property_value));
+        imp.property_map.borrow_mut().insert(id, (property_label, property_value));
     }
 
     //-----------------------------------
     // Set property value function
     //-----------------------------------
-    fn set_property_value(&self, label: &str, visible: bool, value: &str, icon: Option<&str>) {
-        if let Some((property_label, property_value)) = self.imp().property_map.borrow().get(label) {
+    fn set_property_value(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
+        if let Some((property_label, property_value)) = self.imp().property_map.borrow().get(&id) {
             property_label.set_visible(visible);
             property_value.set_visible(visible);
 
@@ -250,31 +313,31 @@ impl InfoPane {
         imp.history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
 
         // Add property rows
-        self.add_property(0, PropType::Title, "Name");
-        self.add_property(1, PropType::Text, "Version");
-        self.add_property(2, PropType::Text, "Description");
-        self.add_property(3, PropType::Link, "Package URL");
-        self.add_property(4, PropType::Link, "URL");
-        self.add_property(5, PropType::Text, "Licenses");
-        self.add_property(6, PropType::Text, "Status");
-        self.add_property(7, PropType::Text, "Repository");
-        self.add_property(8, PropType::Text, "Groups");
-        self.add_property(9, PropType::Text, "Provides");
-        self.add_property(10, PropType::LinkList, "Dependencies ");
-        self.add_property(11, PropType::LinkList, "Optional");
-        self.add_property(12, PropType::LinkList, "Required By");
-        self.add_property(13, PropType::LinkList, "Optional For");
-        self.add_property(14, PropType::LinkList, "Conflicts With");
-        self.add_property(15, PropType::LinkList, "Replaces");
-        self.add_property(16, PropType::Text, "Architecture");
-        self.add_property(17, PropType::Packager, "Packager");
-        self.add_property(18, PropType::Text, "Build Date");
-        self.add_property(19, PropType::Text, "Install Date");
-        self.add_property(20, PropType::Text, "Download Size");
-        self.add_property(21, PropType::Text, "Installed Size");
-        self.add_property(22, PropType::Text, "Install Script");
-        self.add_property(23, PropType::Text, "SHA256 Sum");
-        self.add_property(24, PropType::Text, "MD5 Sum");
+        self.add_property(PropID::Name, PropType::Title);
+        self.add_property(PropID::Version, PropType::Text);
+        self.add_property(PropID::Description, PropType::Text);
+        self.add_property(PropID::PackageUrl, PropType::Link);
+        self.add_property(PropID::Url, PropType::Link);
+        self.add_property(PropID::Licenses, PropType::Text);
+        self.add_property(PropID::Status, PropType::Text);
+        self.add_property(PropID::Repository, PropType::Text);
+        self.add_property(PropID::Groups, PropType::Text);
+        self.add_property(PropID::Provides, PropType::Text);
+        self.add_property(PropID::Dependencies, PropType::LinkList);
+        self.add_property(PropID::Optional, PropType::LinkList);
+        self.add_property(PropID::RequiredBy, PropType::LinkList);
+        self.add_property(PropID::OptionalFor, PropType::LinkList);
+        self.add_property(PropID::ConflictsWith, PropType::LinkList);
+        self.add_property(PropID::Replaces, PropType::LinkList);
+        self.add_property(PropID::Architecture, PropType::Text);
+        self.add_property(PropID::Packager, PropType::Packager);
+        self.add_property(PropID::BuildDate, PropType::Text);
+        self.add_property(PropID::InstallDate, PropType::Text);
+        self.add_property(PropID::DownloadSize, PropType::Text);
+        self.add_property(PropID::InstalledSize, PropType::Text);
+        self.add_property(PropID::InstallScript, PropType::Text);
+        self.add_property(PropID::SHA256Sum, PropType::Text);
+        self.add_property(PropID::MD5Sum, PropType::Text);
     }
 
     //-----------------------------------
@@ -316,58 +379,58 @@ impl InfoPane {
             }
 
             // Name
-            self.set_property_value("Name", true, &pkg.name(), None);
+            self.set_property_value(PropID::Name, true, &pkg.name(), None);
             // Version
-            self.set_property_value("Version", true, &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None});
+            self.set_property_value(PropID::Version, true, &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None});
             // Description
-            self.set_property_value("Description", true, &pkg.description(), None);
+            self.set_property_value(PropID::Description, true, &pkg.description(), None);
             // Package URL
-            self.set_property_value("Package URL", true, &self.prop_to_package_url(&pkg), None);
+            self.set_property_value(PropID::PackageUrl, true, &self.prop_to_package_url(&pkg), None);
             // URL
-            self.set_property_value("URL", pkg.url() != "", &pkg.url(), None);
+            self.set_property_value(PropID::Url, pkg.url() != "", &pkg.url(), None);
             // Licenses
-            self.set_property_value("Licenses", pkg.licenses() != "", &pkg.licenses(), None);
+            self.set_property_value(PropID::Licenses, pkg.licenses() != "", &pkg.licenses(), None);
             // Status
             let status = &pkg.status();
             let status_icon = pkg.status_icon();
-            self.set_property_value("Status", true, if pkg.flags().intersects(PkgFlags::INSTALLED) {status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
+            self.set_property_value(PropID::Status, true, if pkg.flags().intersects(PkgFlags::INSTALLED) {status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
             // Repository
-            self.set_property_value("Repository", true, &pkg.repo_show(), None);
+            self.set_property_value(PropID::Repository, true, &pkg.repo_show(), None);
             // Groups
-            self.set_property_value("Groups", pkg.groups() != "", &pkg.groups(), None);
+            self.set_property_value(PropID::Groups, pkg.groups() != "", &pkg.groups(), None);
             // Provides
-            self.set_property_value("Provides", !pkg.provides().is_empty(), &pkg.provides().join("     "), None);
+            self.set_property_value(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides().join("     "), None);
             // Depends
-            self.set_property_value("Dependencies ", true, &pkg.depends().join("     "), None);
+            self.set_property_value(PropID::Dependencies, true, &pkg.depends().join("     "), None);
             // Optdepends
-            self.set_property_value("Optional", !pkg.optdepends().is_empty(), &pkg.optdepends().join("     "), None);
+            self.set_property_value(PropID::Optional, !pkg.optdepends().is_empty(), &pkg.optdepends().join("     "), None);
             // Required by
-            self.set_property_value("Required By", true, &pkg.required_by().join("     "), None);
+            self.set_property_value(PropID::RequiredBy, true, &pkg.required_by().join("     "), None);
             // Optional for
             let optional_for = pkg.optional_for();
-            self.set_property_value("Optional For", !optional_for.is_empty(), &optional_for.join("     "), None);
+            self.set_property_value(PropID::OptionalFor, !optional_for.is_empty(), &optional_for.join("     "), None);
             // Conflicts
-            self.set_property_value("Conflicts With", !pkg.conflicts().is_empty(), &pkg.conflicts().join("     "), None);
+            self.set_property_value(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts().join("     "), None);
             // Replaces
-            self.set_property_value("Replaces", !pkg.replaces().is_empty(), &pkg.replaces().join("     "), None);
+            self.set_property_value(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces().join("     "), None);
             // Architecture
-            self.set_property_value("Architecture", pkg.architecture() != "", &pkg.architecture(), None);
+            self.set_property_value(PropID::Architecture, pkg.architecture() != "", &pkg.architecture(), None);
             // Packager
-            self.set_property_value("Packager", true, &pkg.packager(), None);
+            self.set_property_value(PropID::Packager, true, &pkg.packager(), None);
             // Build date
-            self.set_property_value("Build Date", true, &pkg.build_date_long(), None);
+            self.set_property_value(PropID::BuildDate, true, &pkg.build_date_long(), None);
             // Install date
-            self.set_property_value("Install Date", pkg.install_date() != 0, &pkg.install_date_long(), None);
+            self.set_property_value(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
             // Download size
-            self.set_property_value("Download Size", pkg.download_size() != 0, &pkg.download_size_string(), None);
+            self.set_property_value(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
             // Installed size
-            self.set_property_value("Installed Size", true, &pkg.install_size_string(), None);
+            self.set_property_value(PropID::InstalledSize, true, &pkg.install_size_string(), None);
             // Has script
-            self.set_property_value("Install Script", true, if pkg.has_script() {"Yes"} else {"No"}, None);
+            self.set_property_value(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
             // SHA256 sum
-            self.set_property_value("SHA256 Sum", pkg.sha256sum() != "", &pkg.sha256sum(), None);
+            self.set_property_value(PropID::SHA256Sum, pkg.sha256sum() != "", &pkg.sha256sum(), None);
             // MD5 sum
-            self.set_property_value("MD5 Sum", pkg.md5sum() != "", &pkg.md5sum(), None);
+            self.set_property_value(PropID::MD5Sum, pkg.md5sum() != "", &pkg.md5sum(), None);
         }
     }
 
@@ -418,8 +481,8 @@ impl InfoPane {
     //-----------------------------------
     // Public update property value function
     //-----------------------------------
-    pub fn update_property_value(&self, label: &str, value: &str, icon: Option<&str>) {
-        if let Some((_, property_value)) = self.imp().property_map.borrow().get(label) {
+    pub fn update_property_value(&self, id: PropID, value: &str, icon: Option<&str>) {
+        if let Some((_, property_value)) = self.imp().property_map.borrow().get(&id) {
             property_value.set_icon(icon);
             property_value.set_text(value);
         }

@@ -21,7 +21,7 @@ use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchFlags};
 use crate::package_view::PackageView;
-use crate::info_pane::InfoPane;
+use crate::info_pane::{InfoPane, PropID};
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
 use crate::preferences_window::PreferencesWindow;
@@ -841,9 +841,9 @@ impl PacViewWindow {
                     let info_pkg = imp.info_pane.pkg();
 
                     if info_pkg.is_some() && info_pkg.unwrap() == pkg {
-                        imp.info_pane.update_property_value("Package URL", &imp.info_pane.prop_to_package_url(&pkg), None);
+                        imp.info_pane.update_property_value(PropID::PackageUrl, &imp.info_pane.prop_to_package_url(&pkg), None);
 
-                        imp.info_pane.update_property_value("Repository", &pkg.repo_show(), None);
+                        imp.info_pane.update_property_value(PropID::Repository, &pkg.repo_show(), None);
                     }
                 }
 
@@ -935,7 +935,7 @@ impl PacViewWindow {
                         let info_pkg = imp.info_pane.pkg();
 
                         if info_pkg.is_some() && info_pkg.unwrap() == *pkg {
-                            imp.info_pane.update_property_value("Version", &pkg.version(), Some("pkg-update"));
+                            imp.info_pane.update_property_value(PropID::Version, &pkg.version(), Some("pkg-update"));
                         }
                     }
                 }
