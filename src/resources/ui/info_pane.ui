@@ -39,7 +39,7 @@
                   </object>
                 </child>
                 <child type="overlay">
-                  <object class="GtkBox" id="toolbar">
+                  <object class="GtkBox" id="overlay_toolbar">
                     <property name="halign">end</property>
                     <property name="valign">start</property>
                     <property name="margin-start">8</property>
@@ -51,7 +51,7 @@
                       <class name="rounded"/>
                     </style>
                     <child>
-                      <object class="GtkBox" id="nav_box">
+                      <object class="GtkBox" id="overlay_box">
                         <property name="visible">False</property>
                         <property name="margin-start">4</property>
                         <property name="margin-end">4</property>
@@ -59,7 +59,7 @@
                         <property name="margin-bottom">4</property>
                         <property name="spacing">6</property>
                         <child>
-                          <object class="GtkLabel" id="nav_label">
+                          <object class="GtkLabel" id="overlay_label">
                             <property name="margin-start">12</property>
                             <property name="label">1/2</property>
                             <style>
@@ -68,14 +68,14 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkSeparator" id="nav_sep">
+                          <object class="GtkSeparator">
                             <property name="margin-start">6</property>
                             <property name="margin-top">6</property>
                             <property name="margin-bottom">6</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkButton" id="prev_button">
+                          <object class="GtkButton" id="overlay_prev_button">
                             <property name="icon-name">go-previous-symbolic</property>
                             <property name="tooltip-text">Previous</property>
                             <property name="action-name">win.previous</property>
@@ -86,7 +86,7 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkButton" id="next_button">
+                          <object class="GtkButton" id="overlay_next_button">
                             <property name="icon-name">go-next-symbolic</property>
                             <property name="tooltip-text">Next</property>
                             <property name="action-name">win.next</property>
