@@ -204,7 +204,7 @@ impl TextLayout {
     //-----------------------------------
     // Layout format helper functions
     //-----------------------------------
-    fn format_text(&self, attrs: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
+    fn format_text(&self, attr_list: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
         let color = self.color();
 
         let bg_color = self.parent().unwrap().color();
@@ -217,16 +217,16 @@ impl TextLayout {
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
-        attrs.insert(attr);
+        attr_list.insert(attr);
 
         let mut attr = pango::AttrInt::new_weight(weight);
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
-        attrs.insert(attr);
+        attr_list.insert(attr);
     }
 
-    fn format_link(&self, attrs: &pango::AttrList, start: usize, end: usize) {
+    fn format_link(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
         let color = self.imp().link_rgba.get().unwrap();
 
         let bg_color = self.parent().unwrap().color();
@@ -239,19 +239,19 @@ impl TextLayout {
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
-        attrs.insert(attr);
+        attr_list.insert(attr);
 
         let mut attr = pango::AttrInt::new_foreground_alpha((color.alpha() * 65535.0) as u16);
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
-        attrs.insert(attr);
+        attr_list.insert(attr);
 
         let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
-        attrs.insert(attr);
+        attr_list.insert(attr);
     }
 
     //-----------------------------------
@@ -273,15 +273,15 @@ impl TextLayout {
 
             link_map.clear();
 
-            let attrs = pango::AttrList::new();
+            let attr_list = pango::AttrList::new();
 
             // Set pango layout text text
             match obj.ptype() {
                 PropType::Text => {
-                    obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                    obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
                 },
                 PropType::Title => {
-                    obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Bold);
+                    obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Bold);
                 },
                 PropType::Link => {
                     if layout.text().is_empty() {
@@ -289,11 +289,11 @@ impl TextLayout {
                     }
 
                     if layout.text() == "None" {
-                        obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                        obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
                     } else {
                         link_map.insert(layout.text().to_string(), layout.text().to_string());
 
-                        obj.format_link(&attrs, 0, layout.text().len());
+                        obj.format_link(&attr_list, 0, layout.text().len());
                     }
                 },
                 PropType::Packager => {
@@ -301,12 +301,12 @@ impl TextLayout {
                         static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").unwrap();
                     }
 
-                    obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                    obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
 
                     if let Some(m) = EXPR.captures(&layout.text()).ok().flatten().and_then(|caps| caps.get(1)) {
                         link_map.insert(m.as_str().to_string(), format!("mailto:{}", m.as_str()));
 
-                        obj.format_link(&attrs, m.start(), m.end());
+                        obj.format_link(&attr_list, m.start(), m.end());
                     }
                 },
                 PropType::LinkList => {
@@ -315,19 +315,19 @@ impl TextLayout {
                     }
 
                     if layout.text() == "None" {
-                        obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                        obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
                     } else {
                         lazy_static! {
                             static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
                         }
 
-                        obj.format_text(&attrs, 0, layout.text().len(), pango::Weight::Normal);
+                        obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
 
                         for caps in EXPR.captures_iter(&layout.text()).flatten() {
                             if let Some(m) = caps.get(1) {
                                 link_map.insert(m.as_str().to_string(), format!("pkg://{}", m.as_str()));
 
-                                obj.format_link(&attrs, m.start(), m.end());
+                                obj.format_link(&attr_list, m.start(), m.end());
                             }
                         }
 
@@ -335,7 +335,7 @@ impl TextLayout {
                 },
             }
 
-            layout.set_attributes(Some(&attrs));
+            layout.set_attributes(Some(&attr_list));
 
             pangocairo::show_layout(&context, &layout);
         }));
@@ -344,7 +344,7 @@ impl TextLayout {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
-    fn is_link_at_xy(&self, x: i32, y: i32) -> bool {
+    fn is_link_at_xy(&self, x: i32, y: i32) -> Option<pango::Attribute> {
         let imp = self.imp();
 
         let layout = imp.pango_layout.get().unwrap();
@@ -352,39 +352,26 @@ impl TextLayout {
         let (inside, index, _) = layout.xy_to_index(x * pango::SCALE, y * pango::SCALE);
 
         if inside {
-            if let Some(attrs) = layout.attributes() {
-                if let Some(_) = attrs.attributes().into_iter()
-                    .filter(|a| a.attr_class().type_() == pango::AttrType::Underline)
-                    .find(|a| a.start_index() as i32 <= index && a.end_index() as i32 > index)
-                {
-                    return true
-                }
-            }
+            return layout.attributes().and_then(|attr_list| {
+                attr_list.attributes().into_iter()
+                    .find(|attr| attr.attr_class().type_() == pango::AttrType::Underline && attr.start_index() as i32 <= index && attr.end_index() as i32 > index)
+            })
         }
 
-        false
+        None
     }
 
     fn link_at_xy(&self, x: i32, y: i32) -> Option<String> {
         let imp = self.imp();
 
-        let layout = imp.pango_layout.get().unwrap();
+        if let Some(attr) = self.is_link_at_xy(x, y) {
+            let layout = imp.pango_layout.get().unwrap();
 
-        let (inside, index, _) = layout.xy_to_index(x * pango::SCALE, y * pango::SCALE);
+            let link_map = imp.link_map.borrow();
 
-        if inside {
-            if let Some(attrs) = layout.attributes() {
-                if let Some(a) = attrs.attributes().into_iter()
-                    .filter(|a| a.attr_class().type_() == pango::AttrType::Underline)
-                    .find(|a| a.start_index() as i32 <= index && a.end_index() as i32 > index)
-                {
-                    let link_map = imp.link_map.borrow();
-
-                    if let Some(link) = link_map.get(&layout.text()[a.start_index() as usize..a.end_index() as usize])
-                    {
-                        return Some(link.to_string())
-                    }
-                }
+            if let Some(link) = link_map.get(&layout.text()[attr.start_index() as usize..attr.end_index() as usize])
+            {
+                return Some(link.to_string())
             }
         }
 
@@ -394,7 +381,7 @@ impl TextLayout {
     fn set_cursor_motion(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let hovering = self.is_link_at_xy(x as i32, y as i32);
+        let hovering = self.is_link_at_xy(x as i32, y as i32).is_some();
 
         if hovering != imp.hovering.get() {
             imp.hovering.replace(hovering);
@@ -432,7 +419,7 @@ impl TextLayout {
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
         click_gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
-            if obj.is_link_at_xy(x as i32, y as i32) {
+            if obj.is_link_at_xy(x as i32, y as i32).is_some() {
                 gesture.set_state(gtk::EventSequenceState::Claimed);
             }
         }));
