@@ -23,11 +23,11 @@ mod imp {
         #[template_child]
         pub aur_menubutton: TemplateChild<gtk::MenuButton>,
         #[template_child]
-        pub column_switch: TemplateChild<gtk::Switch>,
+        pub column_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub sort_switch: TemplateChild<gtk::Switch>,
+        pub sort_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub delay_spin: TemplateChild<gtk::SpinButton>,
+        pub delay_spinrow: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub font_expander: TemplateChild<adw::ExpanderRow>,
         #[template_child]
@@ -144,13 +144,13 @@ impl PreferencesWindow {
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
-        self.bind_property("remember-columns", &imp.column_switch.get(), "active")
+        self.bind_property("remember-columns", &imp.column_switchrow.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
-        self.bind_property("remember-sort", &imp.sort_switch.get(), "active")
+        self.bind_property("remember-sort", &imp.sort_switchrow.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
-        self.bind_property("search-delay", &imp.delay_spin.get(), "value")
+        self.bind_property("search-delay", &imp.delay_spinrow.get(), "value")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 

@@ -34,53 +34,35 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Package List</property>
             <child>
-              <object class="AdwActionRow">
+              <object class="AdwSwitchRow" id="column_switchrow">
                 <property name="title">Remember _Columns</property>
                 <property name="subtitle">Save package list column order</property>
                 <property name="use-underline">True</property>
-                <property name="activatable-widget">column_switch</property>
-                <child>
-                  <object class="GtkSwitch" id="column_switch">
-                    <property name="valign">center</property>
-                  </object>
-                </child>
               </object>
             </child>
             <child>
-              <object class="AdwActionRow">
+              <object class="AdwSwitchRow" id="sort_switchrow">
                 <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package list sort order</property>
                 <property name="use-underline">True</property>
-                <property name="activatable-widget">sort_switch</property>
-                <child>
-                  <object class="GtkSwitch" id="sort_switch">
-                    <property name="valign">center</property>
-                  </object>
-                </child>
               </object>
             </child>
             <child>
-              <object class="AdwActionRow">
+              <object class="AdwSpinRow" id="delay_spinrow">
                 <property name="title">Search _Delay</property>
                 <property name="subtitle">Delay before search results are displayed (milliseconds)</property>
                 <property name="use-underline">True</property>
-                <property name="activatable-widget">delay_spin</property>
-                <child>
-                  <object class="GtkSpinButton" id="delay_spin">
-                    <property name="valign">center</property>
-                    <property name="numeric">true</property>
-                    <property name="snap-to-ticks">true</property>
-                    <property name="adjustment">
-                      <object class="GtkAdjustment">
-                        <property name="lower">0</property>
-                        <property name="page-increment">100</property>
-                        <property name="step-increment">10</property>
-                        <property name="upper">2000</property>
-                        <property name="value">150</property>
-                      </object>
-                    </property>
+                <property name="numeric">true</property>
+                <property name="snap-to-ticks">true</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="page-increment">100</property>
+                    <property name="step-increment">10</property>
+                    <property name="upper">2000</property>
+                    <property name="value">150</property>
                   </object>
-                </child>
+                </property>
               </object>
             </child>
           </object>
