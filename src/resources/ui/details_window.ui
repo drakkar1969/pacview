@@ -7,16 +7,12 @@
     <property name="modal">True</property>
     <property name="title"></property>
     <property name="content">
-      <object class="GtkBox" id="window_box">
-        <property name="orientation">vertical</property>
-        <child>
+      <object class="AdwToolbarView" id="toolbar_view">
+        <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
-            <style>
-              <class name="flat"/>
-            </style>
           </object>
         </child>
-        <child>
+        <property name="content">
           <object class="GtkBox" id="main_box">
             <property name="orientation">vertical</property>
             <property name="margin-start">24</property>
@@ -632,7 +628,7 @@
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
     </property>
   </template>
