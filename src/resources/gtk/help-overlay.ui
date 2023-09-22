@@ -54,23 +54,6 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
-            <property name="title">Search</property>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;F</property>
-                <property name="title">Start/Stop Search</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">Escape</property>
-                <property name="title">Exit Search</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkShortcutsGroup">
             <property name="title">Package List</property>
             <child>
               <object class="GtkShortcutsShortcut">
@@ -111,6 +94,23 @@
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;Right</property>
                 <property name="title">Next Package</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Search</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;F</property>
+                <property name="title">Start/Stop Search</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Escape</property>
+                <property name="title">Exit Search</property>
               </object>
             </child>
           </object>
