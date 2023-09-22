@@ -11,7 +11,7 @@
           <class name="propertyvalue"/>
         </style>
         <property name="margin-start">10</property>
-        <property name="margin-end">70</property>
+        <property name="margin-end">16</property>
         <property name="margin-top">8</property>
         <property name="margin-bottom">8</property>
         <property name="spacing">6</property>
