@@ -52,7 +52,7 @@ box.count-indicator {
 	border-radius: 9999px;
 }
 
-label.count-indicator {
+box.count-indicator label {
 	line-height: 20px;
 	color: @accent_fg_color;
 	margin: 0 6px;
