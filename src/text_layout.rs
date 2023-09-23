@@ -190,16 +190,18 @@ impl TextLayout {
     //-----------------------------------
     // Layout format helper functions
     //-----------------------------------
-    fn format_text(&self, attr_list: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
-        let color = self.color();
-
-        let bg_color = self.parent().unwrap().color();
-
+    fn rgba_to_pango_rgb(&self, color: gdk::RGBA, bg_color: gdk::RGBA) -> (u16, u16, u16) {
         let red = ((1.0 - color.alpha()) * bg_color.red()) + (color.red() * color.alpha());
         let green = ((1.0 - color.alpha()) * bg_color.green()) + (color.green() * color.alpha());
         let blue = ((1.0 - color.alpha()) * bg_color.blue()) + (color.blue() * color.alpha());
 
-        let mut attr = pango::AttrColor::new_foreground((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16);
+        ((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16)
+    }
+
+    fn format_text(&self, attr_list: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
+        let (red, green, blue) = self.rgba_to_pango_rgb(self.color(), self.parent().unwrap().color());
+
+        let mut attr = pango::AttrColor::new_foreground(red, green, blue);
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
@@ -213,21 +215,9 @@ impl TextLayout {
     }
 
     fn format_link(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
-        let color = self.imp().link_rgba.get().unwrap();
+        let (red, green, blue) = self.rgba_to_pango_rgb(self.imp().link_rgba.get().unwrap(), self.parent().unwrap().color());
 
-        let bg_color = self.parent().unwrap().color();
-
-        let red = ((1.0 - color.alpha()) * bg_color.red()) + (color.red() * color.alpha());
-        let green = ((1.0 - color.alpha()) * bg_color.green()) + (color.green() * color.alpha());
-        let blue = ((1.0 - color.alpha()) * bg_color.blue()) + (color.blue() * color.alpha());
-
-        let mut attr = pango::AttrColor::new_foreground((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16);
-        attr.set_start_index(start as u32);
-        attr.set_end_index(end as u32);
-
-        attr_list.insert(attr);
-
-        let mut attr = pango::AttrInt::new_foreground_alpha((color.alpha() * 65535.0) as u16);
+        let mut attr = pango::AttrColor::new_foreground(red, green, blue);
         attr.set_start_index(start as u32);
         attr.set_end_index(end as u32);
 
