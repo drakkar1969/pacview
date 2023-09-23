@@ -89,9 +89,12 @@
                 </child>
                 <child>
                   <object class="AdwActionRow" id="font_row">
-                    <property name="subtitle">Monospace font</property>
+                    <property name="title">Monospace font</property>
                     <property name="use-underline">True</property>
                     <property name="activatable-widget">font_choose_button</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
                     <child>
                       <object class="GtkButton" id="font_reset_button">
                         <property name="valign">center</property>

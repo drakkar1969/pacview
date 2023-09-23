@@ -150,7 +150,7 @@ impl PreferencesWindow {
         self.bind_property("custom-font", &imp.font_switch.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
-        self.bind_property("monospace-font", &imp.font_row.get(), "title")
+        self.bind_property("monospace-font", &imp.font_row.get(), "subtitle")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
