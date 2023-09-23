@@ -111,7 +111,7 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
+            obj.setup_layout();
             obj.setup_controllers();
             obj.setup_signals();
         }
@@ -231,9 +231,9 @@ impl TextLayout {
     }
 
     //-----------------------------------
-    // Setup widgets
+    // Setup layout
     //-----------------------------------
-    fn setup_widgets(&self) {
+    fn setup_layout(&self) {
         let imp = self.imp();
 
         let layout = imp.draw_area.create_pango_layout(None);
