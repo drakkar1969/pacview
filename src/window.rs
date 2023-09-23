@@ -1,7 +1,9 @@
 use std::cell::RefCell;
+use std::path::Path;
 use std::rc::Rc;
 use std::thread;
 use std::collections::HashMap;
+use std::time::Duration;
 
 use gtk::{gio, glib, gdk, graphene::Point};
 use adw::subclass::prelude::*;
@@ -15,6 +17,7 @@ use titlecase::titlecase;
 use regex::Regex;
 use lazy_static::lazy_static;
 use raur::blocking::Raur;
+use notify_debouncer_full::{notify::*, new_debouncer, DebounceEventResult};
 
 use crate::APP_ID;
 use crate::PacViewApplication;
@@ -44,6 +47,8 @@ pub struct PacmanConfig {
 // MODULE: PacViewWindow
 //------------------------------------------------------------------------------
 mod imp {
+    use notify_debouncer_full::{Debouncer, FileIdMap};
+
     use super::*;
 
     //-----------------------------------
@@ -81,6 +86,8 @@ mod imp {
         pub pacman_config: RefCell<PacmanConfig>,
 
         pub update_row: RefCell<FilterRow>,
+
+        pub notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
 
         pub package_view_popup: OnceCell<gtk::PopoverMenu>,
     }
@@ -126,6 +133,8 @@ mod imp {
             obj.setup_signals();
 
             obj.setup_alpm();
+
+            obj.setup_inotify();
         }
 
         //-----------------------------------
@@ -937,6 +946,52 @@ impl PacViewWindow {
                 update_row.set_sensitive(success);
 
                 glib::ControlFlow::Break
+            }),
+        );
+    }
+
+    //-----------------------------------
+    // Setup INotify
+    //-----------------------------------
+    fn setup_inotify(&self) {
+        let imp = self.imp();
+
+        // Create glib channel
+        let (sender, receiver) = glib::MainContext::channel::<()>(glib::Priority::DEFAULT);
+
+        // Create new watcher
+        let mut watcher = new_debouncer(Duration::from_secs(1), None, move |result: DebounceEventResult| {
+            if let Ok(events) = result {
+                for event in events {
+                    if event.kind.is_create() || event.kind.is_modify() || event.kind.is_remove() {
+                        sender.send(()).expect("Could not send through channel");
+
+                        break;
+                    }
+                }
+            }
+        }).unwrap();
+
+        // Watch pacman local db path
+        let pacman_config = imp.pacman_config.borrow();
+
+        let watch_path = format!("{}/local/", pacman_config.db_path);
+
+        watcher.watcher().watch(Path::new(&watch_path), RecursiveMode::Recursive).unwrap();
+        watcher.cache().add_root(Path::new(&watch_path), RecursiveMode::Recursive);
+
+        // Store watcher
+        imp.notify_watcher.set(watcher).unwrap();
+
+        // Attach receiver for glib channel
+        receiver.attach(
+            None,
+            clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |_| {
+                imp.search_header.set_active(false);
+
+                obj.setup_alpm();
+
+                glib::ControlFlow::Continue
             }),
         );
     }
