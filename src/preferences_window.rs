@@ -19,15 +19,17 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/preferences_window.ui")]
     pub struct PreferencesWindow {
         #[template_child]
+        pub refresh_switchrow: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub aur_row: TemplateChild<adw::EntryRow>,
+        #[template_child]
+        pub delay_spinrow: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub aur_menubutton: TemplateChild<gtk::MenuButton>,
         #[template_child]
         pub column_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub sort_switchrow: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub delay_spinrow: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub font_expander: TemplateChild<adw::ExpanderRow>,
         #[template_child]
@@ -42,13 +44,15 @@ mod imp {
         pub reset_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
+        auto_refresh: Cell<bool>,
+        #[property(get, set)]
         aur_command: RefCell<String>,
+        #[property(get, set)]
+        search_delay: Cell<f64>,
         #[property(get, set)]
         remember_columns: Cell<bool>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
-        #[property(get, set)]
-        search_delay: Cell<f64>,
         #[property(get, set)]
         custom_font: Cell<bool>,
         #[property(get, set)]
@@ -126,7 +130,13 @@ impl PreferencesWindow {
             .build();
 
         // Bind properties to widgets
+        self.bind_property("auto_refresh", &imp.refresh_switchrow.get(), "active")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .build();
         self.bind_property("aur-command", &imp.aur_row.get(), "text")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .build();
+        self.bind_property("search-delay", &imp.delay_spinrow.get(), "value")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
@@ -134,9 +144,6 @@ impl PreferencesWindow {
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
         self.bind_property("remember-sort", &imp.sort_switchrow.get(), "active")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-            .build();
-        self.bind_property("search-delay", &imp.delay_spinrow.get(), "value")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
@@ -232,10 +239,11 @@ impl PreferencesWindow {
                 None::<&gio::Cancellable>,
                 clone!(@weak obj=> move |response| {
                     if response == "reset" {
+                        obj.set_auto_refresh(true);
                         obj.set_aur_command("");
+                        obj.set_search_delay(150.0);
                         obj.set_remember_columns(true);
                         obj.set_remember_sort(false);
-                        obj.set_search_delay(150.0);
                         obj.set_custom_font(true);
                         obj.set_monospace_font(obj.default_monospace_font());
                     }

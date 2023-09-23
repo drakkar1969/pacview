@@ -13,6 +13,13 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Application</property>
             <child>
+              <object class="AdwSwitchRow" id="refresh_switchrow">
+                <property name="title">Auto _Refresh</property>
+                <property name="subtitle">Refresh window on package changes</property>
+                <property name="use-underline">True</property>
+              </object>
+            </child>
+            <child>
               <object class="AdwEntryRow" id="aur_row">
                 <property name="title">Command to check for _AUR updates (optional)</property>
                 <property name="use-underline">True</property>
@@ -26,6 +33,24 @@
                     </style>
                   </object>
                 </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSpinRow" id="delay_spinrow">
+                <property name="title">Search _Delay</property>
+                <property name="subtitle">Delay before search results are displayed (milliseconds)</property>
+                <property name="use-underline">True</property>
+                <property name="numeric">true</property>
+                <property name="snap-to-ticks">true</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="page-increment">100</property>
+                    <property name="step-increment">10</property>
+                    <property name="upper">2000</property>
+                    <property name="value">150</property>
+                  </object>
+                </property>
               </object>
             </child>
           </object>
@@ -45,24 +70,6 @@
                 <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package list sort order</property>
                 <property name="use-underline">True</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwSpinRow" id="delay_spinrow">
-                <property name="title">Search _Delay</property>
-                <property name="subtitle">Delay before search results are displayed (milliseconds)</property>
-                <property name="use-underline">True</property>
-                <property name="numeric">true</property>
-                <property name="snap-to-ticks">true</property>
-                <property name="adjustment">
-                  <object class="GtkAdjustment">
-                    <property name="lower">0</property>
-                    <property name="page-increment">100</property>
-                    <property name="step-increment">10</property>
-                    <property name="upper">2000</property>
-                    <property name="value">150</property>
-                  </object>
-                </property>
               </object>
             </child>
           </object>
@@ -116,7 +123,7 @@
             <property name="title">Preferences</property>
             <child>
               <object class="AdwActionRow">
-                <property name="title">_Reset Preferences</property>
+                <property name="title">Reset _Preferences</property>
                 <property name="subtitle">Reset all preferences to default values</property>
                 <property name="use-underline">True</property>
                 <property name="activatable-widget">reset_button</property>

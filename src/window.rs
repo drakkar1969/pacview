@@ -205,10 +205,11 @@ impl PacViewWindow {
             gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
             gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
 
+            gsettings.bind("auto-refresh", &imp.prefs_window.get(), "auto-refresh").build();
             gsettings.bind("aur-update-command", &imp.prefs_window.get(), "aur-command").build();
+            gsettings.bind("search-delay", &imp.prefs_window.get(), "search-delay").build();
             gsettings.bind("remember-columns", &imp.prefs_window.get(), "remember-columns").build();
             gsettings.bind("remember-sorting", &imp.prefs_window.get(), "remember-sort").build();
-            gsettings.bind("search-delay", &imp.prefs_window.get(), "search-delay").build();
             gsettings.bind("custom-font", &imp.prefs_window.get(), "custom-font").build();
             gsettings.bind("monospace-font", &imp.prefs_window.get(), "monospace-font").build();
 
@@ -987,9 +988,11 @@ impl PacViewWindow {
         receiver.attach(
             None,
             clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |_| {
-                imp.search_header.set_active(false);
+                if imp.prefs_window.auto_refresh() == true {
+                    imp.search_header.set_active(false);
 
-                obj.setup_alpm();
+                    obj.setup_alpm();
+                }
 
                 glib::ControlFlow::Continue
             }),
