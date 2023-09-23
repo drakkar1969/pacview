@@ -2,12 +2,12 @@
 <interface>
   <!--// PacViewWindow template //-->
   <template class="PacViewWindow" parent="AdwApplicationWindow">
-    <property name="default-width">1450</property>
+    <property name="default-width">1350</property>
     <property name="default-height">800</property>
     <property name="content">
-      <object class="GtkBox" id="window_box">
-        <property name="orientation">vertical</property>
-        <child>
+      <object class="AdwToolbarView" id="toolbar_view">
+        <property name="top-bar-style">raised-border</property>
+        <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
             <property name="title-widget">
               <object class="SearchHeader" id="search_header">
@@ -38,20 +38,19 @@
             </child>
           </object>
         </child>
-        <child>
-          <object class="AdwFlap" id="flap">
-            <property name="flap">
-              <object class="GtkBox" id="flap_box">
-                <style>
-                  <class name="background"/>
-                </style>
+        <property name="content">
+          <object class="GtkBox" id="main_box">
+            <child>
+              <object class="GtkBox" id="sidebar_box">
+                <property name="orientation">vertical</property>
+                <property name="spacing">30</property>
                 <child>
                   <object class="GtkScrolledWindow">
                     <property name="hscrollbar-policy">never</property>
                     <property name="vexpand">True</property>
                     <property name="child">
-                      <object class="GtkBox" id="sidebar_box">
-                        <property name="width-request">200</property>
+                      <object class="GtkBox">
+                        <property name="width-request">220</property>
                         <property name="orientation">vertical</property>
                         <property name="margin-start">6</property>
                         <property name="margin-end">6</property>
@@ -108,12 +107,26 @@
                     </property>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkBox" id="status_box">
+                    <property name="margin-start">18</property>
+                    <property name="margin-end">18</property>
+                    <property name="margin-top">8</property>
+                    <property name="margin-bottom">8</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkLabel" id="status_label">
+                        <property name="xalign">0</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
-            </property>
-            <property name="separator">
+            </child>
+            <child>
               <object class="GtkSeparator"/>
-            </property>
-            <property name="content">
+            </child>
+            <child>
               <object class="GtkPaned" id="pane">
                 <property name="orientation">vertical</property>
                 <property name="wide-handle">True</property>
@@ -131,26 +144,9 @@
                   </object>
                 </property>
               </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkSeparator"/>
-        </child>
-        <child>
-          <object class="GtkBox" id="status_box">
-            <property name="margin-start">18</property>
-            <property name="margin-end">18</property>
-            <property name="margin-top">8</property>
-            <property name="margin-bottom">8</property>
-            <property name="spacing">6</property>
-            <child>
-              <object class="GtkLabel" id="status_label">
-                <property name="xalign">0</property>
-              </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
     </property>
   </template>
@@ -174,10 +170,6 @@
       </item>
     </section>
     <section>
-      <item>
-        <attribute name="label">View Sidebar</attribute>
-        <attribute name="action">win.show-sidebar</attribute>
-      </item>
       <item>
         <attribute name="label">View Info Pane</attribute>
         <attribute name="action">win.show-infopane</attribute>

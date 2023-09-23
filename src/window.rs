@@ -58,24 +58,20 @@ mod imp {
         pub search_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
-        pub flap: TemplateChild<adw::Flap>,
-
-        #[template_child]
         pub repo_listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub status_listbox: TemplateChild<gtk::ListBox>,
+
+        #[template_child]
+        pub status_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub pane: TemplateChild<gtk::Paned>,
 
         #[template_child]
         pub package_view: TemplateChild<PackageView>,
-
         #[template_child]
         pub info_pane: TemplateChild<InfoPane>,
-
-        #[template_child]
-        pub status_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub prefs_window: TemplateChild<PreferencesWindow>,
@@ -197,7 +193,6 @@ impl PacViewWindow {
             gsettings.bind("window-height", self, "default-height").build();
             gsettings.bind("window-maximized", self, "maximized").build();
 
-            gsettings.bind("show-sidebar", &imp.flap.get(), "reveal-flap").build();
             gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
             gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
 
@@ -325,11 +320,7 @@ impl PacViewWindow {
         // Add search actions to window
         self.add_action_entries([start_action, stop_action]);
 
-        // Add sidebar/infopane visibility property actions
-        let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.flap.get(), "reveal-flap");
-
-        self.add_action(&show_sidebar_action);
-
+        // Add infopane visibility property action
         let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.info_pane.get(), "visible");
 
         self.add_action(&show_infopane_action);
@@ -455,12 +446,6 @@ impl PacViewWindow {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
             Some(gtk::NamedAction::new("win.stop-search"))
-        ));
-
-        // Add show sidebar shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>B"),
-            Some(gtk::NamedAction::new("win.show-sidebar"))
         ));
 
         // Add show infopane shortcut
