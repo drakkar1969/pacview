@@ -41,8 +41,8 @@ mod imp {
         #[property(get, set)]
         spinning: Cell<bool>,
 
-        #[property(get, set)]
-        repo_id: RefCell<String>,
+        #[property(get, set, nullable)]
+        repo_id: RefCell<Option<String>>,
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
     }
@@ -94,7 +94,7 @@ impl FilterRow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(icon: &str, text: &str, repo_id: &str, status_id: PkgFlags) -> Self {
+    pub fn new(icon: &str, text: &str, repo_id: Option<&str>, status_id: PkgFlags) -> Self {
         glib::Object::builder()
             .property("icon", icon)
             .property("text", text)
@@ -138,6 +138,6 @@ impl Default for FilterRow {
     // Default constructor
     //-----------------------------------
     fn default() -> Self {
-        Self::new("", "", "", PkgFlags::default())
+        Self::new("", "", None, PkgFlags::empty())
     }
 }

@@ -596,7 +596,7 @@ impl PacViewWindow {
                     .expect("Must be a 'FilterRow'")
                     .repo_id();
 
-                imp.package_view.imp().repo_filter.set_search(Some(&repo_id));
+                imp.package_view.imp().repo_filter.set_search(repo_id.as_deref());
             }
         }));
 
@@ -685,14 +685,14 @@ impl PacViewWindow {
         imp.status_listbox.remove_all();
 
         // Add repository rows (enumerate pacman repositories)
-        let row = FilterRow::new("repository-symbolic", "All", "", PkgFlags::default());
+        let row = FilterRow::new("repository-symbolic", "All", None, PkgFlags::empty());
 
         imp.repo_listbox.append(&row);
 
         imp.repo_listbox.select_row(Some(&row));
 
         for repo in &imp.pacman_config.borrow().pacman_repos {
-            let row = FilterRow::new("repository-symbolic", &titlecase(&repo), &repo, PkgFlags::default());
+            let row = FilterRow::new("repository-symbolic", &titlecase(&repo), Some(&repo), PkgFlags::empty());
 
             imp.repo_listbox.append(&row);
         }
@@ -703,7 +703,7 @@ impl PacViewWindow {
         for f in flags.values() {
             let flag = PkgFlags::from_bits_truncate(f.value());
 
-            let row = FilterRow::new(&format!("status-{}-symbolic", f.nick()), f.name(), "", flag);
+            let row = FilterRow::new(&format!("status-{}-symbolic", f.nick()), f.name(), None, flag);
 
             imp.status_listbox.append(&row);
 
