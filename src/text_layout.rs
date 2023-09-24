@@ -60,7 +60,8 @@ mod imp {
 
         pub link_map: RefCell<HashMap<String, String>>,
 
-        pub hovering: Cell<bool>,
+        pub link_hover: Cell<bool>,
+        pub pressed_link: RefCell<Option<String>>,
     }
 
     //-----------------------------------
@@ -320,12 +321,12 @@ impl TextLayout {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
-    fn is_link_at_xy(&self, x: i32, y: i32) -> Option<pango::Attribute> {
+    fn is_link_at_xy(&self, x: f64, y: f64) -> Option<pango::Attribute> {
         let imp = self.imp();
 
         let layout = imp.pango_layout.get().unwrap();
 
-        let (inside, index, _) = layout.xy_to_index(x * pango::SCALE, y * pango::SCALE);
+        let (inside, index, _) = layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE);
 
         if inside {
             return layout.attributes().and_then(|attr_list| {
@@ -337,7 +338,7 @@ impl TextLayout {
         None
     }
 
-    fn link_at_xy(&self, x: i32, y: i32) -> Option<String> {
+    fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
         let imp = self.imp();
 
         if let Some(attr) = self.is_link_at_xy(x, y) {
@@ -357,12 +358,12 @@ impl TextLayout {
     fn set_cursor_motion(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let hovering = self.is_link_at_xy(x as i32, y as i32).is_some();
+        let hover = self.is_link_at_xy(x, y).is_some();
 
-        if hovering != imp.hovering.get() {
-            imp.hovering.replace(hovering);
+        if hover != imp.link_hover.get() {
+            imp.link_hover.replace(hover);
 
-            if hovering {
+            if hover {
                 imp.draw_area.set_cursor_from_name(Some("pointer"));
             } else {
                 imp.draw_area.set_cursor_from_name(Some("default"));
@@ -394,18 +395,28 @@ impl TextLayout {
 
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        click_gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
-            if obj.is_link_at_xy(x as i32, y as i32).is_some() {
+        click_gesture.connect_pressed(clone!(@weak self as obj, @weak imp => move |gesture, _, x, y| {
+            let link = obj.link_at_xy(x, y);
+
+            if link.is_some() {
                 gesture.set_state(gtk::EventSequenceState::Claimed);
             }
+
+            imp.pressed_link.replace(link);
         }));
 
-        click_gesture.connect_released(clone!(@weak self as obj => move |_, _, x, y| {
-            if let Some(link) = obj.link_at_xy(x as i32, y as i32) {
-                if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
-                    if let Ok(url) = Url::parse(&link) {
-                        if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
-                            let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
+        click_gesture.connect_released(clone!(@weak self as obj, @weak imp => move |_, _, x, y| {
+            let pressed_link = imp.pressed_link.take();
+
+            if pressed_link.is_some() {
+                if let Some(link) = obj.link_at_xy(x, y)
+                    .filter(|link| link == pressed_link.as_ref().unwrap())
+                {
+                    if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
+                        if let Ok(url) = Url::parse(&link) {
+                            if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
+                                let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
+                            }
                         }
                     }
                 }
