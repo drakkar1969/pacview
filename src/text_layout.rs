@@ -60,7 +60,7 @@ mod imp {
 
         pub link_map: RefCell<HashMap<String, String>>,
 
-        pub link_hover: Cell<bool>,
+        pub cursor: RefCell<String>,
         pub pressed_link: RefCell<Option<String>>,
     }
 
@@ -321,12 +321,16 @@ impl TextLayout {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
-    fn is_link_at_xy(&self, x: f64, y: f64) -> Option<pango::Attribute> {
-        let imp = self.imp();
-
-        let layout = imp.pango_layout.get().unwrap();
+    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
+        let layout = self.imp().pango_layout.get().unwrap();
 
         let (inside, index, _) = layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE);
+
+        (inside, index)
+    }
+
+    fn is_link_at_index(&self, inside: bool, index: i32) -> Option<pango::Attribute> {
+        let layout = self.imp().pango_layout.get().unwrap();
 
         if inside {
             return layout.attributes().and_then(|attr_list| {
@@ -341,7 +345,9 @@ impl TextLayout {
     fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
         let imp = self.imp();
 
-        if let Some(attr) = self.is_link_at_xy(x, y) {
+        let (inside, index) = self.index_at_xy(x, y);
+
+        if let Some(attr) = self.is_link_at_index(inside, index) {
             let layout = imp.pango_layout.get().unwrap();
 
             let link_map = imp.link_map.borrow();
@@ -358,16 +364,22 @@ impl TextLayout {
     fn set_cursor_motion(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let hover = self.is_link_at_xy(x, y).is_some();
+        let (inside, index) = self.index_at_xy(x, y);
 
-        if hover != imp.link_hover.get() {
-            imp.link_hover.replace(hover);
-
-            if hover {
-                imp.draw_area.set_cursor_from_name(Some("pointer"));
+        let cursor = if self.is_link_at_index(inside, index).is_some() {
+            "pointer"
+        } else {
+            if inside {
+                "text"
             } else {
-                imp.draw_area.set_cursor_from_name(Some("default"));
+                "default"
             }
+        }.to_string();
+
+        if cursor != *imp.cursor.borrow() {
+            imp.draw_area.set_cursor_from_name(Some(&cursor));
+
+            imp.cursor.replace(cursor);
         }
     }
 
