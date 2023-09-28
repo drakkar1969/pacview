@@ -48,6 +48,8 @@ mod imp {
     pub struct TextLayout {
         #[template_child]
         pub draw_area: TemplateChild<gtk::DrawingArea>,
+        #[template_child]
+        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -60,6 +62,7 @@ mod imp {
 
         pub link_map: RefCell<HashMap<String, String>>,
 
+        pub left_pressed: Cell<bool>,
         pub cursor: RefCell<String>,
         pub pressed_link: RefCell<Option<String>>,
 
@@ -67,6 +70,8 @@ mod imp {
         pub selection_end: Cell<i32>,
 
         pub selection_bg_rgba: Cell<Option<gdk::RGBA>>,
+
+        pub text_action_group: RefCell<gio::SimpleActionGroup>,
     }
 
     //-----------------------------------
@@ -114,6 +119,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_layout();
+            obj.setup_actions();
             obj.setup_controllers();
             obj.setup_signals();
         }
@@ -363,6 +369,43 @@ impl TextLayout {
     }
 
     //-----------------------------------
+    // Setup actions
+    //-----------------------------------
+    fn setup_actions(&self) {
+        let imp = self.imp();
+
+        // Add select all action
+        let select_action = gio::SimpleAction::new("select-all", None);
+        select_action.connect_activate(clone!(@weak imp => move |_, _| {
+            imp.selection_start.set(0);
+            imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
+
+            imp.draw_area.queue_draw();
+        }));
+
+        // Add copy action
+        let copy_action = gio::SimpleAction::new("copy", None);
+        copy_action.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+            let selection_start = imp.selection_start.get();
+            let selection_end = imp.selection_end.get();
+
+            if selection_start != -1 && selection_end != -1 && selection_start != selection_end {
+                obj.clipboard().set_text(&imp.pango_layout.get().unwrap().text()[selection_start as usize..selection_end as usize]);
+            }
+        }));
+
+        // Add actions to text action group
+        let text_group = gio::SimpleActionGroup::new();
+
+        self.insert_action_group("text", Some(&text_group));
+
+        text_group.add_action(&select_action);
+        text_group.add_action(&copy_action);
+
+        imp.text_action_group.replace(text_group);
+    }
+
+    //-----------------------------------
     // Controller helper functions
     //-----------------------------------
     fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32, i32) {
@@ -411,7 +454,7 @@ impl TextLayout {
         let mut cursor = "text";
 
         // If text selection initiated, redraw to show selection
-        if imp.selection_start.get() != -1 {
+        if imp.left_pressed.get() && imp.selection_start.get() != -1 {
             if trailing > 0 {
                 imp.selection_end.set(index + 1);
             } else {
@@ -455,69 +498,99 @@ impl TextLayout {
 
         // Add click gesture controller
         let click_gesture = gtk::GestureClick::new();
+        click_gesture.set_button(0);
 
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        click_gesture.connect_pressed(clone!(@weak self as obj, @weak imp => move |_, n, x, y| {
-            let link = obj.link_at_xy(x, y);
+        click_gesture.connect_pressed(clone!(@weak self as obj, @weak imp => move |gesture, n, x, y| {
+            let button = gesture.current_button();
 
-            if link.is_none() {
-                if n == 1 {
-                    let (_, index, trailing) = obj.index_at_xy(x, y);
+            if button == gdk::BUTTON_PRIMARY {
+                let link = obj.link_at_xy(x, y);
 
-                    if trailing > 0 {
-                        imp.selection_start.set(index + 1);
-                    } else {
-                        imp.selection_start.set(index);
+                if link.is_none() {
+                    if n == 1 {
+                        let (_, index, trailing) = obj.index_at_xy(x, y);
+
+                        if trailing > 0 {
+                            imp.selection_start.set(index + 1);
+                        } else {
+                            imp.selection_start.set(index);
+                        }
+
+                        imp.selection_end.set(-1);
+                    } else if n == 2 {
+                        let (_, index, _) = obj.index_at_xy(x, y);
+
+                        let text = imp.pango_layout.get().unwrap().text();
+
+                        let start = text[..index as usize]
+                            .bytes()
+                            .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                            .and_then(|start| Some(start + 1))
+                            .unwrap_or(0);
+                        let end = text[index as usize..]
+                            .bytes()
+                            .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                            .and_then(|end| Some(end + index as usize))
+                            .unwrap_or(text.len());
+
+                        imp.selection_start.set(start as i32);
+                        imp.selection_end.set(end as i32);
+
+                        imp.draw_area.queue_draw();
+                    } else if n == 3 {
+                        imp.selection_start.set(0);
+                        imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
+
+                        imp.draw_area.queue_draw();
                     }
-                } else if n == 2 {
-                    let (_, index, _) = obj.index_at_xy(x, y);
 
-                    let text = imp.pango_layout.get().unwrap().text();
-
-                    let start = text[..index as usize]
-                        .bytes()
-                        .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                        .and_then(|start| Some(start + 1))
-                        .unwrap_or(0);
-                    let end = text[index as usize..]
-                        .bytes()
-                        .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                        .and_then(|end| Some(end + index as usize))
-                        .unwrap_or(text.len());
-
-                    imp.selection_start.set(start as i32);
-                    imp.selection_end.set(end as i32);
-
-                    imp.draw_area.queue_draw();
-                } else if n == 3 {
-                    imp.selection_start.set(0);
-                    imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
-
-                    imp.draw_area.queue_draw();
+                    imp.left_pressed.set(true);
                 }
-            }
 
-            imp.pressed_link.replace(link);
+                imp.pressed_link.replace(link);
+            } else if button == gdk::BUTTON_SECONDARY {
+                // Enable/disable copy action
+                let selection_start = imp.selection_start.get();
+                let selection_end = imp.selection_end.get();
+
+                let copy_action = imp.text_action_group.borrow().lookup_action("copy")
+                    .and_downcast::<gio::SimpleAction>()
+                    .expect("Must be a 'SimpleAction'");
+
+                copy_action.set_enabled(selection_start != -1 && selection_end != -1 && selection_start != selection_end);
+
+                // Show popover menu
+                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+
+                imp.popover_menu.set_pointing_to(Some(&rect));
+                imp.popover_menu.popup();
+            }
         }));
 
-        click_gesture.connect_released(clone!(@weak self as obj, @weak imp => move |_, _, x, y| {
-            // Redraw if necessary to hide selection
-            if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
-                imp.draw_area.queue_draw();
-            }
+        click_gesture.connect_released(clone!(@weak self as obj, @weak imp => move |gesture, _, x, y| {
+            let button = gesture.current_button();
 
-            // Reset selection markers
-            imp.selection_start.set(-1);
-            imp.selection_end.set(-1);
+            if button == gdk::BUTTON_PRIMARY {
+                // Redraw if necessary to hide selection
+                if imp.left_pressed.get() {
+                    if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
+                        imp.draw_area.queue_draw();
+                    }    
+                }
 
-            // Launch link if any
-            if let Some(pressed_link) = imp.pressed_link.take() {
-                if let Some(link) = obj.link_at_xy(x, y).filter(|link| link == &pressed_link) {
-                    if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
-                        if let Ok(url) = Url::parse(&link) {
-                            if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
-                                let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
+                // Reset left button pressed
+                imp.left_pressed.set(false);
+
+                // Launch link if any
+                if let Some(pressed_link) = imp.pressed_link.take() {
+                    if let Some(link) = obj.link_at_xy(x, y).filter(|link| link == &pressed_link) {
+                        if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
+                            if let Ok(url) = Url::parse(&link) {
+                                if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
+                                    let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
+                                }
                             }
                         }
                     }
