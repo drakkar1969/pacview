@@ -579,6 +579,9 @@ impl TextLayout {
                 // Redraw if necessary to hide selection
                 if imp.left_pressed.get() {
                     if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
+                        imp.selection_start.set(-1);
+                        imp.selection_end.set(-1);
+
                         imp.draw_area.queue_draw();
                     }
                 }
