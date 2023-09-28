@@ -71,7 +71,7 @@ mod imp {
 
         pub selection_bg_rgba: Cell<Option<gdk::RGBA>>,
 
-        pub text_action_group: RefCell<gio::SimpleActionGroup>,
+        pub action_group: RefCell<gio::SimpleActionGroup>,
     }
 
     //-----------------------------------
@@ -261,7 +261,7 @@ impl TextLayout {
 
         let label = gtk::Label::new(None);
         label.add_css_class("css-label");
-        
+
         let css_provider = gtk::CssProvider::new();
         css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_color, 0.3); }}"));
 
@@ -402,7 +402,7 @@ impl TextLayout {
         text_group.add_action(&select_action);
         text_group.add_action(&copy_action);
 
-        imp.text_action_group.replace(text_group);
+        imp.action_group.replace(text_group);
     }
 
     //-----------------------------------
@@ -555,7 +555,7 @@ impl TextLayout {
                 let selection_start = imp.selection_start.get();
                 let selection_end = imp.selection_end.get();
 
-                let copy_action = imp.text_action_group.borrow().lookup_action("copy")
+                let copy_action = imp.action_group.borrow().lookup_action("copy")
                     .and_downcast::<gio::SimpleAction>()
                     .expect("Must be a 'SimpleAction'");
 
@@ -577,7 +577,7 @@ impl TextLayout {
                 if imp.left_pressed.get() {
                     if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
                         imp.draw_area.queue_draw();
-                    }    
+                    }
                 }
 
                 // Reset left button pressed
