@@ -266,7 +266,7 @@ impl TextLayout {
         label.add_css_class("css-label");
 
         let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_color, 0.3); }}"));
+        css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@theme_selected_bg_color, 0.3); }}"));
 
         gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
@@ -618,10 +618,12 @@ impl TextLayout {
         style_manager.connect_dark_notify(clone!(@weak imp => move |style_manager| {
             // Update link/selected text colors when color scheme changes
             let link_btn = gtk::LinkButton::new("www.gtk.org");
+
             let label = gtk::Label::new(None);
+            label.add_css_class("css-label");
 
             let css_provider = gtk::CssProvider::new();
-            css_provider.load_from_string(&format!("label {{ color: alpha(@accent_color, 0.3); }}"));
+            css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@theme_selected_bg_color, 0.3); }}"));
 
             gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
