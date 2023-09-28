@@ -54,14 +54,19 @@ mod imp {
         #[property(set = Self::set_text)]
         _text: RefCell<String>,
 
-        pub link_rgba: Cell<Option<gdk::RGBA>>,
-
         pub pango_layout: OnceCell<pango::Layout>,
+
+        pub link_rgba: Cell<Option<gdk::RGBA>>,
 
         pub link_map: RefCell<HashMap<String, String>>,
 
         pub cursor: RefCell<String>,
         pub pressed_link: RefCell<Option<String>>,
+
+        pub selection_start: Cell<i32>,
+        pub selection_end: Cell<i32>,
+
+        pub selection_bg_rgba: Cell<Option<gdk::RGBA>>,
     }
 
     //-----------------------------------
@@ -105,10 +110,6 @@ mod imp {
         //-----------------------------------
         fn constructed(&self) {
             self.parent_constructed();
-
-            let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-            self.link_rgba.replace(Some(link_btn.color()));
 
             let obj = self.obj();
 
@@ -231,28 +232,62 @@ impl TextLayout {
         attr_list.insert(attr);
     }
 
+    fn format_selection(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
+        let (red, green, blue) = self.rgba_to_pango_rgb(self.imp().selection_bg_rgba.get().unwrap(), self.parent().unwrap().color());
+
+        let mut attr = pango::AttrColor::new_background(red, green, blue);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
+
+        attr_list.insert(attr);
+    }
+
     //-----------------------------------
     // Setup layout
     //-----------------------------------
     fn setup_layout(&self) {
         let imp = self.imp();
 
+        // Get link/selected text colors
+        let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+        imp.link_rgba.replace(Some(link_btn.color()));
+
+        let label = gtk::Label::new(None);
+        label.add_css_class("css-label");
+        
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_color, 0.3); }}"));
+
+        gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+        imp.selection_bg_rgba.replace(Some(label.color()));
+
+        gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+
+        // Clear selection markers
+        imp.selection_start.set(-1);
+        imp.selection_end.set(-1);
+
+        // Create pango layout
         let layout = imp.draw_area.create_pango_layout(None);
         layout.set_wrap(pango::WrapMode::Word);
         layout.set_line_spacing(1.15);
 
         imp.pango_layout.set(layout).unwrap();
 
+        // Connect drawing area draw function
         imp.draw_area.set_draw_func(clone!(@weak self as obj, @weak imp => move |_, context, _, _| {
             let layout = imp.pango_layout.get().unwrap();
 
+            // Clear link map
             let mut link_map = imp.link_map.borrow_mut();
 
             link_map.clear();
 
             let attr_list = pango::AttrList::new();
 
-            // Set pango layout text text
+            // Format pango layout text and store links in link map
             match obj.ptype() {
                 PropType::Text => {
                     obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
@@ -312,6 +347,15 @@ impl TextLayout {
                 },
             }
 
+            // Format pango layout text selection
+            let selection_start = imp.selection_start.get();
+            let selection_end = imp.selection_end.get();
+
+            if selection_start != -1 && selection_end != -1 && selection_start != selection_end {
+                obj.format_selection(&attr_list, selection_start.min(selection_end) as usize, selection_start.max(selection_end) as usize);
+            }
+
+            // Show pango layout
             layout.set_attributes(Some(&attr_list));
 
             pangocairo::show_layout(&context, &layout);
@@ -321,12 +365,10 @@ impl TextLayout {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
-    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
+    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32, i32) {
         let layout = self.imp().pango_layout.get().unwrap();
 
-        let (inside, index, _) = layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE);
-
-        (inside, index)
+        layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE)
     }
 
     fn is_link_at_index(&self, inside: bool, index: i32) -> Option<pango::Attribute> {
@@ -345,7 +387,7 @@ impl TextLayout {
     fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
         let imp = self.imp();
 
-        let (inside, index) = self.index_at_xy(x, y);
+        let (inside, index, _) = self.index_at_xy(x, y);
 
         if let Some(attr) = self.is_link_at_index(inside, index) {
             let layout = imp.pango_layout.get().unwrap();
@@ -364,22 +406,31 @@ impl TextLayout {
     fn set_cursor_motion(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let (inside, index) = self.index_at_xy(x, y);
+        let (inside, index, trailing) = self.index_at_xy(x, y);
 
-        let cursor = if self.is_link_at_index(inside, index).is_some() {
-            "pointer"
-        } else {
-            if inside {
-                "text"
+        let mut cursor = "text";
+
+        // If text selection initiated, redraw to show selection
+        if imp.selection_start.get() != -1 {
+            if trailing > 0 {
+                imp.selection_end.set(index + 1);
             } else {
-                "default"
+                imp.selection_end.set(index);
             }
-        }.to_string();
 
+            imp.draw_area.queue_draw();
+        } else {
+            // If no text selected, update cursor over links
+            if self.is_link_at_index(inside, index).is_some() {
+                cursor = "pointer";
+            }
+        }
+
+        // Update cursor if necessary
         if cursor != *imp.cursor.borrow() {
-            imp.draw_area.set_cursor_from_name(Some(&cursor));
+            imp.draw_area.set_cursor_from_name(Some(cursor));
 
-            imp.cursor.replace(cursor);
+            imp.cursor.replace(cursor.to_string());
         }
     }
 
@@ -389,7 +440,7 @@ impl TextLayout {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
-        // Change mouse pointer when hovering over links (add motion controller to view)
+        // Add mouse move controller
         let motion_controller = gtk::EventControllerMotion::new();
 
         motion_controller.connect_enter(clone!(@weak self as obj => move |_, x, y| {
@@ -402,28 +453,67 @@ impl TextLayout {
 
         imp.draw_area.add_controller(motion_controller);
 
-        // Activate links on click (add click gesture to view)
+        // Add click gesture controller
         let click_gesture = gtk::GestureClick::new();
 
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        click_gesture.connect_pressed(clone!(@weak self as obj, @weak imp => move |gesture, _, x, y| {
+        click_gesture.connect_pressed(clone!(@weak self as obj, @weak imp => move |_, n, x, y| {
             let link = obj.link_at_xy(x, y);
 
-            if link.is_some() {
-                gesture.set_state(gtk::EventSequenceState::Claimed);
+            if link.is_none() {
+                if n == 1 {
+                    let (_, index, trailing) = obj.index_at_xy(x, y);
+
+                    if trailing > 0 {
+                        imp.selection_start.set(index + 1);
+                    } else {
+                        imp.selection_start.set(index);
+                    }
+                } else if n == 2 {
+                    let (_, index, _) = obj.index_at_xy(x, y);
+
+                    let text = imp.pango_layout.get().unwrap().text();
+
+                    let start = text[..index as usize]
+                        .bytes()
+                        .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                        .and_then(|start| Some(start + 1))
+                        .unwrap_or(0);
+                    let end = text[index as usize..]
+                        .bytes()
+                        .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                        .and_then(|end| Some(end + index as usize))
+                        .unwrap_or(text.len());
+
+                    imp.selection_start.set(start as i32);
+                    imp.selection_end.set(end as i32);
+
+                    imp.draw_area.queue_draw();
+                } else if n == 3 {
+                    imp.selection_start.set(0);
+                    imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
+
+                    imp.draw_area.queue_draw();
+                }
             }
 
             imp.pressed_link.replace(link);
         }));
 
         click_gesture.connect_released(clone!(@weak self as obj, @weak imp => move |_, _, x, y| {
-            let pressed_link = imp.pressed_link.take();
+            // Redraw if necessary to hide selection
+            if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
+                imp.draw_area.queue_draw();
+            }
 
-            if pressed_link.is_some() {
-                if let Some(link) = obj.link_at_xy(x, y)
-                    .filter(|link| link == pressed_link.as_ref().unwrap())
-                {
+            // Reset selection markers
+            imp.selection_start.set(-1);
+            imp.selection_end.set(-1);
+
+            // Launch link if any
+            if let Some(pressed_link) = imp.pressed_link.take() {
+                if let Some(link) = obj.link_at_xy(x, y).filter(|link| link == &pressed_link) {
                     if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
                         if let Ok(url) = Url::parse(&link) {
                             if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
@@ -448,18 +538,31 @@ impl TextLayout {
         let style_manager = adw::StyleManager::default();
 
         style_manager.connect_dark_notify(clone!(@weak imp => move |style_manager| {
-            // Update link color when color scheme changes
+            // Update link/selected text colors when color scheme changes
             let link_btn = gtk::LinkButton::new("www.gtk.org");
+            let label = gtk::Label::new(None);
+
+            let css_provider = gtk::CssProvider::new();
+            css_provider.load_from_string(&format!("label {{ color: alpha(@accent_color, 0.3); }}"));
+
+            gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
             let btn_style = adw::StyleManager::for_display(&link_btn.display());
+            let label_style = adw::StyleManager::for_display(&label.display());
 
             if style_manager.is_dark() {
                 btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
+                label_style.set_color_scheme(adw::ColorScheme::ForceDark);
             } else {
                 btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
+                label_style.set_color_scheme(adw::ColorScheme::ForceLight);
             }
 
             imp.link_rgba.replace(Some(link_btn.color()));
+
+            imp.selection_bg_rgba.replace(Some(label.color()));
+
+            gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
         }));
     }
 }
