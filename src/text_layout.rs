@@ -62,7 +62,7 @@ mod imp {
 
         pub link_map: RefCell<HashMap<String, String>>,
 
-        pub left_pressed: Cell<bool>,
+        pub primary_pressed: Cell<bool>,
         pub cursor: RefCell<String>,
         pub pressed_link: RefCell<Option<String>>,
 
@@ -71,7 +71,7 @@ mod imp {
 
         pub selection_bg_rgba: Cell<Option<gdk::RGBA>>,
 
-        pub action_group: RefCell<gio::SimpleActionGroup>,
+        pub action_group: OnceCell<gio::SimpleActionGroup>,
     }
 
     //-----------------------------------
@@ -389,12 +389,7 @@ impl TextLayout {
         // Add copy action
         let copy_action = gio::SimpleAction::new("copy", None);
         copy_action.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
-            let selection_start = imp.selection_start.get();
-            let selection_end = imp.selection_end.get();
-
-            if selection_start != -1 && selection_end != -1 && selection_start != selection_end {
-                obj.clipboard().set_text(&imp.pango_layout.get().unwrap().text()[selection_start as usize..selection_end as usize]);
-            }
+            obj.clipboard().set_text(&imp.pango_layout.get().unwrap().text()[imp.selection_start.get() as usize..imp.selection_end.get() as usize]);
         }));
 
         // Add actions to text action group
@@ -405,7 +400,7 @@ impl TextLayout {
         text_group.add_action(&select_action);
         text_group.add_action(&copy_action);
 
-        imp.action_group.replace(text_group);
+        imp.action_group.set(text_group).unwrap();
     }
 
     //-----------------------------------
@@ -457,7 +452,7 @@ impl TextLayout {
         let mut cursor = "text";
 
         // If text selection initiated, redraw to show selection
-        if imp.left_pressed.get() && imp.selection_start.get() != -1 {
+        if imp.primary_pressed.get() && imp.selection_start.get() != -1 {
             if trailing > 0 {
                 imp.selection_end.set(index + 1);
             } else {
@@ -513,6 +508,7 @@ impl TextLayout {
 
                 if link.is_none() {
                     if n == 1 {
+                        // Single click: initiate selection, widget redrawn on mouse move
                         let (_, index, trailing) = obj.index_at_xy(x, y);
 
                         if trailing > 0 {
@@ -523,6 +519,7 @@ impl TextLayout {
 
                         imp.selection_end.set(-1);
                     } else if n == 2 {
+                        // Double click: select word under cursor and redraw widget
                         let (_, index, _) = obj.index_at_xy(x, y);
 
                         let text = imp.pango_layout.get().unwrap().text();
@@ -543,13 +540,14 @@ impl TextLayout {
 
                         imp.draw_area.queue_draw();
                     } else if n == 3 {
+                        // Triple click: select all text and redraw widget
                         imp.selection_start.set(0);
                         imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
 
                         imp.draw_area.queue_draw();
                     }
 
-                    imp.left_pressed.set(true);
+                    imp.primary_pressed.set(true);
                 }
 
                 imp.pressed_link.replace(link);
@@ -558,7 +556,8 @@ impl TextLayout {
                 let selection_start = imp.selection_start.get();
                 let selection_end = imp.selection_end.get();
 
-                let copy_action = imp.action_group.borrow().lookup_action("copy")
+                let copy_action = imp.action_group.get()
+                    .and_then(|group| group.lookup_action("copy"))
                     .and_downcast::<gio::SimpleAction>()
                     .expect("Must be a 'SimpleAction'");
 
@@ -577,7 +576,7 @@ impl TextLayout {
 
             if button == gdk::BUTTON_PRIMARY {
                 // Redraw if necessary to hide selection
-                if imp.left_pressed.get() {
+                if imp.primary_pressed.get() {
                     if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
                         imp.selection_start.set(-1);
                         imp.selection_end.set(-1);
@@ -587,7 +586,7 @@ impl TextLayout {
                 }
 
                 // Reset left button pressed
-                imp.left_pressed.set(false);
+                imp.primary_pressed.set(false);
 
                 // Launch link if any
                 if let Some(pressed_link) = imp.pressed_link.take() {
