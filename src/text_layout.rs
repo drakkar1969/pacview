@@ -173,6 +173,9 @@ mod imp {
 
             layout.set_text(text);
 
+            self.selection_start.set(-1);
+            self.selection_end.set(-1);
+
             self.draw_area.queue_resize();
         }
     }
