@@ -14,6 +14,31 @@ use url::Url;
 use pangocairo;
 
 //------------------------------------------------------------------------------
+// GLOBAL: Color Variables
+//------------------------------------------------------------------------------
+thread_local!(pub static LINK_RGBA: Cell<gdk::RGBA> = Cell::new({
+    let link_btn = gtk::LinkButton::new("www.gtk.org");
+
+    link_btn.color()
+}));
+
+thread_local!(pub static SELECTED_BG_COLOR: Cell<gdk::RGBA> = Cell::new({
+    let label = gtk::Label::new(None);
+    label.add_css_class("css-label");
+
+    let css_provider = gtk::CssProvider::new();
+    css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, 0.3); }}"));
+
+    gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    let bg_color = label.color();
+
+    gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+
+    bg_color
+}));
+
+//------------------------------------------------------------------------------
 // ENUM: PropType
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
@@ -58,8 +83,6 @@ mod imp {
 
         pub pango_layout: OnceCell<pango::Layout>,
 
-        pub link_rgba: Cell<Option<gdk::RGBA>>,
-
         pub link_map: RefCell<HashMap<String, String>>,
 
         pub primary_pressed: Cell<bool>,
@@ -68,8 +91,6 @@ mod imp {
 
         pub selection_start: Cell<i32>,
         pub selection_end: Cell<i32>,
-
-        pub selection_bg_rgba: Cell<Option<gdk::RGBA>>,
 
         pub action_group: OnceCell<gio::SimpleActionGroup>,
     }
@@ -226,29 +247,33 @@ impl TextLayout {
     }
 
     fn format_link(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
-        let (red, green, blue) = self.rgba_to_pango_rgb(self.imp().link_rgba.get().unwrap(), self.parent().unwrap().color());
+        LINK_RGBA.with(|link_rgba| {
+            let (red, green, blue) = self.rgba_to_pango_rgb(link_rgba.get(), self.parent().unwrap().color());
 
-        let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-        attr.set_start_index(start as u32);
-        attr.set_end_index(end as u32);
+            let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+            attr.set_start_index(start as u32);
+            attr.set_end_index(end as u32);
 
-        attr_list.insert(attr);
+            attr_list.insert(attr);
 
-        let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-        attr.set_start_index(start as u32);
-        attr.set_end_index(end as u32);
+            let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+            attr.set_start_index(start as u32);
+            attr.set_end_index(end as u32);
 
-        attr_list.insert(attr);
+            attr_list.insert(attr);
+        });
     }
 
     fn format_selection(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
-        let (red, green, blue) = self.rgba_to_pango_rgb(self.imp().selection_bg_rgba.get().unwrap(), self.parent().unwrap().color());
+        SELECTED_BG_COLOR.with(|bg_color| {
+            let (red, green, blue) = self.rgba_to_pango_rgb(bg_color.get(), self.parent().unwrap().color());
 
-        let mut attr = pango::AttrColor::new_background(red, green, blue);
-        attr.set_start_index(start as u32);
-        attr.set_end_index(end as u32);
+            let mut attr = pango::AttrColor::new_background(red, green, blue);
+            attr.set_start_index(start as u32);
+            attr.set_end_index(end as u32);
 
-        attr_list.insert(attr);
+            attr_list.insert(attr);
+        });
     }
 
     //-----------------------------------
@@ -256,23 +281,6 @@ impl TextLayout {
     //-----------------------------------
     fn setup_layout(&self) {
         let imp = self.imp();
-
-        // Get link/selected text colors
-        let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-        imp.link_rgba.replace(Some(link_btn.color()));
-
-        let label = gtk::Label::new(None);
-        label.add_css_class("css-label");
-
-        let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@theme_selected_bg_color, 0.3); }}"));
-
-        gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-        imp.selection_bg_rgba.replace(Some(label.color()));
-
-        gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
 
         // Clear selection markers
         imp.selection_start.set(-1);
@@ -616,33 +624,43 @@ impl TextLayout {
         let style_manager = adw::StyleManager::default();
 
         style_manager.connect_dark_notify(clone!(@weak imp => move |style_manager| {
-            // Update link/selected text colors when color scheme changes
-            let link_btn = gtk::LinkButton::new("www.gtk.org");
+            // Update link color
+            LINK_RGBA.with(|link_rgba| {
+                let link_btn = gtk::LinkButton::new("www.gtk.org");
 
-            let label = gtk::Label::new(None);
-            label.add_css_class("css-label");
+                let btn_style = adw::StyleManager::for_display(&link_btn.display());
 
-            let css_provider = gtk::CssProvider::new();
-            css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@theme_selected_bg_color, 0.3); }}"));
+                if style_manager.is_dark() {
+                    btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
+                } else {
+                    btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
+                }
 
-            gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+                link_rgba.set(link_btn.color());
+            });
 
-            let btn_style = adw::StyleManager::for_display(&link_btn.display());
-            let label_style = adw::StyleManager::for_display(&label.display());
+            // Update selected text background color
+            SELECTED_BG_COLOR.with(|bg_color| {
+                let label = gtk::Label::new(None);
+                label.add_css_class("css-label");
 
-            if style_manager.is_dark() {
-                btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
-                label_style.set_color_scheme(adw::ColorScheme::ForceDark);
-            } else {
-                btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
-                label_style.set_color_scheme(adw::ColorScheme::ForceLight);
-            }
+                let css_provider = gtk::CssProvider::new();
+                css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, 0.3); }}"));
 
-            imp.link_rgba.replace(Some(link_btn.color()));
+                gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-            imp.selection_bg_rgba.replace(Some(label.color()));
+                let label_style = adw::StyleManager::for_display(&label.display());
 
-            gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+                if style_manager.is_dark() {
+                    label_style.set_color_scheme(adw::ColorScheme::ForceDark);
+                } else {
+                    label_style.set_color_scheme(adw::ColorScheme::ForceLight);
+                }
+
+                bg_color.set(label.color());
+
+                gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+            });
         }));
     }
 }
