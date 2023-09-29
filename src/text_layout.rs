@@ -1,5 +1,4 @@
 use std::cell::{Cell, RefCell};
-use std::collections::HashMap;
 
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
@@ -59,6 +58,15 @@ impl Default for PropType {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: Link
+//------------------------------------------------------------------------------
+pub struct Link {
+    url: String,
+    start: usize,
+    end: usize,
+}
+
+//------------------------------------------------------------------------------
 // MODULE: TextLayout
 //------------------------------------------------------------------------------
 mod imp {
@@ -83,7 +91,7 @@ mod imp {
 
         pub pango_layout: OnceCell<pango::Layout>,
 
-        pub link_map: RefCell<HashMap<String, String>>,
+        pub link_list: RefCell<Vec<Link>>,
 
         pub primary_pressed: Cell<bool>,
         pub cursor: RefCell<String>,
@@ -298,9 +306,9 @@ impl TextLayout {
             let layout = imp.pango_layout.get().unwrap();
 
             // Clear link map
-            let mut link_map = imp.link_map.borrow_mut();
+            let mut link_list = imp.link_list.borrow_mut();
 
-            link_map.clear();
+            link_list.clear();
 
             let attr_list = pango::AttrList::new();
 
@@ -320,7 +328,11 @@ impl TextLayout {
                     if layout.text() == "None" {
                         obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
                     } else {
-                        link_map.insert(layout.text().to_string(), layout.text().to_string());
+                        link_list.push(Link {
+                            url: layout.text().to_string(),
+                            start: 0,
+                            end: layout.text().len()
+                        });
 
                         obj.format_link(&attr_list, 0, layout.text().len());
                     }
@@ -333,7 +345,11 @@ impl TextLayout {
                     obj.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
 
                     if let Some(m) = EXPR.captures(&layout.text()).ok().flatten().and_then(|caps| caps.get(1)) {
-                        link_map.insert(m.as_str().to_string(), format!("mailto:{}", m.as_str()));
+                        link_list.push(Link {
+                            url: format!("mailto:{}", m.as_str()),
+                            start: m.start(),
+                            end: m.end()
+                        });
 
                         obj.format_link(&attr_list, m.start(), m.end());
                     }
@@ -354,7 +370,11 @@ impl TextLayout {
 
                         for caps in EXPR.captures_iter(&layout.text()).flatten() {
                             if let Some(m) = caps.get(1) {
-                                link_map.insert(m.as_str().to_string(), format!("pkg://{}", m.as_str()));
+                                link_list.push(Link {
+                                    url: format!("pkg://{}", m.as_str()),
+                                    start: m.start(),
+                                    end: m.end()
+                                });
 
                                 obj.format_link(&attr_list, m.start(), m.end());
                             }
@@ -420,36 +440,20 @@ impl TextLayout {
         layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE)
     }
 
-    fn is_link_at_index(&self, inside: bool, index: i32) -> Option<pango::Attribute> {
-        let layout = self.imp().pango_layout.get().unwrap();
-
+    fn link_at_index(&self, inside: bool, index: i32) -> Option<String> {
         if inside {
-            return layout.attributes().and_then(|attr_list| {
-                attr_list.attributes().into_iter()
-                    .find(|attr| attr.attr_class().type_() == pango::AttrType::Underline && attr.start_index() as i32 <= index && attr.end_index() as i32 > index)
-            })
+            return self.imp().link_list.borrow().iter()
+                .find(|link| link.start <= index as usize && link.end > index as usize)
+                .and_then(|link| Some(link.url.to_string()))
         }
 
         None
     }
 
     fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
-        let imp = self.imp();
-
         let (inside, index, _) = self.index_at_xy(x, y);
 
-        if let Some(attr) = self.is_link_at_index(inside, index) {
-            let layout = imp.pango_layout.get().unwrap();
-
-            let link_map = imp.link_map.borrow();
-
-            if let Some(link) = link_map.get(&layout.text()[attr.start_index() as usize..attr.end_index() as usize])
-            {
-                return Some(link.to_string())
-            }
-        }
-
-        None
+        self.link_at_index(inside, index)
     }
 
     fn set_cursor_motion(&self, x: f64, y: f64) {
@@ -470,7 +474,7 @@ impl TextLayout {
             imp.draw_area.queue_draw();
         } else {
             // If no text selected, update cursor over links
-            if self.is_link_at_index(inside, index).is_some() {
+            if self.link_at_index(inside, index).is_some() {
                 cursor = "pointer";
             }
         }
