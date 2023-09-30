@@ -21,7 +21,7 @@ thread_local!(pub static LINK_RGBA: Cell<gdk::RGBA> = Cell::new({
     link_btn.color()
 }));
 
-thread_local!(pub static SELECTED_BG_COLOR: Cell<gdk::RGBA> = Cell::new({
+thread_local!(pub static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
     let label = gtk::Label::new(None);
     label.add_css_class("css-label");
 
@@ -245,10 +245,10 @@ mod imp {
         }
 
         pub fn format_selection(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
-            SELECTED_BG_COLOR.with(|bg_color| {
+            SELECTED_RGBA.with(|selected_rgba| {
                 let obj = self.obj();
 
-                let (red, green, blue) = self.rgba_to_pango_rgb(bg_color.get(), obj.parent().unwrap().color());
+                let (red, green, blue) = self.rgba_to_pango_rgb(selected_rgba.get(), obj.parent().unwrap().color());
 
                 let mut attr = pango::AttrColor::new_background(red, green, blue);
                 attr.set_start_index(start as u32);
@@ -658,7 +658,7 @@ impl TextLayout {
             });
 
             // Update selected text background color
-            SELECTED_BG_COLOR.with(|bg_color| {
+            SELECTED_RGBA.with(|selected_rgba| {
                 let label = gtk::Label::new(None);
                 label.add_css_class("css-label");
 
@@ -675,7 +675,7 @@ impl TextLayout {
                     label_style.set_color_scheme(adw::ColorScheme::ForceLight);
                 }
 
-                bg_color.set(label.color());
+                selected_rgba.set(label.color());
 
                 gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
             });
