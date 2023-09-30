@@ -16,12 +16,6 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;B</property>
-                <property name="title">Toggle Sidebar</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;I</property>
                 <property name="title">Toggle Info Pane</property>
               </object>
@@ -104,7 +98,7 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;F</property>
-                <property name="title">Start/Stop Search</property>
+                <property name="title">Start Search</property>
               </object>
             </child>
             <child>
