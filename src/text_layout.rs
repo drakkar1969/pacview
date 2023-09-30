@@ -428,7 +428,10 @@ impl TextLayout {
         // Add copy action
         let copy_action = gio::SimpleAction::new("copy", None);
         copy_action.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
-            obj.clipboard().set_text(&imp.pango_layout.get().unwrap().text()[imp.selection_start.get() as usize..imp.selection_end.get() as usize]);
+            let selection_start = imp.selection_start.get() as usize;
+            let selection_end = imp.selection_end.get() as usize;
+
+            obj.clipboard().set_text(&imp.pango_layout.get().unwrap().text()[selection_start.min(selection_end)..selection_start.max(selection_end)]);
         }));
 
         // Add actions to text action group
