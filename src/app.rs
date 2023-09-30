@@ -160,7 +160,7 @@ impl PacViewApplication {
             .application_name("PacView")
             .application_icon("software-properties")
             .developer_name("draKKar1969")
-            .version("2.1.0")
+            .version("2.1.1")
             .website("https://github.com/drakkar1969/pacview")
             .developers(vec!["draKKar1969"])
             .designers(vec!["draKKar1969"])
