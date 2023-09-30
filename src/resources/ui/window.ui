@@ -4,43 +4,33 @@
   <template class="PacViewWindow" parent="AdwApplicationWindow">
     <property name="default-width">1350</property>
     <property name="default-height">800</property>
+    <property name="title">PacView</property>
     <property name="content">
-      <object class="AdwToolbarView" id="toolbar_view">
-        <property name="top-bar-style">raised-border</property>
-        <child type="top">
-          <object class="AdwHeaderBar" id="header_bar">
-            <property name="title-widget">
-              <object class="SearchHeader" id="search_header">
-                <property name="title">PacView</property>
-              </object>
-            </property>
-            <child type="start">
-              <object class="GtkButton" id="refresh_button">
-                <property name="icon-name">view-refresh-symbolic</property>
-                <property name="action-name">win.refresh</property>
-                <property name="tooltip-text">Refresh</property>
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkMenuButton" id="mainmenu_button">
-                <property name="icon-name">open-menu-symbolic</property>
-                <property name="primary">True</property>
-                <property name="tooltip-text">Main Menu</property>
-                <property name="menu-model">primary_menu</property>
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkToggleButton" id="search_button">
-                <property name="active">False</property>
-                <property name="icon-name">edit-find-symbolic</property>
-                <property name="tooltip-text">Toggle Search</property>
+      <object class="AdwOverlaySplitView" id="split_view">
+        <property name="min-sidebar-width">190</property>
+        <property name="max-sidebar-width">250</property>
+        <property name="sidebar">
+          <object class="AdwToolbarView" id="sidebar_toolbar_view">
+            <child type="top">
+              <object class="AdwHeaderBar" id="sidebar_header_bar">
+                <child type="start">
+                  <object class="GtkButton" id="refresh_button">
+                    <property name="icon-name">view-refresh-symbolic</property>
+                    <property name="action-name">win.refresh</property>
+                    <property name="tooltip-text">Refresh</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkMenuButton" id="mainmenu_button">
+                    <property name="icon-name">open-menu-symbolic</property>
+                    <property name="primary">True</property>
+                    <property name="tooltip-text">Main Menu</property>
+                    <property name="menu-model">primary_menu</property>
+                  </object>
+                </child>
               </object>
             </child>
-          </object>
-        </child>
-        <property name="content">
-          <object class="GtkBox" id="main_box">
-            <child>
+            <property name="content">
               <object class="GtkBox" id="sidebar_box">
                 <property name="orientation">vertical</property>
                 <property name="spacing">30</property>
@@ -50,11 +40,10 @@
                     <property name="vexpand">True</property>
                     <property name="child">
                       <object class="GtkBox">
-                        <property name="width-request">220</property>
                         <property name="orientation">vertical</property>
                         <property name="margin-start">6</property>
                         <property name="margin-end">6</property>
-                        <property name="margin-top">12</property>
+                        <property name="margin-top">6</property>
                         <property name="margin-bottom">12</property>
                         <child>
                           <object class="GtkLabel" id="repo_header">
@@ -112,7 +101,7 @@
                     <property name="margin-start">18</property>
                     <property name="margin-end">18</property>
                     <property name="margin-top">8</property>
-                    <property name="margin-bottom">8</property>
+                    <property name="margin-bottom">12</property>
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkLabel" id="status_label">
@@ -122,14 +111,31 @@
                   </object>
                 </child>
               </object>
+            </property>
+          </object>
+        </property>
+        <property name="content">
+          <object class="AdwToolbarView" id="content_toolbar_view">
+            <property name="top-bar-style">raised-border</property>
+            <child type="top">
+              <object class="AdwHeaderBar" id="content_header_bar">
+                <property name="title-widget">
+                  <object class="SearchHeader" id="search_header">
+                    <property name="title"></property>
+                  </object>
+                </property>
+                <child type="end">
+                  <object class="GtkToggleButton" id="search_button">
+                    <property name="active">False</property>
+                    <property name="icon-name">edit-find-symbolic</property>
+                    <property name="tooltip-text">Toggle Search</property>
+                  </object>
+                </child>
+              </object>
             </child>
-            <child>
-              <object class="GtkSeparator"/>
-            </child>
-            <child>
+            <property name="content">
               <object class="GtkPaned" id="pane">
                 <property name="orientation">vertical</property>
-                <property name="wide-handle">True</property>
                 <property name="position">375</property>
                 <property name="shrink-start-child">False</property>
                 <property name="shrink-end-child">False</property>
@@ -144,7 +150,7 @@
                   </object>
                 </property>
               </object>
-            </child>
+            </property>
           </object>
         </property>
       </object>
