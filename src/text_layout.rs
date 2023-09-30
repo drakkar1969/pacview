@@ -431,7 +431,9 @@ impl TextLayout {
             let selection_start = imp.selection_start.get() as usize;
             let selection_end = imp.selection_end.get() as usize;
 
-            obj.clipboard().set_text(&imp.pango_layout.get().unwrap().text()[selection_start.min(selection_end)..selection_start.max(selection_end)]);
+            if let Some(text) = imp.pango_layout.get().unwrap().text().get(selection_start.min(selection_end)..selection_start.max(selection_end)) {
+                obj.clipboard().set_text(text);
+            }
         }));
 
         // Add actions to text action group
@@ -550,21 +552,26 @@ impl TextLayout {
 
                         let text = imp.pango_layout.get().unwrap().text();
 
-                        let start = text[..index as usize]
-                            .bytes()
-                            .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                            .and_then(|start| Some(start + 1))
-                            .unwrap_or(0);
-                        let end = text[index as usize..]
-                            .bytes()
-                            .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                            .and_then(|end| Some(end + index as usize))
-                            .unwrap_or(text.len());
+                        if let Some(start_text) = text.get(..index as usize) {
+                            let start = start_text
+                                .bytes()
+                                .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                .and_then(|start| Some(start + 1))
+                                .unwrap_or(0);
 
-                        imp.selection_start.set(start as i32);
-                        imp.selection_end.set(end as i32);
+                            if let Some(end_text) = text.get(index as usize..) {
+                                let end = end_text
+                                    .bytes()
+                                    .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                    .and_then(|end| Some(end + index as usize))
+                                    .unwrap_or(text.len());
 
-                        imp.draw_area.queue_draw();
+                                imp.selection_start.set(start as i32);
+                                imp.selection_end.set(end as i32);
+
+                                imp.draw_area.queue_draw();
+                            }
+                        }
                     } else if n == 3 {
                         // Triple click: select all text and redraw widget
                         imp.selection_start.set(0);
