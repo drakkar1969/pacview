@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::path::Path;
 use std::rc::Rc;
 use std::thread;
@@ -17,7 +17,7 @@ use titlecase::titlecase;
 use regex::Regex;
 use lazy_static::lazy_static;
 use raur::blocking::Raur;
-use notify_debouncer_full::{notify::*, new_debouncer, DebounceEventResult};
+use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
 use crate::APP_ID;
 use crate::PacViewApplication;
@@ -47,8 +47,6 @@ pub struct PacmanConfig {
 // MODULE: PacViewWindow
 //------------------------------------------------------------------------------
 mod imp {
-    use notify_debouncer_full::{Debouncer, FileIdMap};
-
     use super::*;
 
     //-----------------------------------
@@ -84,6 +82,9 @@ mod imp {
         pub gsettings: OnceCell<gio::Settings>,
 
         pub pacman_config: RefCell<PacmanConfig>,
+
+        pub saved_repo_id: RefCell<Option<String>>,
+        pub saved_status_id: Cell<PkgFlags>,
 
         pub update_row: RefCell<FilterRow>,
 
@@ -338,7 +339,18 @@ impl PacViewWindow {
         // Add package view refresh action
         let refresh_action = gio::ActionEntry::<PacViewWindow>::builder("refresh")
             .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
-                imp.search_header.set_active(false);
+                let repo_id = imp.repo_listbox.selected_row()
+                    .and_downcast::<FilterRow>()
+                    .and_then(|row| row.repo_id());
+
+                imp.saved_repo_id.replace(repo_id);
+
+                let status_id = imp.status_listbox.selected_row()
+                    .and_downcast::<FilterRow>()
+                    .and_then(|row| Some(row.status_id()))
+                    .unwrap_or(PkgFlags::empty());
+
+                imp.saved_status_id.set(status_id);
 
                 obj.setup_alpm();
             }))
@@ -699,15 +711,25 @@ impl PacViewWindow {
 
         imp.repo_listbox.append(&row);
 
-        imp.repo_listbox.select_row(Some(&row));
+        let saved_repo_id = imp.saved_repo_id.take();
+
+        if saved_repo_id.is_none() {
+            imp.repo_listbox.select_row(Some(&row));
+        }
 
         for repo in &imp.pacman_config.borrow().pacman_repos {
-            let row = FilterRow::new("repository-symbolic", &titlecase(&repo), Some(&repo), PkgFlags::empty());
+            let row = FilterRow::new("repository-symbolic", &titlecase(repo), Some(repo), PkgFlags::empty());
 
             imp.repo_listbox.append(&row);
+
+            if saved_repo_id.as_ref() == Some(repo) {
+                imp.repo_listbox.select_row(Some(&row));
+            }
         }
 
         // Add package status rows (enumerate PkgStatusFlags)
+        let saved_status_id = imp.saved_status_id.get();
+
         let flags = glib::FlagsClass::new::<PkgFlags>();
 
         for f in flags.values() {
@@ -717,8 +739,14 @@ impl PacViewWindow {
 
             imp.status_listbox.append(&row);
 
-            if flag == PkgFlags::INSTALLED {
-                imp.status_listbox.select_row(Some(&row));
+            if saved_status_id == PkgFlags::empty() {
+                if flag == PkgFlags::INSTALLED {
+                    imp.status_listbox.select_row(Some(&row));
+                }
+            } else {
+                if flag == saved_status_id {
+                    imp.status_listbox.select_row(Some(&row));
+                }
             }
 
             if flag == PkgFlags::UPDATES {
@@ -728,6 +756,8 @@ impl PacViewWindow {
                 imp.update_row.replace(row);
             }
         }
+
+        imp.saved_status_id.set(PkgFlags::empty());
     }
 
     //-----------------------------------
@@ -946,6 +976,17 @@ impl PacViewWindow {
 
                 update_row.set_sensitive(success);
 
+                // If update row is selected, refresh package status filter
+                if update_row.is_selected() {
+                    imp.package_view.imp().status_filter.set_filter_func(clone!(@strong update_row => move |item| {
+                        let pkg: &PkgObject = item
+                            .downcast_ref::<PkgObject>()
+                            .expect("Must be a 'PkgObject'");
+    
+                        pkg.flags().intersects(update_row.status_id())
+                    }));
+                }
+
                 glib::ControlFlow::Break
             }),
         );
@@ -989,9 +1030,9 @@ impl PacViewWindow {
             None,
             clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |_| {
                 if imp.prefs_window.auto_refresh() == true {
-                    imp.search_header.set_active(false);
-
-                    obj.setup_alpm();
+                    if let Some(refresh_action) = obj.lookup_action("refresh") {
+                        refresh_action.activate(None);
+                    }
                 }
 
                 glib::ControlFlow::Continue

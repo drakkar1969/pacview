@@ -27,7 +27,7 @@ pub enum PkgFlags {
 
 impl Default for PkgFlags {
     fn default() -> Self {
-        PkgFlags::NONE
+        PkgFlags::empty()
     }
 }
 
