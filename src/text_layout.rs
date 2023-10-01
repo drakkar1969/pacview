@@ -284,21 +284,13 @@ mod imp {
                     self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Bold);
                 },
                 PropType::Link => {
-                    if layout.text().is_empty() {
-                        layout.set_text("None");
-                    }
+                    link_list.push(Link {
+                        url: layout.text().to_string(),
+                        start: 0,
+                        end: layout.text().len()
+                    });
 
-                    if layout.text() == "None" {
-                        self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
-                    } else {
-                        link_list.push(Link {
-                            url: layout.text().to_string(),
-                            start: 0,
-                            end: layout.text().len()
-                        });
-
-                        self.format_link(&attr_list, 0, layout.text().len());
-                    }
+                    self.format_link(&attr_list, 0, layout.text().len());
                 },
                 PropType::Packager => {
                     lazy_static! {

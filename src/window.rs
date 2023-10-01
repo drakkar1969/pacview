@@ -754,9 +754,11 @@ impl PacViewWindow {
                     let info_pkg = imp.info_pane.pkg();
 
                     if info_pkg.is_some() && info_pkg.unwrap() == pkg {
-                        imp.info_pane.update_property_value(PropID::PackageUrl, &imp.info_pane.prop_to_package_url(&pkg), None);
+                        let package_url = imp.info_pane.prop_to_package_url(&pkg);
 
-                        imp.info_pane.update_property_value(PropID::Repository, &pkg.repo_show(), None);
+                        imp.info_pane.set_property_value(PropID::PackageUrl, package_url != "", &package_url, None);
+
+                        imp.info_pane.set_property_value(PropID::Repository, true, &pkg.repo_show(), None);
                     }
                 }
 
@@ -848,7 +850,7 @@ impl PacViewWindow {
                         let info_pkg = imp.info_pane.pkg();
 
                         if info_pkg.is_some() && info_pkg.unwrap() == *pkg {
-                            imp.info_pane.update_property_value(PropID::Version, &pkg.version(), Some("pkg-update"));
+                            imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
                         }
                     }
                 }

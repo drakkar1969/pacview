@@ -273,9 +273,9 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // Set property value function
+    // Public set property value function
     //-----------------------------------
-    fn set_property_value(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
+    pub fn set_property_value(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
         if let Some((property_label, property_value)) = self.imp().property_map.borrow().get(&id) {
             property_label.set_visible(visible);
             property_value.set_visible(visible);
@@ -371,7 +371,8 @@ impl InfoPane {
             // Description
             self.set_property_value(PropID::Description, true, &pkg.description(), None);
             // Package URL
-            self.set_property_value(PropID::PackageUrl, true, &self.prop_to_package_url(&pkg), None);
+            let package_url = self.prop_to_package_url(&pkg);
+            self.set_property_value(PropID::PackageUrl, package_url != "", &package_url, None);
             // URL
             self.set_property_value(PropID::Url, pkg.url() != "", &pkg.url(), None);
             // Licenses
@@ -462,15 +463,5 @@ impl InfoPane {
         }
 
         url
-    }
-
-    //-----------------------------------
-    // Public update property value function
-    //-----------------------------------
-    pub fn update_property_value(&self, id: PropID, value: &str, icon: Option<&str>) {
-        if let Some((_, property_value)) = self.imp().property_map.borrow().get(&id) {
-            property_value.set_icon(icon);
-            property_value.set_text(value);
-        }
     }
 }
