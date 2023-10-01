@@ -287,4 +287,31 @@
       </item>
     </section>
   </menu>
+
+  <!--// Package view popover //-->
+  <object class="GtkPopoverMenu" id="popover_menu">
+    <property name="menu-model">popup_menu</property>
+    <property name="has-arrow">false</property>
+    <property name="halign">start</property>
+  </object>
+
+  <!--// Package view popup menu //-->
+  <menu id="popup_menu">
+    <section>
+      <item>
+        <attribute name="label">Refresh</attribute>
+        <attribute name="action">win.refresh</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Show Statistics</attribute>
+        <attribute name="action">win.show-stats</attribute>
+      </item>
+      <item>
+        <attribute name="label">Copy List</attribute>
+        <attribute name="action">win.copy-list</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

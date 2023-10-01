@@ -1,4 +1,4 @@
-use gtk::{glib, gio};
+use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
@@ -38,6 +38,8 @@ mod imp {
         pub model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub empty_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
     }
 
     //-----------------------------------
@@ -68,13 +70,6 @@ mod imp {
                     Signal::builder("selected")
                         .param_types([Option::<PkgObject>::static_type()])
                         .build(),
-                    Signal::builder("pressed")
-                        .param_types([
-                            u32::static_type(),
-                            f32::static_type(),
-                            f32::static_type()
-                        ])
-                        .build(),
                 ]
             });
             SIGNALS.as_ref()
@@ -92,6 +87,13 @@ mod imp {
             obj.setup_controllers();
             obj.setup_actions();
             obj.setup_signals();
+        }
+
+        //-----------------------------------
+        // Destructor
+        //-----------------------------------
+        fn dispose(&self) {
+            self.popover_menu.unparent();
         }
     }
 
@@ -127,6 +129,9 @@ impl PackageView {
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Set popover menu parent
+        imp.popover_menu.set_parent(self);
     }
 
     //-----------------------------------
@@ -139,9 +144,14 @@ impl PackageView {
         gesture.set_button(0);
 
         gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
-            let button = gesture.current_button();
+            if gesture.current_button() == gdk::BUTTON_SECONDARY {
+                let imp = obj.imp();
 
-            obj.emit_by_name::<()>("pressed", &[&button, &(x as f32), &(y as f32)]);
+                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+
+                imp.popover_menu.set_pointing_to(Some(&rect));
+                imp.popover_menu.popup();
+            }
         }));
 
         self.add_controller(gesture);
