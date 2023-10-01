@@ -718,7 +718,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Get list of local packages (not in sync DBs)
-        let local_pkgs = imp.package_view.imp().model.iter::<PkgObject>()
+        let local_list = imp.package_view.imp().model.iter::<PkgObject>()
             .flatten()
             .filter_map(|pkg| if pkg.repository() == "local" {Some(pkg.name())} else {None})
             .collect::<Vec<String>>();
@@ -732,7 +732,7 @@ impl PacViewWindow {
             // Check if local packages are in AUR
             let handle = raur::blocking::Handle::new();
 
-            if let Ok(aur_pkgs) = handle.info(&local_pkgs) {
+            if let Ok(aur_pkgs) = handle.info(&local_list) {
                 aur_list.extend(aur_pkgs.iter().map(|pkg| pkg.name.to_string()));
             }
 
