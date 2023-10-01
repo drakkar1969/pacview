@@ -537,77 +537,7 @@ impl PacViewWindow {
 
         // Search header changed signal
         imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |_: SearchHeader, search_term: &str, flags: SearchFlags, mode: SearchMode| {
-            let imp = obj.imp();
-
-            if search_term == "" {
-                imp.package_view.imp().search_filter.unset_filter_func();
-            } else {
-                if mode == SearchMode::Exact {
-                    let term = search_term.to_string();
-
-                    imp.package_view.imp().search_filter.set_filter_func(move |item| {
-                        let pkg: &PkgObject = item
-                            .downcast_ref::<PkgObject>()
-                            .expect("Must be a 'PkgObject'");
-
-                        let results = [
-                            flags.contains(SearchFlags::NAME) &&
-                                pkg.name().eq_ignore_ascii_case(&term),
-                            flags.contains(SearchFlags::DESC) &&
-                                pkg.description().eq_ignore_ascii_case(&term),
-                            flags.contains(SearchFlags::GROUP) &&
-                                pkg.groups().eq_ignore_ascii_case(&term),
-                            flags.contains(SearchFlags::DEPS) &&
-                                pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            flags.contains(SearchFlags::OPTDEPS) &&
-                                pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            flags.contains(SearchFlags::PROVIDES) &&
-                                pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                            flags.contains(SearchFlags::FILES) &&
-                                pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)),
-                        ];
-
-                        results.iter().any(|&x| x)
-                    });
-                } else {
-                    let term = search_term.to_ascii_lowercase();
-
-                    imp.package_view.imp().search_filter.set_filter_func(move |item| {
-                        let pkg: &PkgObject = item
-                            .downcast_ref::<PkgObject>()
-                            .expect("Must be a 'PkgObject'");
-
-                        let mut results = vec![];
-
-                        for t in term.split_whitespace() {
-                            let t_results = [
-                                flags.contains(SearchFlags::NAME) &&
-                                    pkg.name().to_ascii_lowercase().contains(&t),
-                                flags.contains(SearchFlags::DESC) &&
-                                    pkg.description().to_ascii_lowercase().contains(&t),
-                                flags.contains(SearchFlags::GROUP) &&
-                                    pkg.groups().to_ascii_lowercase().contains(&t),
-                                flags.contains(SearchFlags::DEPS) &&
-                                    pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                flags.contains(SearchFlags::OPTDEPS) &&
-                                    pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                flags.contains(SearchFlags::PROVIDES) &&
-                                    pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                                flags.contains(SearchFlags::FILES) &&
-                                    pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
-                            ];
-
-                            results.push(t_results.iter().any(|&x| x));
-                        }
-
-                        if mode == SearchMode::All {
-                            results.iter().all(|&x| x)
-                        } else {
-                            results.iter().any(|&x| x)
-                        }
-                    });
-                }
-            }
+            obj.imp().package_view.set_search_filter(search_term, flags, mode);
         }));
 
         // Repo listbox row selected signal
@@ -618,7 +548,7 @@ impl PacViewWindow {
                     .expect("Must be a 'FilterRow'")
                     .repo_id();
 
-                imp.package_view.imp().repo_filter.set_search(repo_id.as_deref());
+                imp.package_view.set_repo_filter(repo_id.as_deref());
             }
         }));
 
@@ -630,13 +560,7 @@ impl PacViewWindow {
                     .expect("Must be a 'FilterRow'")
                     .status_id();
 
-                imp.package_view.imp().status_filter.set_filter_func(move |item| {
-                    let pkg: &PkgObject = item
-                        .downcast_ref::<PkgObject>()
-                        .expect("Must be a 'PkgObject'");
-
-                    pkg.flags().intersects(status_id)
-                });
+                imp.package_view.set_status_filter(status_id);
             }
         }));
 
@@ -978,13 +902,7 @@ impl PacViewWindow {
 
                 // If update row is selected, refresh package status filter
                 if update_row.is_selected() {
-                    imp.package_view.imp().status_filter.set_filter_func(clone!(@strong update_row => move |item| {
-                        let pkg: &PkgObject = item
-                            .downcast_ref::<PkgObject>()
-                            .expect("Must be a 'PkgObject'");
-    
-                        pkg.flags().intersects(update_row.status_id())
-                    }));
+                    imp.package_view.set_status_filter(update_row.status_id());
                 }
 
                 glib::ControlFlow::Break

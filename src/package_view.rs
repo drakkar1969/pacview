@@ -5,7 +5,8 @@ use glib::subclass::Signal;
 use glib::once_cell::sync::Lazy;
 use glib::clone;
 
-use crate::pkg_object::PkgObject;
+use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::search_header::{SearchMode, SearchFlags};
 
 //------------------------------------------------------------------------------
 // MODULE: PackageView
@@ -188,6 +189,98 @@ impl PackageView {
             obj.emit_by_name::<()>("selected", &[&selected_item]);
         }));
     }
+
+    //-----------------------------------
+    // Public filter functions
+    //-----------------------------------
+    pub fn set_search_filter(&self, search_term: &str, flags: SearchFlags, mode: SearchMode) {
+        let imp = self.imp();
+
+        if search_term == "" {
+            imp.search_filter.unset_filter_func();
+        } else {
+            if mode == SearchMode::Exact {
+                let term = search_term.to_string();
+
+                imp.search_filter.set_filter_func(move |item| {
+                    let pkg: &PkgObject = item
+                        .downcast_ref::<PkgObject>()
+                        .expect("Must be a 'PkgObject'");
+
+                    let results = [
+                        flags.contains(SearchFlags::NAME) &&
+                            pkg.name().eq_ignore_ascii_case(&term),
+                        flags.contains(SearchFlags::DESC) &&
+                            pkg.description().eq_ignore_ascii_case(&term),
+                        flags.contains(SearchFlags::GROUP) &&
+                            pkg.groups().eq_ignore_ascii_case(&term),
+                        flags.contains(SearchFlags::DEPS) &&
+                            pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                        flags.contains(SearchFlags::OPTDEPS) &&
+                            pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                        flags.contains(SearchFlags::PROVIDES) &&
+                            pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                        flags.contains(SearchFlags::FILES) &&
+                            pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)),
+                    ];
+
+                    results.iter().any(|&x| x)
+                });
+            } else {
+                let term = search_term.to_ascii_lowercase();
+
+                imp.search_filter.set_filter_func(move |item| {
+                    let pkg: &PkgObject = item
+                        .downcast_ref::<PkgObject>()
+                        .expect("Must be a 'PkgObject'");
+
+                    let mut results = vec![];
+
+                    for t in term.split_whitespace() {
+                        let t_results = [
+                            flags.contains(SearchFlags::NAME) &&
+                                pkg.name().to_ascii_lowercase().contains(&t),
+                            flags.contains(SearchFlags::DESC) &&
+                                pkg.description().to_ascii_lowercase().contains(&t),
+                            flags.contains(SearchFlags::GROUP) &&
+                                pkg.groups().to_ascii_lowercase().contains(&t),
+                            flags.contains(SearchFlags::DEPS) &&
+                                pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                            flags.contains(SearchFlags::OPTDEPS) &&
+                                pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                            flags.contains(SearchFlags::PROVIDES) &&
+                                pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                            flags.contains(SearchFlags::FILES) &&
+                                pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)),
+                        ];
+
+                        results.push(t_results.iter().any(|&x| x));
+                    }
+
+                    if mode == SearchMode::All {
+                        results.iter().all(|&x| x)
+                    } else {
+                        results.iter().any(|&x| x)
+                    }
+                });
+            }
+        }
+    }
+
+    pub fn set_repo_filter(&self, repo_id: Option<&str>) {
+        self.imp().repo_filter.set_search(repo_id.as_deref());
+    }
+
+    pub fn set_status_filter(&self, status_id: PkgFlags) {
+        self.imp().status_filter.set_filter_func(move |item| {
+            let pkg: &PkgObject = item
+                .downcast_ref::<PkgObject>()
+                .expect("Must be a 'PkgObject'");
+
+            pkg.flags().intersects(status_id)
+        });
+    }
+
     //-----------------------------------
     // Sort columns helper function
     //-----------------------------------
