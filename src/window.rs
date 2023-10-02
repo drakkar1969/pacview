@@ -639,7 +639,7 @@ impl PacViewWindow {
 
             if flag == PkgFlags::UPDATES {
                 row.set_spinning(true);
-                row.set_sensitive(false);
+                row.set_sensitive(true);
 
                 imp.update_row.replace(row);
             }
@@ -860,10 +860,8 @@ impl PacViewWindow {
 
                 update_row.set_spinning(false);
                 update_row.set_icon(if success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
-                update_row.set_count(if success && update_list.len() > 0 {update_list.len().to_string()} else {String::from("")});
-
-                update_row.set_tooltip_text(if success {Some("")} else {Some("Update Error")});
-
+                update_row.set_count(update_list.len() as u32);
+                update_row.set_tooltip_text(if success {None} else {Some("Update Error")});
                 update_row.set_sensitive(success);
 
                 // If update row is selected, refresh package status filter

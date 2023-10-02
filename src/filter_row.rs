@@ -37,7 +37,7 @@ mod imp {
         #[property(get, set)]
         text: RefCell<String>,
         #[property(get, set)]
-        count: RefCell<String>,
+        count: Cell<u32>,
         #[property(get, set)]
         spinning: Cell<bool>,
 
@@ -124,10 +124,11 @@ impl FilterRow {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         self.bind_property("count", &imp.count_label.get(), "label")
+            .transform_to(|_, count: u32| Some(count.to_string()))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         self.bind_property("count", &imp.count_box.get(), "visible")
-            .transform_to(|_, count: &str| Some(count != ""))
+            .transform_to(|_, count: u32| Some(count > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
     }
