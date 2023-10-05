@@ -34,32 +34,15 @@ mod imp {
         #[template_child]
         pub content_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub files_button: TemplateChild<ToggleButton>,
-        #[template_child]
         pub tree_button: TemplateChild<ToggleButton>,
+        #[template_child]
+        pub files_button: TemplateChild<ToggleButton>,
         #[template_child]
         pub log_button: TemplateChild<ToggleButton>,
         #[template_child]
         pub cache_button: TemplateChild<ToggleButton>,
         #[template_child]
         pub backup_button: TemplateChild<ToggleButton>,
-
-        #[template_child]
-        pub files_header_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub files_search_entry: TemplateChild<gtk::SearchEntry>,
-        #[template_child]
-        pub files_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub files_copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub files_view: TemplateChild<gtk::ListView>,
-        #[template_child]
-        pub files_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub files_selection: TemplateChild<gtk::SingleSelection>,
-        #[template_child]
-        pub files_filter: TemplateChild<gtk::StringFilter>,
 
         #[template_child]
         pub tree_header_label: TemplateChild<gtk::Label>,
@@ -77,6 +60,23 @@ mod imp {
         pub tree_view: TemplateChild<gtk::TextView>,
         #[template_child]
         pub tree_buffer: TemplateChild<gtk::TextBuffer>,
+
+        #[template_child]
+        pub files_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub files_search_entry: TemplateChild<gtk::SearchEntry>,
+        #[template_child]
+        pub files_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub files_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub files_view: TemplateChild<gtk::ListView>,
+        #[template_child]
+        pub files_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub files_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub files_filter: TemplateChild<gtk::StringFilter>,
 
         #[template_child]
         pub log_copy_button: TemplateChild<gtk::Button>,
@@ -180,11 +180,14 @@ impl DetailsWindow {
         win.update_ui_banner(pkg);
         win.update_ui_stack(installed);
 
-        if installed { win.update_ui_files_page(pkg); }
         win.update_ui_tree_page(pkg, custom_font, monospace_font);
-        if installed { win.update_ui_logs_page(pkg, log_file); }
-        if installed { win.update_ui_cache_page(pkg, cache_dirs, pkg_model); }
-        if installed { win.update_ui_backup_page(pkg); }
+
+        if installed {
+            win.update_ui_files_page(pkg);
+            win.update_ui_logs_page(pkg, log_file);
+            win.update_ui_cache_page(pkg, cache_dirs, pkg_model);
+            win.update_ui_backup_page(pkg);
+        }
 
         win
     }
@@ -273,8 +276,8 @@ impl DetailsWindow {
 
         // Stack button toggled signals
         let stack_buttons = [
-            imp.files_button.get(),
             imp.tree_button.get(),
+            imp.files_button.get(),
             imp.log_button.get(),
             imp.cache_button.get(),
             imp.backup_button.get()
@@ -287,6 +290,27 @@ impl DetailsWindow {
                 }
             }));
         }
+
+        // Tree scale value changed signal
+        imp.tree_depth_scale.connect_value_changed(clone!(@weak self as obj, @weak imp => move |scale| {
+            if scale.value() == imp.tree_depth_scale.adjustment().upper() {
+                imp.tree_depth_label.set_label("Default");
+            } else {
+                imp.tree_depth_label.set_label(&scale.value().to_string());
+            }
+
+            obj.filter_dependency_tree();
+        }));
+
+        // Tree reverse button toggled signal
+        imp.tree_reverse_button.connect_toggled(clone!(@weak self as obj => move |_| {
+            obj.filter_dependency_tree();
+        }));
+
+        // Tree copy button clicked signal
+        imp.tree_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+            obj.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
+        }));
 
         // Files search entry search changed signal
         imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
@@ -321,27 +345,6 @@ impl DetailsWindow {
         // Files listview activate signal
         imp.files_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
             imp.files_open_button.emit_clicked();
-        }));
-
-        // Tree scale value changed signal
-        imp.tree_depth_scale.connect_value_changed(clone!(@weak self as obj, @weak imp => move |scale| {
-            if scale.value() == imp.tree_depth_scale.adjustment().upper() {
-                imp.tree_depth_label.set_label("Default");
-            } else {
-                imp.tree_depth_label.set_label(&scale.value().to_string());
-            }
-
-            obj.filter_dependency_tree();
-        }));
-
-        // Tree reverse button toggled signal
-        imp.tree_reverse_button.connect_toggled(clone!(@weak self as obj => move |_| {
-            obj.filter_dependency_tree();
-        }));
-
-        // Tree copy button clicked signal
-        imp.tree_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            obj.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
         }));
 
         // Log copy button clicked signal
@@ -423,46 +426,6 @@ impl DetailsWindow {
         imp.log_button.set_sensitive(installed);
         imp.cache_button.set_sensitive(installed);
         imp.backup_button.set_sensitive(installed);
-
-        if !installed {
-            imp.tree_button.set_active(true);
-        }
-    }
-
-    //-----------------------------------
-    // Update files page
-    //-----------------------------------
-    fn update_ui_files_page(&self, pkg: &PkgObject) {
-        let imp = self.imp();
-
-        // Set files search entry key capture widget
-        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
-
-        // Populate files list
-        let files_list: Vec<gtk::StringObject> = pkg.files().iter()
-            .map(|s| gtk::StringObject::new(s))
-            .collect();
-
-        imp.files_model.splice(0, 0, &files_list);
-
-        // Bind files count to files header label
-        let files_len = files_list.len();
-
-        imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(format!("Files ({n_items} of {files_len})")))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        // Bind files count to files open/copy button states
-        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
     }
 
     //-----------------------------------
@@ -537,6 +500,42 @@ impl DetailsWindow {
                 glib::ControlFlow::Break
             }),
         );
+    }
+
+    //-----------------------------------
+    // Update files page
+    //-----------------------------------
+    fn update_ui_files_page(&self, pkg: &PkgObject) {
+        let imp = self.imp();
+
+        // Set files search entry key capture widget
+        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
+
+        // Populate files list
+        let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+            .map(|s| gtk::StringObject::new(s))
+            .collect();
+
+        imp.files_model.splice(0, 0, &files_list);
+
+        // Bind files count to files header label
+        let files_len = files_list.len();
+
+        imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
+            .transform_to(move |_, n_items: u32| Some(format!("Files ({n_items} of {files_len})")))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind files count to files open/copy button states
+        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 
     //-----------------------------------

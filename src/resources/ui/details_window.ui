@@ -45,25 +45,25 @@
                 <property name="homogeneous">True</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="ToggleButton" id="files_button">
-                    <property name="hexpand">True</property>
-                    <property name="active">True</property>
-                    <property name="icon">details-files-symbolic</property>
-                    <property name="text">Files</property>
-                  </object>
-                </child>
-                <child>
                   <object class="ToggleButton" id="tree_button">
                     <property name="hexpand">True</property>
-                    <property name="group">files_button</property>
+                    <property name="active">True</property>
                     <property name="icon">details-tree-symbolic</property>
                     <property name="text">Tree</property>
                   </object>
                 </child>
                 <child>
+                  <object class="ToggleButton" id="files_button">
+                    <property name="hexpand">True</property>
+                    <property name="group">tree_button</property>
+                    <property name="icon">details-files-symbolic</property>
+                    <property name="text">Files</property>
+                  </object>
+                </child>
+                <child>
                   <object class="ToggleButton" id="log_button">
                     <property name="hexpand">True</property>
-                    <property name="group">files_button</property>
+                    <property name="group">tree_button</property>
                     <property name="icon">details-log-symbolic</property>
                     <property name="text">Log</property>
                   </object>
@@ -71,7 +71,7 @@
                 <child>
                   <object class="ToggleButton" id="cache_button">
                     <property name="hexpand">True</property>
-                    <property name="group">files_button</property>
+                    <property name="group">tree_button</property>
                     <property name="icon">details-cache-symbolic</property>
                     <property name="text">Cache</property>
                   </object>
@@ -79,7 +79,7 @@
                 <child>
                   <object class="ToggleButton" id="backup_button">
                     <property name="hexpand">True</property>
-                    <property name="group">files_button</property>
+                    <property name="group">tree_button</property>
                     <property name="icon">details-backup-symbolic</property>
                     <property name="text">Backup</property>
                   </object>
@@ -91,122 +91,6 @@
                 <style>
                   <class name="card"/>
                 </style>
-                <child>
-                  <object class="GtkStackPage" id="files_page">
-                    <property name="name">files</property>
-                    <property name="child">
-                      <object class="GtkBox" id="files_box">
-                        <property name="orientation">vertical</property>
-                        <property name="spacing">16</property>
-                        <child>
-                          <object class="GtkBox" id="files_header_box">
-                            <property name="margin-start">16</property>
-                            <property name="margin-end">16</property>
-                            <property name="margin-top">16</property>
-                            <property name="spacing">12</property>
-                            <child>
-                              <object class="GtkImage" id="files_header_image">
-                                <property name="icon-name">details-files-symbolic</property>
-                                <style>
-                                  <class name="bubble"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="files_header_label">
-                                <property name="xalign">0</property>
-                                <property name="yalign">0.5</property>
-                                <property name="label">Files</property>
-                                <style>
-                                  <class name="title-3"/>
-                                </style>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkBox">
-                                <property name="hexpand">True</property>
-                                <property name="halign">end</property>
-                                <property name="margin-start">20</property>
-                                <property name="spacing">20</property>
-                                <child>
-                                  <object class="GtkSearchEntry" id="files_search_entry">
-                                    <property name="tooltip-text">Search for Files</property>
-                                    <style>
-                                      <class name="rounded"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkBox">
-                                    <property name="spacing">6</property>
-                                    <child>
-                                      <object class="GtkButton" id="files_open_button">
-                                        <property name="icon-name">folder-open-symbolic</property>
-                                        <property name="tooltip-text">Show Selected in File Manager</property>
-                                        <style>
-                                          <class name="flat"/>
-                                          <class name="circular"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkButton" id="files_copy_button">
-                                        <property name="icon-name">edit-copy-symbolic</property>
-                                        <property name="tooltip-text">Copy File List</property>
-                                        <style>
-                                          <class name="flat"/>
-                                          <class name="circular"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkScrolledWindow">
-                            <property name="hexpand">True</property>
-                            <property name="vexpand">True</property>
-                            <property name="margin-bottom">16</property>
-                            <property name="child">
-                              <object class="GtkListView" id="files_view">
-                                <property name="margin-start">16</property>
-                                <property name="margin-end">16</property>
-                                <property name="model">
-                                  <object class="GtkSingleSelection" id="files_selection">
-                                    <property name="model">
-                                      <object class="GtkFilterListModel" id="files_filter_model">
-                                        <property name="filter">
-                                          <object class="GtkStringFilter" id="files_filter">
-                                            <property name="expression">
-                                              <lookup name="string" type="GtkStringObject"/>
-                                            </property>
-                                          </object>
-                                        </property>
-                                        <property name="model">
-                                          <object class="GListStore" id="files_model">
-                                            <property name="item-type">GtkStringObject</property>
-                                          </object>
-                                        </property>
-                                      </object>
-                                    </property>
-                                  </object>
-                                </property>
-                                <property name="factory">
-                                  <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details_window/file_item.ui</property>
-                                  </object>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                      </object>
-                    </property>
-                  </object>
-                </child>
                 <child>
                   <object class="GtkStackPage" id="tree_page">
                     <property name="name">tree</property>
@@ -362,6 +246,122 @@
                                 </property>
                               </object>
                             </child>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkStackPage" id="files_page">
+                    <property name="name">files</property>
+                    <property name="child">
+                      <object class="GtkBox" id="files_box">
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">16</property>
+                        <child>
+                          <object class="GtkBox" id="files_header_box">
+                            <property name="margin-start">16</property>
+                            <property name="margin-end">16</property>
+                            <property name="margin-top">16</property>
+                            <property name="spacing">12</property>
+                            <child>
+                              <object class="GtkImage" id="files_header_image">
+                                <property name="icon-name">details-files-symbolic</property>
+                                <style>
+                                  <class name="bubble"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="files_header_label">
+                                <property name="xalign">0</property>
+                                <property name="yalign">0.5</property>
+                                <property name="label">Files</property>
+                                <style>
+                                  <class name="title-3"/>
+                                </style>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkBox">
+                                <property name="hexpand">True</property>
+                                <property name="halign">end</property>
+                                <property name="margin-start">20</property>
+                                <property name="spacing">20</property>
+                                <child>
+                                  <object class="GtkSearchEntry" id="files_search_entry">
+                                    <property name="tooltip-text">Search for Files</property>
+                                    <style>
+                                      <class name="rounded"/>
+                                    </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkButton" id="files_open_button">
+                                        <property name="icon-name">folder-open-symbolic</property>
+                                        <property name="tooltip-text">Show Selected in File Manager</property>
+                                        <style>
+                                          <class name="flat"/>
+                                          <class name="circular"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton" id="files_copy_button">
+                                        <property name="icon-name">edit-copy-symbolic</property>
+                                        <property name="tooltip-text">Copy File List</property>
+                                        <style>
+                                          <class name="flat"/>
+                                          <class name="circular"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkScrolledWindow">
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
+                            <property name="margin-bottom">16</property>
+                            <property name="child">
+                              <object class="GtkListView" id="files_view">
+                                <property name="margin-start">16</property>
+                                <property name="margin-end">16</property>
+                                <property name="model">
+                                  <object class="GtkSingleSelection" id="files_selection">
+                                    <property name="model">
+                                      <object class="GtkFilterListModel" id="files_filter_model">
+                                        <property name="filter">
+                                          <object class="GtkStringFilter" id="files_filter">
+                                            <property name="expression">
+                                              <lookup name="string" type="GtkStringObject"/>
+                                            </property>
+                                          </object>
+                                        </property>
+                                        <property name="model">
+                                          <object class="GListStore" id="files_model">
+                                            <property name="item-type">GtkStringObject</property>
+                                          </object>
+                                        </property>
+                                      </object>
+                                    </property>
+                                  </object>
+                                </property>
+                                <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/details_window/file_item.ui</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
                           </object>
                         </child>
                       </object>
