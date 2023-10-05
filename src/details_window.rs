@@ -1,6 +1,5 @@
 use std::cell::RefCell;
 use std::fs;
-use std::thread;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -457,7 +456,7 @@ impl DetailsWindow {
 
         let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::Priority::DEFAULT);
 
-        thread::spawn(move || {
+        gio::spawn_blocking(move || {
             // Get dependecy tree
             let cmd = format!("/usr/bin/pactree {local_flag} {pkg_name}");
 

@@ -1,7 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::path::Path;
 use std::rc::Rc;
-use std::thread;
 use std::collections::HashMap;
 use std::time::Duration;
 
@@ -659,7 +658,7 @@ impl PacViewWindow {
         // Spawn thread to load packages
         let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::Priority::DEFAULT);
 
-        thread::spawn(move || {
+        gio::spawn_blocking(move || {
             let handle = alpm::Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
 
             let localdb = handle.localdb();
@@ -726,7 +725,7 @@ impl PacViewWindow {
         // Spawn thread to check AUR packages
         let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::Priority::DEFAULT);
 
-        thread::spawn(move || {
+        gio::spawn_blocking(move || {
             let mut aur_list: Vec<String> = vec![];
 
             // Check if local packages are in AUR
@@ -779,7 +778,7 @@ impl PacViewWindow {
         // Spawn thread to check for updates
         let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::Priority::DEFAULT);
 
-        thread::spawn(move || {
+        gio::spawn_blocking(move || {
             let mut update_map = HashMap::new();
             let mut update_str = String::from("");
 
