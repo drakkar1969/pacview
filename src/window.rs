@@ -35,7 +35,7 @@ use crate::utils::Utils;
 //------------------------------------------------------------------------------
 #[derive(Default, Clone)]
 pub struct PacmanConfig {
-    pub pacman_repos: Vec<String>,
+    pub repos: Vec<String>,
     pub root_dir: String,
     pub db_path: String,
     pub log_file: String,
@@ -342,7 +342,7 @@ impl PacViewWindow {
                 
                 let stats_window = StatsWindow::new(
                     &obj.upcast(),
-                    &pacman_config.pacman_repos,
+                    &pacman_config.repos,
                     &imp.package_view.imp().model
                 );
 
@@ -575,7 +575,7 @@ impl PacViewWindow {
 
         // Store pacman config
         self.imp().pacman_config.replace(PacmanConfig{
-            pacman_repos,
+            repos: pacman_repos,
             root_dir: pacman_config.root_dir,
             db_path: pacman_config.db_path,
             log_file: pacman_config.log_file,
@@ -604,7 +604,7 @@ impl PacViewWindow {
             imp.repo_listbox.select_row(Some(&row));
         }
 
-        for repo in &imp.pacman_config.borrow().pacman_repos {
+        for repo in &imp.pacman_config.borrow().repos {
             let row = FilterRow::new("repository-symbolic", &titlecase(repo), Some(repo), PkgFlags::empty());
 
             imp.repo_listbox.append(&row);
@@ -665,7 +665,7 @@ impl PacViewWindow {
 
             let mut data_list: Vec<PkgData> = vec![];
 
-            for repo in pacman_config.pacman_repos {
+            for repo in pacman_config.repos {
                 if let Ok(db) = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL) {
                     data_list.extend(db.pkgs().iter()
                         .map(|syncpkg| {
