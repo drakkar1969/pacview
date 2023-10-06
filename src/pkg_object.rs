@@ -130,19 +130,19 @@ impl PkgData {
             repository: repo.to_string(),
             repo_show: repo.to_string(),
             status: match flags {
-                PkgFlags::EXPLICIT => "explicit".to_string(),
-                PkgFlags::DEPENDENCY => "dependency".to_string(),
-                PkgFlags::OPTIONAL => "optional".to_string(),
-                PkgFlags::ORPHAN => "orphan".to_string(),
-                _ => "".to_string()
-            },
+                PkgFlags::EXPLICIT => "explicit",
+                PkgFlags::DEPENDENCY => "dependency",
+                PkgFlags::OPTIONAL => "optional",
+                PkgFlags::ORPHAN => "orphan",
+                _ => ""
+            }.to_string(),
             status_icon: match flags {
-                PkgFlags::EXPLICIT => "pkg-explicit".to_string(),
-                PkgFlags::DEPENDENCY => "pkg-dependency".to_string(),
-                PkgFlags::OPTIONAL => "pkg-optional".to_string(),
-                PkgFlags::ORPHAN => "pkg-orphan".to_string(),
-                _ => "".to_string()
-            },
+                PkgFlags::EXPLICIT => "pkg-explicit",
+                PkgFlags::DEPENDENCY => "pkg-dependency",
+                PkgFlags::OPTIONAL => "pkg-optional",
+                PkgFlags::ORPHAN => "pkg-orphan",
+                _ => ""
+            }.to_string(),
             install_date: idate,
             install_size: syncpkg.isize(),
             groups: Self::alpm_list_to_string(&syncpkg.groups()),
