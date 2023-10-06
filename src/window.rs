@@ -666,7 +666,7 @@ impl PacViewWindow {
             let mut data_list: Vec<PkgData> = vec![];
 
             for repo in pacman_config.repos {
-                if let Ok(db) = handle.register_syncdb(repo, alpm::SigLevel::DATABASE_OPTIONAL) {
+                if let Ok(db) = handle.register_syncdb(repo, alpm::SigLevel::USE_DEFAULT) {
                     data_list.extend(db.pkgs().iter()
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());
