@@ -486,13 +486,13 @@ impl DetailsWindow {
         // Attach thread receiver
         receiver.attach(
             None,
-            clone!(@weak self as win, @weak imp => @default-return glib::ControlFlow::Break, move |(deps, rev_deps)| {
+            clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |(deps, rev_deps)| {
                 imp.tree_text.replace(deps);
 
                 imp.tree_rev_text.replace(rev_deps);
 
                 // Set tree view text
-                win.filter_dependency_tree();
+                obj.filter_dependency_tree();
 
                 imp.tree_stack.set_visible_child_name("deps");
     

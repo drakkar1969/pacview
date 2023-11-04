@@ -691,7 +691,7 @@ impl PacViewWindow {
         // Attach thread receiver
         receiver.attach(
             None,
-            clone!(@weak self as win, @weak imp => @default-return glib::ControlFlow::Break, move |(handle, data_list)| {
+            clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |(handle, data_list)| {
                 let handle_ref = Rc::new(handle);
 
                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
@@ -702,8 +702,8 @@ impl PacViewWindow {
 
                 imp.package_view.imp().stack.set_visible_child_name("view");
 
-                win.check_aur_packages_async();
-                win.get_package_updates_async();
+                obj.check_aur_packages_async();
+                obj.get_package_updates_async();
 
                 glib::ControlFlow::Break
             }),
