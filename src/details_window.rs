@@ -342,7 +342,7 @@ impl DetailsWindow {
         }));
 
         // Files listview activate signal
-        imp.files_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+        imp.files_view.connect_activate(clone!(@weak imp => move |_, _| {
             imp.files_open_button.emit_clicked();
         }));
 
@@ -376,7 +376,7 @@ impl DetailsWindow {
         }));
 
         // Cache listview activate signal
-        imp.cache_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+        imp.cache_view.connect_activate(clone!(@weak imp => move |_, _| {
             imp.cache_open_button.emit_clicked();
         }));
 
@@ -402,7 +402,7 @@ impl DetailsWindow {
         }));
 
         // Backup listview activate signal
-        imp.backup_view.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+        imp.backup_view.connect_activate(clone!(@weak imp => move |_, _| {
             imp.backup_open_button.emit_clicked();
         }));
     }

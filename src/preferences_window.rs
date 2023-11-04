@@ -223,7 +223,7 @@ impl PreferencesWindow {
         }));
 
         // Preferences reset button clicked signal
-        imp.reset_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.reset_button.connect_clicked(clone!(@weak self as obj => move |_| {
             let reset_dialog = adw::MessageDialog::new(
                 Some(&obj),
                 Some("Reset Preferences?"),

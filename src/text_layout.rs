@@ -380,7 +380,7 @@ impl TextLayout {
         imp.pango_layout.set(layout).unwrap();
 
         // Connect drawing area draw function
-        imp.draw_area.set_draw_func(clone!(@weak self as obj, @weak imp => move |_, context, _, _| {
+        imp.draw_area.set_draw_func(clone!(@weak imp => move |_, context, _, _| {
             let layout = imp.pango_layout.get().unwrap();
 
             // Format pango layout text selection
@@ -635,12 +635,10 @@ impl TextLayout {
     // Setup signals
     //-----------------------------------
     fn setup_signals(&self) {
-        let imp = self.imp();
-
         // Color scheme changed signal
         let style_manager = adw::StyleManager::default();
 
-        style_manager.connect_dark_notify(clone!(@weak imp => move |style_manager| {
+        style_manager.connect_dark_notify(move |style_manager| {
             // Update link color
             LINK_RGBA.with(|link_rgba| {
                 let link_btn = gtk::LinkButton::new("www.gtk.org");
@@ -678,6 +676,6 @@ impl TextLayout {
 
                 gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
             });
-        }));
+        });
     }
 }
