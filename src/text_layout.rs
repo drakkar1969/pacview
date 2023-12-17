@@ -86,8 +86,8 @@ mod imp {
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
-        #[property(set = Self::set_text)]
-        _text: RefCell<String>,
+        #[property(get, set = Self::set_text)]
+        text: RefCell<String>,
 
         pub pango_layout: OnceCell<pango::Layout>,
 
@@ -263,6 +263,9 @@ mod imp {
         //-----------------------------------
         fn set_text(&self, text: &str) {
             let obj = self.obj();
+
+            // Store text in property
+            self.text.replace(text.to_string());
 
             // Clear link map
             let mut link_list = self.link_list.borrow_mut();
@@ -638,7 +641,7 @@ impl TextLayout {
         // Color scheme changed signal
         let style_manager = adw::StyleManager::default();
 
-        style_manager.connect_dark_notify(move |style_manager| {
+        style_manager.connect_dark_notify(clone!(@weak self as obj => move |style_manager| {
             // Update link color
             LINK_RGBA.with(|link_rgba| {
                 let link_btn = gtk::LinkButton::new("www.gtk.org");
@@ -676,6 +679,9 @@ impl TextLayout {
 
                 gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
             });
-        });
+
+            // Reset text to update text colors
+            obj.set_text(obj.text());
+        }));
     }
 }
