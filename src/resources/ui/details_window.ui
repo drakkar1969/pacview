@@ -335,6 +335,7 @@
                               <object class="GtkListView" id="files_view">
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
+                                <property name="tab-behavior">item</property>
                                 <property name="model">
                                   <object class="GtkSingleSelection" id="files_selection">
                                     <property name="model">
@@ -421,6 +422,7 @@
                               <object class="GtkListView" id="log_view">
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
+                                <property name="tab-behavior">item</property>
                                 <property name="model">
                                   <object class="GtkNoSelection" id="log_selection">
                                     <property name="model">
@@ -512,6 +514,7 @@
                               <object class="GtkListView" id="cache_view">
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
+                                <property name="tab-behavior">item</property>
                                 <property name="model">
                                   <object class="GtkSingleSelection" id="cache_selection">
                                     <property name="model">
@@ -603,6 +606,7 @@
                               <object class="GtkListView" id="backup_view">
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
+                                <property name="tab-behavior">item</property>
                                 <property name="model">
                                   <object class="GtkSingleSelection" id="backup_selection">
                                     <property name="model">
