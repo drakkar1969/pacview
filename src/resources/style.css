@@ -75,19 +75,19 @@ box.rounded {
 }
 
 /* Info pane property rows */
-box.propertybox {
+box.property-box {
 	background: @view_bg_color;
 }
 
-box.propertybox:not(:nth-last-child(-n+2)) {
+box.property-box:not(:nth-last-child(-n+2)) {
 	border-bottom: 1px solid @borders;
 }
 
-box.propertylabel {
+box.property-label {
 	border-right: 1px solid @borders;
 }
 
-.propertyvalue {
+.property-value {
 	color: @view_bg_color;
 }
 

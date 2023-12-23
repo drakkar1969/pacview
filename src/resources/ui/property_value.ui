@@ -3,12 +3,12 @@
   <!--// PropertyValue template //-->
   <template class="PropertyValue" parent="GtkBox">
     <style>
-      <class name="propertybox"/>
+      <class name="property-box"/>
     </style>
     <child>
       <object class="GtkBox">
         <style>
-          <class name="propertyvalue"/>
+          <class name="property-value"/>
         </style>
         <property name="margin-start">10</property>
         <property name="margin-end">16</property>

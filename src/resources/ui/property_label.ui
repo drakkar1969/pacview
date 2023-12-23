@@ -3,8 +3,8 @@
   <!--// PropertyLabel template //-->
   <template class="PropertyLabel" parent="GtkBox">
     <style>
-      <class name="propertybox"/>
-      <class name="propertylabel"/>
+      <class name="property-box"/>
+      <class name="property-label"/>
     </style>
     <property name="spacing">6</property>
     <child>
