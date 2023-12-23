@@ -86,8 +86,8 @@ mod imp {
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
-        #[property(get, set = Self::set_text)]
-        text: RefCell<String>,
+        #[property(set = Self::set_text)]
+        _text: RefCell<String>,
 
         pub pango_layout: OnceCell<pango::Layout>,
 
@@ -258,49 +258,56 @@ mod imp {
             });
         }
 
+        pub fn do_format(&self, link_list: &Vec<Link>) {
+            let obj = self.obj();
+
+            let layout = self.pango_layout.get().unwrap();
+
+            let attr_list = pango::AttrList::new();
+
+            // Format text
+            if obj.ptype() == PropType::Title {
+                self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Bold);
+            } else {
+                self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
+            }
+
+            // Format links
+            link_list.iter().for_each(|link| {
+                self.format_link(&attr_list, link.start, link.end);
+            });
+
+            layout.set_attributes(Some(&attr_list));
+        }
+
         //-----------------------------------
         // Text property custom setter
         //-----------------------------------
         fn set_text(&self, text: &str) {
             let obj = self.obj();
 
-            // Store text in property
-            self.text.replace(text.to_string());
-
             // Clear link map
             let mut link_list = self.link_list.borrow_mut();
 
             link_list.clear();
 
-            // Format pango layout text and store links in link map
+            // Set pango layout text and store links in link map
             let layout = self.pango_layout.get().unwrap();
 
             layout.set_text(text);
 
-            let attr_list = pango::AttrList::new();
-
             match obj.ptype() {
-                PropType::Text => {
-                    self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
-                },
-                PropType::Title => {
-                    self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Bold);
-                },
                 PropType::Link => {
                     link_list.push(Link {
                         url: layout.text().to_string(),
                         start: 0,
                         end: layout.text().len()
                     });
-
-                    self.format_link(&attr_list, 0, layout.text().len());
                 },
                 PropType::Packager => {
                     lazy_static! {
                         static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").unwrap();
                     }
-
-                    self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
 
                     if let Some(m) = EXPR.captures(&layout.text()).ok().flatten().and_then(|caps| caps.get(1)) {
                         link_list.push(Link {
@@ -308,8 +315,6 @@ mod imp {
                             start: m.start(),
                             end: m.end()
                         });
-
-                        self.format_link(&attr_list, m.start(), m.end());
                     }
                 },
                 PropType::LinkList => {
@@ -317,14 +322,10 @@ mod imp {
                         layout.set_text("None");
                     }
 
-                    if layout.text() == "None" {
-                        self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
-                    } else {
+                    if layout.text() != "None" {
                         lazy_static! {
                             static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
                         }
-
-                        self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
 
                         for caps in EXPR.captures_iter(&layout.text()).flatten() {
                             if let Some(m) = caps.get(1) {
@@ -333,16 +334,16 @@ mod imp {
                                     start: m.start(),
                                     end: m.end()
                                 });
-
-                                self.format_link(&attr_list, m.start(), m.end());
                             }
                         }
 
                     }
                 },
+                _ => {}
             }
 
-            layout.set_attributes(Some(&attr_list));
+            // Format pango layout text
+            self.do_format(&link_list);
 
             self.selection_start.set(-1);
             self.selection_end.set(-1);
@@ -638,10 +639,12 @@ impl TextLayout {
     // Setup signals
     //-----------------------------------
     fn setup_signals(&self) {
+        let imp = self.imp();
+
         // Color scheme changed signal
         let style_manager = adw::StyleManager::default();
 
-        style_manager.connect_dark_notify(clone!(@weak self as obj => move |style_manager| {
+        style_manager.connect_dark_notify(clone!(@weak imp => move |style_manager| {
             // Update link color
             LINK_RGBA.with(|link_rgba| {
                 let link_btn = gtk::LinkButton::new("www.gtk.org");
@@ -680,8 +683,10 @@ impl TextLayout {
                 gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
             });
 
-            // Reset text to update text colors
-            obj.set_text(obj.text());
+            // Format pango layout text
+            let link_list = imp.link_list.borrow();
+
+            imp.do_format(&link_list);
         }));
     }
 }

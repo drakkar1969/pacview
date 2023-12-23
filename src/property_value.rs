@@ -102,7 +102,7 @@ impl PropertyValue {
             .build();
 
         self.bind_property("text", &imp.layout.get(), "text")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
         self.bind_property("icon", &imp.image.get(), "visible")
