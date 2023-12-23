@@ -6,7 +6,6 @@
       <class name="property-box"/>
       <class name="property-label"/>
     </style>
-    <property name="spacing">6</property>
     <child>
       <object class="GtkLabel" id="label">
         <property name="xalign">0</property>
