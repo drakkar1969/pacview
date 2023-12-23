@@ -411,4 +411,19 @@ impl PkgObject {
 
         optional_for
     }
+
+    pub fn package_url(&self) -> String {
+        let default_repos = ["core", "extra", "multilib"];
+
+        if default_repos.contains(&self.repo_show().as_str()) {
+            format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
+                repo=self.repo_show(),
+                arch=self.architecture(),
+                name=self.name())
+        } else if &self.repo_show() == "aur" {
+            format!("https://aur.archlinux.org/packages/{name}", name=self.name())
+        } else {
+            String::from("")
+        }
+    }
 }

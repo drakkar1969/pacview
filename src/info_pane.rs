@@ -371,7 +371,7 @@ impl InfoPane {
             // Description
             self.set_property_value(PropID::Description, true, &pkg.description(), None);
             // Package URL
-            let package_url = self.prop_to_package_url(&pkg);
+            let package_url = pkg.package_url();
             self.set_property_value(PropID::PackageUrl, package_url != "", &package_url, None);
             // URL
             self.set_property_value(PropID::Url, pkg.url() != "", &pkg.url(), None);
@@ -443,25 +443,5 @@ impl InfoPane {
                 self.update_display();
             }
         }
-    }
-
-    //-----------------------------------
-    // Public display helper function
-    //-----------------------------------
-    pub fn prop_to_package_url(&self, pkg: &PkgObject) -> String {
-        let mut url = String::from("");
-
-        let default_repos = ["core", "extra", "multilib"];
-
-        if default_repos.contains(&pkg.repo_show().as_str()) {
-            url = format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
-                repo=pkg.repo_show(),
-                arch=pkg.architecture(),
-                name=pkg.name());
-        } else if &pkg.repo_show() == "aur" {
-            url = format!("https://aur.archlinux.org/packages/{name}", name=pkg.name());
-        }
-
-        url
     }
 }

@@ -753,7 +753,7 @@ impl PacViewWindow {
                     let info_pkg = imp.info_pane.pkg();
 
                     if info_pkg.is_some() && info_pkg.unwrap() == pkg {
-                        let package_url = imp.info_pane.prop_to_package_url(&pkg);
+                        let package_url = pkg.package_url();
 
                         imp.info_pane.set_property_value(PropID::PackageUrl, package_url != "", &package_url, None);
 
