@@ -30,11 +30,11 @@ thread_local!(pub static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
 
     gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-    let bg_color = label.color();
+    let selected_rgba = label.color();
 
     gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
 
-    bg_color
+    selected_rgba
 }));
 
 //------------------------------------------------------------------------------
