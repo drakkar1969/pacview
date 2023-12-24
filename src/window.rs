@@ -360,7 +360,7 @@ impl PacViewWindow {
                             .downcast::<PkgObject>()
                             .expect("Must be a 'PkgObject'");
 
-                        format!("{repo}/{name}-{version}", repo=pkg.repo_show(), name=pkg.name(), version=pkg.version())
+                        format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
                     })
                     .collect::<Vec<String>>()
                     .join("\n");
@@ -570,7 +570,8 @@ impl PacViewWindow {
             .map(|r| r.name.to_string())
             .collect();
         
-        // Add 'local' to pacman repositories
+        // Add 'local' and 'aur' to pacman repositories
+        pacman_repos.push(String::from("aur"));
         pacman_repos.push(String::from("local"));
 
         // Store pacman config
@@ -605,7 +606,9 @@ impl PacViewWindow {
         }
 
         for repo in &imp.pacman_config.borrow().repos {
-            let row = FilterRow::new("repository-symbolic", &titlecase(repo), Some(repo), PkgFlags::empty());
+            let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+
+            let row = FilterRow::new("repository-symbolic", &display_label, Some(repo), PkgFlags::empty());
 
             imp.repo_listbox.append(&row);
 
@@ -747,7 +750,7 @@ impl PacViewWindow {
                 for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten()
                     .filter(|pkg| aur_list.contains(&pkg.name()))
                 {
-                    pkg.set_repo_show("aur");
+                    pkg.set_repository("aur");
 
                     // Update info pane if currently displayed package is in AUR
                     let info_pkg = imp.info_pane.pkg();
@@ -757,9 +760,12 @@ impl PacViewWindow {
 
                         imp.info_pane.set_property_value(PropID::PackageUrl, package_url != "", &package_url, None);
 
-                        imp.info_pane.set_property_value(PropID::Repository, true, &pkg.repo_show(), None);
+                        imp.info_pane.set_property_value(PropID::Repository, true, &pkg.repository(), None);
                     }
                 }
+
+                // Refresh repository filter
+                imp.package_view.imp().repo_filter.changed(gtk::FilterChange::Different);
 
                 glib::ControlFlow::Break
             }),

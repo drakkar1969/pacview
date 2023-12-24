@@ -382,7 +382,7 @@ impl InfoPane {
             let status_icon = pkg.status_icon();
             self.set_property_value(PropID::Status, true, if pkg.flags().intersects(PkgFlags::INSTALLED) {status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
             // Repository
-            self.set_property_value(PropID::Repository, true, &pkg.repo_show(), None);
+            self.set_property_value(PropID::Repository, true, &pkg.repository(), None);
             // Groups
             self.set_property_value(PropID::Groups, pkg.groups() != "", &pkg.groups(), None);
             // Provides

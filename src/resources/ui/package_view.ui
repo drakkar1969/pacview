@@ -142,7 +142,7 @@
                             <property name="sorter">
                               <object class="GtkStringSorter">
                                 <property name="expression">
-                                  <lookup name="repo-show" type="PkgObject"/>
+                                  <lookup name="repository" type="PkgObject"/>
                                 </property>
                               </object>
                             </property>

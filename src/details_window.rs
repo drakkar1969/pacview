@@ -412,7 +412,7 @@ impl DetailsWindow {
     //-----------------------------------
     fn update_ui_banner(&self, pkg: &PkgObject) {
         // Set package name in banner
-        self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repo_show(), name=pkg.name()));
+        self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repository(), name=pkg.name()));
     }
 
     //-----------------------------------

@@ -58,7 +58,6 @@ pub struct PkgData {
     pub name: String,
     pub version: String,
     pub repository: String,
-    pub repo_show: String,
     pub status: String,
     pub status_icon: String,
     pub install_date: i64,
@@ -128,7 +127,6 @@ impl PkgData {
             name: syncpkg.name().to_string(),
             version: syncpkg.version().to_string(),
             repository: repo.to_string(),
-            repo_show: repo.to_string(),
             status: match flags {
                 PkgFlags::EXPLICIT => "explicit",
                 PkgFlags::DEPENDENCY => "dependency",
@@ -222,11 +220,10 @@ mod imp {
         #[property(name = "flags",        get, set, type = PkgFlags,   member = flags)]
         #[property(name = "version",      get, set, type = String,     member = version)]
         #[property(name = "has-update",   get, set, type = bool,       member = has_update)]
-        #[property(name = "repo-show",    get, set, type = String,     member = repo_show)]
+        #[property(name = "repository",   get, set, type = String,     member = repository)]
 
         // Read-only properties
         #[property(name = "name",           get, type = String,   member = name)]
-        #[property(name = "repository",     get, type = String,   member = repository)]
         #[property(name = "status",         get, type = String,   member = status)]
         #[property(name = "status-icon",    get, type = String,   member = status_icon)]
         #[property(name = "install-date",   get, type = i64,      member = install_date)]
@@ -415,12 +412,12 @@ impl PkgObject {
     pub fn package_url(&self) -> String {
         let default_repos = ["core", "extra", "multilib"];
 
-        if default_repos.contains(&self.repo_show().as_str()) {
+        if default_repos.contains(&self.repository().as_str()) {
             format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
-                repo=self.repo_show(),
+                repo=self.repository(),
                 arch=self.architecture(),
                 name=self.name())
-        } else if &self.repo_show() == "aur" {
+        } else if &self.repository() == "aur" {
             format!("https://aur.archlinux.org/packages/{name}", name=self.name())
         } else {
             String::from("")
