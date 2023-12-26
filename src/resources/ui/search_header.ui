@@ -32,56 +32,15 @@
                   <object class="GtkBox" id="tag_box">
                     <property name="valign">center</property>
                     <property name="margin-start">6</property>
+                    <property name="spacing">6</property>
                     <child>
                       <object class="SearchTag" id="tag_mode">
                         <property name="text">all</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparator">
-                        <property name="margin-start">3</property>
-                        <property name="margin-end">3</property>
-                        <property name="margin-top">6</property>
-                        <property name="margin-bottom">6</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkBox" id="tag_flags_box">
-                        <child>
-                          <object class="SearchTag" id="tag_name">
-                            <property name="text">name</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="tag_desc">
-                            <property name="text">desc</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="tag_group">
-                            <property name="text">group</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="tag_deps">
-                            <property name="text">deps</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="tag_optdeps">
-                            <property name="text">optdeps</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="tag_provides">
-                            <property name="text">provides</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="SearchTag" id="tag_files">
-                            <property name="text">files</property>
-                          </object>
-                        </child>
+                      <object class="SearchTag" id="tag_flag">
+                        <property name="text">name</property>
                       </object>
                     </child>
                   </object>

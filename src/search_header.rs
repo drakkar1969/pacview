@@ -76,13 +76,12 @@ mod imp {
         pub title_widget: TemplateChild<adw::WindowTitle>,
 
         #[template_child]
-        pub search_text: TemplateChild<gtk::Text>,
-
-        #[template_child]
         pub tag_mode: TemplateChild<SearchTag>,
+        #[template_child]
+        pub tag_flag: TemplateChild<SearchTag>,
 
         #[template_child]
-        pub tag_flags_box: TemplateChild<gtk::Box>,
+        pub search_text: TemplateChild<gtk::Text>,
 
         #[template_child]
         pub clear_button: TemplateChild<gtk::Button>,
@@ -211,38 +210,38 @@ impl SearchHeader {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        // Bind flags property to search tag visibility
-        let mut widget = imp.tag_flags_box.first_child();
+        // // Bind flags property to search tag visibility
+        // let mut widget = imp.tag_flags_box.first_child();
 
-        while let Some(tag) = widget.and_downcast::<SearchTag>() {
-            self.bind_property("flags", &tag, "visible")
-                .transform_to(move |binding, flags: SearchFlags| {
-                    let tag = binding.target()
-                        .and_downcast::<SearchTag>()
-                        .expect("Must be a 'SearchTag'");
+        // while let Some(tag) = widget.and_downcast::<SearchTag>() {
+        //     self.bind_property("flags", &tag, "visible")
+        //         .transform_to(move |binding, flags: SearchFlags| {
+        //             let tag = binding.target()
+        //                 .and_downcast::<SearchTag>()
+        //                 .expect("Must be a 'SearchTag'");
 
-                    Some(flags.contains(SearchFlags::from_nick(&tag.text())))
-                })
-                .transform_from(move |binding, visible: bool| {
-                    let header = binding.source()
-                        .and_downcast::<SearchHeader>()
-                        .expect("Must be a 'SearchHeader'");
+        //             Some(flags.contains(SearchFlags::from_nick(&tag.text())))
+        //         })
+        //         .transform_from(move |binding, visible: bool| {
+        //             let header = binding.source()
+        //                 .and_downcast::<SearchHeader>()
+        //                 .expect("Must be a 'SearchHeader'");
 
-                    let tag = binding.target()
-                        .and_downcast::<SearchTag>()
-                        .expect("Must be a 'SearchTag'");
+        //             let tag = binding.target()
+        //                 .and_downcast::<SearchTag>()
+        //                 .expect("Must be a 'SearchTag'");
 
-                    let mut flags = header.flags();
+        //             let mut flags = header.flags();
 
-                    flags.set(SearchFlags::from_nick(&tag.text()), visible);
+        //             flags.set(SearchFlags::from_nick(&tag.text()), visible);
 
-                    Some(flags)
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-                .build();
+        //             Some(flags)
+        //         })
+        //         .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+        //         .build();
             
-            widget = tag.next_sibling();
-        }
+        //     widget = tag.next_sibling();
+        // }
     }
 
     //-----------------------------------
