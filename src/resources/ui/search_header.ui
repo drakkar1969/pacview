@@ -39,7 +39,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="SearchTag" id="tag_flag">
+                      <object class="SearchTag" id="tag_type">
                         <property name="text">name</property>
                       </object>
                     </child>

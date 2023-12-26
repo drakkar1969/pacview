@@ -29,33 +29,55 @@ impl Default for SearchMode {
 }
 
 //------------------------------------------------------------------------------
+// ENUM: SearchType
+//------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "SearchType")]
+pub enum SearchType {
+    Name = 0,
+    Desc = 1,
+    Group = 2,
+    Deps = 3,
+    Optdeps = 4,
+    Provides = 5,
+    Files = 6,
+}
+
+impl Default for SearchType {
+    fn default() -> Self {
+        SearchType::Name
+    }
+}
+
+//------------------------------------------------------------------------------
 // FLAGS: SearchFlags
 //------------------------------------------------------------------------------
-#[glib::flags(name = "SearchFlags")]
-pub enum SearchFlags {
-    NAME     = 0b00000001,
-    DESC     = 0b00000010,
-    GROUP    = 0b00000100,
-    DEPS     = 0b00001000,
-    OPTDEPS  = 0b00010000,
-    PROVIDES = 0b00100000,
-    FILES    = 0b01000000,
-}
+// #[glib::flags(name = "SearchFlags")]
+// pub enum SearchFlags {
+//     NAME     = 0b00000001,
+//     DESC     = 0b00000010,
+//     GROUP    = 0b00000100,
+//     DEPS     = 0b00001000,
+//     OPTDEPS  = 0b00010000,
+//     PROVIDES = 0b00100000,
+//     FILES    = 0b01000000,
+// }
 
-impl Default for SearchFlags {
-    fn default() -> Self {
-        SearchFlags::NAME
-    }
-}
+// impl Default for SearchFlags {
+//     fn default() -> Self {
+//         SearchFlags::NAME
+//     }
+// }
 
-impl SearchFlags {
-    pub fn from_nick(nick: &str) -> Self {
-        let f_class = glib::FlagsClass::new::<Self>();
+// impl SearchFlags {
+//     pub fn from_nick(nick: &str) -> Self {
+//         let f_class = glib::FlagsClass::new::<Self>();
 
-        f_class.from_nick_string(&nick)
-            .map_or(Self::empty(), |value| Self::from_bits_truncate(value))
-    }
-}
+//         f_class.from_nick_string(&nick)
+//             .map_or(Self::empty(), |value| Self::from_bits_truncate(value))
+//     }
+// }
 
 //------------------------------------------------------------------------------
 // MODULE: SearchHeader
@@ -78,7 +100,7 @@ mod imp {
         #[template_child]
         pub tag_mode: TemplateChild<SearchTag>,
         #[template_child]
-        pub tag_flag: TemplateChild<SearchTag>,
+        pub tag_type: TemplateChild<SearchTag>,
 
         #[template_child]
         pub search_text: TemplateChild<gtk::Text>,
@@ -97,9 +119,8 @@ mod imp {
 
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
-
-        #[property(get, set, default = SearchFlags::default(), construct)]
-        flags: Cell<SearchFlags>,
+        #[property(get, set, builder(SearchType::default()))]
+        stype: Cell<SearchType>,
 
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
@@ -140,8 +161,9 @@ mod imp {
                     Signal::builder("changed")
                         .param_types([
                             String::static_type(),
-                            SearchFlags::static_type(),
-                            SearchMode::static_type()])
+                            SearchMode::static_type(),
+                            SearchType::static_type(),
+                        ])
                         .build(),
                     Signal::builder("activated")
                         .param_types([bool::static_type()])
@@ -276,9 +298,13 @@ impl SearchHeader {
             }
         });
 
-        // Search flags property notify signal
-        self.connect_flags_notify(|header| {
-            header.emit_changed_signal();
+        // Search flag property notify signal
+        self.connect_stype_notify(|header| {
+            if let Some((_, value)) = glib::EnumValue::from_value(&header.stype().to_value()) {
+                header.imp().tag_type.set_text(Some(value.nick()));
+
+                header.emit_changed_signal();
+            }
         });
 
         // Search text changed signal
@@ -320,8 +346,8 @@ impl SearchHeader {
         self.emit_by_name::<()>("changed",
             &[
                 &imp.search_text.text(),
-                &self.flags(),
-                &self.mode()
+                &self.mode(),
+                &self.stype()
             ]);
     }
 
@@ -376,49 +402,50 @@ impl SearchHeader {
             })
             .build();
 
-        // Add select all search flags action
-        let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("all-flags")
-            .activate(clone!(@weak self as obj => move |_, _, _| {
-                obj.set_flags(SearchFlags::all());
-            }))
-            .build();
+        // // Add select all search flags action
+        // let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("all-flags")
+        //     .activate(clone!(@weak self as obj => move |_, _, _| {
+        //         obj.set_flags(SearchFlags::all());
+        //     }))
+        //     .build();
 
-        // Add reset search flags action
-        let reset_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-flags")
-            .activate(clone!(@weak self as obj => move |_, _, _| {
-                obj.set_flags(SearchFlags::NAME);
-            }))
-            .build();
+        // // Add reset search flags action
+        // let reset_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-flags")
+        //     .activate(clone!(@weak self as obj => move |_, _, _| {
+        //         obj.set_flags(SearchFlags::NAME);
+        //     }))
+        //     .build();
 
         // Add actions to search action group
         let search_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action_entries([mode_action, cycle_action, all_action, reset_action]);
+        search_group.add_action_entries([mode_action, cycle_action]);
+        // search_group.add_action_entries([mode_action, cycle_action, all_action, reset_action]);
 
-        // Add search flags stateful actions
-        let flags_class = glib::FlagsClass::new::<SearchFlags>();
+        // // Add search flags stateful actions
+        // let flags_class = glib::FlagsClass::new::<SearchFlags>();
 
-        for f in flags_class.values() {
-            let flag = SearchFlags::from_bits_truncate(f.value());
+        // for f in flags_class.values() {
+        //     let flag = SearchFlags::from_bits_truncate(f.value());
 
-            // Create stateful action
-            let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, &(flag == SearchFlags::NAME).to_variant());
+        //     // Create stateful action
+        //     let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, &(flag == SearchFlags::NAME).to_variant());
 
-            flag_action.connect_activate(clone!(@weak self as obj, @strong flag => move |_, _| {
-                obj.set_flags(obj.flags() ^ flag);
-            }));
+        //     flag_action.connect_activate(clone!(@weak self as obj, @strong flag => move |_, _| {
+        //         obj.set_flags(obj.flags() ^ flag);
+        //     }));
 
-            // Add action to search group
-            search_group.add_action(&flag_action);
+        //     // Add action to search group
+        //     search_group.add_action(&flag_action);
 
-            // Bind search header flags property to action state
-            self.bind_property("flags", &flag_action, "state")
-                .transform_to(move |_, flags: SearchFlags| Some(flags.contains(flag).to_variant()))
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        }
+        //     // Bind search header flags property to action state
+        //     self.bind_property("flags", &flag_action, "state")
+        //         .transform_to(move |_, flags: SearchFlags| Some(flags.contains(flag).to_variant()))
+        //         .flags(glib::BindingFlags::SYNC_CREATE)
+        //         .build();
+        // }
     }
 
     //-----------------------------------
@@ -446,15 +473,15 @@ impl SearchHeader {
             Some(gtk::NamedAction::new("search.reset-flags"))
         ));
 
-        // Add search flags shortcuts
-        let flags_class = glib::FlagsClass::new::<SearchFlags>();
+        // // Add search flags shortcuts
+        // let flags_class = glib::FlagsClass::new::<SearchFlags>();
 
-        for (i, f) in flags_class.values().iter().enumerate() {
-            controller.add_shortcut(gtk::Shortcut::new(
-                gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
-                Some(gtk::NamedAction::new(&format!("search.flag-{}", f.nick()))))
-            );
-        }
+        // for (i, f) in flags_class.values().iter().enumerate() {
+        //     controller.add_shortcut(gtk::Shortcut::new(
+        //         gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
+        //         Some(gtk::NamedAction::new(&format!("search.flag-{}", f.nick()))))
+        //     );
+        // }
 
         // Add shortcut controller to search header
         self.add_controller(controller);
