@@ -130,5 +130,11 @@
         <attribute name="target">exact</attribute>
       </item>
     </section>
+    <section>
+      <item>
+        <attribute name="label">Reset Search Parameters</attribute>
+        <attribute name="action">search.reset-params</attribute>
+      </item>
+    </section>
   </menu>
 </interface>

@@ -407,12 +407,25 @@ impl SearchHeader {
             })
             .build();
 
+        // Add reset search params action
+        let reset_params_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-params")
+            .activate(|group, _, _| {
+                if let Some(mode_action) = group.lookup_action("set-mode") {
+                    mode_action.change_state(&"all".to_variant());
+                }
+
+                if let Some(type_action) = group.lookup_action("set-type") {
+                    type_action.change_state(&"name".to_variant());
+                }
+            })
+            .build();
+
         // Add actions to search action group
         let search_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action_entries([mode_action, cycle_mode_action, type_action, cycle_type_action]);
+        search_group.add_action_entries([mode_action, cycle_mode_action, type_action, cycle_type_action, reset_params_action]);
 
         // Add search type numbered actions
         let nicks: Vec<String> = glib::EnumClass::new::<SearchType>().values().iter()
@@ -449,6 +462,12 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>T"),
             Some(gtk::NamedAction::new("search.cycle-type"))
+        ));
+
+        // Add reset search params shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>R"),
+            Some(gtk::NamedAction::new("search.reset-params"))
         ));
 
         // Add search type numbered shortcuts
