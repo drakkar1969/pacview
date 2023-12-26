@@ -2,7 +2,7 @@
 <interface>
   <!--// SearchHeader template //-->
   <template class="SearchHeader" parent="GtkWidget">
-    <property name="width-request">940</property>
+    <property name="width-request">600</property>
     <child>
       <object class="GtkStack" id="stack">
         <child>

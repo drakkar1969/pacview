@@ -29,7 +29,7 @@ searchtag {
 searchtag label {
 	min-height: 24px;
 	min-width: 24px;
-	margin: 0 12px 0 12px;
+	margin: 0;
 	padding: 0;
 }
 
