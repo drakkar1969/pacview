@@ -108,50 +108,56 @@
             <property name="title">Search Options</property>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;M</property>
+                <property name="title">Cycle Search Mode</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;T</property>
+                <property name="title">Cycle Search Type</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;1</property>
-                <property name="title">Toggle Search Name Flag</property>
+                <property name="title">Search by Name</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;2</property>
-                <property name="title">Toggle Search Description Flag</property>
+                <property name="title">Search by Description</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;3</property>
-                <property name="title">Toggle Search Group Flag</property>
+                <property name="title">Search by Group</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;4</property>
-                <property name="title">Toggle Search Dependencies Flag</property>
+                <property name="title">Search by Dependencies</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;5</property>
-                <property name="title">Toggle Search Optional Flag</property>
+                <property name="title">Search by Optional Dependencies</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;6</property>
-                <property name="title">Toggle Search Provides Flag</property>
+                <property name="title">Search by Provides</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;7</property>
-                <property name="title">Toggle Search Files Flag</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;M</property>
-                <property name="title">Cycle Search Mode</property>
+                <property name="title">Search by Files</property>
               </object>
             </child>
           </object>

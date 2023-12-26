@@ -51,35 +51,6 @@ impl Default for SearchType {
 }
 
 //------------------------------------------------------------------------------
-// FLAGS: SearchFlags
-//------------------------------------------------------------------------------
-// #[glib::flags(name = "SearchFlags")]
-// pub enum SearchFlags {
-//     NAME     = 0b00000001,
-//     DESC     = 0b00000010,
-//     GROUP    = 0b00000100,
-//     DEPS     = 0b00001000,
-//     OPTDEPS  = 0b00010000,
-//     PROVIDES = 0b00100000,
-//     FILES    = 0b01000000,
-// }
-
-// impl Default for SearchFlags {
-//     fn default() -> Self {
-//         SearchFlags::NAME
-//     }
-// }
-
-// impl SearchFlags {
-//     pub fn from_nick(nick: &str) -> Self {
-//         let f_class = glib::FlagsClass::new::<Self>();
-
-//         f_class.from_nick_string(&nick)
-//             .map_or(Self::empty(), |value| Self::from_bits_truncate(value))
-//     }
-// }
-
-//------------------------------------------------------------------------------
 // MODULE: SearchHeader
 //------------------------------------------------------------------------------
 mod imp {
@@ -231,39 +202,6 @@ impl SearchHeader {
             .transform_to(|_, text: &str| Some(text != ""))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-        // // Bind flags property to search tag visibility
-        // let mut widget = imp.tag_flags_box.first_child();
-
-        // while let Some(tag) = widget.and_downcast::<SearchTag>() {
-        //     self.bind_property("flags", &tag, "visible")
-        //         .transform_to(move |binding, flags: SearchFlags| {
-        //             let tag = binding.target()
-        //                 .and_downcast::<SearchTag>()
-        //                 .expect("Must be a 'SearchTag'");
-
-        //             Some(flags.contains(SearchFlags::from_nick(&tag.text())))
-        //         })
-        //         .transform_from(move |binding, visible: bool| {
-        //             let header = binding.source()
-        //                 .and_downcast::<SearchHeader>()
-        //                 .expect("Must be a 'SearchHeader'");
-
-        //             let tag = binding.target()
-        //                 .and_downcast::<SearchTag>()
-        //                 .expect("Must be a 'SearchTag'");
-
-        //             let mut flags = header.flags();
-
-        //             flags.set(SearchFlags::from_nick(&tag.text()), visible);
-
-        //             Some(flags)
-        //         })
-        //         .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-        //         .build();
-            
-        //     widget = tag.next_sibling();
-        // }
     }
 
     //-----------------------------------
@@ -298,7 +236,7 @@ impl SearchHeader {
             }
         });
 
-        // Search flag property notify signal
+        // Search type property notify signal
         self.connect_stype_notify(|header| {
             if let Some((_, value)) = glib::EnumValue::from_value(&header.stype().to_value()) {
                 header.imp().tag_type.set_text(Some(value.nick()));
@@ -384,7 +322,7 @@ impl SearchHeader {
             .build();
 
         // Add cycle search mode action
-        let cycle_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
+        let cycle_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
             .activate(|group, _, _| {
                 if let Some(mode_action) = group.lookup_action("set-mode") {
                     let state = mode_action.state()
@@ -402,35 +340,96 @@ impl SearchHeader {
             })
             .build();
 
+        // Add search type stateful action
+        let type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-type")
+            .parameter_type(Some(&String::static_variant_type()))
+            .state("name".to_variant())
+            .change_state(clone!(@weak self as obj => move |_, action, param| {
+                let param = param
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
+    
+                match param.as_str() {
+                    "name" => {
+                        obj.set_stype(SearchType::Name);
+                        action.set_state(&param.to_variant());
+                    },
+                    "desc" => {
+                        obj.set_stype(SearchType::Desc);
+                        action.set_state(&param.to_variant());
+                    },
+                    "group" => {
+                        obj.set_stype(SearchType::Group);
+                        action.set_state(&param.to_variant());
+                    },
+                    "deps" => {
+                        obj.set_stype(SearchType::Deps);
+                        action.set_state(&param.to_variant());
+                    },
+                    "optdeps" => {
+                        obj.set_stype(SearchType::Optdeps);
+                        action.set_state(&param.to_variant());
+                    },
+                    "provides" => {
+                        obj.set_stype(SearchType::Provides);
+                        action.set_state(&param.to_variant());
+                    },
+                    "files" => {
+                        obj.set_stype(SearchType::Files);
+                        action.set_state(&param.to_variant());
+                    },
+                    _ => unreachable!()
+                }
+            }))
+            .build();
+
+        // Add cycle search type action
+        let cycle_type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-type")
+            .activate(|group, _, _| {
+                if let Some(type_action) = group.lookup_action("set-type") {
+                    let state = type_action.state()
+                        .expect("Must be a 'Variant'")
+                        .get::<String>()
+                        .expect("Must be a 'String'");
+
+                    match state.as_str() {
+                        "name" => type_action.change_state(&"desc".to_variant()),
+                        "desc" => type_action.change_state(&"group".to_variant()),
+                        "group" => type_action.change_state(&"deps".to_variant()),
+                        "deps" => type_action.change_state(&"optdeps".to_variant()),
+                        "optdeps" => type_action.change_state(&"provides".to_variant()),
+                        "provides" => type_action.change_state(&"files".to_variant()),
+                        "files" => type_action.change_state(&"name".to_variant()),
+                        _ => unreachable!()
+                    };
+                }
+            })
+            .build();
+
         // Add actions to search action group
         let search_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action_entries([mode_action, cycle_action]);
+        search_group.add_action_entries([mode_action, cycle_mode_action, type_action, cycle_type_action]);
 
-        // // Add search flags stateful actions
-        // let flags_class = glib::FlagsClass::new::<SearchFlags>();
+        // Add search type numbered actions
+        let nicks: Vec<String> = glib::EnumClass::new::<SearchType>().values().iter()
+            .map(|value| value.nick().to_string())
+            .collect();
 
-        // for f in flags_class.values() {
-        //     let flag = SearchFlags::from_bits_truncate(f.value());
+        for nick in nicks {
+            let action = gio::ActionEntry::<gio::SimpleActionGroup>::builder(&format!("set-type-{}", nick))
+                .activate(move |group, _, _| {
+                    if let Some(type_action) = group.lookup_action("set-type") {
+                        type_action.change_state(&nick.to_variant());
+                    }
+                })
+                .build();
 
-        //     // Create stateful action
-        //     let flag_action = gio::SimpleAction::new_stateful(&format!("flag-{}", f.nick()), None, &(flag == SearchFlags::NAME).to_variant());
-
-        //     flag_action.connect_activate(clone!(@weak self as obj, @strong flag => move |_, _| {
-        //         obj.set_flags(obj.flags() ^ flag);
-        //     }));
-
-        //     // Add action to search group
-        //     search_group.add_action(&flag_action);
-
-        //     // Bind search header flags property to action state
-        //     self.bind_property("flags", &flag_action, "state")
-        //         .transform_to(move |_, flags: SearchFlags| Some(flags.contains(flag).to_variant()))
-        //         .flags(glib::BindingFlags::SYNC_CREATE)
-        //         .build();
-        // }
+            search_group.add_action_entries([action]);
+        }
     }
 
     //-----------------------------------
@@ -446,15 +445,21 @@ impl SearchHeader {
             Some(gtk::NamedAction::new("search.cycle-mode"))
         ));
 
-        // // Add search flags shortcuts
-        // let flags_class = glib::FlagsClass::new::<SearchFlags>();
+        // Add cycle search type shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>T"),
+            Some(gtk::NamedAction::new("search.cycle-type"))
+        ));
 
-        // for (i, f) in flags_class.values().iter().enumerate() {
-        //     controller.add_shortcut(gtk::Shortcut::new(
-        //         gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
-        //         Some(gtk::NamedAction::new(&format!("search.flag-{}", f.nick()))))
-        //     );
-        // }
+        // Add search type numbered shortcuts
+        let enum_class = glib::EnumClass::new::<SearchType>();
+
+        for (i, v) in enum_class.values().iter().enumerate() {
+            controller.add_shortcut(gtk::Shortcut::new(
+                gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
+                Some(gtk::NamedAction::new(&format!("search.set-type-{}", v.nick()))))
+            );
+        }
 
         // Add shortcut controller to search header
         self.add_controller(controller);

@@ -78,31 +78,38 @@
       <attribute name="label">Search Flags</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">search.flag-name</attribute>
+        <attribute name="action">search.set-type</attribute>
+        <attribute name="target">name</attribute>
       </item>
       <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">search.flag-desc</attribute>
+        <attribute name="action">search.set-type</attribute>
+        <attribute name="target">desc</attribute>
       </item>
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">search.flag-group</attribute>
+        <attribute name="action">search.set-type</attribute>
+        <attribute name="target">group</attribute>
       </item>
       <item>
         <attribute name="label">Dependencies</attribute>
-        <attribute name="action">search.flag-deps</attribute>
+        <attribute name="action">search.set-type</attribute>
+        <attribute name="target">deps</attribute>
       </item>
       <item>
         <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">search.flag-optdeps</attribute>
+        <attribute name="action">search.set-type</attribute>
+        <attribute name="target">optdeps</attribute>
       </item>
       <item>
         <attribute name="label">Provides</attribute>
-        <attribute name="action">search.flag-provides</attribute>
+        <attribute name="action">search.set-type</attribute>
+        <attribute name="target">provides</attribute>
       </item>
       <item>
         <attribute name="label">Files</attribute>
-        <attribute name="action">search.flag-files</attribute>
+        <attribute name="action">search.set-type</attribute>
+        <attribute name="target">files</attribute>
       </item>
     </section>
     <section>
