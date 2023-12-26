@@ -402,27 +402,12 @@ impl SearchHeader {
             })
             .build();
 
-        // // Add select all search flags action
-        // let all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("all-flags")
-        //     .activate(clone!(@weak self as obj => move |_, _, _| {
-        //         obj.set_flags(SearchFlags::all());
-        //     }))
-        //     .build();
-
-        // // Add reset search flags action
-        // let reset_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-flags")
-        //     .activate(clone!(@weak self as obj => move |_, _, _| {
-        //         obj.set_flags(SearchFlags::NAME);
-        //     }))
-        //     .build();
-
         // Add actions to search action group
         let search_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("search", Some(&search_group));
 
         search_group.add_action_entries([mode_action, cycle_action]);
-        // search_group.add_action_entries([mode_action, cycle_action, all_action, reset_action]);
 
         // // Add search flags stateful actions
         // let flags_class = glib::FlagsClass::new::<SearchFlags>();
@@ -459,18 +444,6 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>M"),
             Some(gtk::NamedAction::new("search.cycle-mode"))
-        ));
-
-        // Add select all search flags action/shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>L"),
-            Some(gtk::NamedAction::new("search.all-flags"))
-        ));
-
-        // Add reset search flags action/shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>R"),
-            Some(gtk::NamedAction::new("search.reset-flags"))
         ));
 
         // // Add search flags shortcuts

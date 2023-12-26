@@ -150,18 +150,6 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;L</property>
-                <property name="title">Select All Search Flags</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;R</property>
-                <property name="title">Reset Search Flags</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;M</property>
                 <property name="title">Cycle Search Mode</property>
               </object>

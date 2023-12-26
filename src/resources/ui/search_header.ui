@@ -106,16 +106,6 @@
       </item>
     </section>
     <section>
-      <item>
-        <attribute name="label">Select All</attribute>
-        <attribute name="action">search.all-flags</attribute>
-      </item>
-      <item>
-        <attribute name="label">Reset</attribute>
-        <attribute name="action">search.reset-flags</attribute>
-      </item>
-    </section>
-    <section>
       <attribute name="label">Search Mode</attribute>
       <item>
         <attribute name="label">Match All Terms</attribute>
