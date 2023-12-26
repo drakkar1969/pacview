@@ -33,13 +33,6 @@ searchtag label {
 	padding: 0;
 }
 
-searchtag button {
-	min-height: 24px;
-	min-width: 24px;
-	margin: 0 0 0 -8px;
-	padding: 0;
-}
-
 /* Sidebar disabled image */
 row image:disabled {
 	-gtk-icon-filter: opacity(0.5);

@@ -1,9 +1,8 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
 
 //------------------------------------------------------------------------------
 // MODULE: SearchTag
@@ -20,13 +19,9 @@ mod imp {
     pub struct SearchTag {
         #[template_child]
         pub label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub button: TemplateChild<gtk::Button>,
 
         #[property(get, set, nullable)]
         text: RefCell<String>,
-        #[property(get, set, default = true, construct)]
-        can_close: Cell<bool>,
     }
 
     //-----------------------------------
@@ -40,6 +35,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+            klass.set_css_name("searchtag");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -58,7 +54,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_signals();
         }
     }
 
@@ -93,18 +88,5 @@ impl SearchTag {
         self.bind_property("text", &imp.label.get(), "label")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-        self.bind_property("can-close", &imp.button.get(), "visible")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-    }
-
-    //-----------------------------------
-    // Setup signals
-    //-----------------------------------
-    fn setup_signals(&self) {
-        // Close button clicked signal
-        self.imp().button.connect_clicked(clone!(@weak self as obj => move |_| {
-            obj.set_visible(false);
-        }));
     }
 }

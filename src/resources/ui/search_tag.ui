@@ -3,26 +3,10 @@
   <!--// SearchTag template //-->
   <template class="SearchTag" parent="AdwBin">
     <property name="child">
-      <object class="GtkBox">
-        <property name="css-name">searchtag</property>
-        <property name="margin-start">3</property>
-        <property name="margin-end">3</property>
-        <child>
-          <object class="GtkLabel" id="label">
-            <style>
-              <class name="caption-heading"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkButton" id="button">
-            <property name="margin-start">3</property>
-            <property name="icon-name">window-close-symbolic</property>
-            <style>
-              <class name="circular"/>
-            </style>
-          </object>
-        </child>
+      <object class="GtkLabel" id="label">
+        <style>
+          <class name="caption-heading"/>
+        </style>
       </object>
     </property>
   </template>

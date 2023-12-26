@@ -35,7 +35,6 @@
                     <child>
                       <object class="SearchTag" id="tag_mode">
                         <property name="text">all</property>
-                        <property name="can-close">false</property>
                       </object>
                     </child>
                     <child>
