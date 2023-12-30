@@ -340,6 +340,25 @@ impl SearchHeader {
             })
             .build();
 
+        // Add reverse cycle search mode action
+        let reverse_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-mode")
+            .activate(|group, _, _| {
+                if let Some(mode_action) = group.lookup_action("set-mode") {
+                    let state = mode_action.state()
+                        .expect("Must be a 'Variant'")
+                        .get::<String>()
+                        .expect("Must be a 'String'");
+
+                    match state.as_str() {
+                        "all" => mode_action.change_state(&"exact".to_variant()),
+                        "any" => mode_action.change_state(&"all".to_variant()),
+                        "exact" => mode_action.change_state(&"any".to_variant()),
+                        _ => unreachable!()
+                    };
+                }
+            })
+            .build();
+
         // Add search type stateful action
         let type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-type")
             .parameter_type(Some(&String::static_variant_type()))
@@ -407,6 +426,29 @@ impl SearchHeader {
             })
             .build();
 
+        // Add reverse cycle search type action
+        let reverse_type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-type")
+            .activate(|group, _, _| {
+                if let Some(type_action) = group.lookup_action("set-type") {
+                    let state = type_action.state()
+                        .expect("Must be a 'Variant'")
+                        .get::<String>()
+                        .expect("Must be a 'String'");
+
+                    match state.as_str() {
+                        "name" => type_action.change_state(&"files".to_variant()),
+                        "desc" => type_action.change_state(&"name".to_variant()),
+                        "group" => type_action.change_state(&"desc".to_variant()),
+                        "deps" => type_action.change_state(&"group".to_variant()),
+                        "optdeps" => type_action.change_state(&"deps".to_variant()),
+                        "provides" => type_action.change_state(&"optdeps".to_variant()),
+                        "files" => type_action.change_state(&"provides".to_variant()),
+                        _ => unreachable!()
+                    };
+                }
+            })
+            .build();
+
         // Add reset search params action
         let reset_params_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-params")
             .activate(|group, _, _| {
@@ -425,7 +467,7 @@ impl SearchHeader {
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action_entries([mode_action, cycle_mode_action, type_action, cycle_type_action, reset_params_action]);
+        search_group.add_action_entries([mode_action, cycle_mode_action, reverse_mode_action, type_action, cycle_type_action, reverse_type_action, reset_params_action]);
 
         // Add search type numbered actions
         let nicks: Vec<String> = glib::EnumClass::new::<SearchType>().values().iter()
@@ -458,10 +500,22 @@ impl SearchHeader {
             Some(gtk::NamedAction::new("search.cycle-mode"))
         ));
 
+        // Add reverse cycle search mode shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>M"),
+            Some(gtk::NamedAction::new("search.rev-cycle-mode"))
+        ));
+
         // Add cycle search type shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>T"),
             Some(gtk::NamedAction::new("search.cycle-type"))
+        ));
+
+        // Add reverse cycle search type shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>T"),
+            Some(gtk::NamedAction::new("search.rev-cycle-type"))
         ));
 
         // Add reset search params shortcut

@@ -42,6 +42,23 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
+            <property name="title">Search</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;F</property>
+                <property name="title">Start Search</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Escape</property>
+                <property name="title">Exit Search</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
             <property name="title">Package List</property>
             <child>
               <object class="GtkShortcutsShortcut">
@@ -88,23 +105,6 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
-            <property name="title">Search</property>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;F</property>
-                <property name="title">Start Search</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">Escape</property>
-                <property name="title">Exit Search</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkShortcutsGroup">
             <property name="title">Search Options</property>
             <child>
               <object class="GtkShortcutsShortcut">
@@ -114,8 +114,20 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;M</property>
+                <property name="title">Reverse Cycle Search Mode</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;T</property>
                 <property name="title">Cycle Search Type</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;T</property>
+                <property name="title">Reverse Cycle Search Type</property>
               </object>
             </child>
             <child>
