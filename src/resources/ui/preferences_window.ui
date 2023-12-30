@@ -36,6 +36,13 @@
               </object>
             </child>
             <child>
+              <object class="AdwSwitchRow" id="search_aur_switchrow">
+                <property name="title">Search in A_UR</property>
+                <property name="subtitle">Search for packages in the Arch User Repository</property>
+                <property name="use-underline">True</property>
+              </object>
+            </child>
+            <child>
               <object class="AdwSpinRow" id="delay_spinrow">
                 <property name="title">Search _Delay</property>
                 <property name="subtitle">Delay before search results are displayed (milliseconds)</property>

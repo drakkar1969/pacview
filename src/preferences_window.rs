@@ -23,6 +23,8 @@ mod imp {
         #[template_child]
         pub aur_row: TemplateChild<adw::EntryRow>,
         #[template_child]
+        pub search_aur_switchrow: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub delay_spinrow: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub aur_menubutton: TemplateChild<gtk::MenuButton>,
@@ -47,6 +49,8 @@ mod imp {
         auto_refresh: Cell<bool>,
         #[property(get, set)]
         aur_command: RefCell<String>,
+        #[property(get, set)]
+        search_aur: Cell<bool>,
         #[property(get, set)]
         search_delay: Cell<f64>,
         #[property(get, set)]
@@ -125,6 +129,9 @@ impl PreferencesWindow {
         let imp = self.imp();
 
         // Bind widget states
+        imp.search_aur_switchrow.bind_property("active", &imp.delay_spinrow.get(), "sensitive")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::INVERT_BOOLEAN)
+            .build();
         imp.font_expander.bind_property("expanded", &imp.font_switch.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
@@ -134,6 +141,9 @@ impl PreferencesWindow {
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
         self.bind_property("aur-command", &imp.aur_row.get(), "text")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .build();
+        self.bind_property("search-aur", &imp.search_aur_switchrow.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
         self.bind_property("search-delay", &imp.delay_spinrow.get(), "value")
@@ -241,6 +251,7 @@ impl PreferencesWindow {
                     if response == "reset" {
                         obj.set_auto_refresh(true);
                         obj.set_aur_command("");
+                        obj.set_search_aur(false);
                         obj.set_search_delay(150.0);
                         obj.set_remember_columns(true);
                         obj.set_remember_sort(false);
