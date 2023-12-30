@@ -75,7 +75,7 @@
   <!--// Search menu //-->
   <menu id="search_menu">
     <section>
-      <attribute name="label">Search Flags</attribute>
+      <attribute name="label">Search Type</attribute>
       <item>
         <attribute name="label">Name</attribute>
         <attribute name="action">search.set-type</attribute>
