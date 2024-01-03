@@ -94,7 +94,7 @@ mod imp {
         stype: Cell<SearchType>,
 
         #[property(get, set, construct)]
-        search_aur: Cell<bool>,
+        include_aur: Cell<bool>,
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
 
