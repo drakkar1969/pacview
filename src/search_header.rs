@@ -295,6 +295,9 @@ impl SearchHeader {
     // Setup actions
     //-----------------------------------
     fn setup_actions(&self) {
+        // Add include AUR property action
+        let aur_action = gio::PropertyAction::new("include-aur", self, "include-aur");
+
         // Add search mode stateful action
         let mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode")
             .parameter_type(Some(&String::static_variant_type()))
@@ -493,6 +496,8 @@ impl SearchHeader {
         let search_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("search", Some(&search_group));
+
+        search_group.add_action(&aur_action);
 
         search_group.add_action_entries([mode_action, cycle_mode_action, reverse_mode_action, mode_all_action, mode_any_action, mode_exact_action, type_action, cycle_type_action, reverse_type_action, reset_params_action]);
 

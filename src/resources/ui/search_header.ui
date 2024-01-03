@@ -75,6 +75,12 @@
   <!--// Search menu //-->
   <menu id="search_menu">
     <section>
+      <item>
+        <attribute name="label">Include AUR Results</attribute>
+        <attribute name="action">search.include-aur</attribute>
+      </item>
+    </section>
+    <section>
       <attribute name="label">Search Type</attribute>
       <item>
         <attribute name="label">Name</attribute>
