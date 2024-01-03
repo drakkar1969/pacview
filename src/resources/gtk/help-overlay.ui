@@ -42,23 +42,6 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
-            <property name="title">Search</property>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;F</property>
-                <property name="title">Start Search</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">Escape</property>
-                <property name="title">Exit Search</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkShortcutsGroup">
             <property name="title">Package List</property>
             <child>
               <object class="GtkShortcutsShortcut">
@@ -105,7 +88,30 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
-            <property name="title">Search Options</property>
+            <property name="title">Search</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;F</property>
+                <property name="title">Start Search</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">Escape</property>
+                <property name="title">Exit Search</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;R</property>
+                <property name="title">Reset Search Parameters</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Search Mode</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;M</property>
@@ -118,6 +124,29 @@
                 <property name="title">Reverse Cycle Search Mode</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;L</property>
+                <property name="title">Match All Terms</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;N</property>
+                <property name="title">Match Any Term</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;E</property>
+                <property name="title">Exact Match</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Search Type</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;T</property>
@@ -170,12 +199,6 @@
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;7</property>
                 <property name="title">Search by Files</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;R</property>
-                <property name="title">Reset Search Parameters</property>
               </object>
             </child>
           </object>

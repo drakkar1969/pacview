@@ -361,6 +361,31 @@ impl SearchHeader {
             })
             .build();
 
+        // Add search mode letter actions
+        let mode_all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode-all")
+            .activate(move |group, _, _| {
+                if let Some(mode_action) = group.lookup_action("set-mode") {
+                    mode_action.change_state(&"all".to_variant());
+                }
+            })
+            .build();
+
+        let mode_any_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode-any")
+            .activate(move |group, _, _| {
+                if let Some(mode_action) = group.lookup_action("set-mode") {
+                    mode_action.change_state(&"any".to_variant());
+                }
+            })
+            .build();
+
+        let mode_exact_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode-exact")
+            .activate(move |group, _, _| {
+                if let Some(mode_action) = group.lookup_action("set-mode") {
+                    mode_action.change_state(&"exact".to_variant());
+                }
+            })
+            .build();
+
         // Add search type stateful action
         let type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-type")
             .parameter_type(Some(&String::static_variant_type()))
@@ -469,7 +494,7 @@ impl SearchHeader {
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action_entries([mode_action, cycle_mode_action, reverse_mode_action, type_action, cycle_type_action, reverse_type_action, reset_params_action]);
+        search_group.add_action_entries([mode_action, cycle_mode_action, reverse_mode_action, mode_all_action, mode_any_action, mode_exact_action, type_action, cycle_type_action, reverse_type_action, reset_params_action]);
 
         // Add search type numbered actions
         let nicks: Vec<String> = glib::EnumClass::new::<SearchType>().values().iter()
@@ -506,6 +531,22 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>M"),
             Some(gtk::NamedAction::new("search.rev-cycle-mode"))
+        ));
+
+        // Add mode letter shortcuts
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>L"),
+            Some(gtk::NamedAction::new("search.set-mode-all"))
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>N"),
+            Some(gtk::NamedAction::new("search.set-mode-any"))
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>E"),
+            Some(gtk::NamedAction::new("search.set-mode-exact"))
         ));
 
         // Add cycle search type shortcut
