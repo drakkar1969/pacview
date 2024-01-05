@@ -296,15 +296,15 @@ impl PacViewWindow {
 
         // Add start/stop search actions
         let start_action = gio::ActionEntry::<PacViewWindow>::builder("start-search")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.search_header.set_active(true);
-            }))
+            .activate(|window, _, _| {
+                window.imp().search_header.set_active(true);
+            })
             .build();
 
         let stop_action = gio::ActionEntry::<PacViewWindow>::builder("stop-search")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.search_header.set_active(false);
-            }))
+            .activate(|window, _, _| {
+                window.imp().search_header.set_active(false);
+            })
             .build();
 
         // Add search actions to window
@@ -317,7 +317,9 @@ impl PacViewWindow {
 
         // Add package view refresh action
         let refresh_action = gio::ActionEntry::<PacViewWindow>::builder("refresh")
-            .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
+            .activate(|window, _, _| {
+                let imp = window.imp();
+
                 let repo_id = imp.repo_listbox.selected_row()
                     .and_downcast::<FilterRow>()
                     .and_then(|row| row.repo_id());
@@ -331,28 +333,32 @@ impl PacViewWindow {
 
                 imp.saved_status_id.set(status_id);
 
-                obj.setup_alpm();
-            }))
+                window.setup_alpm();
+            })
             .build();
 
         // Add package view show stats action
         let stats_action = gio::ActionEntry::<PacViewWindow>::builder("show-stats")
-            .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
+            .activate(|window, _, _| {
+                let imp = window.imp();
+
                 let pacman_config = imp.pacman_config.borrow();
                 
                 let stats_window = StatsWindow::new(
-                    &obj.upcast(),
+                    window.upcast_ref(),
                     &pacman_config.repos,
                     &imp.package_view.imp().flatten_model
                 );
 
                 stats_window.present();
-            }))
+            })
             .build();
 
         // Add package view copy list action
         let copy_action = gio::ActionEntry::<PacViewWindow>::builder("copy-list")
-            .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
+            .activate(|window, _, _| {
+                let imp = window.imp();
+
                 let copy_text = imp.package_view.imp().selection.iter::<glib::Object>()
                     .flatten()
                     .map(|item| {
@@ -365,8 +371,8 @@ impl PacViewWindow {
                     .collect::<Vec<String>>()
                     .join("\n");
 
-                obj.clipboard().set_text(&copy_text);
-            }))
+                window.clipboard().set_text(&copy_text);
+            })
             .build();
 
         // Add package view actions to window
@@ -384,25 +390,27 @@ impl PacViewWindow {
 
         // Add info pane prev/next actions
         let prev_action = gio::ActionEntry::<PacViewWindow>::builder("previous")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.info_pane.display_prev();
-            }))
+            .activate(|window, _, _| {
+                window.imp().info_pane.display_prev();
+            })
             .build();
         
         let next_action = gio::ActionEntry::<PacViewWindow>::builder("next")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.info_pane.display_next();
-            }))
+            .activate(|window, _, _| {
+                window.imp().info_pane.display_next();
+            })
             .build();
 
         // Add info pane show details action
         let details_action = gio::ActionEntry::<PacViewWindow>::builder("show-details")
-            .activate(clone!(@weak self as obj, @weak imp => move |_, _, _| {
+            .activate(|window, _, _| {
+                let imp = window.imp();
+
                 if let Some(pkg) = imp.info_pane.pkg() {
                     let pacman_config = imp.pacman_config.borrow();
 
                     let details_window = DetailsWindow::new(
-                        &obj.upcast(),
+                        window.upcast_ref(),
                         &pkg,
                         imp.prefs_window.custom_font(),
                         &imp.prefs_window.monospace_font(),
@@ -413,7 +421,7 @@ impl PacViewWindow {
 
                     details_window.present();
                 }
-            }))
+            })
             .build();
 
         // Add info pane actions to window
@@ -421,9 +429,9 @@ impl PacViewWindow {
 
         // Add show preferences action
         let prefs_action = gio::ActionEntry::<PacViewWindow>::builder("show-preferences")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.prefs_window.present();
-            }))
+            .activate(|window, _, _| {
+                window.imp().prefs_window.present();
+            })
             .build();
 
         // Add preference actions to window
