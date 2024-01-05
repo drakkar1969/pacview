@@ -88,7 +88,7 @@ impl PkgData {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
+    pub fn new_from_pkg(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
         // Defaults for package status flags, install date, files and backup (non-installed)
         let mut flags = PkgFlags::NONE;
         let mut idate = 0;

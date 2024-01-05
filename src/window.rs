@@ -682,7 +682,7 @@ impl PacViewWindow {
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());
 
-                            PkgData::new(syncpkg, localpkg)
+                            PkgData::new_from_pkg(syncpkg, localpkg)
                         })
                     );
                 }
@@ -691,7 +691,7 @@ impl PacViewWindow {
             data_list.extend(localdb.pkgs().iter()
                 .filter_map(|pkg| {
                     handle.syncdbs().find_satisfier(pkg.name()).map_or_else(
-                        || Some(PkgData::new(pkg, Ok(pkg))),
+                        || Some(PkgData::new_from_pkg(pkg, Ok(pkg))),
                         |_| None
                 )})
             );
