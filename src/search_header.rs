@@ -333,33 +333,11 @@ impl SearchHeader {
         // Add include AUR property action
         let aur_action = gio::PropertyAction::new("include-aur", self, "include-aur");
 
-        // Add search mode stateful action
-        let mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode")
-            .parameter_type(Some(&String::static_variant_type()))
-            .state("all".to_variant())
-            .change_state(clone!(@weak self as obj => move |_, action, param| {
-                let param = param
-                    .expect("Must be a 'Variant'")
-                    .get::<String>()
-                    .expect("Must be a 'String'");
-    
-                match param.as_str() {
-                    "all" => {
-                        obj.set_mode(SearchMode::All);
-                        action.set_state(&param.to_variant());
-                    },
-                    "any" => {
-                        obj.set_mode(SearchMode::Any);
-                        action.set_state(&param.to_variant());
-                    },
-                    "exact" => {
-                        obj.set_mode(SearchMode::Exact);
-                        action.set_state(&param.to_variant());
-                    },
-                    _ => unreachable!()
-                }
-            }))
-            .build();
+        // Add search mode property action
+        let mode_action = gio::PropertyAction::new("set-mode", self, "mode");
+
+        // Add search type property action
+        let type_action = gio::PropertyAction::new("set-type", self, "stype");
 
         // Add cycle search mode action
         let cycle_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
@@ -397,75 +375,6 @@ impl SearchHeader {
                     };
                 }
             })
-            .build();
-
-        // Add search mode letter actions
-        let mode_all_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode-all")
-            .activate(move |group, _, _| {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    mode_action.change_state(&"all".to_variant());
-                }
-            })
-            .build();
-
-        let mode_any_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode-any")
-            .activate(move |group, _, _| {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    mode_action.change_state(&"any".to_variant());
-                }
-            })
-            .build();
-
-        let mode_exact_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode-exact")
-            .activate(move |group, _, _| {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    mode_action.change_state(&"exact".to_variant());
-                }
-            })
-            .build();
-
-        // Add search type stateful action
-        let type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-type")
-            .parameter_type(Some(&String::static_variant_type()))
-            .state("name".to_variant())
-            .change_state(clone!(@weak self as obj => move |_, action, param| {
-                let param = param
-                    .expect("Must be a 'Variant'")
-                    .get::<String>()
-                    .expect("Must be a 'String'");
-    
-                match param.as_str() {
-                    "name" => {
-                        obj.set_stype(SearchType::Name);
-                        action.set_state(&param.to_variant());
-                    },
-                    "desc" => {
-                        obj.set_stype(SearchType::Desc);
-                        action.set_state(&param.to_variant());
-                    },
-                    "group" => {
-                        obj.set_stype(SearchType::Group);
-                        action.set_state(&param.to_variant());
-                    },
-                    "deps" => {
-                        obj.set_stype(SearchType::Deps);
-                        action.set_state(&param.to_variant());
-                    },
-                    "optdeps" => {
-                        obj.set_stype(SearchType::Optdeps);
-                        action.set_state(&param.to_variant());
-                    },
-                    "provides" => {
-                        obj.set_stype(SearchType::Provides);
-                        action.set_state(&param.to_variant());
-                    },
-                    "files" => {
-                        obj.set_stype(SearchType::Files);
-                        action.set_state(&param.to_variant());
-                    },
-                    _ => unreachable!()
-                }
-            }))
             .build();
 
         // Add cycle search type action
@@ -533,25 +442,10 @@ impl SearchHeader {
         self.insert_action_group("search", Some(&search_group));
 
         search_group.add_action(&aur_action);
+        search_group.add_action(&mode_action);
+        search_group.add_action(&type_action);
 
-        search_group.add_action_entries([mode_action, cycle_mode_action, reverse_mode_action, mode_all_action, mode_any_action, mode_exact_action, type_action, cycle_type_action, reverse_type_action, reset_params_action]);
-
-        // Add search type numbered actions
-        let nicks: Vec<String> = glib::EnumClass::new::<SearchType>().values().iter()
-            .map(|value| value.nick().to_string())
-            .collect();
-
-        for nick in nicks {
-            let action = gio::ActionEntry::<gio::SimpleActionGroup>::builder(&format!("set-type-{}", nick))
-                .activate(move |group, _, _| {
-                    if let Some(type_action) = group.lookup_action("set-type") {
-                        type_action.change_state(&nick.to_variant());
-                    }
-                })
-                .build();
-
-            search_group.add_action_entries([action]);
-        }
+        search_group.add_action_entries([cycle_mode_action, reverse_mode_action, cycle_type_action, reverse_type_action, reset_params_action]);
 
         // Store search action group
         self.imp().search_action_group.set(search_group).unwrap();
@@ -582,20 +476,23 @@ impl SearchHeader {
             Some(gtk::NamedAction::new("search.rev-cycle-mode"))
         ));
 
-        // Add mode letter shortcuts
-        controller.add_shortcut(gtk::Shortcut::new(
+        // Add search mode letter shortcuts
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>L"),
-            Some(gtk::NamedAction::new("search.set-mode-all"))
+            Some(gtk::NamedAction::new("search.set-mode")),
+            &"all".to_variant()
         ));
 
-        controller.add_shortcut(gtk::Shortcut::new(
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>N"),
-            Some(gtk::NamedAction::new("search.set-mode-any"))
+            Some(gtk::NamedAction::new("search.set-mode")),
+            &"any".to_variant()
         ));
 
-        controller.add_shortcut(gtk::Shortcut::new(
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>E"),
-            Some(gtk::NamedAction::new("search.set-mode-exact"))
+            Some(gtk::NamedAction::new("search.set-mode")),
+            &"exact".to_variant()
         ));
 
         // Add cycle search type shortcut
@@ -610,21 +507,22 @@ impl SearchHeader {
             Some(gtk::NamedAction::new("search.rev-cycle-type"))
         ));
 
+        // Add search type numbered shortcuts
+        let enum_class = glib::EnumClass::new::<SearchType>();
+
+        for (i, value) in enum_class.values().iter().enumerate() {
+            controller.add_shortcut(gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
+                Some(gtk::NamedAction::new("search.set-type")),
+                &value.nick().to_variant()
+            ));
+        }
+
         // Add reset search params shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>R"),
             Some(gtk::NamedAction::new("search.reset-params"))
         ));
-
-        // Add search type numbered shortcuts
-        let enum_class = glib::EnumClass::new::<SearchType>();
-
-        for (i, v) in enum_class.values().iter().enumerate() {
-            controller.add_shortcut(gtk::Shortcut::new(
-                gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
-                Some(gtk::NamedAction::new(&format!("search.set-type-{}", v.nick()))))
-            );
-        }
 
         // Add shortcut controller to search header
         self.add_controller(controller);
