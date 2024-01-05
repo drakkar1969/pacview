@@ -21,55 +21,55 @@ use crate::pkg_object::{PkgObject, PkgFlags};
 #[enum_type(name = "PropID")]
 pub enum PropID {
     #[enum_value(name = "Name")]
-    Name = 0,
+    Name,
     #[enum_value(name = "Version")]
-    Version = 1,
+    Version,
     #[enum_value(name = "Description")]
-    Description = 2,
+    Description,
     #[enum_value(name = "Package URL")]
-    PackageUrl = 3,
+    PackageUrl,
     #[enum_value(name = "URL")]
-    Url = 4,
+    Url,
     #[enum_value(name = "Licenses")]
-    Licenses = 5,
+    Licenses,
     #[enum_value(name = "Status")]
-    Status = 6,
+    Status,
     #[enum_value(name = "Repository")]
-    Repository = 7,
+    Repository,
     #[enum_value(name = "Groups")]
-    Groups = 8,
+    Groups,
     #[enum_value(name = "Provides")]
-    Provides = 9,
+    Provides,
     #[enum_value(name = "Dependencies ")]
-    Dependencies = 10,
+    Dependencies,
     #[enum_value(name = "Optional")]
-    Optional = 11,
+    Optional,
     #[enum_value(name = "Required By")]
-    RequiredBy = 12,
+    RequiredBy,
     #[enum_value(name = "Optional For")]
-    OptionalFor = 13,
+    OptionalFor,
     #[enum_value(name = "Conflicts With")]
-    ConflictsWith = 14,
+    ConflictsWith,
     #[enum_value(name = "Replaces")]
-    Replaces = 15,
+    Replaces,
     #[enum_value(name = "Architecture")]
-    Architecture = 16,
+    Architecture,
     #[enum_value(name = "Packager")]
-    Packager = 17,
+    Packager,
     #[enum_value(name = "Build Date")]
-    BuildDate = 18,
+    BuildDate,
     #[enum_value(name = "Install Date")]
-    InstallDate = 19,
+    InstallDate,
     #[enum_value(name = "Download Size")]
-    DownloadSize = 20,
+    DownloadSize,
     #[enum_value(name = "Installed Size")]
-    InstalledSize = 21,
+    InstalledSize,
     #[enum_value(name = "Install Script")]
-    InstallScript = 22,
+    InstallScript,
     #[enum_value(name = "SHA256 Sum")]
-    SHA256Sum = 23,
+    SHA256Sum,
     #[enum_value(name = "MD5 Sum")]
-    MD5Sum = 24,
+    MD5Sum,
 }
 
 //------------------------------------------------------------------------------
