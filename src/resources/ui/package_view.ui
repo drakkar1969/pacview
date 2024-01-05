@@ -74,8 +74,10 @@
                                       </object>
                                     </property>
                                     <property name="model">
-                                      <object class="GListStore" id="model">
-                                        <property name="item-type">PkgObject</property>
+                                      <object class="GtkFlattenListModel" id="flatten_model">
+                                        <property name="model">
+                                          <object class="GListStore"/>
+                                        </property>
                                       </object>
                                     </property>
                                   </object>
@@ -250,6 +252,15 @@
       </object>
     </property>
   </template>
+
+  <!--// Models for flattening //-->
+  <object class="GListStore" id="pkg_model">
+    <property name="item-type">PkgObject</property>
+  </object>
+
+  <object class="GListStore" id="aur_model">
+    <property name="item-type">PkgObject</property>
+  </object>
 
   <!--// Package view header menu //-->
   <menu id="header_menu">

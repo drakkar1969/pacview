@@ -343,7 +343,7 @@ impl PacViewWindow {
                 let stats_window = StatsWindow::new(
                     &obj.upcast(),
                     &pacman_config.repos,
-                    &imp.package_view.imp().model
+                    &imp.package_view.imp().flatten_model
                 );
 
                 stats_window.present();
@@ -408,7 +408,7 @@ impl PacViewWindow {
                         &imp.prefs_window.monospace_font(),
                         &pacman_config.log_file,
                         &pacman_config.cache_dirs,
-                        &imp.package_view.imp().model
+                        &imp.package_view.imp().flatten_model
                     );
 
                     details_window.present();
@@ -701,7 +701,7 @@ impl PacViewWindow {
                     .map(|data| PkgObject::new(handle_ref.clone(), data))
                     .collect();
 
-                imp.package_view.imp().model.splice(0, imp.package_view.imp().model.n_items(), &pkg_list);
+                imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
 
                 imp.package_view.imp().stack.set_visible_child_name("view");
 
@@ -720,7 +720,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Get list of local packages (not in sync DBs)
-        let local_list = imp.package_view.imp().model.iter::<PkgObject>()
+        let local_list = imp.package_view.imp().pkg_model.iter::<PkgObject>()
             .flatten()
             .filter_map(|pkg| if pkg.repository() == "local" {Some(pkg.name())} else {None})
             .collect::<Vec<String>>();
@@ -747,7 +747,7 @@ impl PacViewWindow {
             None,
             clone!(@weak imp => @default-return glib::ControlFlow::Break, move |aur_list| {
                 // Update repository for AUR packages
-                for pkg in imp.package_view.imp().model.iter::<PkgObject>().flatten()
+                for pkg in imp.package_view.imp().pkg_model.iter::<PkgObject>().flatten()
                     .filter(|pkg| aur_list.contains(&pkg.name()))
                 {
                     pkg.set_repository("aur");
@@ -838,7 +838,7 @@ impl PacViewWindow {
                 // If updates found
                 if update_map.len() > 0 {
                     // Get list of packages with updates
-                    update_list = imp.package_view.imp().model.iter::<PkgObject>()
+                    update_list = imp.package_view.imp().pkg_model.iter::<PkgObject>()
                         .flatten()
                         .filter(|pkg| update_map.contains_key(&pkg.name()))
                         .collect();

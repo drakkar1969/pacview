@@ -76,7 +76,7 @@ impl StatsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, repo_names: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &gtk::Window, repo_names: &Vec<String>, pkg_model: &gtk::FlattenListModel) -> Self {
         let window: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -110,7 +110,7 @@ impl StatsWindow {
     //-----------------------------------
     // Update widgets
     //-----------------------------------
-    fn update_ui(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
+    fn update_ui(&self, repo_names: &Vec<String>, pkg_model: &gtk::FlattenListModel) {
         let imp = self.imp();
 
         // Create count, installed count, installed size maps
@@ -125,8 +125,10 @@ impl StatsWindow {
         }
 
         // Iterate through all packages
-        pkg_model.iter::<PkgObject>().flatten()
+        pkg_model.iter::<glib::Object>().flatten()
             .for_each(|pkg| {
+                let pkg = pkg.downcast::<PkgObject>().unwrap();
+
                 // Increase repository total count
                 pcount_map.entry(pkg.repository()).and_modify(|value| {
                     *value += 1;

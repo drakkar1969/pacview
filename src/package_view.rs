@@ -33,9 +33,13 @@ mod imp {
         #[template_child]
         pub search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
+        pub flatten_model: TemplateChild<gtk::FlattenListModel>,
+        #[template_child]
         pub filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
-        pub model: TemplateChild<gio::ListStore>,
+        pub pkg_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub aur_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub empty_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -123,6 +127,12 @@ impl PackageView {
     //-----------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Populate flatten model
+        if let Some(flatten_model) = imp.flatten_model.model().and_downcast::<gio::ListStore>() {
+            flatten_model.append(imp.pkg_model.upcast_ref::<glib::Object>());
+            flatten_model.append(imp.aur_model.upcast_ref::<glib::Object>());
+        }
 
         // Bind item count to empty label visibility
         imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
