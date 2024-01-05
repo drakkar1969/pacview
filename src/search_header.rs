@@ -309,6 +309,13 @@ impl SearchHeader {
         // Add include AUR property action
         let aur_action = gio::PropertyAction::new("include-aur", self, "include-aur");
 
+        // Add toggle include AUR action
+        let toggle_aur_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("toggle-aur")
+            .activate(clone!(@weak self as obj => move |_, _, _| {
+                obj.set_include_aur(!obj.include_aur());
+            }))
+            .build();
+
         // Add search mode stateful action
         let mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("set-mode")
             .parameter_type(Some(&String::static_variant_type()))
@@ -510,7 +517,7 @@ impl SearchHeader {
 
         search_group.add_action(&aur_action);
 
-        search_group.add_action_entries([mode_action, cycle_mode_action, reverse_mode_action, mode_all_action, mode_any_action, mode_exact_action, type_action, cycle_type_action, reverse_type_action, reset_params_action]);
+        search_group.add_action_entries([toggle_aur_action, mode_action, cycle_mode_action, reverse_mode_action, mode_all_action, mode_any_action, mode_exact_action, type_action, cycle_type_action, reverse_type_action, reset_params_action]);
 
         // Add search type numbered actions
         let nicks: Vec<String> = glib::EnumClass::new::<SearchType>().values().iter()
@@ -536,6 +543,12 @@ impl SearchHeader {
     fn setup_shortcuts(&self) {
         // Create shortcut controller
         let controller = gtk::ShortcutController::new();
+
+        // Add toggle include AUR shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>U"),
+            Some(gtk::NamedAction::new("search.toggle-aur"))
+        ));
 
         // Add cycle search mode shortcut
         controller.add_shortcut(gtk::Shortcut::new(
