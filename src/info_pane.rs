@@ -100,7 +100,7 @@ mod imp {
         pub overlay_next_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
-        pkg_model: RefCell<Option<gio::ListStore>>,
+        pkg_model: RefCell<Option<gtk::FlattenListModel>>,
 
         #[property(name = "pkg", type = Option<PkgObject>, get = Self::pkg, set = Self::set_pkg, nullable)]
         pub history_selection: RefCell<gtk::SingleSelection>,
@@ -196,14 +196,16 @@ impl InfoPane {
                 let pkg_model = self.pkg_model().unwrap();
 
                 // Find link package by name
-                let mut new_pkg = pkg_model.iter::<PkgObject>()
+                let mut new_pkg = pkg_model.iter::<glib::Object>()
                     .flatten()
+                    .map(|pkg| pkg.downcast::<PkgObject>().unwrap())
                     .find(|pkg| pkg.name() == pkg_name);
 
                 // If link package is none, find by provides
                 if new_pkg.is_none() {
-                    new_pkg = pkg_model.iter::<PkgObject>()
+                    new_pkg = pkg_model.iter::<glib::Object>()
                         .flatten()
+                        .map(|pkg| pkg.downcast::<PkgObject>().unwrap())
                         .find(|pkg| {
                             pkg.provides().iter().any(|s| s.contains(pkg_name))
                         });
