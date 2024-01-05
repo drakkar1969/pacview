@@ -69,6 +69,8 @@ mod imp {
         pub title_widget: TemplateChild<adw::WindowTitle>,
 
         #[template_child]
+        pub tag_aur: TemplateChild<SearchTag>,
+        #[template_child]
         pub tag_mode: TemplateChild<SearchTag>,
         #[template_child]
         pub tag_type: TemplateChild<SearchTag>,
@@ -235,6 +237,8 @@ impl SearchHeader {
         // Include AUR property notify signal
         self.connect_include_aur_notify(|header| {
             let imp = header.imp();
+
+            imp.tag_aur.set_visible(header.include_aur());
 
             imp.search_text.set_text("");
 
