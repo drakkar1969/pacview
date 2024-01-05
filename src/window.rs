@@ -706,7 +706,7 @@ impl PacViewWindow {
                 let handle_ref = Rc::new(handle);
 
                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                    .map(|data| PkgObject::new(handle_ref.clone(), data))
+                    .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
                     .collect();
 
                 imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);

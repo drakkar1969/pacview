@@ -323,10 +323,13 @@ impl PkgObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(handle: Rc<alpm::Alpm>, data: PkgData) -> Self {
+    pub fn new(handle: Option<Rc<alpm::Alpm>>, data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
 
-        pkg.imp().handle.set(handle).unwrap();
+        if let Some(handle) = handle {
+            pkg.imp().handle.set(handle).unwrap();
+        }
+
         pkg.imp().data.replace(data);
 
         pkg

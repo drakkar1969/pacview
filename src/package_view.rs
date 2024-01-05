@@ -5,7 +5,9 @@ use glib::subclass::Signal;
 use glib::once_cell::sync::Lazy;
 use glib::clone;
 
-use crate::pkg_object::{PkgObject, PkgFlags};
+use raur::blocking::Raur;
+
+use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchMode, SearchType};
 
 //------------------------------------------------------------------------------
@@ -271,8 +273,58 @@ impl PackageView {
                 });
             }
 
-            if include_aur == true {
-                
+            if include_aur == true && stype != SearchType::Files {
+                let term = search_term.to_ascii_lowercase();
+
+                let search_by = match stype {
+                    SearchType::Name => { raur::SearchBy::Name },
+                    SearchType::Desc => { raur::SearchBy::NameDesc },
+                    SearchType::Group => { raur::SearchBy::Groups },
+                    SearchType::Deps => { raur::SearchBy::Depends },
+                    SearchType::Optdeps => { raur::SearchBy::OptDepends },
+                    SearchType::Provides => { raur::SearchBy::Provides },
+                    SearchType::Files => unreachable!(),
+                };
+
+                // Spawn thread to load packages
+                let (sender, receiver) = glib::MainContext::channel::<Vec<PkgData>>(glib::Priority::DEFAULT);
+
+                gio::spawn_blocking(move || {
+                    let handle = raur::blocking::Handle::new();
+
+                    let mut data_list: Vec<PkgData> = vec![];
+
+                    if let Ok(aur_pkgs) = handle.search_by(term, search_by) {
+                        let aur_names: Vec<String> = aur_pkgs.iter()
+                            .map(|pkg| pkg.name.to_string())
+                            .collect();
+
+                        if let Ok(aur_list) = handle.info(&aur_names) {
+                            data_list.extend(aur_list.into_iter()
+                                .map(|aurpkg| {
+                                    PkgData::new_from_aur(aurpkg)
+                                })
+                            );
+                        }
+                    }
+
+                    sender.send(data_list).expect("Could not send through channel");
+                });
+
+                // Attach thread receiver
+                receiver.attach(
+                    None,
+                    clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |data_list| {
+
+                        let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                            .map(|data| PkgObject::new(None, data))
+                            .collect();
+
+                        imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
+
+                        glib::ControlFlow::Break
+                    }),
+                );
             }
         }
     }
