@@ -257,17 +257,26 @@ impl SearchHeader {
             if search_text.text() == "" {
                 obj.emit_changed_signal();
             } else {
-                // Start delay timer
-                let delay_id = glib::timeout_add_local_once(
-                    Duration::from_millis(obj.delay()),
-                    clone!(@weak imp => move || {
-                        obj.emit_changed_signal();
+                if obj.include_aur() == false {
+                    // Start delay timer
+                    let delay_id = glib::timeout_add_local_once(
+                        Duration::from_millis(obj.delay()),
+                        clone!(@weak imp => move || {
+                            obj.emit_changed_signal();
 
-                        imp.delay_source_id.take();
-                    })
-                );
+                            imp.delay_source_id.take();
+                        })
+                    );
 
-                imp.delay_source_id.replace(Some(delay_id));
+                    imp.delay_source_id.replace(Some(delay_id));
+                }
+            }
+        }));
+
+        // Search text activate signal
+        imp.search_text.connect_activate(clone!(@weak self as obj => move |search_text| {
+            if obj.include_aur() == true && search_text.text() != "" {
+                obj.emit_changed_signal();
             }
         }));
 
