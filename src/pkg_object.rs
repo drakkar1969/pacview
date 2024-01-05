@@ -7,6 +7,7 @@ use gtk::prelude::ObjectExt;
 use glib::once_cell::sync::OnceCell;
 
 use alpm;
+use raur;
 
 use crate::utils::Utils;
 
@@ -86,7 +87,7 @@ pub struct PkgData {
 
 impl PkgData {
     //-----------------------------------
-    // New function
+    // New functions
     //-----------------------------------
     pub fn new_from_pkg(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
         // Defaults for package status flags, install date, files and backup (non-installed)
@@ -165,6 +166,39 @@ impl PkgData {
         }
     }
 
+    pub fn new_from_aur(aurpkg: raur::Package) -> Self {
+        // Build PkgData
+        Self {
+            flags: PkgFlags::NONE,
+            name: aurpkg.name,
+            version: aurpkg.version,
+            repository: "aur".to_string(),
+            status: "".to_string(),
+            status_icon: "".to_string(),
+            install_date: 0,
+            install_size: 0,
+            groups: Self::aur_vec_to_string(&aurpkg.groups),
+            description: aurpkg.description.unwrap_or_default().to_string(),
+            url: aurpkg.url.unwrap_or_default().to_string(),
+            licenses: Self::aur_vec_to_string(&aurpkg.license),
+            provides: Self::aur_sorted_vec(&aurpkg.provides),
+            depends: Self::aur_sorted_vec(&aurpkg.depends),
+            optdepends: Self::aur_sorted_vec(&aurpkg.opt_depends),
+            conflicts: Self::aur_sorted_vec(&aurpkg.conflicts),
+            replaces: Self::aur_sorted_vec(&aurpkg.replaces),
+            architecture: "".to_string(),
+            packager: aurpkg.maintainer.unwrap_or_default().to_string(),
+            build_date: 0,
+            download_size: 0,
+            has_script: false,
+            sha256sum: "".to_string(),
+            md5sum: "".to_string(),
+            files: vec![],
+            backup: vec![],
+            has_update: false,
+        }
+    }
+
     //-----------------------------------
     // Helper functions
     //-----------------------------------
@@ -198,6 +232,20 @@ impl PkgData {
         backup_vec.sort_unstable_by(|a, b| a.filename.partial_cmp(&b.filename).unwrap());
 
         backup_vec
+    }
+
+    fn aur_vec_to_string(vec: &Vec<String>) -> String {
+        let mut list_vec = vec.clone();
+        list_vec.sort_unstable();
+
+        list_vec.join(", ")
+    }
+
+    fn aur_sorted_vec(vec: &Vec<String>) -> Vec<String> {
+        let mut list_vec = vec.clone();
+        list_vec.sort_unstable();
+
+        list_vec
     }
 }
 
