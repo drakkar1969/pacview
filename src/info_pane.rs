@@ -407,7 +407,7 @@ impl InfoPane {
             // Packager
             self.set_property_value(PropID::Packager, true, &pkg.packager(), None);
             // Build date
-            self.set_property_value(PropID::BuildDate, true, &pkg.build_date_long(), None);
+            self.set_property_value(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_long(), None);
             // Install date
             self.set_property_value(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
             // Download size
