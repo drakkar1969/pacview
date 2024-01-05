@@ -6,7 +6,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
-use glib::once_cell::sync::Lazy;
+use glib::once_cell::sync::{Lazy, OnceCell};
 
 use crate::search_tag::SearchTag;
 
@@ -107,7 +107,7 @@ mod imp {
 
         pub delay_source_id: RefCell<Option<glib::SourceId>>,
 
-        pub search_action_group: RefCell<Option<gio::SimpleActionGroup>>
+        pub search_action_group: OnceCell<gio::SimpleActionGroup>
     }
 
     //-----------------------------------
@@ -247,15 +247,11 @@ impl SearchHeader {
 
             imp.search_text.set_text("");
 
-            if let Some(group) = &*imp.search_action_group.borrow() {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    mode_action.change_state(&"all".to_variant());
-                }
+            let reset_action = imp.search_action_group.get()
+                .and_then(|group| group.lookup_action("reset-params"))
+                .expect("Must be an 'Action'");
 
-                if let Some(type_action) = group.lookup_action("set-type") {
-                    type_action.change_state(&"name".to_variant());
-                }
-            }
+            reset_action.activate(None);
         });
 
         // Search mode property notify signal
@@ -558,7 +554,7 @@ impl SearchHeader {
         }
 
         // Store search action group
-        self.imp().search_action_group.replace(Some(search_group));
+        self.imp().search_action_group.set(search_group).unwrap();
     }
 
     //-----------------------------------
