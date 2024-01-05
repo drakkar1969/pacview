@@ -43,6 +43,9 @@
     <key name="monospace-font" type="s">
       <default>'Source Code Pro 11'</default>
     </key>
+    <key name="search-include-aur" type="b">
+      <default>false</default>
+    </key>
     <key name="search-delay" type="d">
       <range min="0" max="2000"/>
       <default>150</default>

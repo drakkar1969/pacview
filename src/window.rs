@@ -193,6 +193,8 @@ impl PacViewWindow {
             gsettings.bind("window-height", self, "default-height").build();
             gsettings.bind("window-maximized", self, "maximized").build();
 
+            gsettings.bind("search-include-aur", &imp.search_header.get(), "include-aur").build();
+
             gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
             gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
 

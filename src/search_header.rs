@@ -93,12 +93,14 @@ mod imp {
         #[property(get, set, builder(SearchType::default()))]
         stype: Cell<SearchType>,
 
-        #[property(get, set, construct)]
+        #[property(get, set)]
         include_aur: Cell<bool>,
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
 
         pub delay_source_id: RefCell<Option<glib::SourceId>>,
+
+        pub search_action_group: RefCell<Option<gio::SimpleActionGroup>>
     }
 
     //-----------------------------------
@@ -230,6 +232,23 @@ impl SearchHeader {
             header.emit_by_name::<()>("enabled", &[&header.enabled()]);
         });
 
+        // Include AUR property notify signal
+        self.connect_include_aur_notify(|header| {
+            let imp = header.imp();
+
+            imp.search_text.set_text("");
+
+            if let Some(group) = &*imp.search_action_group.borrow() {
+                if let Some(mode_action) = group.lookup_action("set-mode") {
+                    mode_action.change_state(&"all".to_variant());
+                }
+
+                if let Some(type_action) = group.lookup_action("set-type") {
+                    type_action.change_state(&"name".to_variant());
+                }
+            }
+        });
+
         // Search mode property notify signal
         self.connect_mode_notify(|header| {
             if let Some((_, value)) = glib::EnumValue::from_value(&header.mode().to_value()) {
@@ -311,8 +330,15 @@ impl SearchHeader {
 
         // Add toggle include AUR action
         let toggle_aur_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("toggle-aur")
-            .activate(clone!(@weak self as obj => move |_, _, _| {
-                obj.set_include_aur(!obj.include_aur());
+            .activate(clone!(@weak self as obj => move |group, _, _| {
+                if let Some(aur_action) = group.lookup_action("include-aur") {
+                    let state = aur_action.state()
+                        .expect("Must be a 'Variant'")
+                        .get::<bool>()
+                        .expect("Must be a 'bool'");
+
+                    aur_action.change_state(&(!state).to_variant());
+                }
             }))
             .build();
 
@@ -535,6 +561,9 @@ impl SearchHeader {
 
             search_group.add_action_entries([action]);
         }
+
+        // Store search action group
+        self.imp().search_action_group.replace(Some(search_group));
     }
 
     //-----------------------------------
@@ -546,7 +575,7 @@ impl SearchHeader {
 
         // Add toggle include AUR shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>U"),
+            gtk::ShortcutTrigger::parse_string("<ctrl>P"),
             Some(gtk::NamedAction::new("search.toggle-aur"))
         ));
 
