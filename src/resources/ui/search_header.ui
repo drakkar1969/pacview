@@ -61,7 +61,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="SearchTag" id="tag_type">
+                      <object class="SearchTag" id="tag_prop">
                         <property name="text">name</property>
                       </object>
                     </child>

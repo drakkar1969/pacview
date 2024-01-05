@@ -8,7 +8,7 @@ use glib::clone;
 use raur::blocking::Raur;
 
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
-use crate::search_header::{SearchHeader, SearchMode, SearchType};
+use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 
 //------------------------------------------------------------------------------
 // MODULE: PackageView
@@ -215,7 +215,7 @@ impl PackageView {
     //-----------------------------------
     // Public filter functions
     //-----------------------------------
-    pub fn set_search_filter(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, stype: SearchType, include_aur: bool) {
+    pub fn set_search_filter(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool) {
         let imp = self.imp();
 
         if search_term == "" {
@@ -231,14 +231,14 @@ impl PackageView {
                         .downcast_ref::<PkgObject>()
                         .expect("Must be a 'PkgObject'");
 
-                    match stype {
-                        SearchType::Name => { pkg.name().eq_ignore_ascii_case(&term) },
-                        SearchType::Desc => { pkg.description().eq_ignore_ascii_case(&term) },
-                        SearchType::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
-                        SearchType::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchType::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchType::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchType::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                    match prop {
+                        SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
+                        SearchProp::Desc => { pkg.description().eq_ignore_ascii_case(&term) },
+                        SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
+                        SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
                     }
                 });
             } else {
@@ -252,14 +252,14 @@ impl PackageView {
                     let mut results = vec![];
 
                     for t in term.split_whitespace() {
-                        let t_result = match stype {
-                            SearchType::Name => { pkg.name().to_ascii_lowercase().contains(&t) },
-                            SearchType::Desc => { pkg.description().to_ascii_lowercase().contains(&t) },
-                            SearchType::Group => { pkg.groups().to_ascii_lowercase().contains(&t) },
-                            SearchType::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchType::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchType::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchType::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                        let t_result = match prop {
+                            SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(&t) },
+                            SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(&t) },
+                            SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(&t) },
+                            SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                            SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                            SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                            SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
                         };
 
                         results.push(t_result);
@@ -273,20 +273,20 @@ impl PackageView {
                 });
             }
 
-            if include_aur == true && stype != SearchType::Files {
+            if include_aur == true && prop != SearchProp::Files {
                 search_header.imp().icon_stack.set_visible_child_name("spinner");
                 search_header.imp().spinner.set_spinning(true);
 
                 let term = search_term.to_ascii_lowercase();
 
-                let search_by = match stype {
-                    SearchType::Name => { raur::SearchBy::Name },
-                    SearchType::Desc => { raur::SearchBy::NameDesc },
-                    SearchType::Group => { raur::SearchBy::Groups },
-                    SearchType::Deps => { raur::SearchBy::Depends },
-                    SearchType::Optdeps => { raur::SearchBy::OptDepends },
-                    SearchType::Provides => { raur::SearchBy::Provides },
-                    SearchType::Files => unreachable!(),
+                let search_by = match prop {
+                    SearchProp::Name => { raur::SearchBy::Name },
+                    SearchProp::Desc => { raur::SearchBy::NameDesc },
+                    SearchProp::Group => { raur::SearchBy::Groups },
+                    SearchProp::Deps => { raur::SearchBy::Depends },
+                    SearchProp::Optdeps => { raur::SearchBy::OptDepends },
+                    SearchProp::Provides => { raur::SearchBy::Provides },
+                    SearchProp::Files => unreachable!(),
                 };
 
                 // Spawn thread to load packages

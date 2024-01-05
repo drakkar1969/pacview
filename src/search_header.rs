@@ -29,12 +29,12 @@ impl Default for SearchMode {
 }
 
 //------------------------------------------------------------------------------
-// ENUM: SearchType
+// ENUM: SearchProp
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
-#[enum_type(name = "SearchType")]
-pub enum SearchType {
+#[enum_type(name = "SearchProp")]
+pub enum SearchProp {
     Name = 0,
     Desc = 1,
     Group = 2,
@@ -44,9 +44,9 @@ pub enum SearchType {
     Files = 6,
 }
 
-impl Default for SearchType {
+impl Default for SearchProp {
     fn default() -> Self {
-        SearchType::Name
+        SearchProp::Name
     }
 }
 
@@ -78,7 +78,7 @@ mod imp {
         #[template_child]
         pub tag_mode: TemplateChild<SearchTag>,
         #[template_child]
-        pub tag_type: TemplateChild<SearchTag>,
+        pub tag_prop: TemplateChild<SearchTag>,
 
         #[template_child]
         pub search_text: TemplateChild<gtk::Text>,
@@ -97,8 +97,8 @@ mod imp {
 
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
-        #[property(get, set, builder(SearchType::default()))]
-        stype: Cell<SearchType>,
+        #[property(get, set, builder(SearchProp::default()))]
+        prop: Cell<SearchProp>,
 
         #[property(get, set)]
         include_aur: Cell<bool>,
@@ -144,7 +144,7 @@ mod imp {
                         .param_types([
                             String::static_type(),
                             SearchMode::static_type(),
-                            SearchType::static_type(),
+                            SearchProp::static_type(),
                             bool::static_type(),
                         ])
                         .build(),
@@ -263,10 +263,10 @@ impl SearchHeader {
             }
         });
 
-        // Search type property notify signal
-        self.connect_stype_notify(|header| {
-            if let Some((_, value)) = glib::EnumValue::from_value(&header.stype().to_value()) {
-                header.imp().tag_type.set_text(Some(value.nick()));
+        // Search prop property notify signal
+        self.connect_prop_notify(|header| {
+            if let Some((_, value)) = glib::EnumValue::from_value(&header.prop().to_value()) {
+                header.imp().tag_prop.set_text(Some(value.nick()));
 
                 header.emit_changed_signal();
             }
@@ -321,7 +321,7 @@ impl SearchHeader {
             &[
                 &imp.search_text.text(),
                 &self.mode(),
-                &self.stype(),
+                &self.prop(),
                 &self.include_aur()
             ]);
     }
@@ -336,8 +336,8 @@ impl SearchHeader {
         // Add search mode property action
         let mode_action = gio::PropertyAction::new("set-mode", self, "mode");
 
-        // Add search type property action
-        let type_action = gio::PropertyAction::new("set-type", self, "stype");
+        // Add search prop property action
+        let prop_action = gio::PropertyAction::new("set-prop", self, "prop");
 
         // Add cycle search mode action
         let cycle_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
@@ -377,46 +377,46 @@ impl SearchHeader {
             })
             .build();
 
-        // Add cycle search type action
-        let cycle_type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-type")
+        // Add cycle search prop action
+        let cycle_prop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-prop")
             .activate(|group, _, _| {
-                if let Some(type_action) = group.lookup_action("set-type") {
-                    let state = type_action.state()
+                if let Some(prop_action) = group.lookup_action("set-prop") {
+                    let state = prop_action.state()
                         .expect("Must be a 'Variant'")
                         .get::<String>()
                         .expect("Must be a 'String'");
 
                     match state.as_str() {
-                        "name" => type_action.change_state(&"desc".to_variant()),
-                        "desc" => type_action.change_state(&"group".to_variant()),
-                        "group" => type_action.change_state(&"deps".to_variant()),
-                        "deps" => type_action.change_state(&"optdeps".to_variant()),
-                        "optdeps" => type_action.change_state(&"provides".to_variant()),
-                        "provides" => type_action.change_state(&"files".to_variant()),
-                        "files" => type_action.change_state(&"name".to_variant()),
+                        "name" => prop_action.change_state(&"desc".to_variant()),
+                        "desc" => prop_action.change_state(&"group".to_variant()),
+                        "group" => prop_action.change_state(&"deps".to_variant()),
+                        "deps" => prop_action.change_state(&"optdeps".to_variant()),
+                        "optdeps" => prop_action.change_state(&"provides".to_variant()),
+                        "provides" => prop_action.change_state(&"files".to_variant()),
+                        "files" => prop_action.change_state(&"name".to_variant()),
                         _ => unreachable!()
                     };
                 }
             })
             .build();
 
-        // Add reverse cycle search type action
-        let reverse_type_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-type")
+        // Add reverse cycle search prop action
+        let reverse_prop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-prop")
             .activate(|group, _, _| {
-                if let Some(type_action) = group.lookup_action("set-type") {
-                    let state = type_action.state()
+                if let Some(prop_action) = group.lookup_action("set-prop") {
+                    let state = prop_action.state()
                         .expect("Must be a 'Variant'")
                         .get::<String>()
                         .expect("Must be a 'String'");
 
                     match state.as_str() {
-                        "name" => type_action.change_state(&"files".to_variant()),
-                        "desc" => type_action.change_state(&"name".to_variant()),
-                        "group" => type_action.change_state(&"desc".to_variant()),
-                        "deps" => type_action.change_state(&"group".to_variant()),
-                        "optdeps" => type_action.change_state(&"deps".to_variant()),
-                        "provides" => type_action.change_state(&"optdeps".to_variant()),
-                        "files" => type_action.change_state(&"provides".to_variant()),
+                        "name" => prop_action.change_state(&"files".to_variant()),
+                        "desc" => prop_action.change_state(&"name".to_variant()),
+                        "group" => prop_action.change_state(&"desc".to_variant()),
+                        "deps" => prop_action.change_state(&"group".to_variant()),
+                        "optdeps" => prop_action.change_state(&"deps".to_variant()),
+                        "provides" => prop_action.change_state(&"optdeps".to_variant()),
+                        "files" => prop_action.change_state(&"provides".to_variant()),
                         _ => unreachable!()
                     };
                 }
@@ -430,8 +430,8 @@ impl SearchHeader {
                     mode_action.change_state(&"all".to_variant());
                 }
 
-                if let Some(type_action) = group.lookup_action("set-type") {
-                    type_action.change_state(&"name".to_variant());
+                if let Some(prop_action) = group.lookup_action("set-prop") {
+                    prop_action.change_state(&"name".to_variant());
                 }
             })
             .build();
@@ -443,9 +443,9 @@ impl SearchHeader {
 
         search_group.add_action(&aur_action);
         search_group.add_action(&mode_action);
-        search_group.add_action(&type_action);
+        search_group.add_action(&prop_action);
 
-        search_group.add_action_entries([cycle_mode_action, reverse_mode_action, cycle_type_action, reverse_type_action, reset_params_action]);
+        search_group.add_action_entries([cycle_mode_action, reverse_mode_action, cycle_prop_action, reverse_prop_action, reset_params_action]);
 
         // Store search action group
         self.imp().search_action_group.set(search_group).unwrap();
@@ -495,25 +495,25 @@ impl SearchHeader {
             &"exact".to_variant()
         ));
 
-        // Add cycle search type shortcut
+        // Add cycle search prop shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>T"),
-            Some(gtk::NamedAction::new("search.cycle-type"))
+            Some(gtk::NamedAction::new("search.cycle-prop"))
         ));
 
-        // Add reverse cycle search type shortcut
+        // Add reverse cycle search prop shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>T"),
-            Some(gtk::NamedAction::new("search.rev-cycle-type"))
+            Some(gtk::NamedAction::new("search.rev-cycle-prop"))
         ));
 
-        // Add search type numbered shortcuts
-        let enum_class = glib::EnumClass::new::<SearchType>();
+        // Add search prop numbered shortcuts
+        let enum_class = glib::EnumClass::new::<SearchProp>();
 
         for (i, value) in enum_class.values().iter().enumerate() {
             controller.add_shortcut(gtk::Shortcut::with_arguments(
                 gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
-                Some(gtk::NamedAction::new("search.set-type")),
+                Some(gtk::NamedAction::new("search.set-prop")),
                 &value.nick().to_variant()
             ));
         }

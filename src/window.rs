@@ -21,7 +21,7 @@ use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventRe
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
-use crate::search_header::{SearchHeader, SearchMode, SearchType};
+use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::package_view::PackageView;
 use crate::info_pane::{InfoPane, PropID};
 use crate::filter_row::FilterRow;
@@ -188,7 +188,7 @@ impl PacViewWindow {
 
         if let Some(gsettings) = imp.gsettings.get() {
 
-            // Bind gsettings
+            // Bind Typegsettings
             gsettings.bind("window-width", self, "default-width").build();
             gsettings.bind("window-height", self, "default-height").build();
             gsettings.bind("window-maximized", self, "maximized").build();
@@ -525,8 +525,8 @@ impl PacViewWindow {
         }));
 
         // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |search_header: SearchHeader, search_term: &str, mode: SearchMode, stype: SearchType, include_aur: bool| {
-            obj.imp().package_view.set_search_filter(search_header, search_term, mode, stype, include_aur);
+        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool| {
+            obj.imp().package_view.set_search_filter(search_header, search_term, mode, prop, include_aur);
         }));
 
         // Repo listbox row selected signal
