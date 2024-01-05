@@ -1,7 +1,6 @@
 use gtk::{gio, glib, gdk};
 use gtk::prelude::*;
 use adw::subclass::prelude::*;
-use glib::clone;
 
 use crate::window::PacViewWindow;
 
@@ -86,7 +85,7 @@ mod imp {
             }
 
             // Connect style manager dark property notify signal
-            style_manager.connect_dark_notify(clone!(@weak style_manager => move |_| {
+            style_manager.connect_dark_notify(move |style_manager| {
                 // Update icon resource paths when color scheme changes
                 let resource_paths = icon_theme.resource_path();
 
@@ -107,7 +106,7 @@ mod imp {
                 }
 
                 icon_theme.set_resource_path(&icon_paths.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
-            }));
+            });
         }
     }
 }
