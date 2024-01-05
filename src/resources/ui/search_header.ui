@@ -23,9 +23,26 @@
                   <class name="search-header"/>
                 </style>
                 <child>
-                  <object class="GtkImage">
+                  <object class="GtkStack" id="icon_stack">
                     <property name="margin-start">6</property>
-                    <property name="icon-name">search-symbolic</property>
+                    <child>
+                      <object class="GtkStackPage" id="icon_page">
+                        <property name="name">icon</property>
+                        <property name="child">
+                          <object class="GtkImage" id="image">
+                            <property name="icon-name">search-symbolic</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkStackPage" id="spinner_page">
+                        <property name="name">spinner</property>
+                        <property name="child">
+                          <object class="GtkSpinner" id="spinner"/>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>

@@ -525,8 +525,8 @@ impl PacViewWindow {
         }));
 
         // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |_: SearchHeader, search_term: &str, mode: SearchMode, stype: SearchType, include_aur: bool| {
-            obj.imp().package_view.set_search_filter(search_term, mode, stype, include_aur);
+        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |search_header: SearchHeader, search_term: &str, mode: SearchMode, stype: SearchType, include_aur: bool| {
+            obj.imp().package_view.set_search_filter(search_header, search_term, mode, stype, include_aur);
         }));
 
         // Repo listbox row selected signal

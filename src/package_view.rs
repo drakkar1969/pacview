@@ -8,7 +8,7 @@ use glib::clone;
 use raur::blocking::Raur;
 
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
-use crate::search_header::{SearchMode, SearchType};
+use crate::search_header::{SearchHeader, SearchMode, SearchType};
 
 //------------------------------------------------------------------------------
 // MODULE: PackageView
@@ -215,7 +215,7 @@ impl PackageView {
     //-----------------------------------
     // Public filter functions
     //-----------------------------------
-    pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, stype: SearchType, include_aur: bool) {
+    pub fn set_search_filter(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, stype: SearchType, include_aur: bool) {
         let imp = self.imp();
 
         if search_term == "" {
@@ -274,6 +274,9 @@ impl PackageView {
             }
 
             if include_aur == true && stype != SearchType::Files {
+                search_header.imp().icon_stack.set_visible_child_name("spinner");
+                search_header.imp().spinner.set_spinning(true);
+
                 let term = search_term.to_ascii_lowercase();
 
                 let search_by = match stype {
@@ -321,6 +324,9 @@ impl PackageView {
                             .collect();
 
                         imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
+
+                        search_header.imp().spinner.set_spinning(false);
+                        search_header.imp().icon_stack.set_visible_child_name("icon");
 
                         glib::ControlFlow::Break
                     }),

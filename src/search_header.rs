@@ -69,6 +69,11 @@ mod imp {
         pub title_widget: TemplateChild<adw::WindowTitle>,
 
         #[template_child]
+        pub icon_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub spinner: TemplateChild<gtk::Spinner>,
+
+        #[template_child]
         pub tag_aur: TemplateChild<SearchTag>,
         #[template_child]
         pub tag_mode: TemplateChild<SearchTag>,
