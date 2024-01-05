@@ -86,7 +86,7 @@ mod imp {
         title: RefCell<Option<String>>,
 
         #[property(get, set)]
-        active: Cell<bool>,
+        enabled: Cell<bool>,
 
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
@@ -212,11 +212,11 @@ impl SearchHeader {
     fn setup_signals(&self) {
         let imp = self.imp();
         
-        // Search active property notify signal
-        self.connect_active_notify(|header| {
+        // Search enabled property notify signal
+        self.connect_enabled_notify(|header| {
             let imp = header.imp();
 
-            if header.active() {
+            if header.enabled() {
                 imp.stack.set_visible_child_name("search");
 
                 imp.search_text.grab_focus_without_selecting();
@@ -226,7 +226,7 @@ impl SearchHeader {
                 imp.stack.set_visible_child_name("title");
             }
 
-            header.emit_by_name::<()>("enabled", &[&header.active()]);
+            header.emit_by_name::<()>("enabled", &[&header.enabled()]);
         });
 
         // Search mode property notify signal
@@ -602,7 +602,7 @@ impl SearchHeader {
             if !(state.contains(gdk::ModifierType::ALT_MASK) || state.contains(gdk::ModifierType::CONTROL_MASK))
             {
                 if controller.forward(&header.imp().search_text.get()) {
-                    header.set_active(true);
+                    header.set_enabled(true);
                 }
             }
 

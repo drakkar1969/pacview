@@ -263,8 +263,8 @@ impl PacViewWindow {
         // Set search header key capture widget
         imp.search_header.set_key_capture_widget(imp.package_view.imp().view.get().upcast());
 
-        // Bind search button state to search header active state
-        imp.search_button.bind_property("active", &imp.search_header.get(), "active")
+        // Bind search button state to search header enabled state
+        imp.search_button.bind_property("active", &imp.search_header.get(), "enabled")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
@@ -297,13 +297,13 @@ impl PacViewWindow {
         // Add start/stop search actions
         let start_action = gio::ActionEntry::<PacViewWindow>::builder("start-search")
             .activate(|window, _, _| {
-                window.imp().search_header.set_active(true);
+                window.imp().search_header.set_enabled(true);
             })
             .build();
 
         let stop_action = gio::ActionEntry::<PacViewWindow>::builder("stop-search")
             .activate(|window, _, _| {
-                window.imp().search_header.set_active(false);
+                window.imp().search_header.set_enabled(false);
             })
             .build();
 
@@ -516,8 +516,8 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Search header enabled signal
-        imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as obj => move |_: SearchHeader, active: bool| {
-            if active == false {
+        imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as obj => move |_: SearchHeader, enabled: bool| {
+            if enabled == false {
                 obj.imp().package_view.imp().view.grab_focus();
             }
         }));
