@@ -138,7 +138,7 @@ mod imp {
                             SearchType::static_type(),
                         ])
                         .build(),
-                    Signal::builder("activated")
+                    Signal::builder("enabled")
                         .param_types([bool::static_type()])
                         .build(),
                 ]
@@ -226,7 +226,7 @@ impl SearchHeader {
                 imp.stack.set_visible_child_name("title");
             }
 
-            header.emit_by_name::<()>("activated", &[&header.active()]);
+            header.emit_by_name::<()>("enabled", &[&header.active()]);
         });
 
         // Search mode property notify signal

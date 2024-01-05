@@ -515,8 +515,8 @@ impl PacViewWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Search header activated signal
-        imp.search_header.connect_closure("activated", false, closure_local!(@watch self as obj => move |_: SearchHeader, active: bool| {
+        // Search header enabled signal
+        imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as obj => move |_: SearchHeader, active: bool| {
             if active == false {
                 obj.imp().package_view.imp().view.grab_focus();
             }
