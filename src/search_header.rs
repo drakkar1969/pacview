@@ -136,6 +136,7 @@ mod imp {
                             String::static_type(),
                             SearchMode::static_type(),
                             SearchType::static_type(),
+                            bool::static_type(),
                         ])
                         .build(),
                     Signal::builder("enabled")
@@ -296,7 +297,8 @@ impl SearchHeader {
             &[
                 &imp.search_text.text(),
                 &self.mode(),
-                &self.stype()
+                &self.stype(),
+                &self.include_aur()
             ]);
     }
 

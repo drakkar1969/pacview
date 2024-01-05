@@ -213,11 +213,13 @@ impl PackageView {
     //-----------------------------------
     // Public filter functions
     //-----------------------------------
-    pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, stype: SearchType) {
+    pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, stype: SearchType, include_aur: bool) {
         let imp = self.imp();
 
         if search_term == "" {
             imp.search_filter.unset_filter_func();
+
+            imp.aur_model.remove_all();
         } else {
             if mode == SearchMode::Exact {
                 let term = search_term.to_string();
@@ -267,6 +269,10 @@ impl PackageView {
                         results.iter().any(|&x| x)
                     }
                 });
+            }
+
+            if include_aur == true {
+                
             }
         }
     }
