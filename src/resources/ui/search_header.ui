@@ -106,37 +106,37 @@
       <attribute name="label">Search Type</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">search.set-type</attribute>
+        <attribute name="action">search.set-prop</attribute>
         <attribute name="target">name</attribute>
       </item>
       <item>
         <attribute name="label">Description</attribute>
-        <attribute name="action">search.set-type</attribute>
+        <attribute name="action">search.set-prop</attribute>
         <attribute name="target">desc</attribute>
       </item>
       <item>
         <attribute name="label">Group</attribute>
-        <attribute name="action">search.set-type</attribute>
+        <attribute name="action">search.set-prop</attribute>
         <attribute name="target">group</attribute>
       </item>
       <item>
         <attribute name="label">Dependencies</attribute>
-        <attribute name="action">search.set-type</attribute>
+        <attribute name="action">search.set-prop</attribute>
         <attribute name="target">deps</attribute>
       </item>
       <item>
         <attribute name="label">Optional Dependencies</attribute>
-        <attribute name="action">search.set-type</attribute>
+        <attribute name="action">search.set-prop</attribute>
         <attribute name="target">optdeps</attribute>
       </item>
       <item>
         <attribute name="label">Provides</attribute>
-        <attribute name="action">search.set-type</attribute>
+        <attribute name="action">search.set-prop</attribute>
         <attribute name="target">provides</attribute>
       </item>
       <item>
         <attribute name="label">Files</attribute>
-        <attribute name="action">search.set-type</attribute>
+        <attribute name="action">search.set-prop</attribute>
         <attribute name="target">files</attribute>
       </item>
     </section>
