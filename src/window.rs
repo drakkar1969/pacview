@@ -188,7 +188,7 @@ impl PacViewWindow {
 
         if let Some(gsettings) = imp.gsettings.get() {
 
-            // Bind Typegsettings
+            // Bind gsettings
             gsettings.bind("window-width", self, "default-width").build();
             gsettings.bind("window-height", self, "default-height").build();
             gsettings.bind("window-maximized", self, "maximized").build();
