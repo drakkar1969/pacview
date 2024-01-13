@@ -88,7 +88,7 @@ impl PkgData {
     //-----------------------------------
     // New functions
     //-----------------------------------
-    pub fn new_from_pkg(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
+    pub fn from_pkg(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
         // Defaults for package status flags, install date, files and backup (non-installed)
         let mut flags = PkgFlags::NONE;
         let mut idate = 0;
@@ -165,7 +165,7 @@ impl PkgData {
         }
     }
 
-    pub fn new_from_aur(aurpkg: raur::Package) -> Self {
+    pub fn from_aur(aurpkg: raur::Package) -> Self {
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,

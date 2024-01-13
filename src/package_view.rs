@@ -305,7 +305,7 @@ impl PackageView {
                         if let Ok(aur_list) = handle.info(&aur_names) {
                             data_list.extend(aur_list.into_iter()
                                 .map(|aurpkg| {
-                                    PkgData::new_from_aur(aurpkg)
+                                    PkgData::from_aur(aurpkg)
                                 })
                             );
                         }
