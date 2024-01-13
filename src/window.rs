@@ -3,12 +3,12 @@ use std::path::Path;
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::time::Duration;
+use std::cell::OnceCell;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, closure_local};
-use glib::once_cell::sync::OnceCell;
 
 use pacmanconf;
 use alpm;

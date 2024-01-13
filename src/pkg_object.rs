@@ -1,10 +1,9 @@
-use std::cell::RefCell;
+use std::cell::{RefCell, OnceCell};
 use std::rc::Rc;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
-use glib::once_cell::sync::OnceCell;
 
 use alpm;
 use raur;

@@ -1,10 +1,10 @@
-use std::cell::{Cell, RefCell};
+use std::cell::{Cell, RefCell, OnceCell};
 
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use glib::once_cell::sync::{Lazy, OnceCell};
+use glib::once_cell::sync::Lazy;
 use glib::subclass::Signal;
 
 use fancy_regex::Regex;

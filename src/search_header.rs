@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::{Cell, RefCell, OnceCell};
 use core::time::Duration;
 
 use gtk::{glib, gio, gdk};
@@ -6,7 +6,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
-use glib::once_cell::sync::{Lazy, OnceCell};
+use glib::once_cell::sync::Lazy;
 
 use crate::search_tag::SearchTag;
 
