@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -295,20 +297,54 @@ impl PackageView {
                 gio::spawn_blocking(move || {
                     let handle = raur::blocking::Handle::new();
 
-                    let mut data_list: Vec<PkgData> = vec![];
+                    let mut aur_names: Vec<String> = vec![];
 
-                    if let Ok(aur_pkgs) = handle.search_by(term, search_by) {
-                        let aur_names: Vec<String> = aur_pkgs.iter()
-                            .map(|pkg| pkg.name.to_string())
-                            .collect();
+                    match mode {
+                        SearchMode::Exact => {
+                            if let Ok(aur_search) = handle.search_by(term, search_by) {
+                                aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
+                            }
+                        },
+                        SearchMode::Any => {
+                            for t in term.split_whitespace() {
+                                if let Ok(aur_search) = handle.search_by(t, search_by) {
+                                    aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
+                                }
+                            }
 
-                        if let Ok(aur_list) = handle.info(&aur_names) {
-                            data_list.extend(aur_list.into_iter()
-                                .map(|aurpkg| {
-                                    PkgData::from_aur(aurpkg)
+                            aur_names.sort_unstable();
+                            aur_names.dedup();
+                        },
+                        SearchMode::All => {
+                            let mut aur_sets: Vec<HashSet<String>> = vec![];
+
+                            for t in term.split_whitespace() {
+                                if let Ok(aur_search) = handle.search_by(t, search_by) {
+                                    aur_sets.push(aur_search.iter()
+                                        .map(|pkg| pkg.name.to_string())
+                                        .collect::<HashSet<_>>()
+                                    );
+                                }
+                            }
+
+                            aur_names.extend(aur_sets.iter()
+                                .skip(1)
+                                .fold(aur_sets[0].clone(), |acc, set| {
+                                    acc.intersection(set).cloned().collect()
                                 })
+                                .into_iter()
                             );
                         }
+                    }
+
+                    let mut data_list: Vec<PkgData> = vec![];
+
+                    if let Ok(aur_list) = handle.info(&aur_names) {
+                        data_list.extend(aur_list.into_iter()
+                            .map(|aurpkg| {
+                                PkgData::from_aur(aurpkg)
+                            })
+                        );
                     }
 
                     sender.send(data_list).expect("Could not send through channel");
