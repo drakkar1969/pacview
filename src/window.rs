@@ -669,7 +669,7 @@ impl PacViewWindow {
         let pacman_config = imp.pacman_config.borrow().clone();
 
         // Spawn thread to load packages
-        let (sender, receiver) = glib::MainContext::channel::<(alpm::Alpm, Vec<PkgData>)>(glib::Priority::DEFAULT);
+        let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
             let handle = alpm::Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
@@ -698,29 +698,26 @@ impl PacViewWindow {
                 )})
             );
 
-            sender.send((handle, data_list)).expect("Could not send through channel");
+            sender.send_blocking((handle, data_list)).expect("Could not send through channel");
         });
 
         // Attach thread receiver
-        receiver.attach(
-            None,
-            clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |(handle, data_list)| {
+        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+            while let Ok((handle, data_list)) = receiver.recv().await {
                 let handle_ref = Rc::new(handle);
 
                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
                     .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
                     .collect();
-
+    
                 imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
-
+    
                 imp.package_view.imp().stack.set_visible_child_name("view");
-
+    
                 obj.check_aur_packages_async();
                 obj.get_package_updates_async();
-
-                glib::ControlFlow::Break
-            }),
-        );
+            }
+        }));
     }
 
     //-----------------------------------
@@ -736,7 +733,7 @@ impl PacViewWindow {
             .collect::<Vec<String>>();
 
         // Spawn thread to check AUR packages
-        let (sender, receiver) = glib::MainContext::channel::<Vec<String>>(glib::Priority::DEFAULT);
+        let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
             let mut aur_list: Vec<String> = vec![];
@@ -749,13 +746,12 @@ impl PacViewWindow {
             }
 
             // Return thread result
-            sender.send(aur_list).expect("Could not send through channel");
+            sender.send_blocking(aur_list).expect("Could not send through channel");
         });
 
         // Attach thread receiver
-        receiver.attach(
-            None,
-            clone!(@weak imp => @default-return glib::ControlFlow::Break, move |aur_list| {
+        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+            while let Ok(aur_list) = receiver.recv().await {
                 // Update repository for AUR packages
                 for pkg in imp.package_view.imp().pkg_model.iter::<PkgObject>().flatten()
                     .filter(|pkg| aur_list.contains(&pkg.name()))
@@ -776,10 +772,8 @@ impl PacViewWindow {
 
                 // Refresh repository filter
                 imp.package_view.imp().repo_filter.changed(gtk::FilterChange::Different);
-
-                glib::ControlFlow::Break
-            }),
-        );
+            }
+        }));
     }
 
     //-----------------------------------
@@ -792,7 +786,7 @@ impl PacViewWindow {
         let aur_command = imp.prefs_window.aur_command();
 
         // Spawn thread to check for updates
-        let (sender, receiver) = glib::MainContext::channel::<(bool, HashMap<String, String>)>(glib::Priority::DEFAULT);
+        let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
             let mut update_map = HashMap::new();
@@ -836,13 +830,12 @@ impl PacViewWindow {
             }
 
             // Return thread result
-            sender.send((success, update_map)).expect("Could not send through channel");
+            sender.send_blocking((success, update_map)).expect("Could not send through channel");
         });
 
         // Attach thread receiver
-        receiver.attach(
-            None,
-            clone!(@weak imp => @default-return glib::ControlFlow::Break, move |(success, update_map)| {
+        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+            while let Ok((success, update_map)) = receiver.recv().await {
                 let mut update_list: Vec<PkgObject> = vec![];
 
                 // If updates found
@@ -883,10 +876,8 @@ impl PacViewWindow {
                 if update_row.is_selected() {
                     imp.package_view.set_status_filter(update_row.status_id());
                 }
-
-                glib::ControlFlow::Break
-            }),
-        );
+            }
+        }));
     }
 
     //-----------------------------------
@@ -896,14 +887,14 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Create glib channel
-        let (sender, receiver) = glib::MainContext::channel::<()>(glib::Priority::DEFAULT);
+        let (sender, receiver) = async_channel::bounded(1);
 
         // Create new watcher
         let mut watcher = new_debouncer(Duration::from_secs(1), None, move |result: DebounceEventResult| {
             if let Ok(events) = result {
                 for event in events {
                     if event.kind.is_create() || event.kind.is_modify() || event.kind.is_remove() {
-                        sender.send(()).expect("Could not send through channel");
+                        sender.send_blocking(()).expect("Could not send through channel");
 
                         break;
                     }
@@ -923,17 +914,14 @@ impl PacViewWindow {
         imp.notify_watcher.set(watcher).unwrap();
 
         // Attach receiver for glib channel
-        receiver.attach(
-            None,
-            clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |_| {
+        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+            while let Ok(()) = receiver.recv().await {
                 if imp.prefs_window.auto_refresh() == true {
                     if let Some(refresh_action) = obj.lookup_action("refresh") {
                         refresh_action.activate(None);
                     }
                 }
-
-                glib::ControlFlow::Continue
-            }),
-        );
+            }
+        }));
     }
 }

@@ -301,7 +301,7 @@ impl PackageView {
                 };
 
                 // Spawn thread to search AUR
-                let (sender, receiver) = glib::MainContext::channel::<Vec<PkgData>>(glib::Priority::DEFAULT);
+                let (sender, receiver) = async_channel::bounded(1);
 
                 gio::spawn_blocking(move || {
                     let handle = raur::blocking::Handle::new();
@@ -356,13 +356,12 @@ impl PackageView {
                         );
                     }
 
-                    sender.send(data_list).expect("Could not send through channel");
+                    sender.send_blocking(data_list).expect("Could not send through channel");
                 });
 
                 // Attach thread receiver
-                receiver.attach(
-                    None,
-                    clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |data_list| {
+                glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+                    while let Ok(data_list) = receiver.recv().await {
                         let pkg_list: Vec<PkgObject> = data_list.into_iter()
                             .map(|data| PkgObject::new(None, data))
                             .collect();
@@ -370,10 +369,8 @@ impl PackageView {
                         imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
 
                         search_header.set_spinning(false);
-
-                        glib::ControlFlow::Break
-                    }),
-                );
+                    }
+                }));
             }
         }
     }

@@ -454,7 +454,7 @@ impl DetailsWindow {
         let pkg_name = pkg.name();
         let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
 
-        let (sender, receiver) = glib::MainContext::channel::<(String, String)>(glib::Priority::DEFAULT);
+        let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
             // Get dependecy tree
@@ -480,13 +480,12 @@ impl DetailsWindow {
                 .join("\n");
 
             // Return thread result
-            sender.send((deps, rev_deps)).expect("Could not send through channel");
+            sender.send_blocking((deps, rev_deps)).expect("Could not send through channel");
         });
 
         // Attach thread receiver
-        receiver.attach(
-            None,
-            clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |(deps, rev_deps)| {
+        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+            while let Ok((deps, rev_deps)) = receiver.recv().await {
                 imp.tree_text.replace(deps);
 
                 imp.tree_rev_text.replace(rev_deps);
@@ -495,10 +494,8 @@ impl DetailsWindow {
                 obj.filter_dependency_tree();
 
                 imp.tree_stack.set_visible_child_name("deps");
-    
-                glib::ControlFlow::Break
-            }),
-        );
+            }
+        }));
     }
 
     //-----------------------------------
