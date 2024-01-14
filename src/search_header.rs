@@ -105,6 +105,9 @@ mod imp {
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
 
+        #[property(get, set)]
+        spinning: Cell<bool>,
+
         pub delay_source_id: RefCell<Option<glib::SourceId>>,
 
         pub search_action_group: OnceCell<gio::SimpleActionGroup>
@@ -270,6 +273,14 @@ impl SearchHeader {
 
                 header.emit_changed_signal();
             }
+        });
+
+        // Spinning property notify signal
+        self.connect_spinning_notify(|header| {
+            let imp = header.imp();
+
+            imp.icon_stack.set_visible_child_name(if header.spinning() { "spinner" } else { "icon" });
+            imp.spinner.set_spinning(header.spinning());
         });
 
         // Search text changed signal

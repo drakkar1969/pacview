@@ -286,8 +286,7 @@ impl PackageView {
             }
 
             if include_aur == true && prop != SearchProp::Files {
-                search_header.imp().icon_stack.set_visible_child_name("spinner");
-                search_header.imp().spinner.set_spinning(true);
+                search_header.set_spinning(true);
 
                 let term = search_term.to_ascii_lowercase();
 
@@ -371,8 +370,7 @@ impl PackageView {
 
                         imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
 
-                        search_header.imp().spinner.set_spinning(false);
-                        search_header.imp().icon_stack.set_visible_child_name("icon");
+                        search_header.set_spinning(false);
 
                         glib::ControlFlow::Break
                     }),
