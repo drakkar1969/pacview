@@ -300,7 +300,7 @@ impl PackageView {
                     SearchProp::Files => unreachable!(),
                 };
 
-                // Spawn thread to load packages
+                // Spawn thread to search AUR
                 let (sender, receiver) = glib::MainContext::channel::<Vec<PkgData>>(glib::Priority::DEFAULT);
 
                 gio::spawn_blocking(move || {
@@ -363,7 +363,6 @@ impl PackageView {
                 receiver.attach(
                     None,
                     clone!(@weak self as obj, @weak imp => @default-return glib::ControlFlow::Break, move |data_list| {
-
                         let pkg_list: Vec<PkgObject> = data_list.into_iter()
                             .map(|data| PkgObject::new(None, data))
                             .collect();
