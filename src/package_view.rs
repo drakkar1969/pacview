@@ -1,3 +1,4 @@
+use std::cell::OnceCell;
 use std::collections::HashSet;
 
 use gtk::{glib, gio, gdk};
@@ -21,7 +22,8 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::PackageView)]
     #[template(resource = "/com/github/PacView/ui/package_view.ui")]
     pub struct PackageView {
         #[template_child]
@@ -31,23 +33,26 @@ mod imp {
         #[template_child]
         pub selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
+        pub filter_flatten_model: TemplateChild<gtk::FlattenListModel>,
+        #[template_child]
+        pub pkg_filter_model: TemplateChild<gtk::FilterListModel>,
+        #[template_child]
+        pub pkg_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub aur_model: TemplateChild<gio::ListStore>,
+        #[template_child]
         pub repo_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub status_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
-        pub flatten_model: TemplateChild<gtk::FlattenListModel>,
-        #[template_child]
-        pub filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
-        pub pkg_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub aur_model: TemplateChild<gio::ListStore>,
-        #[template_child]
         pub empty_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub popover_menu: TemplateChild<gtk::PopoverMenu>,
+
+        #[property(get, set)]
+        full_flatten_model: OnceCell<gtk::FlattenListModel>,
     }
 
     //-----------------------------------
@@ -68,6 +73,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for PackageView {
         //-----------------------------------
         // Custom signals
@@ -132,14 +138,18 @@ impl PackageView {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Populate flatten model
-        if let Some(flatten_model) = imp.flatten_model.model().and_downcast::<gio::ListStore>() {
-            flatten_model.append(imp.pkg_model.upcast_ref::<glib::Object>());
-            flatten_model.append(imp.aur_model.upcast_ref::<glib::Object>());
-        }
+        // Create and populate full flatten model
+        let model = gio::ListStore::new::<gio::ListStore>();
+
+        model.append(imp.pkg_model.upcast_ref::<glib::Object>());
+        model.append(imp.aur_model.upcast_ref::<glib::Object>());
+
+        let flatten_model = gtk::FlattenListModel::new(Some(model));
+
+        self.set_full_flatten_model(flatten_model);
 
         // Bind item count to empty label visibility
-        imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
+        imp.filter_flatten_model.bind_property("n-items", &imp.empty_label.get(), "visible")
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();

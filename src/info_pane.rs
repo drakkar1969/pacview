@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{OnceCell, RefCell};
 use std::collections::HashMap;
 
 use gtk::{glib, gio};
@@ -100,7 +100,7 @@ mod imp {
         pub overlay_next_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
-        pkg_model: RefCell<Option<gtk::FlattenListModel>>,
+        pkg_model: OnceCell<gtk::FlattenListModel>,
 
         #[property(name = "pkg", type = Option<PkgObject>, get = Self::pkg, set = Self::set_pkg, nullable)]
         pub history_selection: RefCell<gtk::SingleSelection>,
@@ -193,7 +193,7 @@ impl InfoPane {
     fn link_handler(&self, link: &str) -> bool {
         if let Some(url) = Url::parse(&link).ok().filter(|url| url.scheme() == "pkg") {
             if let Some(pkg_name) = url.domain() {
-                let pkg_model = self.pkg_model().unwrap();
+                let pkg_model = self.pkg_model();
 
                 // Find link package by name
                 let mut new_pkg = pkg_model.iter::<glib::Object>()
