@@ -529,28 +529,28 @@ impl PacViewWindow {
             obj.imp().package_view.set_search_filter(search_header, search_term, mode, prop, include_aur);
         }));
 
-        // Repo listbox row selected signal
-        imp.repo_listbox.connect_row_selected(clone!(@weak imp => move |_, row| {
-            if let Some(row) = row {
-                let repo_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Must be a 'FilterRow'")
-                    .repo_id();
+        // Repo listbox row activated signal
+        imp.repo_listbox.connect_row_activated(clone!(@weak imp => move |_, row| {
+            let repo_id = row
+                .downcast_ref::<FilterRow>()
+                .expect("Must be a 'FilterRow'")
+                .repo_id();
 
-                imp.package_view.set_repo_filter(repo_id.as_deref());
-            }
+            imp.package_view.set_repo_filter(repo_id.as_deref());
+
+            imp.package_view.imp().view.grab_focus();
         }));
 
-        // Status listbox row selected signal
-        imp.status_listbox.connect_row_selected(clone!(@weak imp => move |_, row| {
-            if let Some(row) = row {
-                let status_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Must be a 'FilterRow'")
-                    .status_id();
+        // Status listbox row activated signal
+        imp.status_listbox.connect_row_activated(clone!(@weak imp => move |_, row| {
+            let status_id = row
+                .downcast_ref::<FilterRow>()
+                .expect("Must be a 'FilterRow'")
+                .status_id();
 
-                imp.package_view.set_status_filter(status_id);
-            }
+            imp.package_view.set_status_filter(status_id);
+
+            imp.package_view.imp().view.grab_focus();
         }));
 
         // Package view selected signal
@@ -612,7 +612,7 @@ impl PacViewWindow {
         let saved_repo_id = imp.saved_repo_id.take();
 
         if saved_repo_id.is_none() {
-            imp.repo_listbox.select_row(Some(&row));
+            row.activate();
         }
 
         for repo in &imp.pacman_config.borrow().repos {
@@ -623,7 +623,7 @@ impl PacViewWindow {
             imp.repo_listbox.append(&row);
 
             if saved_repo_id.as_ref() == Some(repo) {
-                imp.repo_listbox.select_row(Some(&row));
+                row.activate();
             }
         }
 
@@ -641,11 +641,11 @@ impl PacViewWindow {
 
             if saved_status_id == PkgFlags::empty() {
                 if flag == PkgFlags::INSTALLED {
-                    imp.status_listbox.select_row(Some(&row));
+                    row.activate();
                 }
             } else {
                 if flag == saved_status_id {
-                    imp.status_listbox.select_row(Some(&row));
+                    row.activate();
                 }
             }
 
