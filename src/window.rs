@@ -1,9 +1,9 @@
-use std::cell::{Cell, RefCell};
+use std::cell::{Cell, RefCell, OnceCell};
 use std::path::Path;
 use std::rc::Rc;
 use std::collections::HashMap;
 use std::time::Duration;
-use std::cell::OnceCell;
+use std::env;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -15,7 +15,6 @@ use alpm;
 use titlecase::titlecase;
 use regex::Regex;
 use lazy_static::lazy_static;
-use raur::blocking::Raur;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
 use crate::APP_ID;
@@ -80,6 +79,8 @@ mod imp {
 
         pub gsettings: OnceCell<gio::Settings>,
 
+        pub config_dir: RefCell<Option<String>>,
+
         pub pacman_config: RefCell<PacmanConfig>,
 
         pub saved_repo_id: RefCell<Option<String>>,
@@ -124,6 +125,8 @@ mod imp {
 
             obj.init_gsettings();
             obj.load_gsettings();
+
+            obj.init_config_dir();
 
             obj.setup_widgets();
             obj.setup_actions();
@@ -249,6 +252,20 @@ impl PacViewWindow {
             // Save gsettings
             gsettings.apply();
         }
+    }
+
+    //-----------------------------------
+    // Init config dir
+    //-----------------------------------
+    fn init_config_dir(&self) {
+        let config_dir = env::var("XDG_DATA_HOME")
+            .or_else(|_| env::var("HOME")
+                .and_then(|var| Ok(Path::new(&var).join(".local/share").display().to_string()))
+            )
+            .and_then(|var| Ok(Path::new(&var).join("pacview").display().to_string()))
+            .ok();
+
+        self.imp().config_dir.replace(config_dir);
     }
 
     //-----------------------------------
@@ -666,12 +683,40 @@ impl PacViewWindow {
     fn load_packages_async(&self) {
         let imp = self.imp();
 
+        let config_dir = imp.config_dir.borrow().clone();
+
         let pacman_config = imp.pacman_config.borrow().clone();
 
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
+            let mut aur_names: Vec<String> = vec![];
+
+            if let Some(config_dir) = config_dir {
+                let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
+
+                // If AUR package list file does not exist, download it
+                if aur_file.query_exists(None::<&gio::Cancellable>) == false {
+                    let res = gio::File::for_path(config_dir)
+                        .make_directory_with_parents(None::<&gio::Cancellable>);
+
+                    if res.is_ok() || res.unwrap_err().matches(gio::IOErrorEnum::Exists) {
+                        Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
+                    }
+                }
+
+                // Load packages from AUR package list file
+                if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
+                    if let Ok(s) = String::from_utf8(bytes) {
+                        aur_names = s.lines().into_iter()
+                            .map(|line| line.to_string())
+                            .collect::<Vec<String>>();
+                    }
+                };
+            }
+
+            // Load pacman database packages
             let handle = alpm::Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
 
             let localdb = handle.localdb();
@@ -692,9 +737,16 @@ impl PacViewWindow {
 
             data_list.extend(localdb.pkgs().iter()
                 .filter_map(|pkg| {
-                    handle.syncdbs().find_satisfier(pkg.name()).map_or_else(
-                        || Some(PkgData::from_pkg(pkg, Ok(pkg))),
-                        |_| None
+                    handle.syncdbs().find_satisfier(pkg.name()).map_or_else(|| {
+                        let mut data = PkgData::from_pkg(pkg, Ok(pkg));
+
+                        if aur_names.contains(&data.name) {
+                            data.repository = "aur".to_string();
+                        }
+
+                        Some(data)
+                    },
+                    |_| None
                 )})
             );
 
@@ -709,69 +761,12 @@ impl PacViewWindow {
                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
                     .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
                     .collect();
-    
+
                 imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
-    
+
                 imp.package_view.imp().stack.set_visible_child_name("view");
-    
-                obj.check_aur_packages_async();
+
                 obj.get_package_updates_async();
-            }
-        }));
-    }
-
-    //-----------------------------------
-    // Setup alpm: check AUR packages
-    //-----------------------------------
-    fn check_aur_packages_async(&self) {
-        let imp = self.imp();
-
-        // Get list of local packages (not in sync DBs)
-        let local_list = imp.package_view.imp().pkg_model.iter::<PkgObject>()
-            .flatten()
-            .filter_map(|pkg| if pkg.repository() == "local" {Some(pkg.name())} else {None})
-            .collect::<Vec<String>>();
-
-        // Spawn thread to check AUR packages
-        let (sender, receiver) = async_channel::bounded(1);
-
-        gio::spawn_blocking(move || {
-            let mut aur_list: Vec<String> = vec![];
-
-            // Check if local packages are in AUR
-            let handle = raur::blocking::Handle::new();
-
-            if let Ok(aur_pkgs) = handle.info(&local_list) {
-                aur_list.extend(aur_pkgs.iter().map(|pkg| pkg.name.to_string()));
-            }
-
-            // Return thread result
-            sender.send_blocking(aur_list).expect("Could not send through channel");
-        });
-
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
-            while let Ok(aur_list) = receiver.recv().await {
-                // Update repository for AUR packages
-                for pkg in imp.package_view.imp().pkg_model.iter::<PkgObject>().flatten()
-                    .filter(|pkg| aur_list.contains(&pkg.name()))
-                {
-                    pkg.set_repository("aur");
-
-                    // Update info pane if currently displayed package is in AUR
-                    let info_pkg = imp.info_pane.pkg();
-
-                    if info_pkg.is_some() && info_pkg.unwrap() == pkg {
-                        let package_url = pkg.package_url();
-
-                        imp.info_pane.set_property_value(PropID::PackageUrl, package_url != "", &package_url, None);
-
-                        imp.info_pane.set_property_value(PropID::Repository, true, &pkg.repository(), None);
-                    }
-                }
-
-                // Refresh repository filter
-                imp.package_view.imp().repo_filter.changed(gtk::FilterChange::Different);
             }
         }));
     }

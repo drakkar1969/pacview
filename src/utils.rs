@@ -1,7 +1,10 @@
 use std::process::Command;
+use std::io::prelude::*;
 
-use gtk::{glib, pango};
-use gtk::prelude::ToValue;
+use gtk::{glib, gio, pango};
+use gtk::prelude::{FileExt, OutputStreamExt, ToValue};
+
+use flate2::read::GzDecoder;
 
 //------------------------------------------------------------------------------
 // MODULE: Utils
@@ -27,6 +30,26 @@ impl Utils {
         }
 
         (code, stdout)
+    }
+
+    //-----------------------------------
+    // Download unpack file function
+    //-----------------------------------
+    pub fn download_unpack_gz_file(file: &gio::File, url: &str) {
+        if let Ok(bytes) = reqwest::blocking::get(url).and_then(|res| res.bytes()) {
+            let mut gz_decoder = GzDecoder::new(&bytes[..]);
+
+            let mut gz_string = String::new();
+
+            if gz_decoder.read_to_string(&mut gz_string).is_ok() {
+                file.replace(None, false, gio::FileCreateFlags::REPLACE_DESTINATION, None::<&gio::Cancellable>)
+                    .and_then(|stream| {
+                        stream.write(gz_string.as_bytes(), None::<&gio::Cancellable>).unwrap_or_default();
+
+                        stream.close(None::<&gio::Cancellable>)
+                    }).unwrap_or_default();
+            }
+        }
     }
 
     //-----------------------------------
