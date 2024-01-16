@@ -215,6 +215,16 @@ impl SearchHeader {
             .transform_to(|_, text: &str| Some(text != ""))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Bind spinning property to widgets
+        self.bind_property("spinning", &imp.icon_stack.get(), "visible-child-name")
+            .transform_to(|_, spinning: bool| if spinning { Some("spinner") } else { Some("icon") })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        self.bind_property("spinning", &imp.spinner.get(), "spinning")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 
     //-----------------------------------
@@ -267,14 +277,6 @@ impl SearchHeader {
 
                 header.emit_changed_signal();
             }
-        });
-
-        // Spinning property notify signal
-        self.connect_spinning_notify(|header| {
-            let imp = header.imp();
-
-            imp.icon_stack.set_visible_child_name(if header.spinning() { "spinner" } else { "icon" });
-            imp.spinner.set_spinning(header.spinning());
         });
 
         // Search text changed signal
