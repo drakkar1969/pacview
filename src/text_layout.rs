@@ -99,8 +99,6 @@ mod imp {
 
         pub selection_start: Cell<i32>,
         pub selection_end: Cell<i32>,
-
-        pub action_group: OnceCell<gio::SimpleActionGroup>,
     }
 
     //-----------------------------------
@@ -439,8 +437,6 @@ impl TextLayout {
 
         text_group.add_action(&select_action);
         text_group.add_action(&copy_action);
-
-        imp.action_group.set(text_group).unwrap();
     }
 
     //-----------------------------------
@@ -585,12 +581,7 @@ impl TextLayout {
                 let selection_start = imp.selection_start.get();
                 let selection_end = imp.selection_end.get();
 
-                let copy_action = imp.action_group.get()
-                    .and_then(|group| group.lookup_action("copy"))
-                    .and_downcast::<gio::SimpleAction>()
-                    .expect("Must be a 'SimpleAction'");
-
-                copy_action.set_enabled(selection_start != -1 && selection_end != -1 && selection_start != selection_end);
+                obj.action_set_enabled("text.copy", selection_start != -1 && selection_end != -1 && selection_start != selection_end);
 
                 // Show popover menu
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
