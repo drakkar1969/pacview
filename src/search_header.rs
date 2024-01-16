@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell, OnceCell};
+use std::cell::{Cell, RefCell};
 use core::time::Duration;
 
 use gtk::{glib, gio, gdk};
@@ -109,8 +109,6 @@ mod imp {
         spinning: Cell<bool>,
 
         pub delay_source_id: RefCell<Option<glib::SourceId>>,
-
-        pub search_action_group: OnceCell<gio::SimpleActionGroup>
     }
 
     //-----------------------------------
@@ -250,11 +248,7 @@ impl SearchHeader {
 
             imp.search_text.set_text("");
 
-            let reset_action = imp.search_action_group.get()
-                .and_then(|group| group.lookup_action("reset-params"))
-                .expect("Must be an 'Action'");
-
-            reset_action.activate(None);
+            header.activate_action("search.reset-params", None).unwrap();
         });
 
         // Search mode property notify signal
@@ -457,9 +451,6 @@ impl SearchHeader {
         search_group.add_action(&prop_action);
 
         search_group.add_action_entries([cycle_mode_action, reverse_mode_action, cycle_prop_action, reverse_prop_action, reset_params_action]);
-
-        // Store search action group
-        self.imp().search_action_group.set(search_group).unwrap();
     }
 
     //-----------------------------------
