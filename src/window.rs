@@ -831,31 +831,26 @@ impl PacViewWindow {
         // Attach thread receiver
         glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
             while let Ok((success, update_map)) = receiver.recv().await {
-                let mut update_list: Vec<PkgObject> = vec![];
-
                 // If updates found
                 if update_map.len() > 0 {
-                    // Get list of packages with updates
-                    update_list = imp.package_view.imp().pkg_model.iter::<PkgObject>()
+                    // Update status of packages with updates
+                    imp.package_view.imp().pkg_model.iter::<PkgObject>()
                         .flatten()
                         .filter(|pkg| update_map.contains_key(&pkg.name()))
-                        .collect();
+                        .for_each(|pkg| {
+                            pkg.set_version(update_map[&pkg.name()].to_string());
 
-                    // Update status of packages with updates
-                    for pkg in update_list.iter() {
-                        pkg.set_version(update_map[&pkg.name()].to_string());
+                            pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
 
-                        pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
+                            pkg.set_has_update(true);
 
-                        pkg.set_has_update(true);
+                            // Update info pane if currently displayed package has update
+                            let info_pkg = imp.info_pane.pkg();
 
-                        // Update info pane if currently displayed package has update
-                        let info_pkg = imp.info_pane.pkg();
-
-                        if info_pkg.is_some() && info_pkg.unwrap() == *pkg {
-                            imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
-                        }
-                    }
+                            if info_pkg.is_some() && info_pkg.unwrap() == pkg {
+                                imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
+                            }
+                        });
                 }
 
                 // Show update status/count in sidebar
@@ -863,7 +858,7 @@ impl PacViewWindow {
 
                 update_row.set_spinning(false);
                 update_row.set_icon(if success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
-                update_row.set_count(update_list.len() as u32);
+                update_row.set_count(update_map.len() as u32);
                 update_row.set_tooltip_text(if success {None} else {Some("Update Error")});
                 update_row.set_sensitive(success);
 
