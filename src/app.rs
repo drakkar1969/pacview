@@ -89,23 +89,23 @@ mod imp {
                 // Update icon resource paths when color scheme changes
                 let resource_paths = icon_theme.resource_path();
 
-                let mut icon_paths: Vec<String> = resource_paths.iter()
+                let mut icon_paths: Vec<&str> = resource_paths.iter()
                     .filter_map(|s| {
                         if s.contains(icons_light_path) || s.contains(icons_dark_path) {
                             None
                         } else {
-                            Some(s.to_string())
+                            Some(s.as_str())
                         }
                     })
                     .collect();
 
                 if style_manager.is_dark() {
-                    icon_paths.push(icons_dark_path.to_string());
+                    icon_paths.push(icons_dark_path);
                 } else {
-                    icon_paths.push(icons_light_path.to_string());
+                    icon_paths.push(icons_light_path);
                 }
 
-                icon_theme.set_resource_path(&icon_paths.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
+                icon_theme.set_resource_path(&icon_paths);
             });
         }
     }
