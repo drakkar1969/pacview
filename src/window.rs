@@ -767,6 +767,7 @@ impl PacViewWindow {
                 imp.package_view.imp().stack.set_visible_child_name("view");
 
                 obj.get_package_updates_async();
+                obj.update_aur_file_async();
             }
         }));
     }
@@ -868,6 +869,36 @@ impl PacViewWindow {
                 }
             }
         }));
+    }
+
+    //-----------------------------------
+    // Setup alpm: update AUR file
+    //-----------------------------------
+    fn update_aur_file_async(&self) {
+        let imp = self.imp();
+
+        let config_dir = imp.config_dir.borrow().clone();
+
+        // Spawn thread to load AUR package list file
+        gio::spawn_blocking(move || {
+            if let Some(config_dir) = config_dir {
+                let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
+
+                // Get AUR package list file age
+                let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
+                    .ok()
+                    .and_then(|file_info| file_info.modification_date_time())
+                    .and_then(|file_time| {
+                        glib::DateTime::now_local().ok()
+                            .and_then(|current_time| Some(current_time.difference(&file_time).as_days()))
+                    });
+
+                    // Download AUR package list file if does not exist or older than 7 days
+                    if file_days.is_none() || file_days.unwrap() >= 7 {
+                        Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
+                    }
+            }
+        });
     }
 
     //-----------------------------------
