@@ -895,10 +895,10 @@ impl PacViewWindow {
         // Watch pacman local db path
         let pacman_config = imp.pacman_config.borrow();
 
-        let watch_path = format!("{}/local/", pacman_config.db_path);
+        let watch_path = Path::new(&pacman_config.db_path).join("local");
 
-        watcher.watcher().watch(Path::new(&watch_path), RecursiveMode::Recursive).unwrap();
-        watcher.cache().add_root(Path::new(&watch_path), RecursiveMode::Recursive);
+        watcher.watcher().watch(&watch_path, RecursiveMode::Recursive).unwrap();
+        watcher.cache().add_root(&watch_path, RecursiveMode::Recursive);
 
         // Store watcher
         imp.notify_watcher.set(watcher).unwrap();
