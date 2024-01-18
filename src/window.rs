@@ -893,10 +893,10 @@ impl PacViewWindow {
                             .and_then(|current_time| Some(current_time.difference(&file_time).as_days()))
                     });
 
-                    // Download AUR package list file if does not exist or older than 7 days
-                    if file_days.is_none() || file_days.unwrap() >= 7 {
-                        Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
-                    }
+                // Download AUR package list file if does not exist or older than 7 days
+                if file_days.is_none() || file_days.unwrap() >= 7 {
+                    Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
+                }
             }
         });
     }
