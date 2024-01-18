@@ -47,11 +47,6 @@ box.count-indicator label {
 	padding: 0;
 }
 
-/* Package view/info pane background */
-stack.empty {
-	background: @view_bg_color;
-}
-
 /* Package view spinner */
 spinner.dim-spinner {
 	opacity: 0.5;
@@ -63,10 +58,6 @@ box.rounded {
 }
 
 /* Info pane property rows */
-box.property-box {
-	background: @view_bg_color;
-}
-
 box.property-box:not(:nth-last-child(-n+2)) {
 	border-bottom: 1px solid @borders;
 }
