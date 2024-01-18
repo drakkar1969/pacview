@@ -785,8 +785,9 @@ impl PacViewWindow {
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
-            let mut update_map = HashMap::new();
             let mut update_str = String::from("");
+
+            let mut error_msg: Option<&str> = None;
 
             // Check for pacman updates
             let (code, stdout) = Utils::run_command("/usr/bin/checkupdates");
@@ -795,43 +796,48 @@ impl PacViewWindow {
                 update_str += &stdout;
             }
 
-            let success = code == Some(0) || code == Some(2);
-
-            // If no error on pacman updates
-            if success {
-                // Check for AUR updates
-                let (code, stdout) = Utils::run_command(&aur_command);
-
-                if code == Some(0) {
-                    update_str += &stdout;
-                }
-
-                lazy_static! {
-                    static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
-                }
-
-                // Build update map (package name, version)
-                update_map = update_str.lines()
-                    .filter_map(|s|
-                        EXPR.captures(s)
-                            .filter(|caps| caps.len() == 4)
-                            .map(|caps| {
-                                let pkg_name = caps[1].to_string();
-                                let version = format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string());
-
-                                (pkg_name, version)
-                            })
-                    )
-                    .collect::<HashMap<String, String>>();
+            if code != Some(0) && code != Some(2) {
+                error_msg = Some("Error Retrieving Pacman Updates");
             }
 
+            // Check for AUR updates
+            let (code, stdout) = Utils::run_command(&aur_command);
+
+            if code == Some(0) {
+                update_str += &stdout;
+            } else {
+                if error_msg.is_some() {
+                    error_msg = Some("Error Retrieving Updates");
+                } else {
+                    error_msg = Some("Error Retrieving AUR Updates");
+                }
+            }
+
+            // Build update map (package name, version)
+            lazy_static! {
+                static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
+            }
+
+            let update_map: HashMap<String, String> = update_str.lines()
+                .filter_map(|s|
+                    EXPR.captures(s)
+                        .filter(|caps| caps.len() == 4)
+                        .map(|caps| {
+                            let pkg_name = caps[1].to_string();
+                            let version = format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string());
+
+                            (pkg_name, version)
+                        })
+                )
+                .collect();
+
             // Return thread result
-            sender.send_blocking((success, update_map)).expect("Could not send through channel");
+            sender.send_blocking((error_msg, update_map)).expect("Could not send through channel");
         });
 
         // Attach thread receiver
         glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
-            while let Ok((success, update_map)) = receiver.recv().await {
+            while let Ok((error_msg, update_map)) = receiver.recv().await {
                 // If updates found
                 if update_map.len() > 0 {
                     // Update status of packages with updates
@@ -858,10 +864,9 @@ impl PacViewWindow {
                 let update_row = imp.update_row.borrow();
 
                 update_row.set_spinning(false);
-                update_row.set_icon(if success {"status-updates-symbolic"} else {"status-updates-error-symbolic"});
+                update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
                 update_row.set_count(update_map.len() as u32);
-                update_row.set_tooltip_text(if success {None} else {Some("Update Error")});
-                update_row.set_sensitive(success);
+                update_row.set_tooltip_text(error_msg);
 
                 // If update row is selected, refresh package status filter
                 if update_row.is_selected() {

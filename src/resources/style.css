@@ -33,11 +33,6 @@ searchtag label {
 	padding: 0;
 }
 
-/* Sidebar disabled image */
-row image:disabled {
-	-gtk-icon-filter: opacity(0.5);
-}
-
 /* Sidebar list count indicator */
 box.count-indicator {
 	min-width: 20px;
