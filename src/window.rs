@@ -797,7 +797,7 @@ impl PacViewWindow {
             }
 
             if code != Some(0) && code != Some(2) {
-                error_msg = Some("Error Retrieving Pacman Updates");
+                error_msg = Some("Error Retrieving Updates");
             }
 
             // Check for AUR updates
@@ -805,12 +805,6 @@ impl PacViewWindow {
 
             if code == Some(0) {
                 update_str += &stdout;
-            } else {
-                if error_msg.is_some() {
-                    error_msg = Some("Error Retrieving Updates");
-                } else {
-                    error_msg = Some("Error Retrieving AUR Updates");
-                }
             }
 
             // Build update map (package name, version)
