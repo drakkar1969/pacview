@@ -51,9 +51,9 @@
                             <property name="model">
                               <object class="GtkSortListModel" id="sort_model">
                                 <property name="model">
-                                  <object class="GtkFilterListModel" id="flatten_filter_model">
+                                  <object class="GtkFilterListModel" id="filter_model">
                                     <property name="filter">
-                                      <object class="GtkEveryFilter" id="flatten_filter">
+                                      <object class="GtkEveryFilter" id="main_filter">
                                         <child>
                                           <object class="GtkStringFilter" id="repo_filter">
                                             <property name="expression">
@@ -65,22 +65,18 @@
                                         <child>
                                           <object class="GtkCustomFilter" id="status_filter"/>
                                         </child>
+                                        <child>
+                                          <object class="GtkCustomFilter" id="search_filter"/>
+                                        </child>
                                       </object>
                                     </property>
                                     <property name="model">
-                                      <object class="GtkFlattenListModel" id="filter_flatten_model">
+                                      <object class="GtkFlattenListModel" id="flatten_model">
                                         <property name="model">
                                           <object class="GListStore">
                                             <child>
-                                              <object class="GtkFilterListModel" id="pkg_filter_model">
-                                                <property name="filter">
-                                                  <object class="GtkCustomFilter" id="search_filter"/>
-                                                </property>
-                                                <property name="model">
-                                                  <object class="GListStore" id="pkg_model">
-                                                    <property name="item-type">PkgObject</property>
-                                                  </object>
-                                                </property>
+                                              <object class="GListStore" id="pkg_model">
+                                                <property name="item-type">PkgObject</property>
                                               </object>
                                             </child>
                                             <child>

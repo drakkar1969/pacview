@@ -296,7 +296,7 @@ impl PacViewWindow {
             .build();
 
         // Bind package view model to info pane package model
-        imp.package_view.bind_property("full-flatten-model", &imp.info_pane.get(), "pkg-model")
+        imp.package_view.imp().filter_model.bind_property("model", &imp.info_pane.get(), "pkg-model")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -435,7 +435,7 @@ impl PacViewWindow {
                         &imp.prefs_window.monospace_font(),
                         &pacman_config.log_file,
                         &pacman_config.cache_dirs,
-                        &imp.package_view.full_flatten_model()
+                        &imp.package_view.imp().flatten_model
                     );
 
                     details_window.present();

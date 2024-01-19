@@ -1,4 +1,3 @@
-use std::cell::OnceCell;
 use std::collections::HashSet;
 
 use gtk::{glib, gio, gdk};
@@ -22,8 +21,7 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::PackageView)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/package_view.ui")]
     pub struct PackageView {
         #[template_child]
@@ -33,9 +31,9 @@ mod imp {
         #[template_child]
         pub selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub filter_flatten_model: TemplateChild<gtk::FlattenListModel>,
+        pub filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
-        pub pkg_filter_model: TemplateChild<gtk::FilterListModel>,
+        pub flatten_model: TemplateChild<gtk::FlattenListModel>,
         #[template_child]
         pub pkg_model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -50,9 +48,6 @@ mod imp {
         pub empty_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub popover_menu: TemplateChild<gtk::PopoverMenu>,
-
-        #[property(get, set)]
-        full_flatten_model: OnceCell<gtk::FlattenListModel>,
     }
 
     //-----------------------------------
@@ -73,7 +68,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for PackageView {
         //-----------------------------------
         // Custom signals
@@ -138,18 +132,8 @@ impl PackageView {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Create and populate full flatten model
-        let model = gio::ListStore::new::<gio::ListStore>();
-
-        model.append(imp.pkg_model.upcast_ref::<glib::Object>());
-        model.append(imp.aur_model.upcast_ref::<glib::Object>());
-
-        let flatten_model = gtk::FlattenListModel::new(Some(model));
-
-        self.set_full_flatten_model(flatten_model);
-
         // Bind item count to empty label visibility
-        imp.filter_flatten_model.bind_property("n-items", &imp.empty_label.get(), "visible")
+        imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
@@ -243,14 +227,18 @@ impl PackageView {
                         .downcast_ref::<PkgObject>()
                         .expect("Must be a 'PkgObject'");
 
-                    match prop {
-                        SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
-                        SearchProp::Desc => { pkg.description().eq_ignore_ascii_case(&term) },
-                        SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
-                        SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                    if pkg.is_aur() {
+                        true
+                    } else {
+                        match prop {
+                            SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
+                            SearchProp::Desc => { pkg.description().eq_ignore_ascii_case(&term) },
+                            SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
+                            SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                            SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                            SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                            SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        }
                     }
                 });
             } else {
@@ -261,31 +249,37 @@ impl PackageView {
                         .downcast_ref::<PkgObject>()
                         .expect("Must be a 'PkgObject'");
 
-                    let mut results = vec![];
-
-                    for t in term.split_whitespace() {
-                        let t_result = match prop {
-                            SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(&t) },
-                            SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(&t) },
-                            SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(&t) },
-                            SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                        };
-
-                        results.push(t_result);
-                    }
-
-                    if mode == SearchMode::All {
-                        results.iter().all(|&x| x)
+                    if pkg.is_aur() {
+                        true
                     } else {
-                        results.iter().any(|&x| x)
+                        let mut results = vec![];
+
+                        for t in term.split_whitespace() {
+                            let t_result = match prop {
+                                SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(&t) },
+                                SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(&t) },
+                                SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(&t) },
+                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                            };
+    
+                            results.push(t_result);
+                        }
+    
+                        if mode == SearchMode::All {
+                            results.iter().all(|&x| x)
+                        } else {
+                            results.iter().any(|&x| x)
+                        }
                     }
                 });
             }
 
-            if include_aur == true && prop != SearchProp::Files {
+            if include_aur == false || prop == SearchProp::Files {
+                imp.aur_model.remove_all();
+            } else {
                 search_header.set_spinning(true);
 
                 let term = search_term.to_ascii_lowercase();
