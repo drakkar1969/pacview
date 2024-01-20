@@ -10,8 +10,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, closure_local};
 
-use pacmanconf;
-use alpm;
+use alpm_utils::DbListExt;
 use titlecase::titlecase;
 use regex::Regex;
 use lazy_static::lazy_static;
@@ -28,18 +27,6 @@ use crate::stats_window::StatsWindow;
 use crate::preferences_window::PreferencesWindow;
 use crate::details_window::DetailsWindow;
 use crate::utils::Utils;
-
-//------------------------------------------------------------------------------
-// STRUCT: PacmanConfig
-//------------------------------------------------------------------------------
-#[derive(Default, Clone)]
-pub struct PacmanConfig {
-    pub repos: Vec<String>,
-    pub root_dir: String,
-    pub db_path: String,
-    pub log_file: String,
-    pub cache_dirs: Vec<String>,
-}
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -79,9 +66,10 @@ mod imp {
 
         pub gsettings: OnceCell<gio::Settings>,
 
-        pub config_dir: RefCell<Option<String>>,
+        pub config_dir: OnceCell<Option<String>>,
 
-        pub pacman_config: RefCell<PacmanConfig>,
+        pub pacman_config: RefCell<pacmanconf::Config>,
+        pub pacman_repos: RefCell<Vec<String>>,
 
         pub saved_repo_id: RefCell<Option<String>>,
         pub saved_status_id: Cell<PkgFlags>,
@@ -265,7 +253,7 @@ impl PacViewWindow {
             .and_then(|var| Ok(Path::new(&var).join("pacview").display().to_string()))
             .ok();
 
-        self.imp().config_dir.replace(config_dir);
+        self.imp().config_dir.set(config_dir).unwrap();
     }
 
     //-----------------------------------
@@ -361,11 +349,9 @@ impl PacViewWindow {
             .activate(|window, _, _| {
                 let imp = window.imp();
 
-                let pacman_config = imp.pacman_config.borrow();
-                
                 let stats_window = StatsWindow::new(
                     window.upcast_ref(),
-                    &pacman_config.repos,
+                    &imp.pacman_repos.borrow(),
                     &imp.package_view.imp().pkg_model
                 );
 
@@ -426,15 +412,12 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(pkg) = imp.info_pane.pkg() {
-                    let pacman_config = imp.pacman_config.borrow();
-
                     let details_window = DetailsWindow::new(
                         window.upcast_ref(),
                         &pkg,
                         imp.prefs_window.custom_font(),
                         &imp.prefs_window.monospace_font(),
-                        &pacman_config.log_file,
-                        &pacman_config.cache_dirs,
+                        &imp.pacman_config.borrow(),
                         &imp.package_view.imp().flatten_model
                     );
 
@@ -601,14 +584,9 @@ impl PacViewWindow {
         pacman_repos.push(String::from("aur"));
         pacman_repos.push(String::from("local"));
 
-        // Store pacman config
-        self.imp().pacman_config.replace(PacmanConfig{
-            repos: pacman_repos,
-            root_dir: pacman_config.root_dir,
-            db_path: pacman_config.db_path,
-            log_file: pacman_config.log_file,
-            cache_dirs: pacman_config.cache_dir,
-        });
+        // Store pacman config/repos
+        self.imp().pacman_config.replace(pacman_config);
+        self.imp().pacman_repos.replace(pacman_repos);
     }
 
     //-----------------------------------
@@ -632,17 +610,18 @@ impl PacViewWindow {
             row.activate();
         }
 
-        for repo in &imp.pacman_config.borrow().repos {
-            let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+        imp.pacman_repos.borrow().iter()
+            .for_each(|repo| {
+                let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
 
-            let row = FilterRow::new("repository-symbolic", &display_label, Some(repo), PkgFlags::empty());
+                let row = FilterRow::new("repository-symbolic", &display_label, Some(repo), PkgFlags::empty());
 
-            imp.repo_listbox.append(&row);
+                imp.repo_listbox.append(&row);
 
-            if saved_repo_id.as_ref() == Some(repo) {
-                row.activate();
-            }
-        }
+                if saved_repo_id.as_ref() == Some(repo) {
+                    row.activate();
+                }
+            });
 
         // Add package status rows (enumerate PkgStatusFlags)
         let saved_status_id = imp.saved_status_id.get();
@@ -683,7 +662,7 @@ impl PacViewWindow {
     fn load_packages_async(&self) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.borrow().clone();
+        let config_dir = imp.config_dir.get().unwrap().clone();
 
         let pacman_config = imp.pacman_config.borrow().clone();
 
@@ -717,14 +696,14 @@ impl PacViewWindow {
             }
 
             // Load pacman database packages
-            let handle = alpm::Alpm::new(pacman_config.root_dir, pacman_config.db_path).unwrap();
+            let handle = alpm_utils::alpm_with_conf(&pacman_config).unwrap();
 
             let localdb = handle.localdb();
 
             let mut data_list: Vec<PkgData> = vec![];
 
-            for repo in pacman_config.repos {
-                if let Ok(db) = handle.register_syncdb(repo, alpm::SigLevel::USE_DEFAULT) {
+            handle.syncdbs().iter()
+                .for_each(|db| {
                     data_list.extend(db.pkgs().iter()
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());
@@ -732,12 +711,11 @@ impl PacViewWindow {
                             PkgData::from_pkg(syncpkg, localpkg)
                         })
                     );
-                }
-            }
+                });
 
             data_list.extend(localdb.pkgs().iter()
                 .filter_map(|pkg| {
-                    handle.syncdbs().find_satisfier(pkg.name()).map_or_else(|| {
+                    handle.syncdbs().pkg(pkg.name()).map_or_else(|_| {
                         let mut data = PkgData::from_pkg(pkg, Ok(pkg));
 
                         if aur_names.contains(&data.name) {
@@ -876,7 +854,7 @@ impl PacViewWindow {
     fn update_aur_file_async(&self) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.borrow().clone();
+        let config_dir = imp.config_dir.get().unwrap().clone();
 
         // Spawn thread to load AUR package list file
         gio::spawn_blocking(move || {

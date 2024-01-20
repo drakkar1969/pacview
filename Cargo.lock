@@ -37,6 +37,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "alpm-utils"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd84f2b8489f9568428caf915b55617b4a6ae6d37209047ce5a7cb4f941120e5"
+dependencies = [
+ "alpm",
+ "pacmanconf",
+]
+
+[[package]]
 name = "anyhow"
 version = "1.0.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1170,6 +1180,7 @@ name = "pacview"
 version = "2.2.0"
 dependencies = [
  "alpm",
+ "alpm-utils",
  "async-channel",
  "fancy-regex",
  "flate2",

@@ -169,7 +169,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, log_file: &str, cache_dirs: &Vec<String>, pkg_model: &gtk::FlattenListModel) -> Self {
+    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, pacman_config: &pacmanconf::Config, pkg_model: &gtk::FlattenListModel) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -183,8 +183,8 @@ impl DetailsWindow {
 
         if installed {
             win.update_ui_files_page(pkg);
-            win.update_ui_logs_page(pkg, log_file);
-            win.update_ui_cache_page(pkg, cache_dirs, pkg_model);
+            win.update_ui_logs_page(pkg, &pacman_config.log_file);
+            win.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_model);
             win.update_ui_backup_page(pkg);
         }
 

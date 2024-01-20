@@ -6,6 +6,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
 use alpm;
+use alpm_utils::DbListExt;
 use raur;
 
 use crate::utils::Utils;
@@ -426,17 +427,15 @@ impl PkgObject {
         let mut required_by: Vec<String> = vec![];
 
         if let Some(handle) = self.imp().handle.get() {
-            let db = if self.flags().intersects(PkgFlags::INSTALLED) {
-                Some(handle.localdb())
+            let pkg = if self.flags().intersects(PkgFlags::INSTALLED) {
+                handle.localdb().pkg(self.name())
             } else {
-                handle.syncdbs().iter().find(|db| db.name() == self.repository())
+                handle.syncdbs().pkg(self.name())
             };
 
-            if let Some(db) = db {
-                if let Ok(pkg) = db.pkg(self.name()) {
-                    required_by.extend(pkg.required_by());
-                    required_by.sort_unstable();
-                }
+            if let Ok(pkg) = pkg {
+                required_by.extend(pkg.required_by());
+                required_by.sort_unstable();
             }
         }
 
@@ -447,17 +446,15 @@ impl PkgObject {
         let mut optional_for: Vec<String> = vec![];
 
         if let Some(handle) = self.imp().handle.get() {
-            let db = if self.flags().intersects(PkgFlags::INSTALLED) {
-                Some(handle.localdb())
+            let pkg = if self.flags().intersects(PkgFlags::INSTALLED) {
+                handle.localdb().pkg(self.name())
             } else {
-                handle.syncdbs().iter().find(|db| db.name() == self.repository())
+                handle.syncdbs().pkg(self.name())
             };
 
-            if let Some(db) = db {
-                if let Ok(pkg) = db.pkg(self.name()) {
-                    optional_for.extend(pkg.optional_for());
-                    optional_for.sort_unstable();
-                }
+            if let Ok(pkg) = pkg {
+                optional_for.extend(pkg.optional_for());
+                optional_for.sort_unstable();
             }
         }
 
