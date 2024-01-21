@@ -360,7 +360,7 @@ impl InfoPane {
                 imp.overlay_prev_button.set_sensitive(prev_sensitive);
             }
 
-            let next_sensitive = hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1;
+            let next_sensitive = hist_sel.selected() + 1 < hist_sel.n_items();
 
             if imp.overlay_next_button.is_sensitive() != next_sensitive {
                 imp.overlay_next_button.set_sensitive(next_sensitive);
@@ -438,7 +438,7 @@ impl InfoPane {
     pub fn display_next(&self) {
         let hist_sel = self.imp().history_selection.borrow();
 
-        if hist_sel.n_items() > 0 && hist_sel.selected() < hist_sel.n_items() - 1 {
+        if hist_sel.selected() + 1 < hist_sel.n_items() {
             hist_sel.set_selected(hist_sel.selected() + 1);
 
             if hist_sel.selected_item().is_some() {
