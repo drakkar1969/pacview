@@ -247,26 +247,23 @@ impl PackageView {
                 if pkg.is_aur() {
                     true
                 } else {
-                    let mut results = vec![];
-
-                    for t in term.split_whitespace() {
-                        let t_result = match prop {
-                            SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(&t) },
-                            SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(&t) },
-                            SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(&t) },
-                            SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                            SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                        };
-
-                        results.push(t_result);
-                    }
+                    let mut results = term.split_whitespace()
+                        .map(|t| {
+                            match prop {
+                                SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(&t) },
+                                SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(&t) },
+                                SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(&t) },
+                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                            }
+                        });
 
                     if mode == SearchMode::All {
-                        results.iter().all(|&x| x)
+                        results.all(|x| x)
                     } else {
-                        results.iter().any(|&x| x)
+                        results.any(|x| x)
                     }
                 }
             });
