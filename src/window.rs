@@ -715,17 +715,19 @@ impl PacViewWindow {
 
             data_list.extend(localdb.pkgs().iter()
                 .filter_map(|pkg| {
-                    handle.syncdbs().pkg(pkg.name()).map_or_else(|_| {
-                        let mut data = PkgData::from_pkg(pkg, Ok(pkg));
+                    handle.syncdbs().pkg(pkg.name()).map_or_else(
+                        |_| {
+                            let mut data = PkgData::from_pkg(pkg, Ok(pkg));
 
-                        if aur_names.contains(&data.name) {
-                            data.repository = "aur".to_string();
-                        }
+                            if aur_names.contains(&data.name) {
+                                data.repository = "aur".to_string();
+                            }
 
-                        Some(data)
-                    },
-                    |_| None
-                )})
+                            Some(data)
+                        },
+                        |_| None
+                    )
+                })
             );
 
             sender.send_blocking((handle, data_list)).expect("Could not send through channel");
