@@ -294,6 +294,13 @@ impl PackageView {
                     SearchProp::Files => unreachable!(),
                 };
 
+                // Create list of local package names
+                let local_pkgs: Vec<String> = imp.pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                    .map(|pkg| pkg.name())
+                    .collect();
+
                 // Spawn thread to search AUR
                 let (sender, receiver) = async_channel::bounded(1);
 
@@ -344,6 +351,7 @@ impl PackageView {
 
                     if let Ok(aur_list) = handle.info(&aur_names) {
                         data_list.extend(aur_list.into_iter()
+                            .filter(|aurpkg| !local_pkgs.contains(&aurpkg.name))
                             .map(|aurpkg| {
                                 PkgData::from_aur(aurpkg)
                             })
