@@ -576,13 +576,10 @@ impl PacViewWindow {
         let pacman_config = pacmanconf::Config::new().unwrap();
 
         // Get pacman repositories
-        let mut pacman_repos: Vec<String> = pacman_config.repos.iter()
+        let pacman_repos: Vec<String> = pacman_config.repos.iter()
             .map(|r| r.name.to_string())
+            .chain([String::from("aur"), String::from("local")])
             .collect();
-        
-        // Add 'local' and 'aur' to pacman repositories
-        pacman_repos.push(String::from("aur"));
-        pacman_repos.push(String::from("local"));
 
         // Store pacman config/repos
         self.imp().pacman_config.replace(pacman_config);
