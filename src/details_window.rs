@@ -169,7 +169,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, pacman_config: &pacmanconf::Config, pkg_model: &gtk::FlattenListModel) -> Self {
+    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -566,14 +566,14 @@ impl DetailsWindow {
     //-----------------------------------
     // Update cache page
     //-----------------------------------
-    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &Vec<String>, pkg_model: &gtk::FlattenListModel) {
+    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         let pkg_name = &pkg.name();
 
         // Get blacklist package names
-        let blacklist: Vec<String> = pkg_model.iter::<glib::Object>().flatten()
-            .map(|pkg| pkg.downcast::<PkgObject>().unwrap().name())
+        let blacklist: Vec<String> = pkg_model.iter::<PkgObject>().flatten()
+            .map(|pkg| pkg.name())
             .filter(|name| {
                 name.starts_with(pkg_name) &&
                 name != pkg_name

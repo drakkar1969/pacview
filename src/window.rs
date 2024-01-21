@@ -418,7 +418,7 @@ impl PacViewWindow {
                         imp.prefs_window.custom_font(),
                         &imp.prefs_window.monospace_font(),
                         &imp.pacman_config.borrow(),
-                        &imp.package_view.imp().flatten_model
+                        &imp.package_view.imp().pkg_model
                     );
 
                     details_window.present();
