@@ -270,10 +270,10 @@ impl PackageView {
         }
     }
 
-    fn populate_aur_model(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool) {
+    fn populate_aur_model(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool) {
         let imp = self.imp();
 
-        if include_aur == false || prop == SearchProp::Files {
+        if include_aur == false || aur_error == true || prop == SearchProp::Files {
             imp.aur_model.remove_all();
         } else {
             search_header.set_spinning(true);
@@ -375,7 +375,7 @@ impl PackageView {
     //-----------------------------------
     // Public filter functions
     //-----------------------------------
-    pub fn set_search_filter(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool) {
+    pub fn set_search_filter(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool) {
         let imp = self.imp();
 
         if search_term == "" {
@@ -385,7 +385,7 @@ impl PackageView {
         } else {
             self.filter_pkg_model(search_term, mode, prop);
 
-            self.populate_aur_model(search_header, search_term, mode, prop, include_aur);
+            self.populate_aur_model(search_header, search_term, mode, prop, include_aur, aur_error);
         }
     }
 
