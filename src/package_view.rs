@@ -333,12 +333,14 @@ impl PackageView {
                             }
                         }
 
-                        aur_names.extend(aur_sets.iter()
-                            .skip(1)
-                            .fold(aur_sets[0].clone(), |acc, set| {
-                                acc.intersection(set).cloned().collect()
-                            })
-                        );
+                        if !aur_sets.is_empty() {
+                            aur_names.extend(aur_sets.iter()
+                                .skip(1)
+                                .fold(aur_sets[0].clone(), |acc, set| {
+                                    acc.intersection(set).cloned().collect()
+                                })
+                            );
+                        }
                     }
                 }
 
