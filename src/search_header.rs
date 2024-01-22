@@ -102,6 +102,9 @@ mod imp {
 
         #[property(get, set)]
         include_aur: Cell<bool>,
+        #[property(get, set)]
+        aur_error: Cell<bool>,
+
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
 
@@ -257,10 +260,22 @@ impl SearchHeader {
             imp.tag_aur.set_visible(header.include_aur());
 
             imp.search_text.set_text("");
-            imp.search_text.remove_css_class("error");
-            imp.tag_aur.remove_css_class("error");
+            header.set_aur_error(false);
 
             header.activate_action("search.reset-params", None).unwrap();
+        });
+
+        // AUR error property notify signal
+        self.connect_aur_error_notify(|header| {
+            let imp = header.imp();
+
+            if header.aur_error() {
+                imp.search_text.add_css_class("error");
+                imp.tag_aur.add_css_class("error");
+            } else {
+                imp.search_text.remove_css_class("error");
+                imp.tag_aur.remove_css_class("error");
+            }
         });
 
         // Search mode property notify signal
@@ -289,8 +304,7 @@ impl SearchHeader {
             }
 
             if search_text.text() == "" {
-                search_text.remove_css_class("error");
-                imp.tag_aur.remove_css_class("error");
+                obj.set_aur_error(false);
 
                 obj.emit_changed_signal();
             } else {
@@ -316,11 +330,9 @@ impl SearchHeader {
                 let text = search_text.text();
 
                 if text.split_whitespace().any(|t| t.len() < 4) {
-                    search_text.add_css_class("error");
-                    imp.tag_aur.add_css_class("error");
+                    obj.set_aur_error(true);
                 } else {
-                    search_text.remove_css_class("error");
-                    imp.tag_aur.remove_css_class("error");
+                    obj.set_aur_error(false);
                 }
 
                 obj.emit_changed_signal();
