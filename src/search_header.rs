@@ -257,6 +257,8 @@ impl SearchHeader {
             imp.tag_aur.set_visible(header.include_aur());
 
             imp.search_text.set_text("");
+            imp.search_text.remove_css_class("error");
+            imp.tag_aur.remove_css_class("error");
 
             header.activate_action("search.reset-params", None).unwrap();
         });
@@ -287,6 +289,9 @@ impl SearchHeader {
             }
 
             if search_text.text() == "" {
+                search_text.remove_css_class("error");
+                imp.tag_aur.remove_css_class("error");
+
                 obj.emit_changed_signal();
             } else {
                 if obj.include_aur() == false {
@@ -306,8 +311,18 @@ impl SearchHeader {
         }));
 
         // Search text activate signal
-        imp.search_text.connect_activate(clone!(@weak self as obj => move |search_text| {
+        imp.search_text.connect_activate(clone!(@weak self as obj, @weak imp => move |search_text| {
             if obj.include_aur() == true && search_text.text() != "" {
+                let text = search_text.text();
+
+                if text.split_whitespace().any(|t| t.len() < 4) {
+                    search_text.add_css_class("error");
+                    imp.tag_aur.add_css_class("error");
+                } else {
+                    search_text.remove_css_class("error");
+                    imp.tag_aur.remove_css_class("error");
+                }
+
                 obj.emit_changed_signal();
             }
         }));
