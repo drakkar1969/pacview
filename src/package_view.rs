@@ -338,7 +338,6 @@ impl PackageView {
                             .fold(aur_sets[0].clone(), |acc, set| {
                                 acc.intersection(set).cloned().collect()
                             })
-                            .into_iter()
                         );
                     }
                 }
