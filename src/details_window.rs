@@ -144,8 +144,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_shortcuts();
             obj.setup_signals();
+            obj.setup_shortcuts();
         }
     }
 
@@ -189,28 +189,6 @@ impl DetailsWindow {
         }
 
         win
-    }
-
-    //-----------------------------------
-    // Setup controllers
-    //-----------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-        controller.set_propagation_phase(gtk::PropagationPhase::Capture);
-
-        // Add close window shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(@weak self as window => @default-return true, move |_, _| {
-                window.close();
-
-                true
-            })))
-        ));
-
-        // Add shortcut controller to window
-        self.add_controller(controller);
     }
 
     //-----------------------------------
@@ -404,6 +382,28 @@ impl DetailsWindow {
         imp.backup_view.connect_activate(clone!(@weak imp => move |_, _| {
             imp.backup_open_button.emit_clicked();
         }));
+    }
+
+    //-----------------------------------
+    // Setup shortcuts
+    //-----------------------------------
+    fn setup_shortcuts(&self) {
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
+        controller.set_propagation_phase(gtk::PropagationPhase::Capture);
+
+        // Add close window shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(@weak self as window => @default-return true, move |_, _| {
+                window.close();
+
+                true
+            })))
+        ));
+
+        // Add shortcut controller to window
+        self.add_controller(controller);
     }
 
     //-----------------------------------
