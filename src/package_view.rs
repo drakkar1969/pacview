@@ -149,17 +149,15 @@ impl PackageView {
         // Column view click gesture
         let gesture = gtk::GestureClick::new();
 
-        gesture.set_button(0);
+        gesture.set_button(gdk::BUTTON_SECONDARY);
 
-        gesture.connect_pressed(clone!(@weak self as view => move |gesture, _, x, y| {
-            if gesture.current_button() == gdk::BUTTON_SECONDARY {
-                let imp = view.imp();
+        gesture.connect_pressed(clone!(@weak self as view => move |_ , _, x, y| {
+            let imp = view.imp();
 
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+            let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
-                imp.popover_menu.set_pointing_to(Some(&rect));
-                imp.popover_menu.popup();
-            }
+            imp.popover_menu.set_pointing_to(Some(&rect));
+            imp.popover_menu.popup();
         }));
 
         self.add_controller(gesture);
