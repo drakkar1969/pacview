@@ -378,60 +378,54 @@ impl SearchHeader {
         // Add cycle search mode action
         let cycle_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
             .activate(|group, _, _| {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    let state = mode_action.state()
-                        .expect("Must be a 'Variant'")
-                        .get::<String>()
-                        .expect("Must be a 'String'");
+                let state = group.action_state("set-mode")
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
 
-                    match state.as_str() {
-                        "all" => mode_action.change_state(&"any".to_variant()),
-                        "any" => mode_action.change_state(&"exact".to_variant()),
-                        "exact" => mode_action.change_state(&"all".to_variant()),
-                        _ => unreachable!()
-                    };
-                }
+                match state.as_str() {
+                    "all" => group.activate_action("set-mode", Some(&"any".to_variant())),
+                    "any" => group.activate_action("set-mode", Some(&"exact".to_variant())),
+                    "exact" => group.activate_action("set-mode", Some(&"all".to_variant())),
+                    _ => unreachable!()
+                };
             })
             .build();
 
         // Add reverse cycle search mode action
         let reverse_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-mode")
             .activate(|group, _, _| {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    let state = mode_action.state()
-                        .expect("Must be a 'Variant'")
-                        .get::<String>()
-                        .expect("Must be a 'String'");
+                let state = group.action_state("set-mode")
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
 
-                    match state.as_str() {
-                        "all" => mode_action.change_state(&"exact".to_variant()),
-                        "any" => mode_action.change_state(&"all".to_variant()),
-                        "exact" => mode_action.change_state(&"any".to_variant()),
-                        _ => unreachable!()
-                    };
-                }
+                match state.as_str() {
+                    "all" => group.activate_action("set-mode", Some(&"exact".to_variant())),
+                    "any" => group.activate_action("set-mode", Some(&"all".to_variant())),
+                    "exact" => group.activate_action("set-mode", Some(&"any".to_variant())),
+                    _ => unreachable!()
+                };
             })
             .build();
 
         // Add cycle search prop action
         let cycle_prop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-prop")
             .activate(|group, _, _| {
-                if let Some(prop_action) = group.lookup_action("set-prop") {
-                    let state = prop_action.state()
-                        .expect("Must be a 'Variant'")
-                        .get::<String>()
-                        .expect("Must be a 'String'");
+                let state = group.action_state("set-prop")
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
 
-                    match state.as_str() {
-                        "name" => prop_action.change_state(&"desc".to_variant()),
-                        "desc" => prop_action.change_state(&"group".to_variant()),
-                        "group" => prop_action.change_state(&"deps".to_variant()),
-                        "deps" => prop_action.change_state(&"optdeps".to_variant()),
-                        "optdeps" => prop_action.change_state(&"provides".to_variant()),
-                        "provides" => prop_action.change_state(&"files".to_variant()),
-                        "files" => prop_action.change_state(&"name".to_variant()),
-                        _ => unreachable!()
-                    };
+                match state.as_str() {
+                    "name" => group.activate_action("set-prop", Some(&"desc".to_variant())),
+                    "desc" => group.activate_action("set-prop", Some(&"group".to_variant())),
+                    "group" => group.activate_action("set-prop", Some(&"deps".to_variant())),
+                    "deps" => group.activate_action("set-prop", Some(&"optdeps".to_variant())),
+                    "optdeps" => group.activate_action("set-prop", Some(&"provides".to_variant())),
+                    "provides" => group.activate_action("set-prop", Some(&"files".to_variant())),
+                    "files" => group.activate_action("set-prop", Some(&"name".to_variant())),
+                    _ => unreachable!()
                 }
             })
             .build();
@@ -439,22 +433,20 @@ impl SearchHeader {
         // Add reverse cycle search prop action
         let reverse_prop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-prop")
             .activate(|group, _, _| {
-                if let Some(prop_action) = group.lookup_action("set-prop") {
-                    let state = prop_action.state()
-                        .expect("Must be a 'Variant'")
-                        .get::<String>()
-                        .expect("Must be a 'String'");
+                let state = group.action_state("set-prop")
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
 
-                    match state.as_str() {
-                        "name" => prop_action.change_state(&"files".to_variant()),
-                        "desc" => prop_action.change_state(&"name".to_variant()),
-                        "group" => prop_action.change_state(&"desc".to_variant()),
-                        "deps" => prop_action.change_state(&"group".to_variant()),
-                        "optdeps" => prop_action.change_state(&"deps".to_variant()),
-                        "provides" => prop_action.change_state(&"optdeps".to_variant()),
-                        "files" => prop_action.change_state(&"provides".to_variant()),
-                        _ => unreachable!()
-                    };
+                match state.as_str() {
+                    "name" => group.activate_action("set-prop", Some(&"files".to_variant())),
+                    "desc" => group.activate_action("set-prop", Some(&"name".to_variant())),
+                    "group" => group.activate_action("set-prop", Some(&"desc".to_variant())),
+                    "deps" => group.activate_action("set-prop", Some(&"group".to_variant())),
+                    "optdeps" => group.activate_action("set-prop", Some(&"deps".to_variant())),
+                    "provides" => group.activate_action("set-prop", Some(&"optdeps".to_variant())),
+                    "files" => group.activate_action("set-prop", Some(&"provides".to_variant())),
+                    _ => unreachable!()
                 }
             })
             .build();
@@ -462,13 +454,8 @@ impl SearchHeader {
         // Add reset search params action
         let reset_params_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-params")
             .activate(|group, _, _| {
-                if let Some(mode_action) = group.lookup_action("set-mode") {
-                    mode_action.change_state(&"all".to_variant());
-                }
-
-                if let Some(prop_action) = group.lookup_action("set-prop") {
-                    prop_action.change_state(&"name".to_variant());
-                }
+                group.activate_action("set-mode", Some(&"all".to_variant()));
+                group.activate_action("set-prop", Some(&"name".to_variant()));
             })
             .build();
 
