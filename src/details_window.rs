@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::fs;
 
-use gtk::{gio, glib, gdk};
+use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
@@ -144,7 +144,7 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_controllers();
+            obj.setup_shortcuts();
             obj.setup_signals();
         }
     }
@@ -194,23 +194,22 @@ impl DetailsWindow {
     //-----------------------------------
     // Setup controllers
     //-----------------------------------
-    fn setup_controllers(&self) {
-        // Key controller (close window on ESC)
-        let controller = gtk::EventControllerKey::new();
-
+    fn setup_shortcuts(&self) {
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
         controller.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        controller.connect_key_pressed(clone!(@weak self as window => @default-return glib::Propagation::Proceed, move |_, key, _, state| {
-            if key == gdk::Key::Escape && state.is_empty() {
+        // Add close window shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(@weak self as window => @default-return true, move |_, _| {
                 window.close();
 
-                glib::Propagation::Stop
-            } else {
-                glib::Propagation::Proceed
-            }
+                true
+            })))
+        ));
 
-        }));
-
+        // Add shortcut controller to window
         self.add_controller(controller);
     }
 
