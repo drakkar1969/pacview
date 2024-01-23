@@ -93,9 +93,9 @@ impl StatsWindow {
         // Key controller (close window on ESC)
         let controller = gtk::EventControllerKey::new();
 
-        controller.connect_key_pressed(clone!(@weak self as obj => @default-return glib::Propagation::Proceed, move |_, key, _, state| {
+        controller.connect_key_pressed(clone!(@weak self as window => @default-return glib::Propagation::Proceed, move |_, key, _, state| {
             if key == gdk::Key::Escape && state.is_empty() {
-                obj.close();
+                window.close();
 
                 glib::Propagation::Stop
             } else {

@@ -168,7 +168,7 @@ impl PreferencesWindow {
         // Add AUR helper command action with parameter
         let aur_action = gio::SimpleAction::new("aur-cmd", Some(&String::static_variant_type()));
 
-        aur_action.connect_activate(clone!(@weak self as obj => move |_, param| {
+        aur_action.connect_activate(clone!(@weak self as window => move |_, param| {
             let param = param
                 .expect("Must be a 'Variant'")
                 .get::<String>()
@@ -182,7 +182,7 @@ impl PreferencesWindow {
                 _ => unreachable!()
             };
 
-            obj.set_aur_command(cmd);
+            window.set_aur_command(cmd);
         }));
 
         // Add action to prefs group
@@ -200,32 +200,32 @@ impl PreferencesWindow {
         let imp = self.imp();
 
         // Font reset button clicked signal
-        imp.font_reset_button.connect_clicked(clone!(@weak self as obj => move |_| {
-            obj.set_monospace_font(obj.default_monospace_font());
+        imp.font_reset_button.connect_clicked(clone!(@weak self as window => move |_| {
+            window.set_monospace_font(window.default_monospace_font());
         }));
 
         // Font choose button clicked signal
-        imp.font_choose_button.connect_clicked(clone!(@weak self as obj => move |_| {
+        imp.font_choose_button.connect_clicked(clone!(@weak self as window => move |_| {
             let font_dialog = gtk::FontDialog::new();
 
             font_dialog.set_title("Select Font");
 
             font_dialog.choose_font(
-                Some(&obj),
-                Some(&pango::FontDescription::from_string(&obj.monospace_font())),
+                Some(&window),
+                Some(&pango::FontDescription::from_string(&window.monospace_font())),
                 None::<&gio::Cancellable>,
-                clone!(@weak obj => move |result| {
+                clone!(@weak window => move |result| {
                     if let Ok(font_desc) = result {
-                        obj.set_monospace_font(font_desc.to_string());
+                        window.set_monospace_font(font_desc.to_string());
                     }
                 })
             );
         }));
 
         // Preferences reset button clicked signal
-        imp.reset_button.connect_clicked(clone!(@weak self as obj => move |_| {
+        imp.reset_button.connect_clicked(clone!(@weak self as window => move |_| {
             let reset_dialog = adw::MessageDialog::new(
-                Some(&obj),
+                Some(&window),
                 Some("Reset Preferences?"),
                 Some("Reset all preferences to their default values.")
             );
@@ -237,15 +237,15 @@ impl PreferencesWindow {
 
             reset_dialog.choose(
                 None::<&gio::Cancellable>,
-                clone!(@weak obj=> move |response| {
+                clone!(@weak window => move |response| {
                     if response == "reset" {
-                        obj.set_auto_refresh(true);
-                        obj.set_aur_command("");
-                        obj.set_search_delay(150.0);
-                        obj.set_remember_columns(true);
-                        obj.set_remember_sort(false);
-                        obj.set_custom_font(true);
-                        obj.set_monospace_font(obj.default_monospace_font());
+                        window.set_auto_refresh(true);
+                        window.set_aur_command("");
+                        window.set_search_delay(150.0);
+                        window.set_remember_columns(true);
+                        window.set_remember_sort(false);
+                        window.set_custom_font(true);
+                        window.set_monospace_font(window.default_monospace_font());
                     }
                 })
             );

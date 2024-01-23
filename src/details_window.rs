@@ -200,9 +200,9 @@ impl DetailsWindow {
 
         controller.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        controller.connect_key_pressed(clone!(@weak self as obj => @default-return glib::Propagation::Proceed, move |_, key, _, state| {
+        controller.connect_key_pressed(clone!(@weak self as window => @default-return glib::Propagation::Proceed, move |_, key, _, state| {
             if key == gdk::Key::Escape && state.is_empty() {
-                obj.close();
+                window.close();
 
                 glib::Propagation::Stop
             } else {
@@ -291,24 +291,24 @@ impl DetailsWindow {
         }
 
         // Tree scale value changed signal
-        imp.tree_depth_scale.connect_value_changed(clone!(@weak self as obj, @weak imp => move |scale| {
+        imp.tree_depth_scale.connect_value_changed(clone!(@weak self as window, @weak imp => move |scale| {
             if scale.value() == imp.tree_depth_scale.adjustment().upper() {
                 imp.tree_depth_label.set_label("Default");
             } else {
                 imp.tree_depth_label.set_label(&scale.value().to_string());
             }
 
-            obj.filter_dependency_tree();
+            window.filter_dependency_tree();
         }));
 
         // Tree reverse button toggled signal
-        imp.tree_reverse_button.connect_toggled(clone!(@weak self as obj => move |_| {
-            obj.filter_dependency_tree();
+        imp.tree_reverse_button.connect_toggled(clone!(@weak self as window => move |_| {
+            window.filter_dependency_tree();
         }));
 
         // Tree copy button clicked signal
-        imp.tree_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
-            obj.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
+        imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+            window.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
         }));
 
         // Files search entry search changed signal
@@ -317,16 +317,16 @@ impl DetailsWindow {
         }));
 
         // Files open button clicked signal
-        imp.files_open_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.files_open_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let item = imp.files_selection.selected_item()
                 .and_downcast::<gtk::StringObject>()
                 .expect("Must be a 'StringObject'");
 
-            obj.open_file_manager(&item.string());
+            window.open_file_manager(&item.string());
         }));
 
         // Files copy button clicked signal
-        imp.files_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.files_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     let s = item
@@ -338,7 +338,7 @@ impl DetailsWindow {
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            obj.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Files listview activate signal
@@ -347,32 +347,32 @@ impl DetailsWindow {
         }));
 
         // Log copy button clicked signal
-        imp.log_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.log_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.log_model.iter::<gtk::StringObject>().flatten()
                 .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            obj.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Cache open button clicked signal
-        imp.cache_open_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.cache_open_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let item = imp.cache_selection.selected_item()
                 .and_downcast::<gtk::StringObject>()
                 .expect("Must be a 'StringObject'");
 
-            obj.open_file_manager(&item.string());
+            window.open_file_manager(&item.string());
         }));
 
         // Cache copy button clicked signal
-        imp.cache_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.cache_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.cache_model.iter::<gtk::StringObject>().flatten()
                 .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            obj.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Cache listview activate signal
@@ -381,16 +381,16 @@ impl DetailsWindow {
         }));
 
         // Backup open button clicked signal
-        imp.backup_open_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.backup_open_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let item = imp.backup_selection.selected_item()
                 .and_downcast::<BackupObject>()
                 .expect("Must be a 'BackupObject'");
 
-            obj.open_file_manager(&item.filename());
+            window.open_file_manager(&item.filename());
         }));
 
         // Backup copy button clicked signal
-        imp.backup_copy_button.connect_clicked(clone!(@weak self as obj, @weak imp => move |_| {
+        imp.backup_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
                 .map(|item| {
                     format!("{filename} ({status})", filename=item.filename(), status=item.status())
@@ -398,7 +398,7 @@ impl DetailsWindow {
                 .collect::<Vec<String>>()
                 .join("\n");
 
-            obj.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Backup listview activate signal
@@ -484,14 +484,14 @@ impl DetailsWindow {
         });
 
         // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok((deps, rev_deps)) = receiver.recv().await {
                 imp.tree_text.replace(deps);
 
                 imp.tree_rev_text.replace(rev_deps);
 
                 // Set tree view text
-                obj.filter_dependency_tree();
+                window.filter_dependency_tree();
 
                 imp.tree_stack.set_visible_child_name("deps");
             }

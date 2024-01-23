@@ -151,9 +151,9 @@ impl PackageView {
 
         gesture.set_button(0);
 
-        gesture.connect_pressed(clone!(@weak self as obj => move |gesture, _, x, y| {
+        gesture.connect_pressed(clone!(@weak self as view => move |gesture, _, x, y| {
             if gesture.current_button() == gdk::BUTTON_SECONDARY {
-                let imp = obj.imp();
+                let imp = view.imp();
 
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
@@ -171,8 +171,8 @@ impl PackageView {
     fn setup_actions(&self) {
         // Add reset columns action
         let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
-            .activate(clone!(@weak self as obj => move |_, _, _| {
-                obj.reset_columns();
+            .activate(clone!(@weak self as view => move |_, _, _| {
+                view.reset_columns();
             }))
             .build();
 
@@ -200,11 +200,11 @@ impl PackageView {
         let imp = self.imp();
 
         // Column view selected item property notify signal
-        imp.selection.connect_selected_item_notify(clone!(@weak self as obj => move |selection| {
+        imp.selection.connect_selected_item_notify(clone!(@weak self as view => move |selection| {
             let selected_item = selection.selected_item()
                 .and_downcast::<PkgObject>();
 
-            obj.emit_by_name::<()>("selected", &[&selected_item]);
+            view.emit_by_name::<()>("selected", &[&selected_item]);
         }));
     }
 

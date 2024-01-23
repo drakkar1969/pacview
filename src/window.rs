@@ -518,15 +518,15 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Search header enabled signal
-        imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as obj => move |_: SearchHeader, enabled: bool| {
+        imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as window => move |_: SearchHeader, enabled: bool| {
             if enabled == false {
-                obj.imp().package_view.imp().view.grab_focus();
+                window.imp().package_view.imp().view.grab_focus();
             }
         }));
 
-        // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as obj => move |search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool| {
-            obj.imp().package_view.set_search_filter(search_header, search_term, mode, prop, include_aur, aur_error);
+        // Search header changed objsignal
+        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as window => move |search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool| {
+            window.imp().package_view.set_search_filter(search_header, search_term, mode, prop, include_aur, aur_error);
         }));
 
         // Repo listbox row activated signal
@@ -554,8 +554,8 @@ impl PacViewWindow {
         }));
 
         // Package view selected signal
-        imp.package_view.connect_closure("selected", false, closure_local!(@watch self as obj => move |_: PackageView, pkg: Option<PkgObject>| {
-            obj.imp().info_pane.set_pkg(pkg.as_ref());
+        imp.package_view.connect_closure("selected", false, closure_local!(@watch self as window => move |_: PackageView, pkg: Option<PkgObject>| {
+            window.imp().info_pane.set_pkg(pkg.as_ref());
         }));
     }
 
@@ -731,7 +731,7 @@ impl PacViewWindow {
         });
 
         // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok((handle, data_list)) = receiver.recv().await {
                 let handle_ref = Rc::new(handle);
 
@@ -743,8 +743,8 @@ impl PacViewWindow {
 
                 imp.package_view.imp().stack.set_visible_child_name("view");
 
-                obj.get_package_updates_async();
-                obj.update_aur_file_async();
+                window.get_package_updates_async();
+                window.update_aur_file_async();
             }
         }));
     }
@@ -911,10 +911,10 @@ impl PacViewWindow {
         imp.notify_watcher.set(watcher).unwrap();
 
         // Attach receiver for glib channel
-        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
                 if imp.prefs_window.auto_refresh() == true {
-                    if let Some(refresh_action) = obj.lookup_action("refresh") {
+                    if let Some(refresh_action) = window.lookup_action("refresh") {
                         refresh_action.activate(None);
                     }
                 }

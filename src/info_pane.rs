@@ -265,8 +265,8 @@ impl InfoPane {
 
         imp.grid.attach(&property_label, 0, enum_value.value(), 1, 1);
 
-        let property_value = PropertyValue::new(ptype, closure_local!(@watch self as obj => move |_: TextLayout, link: String| -> bool {
-            obj.link_handler(&link)
+        let property_value = PropertyValue::new(ptype, closure_local!(@watch self as infopane => move |_: TextLayout, link: String| -> bool {
+            infopane.link_handler(&link)
         }));
 
         imp.grid.attach(&property_value, 1, enum_value.value(), 1, 1);

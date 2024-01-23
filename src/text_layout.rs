@@ -421,12 +421,12 @@ impl TextLayout {
 
         // Add copy action
         let copy_action = gio::SimpleAction::new("copy", None);
-        copy_action.connect_activate(clone!(@weak self as obj, @weak imp => move |_, _| {
+        copy_action.connect_activate(clone!(@weak self as layout, @weak imp => move |_, _| {
             let selection_start = imp.selection_start.get() as usize;
             let selection_end = imp.selection_end.get() as usize;
 
             if let Some(text) = imp.pango_layout.get().unwrap().text().get(selection_start.min(selection_end)..selection_start.max(selection_end)) {
-                obj.clipboard().set_text(text);
+                layout.clipboard().set_text(text);
             }
         }));
 
@@ -504,12 +504,12 @@ impl TextLayout {
         // Add mouse move controller
         let motion_controller = gtk::EventControllerMotion::new();
 
-        motion_controller.connect_enter(clone!(@weak self as obj => move |_, x, y| {
-            obj.set_cursor_motion(x, y);
+        motion_controller.connect_enter(clone!(@weak self as layout => move |_, x, y| {
+            layout.set_cursor_motion(x, y);
         }));
 
-        motion_controller.connect_motion(clone!(@weak self as obj => move |_, x, y| {
-            obj.set_cursor_motion(x, y);
+        motion_controller.connect_motion(clone!(@weak self as layout => move |_, x, y| {
+            layout.set_cursor_motion(x, y);
         }));
 
         imp.draw_area.add_controller(motion_controller);
@@ -520,16 +520,16 @@ impl TextLayout {
 
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        click_gesture.connect_pressed(clone!(@weak self as obj, @weak imp => move |gesture, n, x, y| {
+        click_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |gesture, n, x, y| {
             let button = gesture.current_button();
 
             if button == gdk::BUTTON_PRIMARY {
-                let link = obj.link_at_xy(x, y);
+                let link = layout.link_at_xy(x, y);
 
                 if link.is_none() {
                     if n == 1 {
                         // Single click: initiate selection, widget redrawn on mouse move
-                        let (_, index, trailing) = obj.index_at_xy(x, y);
+                        let (_, index, trailing) = layout.index_at_xy(x, y);
 
                         if trailing > 0 {
                             imp.selection_start.set(index + 1);
@@ -540,7 +540,7 @@ impl TextLayout {
                         imp.selection_end.set(-1);
                     } else if n == 2 {
                         // Double click: select word under cursor and redraw widget
-                        let (_, index, _) = obj.index_at_xy(x, y);
+                        let (_, index, _) = layout.index_at_xy(x, y);
 
                         let text = imp.pango_layout.get().unwrap().text();
 
@@ -581,7 +581,7 @@ impl TextLayout {
                 let selection_start = imp.selection_start.get();
                 let selection_end = imp.selection_end.get();
 
-                obj.action_set_enabled("text.copy", selection_start != -1 && selection_end != -1 && selection_start != selection_end);
+                layout.action_set_enabled("text.copy", selection_start != -1 && selection_end != -1 && selection_start != selection_end);
 
                 // Show popover menu
                 let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
@@ -591,7 +591,7 @@ impl TextLayout {
             }
         }));
 
-        click_gesture.connect_released(clone!(@weak self as obj, @weak imp => move |gesture, _, x, y| {
+        click_gesture.connect_released(clone!(@weak self as layout, @weak imp => move |gesture, _, x, y| {
             let button = gesture.current_button();
 
             if button == gdk::BUTTON_PRIMARY {
@@ -610,8 +610,8 @@ impl TextLayout {
 
                 // Launch link if any
                 if let Some(pressed_link) = imp.pressed_link.take() {
-                    if let Some(link) = obj.link_at_xy(x, y).filter(|link| link == &pressed_link) {
-                        if obj.emit_by_name::<bool>("link-activated", &[&link]) == false {
+                    if let Some(link) = layout.link_at_xy(x, y).filter(|link| link == &pressed_link) {
+                        if layout.emit_by_name::<bool>("link-activated", &[&link]) == false {
                             if let Ok(url) = Url::parse(&link) {
                                 if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
                                     let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
