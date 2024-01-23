@@ -359,7 +359,7 @@ impl PackageView {
             });
 
             // Attach thread receiver
-            glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+            glib::spawn_future_local(clone!(@weak imp => async move {
                 while let Ok(data_list) = receiver.recv().await {
                     let pkg_list: Vec<PkgObject> = data_list.into_iter()
                         .map(|data| PkgObject::new(None, data))

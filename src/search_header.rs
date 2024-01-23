@@ -298,23 +298,23 @@ impl SearchHeader {
         });
 
         // Search text changed signal
-        imp.search_text.connect_changed(clone!(@weak self as obj, @weak imp => move |search_text| {
+        imp.search_text.connect_changed(clone!(@weak self as header, @weak imp => move |search_text| {
             // Remove delay timer if present
             if let Some(delay_id) = imp.delay_source_id.take() {
                 delay_id.remove();
             }
 
             if search_text.text() == "" {
-                obj.set_aur_error(false);
+                header.set_aur_error(false);
 
-                obj.emit_changed_signal();
+                header.emit_changed_signal();
             } else {
-                if obj.include_aur() == false {
+                if header.include_aur() == false {
                     // Start delay timer
                     let delay_id = glib::timeout_add_local_once(
-                        Duration::from_millis(obj.delay()),
+                        Duration::from_millis(header.delay()),
                         clone!(@weak imp => move || {
-                            obj.emit_changed_signal();
+                            header.emit_changed_signal();
 
                             imp.delay_source_id.take();
                         })
@@ -326,17 +326,17 @@ impl SearchHeader {
         }));
 
         // Search text activate signal
-        imp.search_text.connect_activate(clone!(@weak self as obj, @weak imp => move |search_text| {
-            if obj.include_aur() == true && search_text.text() != "" {
+        imp.search_text.connect_activate(clone!(@weak self as header => move |search_text| {
+            if header.include_aur() == true && search_text.text() != "" {
                 let text = search_text.text();
 
                 if text.split_whitespace().any(|t| t.len() < 4) {
-                    obj.set_aur_error(true);
+                    header.set_aur_error(true);
                 } else {
-                    obj.set_aur_error(false);
+                    header.set_aur_error(false);
                 }
 
-                obj.emit_changed_signal();
+                header.emit_changed_signal();
             }
         }));
 

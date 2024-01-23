@@ -807,7 +807,7 @@ impl PacViewWindow {
         });
 
         // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak self as obj, @weak imp => async move {
+        glib::spawn_future_local(clone!(@weak imp => async move {
             while let Ok((error_msg, update_map)) = receiver.recv().await {
                 // If updates found
                 if update_map.len() > 0 {
