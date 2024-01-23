@@ -145,6 +145,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_actions();
             obj.setup_shortcuts();
         }
     }
@@ -249,23 +250,6 @@ impl DetailsWindow {
     //-----------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
-
-        // Stack button toggled signals
-        let stack_buttons = [
-            imp.tree_button.get(),
-            imp.files_button.get(),
-            imp.log_button.get(),
-            imp.cache_button.get(),
-            imp.backup_button.get()
-        ];
-
-        for button in stack_buttons {
-            button.connect_toggled(clone!(@weak imp => move |button| {
-                if button.is_active() {
-                    imp.content_stack.set_visible_child_name(&button.text().to_lowercase());
-                }
-            }));
-        }
 
         // Tree scale value changed signal
         imp.tree_depth_scale.connect_value_changed(clone!(@weak self as window, @weak imp => move |scale| {
@@ -382,6 +366,28 @@ impl DetailsWindow {
         imp.backup_view.connect_activate(clone!(@weak imp => move |_, _| {
             imp.backup_open_button.emit_clicked();
         }));
+    }
+
+    //-----------------------------------
+    // Setup actions
+    //-----------------------------------
+    fn setup_actions(&self) {
+        // Add set tab action
+        let tab_action = gio::ActionEntry::<DetailsWindow>::builder("set-tab")
+            .parameter_type(Some(&str::static_variant_type()))
+            .activate(|window, _, state| {
+                let state = state
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
+
+                window.imp().content_stack.set_visible_child_name(&state);
+                
+            })
+            .build();
+
+        // Add search actions to window
+        self.add_action_entries([tab_action]);
     }
 
     //-----------------------------------
