@@ -597,11 +597,11 @@ impl PacViewWindow {
         imp.status_listbox.remove_all();
 
         // Add repository rows (enumerate pacman repositories)
+        let saved_repo_id = imp.saved_repo_id.take();
+
         let row = FilterRow::new("repository-symbolic", "All", None, PkgFlags::empty());
 
         imp.repo_listbox.append(&row);
-
-        let saved_repo_id = imp.saved_repo_id.take();
 
         if saved_repo_id.is_none() {
             row.activate();
