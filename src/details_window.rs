@@ -233,9 +233,28 @@ impl DetailsWindow {
         }));
 
         // Tree copy button clicked signal
-        // imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-        //     window.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
-        // }));
+        imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+            let copy_text = imp.tree_selection.iter::<glib::Object>().flatten()
+                .map(|item| {
+                    let row = item
+                        .downcast::<gtk::TreeListRow>()
+                        .expect("Must be a 'TreeListRow'");
+
+                    let s = row.item()
+                        .and_downcast::<gtk::StringObject>()
+                        .expect("Must be a 'StringObject'");
+
+                    format!("{}{}{}",
+                        format!("{:width$}", "", width=(row.depth() as usize) * 2),
+                        if row.children().is_some() { "\u{25BE} " } else { "  " },
+                        s.string()
+                    )
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
+
+            window.clipboard().set_text(&copy_text);
+        }));
 
         // Tree scale value changed signal
         imp.tree_depth_scale.connect_value_changed(clone!(@weak self as window, @weak imp => move |scale| {
