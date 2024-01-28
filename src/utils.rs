@@ -1,8 +1,8 @@
 use std::process::Command;
 use std::io::prelude::*;
 
-use gtk::{glib, gio, pango};
-use gtk::prelude::{FileExt, OutputStreamExt, ToValue};
+use gtk::{glib, gio};
+use gtk::prelude::{FileExt, OutputStreamExt};
 
 use flate2::read::GzDecoder;
 
@@ -89,51 +89,5 @@ impl Utils {
                 .expect("Datetime error")
                 .to_string()
         }
-    }
-
-    //-----------------------------------
-    // Pango font string to CSS function
-    //-----------------------------------
-    pub fn pango_font_string_to_css(font_str: &str) -> String {
-        let mut css = String::from("");
-        
-        let font_desc = pango::FontDescription::from_string(font_str);
-
-        let mask = font_desc.set_fields();
-
-        if mask.contains(pango::FontMask::FAMILY) {
-            if let Some(family) = font_desc.family() {
-                css += &format!("font-family: \"{family}\"; ");
-            }
-        }
-
-        if mask.contains(pango::FontMask::SIZE) {
-            css += &format!("font-size: {}pt; ", font_desc.size()/pango::SCALE);
-        }
-
-        if mask.contains(pango::FontMask::WEIGHT) {
-            match font_desc.weight() {
-                pango::Weight::Normal => css += "font-weight: normal; ",
-                pango::Weight::Bold => css += "font-weight: bold; ",
-                pango::Weight::Thin => css += "font-weight: 100; ",
-                pango::Weight::Ultralight => css += "font-weight: 200; ",
-                pango::Weight::Light => css += "font-weight: 300; ",
-                pango::Weight::Semilight => css += "font-weight: 300; ",
-                pango::Weight::Book => css += "font-weight: 400; ",
-                pango::Weight::Medium => css += "font-weight: 500; ",
-                pango::Weight::Semibold => css += "font-weight: 600; ",
-                pango::Weight::Ultrabold => css += "font-weight: 800; ",
-                pango::Weight::Heavy | pango::Weight::Ultraheavy => css += "font-weight: 900; ",
-                _ => unreachable!()
-            }
-        }
-
-        if mask.contains(pango::FontMask::STYLE) {
-            if let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style().to_value()) {
-                css += &format!("font-style: {}; ", value.nick());
-            }
-        }
-
-        css
     }
 }

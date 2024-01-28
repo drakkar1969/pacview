@@ -139,7 +139,7 @@
                                 <property name="spacing">12</property>
                                 <child>
                                   <object class="GtkLabel" id="tree_depth_label">
-                                    <property name="label">Default</property>
+                                    <property name="label">All</property>
                                   </object>
                                 </child>
                                 <child>
@@ -197,65 +197,33 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkStack" id="tree_stack">
+                          <object class="GtkScrolledWindow">
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
                             <property name="margin-bottom">16</property>
-                            <child>
-                              <object class="GtkStackPage" id="empty_page">
-                                <property name="name">empty</property>
-                                <property name="child">
-                                  <object class="GtkBox" id="loading_box">
-                                    <property name="halign">center</property>
-                                    <property name="valign">center</property>
-                                    <property name="spacing">6</property>
-                                    <child>
-                                      <object class="GtkSpinner" id="loading_spinner">
-                                        <property name="spinning">True</property>
-                                        <style>
-                                          <class name="dim-spinner"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkLabel" id="loading_label">
-                                        <property name="label">Retrieving dependency tree</property>
-                                        <style>
-                                          <class name="title-4"/>
-                                          <class name="dim-label"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkStackPage" id="deps_page">
-                                <property name="name">deps</property>
-                                <property name="child">
-                                  <object class="GtkScrolledWindow">
-                                    <property name="hexpand">True</property>
-                                    <property name="vexpand">True</property>
-                                    <property name="child">
-                                      <object class="GtkTextView" id="tree_view">
-                                        <property name="hexpand">true</property>
-                                        <property name="margin-start">24</property>
-                                        <property name="margin-end">16</property>
-                                        <property name="editable">False</property>
-                                        <property name="cursor-visible">False</property>
-                                        <property name="buffer">
-                                          <object class="GtkTextBuffer" id="tree_buffer">
-                                            <property name="enable-undo">False</property>
-                                          </object>
+                            <property name="child">
+                              <object class="GtkListView" id="tree_view">
+                                <property name="margin-start">16</property>
+                                <property name="margin-end">16</property>
+                                <property name="tab-behavior">item</property>
+                                <property name="model">
+                                  <object class="GtkSingleSelection" id="tree_selection">
+                                    <property name="model">
+                                      <object class="GtkFilterListModel" id="tree_filter_model">
+                                        <property name="filter">
+                                          <object class="GtkCustomFilter" id="tree_depth_filter"/>
                                         </property>
-                                        <style>
-                                          <class name="tree"/>
-                                        </style>
                                       </object>
                                     </property>
                                   </object>
                                 </property>
+                                <property name="factory">
+                                  <object class="GtkBuilderListItemFactory">
+                                    <property name="resource">/com/github/PacView/ui/details_window/tree_item.ui</property>
+                                  </object>
+                                </property>
                               </object>
-                            </child>
+                            </property>
                           </object>
                         </child>
                       </object>

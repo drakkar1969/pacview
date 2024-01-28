@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::{glib, gio, pango};
+use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
@@ -31,16 +31,6 @@ mod imp {
         #[template_child]
         pub sort_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub font_expander: TemplateChild<adw::ExpanderRow>,
-        #[template_child]
-        pub font_switch: TemplateChild<gtk::Switch>,
-        #[template_child]
-        pub font_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub font_reset_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub font_choose_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub reset_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
@@ -53,12 +43,6 @@ mod imp {
         remember_columns: Cell<bool>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
-        #[property(get, set)]
-        custom_font: Cell<bool>,
-        #[property(get, set)]
-        monospace_font: RefCell<String>,
-        #[property(get, set)]
-        default_monospace_font: RefCell<String>,
     }
 
     //-----------------------------------
@@ -124,11 +108,6 @@ impl PreferencesWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind widget states
-        imp.font_expander.bind_property("expanded", &imp.font_switch.get(), "active")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-            .build();
-
         // Bind properties to widgets
         self.bind_property("auto_refresh", &imp.refresh_switchrow.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
@@ -144,13 +123,6 @@ impl PreferencesWindow {
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
         self.bind_property("remember-sort", &imp.sort_switchrow.get(), "active")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-            .build();
-
-        self.bind_property("custom-font", &imp.font_switch.get(), "active")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-            .build();
-        self.bind_property("monospace-font", &imp.font_row.get(), "subtitle")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
@@ -199,29 +171,6 @@ impl PreferencesWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Font reset button clicked signal
-        imp.font_reset_button.connect_clicked(clone!(@weak self as window => move |_| {
-            window.set_monospace_font(window.default_monospace_font());
-        }));
-
-        // Font choose button clicked signal
-        imp.font_choose_button.connect_clicked(clone!(@weak self as window => move |_| {
-            let font_dialog = gtk::FontDialog::new();
-
-            font_dialog.set_title("Select Font");
-
-            font_dialog.choose_font(
-                Some(&window),
-                Some(&pango::FontDescription::from_string(&window.monospace_font())),
-                None::<&gio::Cancellable>,
-                clone!(@weak window => move |result| {
-                    if let Ok(font_desc) = result {
-                        window.set_monospace_font(font_desc.to_string());
-                    }
-                })
-            );
-        }));
-
         // Preferences reset button clicked signal
         imp.reset_button.connect_clicked(clone!(@weak self as window => move |_| {
             let reset_dialog = adw::MessageDialog::new(
@@ -244,8 +193,6 @@ impl PreferencesWindow {
                         window.set_search_delay(150.0);
                         window.set_remember_columns(true);
                         window.set_remember_sort(false);
-                        window.set_custom_font(true);
-                        window.set_monospace_font(window.default_monospace_font());
                     }
                 })
             );

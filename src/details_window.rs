@@ -1,5 +1,6 @@
-use std::cell::RefCell;
+use std::cell::OnceCell;
 use std::fs;
+use std::collections::HashMap;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -7,13 +8,11 @@ use gtk::prelude::*;
 use glib::clone;
 
 use regex::Regex;
-use lazy_static::lazy_static;
 use glob::glob;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
 use crate::backup_object::BackupObject;
-use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
 // MODULE: DetailsWindow
@@ -54,11 +53,13 @@ mod imp {
         #[template_child]
         pub tree_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub tree_stack: TemplateChild<gtk::Stack>,
+        pub tree_view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub tree_view: TemplateChild<gtk::TextView>,
+        pub tree_filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
-        pub tree_buffer: TemplateChild<gtk::TextBuffer>,
+        pub tree_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub tree_depth_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
         pub files_header_label: TemplateChild<gtk::Label>,
@@ -110,8 +111,8 @@ mod imp {
         #[template_child]
         pub backup_selection: TemplateChild<gtk::SingleSelection>,
 
-        pub tree_text: RefCell<String>,
-        pub tree_rev_text: RefCell<String>,
+        pub tree_model: OnceCell<gtk::TreeListModel>,
+        pub pkg_map: OnceCell<HashMap<String, PkgObject>>
     }
 
     //-----------------------------------
@@ -170,7 +171,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, pkg: &PkgObject, custom_font: bool, monospace_font: &str, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &gtk::Window, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore, aur_model: &gio::ListStore) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -180,7 +181,7 @@ impl DetailsWindow {
         win.update_ui_banner(pkg);
         win.update_ui_stack(installed);
 
-        win.update_ui_tree_page(pkg, custom_font, monospace_font);
+        win.update_ui_tree_page(pkg, pkg_model, aur_model);
 
         if installed {
             win.update_ui_files_page(pkg);
@@ -204,48 +205,6 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Filter dependency tree helper function
-    //-----------------------------------
-    fn filter_dependency_tree(&self) {
-        let imp = self.imp();
-
-        let depth = imp.tree_depth_scale.value();
-        let reverse = imp.tree_reverse_button.is_active();
-
-        let tree_text = if reverse {imp.tree_rev_text.borrow()} else {imp.tree_text.borrow()};
-
-        // Filter tree text
-        lazy_static! {
-            static ref EXPR: Regex = Regex::new("[└|─|│|├| ]*").unwrap();
-        }
-
-        let filter_text = if depth == imp.tree_depth_scale.adjustment().upper() {
-            tree_text.to_string()
-        } else {
-            tree_text.lines()
-                .filter(|&s| {
-                    EXPR.find(s)
-                        .filter(|ascii| ascii.as_str().chars().count() as f64 <= depth * 2.0)
-                        .is_some()
-                })
-                .collect::<Vec<&str>>()
-                .join("\n")
-        };
-
-        // Set tree view text
-        imp.tree_buffer.set_text(&filter_text);
-
-        // Set tree header label
-        let n_lines = imp.tree_buffer.line_count();
-
-        if n_lines >= 1 {
-            imp.tree_header_label.set_label(&format!("Dependency Tree ({})", n_lines - 1));
-        } else {
-            imp.tree_header_label.set_label("Dependency Tree (0)");
-        }
-    }
-
-    //-----------------------------------
     // Setup signals
     //-----------------------------------
     fn setup_signals(&self) {
@@ -254,23 +213,31 @@ impl DetailsWindow {
         // Tree scale value changed signal
         imp.tree_depth_scale.connect_value_changed(clone!(@weak self as window, @weak imp => move |scale| {
             if scale.value() == imp.tree_depth_scale.adjustment().upper() {
-                imp.tree_depth_label.set_label("Default");
+                imp.tree_depth_label.set_label("All");
             } else {
                 imp.tree_depth_label.set_label(&scale.value().to_string());
             }
 
-            window.filter_dependency_tree();
+            imp.tree_depth_filter.changed(gtk::FilterChange::Different);
         }));
 
         // Tree reverse button toggled signal
         imp.tree_reverse_button.connect_toggled(clone!(@weak self as window => move |_| {
-            window.filter_dependency_tree();
+            if let Some(tree_model) = window.imp().tree_model.get() {
+                let root_model = tree_model.model()
+                    .downcast::<gio::ListStore>()
+                    .expect("Must be a 'ListStore'");
+
+                if let Some(pkg) = root_model.item(0) {
+                    root_model.splice(0, 1, &[pkg]);
+                }
+            }
         }));
 
         // Tree copy button clicked signal
-        imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            window.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
-        }));
+        // imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        //     window.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
+        // }));
 
         // Files search entry search changed signal
         imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
@@ -435,70 +402,62 @@ impl DetailsWindow {
     //-----------------------------------
     // Update tree page
     //-----------------------------------
-    fn update_ui_tree_page(&self, pkg: &PkgObject, custom_font: bool, monospace_font: &str) {
+    fn update_ui_tree_page(&self, pkg: &PkgObject, pkg_model: &gio::ListStore, aur_model: &gio::ListStore) {
         let imp = self.imp();
 
-        // Get monospace font
-        let font_str = if custom_font {
-            monospace_font.to_string()
-        } else {
-            let gsettings = gio::Settings::new("org.gnome.desktop.interface");
+        // Build and store package hash map
+        let mut pkg_map: HashMap<String, PkgObject> = HashMap::new();
 
-            gsettings.string("monospace-font-name").to_string()
-        };
+        pkg_map.extend(pkg_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
+        // pkg_map.extend(aur_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
 
-        // Set text view font
-        let font_css = Utils::pango_font_string_to_css(&font_str);
+        imp.pkg_map.set(pkg_map).unwrap();
 
-        let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string(&format!("textview.tree {{ {font_css}}}"));
+        // Create and store tree model
+        let root_model = gio::ListStore::new::<gtk::StringObject>();
+        root_model.append(&gtk::StringObject::new(&pkg.name()));
 
-        gtk::style_context_add_provider_for_display(&imp.tree_view.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+        let tree_model = gtk::TreeListModel::new(root_model, false, true, clone!(@weak imp => @default-return None, move |item| {
+            let item = item.downcast_ref::<gtk::StringObject>()
+                .expect("Must be a 'StringObject'");
 
-        // Spawn thread to get tree text
-        let pkg_name = pkg.name();
-        let local_flag = if pkg.flags().intersects(PkgFlags::INSTALLED) {""} else {"-s"};
+            let pkg_map = imp.pkg_map.get().unwrap();
 
-        let (sender, receiver) = async_channel::bounded(1);
+            if let Some(pkg) = pkg_map.get(&item.string().to_string()) {
+                let deps: Vec<gtk::StringObject> = if imp.tree_reverse_button.is_active() {
+                    pkg.required_by().iter()
+                        .map(|dep| gtk::StringObject::new(dep))
+                        .collect()
+                } else {
+                    pkg.depends().iter()
+                        .map(|dep| gtk::StringObject::new(dep))
+                        .collect()
+                };
 
-        gio::spawn_blocking(move || {
-            // Get dependecy tree
-            let cmd = format!("/usr/bin/pactree {local_flag} {pkg_name}");
+                if !deps.is_empty() {
+                    return Some(gio::ListStore::from_iter(deps).upcast::<gio::ListModel>())
+                }
+            }
 
-            let (_, mut deps) = Utils::run_command(&cmd);
+            None
+        }));
 
-            // Strip empty lines
-            deps = deps.lines().into_iter()
-                .filter(|&s| !s.is_empty())
-                .collect::<Vec<&str>>()
-                .join("\n");
+        imp.tree_filter_model.set_model(Some(&tree_model));
 
-            // Get reverse dependency tree
-            let cmd = format!("/usr/bin/pactree -r {local_flag} {pkg_name}");
+        imp.tree_model.set(tree_model).unwrap();
 
-            let (_, mut rev_deps) = Utils::run_command(&cmd);
+        // Set tree model filter function
+        imp.tree_depth_filter.set_filter_func(clone!(@weak imp => @default-return false, move |item| {
+            let row = item
+                .downcast_ref::<gtk::TreeListRow>()
+                .expect("Must be a 'TreeListRow'");
 
-            // Strip empty lines
-            rev_deps = rev_deps.lines().into_iter()
-                .filter(|&s| !s.is_empty())
-                .collect::<Vec<&str>>()
-                .join("\n");
+            let depth = imp.tree_depth_scale.value();
 
-            // Return thread result
-            sender.send_blocking((deps, rev_deps)).expect("Could not send through channel");
-        });
-
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            while let Ok((deps, rev_deps)) = receiver.recv().await {
-                imp.tree_text.replace(deps);
-
-                imp.tree_rev_text.replace(rev_deps);
-
-                // Set tree view text
-                window.filter_dependency_tree();
-
-                imp.tree_stack.set_visible_child_name("deps");
+            if depth == imp.tree_depth_scale.adjustment().upper() {
+                true
+            } else {
+                (row.depth() as f64) <= depth
             }
         }));
     }

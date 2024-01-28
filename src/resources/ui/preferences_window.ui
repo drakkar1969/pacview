@@ -76,53 +76,6 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">Package Details</property>
-            <child>
-              <object class="AdwExpanderRow" id="font_expander">
-                <property name="title">Custom Monospace _Font</property>
-                <property name="subtitle">Use custom font for dependency tree</property>
-                <property name="use-underline">True</property>
-                <child type="action">
-                  <object class="GtkSwitch" id="font_switch">
-                    <property name="valign">center</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="font_row">
-                    <property name="title">Monospace font</property>
-                    <property name="use-underline">True</property>
-                    <property name="activatable-widget">font_choose_button</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child>
-                      <object class="GtkButton" id="font_reset_button">
-                        <property name="valign">center</property>
-                        <property name="icon-name">edit-undo-symbolic</property>
-                        <property name="tooltip-text">Reset to Default</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="font_choose_button">
-                        <property name="valign">center</property>
-                        <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Choose Font</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwPreferencesGroup">
             <property name="title">Preferences</property>
             <child>
               <object class="AdwActionRow">

@@ -194,13 +194,6 @@ impl PacViewWindow {
             gsettings.bind("search-delay", &imp.prefs_window.get(), "search-delay").build();
             gsettings.bind("remember-columns", &imp.prefs_window.get(), "remember-columns").build();
             gsettings.bind("remember-sorting", &imp.prefs_window.get(), "remember-sort").build();
-            gsettings.bind("custom-font", &imp.prefs_window.get(), "custom-font").build();
-            gsettings.bind("monospace-font", &imp.prefs_window.get(), "monospace-font").build();
-
-            // Get default value for monospace font
-            let default_font = gsettings.default_value("monospace-font").unwrap().to_string().replace("'", "");
-
-            imp.prefs_window.set_default_monospace_font(default_font);
 
             // Restore package view columns if setting active
             if imp.prefs_window.remember_columns() {
@@ -415,10 +408,9 @@ impl PacViewWindow {
                     let details_window = DetailsWindow::new(
                         window.upcast_ref(),
                         &pkg,
-                        imp.prefs_window.custom_font(),
-                        &imp.prefs_window.monospace_font(),
                         &imp.pacman_config.borrow(),
-                        &imp.package_view.imp().pkg_model
+                        &imp.package_view.imp().pkg_model,
+                        &imp.package_view.imp().aur_model
                     );
 
                     details_window.present();

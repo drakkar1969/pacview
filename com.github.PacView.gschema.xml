@@ -37,12 +37,6 @@
     <key name="remember-sorting" type="b">
       <default>false</default>
     </key>
-    <key name="custom-font" type="b">
-      <default>true</default>
-    </key>
-    <key name="monospace-font" type="s">
-      <default>'Source Code Pro 11'</default>
-    </key>
     <key name="search-include-aur" type="b">
       <default>false</default>
     </key>

@@ -39,6 +39,7 @@
     <file compressed="true">icons-dark/pkg-optional.svg</file>
     <file compressed="true">icons-dark/pkg-orphan.svg</file>
     <file compressed="true">icons-dark/pkg-update.svg</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/tree_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/cache_item.ui</file>
