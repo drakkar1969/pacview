@@ -231,11 +231,7 @@ impl DetailsWindow {
             if let Some(s) = root_model.item(0)
                 .and_downcast::<gtk::StringObject>()
             {
-                let pkg_map = imp.pkg_map.get().unwrap();
-
-                if let Some(pkg) = pkg_map.get(&s.string().to_string()) {
-                    imp.dep_list.replace(vec![pkg.name()]);
-                }
+                imp.dep_list.replace(vec![s.string().to_string()]);
 
                 root_model.splice(0, 1, &[s]);
             }
