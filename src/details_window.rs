@@ -468,32 +468,30 @@ impl DetailsWindow {
         root_model.append(&gtk::StringObject::new(&pkg.name()));
 
         let tree_model = gtk::TreeListModel::new(root_model, false, true, clone!(@weak imp => @default-return None, move |item| {
-            let item = item.downcast_ref::<gtk::StringObject>()
+            let s = item.downcast_ref::<gtk::StringObject>()
                 .expect("Must be a 'StringObject'");
 
             let pkg_map = imp.pkg_map.get().unwrap();
             let mut dep_set = imp.dep_set.borrow_mut();
 
-            if let Some(pkg) = pkg_map.get(&item.string().to_string()) {
-                let deps: Vec<String> = if imp.tree_reverse_button.is_active() {
-                    pkg.required_by().iter()
-                        .filter(|dep| !dep_set.contains(*dep))
-                        .map(|dep| dep.to_string())
-                        .collect()
+            if let Some(pkg) = pkg_map.get(&s.string().to_string()) {
+                let mut deps: Vec<String> = if imp.tree_reverse_button.is_active() {
+                    pkg.required_by()
                 } else {
-                    pkg.depends().iter()
-                        .filter(|dep| !dep_set.contains(*dep))
-                        .map(|dep| dep.to_string())
-                        .collect()
+                    pkg.depends()
                 };
 
-                if !deps.is_empty() {
-                    deps.iter()
-                        .for_each(|dep| {
-                            dep_set.insert(dep.to_string());
-                        });
+                deps.retain(|dep| !dep_set.contains(dep));
 
-                    return Some(gio::ListStore::from_iter(deps.iter().map(|dep| gtk::StringObject::new(dep))).upcast::<gio::ListModel>())
+                if !deps.is_empty() {
+                    return Some(gio::ListStore::from_iter(deps.iter()
+                        .map(|dep| {
+                            dep_set.insert(dep.to_string());
+
+                            gtk::StringObject::new(dep)
+                        }
+                    ))
+                    .upcast::<gio::ListModel>())
                 }
             }
 
