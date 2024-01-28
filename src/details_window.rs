@@ -45,9 +45,7 @@ mod imp {
         #[template_child]
         pub tree_header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub tree_depth_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub tree_depth_scale: TemplateChild<gtk::Scale>,
+        pub tree_search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
         pub tree_reverse_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
@@ -59,7 +57,13 @@ mod imp {
         #[template_child]
         pub tree_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
+        pub tree_name_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
         pub tree_depth_filter: TemplateChild<gtk::CustomFilter>,
+        #[template_child]
+        pub tree_depth_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub tree_depth_scale: TemplateChild<gtk::Scale>,
 
         #[template_child]
         pub files_header_label: TemplateChild<gtk::Label>,
@@ -221,6 +225,11 @@ impl DetailsWindow {
             imp.tree_depth_filter.changed(gtk::FilterChange::Different);
         }));
 
+        // Tree search entry search changed signal
+        imp.tree_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
+            imp.tree_name_filter.set_search(Some(&entry.text()));
+        }));
+
         // Tree reverse button toggled signal
         imp.tree_reverse_button.connect_toggled(clone!(@weak self as window => move |_| {
             if let Some(tree_model) = window.imp().tree_model.get() {
@@ -353,7 +362,7 @@ impl DetailsWindow {
             })
             .build();
 
-        // Add search actions to window
+        // Add actions to window
         self.add_action_entries([tab_action]);
     }
 
@@ -404,6 +413,9 @@ impl DetailsWindow {
     //-----------------------------------
     fn update_ui_tree_page(&self, pkg: &PkgObject, pkg_model: &gio::ListStore, aur_model: &gio::ListStore) {
         let imp = self.imp();
+
+        // Set files search entry key capture widget
+        imp.tree_search_entry.set_key_capture_widget(Some(&imp.tree_view.get().upcast::<gtk::Widget>()));
 
         // Build and store package hash map
         let mut pkg_map: HashMap<String, PkgObject> = HashMap::new();
