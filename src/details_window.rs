@@ -214,6 +214,29 @@ impl DetailsWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Tree search entry search changed signal
+        imp.tree_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
+            imp.tree_name_filter.set_search(Some(&entry.text()));
+        }));
+
+        // Tree reverse button toggled signal
+        imp.tree_reverse_button.connect_toggled(clone!(@weak self as window => move |_| {
+            let tree_model = window.imp().tree_model.get().unwrap();
+
+            let root_model = tree_model.model()
+                .downcast::<gio::ListStore>()
+                .expect("Must be a 'ListStore'");
+
+            if let Some(pkg) = root_model.item(0) {
+                root_model.splice(0, 1, &[pkg]);
+            }
+        }));
+
+        // Tree copy button clicked signal
+        // imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        //     window.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
+        // }));
+
         // Tree scale value changed signal
         imp.tree_depth_scale.connect_value_changed(clone!(@weak self as window, @weak imp => move |scale| {
             if scale.value() == imp.tree_depth_scale.adjustment().upper() {
@@ -224,29 +247,6 @@ impl DetailsWindow {
 
             imp.tree_depth_filter.changed(gtk::FilterChange::Different);
         }));
-
-        // Tree search entry search changed signal
-        imp.tree_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
-            imp.tree_name_filter.set_search(Some(&entry.text()));
-        }));
-
-        // Tree reverse button toggled signal
-        imp.tree_reverse_button.connect_toggled(clone!(@weak self as window => move |_| {
-            if let Some(tree_model) = window.imp().tree_model.get() {
-                let root_model = tree_model.model()
-                    .downcast::<gio::ListStore>()
-                    .expect("Must be a 'ListStore'");
-
-                if let Some(pkg) = root_model.item(0) {
-                    root_model.splice(0, 1, &[pkg]);
-                }
-            }
-        }));
-
-        // Tree copy button clicked signal
-        // imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-        //     window.clipboard().set_text(&imp.tree_buffer.text(&imp.tree_buffer.start_iter(), &imp.tree_buffer.end_iter(), false));
-        // }));
 
         // Files search entry search changed signal
         imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
@@ -472,6 +472,12 @@ impl DetailsWindow {
                 (row.depth() as f64) <= depth
             }
         }));
+
+        // Bind reverse toggle button state to tree header label
+        imp.tree_reverse_button.bind_property("active", &imp.tree_header_label.get(), "label")
+            .transform_to(move |_, active: bool| if active { Some("Required By") } else { Some("Dependencies") })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 
     //-----------------------------------
