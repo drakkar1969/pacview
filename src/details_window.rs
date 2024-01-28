@@ -1,4 +1,4 @@
-use std::cell::OnceCell;
+use std::cell::{RefCell, OnceCell};
 use std::fs;
 use std::collections::HashMap;
 
@@ -116,7 +116,8 @@ mod imp {
         pub backup_selection: TemplateChild<gtk::SingleSelection>,
 
         pub tree_model: OnceCell<gtk::TreeListModel>,
-        pub pkg_map: OnceCell<HashMap<String, PkgObject>>
+        pub pkg_map: OnceCell<HashMap<String, PkgObject>>,
+        pub dep_list: RefCell<Vec<String>>
     }
 
     //-----------------------------------
@@ -220,15 +221,23 @@ impl DetailsWindow {
         }));
 
         // Tree reverse button toggled signal
-        imp.tree_reverse_button.connect_toggled(clone!(@weak self as window => move |_| {
-            let tree_model = window.imp().tree_model.get().unwrap();
+        imp.tree_reverse_button.connect_toggled(clone!(@weak imp => move |_| {
+            let tree_model = imp.tree_model.get().unwrap();
 
             let root_model = tree_model.model()
                 .downcast::<gio::ListStore>()
                 .expect("Must be a 'ListStore'");
 
-            if let Some(pkg) = root_model.item(0) {
-                root_model.splice(0, 1, &[pkg]);
+            if let Some(s) = root_model.item(0)
+                .and_downcast::<gtk::StringObject>()
+            {
+                let pkg_map = imp.pkg_map.get().unwrap();
+
+                if let Some(pkg) = pkg_map.get(&s.string().to_string()) {
+                    imp.dep_list.replace(vec![pkg.name()]);
+                }
+
+                root_model.splice(0, 1, &[s]);
             }
         }));
 
@@ -440,9 +449,12 @@ impl DetailsWindow {
         let mut pkg_map: HashMap<String, PkgObject> = HashMap::new();
 
         pkg_map.extend(pkg_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
-        // pkg_map.extend(aur_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
+        pkg_map.extend(aur_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
 
         imp.pkg_map.set(pkg_map).unwrap();
+
+        // Build and store dependency list (avoid duplicates)
+        imp.dep_list.replace(vec![pkg.name()]);
 
         // Create and store tree model
         let root_model = gio::ListStore::new::<gtk::StringObject>();
@@ -453,20 +465,25 @@ impl DetailsWindow {
                 .expect("Must be a 'StringObject'");
 
             let pkg_map = imp.pkg_map.get().unwrap();
+            let mut dep_list = imp.dep_list.borrow_mut();
 
             if let Some(pkg) = pkg_map.get(&item.string().to_string()) {
-                let deps: Vec<gtk::StringObject> = if imp.tree_reverse_button.is_active() {
+                let deps: Vec<String> = if imp.tree_reverse_button.is_active() {
                     pkg.required_by().iter()
-                        .map(|dep| gtk::StringObject::new(dep))
+                        .filter(|dep| !dep_list.contains(dep))
+                        .map(|dep| dep.to_string())
                         .collect()
                 } else {
                     pkg.depends().iter()
-                        .map(|dep| gtk::StringObject::new(dep))
+                        .filter(|dep| !dep_list.contains(dep))
+                        .map(|dep| dep.to_string())
                         .collect()
                 };
 
                 if !deps.is_empty() {
-                    return Some(gio::ListStore::from_iter(deps).upcast::<gio::ListModel>())
+                    dep_list.extend(deps.iter().map(|dep| dep.to_string()));
+
+                    return Some(gio::ListStore::from_iter(deps.iter().map(|dep| gtk::StringObject::new(dep))).upcast::<gio::ListModel>())
                 }
             }
 
