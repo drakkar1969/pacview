@@ -375,13 +375,18 @@ impl DetailsWindow {
         // Add set tab action
         let tab_action = gio::ActionEntry::<DetailsWindow>::builder("set-tab")
             .parameter_type(Some(&str::static_variant_type()))
-            .activate(|window, _, state| {
+            .state("tree".to_variant())
+            .change_state(|window, action, state| {
                 let state = state
-                    .expect("Must be a 'Variant'")
+                    .expect("Must be a 'Variant'");
+
+                let state_str = state
                     .get::<String>()
                     .expect("Must be a 'String'");
 
-                window.imp().content_stack.set_visible_child_name(&state);
+                action.set_state(state);
+
+                window.imp().content_stack.set_visible_child_name(&state_str);
                 
             })
             .build();
