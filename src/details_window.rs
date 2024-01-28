@@ -1,6 +1,6 @@
 use std::cell::{RefCell, OnceCell};
 use std::fs;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -117,7 +117,7 @@ mod imp {
 
         pub tree_model: OnceCell<gtk::TreeListModel>,
         pub pkg_map: OnceCell<HashMap<String, PkgObject>>,
-        pub dep_list: RefCell<Vec<String>>
+        pub dep_set: RefCell<HashSet<String>>
     }
 
     //-----------------------------------
@@ -231,7 +231,10 @@ impl DetailsWindow {
             if let Some(s) = root_model.item(0)
                 .and_downcast::<gtk::StringObject>()
             {
-                imp.dep_list.replace(vec![s.string().to_string()]);
+                let mut dep_set = HashSet::new();
+                dep_set.insert(s.string().to_string());
+
+                imp.dep_set.replace(dep_set);
 
                 root_model.splice(0, 1, &[s]);
             }
@@ -455,7 +458,10 @@ impl DetailsWindow {
         imp.pkg_map.set(pkg_map).unwrap();
 
         // Build and store dependency list (avoid duplicates)
-        imp.dep_list.replace(vec![pkg.name()]);
+        let mut dep_set = HashSet::new();
+        dep_set.insert(pkg.name());
+
+        imp.dep_set.replace(dep_set);
 
         // Create and store tree model
         let root_model = gio::ListStore::new::<gtk::StringObject>();
@@ -466,23 +472,26 @@ impl DetailsWindow {
                 .expect("Must be a 'StringObject'");
 
             let pkg_map = imp.pkg_map.get().unwrap();
-            let mut dep_list = imp.dep_list.borrow_mut();
+            let mut dep_set = imp.dep_set.borrow_mut();
 
             if let Some(pkg) = pkg_map.get(&item.string().to_string()) {
                 let deps: Vec<String> = if imp.tree_reverse_button.is_active() {
                     pkg.required_by().iter()
-                        .filter(|dep| !dep_list.contains(dep))
+                        .filter(|dep| !dep_set.contains(*dep))
                         .map(|dep| dep.to_string())
                         .collect()
                 } else {
                     pkg.depends().iter()
-                        .filter(|dep| !dep_list.contains(dep))
+                        .filter(|dep| !dep_set.contains(*dep))
                         .map(|dep| dep.to_string())
                         .collect()
                 };
 
                 if !deps.is_empty() {
-                    dep_list.extend(deps.iter().map(|dep| dep.to_string()));
+                    deps.iter()
+                        .for_each(|dep| {
+                            dep_set.insert(dep.to_string());
+                        });
 
                     return Some(gio::ListStore::from_iter(deps.iter().map(|dep| gtk::StringObject::new(dep))).upcast::<gio::ListModel>())
                 }
