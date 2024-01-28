@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
+    <file alias="backup-error-symbolic.svg">icons/backup-error-symbolic.svg</file>
+    <file alias="backup-modified-symbolic.svg">icons/backup-modified-symbolic.svg</file>
+    <file alias="backup-unmodified-symbolic.svg">icons/backup-unmodified-symbolic.svg</file>
     <file alias="details-item-symbolic.svg">icons/details-item-symbolic.svg</file>
     <file alias="details-files-symbolic.svg">icons/details-files-symbolic.svg</file>
     <file alias="details-tree-symbolic.svg">icons/details-tree-symbolic.svg</file>
@@ -23,17 +26,11 @@
   <gresource prefix="/com/github/PacView/">
     <file compressed="true">style.css</file>
     <file compressed="true" preprocess="xml-stripblanks">gtk/help-overlay.ui</file>
-    <file compressed="true">icons-light/backup-modified.svg</file>
-    <file compressed="true">icons-light/backup-error.svg</file>
-    <file compressed="true">icons-light/backup-unmodified.svg</file>
     <file compressed="true">icons-light/pkg-explicit.svg</file>
     <file compressed="true">icons-light/pkg-dependency.svg</file>
     <file compressed="true">icons-light/pkg-optional.svg</file>
     <file compressed="true">icons-light/pkg-orphan.svg</file>
     <file compressed="true">icons-light/pkg-update.svg</file>
-    <file compressed="true">icons-dark/backup-modified.svg</file>
-    <file compressed="true">icons-dark/backup-error.svg</file>
-    <file compressed="true">icons-dark/backup-unmodified.svg</file>
     <file compressed="true">icons-dark/pkg-explicit.svg</file>
     <file compressed="true">icons-dark/pkg-dependency.svg</file>
     <file compressed="true">icons-dark/pkg-optional.svg</file>

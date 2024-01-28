@@ -641,12 +641,12 @@ impl DetailsWindow {
             .map(|backup| {
                 if let Ok(file_hash) = alpm::compute_md5sum(backup.filename.to_string()) {
                     if file_hash == backup.hash {
-                        BackupObject::new(&backup.filename, "backup-unmodified", "unmodified")
+                        BackupObject::new(&backup.filename, "backup-unmodified-symbolic", "unmodified")
                     } else {
-                        BackupObject::new(&backup.filename, "backup-modified", "modified")
+                        BackupObject::new(&backup.filename, "backup-modified-symbolic", "modified")
                     }
                 } else {
-                    BackupObject::new(&backup.filename, "backup-error", "read error")
+                    BackupObject::new(&backup.filename, "backup-error-symbolic", "read error")
                 }
             })
             .collect();
