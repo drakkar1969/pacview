@@ -116,8 +116,7 @@ mod imp {
         pub backup_selection: TemplateChild<gtk::SingleSelection>,
 
         pub tree_model: OnceCell<gtk::TreeListModel>,
-        pub pkg_map: OnceCell<HashMap<String, PkgObject>>,
-        pub dep_map: RefCell<HashMap<String, Option<String>>>
+        pub tree_dep_map: RefCell<HashMap<String, Option<String>>>
     }
 
     //-----------------------------------
@@ -231,7 +230,7 @@ impl DetailsWindow {
             if let Some(obj) = root_model.item(0)
                 .and_downcast::<gtk::StringObject>()
             {
-                imp.dep_map.replace(HashMap::from([(obj.string().to_string(), None)]));
+                imp.tree_dep_map.replace(HashMap::from([(obj.string().to_string(), None)]));
 
                 root_model.splice(0, 1, &[obj]);
             }
@@ -446,16 +445,14 @@ impl DetailsWindow {
         // Set files search entry key capture widget
         imp.tree_search_entry.set_key_capture_widget(Some(&imp.tree_view.get().upcast::<gtk::Widget>()));
 
-        // Build and store package hash map
+        // Build and store dependency hash map (avoid duplicates)
+        imp.tree_dep_map.replace(HashMap::from([(pkg.name(), None)]));
+
+        // Build package hash map
         let mut pkg_map: HashMap<String, PkgObject> = HashMap::new();
 
         pkg_map.extend(pkg_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
         pkg_map.extend(aur_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
-
-        imp.pkg_map.set(pkg_map).unwrap();
-
-        // Build and store dependency hash map (avoid duplicates)
-        imp.dep_map.replace(HashMap::from([(pkg.name(), None)]));
 
         // Create and store tree model
         let root_model = gio::ListStore::from_iter([gtk::StringObject::new(&pkg.name())]);
@@ -464,8 +461,7 @@ impl DetailsWindow {
             let obj = item.downcast_ref::<gtk::StringObject>()
                 .expect("Must be a 'StringObject'");
 
-            let pkg_map = imp.pkg_map.get().unwrap();
-            let mut dep_map = imp.dep_map.borrow_mut();
+            let mut dep_map = imp.tree_dep_map.borrow_mut();
 
             if let Some(pkg) = pkg_map.get(&obj.string().to_string()) {
                 let mut deps: Vec<String> = if imp.tree_reverse_button.is_active() {
