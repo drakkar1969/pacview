@@ -1,6 +1,6 @@
 use std::cell::{RefCell, OnceCell};
 use std::fs;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -117,7 +117,7 @@ mod imp {
 
         pub tree_model: OnceCell<gtk::TreeListModel>,
         pub pkg_map: OnceCell<HashMap<String, PkgObject>>,
-        pub dep_set: RefCell<HashSet<String>>
+        pub dep_map: RefCell<HashMap<String, Option<String>>>
     }
 
     //-----------------------------------
@@ -228,15 +228,12 @@ impl DetailsWindow {
                 .downcast::<gio::ListStore>()
                 .expect("Must be a 'ListStore'");
 
-            if let Some(s) = root_model.item(0)
+            if let Some(obj) = root_model.item(0)
                 .and_downcast::<gtk::StringObject>()
             {
-                let mut dep_set = HashSet::new();
-                dep_set.insert(s.string().to_string());
+                imp.dep_map.replace(HashMap::from([(obj.string().to_string(), None)]));
 
-                imp.dep_set.replace(dep_set);
-
-                root_model.splice(0, 1, &[s]);
+                root_model.splice(0, 1, &[obj]);
             }
         }));
 
@@ -248,14 +245,14 @@ impl DetailsWindow {
                         .downcast::<gtk::TreeListRow>()
                         .expect("Must be a 'TreeListRow'");
 
-                    let s = row.item()
+                    let obj = row.item()
                         .and_downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
                     format!("{}{}{}",
                         format!("{:width$}", "", width=(row.depth() as usize) * 2),
                         if row.children().is_some() { "\u{25BE} " } else { "  " },
-                        s.string()
+                        obj.string()
                     )
                 })
                 .collect::<Vec<String>>()
@@ -293,11 +290,11 @@ impl DetailsWindow {
         imp.files_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
-                    let s = item
+                    let obj = item
                         .downcast::<gtk::StringObject>()
                         .expect("Must be a 'StringObject'");
 
-                    s.string()
+                    obj.string()
                 })
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
@@ -457,41 +454,37 @@ impl DetailsWindow {
 
         imp.pkg_map.set(pkg_map).unwrap();
 
-        // Build and store dependency list (avoid duplicates)
-        let mut dep_set = HashSet::new();
-        dep_set.insert(pkg.name());
-
-        imp.dep_set.replace(dep_set);
+        // Build and store dependency hash map (avoid duplicates)
+        imp.dep_map.replace(HashMap::from([(pkg.name(), None)]));
 
         // Create and store tree model
-        let root_model = gio::ListStore::new::<gtk::StringObject>();
-        root_model.append(&gtk::StringObject::new(&pkg.name()));
+        let root_model = gio::ListStore::from_iter([gtk::StringObject::new(&pkg.name())]);
 
         let tree_model = gtk::TreeListModel::new(root_model, false, true, clone!(@weak imp => @default-return None, move |item| {
-            let s = item.downcast_ref::<gtk::StringObject>()
+            let obj = item.downcast_ref::<gtk::StringObject>()
                 .expect("Must be a 'StringObject'");
 
             let pkg_map = imp.pkg_map.get().unwrap();
-            let mut dep_set = imp.dep_set.borrow_mut();
+            let mut dep_map = imp.dep_map.borrow_mut();
 
-            if let Some(pkg) = pkg_map.get(&s.string().to_string()) {
+            if let Some(pkg) = pkg_map.get(&obj.string().to_string()) {
                 let mut deps: Vec<String> = if imp.tree_reverse_button.is_active() {
                     pkg.required_by()
                 } else {
                     pkg.depends()
                 };
 
-                deps.retain(|dep| !dep_set.contains(dep));
+                deps.retain(|dep| {
+                    !dep_map.contains_key(dep) ||
+                    dep_map.get(dep).filter(|&parent| parent == &Some(pkg.name())).is_some()
+                });
+
+                dep_map.extend(deps.iter().map(|dep| (dep.to_string(), Some(pkg.name()))));
 
                 if !deps.is_empty() {
                     return Some(gio::ListStore::from_iter(deps.iter()
-                        .map(|dep| {
-                            dep_set.insert(dep.to_string());
-
-                            gtk::StringObject::new(dep)
-                        }
-                    ))
-                    .upcast::<gio::ListModel>())
+                        .map(|dep| gtk::StringObject::new(dep)))
+                        .upcast::<gio::ListModel>())
                 }
             }
 
