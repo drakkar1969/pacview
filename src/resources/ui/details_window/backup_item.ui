@@ -29,7 +29,7 @@
         <child>
           <object class="GtkLabel">
             <binding name="label">
-              <lookup name="status" type="BackupObject">
+              <lookup name="status-text" type="BackupObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>

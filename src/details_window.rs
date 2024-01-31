@@ -12,7 +12,7 @@ use glob::glob;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
-use crate::backup_object::BackupObject;
+use crate::backup_object::{BackupObject, BackupStatus};
 
 //------------------------------------------------------------------------------
 // MODULE: DetailsWindow
@@ -354,7 +354,7 @@ impl DetailsWindow {
         imp.backup_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
                 .map(|item| {
-                    format!("{filename} ({status})", filename=item.filename(), status=item.status())
+                    format!("{filename} ({status})", filename=item.filename(), status=item.status_text())
                 })
                 .collect::<Vec<String>>()
                 .join("\n");
@@ -641,12 +641,12 @@ impl DetailsWindow {
             .map(|backup| {
                 if let Ok(file_hash) = alpm::compute_md5sum(backup.filename.to_string()) {
                     if file_hash == backup.hash {
-                        BackupObject::new(&backup.filename, "backup-unmodified-symbolic", "unmodified")
+                        BackupObject::new(&backup.filename, BackupStatus::Unmodified)
                     } else {
-                        BackupObject::new(&backup.filename, "backup-modified-symbolic", "modified")
+                        BackupObject::new(&backup.filename, BackupStatus::Modified)
                     }
                 } else {
-                    BackupObject::new(&backup.filename, "backup-error-symbolic", "read error")
+                    BackupObject::new(&backup.filename, BackupStatus::Error)
                 }
             })
             .collect();

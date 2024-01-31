@@ -5,6 +5,24 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
 //------------------------------------------------------------------------------
+// ENUM: BackupStatus
+//------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "BackupStatus")]
+pub enum BackupStatus {
+    Unmodified = 0,
+    Modified = 1,
+    Error = 2,
+}
+
+impl Default for BackupStatus {
+    fn default() -> Self {
+        BackupStatus::Unmodified
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: BackupObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -21,7 +39,7 @@ mod imp {
         #[property(get, set)]
         status_icon: RefCell<String>,
         #[property(get, set)]
-        status: RefCell<String>,
+        status_text: RefCell<String>,
     }
 
     //-----------------------------------
@@ -48,12 +66,24 @@ impl BackupObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(filename: &str, status_icon: &str, status: &str) -> Self {
+    pub fn new(filename: &str, status: BackupStatus) -> Self {
+        let status_icon = match status {
+            BackupStatus::Unmodified => "backup-unmodified-symbolic",
+            BackupStatus::Modified => "backup-modified-symbolic",
+            BackupStatus::Error => "backup-error-symbolic"
+        };
+
+        let status_text = match status {
+            BackupStatus::Unmodified => "unmodified",
+            BackupStatus::Modified => "modified",
+            BackupStatus::Error => "read error"
+        };
+
         // Build BackupObject
         glib::Object::builder()
             .property("filename", filename)
             .property("status-icon", status_icon)
-            .property("status", status)
+            .property("status-text", status_text)
             .build()
     }
 }
