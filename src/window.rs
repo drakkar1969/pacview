@@ -477,7 +477,7 @@ impl PacViewWindow {
 
         // Add view copy list shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>L"),
+            gtk::ShortcutTrigger::parse_string("<alt>C"),
             Some(gtk::NamedAction::new("win.copy-list"))
         ));
 
