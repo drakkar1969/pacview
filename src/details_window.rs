@@ -1,6 +1,6 @@
 use std::cell::{RefCell, OnceCell};
 use std::fs;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -8,7 +8,9 @@ use gtk::prelude::*;
 use glib::clone;
 
 use regex::Regex;
+use fancy_regex::Regex as FancyRegex;
 use glob::glob;
+use lazy_static::lazy_static;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
@@ -444,6 +446,11 @@ impl DetailsWindow {
         pkg_map.extend(pkg_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
         pkg_map.extend(aur_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
 
+        // Create regex for provides
+        lazy_static! {
+            static ref EXPR: FancyRegex = FancyRegex::new("^([a-zA-Z0-9@._+-]+)(?=<|>|=|:|$)").unwrap();
+        }
+
         // Create and store tree model
         let root_model = gio::ListStore::from_iter([gtk::StringObject::new(&pkg.name())]);
 
@@ -454,23 +461,50 @@ impl DetailsWindow {
             let mut dep_map = imp.tree_dep_map.borrow_mut();
 
             if let Some(pkg) = pkg_map.get(&obj.string().to_string()) {
-                let mut deps: Vec<String> = if imp.tree_reverse_button.is_active() {
+                let deps: HashSet<String> = if imp.tree_reverse_button.is_active() {
                     pkg.required_by()
                 } else {
                     pkg.depends()
-                };
+                }
+                .into_iter()
+                .filter_map(|dep| {
+                    if pkg_map.contains_key(&dep) {
+                        return Some(dep)
+                    } else if let Some(m) = EXPR.captures(&dep)
+                        .ok()
+                        .flatten()
+                        .and_then(|caps| caps.get(1))
+                    {
+                        let dep_name = m.as_str();
 
-                deps.retain(|dep| {
+                        if pkg_map.contains_key(dep_name) {
+                            return Some(dep)
+                        } else {
+                            if let Some((name, _)) = pkg_map.iter()
+                                .find(|(_, pkg)| {
+                                    pkg.provides().iter().any(|s| s.contains(dep_name))
+                                })
+                            {
+                                return Some(name.to_string())
+                            }
+                        }
+                    }
+
+                    None
+                })
+                .filter(|dep| {
                     !dep_map.contains_key(dep) ||
                     dep_map.get(dep).filter(|&parent| parent == &Some(pkg.name())).is_some()
-                });
-
-                dep_map.extend(deps.iter().map(|dep| (dep.to_string(), Some(pkg.name()))));
+                })
+                .collect();
 
                 if !deps.is_empty() {
+                    dep_map.extend(deps.iter().map(|dep| (dep.to_string(), Some(pkg.name()))));
+
                     return Some(gio::ListStore::from_iter(deps.iter()
                         .map(|dep| gtk::StringObject::new(dep)))
-                        .upcast::<gio::ListModel>())
+                        .upcast::<gio::ListModel>()
+                    )
                 }
             }
 
