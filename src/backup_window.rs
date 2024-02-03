@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -173,6 +175,7 @@ impl BackupWindow {
     fn update_ui(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
+        // Populate column view
         let mut backup_vec: Vec<BackupObject> = vec![];
 
         pkg_model.iter::<PkgObject>()
@@ -191,6 +194,28 @@ impl BackupWindow {
 
         imp.model.extend_from_slice(&backup_vec);
 
+        // Bind item count to window title
+        imp.selection.bind_property("n-items", self, "title")
+            .transform_to(move |binding, n_items: u32| {
+                let selection = binding.source()
+                    .and_downcast::<gtk::SingleSelection>()
+                    .expect("Must be a 'SingleSelection'");
+
+                let n_packages = selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| {
+                        item.downcast::<BackupObject>().ok().and_then(|obj| obj.package())
+                    })
+                    .collect::<HashSet<String>>()
+                    .len();
+
+                Some(format!("{n_items} Backup File{term} in {n_packages} Package{term}",
+                    term=if n_packages != 1 { "s" } else { "" }))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Set initial focus on column view
         imp.view.grab_focus();
     }
 }
