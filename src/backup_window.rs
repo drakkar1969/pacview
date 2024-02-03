@@ -19,9 +19,14 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
     pub struct BackupWindow {
         #[template_child]
+        pub filter_dropdown: TemplateChild<gtk::DropDown>,
+
+        #[template_child]
         pub view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub status_filter: TemplateChild<gtk::StringFilter>,
     }
 
     //-----------------------------------
@@ -51,7 +56,10 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            self.obj().setup_shortcuts();
+            let obj = self.obj();
+
+            obj.setup_signals();
+            obj.setup_shortcuts();
         }
     }
 
@@ -81,6 +89,26 @@ impl BackupWindow {
         window.update_ui(pkg_model);
 
         window
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        imp.filter_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {
+            if let Some(sel) = dropdown.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .and_then(|obj| Some(obj.string().to_lowercase()))
+            {
+                if sel == "all" {
+                    imp.status_filter.set_search(None);
+                } else {
+                    imp.status_filter.set_search(Some(&sel));
+                }
+            }
+        }));
     }
 
     //-----------------------------------
