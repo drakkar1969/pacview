@@ -36,6 +36,9 @@
     <file compressed="true">icons-dark/pkg-optional.svg</file>
     <file compressed="true">icons-dark/pkg-orphan.svg</file>
     <file compressed="true">icons-dark/pkg-update.svg</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/file_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/package_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/tree_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
@@ -52,6 +55,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/packages_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>

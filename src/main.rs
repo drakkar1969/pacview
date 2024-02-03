@@ -10,6 +10,7 @@ mod property_label;
 mod property_value;
 mod preferences_window;
 mod stats_window;
+mod backup_window;
 mod toggle_button;
 mod details_window;
 mod pkg_object;

@@ -24,6 +24,7 @@ use crate::package_view::PackageView;
 use crate::info_pane::{InfoPane, PropID};
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
+use crate::backup_window::BackupWindow;
 use crate::preferences_window::PreferencesWindow;
 use crate::details_window::DetailsWindow;
 use crate::utils::Utils;
@@ -352,6 +353,20 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add package view show backup files action
+        let backup_action = gio::ActionEntry::<PacViewWindow>::builder("show-backup-files")
+            .activate(|window, _, _| {
+                let imp = window.imp();
+
+                let stats_window = BackupWindow::new(
+                    window.upcast_ref(),
+                    &imp.package_view.imp().pkg_model
+                );
+
+                stats_window.present();
+            })
+            .build();
+
         // Add package view copy list action
         let copy_action = gio::ActionEntry::<PacViewWindow>::builder("copy-list")
             .activate(|window, _, _| {
@@ -374,7 +389,7 @@ impl PacViewWindow {
             .build();
 
         // Add package view actions to window
-        self.add_action_entries([refresh_action, stats_action, copy_action]);
+        self.add_action_entries([refresh_action, stats_action, backup_action, copy_action]);
 
         // Bind package view item count to copy list action enabled state
         if let Some(copy_action) = self.lookup_action("copy-list") {
@@ -473,6 +488,12 @@ impl PacViewWindow {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>S"),
             Some(gtk::NamedAction::new("win.show-stats"))
+        ));
+
+        // Add view show backup files shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>B"),
+            Some(gtk::NamedAction::new("win.show-backup-files"))
         ));
 
         // Add view copy list shortcut

@@ -4,23 +4,7 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
-//------------------------------------------------------------------------------
-// ENUM: BackupStatus
-//------------------------------------------------------------------------------
-#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
-#[repr(u32)]
-#[enum_type(name = "BackupStatus")]
-pub enum BackupStatus {
-    Unmodified = 0,
-    Modified = 1,
-    Error = 2,
-}
-
-impl Default for BackupStatus {
-    fn default() -> Self {
-        BackupStatus::Unmodified
-    }
-}
+use crate::pkg_object::PkgBackup;
 
 //------------------------------------------------------------------------------
 // MODULE: BackupObject
@@ -40,6 +24,8 @@ mod imp {
         status_icon: RefCell<String>,
         #[property(get, set)]
         status_text: RefCell<String>,
+        #[property(get, set, nullable)]
+        package: RefCell<Option<String>>,
     }
 
     //-----------------------------------
@@ -66,24 +52,23 @@ impl BackupObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(filename: &str, status: BackupStatus) -> Self {
-        let status_icon = match status {
-            BackupStatus::Unmodified => "backup-unmodified-symbolic",
-            BackupStatus::Modified => "backup-modified-symbolic",
-            BackupStatus::Error => "backup-error-symbolic"
-        };
-
-        let status_text = match status {
-            BackupStatus::Unmodified => "unmodified",
-            BackupStatus::Modified => "modified",
-            BackupStatus::Error => "read error"
+    pub fn new(backup: &PkgBackup, package: Option<&str>) -> Self {
+        let (status_icon, status_text) = if let Ok(file_hash) = alpm::compute_md5sum(backup.filename.to_string()) {
+            if file_hash == backup.hash {
+                ("backup-unmodified-symbolic", "unmodified")
+            } else {
+                ("backup-modified-symbolic", "modified")
+            }
+        } else {
+            ("backup-error-symbolic", "read error")
         };
 
         // Build BackupObject
         glib::Object::builder()
-            .property("filename", filename)
+            .property("filename", &backup.filename)
             .property("status-icon", status_icon)
             .property("status-text", status_text)
+            .property("package", package)
             .build()
     }
 }

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// BackupWindow template //-->
+  <template class="BackupWindow" parent="AdwWindow">
+    <property name="default-width">800</property>
+    <property name="default-height">600</property>
+    <property name="modal">True</property>
+    <property name="title">Backup Files</property>
+    <property name="content">
+      <object class="AdwToolbarView" id="toolbar_view">
+        <child type="top">
+          <object class="AdwHeaderBar" id="header_bar">
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkBox" id="view_box">
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">24</property>
+            <style>
+              <class name="card"/>
+            </style>
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <property name="margin-start">16</property>
+                <property name="margin-end">16</property>
+                <property name="margin-top">16</property>
+                <property name="margin-bottom">16</property>
+                <property name="child">
+                  <object class="GtkColumnView" id="view">
+                    <property name="reorderable">False</property>
+                    <property name="model">
+                      <object class="GtkSingleSelection" id="selection">
+                        <property name="model">
+                          <object class="GtkSortListModel" id="sort_model">
+                            <property name="model">
+                              <object class="GListStore" id="model">
+                                <property name="item-type">BackupObject</property>
+                              </object>
+                            </property>
+                            <binding name="sorter">
+                              <lookup name="sorter">view</lookup>
+                            </binding>
+                          </object>
+                        </property>
+                      </object>
+                    </property>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="package_column">
+                        <property name="title">Package</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/package_item.ui</property>
+                          </object>
+                        </property>
+                        <property name="sorter">
+                          <object class="GtkStringSorter">
+                            <property name="expression">
+                              <lookup name="package" type="BackupObject"/>
+                            </property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="file_column">
+                        <property name="title">File</property>
+                        <property name="expand">True</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/file_item.ui</property>
+                          </object>
+                        </property>
+                        <property name="sorter">
+                          <object class="GtkStringSorter">
+                            <property name="expression">
+                              <lookup name="filename" type="BackupObject"/>
+                            </property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="status_column">
+                        <property name="title">Status</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
+                          </object>
+                        </property>
+                        <property name="sorter">
+                          <object class="GtkStringSorter">
+                            <property name="expression">
+                              <lookup name="status-text" type="BackupObject"/>
+                            </property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>

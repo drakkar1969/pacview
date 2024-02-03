@@ -12,7 +12,7 @@ use glob::glob;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
-use crate::backup_object::{BackupObject, BackupStatus};
+use crate::backup_object::BackupObject;
 
 //------------------------------------------------------------------------------
 // MODULE: DetailsWindow
@@ -634,17 +634,7 @@ impl DetailsWindow {
 
         // Populate backup list
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
-            .map(|backup| {
-                if let Ok(file_hash) = alpm::compute_md5sum(backup.filename.to_string()) {
-                    if file_hash == backup.hash {
-                        BackupObject::new(&backup.filename, BackupStatus::Unmodified)
-                    } else {
-                        BackupObject::new(&backup.filename, BackupStatus::Modified)
-                    }
-                } else {
-                    BackupObject::new(&backup.filename, BackupStatus::Error)
-                }
-            })
+            .map(|backup| BackupObject::new(backup, None))
             .collect();
 
         imp.backup_model.splice(0, 0, &backup_list);
