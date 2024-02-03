@@ -22,16 +22,9 @@
             <property name="margin-bottom">24</property>
             <child>
               <object class="GtkBox" id="toolbar_box">
-                <property name="spacing">8</property>
-                <property name="margin-start">6</property>
-                <child>
-                  <object class="GtkLabel" id="filter_label">
-                    <property name="label">Backup Status:</property>
-                  </object>
-                </child>
                 <child>
                   <object class="GtkDropDown" id="filter_dropdown">
-                    <property name="width-request">140</property>
+                    <property name="width-request">160</property>
                     <property name="model">
                       <object class="GtkStringList">
                         <items>
