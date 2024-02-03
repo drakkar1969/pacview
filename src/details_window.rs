@@ -1,6 +1,4 @@
-use std::cell::{RefCell, OnceCell};
 use std::fs;
-use std::collections::{HashMap, HashSet};
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -8,9 +6,7 @@ use gtk::prelude::*;
 use glib::clone;
 
 use regex::Regex;
-use fancy_regex::Regex as FancyRegex;
 use glob::glob;
-use lazy_static::lazy_static;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
@@ -35,8 +31,6 @@ mod imp {
         #[template_child]
         pub content_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub tree_button: TemplateChild<ToggleButton>,
-        #[template_child]
         pub files_button: TemplateChild<ToggleButton>,
         #[template_child]
         pub log_button: TemplateChild<ToggleButton>,
@@ -44,29 +38,6 @@ mod imp {
         pub cache_button: TemplateChild<ToggleButton>,
         #[template_child]
         pub backup_button: TemplateChild<ToggleButton>,
-
-        #[template_child]
-        pub tree_header_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub tree_search_entry: TemplateChild<gtk::SearchEntry>,
-        #[template_child]
-        pub tree_reverse_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
-        pub tree_copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub tree_view: TemplateChild<gtk::ListView>,
-        #[template_child]
-        pub tree_filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
-        pub tree_selection: TemplateChild<gtk::SingleSelection>,
-        #[template_child]
-        pub tree_name_filter: TemplateChild<gtk::StringFilter>,
-        #[template_child]
-        pub tree_depth_filter: TemplateChild<gtk::CustomFilter>,
-        #[template_child]
-        pub tree_depth_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub tree_depth_scale: TemplateChild<gtk::Scale>,
 
         #[template_child]
         pub files_header_label: TemplateChild<gtk::Label>,
@@ -117,9 +88,6 @@ mod imp {
         pub backup_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub backup_selection: TemplateChild<gtk::SingleSelection>,
-
-        pub tree_model: OnceCell<gtk::TreeListModel>,
-        pub tree_dep_map: RefCell<HashMap<String, Option<String>>>
     }
 
     //-----------------------------------
@@ -178,7 +146,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore, aur_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &gtk::Window, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -187,8 +155,6 @@ impl DetailsWindow {
 
         win.update_ui_banner(pkg);
         win.update_ui_stack(installed);
-
-        win.update_ui_tree_page(pkg, pkg_model, aur_model);
 
         if installed {
             win.update_ui_files_page(pkg);
@@ -205,63 +171,6 @@ impl DetailsWindow {
     //-----------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
-
-        // Tree search entry search changed signal
-        imp.tree_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
-            imp.tree_name_filter.set_search(Some(&entry.text()));
-        }));
-
-        // Tree reverse button toggled signal
-        imp.tree_reverse_button.connect_toggled(clone!(@weak imp => move |_| {
-            let tree_model = imp.tree_model.get().unwrap();
-
-            let root_model = tree_model.model()
-                .downcast::<gio::ListStore>()
-                .expect("Must be a 'ListStore'");
-
-            if let Some(obj) = root_model.item(0)
-                .and_downcast::<gtk::StringObject>()
-            {
-                imp.tree_dep_map.replace(HashMap::from([(obj.string().to_string(), None)]));
-
-                root_model.splice(0, 1, &[obj]);
-            }
-        }));
-
-        // Tree copy button clicked signal
-        imp.tree_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            let copy_text = imp.tree_selection.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let row = item
-                        .downcast::<gtk::TreeListRow>()
-                        .expect("Must be a 'TreeListRow'");
-
-                    let obj = row.item()
-                        .and_downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'");
-
-                    format!("{}{}{}",
-                        format!("{:width$}", "", width=(row.depth() as usize) * 2),
-                        if row.children().is_some() { "\u{25BE} " } else { "  " },
-                        obj.string()
-                    )
-                })
-                .collect::<Vec<String>>()
-                .join("\n");
-
-            window.clipboard().set_text(&copy_text);
-        }));
-
-        // Tree scale value changed signal
-        imp.tree_depth_scale.connect_value_changed(clone!(@weak self as window, @weak imp => move |scale| {
-            if scale.value() == imp.tree_depth_scale.adjustment().upper() {
-                imp.tree_depth_label.set_label("All");
-            } else {
-                imp.tree_depth_label.set_label(&scale.value().to_string());
-            }
-
-            imp.tree_depth_filter.changed(gtk::FilterChange::Different);
-        }));
 
         // Files search entry search changed signal
         imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
@@ -366,7 +275,7 @@ impl DetailsWindow {
         // Add set tab action
         let tab_action = gio::ActionEntry::<DetailsWindow>::builder("set-tab")
             .parameter_type(Some(&str::static_variant_type()))
-            .state("tree".to_variant())
+            .state("files".to_variant())
             .change_state(|window, action, state| {
                 let state = state
                     .expect("Must be a 'Variant'");
@@ -426,115 +335,6 @@ impl DetailsWindow {
         imp.log_button.set_sensitive(installed);
         imp.cache_button.set_sensitive(installed);
         imp.backup_button.set_sensitive(installed);
-    }
-
-    //-----------------------------------
-    // Update tree page
-    //-----------------------------------
-    fn update_ui_tree_page(&self, pkg: &PkgObject, pkg_model: &gio::ListStore, aur_model: &gio::ListStore) {
-        let imp = self.imp();
-
-        // Set files search entry key capture widget
-        imp.tree_search_entry.set_key_capture_widget(Some(&imp.tree_view.get().upcast::<gtk::Widget>()));
-
-        // Build and store dependency hash map (avoid duplicates)
-        imp.tree_dep_map.replace(HashMap::from([(pkg.name(), None)]));
-
-        // Build package hash map
-        let mut pkg_map: HashMap<String, PkgObject> = HashMap::new();
-
-        pkg_map.extend(pkg_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
-        pkg_map.extend(aur_model.iter::<PkgObject>().flatten().map(|pkg| (pkg.name(), pkg)));
-
-        // Create regex for provides
-        lazy_static! {
-            static ref EXPR: FancyRegex = FancyRegex::new("^([a-zA-Z0-9@._+-]+)(?=<|>|=|:|$)").unwrap();
-        }
-
-        // Create and store tree model
-        let root_model = gio::ListStore::from_iter([gtk::StringObject::new(&pkg.name())]);
-
-        let tree_model = gtk::TreeListModel::new(root_model, false, true, clone!(@weak imp => @default-return None, move |item| {
-            let obj = item.downcast_ref::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
-
-            let mut dep_map = imp.tree_dep_map.borrow_mut();
-
-            if let Some(pkg) = pkg_map.get(&obj.string().to_string()) {
-                let deps: HashSet<String> = if imp.tree_reverse_button.is_active() {
-                    pkg.required_by()
-                } else {
-                    pkg.depends()
-                }
-                .into_iter()
-                .filter_map(|dep| {
-                    if pkg_map.contains_key(&dep) {
-                        return Some(dep)
-                    } else if let Some(m) = EXPR.captures(&dep)
-                        .ok()
-                        .flatten()
-                        .and_then(|caps| caps.get(1))
-                    {
-                        let dep_name = m.as_str();
-
-                        if pkg_map.contains_key(dep_name) {
-                            return Some(dep)
-                        } else {
-                            if let Some((name, _)) = pkg_map.iter()
-                                .find(|(_, pkg)| {
-                                    pkg.provides().iter().any(|s| s.contains(dep_name))
-                                })
-                            {
-                                return Some(name.to_string())
-                            }
-                        }
-                    }
-
-                    None
-                })
-                .filter(|dep| {
-                    !dep_map.contains_key(dep) ||
-                    dep_map.get(dep).filter(|&parent| parent == &Some(pkg.name())).is_some()
-                })
-                .collect();
-
-                if !deps.is_empty() {
-                    dep_map.extend(deps.iter().map(|dep| (dep.to_string(), Some(pkg.name()))));
-
-                    return Some(gio::ListStore::from_iter(deps.iter()
-                        .map(|dep| gtk::StringObject::new(dep)))
-                        .upcast::<gio::ListModel>()
-                    )
-                }
-            }
-
-            None
-        }));
-
-        imp.tree_filter_model.set_model(Some(&tree_model));
-
-        imp.tree_model.set(tree_model).unwrap();
-
-        // Set tree model filter function
-        imp.tree_depth_filter.set_filter_func(clone!(@weak imp => @default-return false, move |item| {
-            let row = item
-                .downcast_ref::<gtk::TreeListRow>()
-                .expect("Must be a 'TreeListRow'");
-
-            let depth = imp.tree_depth_scale.value();
-
-            if depth == imp.tree_depth_scale.adjustment().upper() {
-                true
-            } else {
-                (row.depth() as f64) <= depth
-            }
-        }));
-
-        // Bind reverse toggle button state to tree header label
-        imp.tree_reverse_button.bind_property("active", &imp.tree_header_label.get(), "label")
-            .transform_to(move |_, active: bool| if active { Some("Required By") } else { Some("Dependencies") })
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
     }
 
     //-----------------------------------

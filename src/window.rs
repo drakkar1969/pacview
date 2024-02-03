@@ -424,8 +424,7 @@ impl PacViewWindow {
                         window.upcast_ref(),
                         &pkg,
                         &imp.pacman_config.borrow(),
-                        &imp.package_view.imp().pkg_model,
-                        &imp.package_view.imp().aur_model
+                        &imp.package_view.imp().pkg_model
                     );
 
                     details_window.present();
