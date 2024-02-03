@@ -146,6 +146,11 @@ impl BackupWindow {
 
             window.clipboard().set_text(&copy_text);
         }));
+
+        // Column view activate signal
+        imp.view.connect_activate(clone!(@weak imp => move |_, _| {
+            imp.open_button.emit_clicked();
+        }));
     }
 
     //-----------------------------------
