@@ -222,7 +222,7 @@ impl DetailsWindow {
             {
                 imp.tree_dep_map.replace(HashMap::from([(obj.string().to_string(), None)]));
 
-                root_model.extend_from_slice(&[obj]);
+                root_model.splice(0, 1, &[obj]);
             }
         }));
 
