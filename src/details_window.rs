@@ -222,7 +222,7 @@ impl DetailsWindow {
             {
                 imp.tree_dep_map.replace(HashMap::from([(obj.string().to_string(), None)]));
 
-                root_model.splice(0, 1, &[obj]);
+                root_model.extend_from_slice(&[obj]);
             }
         }));
 
@@ -517,7 +517,7 @@ impl DetailsWindow {
             .map(|s| gtk::StringObject::new(s))
             .collect();
 
-        imp.files_model.splice(0, 0, &files_list);
+        imp.files_model.extend_from_slice(&files_list);
 
         // Bind files count to files header label
         let files_len = files_list.len();
@@ -559,7 +559,7 @@ impl DetailsWindow {
                 )
                 .collect();
 
-            imp.log_model.splice(0, 0, &log_lines);
+            imp.log_model.extend_from_slice(&log_lines);
         }
 
         // Set copy button state
@@ -603,7 +603,7 @@ impl DetailsWindow {
                 })
                 .collect();
 
-            imp.cache_model.splice(0, 0, &cache_list);
+            imp.cache_model.extend_from_slice(&cache_list);
         }
 
         // Set cache header label
@@ -627,7 +627,7 @@ impl DetailsWindow {
             .map(|backup| BackupObject::new(backup, None))
             .collect();
 
-        imp.backup_model.splice(0, 0, &backup_list);
+        imp.backup_model.extend_from_slice(&backup_list);
 
         // Set backup header label
         let n_items = imp.backup_model.n_items();
