@@ -151,17 +151,13 @@ impl DetailsWindow {
             .property("transient-for", parent)
             .build();
 
-        let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
-
         win.update_ui_banner(pkg);
-        win.update_ui_stack(installed);
+        win.update_ui_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
 
-        if installed {
-            win.update_ui_files_page(pkg);
-            win.update_ui_logs_page(pkg, &pacman_config.log_file);
-            win.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_model);
-            win.update_ui_backup_page(pkg);
-        }
+        win.update_ui_files_page(pkg);
+        win.update_ui_logs_page(pkg, &pacman_config.log_file);
+        win.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_model);
+        win.update_ui_backup_page(pkg);
 
         win
     }
