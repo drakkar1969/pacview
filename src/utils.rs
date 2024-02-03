@@ -2,7 +2,7 @@ use std::process::Command;
 use std::io::prelude::*;
 
 use gtk::{glib, gio};
-use gtk::prelude::{FileExt, OutputStreamExt};
+use gtk::prelude::{AppInfoExt, FileExt, OutputStreamExt};
 
 use flate2::read::GzDecoder;
 
@@ -88,6 +88,17 @@ impl Utils {
                 .and_then(|datetime| datetime.format(format))
                 .expect("Datetime error")
                 .to_string()
+        }
+    }
+
+    //-----------------------------------
+    // Open file manager function
+    //-----------------------------------
+    pub fn open_file_manager(path: &str) {
+        if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
+            let path = format!("file://{path}");
+
+            let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
         }
     }
 }

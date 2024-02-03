@@ -13,6 +13,7 @@ use glob::glob;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::toggle_button::ToggleButton;
 use crate::backup_object::BackupObject;
+use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
 // MODULE: DetailsWindow
@@ -198,17 +199,6 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Open file manager helper function
-    //-----------------------------------
-    fn open_file_manager(&self, path: &str) {
-        if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-            let path = format!("file://{path}");
-
-            let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
-        }
-    }
-
-    //-----------------------------------
     // Setup signals
     //-----------------------------------
     fn setup_signals(&self) {
@@ -277,12 +267,12 @@ impl DetailsWindow {
         }));
 
         // Files open button clicked signal
-        imp.files_open_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.files_open_button.connect_clicked(clone!(@weak imp => move |_| {
             let item = imp.files_selection.selected_item()
                 .and_downcast::<gtk::StringObject>()
                 .expect("Must be a 'StringObject'");
 
-            window.open_file_manager(&item.string());
+            Utils::open_file_manager(&item.string());
         }));
 
         // Files copy button clicked signal
@@ -317,12 +307,12 @@ impl DetailsWindow {
         }));
 
         // Cache open button clicked signal
-        imp.cache_open_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.cache_open_button.connect_clicked(clone!(@weak imp => move |_| {
             let item = imp.cache_selection.selected_item()
                 .and_downcast::<gtk::StringObject>()
                 .expect("Must be a 'StringObject'");
 
-            window.open_file_manager(&item.string());
+            Utils::open_file_manager(&item.string());
         }));
 
         // Cache copy button clicked signal
@@ -341,12 +331,12 @@ impl DetailsWindow {
         }));
 
         // Backup open button clicked signal
-        imp.backup_open_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.backup_open_button.connect_clicked(clone!(@weak imp => move |_| {
             let item = imp.backup_selection.selected_item()
                 .and_downcast::<BackupObject>()
                 .expect("Must be a 'BackupObject'");
 
-            window.open_file_manager(&item.filename());
+            Utils::open_file_manager(&item.filename());
         }));
 
         // Backup copy button clicked signal
