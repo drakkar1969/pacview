@@ -171,17 +171,22 @@ impl BackupWindow {
     fn update_ui(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
+        let mut backup_vec: Vec<BackupObject> = vec![];
+
         pkg_model.iter::<PkgObject>()
             .flatten()
             .for_each(|pkg| {
                 if !pkg.backup().is_empty() {
-                    imp.model.extend_from_slice(&pkg.backup().iter()
+                    backup_vec.extend(pkg.backup().iter()
                         .map(|backup| BackupObject::new(backup, Some(&pkg.name())))
-                        .collect::<Vec<BackupObject>>()
                     );
                 }
             });
 
-        imp.view.sort_by_column(imp.view.columns().item(0).and_downcast::<gtk::ColumnViewColumn>().as_ref(), gtk::SortType::Ascending)
+        backup_vec.sort_unstable_by(|a, b| {
+            a.package().cmp(&b.package())
+        });
+
+        imp.model.extend_from_slice(&backup_vec);
     }
 }
