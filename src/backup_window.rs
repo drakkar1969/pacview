@@ -116,6 +116,8 @@ impl BackupWindow {
                     imp.status_filter.set_search(Some(&sel));
                 }
             }
+
+            imp.view.grab_focus();
         }));
 
         // Open button clicked signal
@@ -188,5 +190,7 @@ impl BackupWindow {
         });
 
         imp.model.extend_from_slice(&backup_vec);
+
+        imp.view.grab_focus();
     }
 }
