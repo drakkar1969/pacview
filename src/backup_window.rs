@@ -194,7 +194,7 @@ impl BackupWindow {
             });
 
         backup_vec.sort_unstable_by(|a, b| {
-            a.package().cmp(&b.package())
+            a.package().cmp(&b.package()).then(a.filename().cmp(&b.filename()))
         });
 
         imp.model.extend_from_slice(&backup_vec);
