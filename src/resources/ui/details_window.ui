@@ -92,6 +92,20 @@
                   <class name="card"/>
                 </style>
                 <child>
+                  <object class="GtkStackPage" id="none_page">
+                    <property name="name">none</property>
+                    <property name="child">
+                      <object class="GtkLabel">
+                        <property name="label">No information available</property>
+                        <style>
+                          <class name="title-4"/>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkStackPage" id="files_page">
                     <property name="name">files</property>
                     <property name="child">

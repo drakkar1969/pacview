@@ -271,7 +271,7 @@ impl DetailsWindow {
         // Add set tab action
         let tab_action = gio::ActionEntry::<DetailsWindow>::builder("set-tab")
             .parameter_type(Some(&str::static_variant_type()))
-            .state("files".to_variant())
+            .state("none".to_variant())
             .change_state(|window, action, state| {
                 let state = state
                     .expect("Must be a 'Variant'");
@@ -326,6 +326,10 @@ impl DetailsWindow {
     //-----------------------------------
     fn update_ui_stack(&self, installed: bool) {
         let imp = self.imp();
+
+        if installed {
+            imp.files_button.emit_clicked();
+        }
 
         imp.files_button.set_sensitive(installed);
         imp.log_button.set_sensitive(installed);
