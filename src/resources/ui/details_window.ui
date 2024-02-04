@@ -45,39 +45,59 @@
                 <property name="homogeneous">True</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="ToggleButton" id="files_button">
+                  <object class="GtkToggleButton" id="files_button">
                     <property name="active">True</property>
-                    <property name="icon">details-files-symbolic</property>
-                    <property name="text">Files</property>
                     <property name="action-name">win.set-tab</property>
                     <property name="action-target">"files"</property>
+                    <property name="child">
+                      <object class="AdwButtonContent">
+                        <property name="halign">center</property>
+                        <property name="icon-name">details-files-symbolic</property>
+                        <property name="label">Files</property>
+                      </object>
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="ToggleButton" id="log_button">
+                  <object class="GtkToggleButton" id="log_button">
                     <property name="group">files_button</property>
-                    <property name="icon">details-log-symbolic</property>
-                    <property name="text">Log</property>
                     <property name="action-name">win.set-tab</property>
                     <property name="action-target">"log"</property>
+                    <property name="child">
+                      <object class="AdwButtonContent">
+                        <property name="halign">center</property>
+                        <property name="icon-name">details-log-symbolic</property>
+                        <property name="label">Log</property>
+                      </object>
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="ToggleButton" id="cache_button">
+                  <object class="GtkToggleButton" id="cache_button">
                     <property name="group">files_button</property>
-                    <property name="icon">details-cache-symbolic</property>
-                    <property name="text">Cache</property>
                     <property name="action-name">win.set-tab</property>
                     <property name="action-target">"cache"</property>
+                    <property name="child">
+                      <object class="AdwButtonContent">
+                        <property name="halign">center</property>
+                        <property name="icon-name">details-cache-symbolic</property>
+                        <property name="label">Cache</property>
+                      </object>
+                    </property>
                   </object>
                 </child>
                 <child>
-                  <object class="ToggleButton" id="backup_button">
+                  <object class="GtkToggleButton" id="backup_button">
                     <property name="group">files_button</property>
-                    <property name="icon">details-backup-symbolic</property>
-                    <property name="text">Backup</property>
                     <property name="action-name">win.set-tab</property>
                     <property name="action-target">"backup"</property>
+                    <property name="child">
+                      <object class="AdwButtonContent">
+                        <property name="halign">center</property>
+                        <property name="icon-name">details-backup-symbolic</property>
+                        <property name="label">Backup</property>
+                      </object>
+                    </property>
                   </object>
                 </child>
               </object>

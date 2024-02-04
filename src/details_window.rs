@@ -9,7 +9,6 @@ use regex::Regex;
 use glob::glob;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
-use crate::toggle_button::ToggleButton;
 use crate::backup_object::BackupObject;
 use crate::utils::Utils;
 
@@ -31,13 +30,13 @@ mod imp {
         #[template_child]
         pub content_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub files_button: TemplateChild<ToggleButton>,
+        pub files_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub log_button: TemplateChild<ToggleButton>,
+        pub log_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub cache_button: TemplateChild<ToggleButton>,
+        pub cache_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub backup_button: TemplateChild<ToggleButton>,
+        pub backup_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
         pub files_header_label: TemplateChild<gtk::Label>,
@@ -100,7 +99,6 @@ mod imp {
         type ParentType = adw::ApplicationWindow;
 
         fn class_init(klass: &mut Self::Class) {
-            ToggleButton::ensure_type();
             BackupObject::ensure_type();
 
             klass.bind_template();
