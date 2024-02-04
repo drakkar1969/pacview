@@ -2,18 +2,10 @@
 <interface>
   <!--// ToggleButton template //-->
   <template class="ToggleButton" parent="GtkToggleButton">
-    <child>
-      <object class="GtkBox">
-        <property name="hexpand">True</property>
+    <property name="child">
+      <object class="AdwButtonContent" id="content">
         <property name="halign">center</property>
-        <property name="spacing">6</property>
-        <child>
-          <object class="GtkImage" id="image"/>
-        </child>
-        <child>
-          <object class="GtkLabel" id="label"/>
-        </child>
       </object>
-    </child>
+    </property>
   </template>
 </interface>

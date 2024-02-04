@@ -18,9 +18,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/toggle_button.ui")]
     pub struct ToggleButton {
         #[template_child]
-        pub image: TemplateChild<gtk::Image>,
-        #[template_child]
-        pub label: TemplateChild<gtk::Label>,
+        pub content: TemplateChild<adw::ButtonContent>,
 
         #[property(get, set)]
         icon: RefCell<String>,
@@ -90,10 +88,10 @@ impl ToggleButton {
         let imp = self.imp();
 
         // Bind properties to widgets
-        self.bind_property("icon", &imp.image.get(), "icon-name")
+        self.bind_property("icon", &imp.content.get(), "icon-name")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-        self.bind_property("text", &imp.label.get(), "label")
+        self.bind_property("text", &imp.content.get(), "label")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
     }

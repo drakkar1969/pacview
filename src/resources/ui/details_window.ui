@@ -46,7 +46,6 @@
                 <property name="spacing">6</property>
                 <child>
                   <object class="ToggleButton" id="files_button">
-                    <property name="hexpand">True</property>
                     <property name="active">True</property>
                     <property name="icon">details-files-symbolic</property>
                     <property name="text">Files</property>
@@ -56,7 +55,6 @@
                 </child>
                 <child>
                   <object class="ToggleButton" id="log_button">
-                    <property name="hexpand">True</property>
                     <property name="group">files_button</property>
                     <property name="icon">details-log-symbolic</property>
                     <property name="text">Log</property>
@@ -66,7 +64,6 @@
                 </child>
                 <child>
                   <object class="ToggleButton" id="cache_button">
-                    <property name="hexpand">True</property>
                     <property name="group">files_button</property>
                     <property name="icon">details-cache-symbolic</property>
                     <property name="text">Cache</property>
@@ -76,7 +73,6 @@
                 </child>
                 <child>
                   <object class="ToggleButton" id="backup_button">
-                    <property name="hexpand">True</property>
                     <property name="group">files_button</property>
                     <property name="icon">details-backup-symbolic</property>
                     <property name="text">Backup</property>
