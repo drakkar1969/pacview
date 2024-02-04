@@ -344,7 +344,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 let stats_window = StatsWindow::new(
-                    window.upcast_ref(),
+                    window,
                     &imp.pacman_repos.borrow(),
                     &imp.package_view.imp().pkg_model
                 );
@@ -359,7 +359,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 let stats_window = BackupWindow::new(
-                    window.upcast_ref(),
+                    window,
                     &imp.package_view.imp().pkg_model
                 );
 
@@ -421,7 +421,7 @@ impl PacViewWindow {
 
                 if let Some(pkg) = imp.info_pane.pkg() {
                     let details_window = DetailsWindow::new(
-                        window.upcast_ref(),
+                        window,
                         &pkg,
                         &imp.pacman_config.borrow(),
                         &imp.package_view.imp().pkg_model

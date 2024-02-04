@@ -146,7 +146,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -344,7 +344,7 @@ impl DetailsWindow {
         let imp = self.imp();
 
         // Set files search entry key capture widget
-        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get().upcast::<gtk::Widget>()));
+        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
         // Populate files list
         let files_list: Vec<gtk::StringObject> = pkg.files().iter()

@@ -90,7 +90,7 @@ impl BackupWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &impl IsA<gtk::Window>, pkg_model: &gio::ListStore) -> Self {
         let window: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();

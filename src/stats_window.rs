@@ -74,7 +74,7 @@ impl StatsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &gtk::Window, repo_names: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &impl IsA<gtk::Window>, repo_names: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
         let window: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
