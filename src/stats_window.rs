@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -113,53 +111,40 @@ impl StatsWindow {
     fn update_ui(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        // Create count, installed count, installed size maps
-        let mut pcount_map: HashMap<String, i32> = HashMap::new();
-        let mut icount_map: HashMap<String, i32> = HashMap::new();
-        let mut isize_map: HashMap<String, i64> = HashMap::new();
+        // Iterate repos
+        let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
+            .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
+                // Iterate packages per repo
+                let (pcount, icount, isize) = pkg_model.iter::<PkgObject>().flatten()
+                    .filter(|pkg| pkg.repository() == *repo)
+                    .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
+                        pcount += 1;
 
-        for repo in repo_names {
-            pcount_map.insert(repo.to_string(), 0);
-            icount_map.insert(repo.to_string(), 0);
-            isize_map.insert(repo.to_string(), 0);
-        }
+                        if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                            icount += 1;
+                            isize += pkg.install_size()
+                        }
 
-        // Iterate through all packages
-        pkg_model.iter::<PkgObject>().flatten()
-            .for_each(|pkg| {
-                // Increase repository total count
-                pcount_map.entry(pkg.repository()).and_modify(|value| {
-                    *value += 1;
-                });
-
-                // Increase repository installed count/size (if package installed)
-                if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                    icount_map.entry(pkg.repository()).and_modify(|value| {
-                        *value += 1;
+                        (pcount, icount, isize)
                     });
 
-                    isize_map.entry(pkg.repository()).and_modify(|value| {
-                        *value += pkg.install_size();
-                    });
-                }
+                // Add repo item to stats column view
+                imp.model.append(&StatsObject::new(
+                    &titlecase(repo),
+                    &pcount.to_string(),
+                    &icount.to_string(),
+                    &Utils::size_to_string(isize, 2)
+                ));
+
+                (tot_pcount + pcount, tot_icount + icount, tot_isize + isize)
             });
-
-        // Add item to stats column view for each repository
-        for repo in repo_names {
-            imp.model.append(&StatsObject::new(
-                &titlecase(repo),
-                &pcount_map[repo].to_string(),
-                &icount_map[repo].to_string(),
-                &Utils::size_to_string(isize_map[repo], 2)
-            ));
-        }
 
         // Add item with totals to stats column view
         imp.model.append(&StatsObject::new(
             "<b>Total</b>",
-            &format!("<b>{}</b>", pcount_map.values().into_iter().sum::<i32>().to_string()),
-            &format!("<b>{}</b>", icount_map.values().into_iter().sum::<i32>().to_string()),
-            &format!("<b>{}</b>", &Utils::size_to_string(isize_map.values().into_iter().sum::<i64>(), 2))
+            &format!("<b>{}</b>", tot_pcount.to_string()),
+            &format!("<b>{}</b>", tot_icount.to_string()),
+            &format!("<b>{}</b>", &Utils::size_to_string(tot_isize, 2))
         ));
     }
 }
