@@ -188,7 +188,7 @@ impl BackupWindow {
             .for_each(|pkg| {
                 if !pkg.backup().is_empty() {
                     backup_vec.extend(pkg.backup().iter()
-                        .map(|backup| BackupObject::new(backup, Some(&pkg.name())))
+                        .map(|(filename, hash)| BackupObject::new(filename, hash, Some(&pkg.name())))
                     );
                 }
             });

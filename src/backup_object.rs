@@ -4,8 +4,6 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
-use crate::pkg_object::PkgBackup;
-
 //------------------------------------------------------------------------------
 // MODULE: BackupObject
 //------------------------------------------------------------------------------
@@ -52,9 +50,9 @@ impl BackupObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(backup: &PkgBackup, package: Option<&str>) -> Self {
-        let (status_icon, status_text) = if let Ok(file_hash) = alpm::compute_md5sum(backup.filename.to_string()) {
-            if file_hash == backup.hash {
+    pub fn new(filename: &str, hash: &str, package: Option<&str>) -> Self {
+        let (status_icon, status_text) = if let Ok(file_hash) = alpm::compute_md5sum(filename.to_string()) {
+            if file_hash == hash {
                 ("backup-unmodified-symbolic", "unmodified")
             } else {
                 ("backup-modified-symbolic", "modified")
@@ -65,7 +63,7 @@ impl BackupObject {
 
         // Build BackupObject
         glib::Object::builder()
-            .property("filename", &backup.filename)
+            .property("filename", filename)
             .property("status-icon", status_icon)
             .property("status-text", status_text)
             .property("package", package)

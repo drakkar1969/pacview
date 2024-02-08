@@ -456,7 +456,7 @@ impl DetailsWindow {
 
         // Populate backup list
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
-            .map(|backup| BackupObject::new(backup, None))
+            .map(|(filename, hash)| BackupObject::new(filename, hash, None))
             .collect();
 
         imp.backup_model.extend_from_slice(&backup_list);

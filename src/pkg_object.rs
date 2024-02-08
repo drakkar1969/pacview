@@ -33,24 +33,6 @@ impl Default for PkgFlags {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: PkgBackup
-//------------------------------------------------------------------------------
-#[derive(Default, Clone)]
-pub struct PkgBackup {
-    pub filename: String,
-    pub hash: String,
-}
-
-impl PkgBackup {
-    pub fn new(filename: &str, hash: &str) -> Self {
-        Self {
-            filename: filename.to_string(),
-            hash: hash.to_string()
-        }
-    }
-}
-
-//------------------------------------------------------------------------------
 // STRUCT: PkgData
 //------------------------------------------------------------------------------
 #[derive(Default)]
@@ -454,13 +436,13 @@ impl PkgObject {
         files
     }
 
-    pub fn backup(&self) -> Vec<PkgBackup> {
-        let mut backups: Vec<PkgBackup> = vec![];
+    pub fn backup(&self) -> Vec<(String, String)> {
+        let mut backups: Vec<(String, String)> = vec![];
 
         if let Some(pkg) = self.pkg_from_handle() {
              backups.extend(pkg.backup().iter()
-                .map(|bck| PkgBackup::new(&format!("/{}", bck.name()), bck.hash())));
-            backups.sort_unstable_by(|a, b| a.filename.partial_cmp(&b.filename).unwrap());
+                .map(|bck| (format!("/{}", bck.name()), bck.hash().to_string())));
+            backups.sort_unstable_by(|(a_file, _), (b_file, _)| a_file.partial_cmp(b_file).unwrap());
         }
 
         backups
