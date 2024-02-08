@@ -92,16 +92,13 @@ impl PkgData {
             idate = pkg.install_date().unwrap_or(0);
         }
 
-        // Get package repository
-        let repo = syncpkg.db().unwrap().name();
-
         // Build PkgData
         Self {
             is_aur: false,
             flags,
             name: syncpkg.name().to_string(),
             version: syncpkg.version().to_string(),
-            repository: repo.to_string(),
+            repository: syncpkg.db().unwrap().name().to_string(),
             status: match flags {
                 PkgFlags::EXPLICIT => "explicit",
                 PkgFlags::DEPENDENCY => "dependency",
