@@ -129,8 +129,10 @@ impl StatsWindow {
                     });
 
                 // Add repo item to stats column view
+                let repo = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+
                 imp.model.append(&StatsObject::new(
-                    &titlecase(repo),
+                    &repo,
                     &pcount.to_string(),
                     &icount.to_string(),
                     &Utils::size_to_string(isize, 2)
