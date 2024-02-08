@@ -411,6 +411,9 @@ impl PkgObject {
         self.imp().data.borrow().backup.to_owned()
     }
 
+    //-----------------------------------
+    // Public string property getters
+    //-----------------------------------
     pub fn install_date_long(&self) -> String {
         Utils::date_to_string(self.install_date(), "%d %B %Y %H:%M")
     }
@@ -423,20 +426,32 @@ impl PkgObject {
         Utils::size_to_string(self.download_size(), 1)
     }
 
-    pub fn required_by(&self) -> Vec<String> {
-        let mut required_by: Vec<String> = vec![];
-
+    //-----------------------------------
+    // Pkg from handle helper function
+    //-----------------------------------
+    fn pkg_from_handle(&self) -> Option<alpm::Package> {
         if let Some(handle) = self.imp().handle.get() {
             let pkg = if self.flags().intersects(PkgFlags::INSTALLED) {
                 handle.localdb().pkg(self.name())
             } else {
                 handle.syncdbs().pkg(self.name())
-            };
+            }.ok();
 
-            if let Ok(pkg) = pkg {
-                required_by.extend(pkg.required_by());
-                required_by.sort_unstable();
-            }
+            pkg
+        } else {
+            None
+        }
+    }
+
+    //-----------------------------------
+    // Other public property getters
+    //-----------------------------------
+    pub fn required_by(&self) -> Vec<String> {
+        let mut required_by: Vec<String> = vec![];
+
+        if let Some(pkg) = self.pkg_from_handle() {
+            required_by.extend(pkg.required_by());
+            required_by.sort_unstable();
         }
 
         required_by
@@ -445,17 +460,9 @@ impl PkgObject {
     pub fn optional_for(&self) -> Vec<String> {
         let mut optional_for: Vec<String> = vec![];
 
-        if let Some(handle) = self.imp().handle.get() {
-            let pkg = if self.flags().intersects(PkgFlags::INSTALLED) {
-                handle.localdb().pkg(self.name())
-            } else {
-                handle.syncdbs().pkg(self.name())
-            };
-
-            if let Ok(pkg) = pkg {
-                optional_for.extend(pkg.optional_for());
-                optional_for.sort_unstable();
-            }
+        if let Some(pkg) = self.pkg_from_handle() {
+            optional_for.extend(pkg.optional_for());
+            optional_for.sort_unstable();
         }
 
         optional_for
