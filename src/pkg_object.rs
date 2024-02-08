@@ -81,8 +81,6 @@ pub struct PkgData {
     pub has_script: bool,
     pub sha256sum: String,
     pub md5sum: String,
-    pub files: Vec<String>,
-    pub backup: Vec<PkgBackup>,
     pub has_update: bool,
 }
 
@@ -91,11 +89,9 @@ impl PkgData {
     // New functions
     //-----------------------------------
     pub fn from_pkg(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
-        // Defaults for package status flags, install date, files and backup (non-installed)
+        // Defaults for package status flags and install date (non-installed)
         let mut flags = PkgFlags::NONE;
         let mut idate = 0;
-        let mut files_vec: Vec<String> = vec![];
-        let mut backup_vec: Vec<PkgBackup> = vec![];
 
         // If package is installed, update properties from local package
         if let Ok(pkg) = localpkg {
@@ -112,12 +108,6 @@ impl PkgData {
 
             // Get installed date
             idate = pkg.install_date().unwrap_or(0);
-
-            // Get files
-            files_vec.extend(Self::alpm_filelist_to_vec(&pkg.files()));
-
-            // Get backup
-            backup_vec.extend(Self::alpm_backuplist_to_vec(&pkg.backup()));
         }
 
         // Get package repository
@@ -162,8 +152,6 @@ impl PkgData {
             has_script: syncpkg.has_scriptlet(),
             sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
             md5sum: syncpkg.md5sum().unwrap_or_default().to_string(),
-            files: files_vec,
-            backup: backup_vec,
             has_update: false,
         }
     }
@@ -196,8 +184,6 @@ impl PkgData {
             has_script: false,
             sha256sum: "".to_string(),
             md5sum: "".to_string(),
-            files: vec![],
-            backup: vec![],
             has_update: false,
         }
     }
@@ -217,24 +203,6 @@ impl PkgData {
         dep_vec.sort_unstable();
 
         dep_vec
-    }
-
-    fn alpm_filelist_to_vec(list: &alpm::FileList) -> Vec<String> {
-        let mut file_vec: Vec<String> = list.files().iter()
-            .map(|file| format!("/{}", file.name()))
-            .collect();
-        file_vec.sort_unstable();
-
-        file_vec
-    }
-
-    fn alpm_backuplist_to_vec(list: &alpm::AlpmList<alpm::Backup>) -> Vec<PkgBackup> {
-        let mut backup_vec: Vec<PkgBackup> = list.iter()
-            .map(|bck| PkgBackup::new(&format!("/{}", bck.name()), bck.hash()))
-            .collect();
-        backup_vec.sort_unstable_by(|a, b| a.filename.partial_cmp(&b.filename).unwrap());
-
-        backup_vec
     }
 
     fn aur_vec_to_string(vec: &Vec<String>) -> String {
@@ -403,14 +371,6 @@ impl PkgObject {
         self.imp().data.borrow().md5sum.to_owned()
     }
 
-    pub fn files(&self) -> Vec<String> {
-        self.imp().data.borrow().files.to_owned()
-    }
-
-    pub fn backup(&self) -> Vec<PkgBackup> {
-        self.imp().data.borrow().backup.to_owned()
-    }
-
     //-----------------------------------
     // Public string property getters
     //-----------------------------------
@@ -446,6 +406,21 @@ impl PkgObject {
     //-----------------------------------
     // Other public property getters
     //-----------------------------------
+    pub fn package_url(&self) -> String {
+        let default_repos = ["core", "extra", "multilib"];
+
+        if default_repos.contains(&self.repository().as_str()) {
+            format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
+                repo=self.repository(),
+                arch=self.architecture(),
+                name=self.name())
+        } else if &self.repository() == "aur" {
+            format!("https://aur.archlinux.org/packages/{name}", name=self.name())
+        } else {
+            String::from("")
+        }
+    }
+
     pub fn required_by(&self) -> Vec<String> {
         let mut required_by: Vec<String> = vec![];
 
@@ -468,18 +443,26 @@ impl PkgObject {
         optional_for
     }
 
-    pub fn package_url(&self) -> String {
-        let default_repos = ["core", "extra", "multilib"];
+    pub fn files(&self) -> Vec<String> {
+        let mut files: Vec<String> = vec![];
 
-        if default_repos.contains(&self.repository().as_str()) {
-            format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
-                repo=self.repository(),
-                arch=self.architecture(),
-                name=self.name())
-        } else if &self.repository() == "aur" {
-            format!("https://aur.archlinux.org/packages/{name}", name=self.name())
-        } else {
-            String::from("")
+        if let Some(pkg) = self.pkg_from_handle() {
+            files.extend(pkg.files().files().iter().map(|file| format!("/{}", file.name())));
+            files.sort_unstable();
         }
+
+        files
+    }
+
+    pub fn backup(&self) -> Vec<PkgBackup> {
+        let mut backups: Vec<PkgBackup> = vec![];
+
+        if let Some(pkg) = self.pkg_from_handle() {
+             backups.extend(pkg.backup().iter()
+                .map(|bck| PkgBackup::new(&format!("/{}", bck.name()), bck.hash())));
+            backups.sort_unstable_by(|a, b| a.filename.partial_cmp(&b.filename).unwrap());
+        }
+
+        backups
     }
 }
