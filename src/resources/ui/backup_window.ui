@@ -10,134 +10,121 @@
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
+            <child type="start">
+              <object class="GtkDropDown" id="filter_dropdown">
+                <style>
+                  <class name="flat"/>
+                </style>
+                <property name="width-request">160</property>
+                <property name="margin-start">24</property>
+                <property name="model">
+                  <object class="GtkStringList">
+                    <items>
+                      <item>All</item>
+                      <item>Unmodified</item>
+                      <item>Modified</item>
+                      <item>Read Error</item>
+                    </items>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="open_button">
+                <property name="icon-name">folder-open-symbolic</property>
+                <property name="tooltip-text">Show Selected in File Manager</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton" id="copy_button">
+                <property name="icon-name">edit-copy-symbolic</property>
+                <property name="tooltip-text">Copy Backup List</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
           </object>
         </child>
         <property name="content">
-          <object class="GtkBox" id="content_box">
-            <property name="orientation">vertical</property>
-            <property name="spacing">12</property>
+          <object class="GtkBox" id="view_box">
             <property name="margin-start">24</property>
             <property name="margin-end">24</property>
             <property name="margin-top">12</property>
             <property name="margin-bottom">24</property>
+            <style>
+              <class name="card"/>
+            </style>
             <child>
-              <object class="GtkBox" id="toolbar_box">
-                <child>
-                  <object class="GtkDropDown" id="filter_dropdown">
-                    <property name="width-request">160</property>
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+                <property name="margin-start">16</property>
+                <property name="margin-end">16</property>
+                <property name="margin-top">16</property>
+                <property name="margin-bottom">16</property>
+                <property name="child">
+                  <object class="GtkColumnView" id="view">
+                    <property name="reorderable">False</property>
+                    <property name="tab-behavior">item</property>
                     <property name="model">
-                      <object class="GtkStringList">
-                        <items>
-                          <item>All</item>
-                          <item>Unmodified</item>
-                          <item>Modified</item>
-                          <item>Read Error</item>
-                        </items>
-                      </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkBox">
-                    <property name="hexpand">True</property>
-                    <property name="halign">end</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <object class="GtkButton" id="open_button">
-                        <property name="icon-name">folder-open-symbolic</property>
-                        <property name="tooltip-text">Show Selected in File Manager</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="copy_button">
-                        <property name="icon-name">edit-copy-symbolic</property>
-                        <property name="tooltip-text">Copy Backup List</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="GtkBox" id="view_box">
-                <style>
-                  <class name="card"/>
-                </style>
-                <child>
-                  <object class="GtkScrolledWindow">
-                    <property name="hscrollbar-policy">never</property>
-                    <property name="hexpand">True</property>
-                    <property name="vexpand">True</property>
-                    <property name="margin-start">16</property>
-                    <property name="margin-end">16</property>
-                    <property name="margin-top">16</property>
-                    <property name="margin-bottom">16</property>
-                    <property name="child">
-                      <object class="GtkColumnView" id="view">
-                        <property name="reorderable">False</property>
-                        <property name="tab-behavior">item</property>
+                      <object class="GtkSingleSelection" id="selection">
                         <property name="model">
-                          <object class="GtkSingleSelection" id="selection">
+                          <object class="GtkFilterListModel" id="filter_model">
+                            <property name="filter">
+                              <object class="GtkStringFilter" id="status_filter">
+                                <property name="expression">
+                                  <lookup name="status-text" type="BackupObject"/>
+                                </property>
+                                <property name="match-mode">exact</property>
+                              </object>
+                            </property>
                             <property name="model">
-                              <object class="GtkFilterListModel" id="filter_model">
-                                <property name="filter">
-                                  <object class="GtkStringFilter" id="status_filter">
-                                    <property name="expression">
-                                      <lookup name="status-text" type="BackupObject"/>
-                                    </property>
-                                    <property name="match-mode">exact</property>
-                                  </object>
-                                </property>
-                                <property name="model">
-                                  <object class="GListStore" id="model">
-                                    <property name="item-type">BackupObject</property>
-                                  </object>
-                                </property>
+                              <object class="GListStore" id="model">
+                                <property name="item-type">BackupObject</property>
                               </object>
                             </property>
                           </object>
                         </property>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="package_column">
-                            <property name="title">Package</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/backup_window/package_item.ui</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="file_column">
-                            <property name="title">File</property>
-                            <property name="expand">True</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/backup_window/file_item.ui</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="status_column">
-                            <property name="title">Status</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
                       </object>
                     </property>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="package_column">
+                        <property name="title">Package</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/package_item.ui</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="file_column">
+                        <property name="title">File</property>
+                        <property name="expand">True</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/file_item.ui</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="status_column">
+                        <property name="title">Status</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
-                </child>
+                </property>
               </object>
             </child>
           </object>
