@@ -184,11 +184,10 @@ impl DetailsWindow {
         imp.files_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
-                    let obj = item
+                    item
                         .downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'");
-
-                    obj.string()
+                        .expect("Must be a 'StringObject'")
+                        .string()
                 })
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
