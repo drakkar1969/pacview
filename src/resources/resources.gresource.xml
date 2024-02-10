@@ -6,8 +6,6 @@
     <file alias="backup-unmodified-symbolic.svg">icons/backup-unmodified-symbolic.svg</file>
     <file alias="details-item-symbolic.svg">icons/details-item-symbolic.svg</file>
     <file alias="details-files-symbolic.svg">icons/details-files-symbolic.svg</file>
-    <file alias="details-tree-symbolic.svg">icons/details-tree-symbolic.svg</file>
-    <file alias="details-tree-reverse-symbolic.svg">icons/details-tree-reverse-symbolic.svg</file>
     <file alias="details-log-symbolic.svg">icons/details-log-symbolic.svg</file>
     <file alias="details-cache-symbolic.svg">icons/details-cache-symbolic.svg</file>
     <file alias="details-backup-symbolic.svg">icons/details-backup-symbolic.svg</file>
@@ -39,7 +37,6 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/package_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/status_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/tree_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window/cache_item.ui</file>
