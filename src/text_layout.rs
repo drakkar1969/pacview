@@ -25,8 +25,12 @@ thread_local!(pub static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
     let label = gtk::Label::new(None);
     label.add_css_class("css-label");
 
+    let style_manager = adw::StyleManager::default();
+
+    let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
+
     let css_provider = gtk::CssProvider::new();
-    css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, 0.3); }}"));
+    css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, {alpha}); }}"));
 
     gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
@@ -649,6 +653,25 @@ impl TextLayout {
                 }
 
                 link_rgba.set(link_btn.color());
+            });
+
+            // Update selected background color
+            SELECTED_RGBA.with(|selected_rgba| {
+                let label = gtk::Label::new(None);
+                label.add_css_class("css-label");
+
+                let style_manager = adw::StyleManager::default();
+
+                let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
+
+                let css_provider = gtk::CssProvider::new();
+                css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, {alpha}); }}"));
+            
+                gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+                selected_rgba.set(label.color());
+
+                gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
             });
 
             // Format pango layout text
