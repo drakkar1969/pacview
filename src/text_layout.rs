@@ -322,9 +322,7 @@ mod imp {
                 PropType::LinkList => {
                     if layout.text().is_empty() {
                         layout.set_text("None");
-                    }
-
-                    if layout.text() != "None" {
+                    } else {
                         lazy_static! {
                             static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
                         }
@@ -338,7 +336,6 @@ mod imp {
                                 });
                             }
                         }
-
                     }
                 },
                 _ => {}
