@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="GtkColumnViewCell">
+  <template class="GtkListItem">
     <property name="child">
       <object class="GtkBox">
+        <property name="margin-start">2</property>
+        <property name="margin-end">2</property>
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">
             <binding name="icon-name">
               <lookup name="status-icon" type="BackupObject">
-                <lookup name="item">GtkColumnViewCell</lookup>
+                <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
           </object>
@@ -17,9 +19,21 @@
           <object class="GtkLabel">
             <binding name="label">
               <lookup name="filename" type="BackupObject">
-                <lookup name="item">GtkColumnViewCell</lookup>
+                <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
+            <property name="hexpand">True</property>
+            <property name="xalign">0</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="status-text" type="BackupObject">
+                <lookup name="item">GtkListItem</lookup>
+              </lookup>
+            </binding>
+            <property name="margin_start">16</property>
             <property name="xalign">0</property>
           </object>
         </child>

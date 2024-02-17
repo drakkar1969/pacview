@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -22,6 +20,8 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
     pub struct BackupWindow {
         #[template_child]
+        pub header_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub filter_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub open_button: TemplateChild<gtk::Button>,
@@ -29,7 +29,7 @@ mod imp {
         pub copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub view: TemplateChild<gtk::ColumnView>,
+        pub view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -181,46 +181,41 @@ impl BackupWindow {
         let imp = self.imp();
 
         // Populate column view
-        let mut backup_vec: Vec<BackupObject> = vec![];
+        let mut backup_list: Vec<BackupObject> = vec![];
 
         pkg_model.iter::<PkgObject>()
             .flatten()
             .for_each(|pkg| {
                 if !pkg.backup().is_empty() {
-                    backup_vec.extend(pkg.backup().iter()
+                    backup_list.extend(pkg.backup().iter()
                         .map(|(filename, hash)| BackupObject::new(filename, hash, Some(&pkg.name())))
                     );
                 }
             });
 
-        backup_vec.sort_unstable_by(|a, b| {
-            a.package().cmp(&b.package()).then(a.filename().cmp(&b.filename()))
-        });
+        imp.model.extend_from_slice(&backup_list);
 
-        imp.model.extend_from_slice(&backup_vec);
+        // Bind backup files count to header label
+        let backup_len = backup_list.len();
 
-        // Bind item count to window title
-        imp.selection.bind_property("n-items", self, "title")
-            .transform_to(move |binding, n_items: u32| {
-                let selection = binding.source()
-                    .and_downcast::<gtk::SingleSelection>()
-                    .expect("Must be a 'SingleSelection'");
+        imp.selection.bind_property("n-items", &imp.header_label.get(), "label")
+            .transform_to(move |_, n_items: u32| Some(format!("Backup Files ({n_items} of {backup_len})")))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
 
-                let n_packages = selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| {
-                        item.downcast::<BackupObject>().ok().and_then(|obj| obj.package())
-                    })
-                    .collect::<HashSet<String>>()
-                    .len();
+        // Bind backup files count to open/copy button states
+        imp.selection.bind_property("n-items", &imp.open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
 
-                Some(format!("{n_items} Backup File{term} in {n_packages} Package{term}",
-                    term=if n_packages != 1 { "s" } else { "" }))
-            })
+        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
         // Set initial focus on column view
         imp.view.grab_focus();
+        imp.view.scroll_to(0, gtk::ListScrollFlags::NONE, None);
     }
 }
