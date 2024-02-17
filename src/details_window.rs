@@ -381,13 +381,15 @@ impl DetailsWindow {
             let expr = Regex::new(&format!("\\[(.+?)T(.+?)\\+.+?\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).unwrap();
 
             let log_lines: Vec<gtk::StringObject> = log.lines().rev()
-                .filter_map(|s|
-                    if expr.is_match(s).unwrap() {
+                .filter_map(|s| {
+                    let is_match = expr.is_match(s);
+
+                    if is_match.is_ok() && is_match.unwrap() == true {
                         Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
                     } else {
                         None
                     }
-                )
+                })
                 .collect();
 
             imp.log_model.extend_from_slice(&log_lines);

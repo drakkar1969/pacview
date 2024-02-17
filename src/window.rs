@@ -799,14 +799,16 @@ impl PacViewWindow {
 
             let update_map: HashMap<String, String> = update_str.lines()
                 .filter_map(|s|
-                    EXPR.captures(s).unwrap()
-                        .filter(|caps| caps.len() == 4)
-                        .map(|caps| {
-                            let pkg_name = caps[1].to_string();
-                            let version = format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string());
+                    EXPR.captures(s).ok().and_then(|caps| {
+                        caps
+                            .filter(|caps| caps.len() == 4)
+                            .map(|caps| {
+                                let pkg_name = caps[1].to_string();
+                                let version = format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string());
 
-                            (pkg_name, version)
-                        })
+                                (pkg_name, version)
+                            })
+                    })
                 )
                 .collect();
 

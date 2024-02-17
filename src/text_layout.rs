@@ -311,7 +311,10 @@ mod imp {
                         static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").unwrap();
                     }
 
-                    if let Some(m) = EXPR.captures(&layout.text()).unwrap().and_then(|caps| caps.get(1)) {
+                    if let Some(m) = EXPR.captures(&layout.text())
+                        .ok()
+                        .and_then(|caps_opt| caps_opt.and_then(|caps| caps.get(1)))
+                    {
                         link_list.push(Link {
                             url: format!("mailto:{}", m.as_str()),
                             start: m.start(),
