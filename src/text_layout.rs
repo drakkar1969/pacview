@@ -10,7 +10,7 @@ use glib::subclass::Signal;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
-use pangocairo::functions;
+use pangocairo;
 
 //------------------------------------------------------------------------------
 // GLOBAL: Color Variables
@@ -401,7 +401,7 @@ impl TextLayout {
             }
 
             // Show pango layout
-            functions::show_layout(&context, &layout);
+            pangocairo::functions::show_layout(&context, &layout);
         }));
     }
 
