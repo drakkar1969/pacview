@@ -1,16 +1,16 @@
 use std::cell::{Cell, RefCell, OnceCell};
+use std::sync::OnceLock;
 
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use glib::once_cell::sync::Lazy;
 use glib::subclass::Signal;
 
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
-use pangocairo;
+use pangocairo::functions;
 
 //------------------------------------------------------------------------------
 // GLOBAL: Color Variables
@@ -130,15 +130,15 @@ mod imp {
         // Custom signals
         //-----------------------------------
         fn signals() -> &'static [Signal] {
-            static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
+            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
+            SIGNALS.get_or_init(|| {
                 vec![
                     Signal::builder("link-activated")
                         .param_types([String::static_type()])
                         .return_type::<bool>()
                         .build(),
                 ]
-            });
-            SIGNALS.as_ref()
+            })
         }
 
         //-----------------------------------
@@ -401,7 +401,7 @@ impl TextLayout {
             }
 
             // Show pango layout
-            pangocairo::show_layout(&context, &layout);
+            functions::show_layout(&context, &layout);
         }));
     }
 

@@ -1,10 +1,10 @@
 use std::collections::HashSet;
+use std::sync::OnceLock;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
-use glib::once_cell::sync::Lazy;
 use glib::clone;
 
 use raur::blocking::Raur;
@@ -73,14 +73,14 @@ mod imp {
         // Custom signals
         //-----------------------------------
         fn signals() -> &'static [Signal] {
-            static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
+            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
+            SIGNALS.get_or_init(|| {
                 vec![
                     Signal::builder("selected")
                         .param_types([Option::<PkgObject>::static_type()])
-                        .build(),
+                        .build()
                 ]
-            });
-            SIGNALS.as_ref()
+            })
         }
 
         //-----------------------------------

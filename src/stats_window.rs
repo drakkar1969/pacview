@@ -94,10 +94,10 @@ impl StatsWindow {
         // Add close window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(@weak self as window => @default-return true, move |_, _| {
+            Some(gtk::CallbackAction::new(clone!(@weak self as window => @default-return glib::Propagation::Proceed, move |_, _| {
                 window.close();
 
-                true
+                glib::Propagation::Proceed
             })))
         ));
 

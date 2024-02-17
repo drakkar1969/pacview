@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::sync::OnceLock;
 use core::time::Duration;
 
 use gtk::{glib, gio, gdk};
@@ -6,7 +7,6 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
-use glib::once_cell::sync::Lazy;
 
 use crate::search_tag::SearchTag;
 
@@ -142,7 +142,8 @@ mod imp {
         // Custom signals
         //-----------------------------------
         fn signals() -> &'static [Signal] {
-            static SIGNALS: Lazy<Vec<Signal>> = Lazy::new(|| {
+            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
+            SIGNALS.get_or_init(|| {
                 vec![
                     Signal::builder("changed")
                         .param_types([
@@ -155,10 +156,9 @@ mod imp {
                         .build(),
                     Signal::builder("enabled")
                         .param_types([bool::static_type()])
-                        .build(),
+                        .build()
                 ]
-            });
-            SIGNALS.as_ref()
+            })
         }
 
         //-----------------------------------

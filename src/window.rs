@@ -696,7 +696,7 @@ impl PacViewWindow {
 
                 // Load packages from AUR package list file
                 if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
-                    if let Ok(s) = String::from_utf8(bytes) {
+                    if let Ok(s) = String::from_utf8(bytes.to_vec()) {
                         aur_names = s.lines().into_iter()
                             .map(|line| line.to_string())
                             .collect::<Vec<String>>();
