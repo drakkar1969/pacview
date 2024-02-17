@@ -55,9 +55,6 @@
                     <property name="spacing">20</property>
                     <child>
                       <object class="GtkDropDown" id="filter_dropdown">
-                        <style>
-                          <class name="flat"/>
-                        </style>
                         <property name="width-request">160</property>
                         <property name="margin-start">24</property>
                         <property name="model">
@@ -81,7 +78,6 @@
                             <property name="tooltip-text">Show Selected in File Manager</property>
                             <style>
                               <class name="flat"/>
-                              <class name="circular"/>
                             </style>
                           </object>
                         </child>
@@ -91,7 +87,6 @@
                             <property name="tooltip-text">Copy Backup List</property>
                             <style>
                               <class name="flat"/>
-                              <class name="circular"/>
                             </style>
                           </object>
                         </child>
