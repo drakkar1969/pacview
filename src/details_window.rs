@@ -378,12 +378,12 @@ impl DetailsWindow {
 
         // Populate log messages
         if let Ok(log) = fs::read_to_string(log_file) {
-            let match_expr = Regex::new(&format!("\\[(.+?)T(.+?)\\+.+?\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).unwrap();
+            let expr = Regex::new(&format!("\\[(.+?)T(.+?)\\+.+?\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).unwrap();
 
             let log_lines: Vec<gtk::StringObject> = log.lines().rev()
                 .filter_map(|s|
-                    if match_expr.is_match(s) {
-                        Some(gtk::StringObject::new(&match_expr.replace(s, "[$1  $2] : $3 $4 $5")))
+                    if expr.is_match(s) {
+                        Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
                     } else {
                         None
                     }
