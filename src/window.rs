@@ -12,7 +12,7 @@ use glib::{clone, closure_local};
 
 use alpm_utils::DbListExt;
 use titlecase::titlecase;
-use regex::Regex;
+use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
@@ -799,7 +799,7 @@ impl PacViewWindow {
 
             let update_map: HashMap<String, String> = update_str.lines()
                 .filter_map(|s|
-                    EXPR.captures(s)
+                    EXPR.captures(s).unwrap()
                         .filter(|caps| caps.len() == 4)
                         .map(|caps| {
                             let pkg_name = caps[1].to_string();
