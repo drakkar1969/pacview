@@ -3,6 +3,8 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
+use titlecase::titlecase;
+
 use crate::pkg_object::PkgObject;
 use crate::backup_object::BackupObject;
 use crate::utils::Utils;
@@ -22,7 +24,9 @@ mod imp {
         #[template_child]
         pub header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub filter_dropdown: TemplateChild<gtk::DropDown>,
+        pub status_dropdown: TemplateChild<gtk::DropDown>,
+        #[template_child]
+        pub status_model: TemplateChild<gtk::StringList>,
         #[template_child]
         pub open_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -106,16 +110,18 @@ impl BackupWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Filter dropdown selected item property notify signal
-        imp.filter_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {
-            if let Some(sel) = dropdown.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .and_then(|obj| Some(obj.string().to_lowercase()))
-            {
-                if sel == "all" {
-                    imp.status_filter.set_search(None);
-                } else {
-                    imp.status_filter.set_search(Some(&sel));
+        // Status dropdown selected property notify signal
+        imp.status_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {
+            let sel_index = dropdown.selected();
+
+            if sel_index == 0 {
+                imp.status_filter.set_search(None);
+            } else {
+                if let Some(sel_text) = dropdown.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .and_then(|obj| Some(obj.string()))
+                {
+                    imp.status_filter.set_search(Some(&sel_text));
                 }
             }
 
@@ -181,6 +187,8 @@ impl BackupWindow {
         let imp = self.imp();
 
         // Populate column view
+        let mut status_list: Vec<String> = vec![];
+
         let mut backup_list: Vec<BackupObject> = vec![];
 
         pkg_model.iter::<PkgObject>()
@@ -188,12 +196,29 @@ impl BackupWindow {
             .for_each(|pkg| {
                 if !pkg.backup().is_empty() {
                     backup_list.extend(pkg.backup().iter()
-                        .map(|(filename, hash)| BackupObject::new(filename, hash, Some(&pkg.name())))
+                        .map(|(filename, hash)| {
+                            let obj = BackupObject::new(filename, hash, Some(&pkg.name()));
+
+                            status_list.push(titlecase(&obj.status_text()));
+
+                            obj
+                        })
                     );
                 }
             });
 
         imp.model.extend_from_slice(&backup_list);
+
+        // Populate status dropdown
+        status_list.sort_unstable();
+        status_list.dedup();
+
+        imp.status_model.append("All");
+        imp.status_model.splice(1, 0, status_list.iter()
+            .map(|s| s.as_str())
+            .collect::<Vec<&str>>()
+            .as_slice()
+        );
 
         // Bind backup files count to header label
         let backup_len = backup_list.len();
