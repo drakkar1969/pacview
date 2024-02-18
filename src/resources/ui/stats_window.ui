@@ -49,6 +49,9 @@
                 </style>
                 <child>
                   <object class="GtkColumnView" id="view">
+                    <style>
+                      <class name="card-list"/>
+                    </style>
                     <property name="hexpand">True</property>
                     <property name="margin-start">16</property>
                     <property name="margin-end">16</property>

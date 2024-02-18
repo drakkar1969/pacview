@@ -202,6 +202,9 @@
                             <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkListView" id="files_view">
+                                <style>
+                                  <class name="card-list"/>
+                                </style>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="tab-behavior">item</property>
@@ -289,6 +292,9 @@
                             <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkListView" id="log_view">
+                                <style>
+                                  <class name="card-list"/>
+                                </style>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="tab-behavior">item</property>
@@ -381,6 +387,9 @@
                             <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkListView" id="cache_view">
+                                <style>
+                                  <class name="card-list"/>
+                                </style>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="tab-behavior">item</property>
@@ -473,6 +482,9 @@
                             <property name="margin-bottom">16</property>
                             <property name="child">
                               <object class="GtkListView" id="backup_view">
+                                <style>
+                                  <class name="card-list"/>
+                                </style>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
                                 <property name="tab-behavior">item</property>
