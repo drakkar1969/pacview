@@ -4,7 +4,7 @@
   <template class="StatsWindow" parent="AdwWindow">
     <property name="default-width">520</property>
     <property name="modal">True</property>
-    <property name="title">Package Statistics</property>
+    <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
@@ -12,70 +12,99 @@
           </object>
         </child>
         <property name="content">
-          <object class="GtkBox" id="view_box">
+          <object class="GtkBox" id="main_box">
+            <property name="orientation">vertical</property>
             <property name="margin-start">24</property>
             <property name="margin-end">24</property>
-            <property name="margin-top">12</property>
             <property name="margin-bottom">24</property>
-            <style>
-              <class name="card"/>
-            </style>
+            <property name="spacing">16</property>
             <child>
-              <object class="GtkColumnView" id="view">
-                <property name="hexpand">True</property>
-                <property name="margin-start">16</property>
-                <property name="margin-end">16</property>
-                <property name="margin-top">16</property>
-                <property name="margin-bottom">16</property>
-                <property name="reorderable">False</property>
-                <property name="model">
-                  <object class="GtkNoSelection" id="selection">
+              <object class="GtkBox" id="header_box">
+                <property name="margin-start">6</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkImage" id="header_image">
+                    <property name="icon-name">stats-symbolic</property>
+                    <style>
+                      <class name="bubble"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="header_label">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0.5</property>
+                    <property name="label">Package Database Statistics</property>
+                    <style>
+                      <class name="title-3"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="content_box">
+                <style>
+                  <class name="card"/>
+                </style>
+                <child>
+                  <object class="GtkColumnView" id="view">
+                    <property name="hexpand">True</property>
+                    <property name="margin-start">16</property>
+                    <property name="margin-end">16</property>
+                    <property name="margin-top">16</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="reorderable">False</property>
                     <property name="model">
-                      <object class="GListStore" id="model">
-                        <property name="item-type">StatsObject</property>
+                      <object class="GtkNoSelection" id="selection">
+                        <property name="model">
+                          <object class="GListStore" id="model">
+                            <property name="item-type">StatsObject</property>
+                          </object>
+                        </property>
                       </object>
                     </property>
-                  </object>
-                </property>
-                <child>
-                  <object class="GtkColumnViewColumn" id="repository_column">
-                    <property name="title">Repository</property>
-                    <property name="expand">True</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/repository_item.ui</property>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="repository_column">
+                        <property name="title">Repository</property>
+                        <property name="expand">True</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/stats_window/repository_item.ui</property>
+                          </object>
+                        </property>
                       </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkColumnViewColumn" id="packages_column">
-                    <property name="title">Packages</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/packages_item.ui</property>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="packages_column">
+                        <property name="title">Packages</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/stats_window/packages_item.ui</property>
+                          </object>
+                        </property>
                       </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkColumnViewColumn" id="installed_column">
-                    <property name="title">Installed</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/installed_item.ui</property>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="installed_column">
+                        <property name="title">Installed</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/stats_window/installed_item.ui</property>
+                          </object>
+                        </property>
                       </object>
-                    </property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkColumnViewColumn" id="size_column">
-                    <property name="title">Installed Size</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/size_item.ui</property>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="size_column">
+                        <property name="title">Installed Size</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/stats_window/size_item.ui</property>
+                          </object>
+                        </property>
                       </object>
-                    </property>
+                    </child>
                   </object>
                 </child>
               </object>
