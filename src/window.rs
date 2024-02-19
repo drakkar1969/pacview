@@ -178,32 +178,31 @@ impl PacViewWindow {
     fn load_gsettings(&self) {
         let imp = self.imp();
 
-        if let Some(gsettings) = imp.gsettings.get() {
+        let gsettings = imp.gsettings.get().unwrap();
 
-            // Bind gsettings
-            gsettings.bind("window-width", self, "default-width").build();
-            gsettings.bind("window-height", self, "default-height").build();
-            gsettings.bind("window-maximized", self, "maximized").build();
+        // Bind gsettings
+        gsettings.bind("window-width", self, "default-width").build();
+        gsettings.bind("window-height", self, "default-height").build();
+        gsettings.bind("window-maximized", self, "maximized").build();
 
-            gsettings.bind("search-include-aur", &imp.search_header.get(), "include-aur").build();
+        gsettings.bind("search-include-aur", &imp.search_header.get(), "include-aur").build();
 
-            gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
-            gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
+        gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
+        gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
 
-            gsettings.bind("auto-refresh", &imp.prefs_window.get(), "auto-refresh").build();
-            gsettings.bind("aur-update-command", &imp.prefs_window.get(), "aur-command").build();
-            gsettings.bind("search-delay", &imp.prefs_window.get(), "search-delay").build();
-            gsettings.bind("remember-columns", &imp.prefs_window.get(), "remember-columns").build();
-            gsettings.bind("remember-sorting", &imp.prefs_window.get(), "remember-sort").build();
+        gsettings.bind("auto-refresh", &imp.prefs_window.get(), "auto-refresh").build();
+        gsettings.bind("aur-update-command", &imp.prefs_window.get(), "aur-command").build();
+        gsettings.bind("search-delay", &imp.prefs_window.get(), "search-delay").build();
+        gsettings.bind("remember-columns", &imp.prefs_window.get(), "remember-columns").build();
+        gsettings.bind("remember-sorting", &imp.prefs_window.get(), "remember-sort").build();
 
-            // Restore package view columns if setting active
-            if imp.prefs_window.remember_columns() {
-                imp.package_view.set_columns(&gsettings.strv("view-columns"));
-            }
-
-            // Restore package view sort column/sort order
-            imp.package_view.set_sorting(&gsettings.string("sort-column"), gsettings.boolean("sort-ascending"));
+        // Restore package view columns if setting active
+        if imp.prefs_window.remember_columns() {
+            imp.package_view.set_columns(&gsettings.strv("view-columns"));
         }
+
+        // Restore package view sort column/sort order
+        imp.package_view.set_sorting(&gsettings.string("sort-column"), gsettings.boolean("sort-ascending"));
     }
 
     //-----------------------------------
@@ -212,28 +211,28 @@ impl PacViewWindow {
     fn save_gsettings(&self) {
         let imp = self.imp();
 
-        if let Some(gsettings) = imp.gsettings.get() {
-            // Save package view column order if setting active
-            if imp.prefs_window.remember_columns() {
-                gsettings.set_strv("view-columns", imp.package_view.columns()).unwrap();
-            } else {
-                gsettings.reset("view-columns");
-            }
+        let gsettings = imp.gsettings.get().unwrap();
 
-            // Save package view sort column/order if setting active
-            if imp.prefs_window.remember_sort() {
-                let (sort_col, sort_asc) = imp.package_view.sorting();
-
-                gsettings.set_string("sort-column", &sort_col).unwrap();
-                gsettings.set_boolean("sort-ascending", sort_asc).unwrap();
-            } else {
-                gsettings.reset("sort-column");
-                gsettings.reset("sort-ascending");
-            }
-
-            // Save gsettings
-            gsettings.apply();
+        // Save package view column order if setting active
+        if imp.prefs_window.remember_columns() {
+            gsettings.set_strv("view-columns", imp.package_view.columns()).unwrap();
+        } else {
+            gsettings.reset("view-columns");
         }
+
+        // Save package view sort column/order if setting active
+        if imp.prefs_window.remember_sort() {
+            let (sort_col, sort_asc) = imp.package_view.sorting();
+
+            gsettings.set_string("sort-column", &sort_col).unwrap();
+            gsettings.set_boolean("sort-ascending", sort_asc).unwrap();
+        } else {
+            gsettings.reset("sort-column");
+            gsettings.reset("sort-ascending");
+        }
+
+        // Save gsettings
+        gsettings.apply();
     }
 
     //-----------------------------------
@@ -392,14 +391,14 @@ impl PacViewWindow {
         self.add_action_entries([refresh_action, stats_action, backup_action, copy_action]);
 
         // Bind package view item count to copy list action enabled state
-        if let Some(copy_action) = self.lookup_action("copy-list") {
-            imp.package_view.imp().selection.bind_property("n-items", &copy_action, "enabled")
-                .transform_to(|_, n_items: u32| {
-                    Some(n_items > 0)
-                })
-                .flags(glib::BindingFlags::SYNC_CREATE)
-                .build();
-        }
+        let copy_action = self.lookup_action("copy-list").unwrap();
+
+        imp.package_view.imp().selection.bind_property("n-items", &copy_action, "enabled")
+            .transform_to(|_, n_items: u32| {
+                Some(n_items > 0)
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
 
         // Add info pane prev/next actions
         let prev_action = gio::ActionEntry::<PacViewWindow>::builder("previous")
@@ -924,9 +923,9 @@ impl PacViewWindow {
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
                 if imp.prefs_window.auto_refresh() == true {
-                    if let Some(refresh_action) = window.lookup_action("refresh") {
-                        refresh_action.activate(None);
-                    }
+                    let refresh_action = window.lookup_action("refresh").unwrap();
+
+                    refresh_action.activate(None);
                 }
             }
         }));
