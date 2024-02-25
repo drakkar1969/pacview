@@ -15,31 +15,33 @@ use pangocairo;
 //------------------------------------------------------------------------------
 // GLOBAL: Color Variables
 //------------------------------------------------------------------------------
-thread_local!(pub static LINK_RGBA: Cell<gdk::RGBA> = Cell::new({
-    let link_btn = gtk::LinkButton::new("www.gtk.org");
+thread_local! {
+    static LINK_RGBA: Cell<gdk::RGBA> = Cell::new({
+        let link_btn = gtk::LinkButton::new("www.gtk.org");
 
-    link_btn.color()
-}));
+        link_btn.color()
+    });
 
-thread_local!(pub static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
-    let label = gtk::Label::new(None);
-    label.add_css_class("css-label");
+    static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
+        let label = gtk::Label::new(None);
+        label.add_css_class("css-label");
 
-    let style_manager = adw::StyleManager::default();
+        let style_manager = adw::StyleManager::default();
 
-    let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
+        let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
 
-    let css_provider = gtk::CssProvider::new();
-    css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, {alpha}); }}"));
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, {alpha}); }}"));
 
-    gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+        gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-    let selected_rgba = label.color();
+        let selected_rgba = label.color();
 
-    gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+        gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
 
-    selected_rgba
-}));
+        selected_rgba
+    });
+}
 
 //------------------------------------------------------------------------------
 // ENUM: PropType
