@@ -236,7 +236,7 @@ impl SearchHeader {
     //-----------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
-        
+
         // Search enabled property notify signal
         self.connect_enabled_notify(|header| {
             let imp = header.imp();

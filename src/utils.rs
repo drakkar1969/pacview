@@ -62,17 +62,17 @@ impl Utils {
             String::from("0 B")
         } else {
             let mut unit = "";
-    
+
             for u in ["B", "KiB", "MiB", "GiB", "TiB", "PiB"] {
                 unit = u;
-    
+
                 if size < 1024.0 || u == "PiB" {
                     break;
                 }
-    
+
                 size /= 1024.0;
             }
-    
+
             format!("{size:.decimals$}\u{202F}{unit}")
         }
     }

@@ -359,7 +359,7 @@ impl InfoPane {
 
             // Set infopane toolbar prev/next button states
             let prev_sensitive = hist_sel.selected() > 0;
-            
+
             if imp.overlay_prev_button.is_sensitive() != prev_sensitive {
                 imp.overlay_prev_button.set_sensitive(prev_sensitive);
             }

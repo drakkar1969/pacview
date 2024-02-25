@@ -81,7 +81,7 @@ mod imp {
 
     impl WidgetImpl for PreferencesWindow {}
     impl WindowImpl for PreferencesWindow {}
-    impl AdwWindowImpl for PreferencesWindow {} 
+    impl AdwWindowImpl for PreferencesWindow {}
     impl PreferencesWindowImpl for PreferencesWindow {}
 }
 

@@ -675,7 +675,7 @@ impl TextLayout {
 
                 let css_provider = gtk::CssProvider::new();
                 css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, {alpha}); }}"));
-            
+
                 gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
                 selected_rgba.set(label.color());

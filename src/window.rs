@@ -406,7 +406,7 @@ impl PacViewWindow {
                 window.imp().info_pane.display_prev();
             })
             .build();
-        
+
         let next_action = gio::ActionEntry::builder("next")
             .activate(|window: &Self, _, _| {
                 window.imp().info_pane.display_next();
