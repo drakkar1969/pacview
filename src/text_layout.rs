@@ -70,6 +70,12 @@ pub struct Link {
     end: usize,
 }
 
+impl Link {
+    pub fn url(&self) -> String {
+        self.url.to_owned()
+    }
+}
+
 //------------------------------------------------------------------------------
 // MODULE: TextLayout
 //------------------------------------------------------------------------------
@@ -456,7 +462,7 @@ impl TextLayout {
         if inside {
             return self.imp().link_list.borrow().iter()
                 .find(|link| link.start <= index as usize && link.end > index as usize)
-                .and_then(|link| Some(link.url.to_string()))
+                .and_then(|link| Some(link.url()))
         }
 
         None
