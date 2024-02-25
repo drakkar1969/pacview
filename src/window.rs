@@ -295,14 +295,14 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Add start/stop search actions
-        let start_action = gio::ActionEntry::<PacViewWindow>::builder("start-search")
-            .activate(|window, _, _| {
+        let start_action = gio::ActionEntry::builder("start-search")
+            .activate(|window: &Self, _, _| {
                 window.imp().search_header.set_enabled(true);
             })
             .build();
 
-        let stop_action = gio::ActionEntry::<PacViewWindow>::builder("stop-search")
-            .activate(|window, _, _| {
+        let stop_action = gio::ActionEntry::builder("stop-search")
+            .activate(|window: &Self, _, _| {
                 window.imp().search_header.set_enabled(false);
             })
             .build();
@@ -316,8 +316,8 @@ impl PacViewWindow {
         self.add_action(&show_infopane_action);
 
         // Add package view refresh action
-        let refresh_action = gio::ActionEntry::<PacViewWindow>::builder("refresh")
-            .activate(|window, _, _| {
+        let refresh_action = gio::ActionEntry::builder("refresh")
+            .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
                 let repo_id = imp.repo_listbox.selected_row()
@@ -338,8 +338,8 @@ impl PacViewWindow {
             .build();
 
         // Add package view show stats action
-        let stats_action = gio::ActionEntry::<PacViewWindow>::builder("show-stats")
-            .activate(|window, _, _| {
+        let stats_action = gio::ActionEntry::builder("show-stats")
+            .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
                 let stats_window = StatsWindow::new(
@@ -353,8 +353,8 @@ impl PacViewWindow {
             .build();
 
         // Add package view show backup files action
-        let backup_action = gio::ActionEntry::<PacViewWindow>::builder("show-backup-files")
-            .activate(|window, _, _| {
+        let backup_action = gio::ActionEntry::builder("show-backup-files")
+            .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
                 let stats_window = BackupWindow::new(
@@ -367,8 +367,8 @@ impl PacViewWindow {
             .build();
 
         // Add package view copy list action
-        let copy_action = gio::ActionEntry::<PacViewWindow>::builder("copy-list")
-            .activate(|window, _, _| {
+        let copy_action = gio::ActionEntry::builder("copy-list")
+            .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
                 let copy_text = imp.package_view.imp().selection.iter::<glib::Object>()
@@ -401,21 +401,21 @@ impl PacViewWindow {
             .build();
 
         // Add info pane prev/next actions
-        let prev_action = gio::ActionEntry::<PacViewWindow>::builder("previous")
-            .activate(|window, _, _| {
+        let prev_action = gio::ActionEntry::builder("previous")
+            .activate(|window: &Self, _, _| {
                 window.imp().info_pane.display_prev();
             })
             .build();
         
-        let next_action = gio::ActionEntry::<PacViewWindow>::builder("next")
-            .activate(|window, _, _| {
+        let next_action = gio::ActionEntry::builder("next")
+            .activate(|window: &Self, _, _| {
                 window.imp().info_pane.display_next();
             })
             .build();
 
         // Add info pane show details action
-        let details_action = gio::ActionEntry::<PacViewWindow>::builder("show-details")
-            .activate(|window, _, _| {
+        let details_action = gio::ActionEntry::builder("show-details")
+            .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
                 if let Some(pkg) = imp.info_pane.pkg() {
@@ -435,8 +435,8 @@ impl PacViewWindow {
         self.add_action_entries([prev_action, next_action, details_action]);
 
         // Add show preferences action
-        let prefs_action = gio::ActionEntry::<PacViewWindow>::builder("show-preferences")
-            .activate(|window, _, _| {
+        let prefs_action = gio::ActionEntry::builder("show-preferences")
+            .activate(|window: &Self, _, _| {
                 window.imp().prefs_window.present();
             })
             .build();

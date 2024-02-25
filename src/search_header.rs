@@ -376,8 +376,8 @@ impl SearchHeader {
         let prop_action = gio::PropertyAction::new("set-prop", self, "prop");
 
         // Add cycle search mode action
-        let cycle_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-mode")
-            .activate(|group, _, _| {
+        let cycle_mode_action = gio::ActionEntry::builder("cycle-mode")
+            .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-mode")
                     .expect("Must be a 'Variant'")
                     .get::<String>()
@@ -393,8 +393,8 @@ impl SearchHeader {
             .build();
 
         // Add reverse cycle search mode action
-        let reverse_mode_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-mode")
-            .activate(|group, _, _| {
+        let reverse_mode_action = gio::ActionEntry::builder("rev-cycle-mode")
+            .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-mode")
                     .expect("Must be a 'Variant'")
                     .get::<String>()
@@ -410,8 +410,8 @@ impl SearchHeader {
             .build();
 
         // Add cycle search prop action
-        let cycle_prop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("cycle-prop")
-            .activate(|group, _, _| {
+        let cycle_prop_action = gio::ActionEntry::builder("cycle-prop")
+            .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-prop")
                     .expect("Must be a 'Variant'")
                     .get::<String>()
@@ -431,8 +431,8 @@ impl SearchHeader {
             .build();
 
         // Add reverse cycle search prop action
-        let reverse_prop_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("rev-cycle-prop")
-            .activate(|group, _, _| {
+        let reverse_prop_action = gio::ActionEntry::builder("rev-cycle-prop")
+            .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-prop")
                     .expect("Must be a 'Variant'")
                     .get::<String>()
@@ -452,8 +452,8 @@ impl SearchHeader {
             .build();
 
         // Add reset search params action
-        let reset_params_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-params")
-            .activate(|group, _, _| {
+        let reset_params_action = gio::ActionEntry::builder("reset-params")
+            .activate(|group: &gio::SimpleActionGroup, _, _| {
                 group.activate_action("set-mode", Some(&"all".to_variant()));
                 group.activate_action("set-prop", Some(&"name".to_variant()));
             })

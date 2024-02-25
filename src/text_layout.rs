@@ -423,7 +423,7 @@ impl TextLayout {
         let imp = self.imp();
 
         // Add select all action
-        let select_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("select-all")
+        let select_action = gio::ActionEntry::builder("select-all")
             .activate(clone!(@weak imp => move |_, _, _| {
                 imp.selection_start.set(0);
                 imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
@@ -433,7 +433,7 @@ impl TextLayout {
             .build();
 
         // Add copy action
-        let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy")
+        let copy_action = gio::ActionEntry::builder("copy")
             .activate(clone!(@weak self as layout, @weak imp => move |_, _, _| {
                 let selection_start = imp.selection_start.get() as usize;
                 let selection_end = imp.selection_end.get() as usize;

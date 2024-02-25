@@ -266,10 +266,10 @@ impl DetailsWindow {
     //-----------------------------------
     fn setup_actions(&self) {
         // Add set tab action
-        let tab_action = gio::ActionEntry::<DetailsWindow>::builder("set-tab")
+        let tab_action = gio::ActionEntry::builder("set-tab")
             .parameter_type(Some(&str::static_variant_type()))
             .state("none".to_variant())
-            .change_state(|window, action, state| {
+            .change_state(|window: &Self, action, state| {
                 let state = state
                     .expect("Must be a 'Variant'");
 

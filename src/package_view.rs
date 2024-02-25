@@ -168,7 +168,7 @@ impl PackageView {
     //-----------------------------------
     fn setup_actions(&self) {
         // Add reset columns action
-        let columns_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("reset-columns")
+        let columns_action = gio::ActionEntry::builder("reset-columns")
             .activate(clone!(@weak self as view => move |_, _, _| {
                 view.reset_columns();
             }))
