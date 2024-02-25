@@ -420,23 +420,24 @@ impl DetailsWindow {
 
         // Populate cache files list
         for dir in cache_dirs {
-            // Find cache files that include package name
-            let cache_list: Vec<gtk::StringObject> = glob(&format!("{dir}{pkg_name}*.zst"))
-                .unwrap()
-                .flatten()
-                .filter_map(|entry| {
-                    let cache_file = entry.display().to_string();
+            if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
+                // Find cache files that include package name
+                let cache_list: Vec<gtk::StringObject> = paths
+                    .flatten()
+                    .filter_map(|path| {
+                        let cache_file = path.display().to_string();
 
-                    // Exclude cache files that include blacklist package names
-                    if blacklist.iter().any(|s| cache_file.contains(s)) {
-                        None
-                    } else {
-                        Some(gtk::StringObject::new(&cache_file))
-                    }
-                })
-                .collect();
+                        // Exclude cache files that include blacklist package names
+                        if blacklist.iter().any(|s| cache_file.contains(s)) {
+                            None
+                        } else {
+                            Some(gtk::StringObject::new(&cache_file))
+                        }
+                    })
+                    .collect();
 
-            imp.cache_model.extend_from_slice(&cache_list);
+                imp.cache_model.extend_from_slice(&cache_list);
+            }
         }
 
         // Set cache header label
