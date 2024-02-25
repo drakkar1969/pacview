@@ -44,6 +44,8 @@ pub enum PropID {
     Dependencies,
     #[enum_value(name = "Optional")]
     Optional,
+    #[enum_value(name = "Make")]
+    Make,
     #[enum_value(name = "Required By")]
     RequiredBy,
     #[enum_value(name = "Optional For")]
@@ -313,6 +315,7 @@ impl InfoPane {
         self.add_property(PropID::Provides, PropType::Text);
         self.add_property(PropID::Dependencies, PropType::LinkList);
         self.add_property(PropID::Optional, PropType::LinkList);
+        self.add_property(PropID::Make, PropType::LinkList);
         self.add_property(PropID::RequiredBy, PropType::LinkList);
         self.add_property(PropID::OptionalFor, PropType::LinkList);
         self.add_property(PropID::ConflictsWith, PropType::LinkList);
@@ -393,6 +396,8 @@ impl InfoPane {
             self.set_property_value(PropID::Dependencies, true, &pkg.depends().join("     "), None);
             // Optdepends
             self.set_property_value(PropID::Optional, !pkg.optdepends().is_empty(), &pkg.optdepends().join("     "), None);
+            // Makedepends
+            self.set_property_value(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends().join("     "), None);
             // Required by
             self.set_property_value(PropID::RequiredBy, true, &pkg.required_by().join("     "), None);
             // Optional for

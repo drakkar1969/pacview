@@ -54,6 +54,7 @@ pub struct PkgData {
     pub provides: Vec<String>,
     pub depends: Vec<String>,
     pub optdepends: Vec<String>,
+    pub makedepends: Vec<String>,
     pub conflicts: Vec<String>,
     pub replaces: Vec<String>,
     pub architecture: String,
@@ -122,6 +123,7 @@ impl PkgData {
             provides: Self::alpm_deplist_to_vec(&syncpkg.provides()),
             depends: Self::alpm_deplist_to_vec(&syncpkg.depends()),
             optdepends: Self::alpm_deplist_to_vec(&syncpkg.optdepends()),
+            makedepends: vec![],
             conflicts: Self::alpm_deplist_to_vec(&syncpkg.conflicts()),
             replaces: Self::alpm_deplist_to_vec(&syncpkg.replaces()),
             architecture: syncpkg.arch().unwrap_or_default().to_string(),
@@ -154,6 +156,7 @@ impl PkgData {
             provides: Self::aur_sorted_vec(&aurpkg.provides),
             depends: Self::aur_sorted_vec(&aurpkg.depends),
             optdepends: Self::aur_sorted_vec(&aurpkg.opt_depends),
+            makedepends: Self::aur_sorted_vec(&aurpkg.make_depends),
             conflicts: Self::aur_sorted_vec(&aurpkg.conflicts),
             replaces: Self::aur_sorted_vec(&aurpkg.replaces),
             architecture: "".to_string(),
@@ -312,6 +315,10 @@ impl PkgObject {
 
     pub fn optdepends(&self) -> Vec<String> {
         self.imp().data.borrow().optdepends.to_owned()
+    }
+
+    pub fn makedepends(&self) -> Vec<String> {
+        self.imp().data.borrow().makedepends.to_owned()
     }
 
     pub fn conflicts(&self) -> Vec<String> {
