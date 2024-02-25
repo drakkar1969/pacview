@@ -175,7 +175,7 @@ impl DetailsWindow {
         imp.files_open_button.connect_clicked(clone!(@weak imp => move |_| {
             let item = imp.files_selection.selected_item()
                 .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
+                .expect("Could not downcast to 'StringObject'");
 
             Utils::open_file_manager(&item.string());
         }));
@@ -186,7 +186,7 @@ impl DetailsWindow {
                 .map(|item| {
                     item
                         .downcast::<gtk::StringObject>()
-                        .expect("Must be a 'StringObject'")
+                        .expect("Could not downcast to 'StringObject'")
                         .string()
                 })
                 .collect::<Vec<glib::GString>>()
@@ -214,7 +214,7 @@ impl DetailsWindow {
         imp.cache_open_button.connect_clicked(clone!(@weak imp => move |_| {
             let item = imp.cache_selection.selected_item()
                 .and_downcast::<gtk::StringObject>()
-                .expect("Must be a 'StringObject'");
+                .expect("Could not downcast to 'StringObject'");
 
             Utils::open_file_manager(&item.string());
         }));
@@ -238,7 +238,7 @@ impl DetailsWindow {
         imp.backup_open_button.connect_clicked(clone!(@weak imp => move |_| {
             let item = imp.backup_selection.selected_item()
                 .and_downcast::<BackupObject>()
-                .expect("Must be a 'BackupObject'");
+                .expect("Could not downcast to 'BackupObject'");
 
             Utils::open_file_manager(&item.filename());
         }));
@@ -271,11 +271,11 @@ impl DetailsWindow {
             .state("none".to_variant())
             .change_state(|window: &Self, action, state| {
                 let state = state
-                    .expect("Must be a 'Variant'");
+                    .expect("Could not retrieve Variant");
 
                 let state_str = state
                     .get::<String>()
-                    .expect("Must be a 'String'");
+                    .expect("Could not retrieve String from variant");
 
                 action.set_state(state);
 

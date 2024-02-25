@@ -218,7 +218,7 @@ impl PackageView {
             imp.search_filter.set_filter_func(move |item| {
                 let pkg: &PkgObject = item
                     .downcast_ref::<PkgObject>()
-                    .expect("Must be a 'PkgObject'");
+                    .expect("Could not downcast to 'PkgObject'");
 
                 if pkg.is_aur() {
                     true
@@ -240,7 +240,7 @@ impl PackageView {
             imp.search_filter.set_filter_func(move |item| {
                 let pkg: &PkgObject = item
                     .downcast_ref::<PkgObject>()
-                    .expect("Must be a 'PkgObject'");
+                    .expect("Could not downcast to 'PkgObject'");
 
                 if pkg.is_aur() {
                     true
@@ -396,7 +396,7 @@ impl PackageView {
         self.imp().status_filter.set_filter_func(move |item| {
             let pkg: &PkgObject = item
                 .downcast_ref::<PkgObject>()
-                .expect("Must be a 'PkgObject'");
+                .expect("Could not downcast to 'PkgObject'");
 
             pkg.flags().intersects(status_id)
         });
@@ -458,7 +458,7 @@ impl PackageView {
         // Get view sorter
         let sorter = self.imp().view.sorter()
             .and_downcast::<gtk::ColumnViewSorter>()
-            .expect("Must be a 'ColumnViewSorter'");
+            .expect("Could not downcast to 'ColumnViewSorter'");
 
         // Get sort column ID
         let sort_col = sorter.primary_sort_column().map_or(

@@ -132,7 +132,7 @@ impl BackupWindow {
         imp.open_button.connect_clicked(clone!(@weak imp => move |_| {
             let item = imp.selection.selected_item()
                 .and_downcast::<BackupObject>()
-                .expect("Must be a 'BackupObject'");
+                .expect("Could not downcast to 'BackupObject'");
 
             Utils::open_file_manager(&item.filename());
         }));
@@ -143,7 +143,7 @@ impl BackupWindow {
                 .map(|item| {
                     let backup = item
                         .downcast::<BackupObject>()
-                        .expect("Must be a 'BackupObject'");
+                        .expect("Could not downcast to 'BackupObject'");
 
                     format!("{package} => {filename} ({status})", package=backup.package().unwrap_or("None".to_string()), filename=backup.filename(), status=backup.status_text())
                 })

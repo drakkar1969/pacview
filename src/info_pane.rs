@@ -159,7 +159,7 @@ mod imp {
         fn set_pkg(&self, pkg: Option<&PkgObject>) {
             let hist_model = self.history_selection.borrow().model()
                 .and_downcast::<gio::ListStore>()
-                .expect("Must be a 'ListStore'");
+                .expect("Could not downcast to 'ListStore'");
 
             hist_model.remove_all();
 
@@ -219,7 +219,7 @@ impl InfoPane {
 
                     let hist_model = hist_sel.model()
                         .and_downcast::<gio::ListStore>()
-                        .expect("Must be a 'ListStore'");
+                        .expect("Could not downcast to 'ListStore'");
 
                     // If link package is in infopane history, select it
                     if let Some(i) = hist_model.find(&new_pkg) {

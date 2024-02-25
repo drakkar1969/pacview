@@ -376,7 +376,7 @@ impl PacViewWindow {
                     .map(|item| {
                         let pkg = item
                             .downcast::<PkgObject>()
-                            .expect("Must be a 'PkgObject'");
+                            .expect("Could not downcast to 'PkgObject'");
 
                         format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
                     })
@@ -544,7 +544,7 @@ impl PacViewWindow {
         imp.repo_listbox.connect_row_activated(clone!(@weak imp => move |_, row| {
             let repo_id = row
                 .downcast_ref::<FilterRow>()
-                .expect("Must be a 'FilterRow'")
+                .expect("Could not downcast to 'FilterRow'")
                 .repo_id();
 
             imp.package_view.set_repo_filter(repo_id.as_deref());
@@ -556,7 +556,7 @@ impl PacViewWindow {
         imp.status_listbox.connect_row_activated(clone!(@weak imp => move |_, row| {
             let status_id = row
                 .downcast_ref::<FilterRow>()
-                .expect("Must be a 'FilterRow'")
+                .expect("Could not downcast to 'FilterRow'")
                 .status_id();
 
             imp.package_view.set_status_filter(status_id);

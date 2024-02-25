@@ -142,9 +142,9 @@ impl PreferencesWindow {
             .parameter_type(Some(&String::static_variant_type()))
             .activate(clone!(@weak self as window => move |_, _, param| {
                 let param = param
-                    .expect("Must be a 'Variant'")
+                    .expect("Could not retrieve Variant")
                     .get::<String>()
-                    .expect("Must be a 'String'");
+                    .expect("Could not retrieve String from variant");
 
                 let cmd = match param.as_str() {
                     "paru" => "/usr/bin/paru -Qu --mode=ap",

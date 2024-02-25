@@ -379,9 +379,9 @@ impl SearchHeader {
         let cycle_mode_action = gio::ActionEntry::builder("cycle-mode")
             .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-mode")
-                    .expect("Must be a 'Variant'")
+                    .expect("Could not retrieve Variant")
                     .get::<String>()
-                    .expect("Must be a 'String'");
+                    .expect("Could not retrieve String from variant");
 
                 match state.as_str() {
                     "all" => group.activate_action("set-mode", Some(&"any".to_variant())),
@@ -396,9 +396,9 @@ impl SearchHeader {
         let reverse_mode_action = gio::ActionEntry::builder("rev-cycle-mode")
             .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-mode")
-                    .expect("Must be a 'Variant'")
+                    .expect("Could not retrieve Variant")
                     .get::<String>()
-                    .expect("Must be a 'String'");
+                    .expect("Could not retrieve String from variant");
 
                 match state.as_str() {
                     "all" => group.activate_action("set-mode", Some(&"exact".to_variant())),
@@ -413,9 +413,9 @@ impl SearchHeader {
         let cycle_prop_action = gio::ActionEntry::builder("cycle-prop")
             .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-prop")
-                    .expect("Must be a 'Variant'")
+                    .expect("Could not retrieve Variant")
                     .get::<String>()
-                    .expect("Must be a 'String'");
+                    .expect("Could not retrieve String from variant");
 
                 match state.as_str() {
                     "name" => group.activate_action("set-prop", Some(&"desc".to_variant())),
@@ -434,9 +434,9 @@ impl SearchHeader {
         let reverse_prop_action = gio::ActionEntry::builder("rev-cycle-prop")
             .activate(|group: &gio::SimpleActionGroup, _, _| {
                 let state = group.action_state("set-prop")
-                    .expect("Must be a 'Variant'")
+                    .expect("Could not retrieve Variant")
                     .get::<String>()
-                    .expect("Must be a 'String'");
+                    .expect("Could not retrieve String from variant");
 
                 match state.as_str() {
                     "name" => group.activate_action("set-prop", Some(&"files".to_variant())),
