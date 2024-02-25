@@ -423,32 +423,33 @@ impl TextLayout {
         let imp = self.imp();
 
         // Add select all action
-        let select_action = gio::SimpleAction::new("select-all", None);
-        select_action.connect_activate(clone!(@weak imp => move |_, _| {
-            imp.selection_start.set(0);
-            imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
+        let select_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("select-all")
+            .activate(clone!(@weak imp => move |_, _, _| {
+                imp.selection_start.set(0);
+                imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
 
-            imp.draw_area.queue_draw();
-        }));
+                imp.draw_area.queue_draw();
+            }))
+            .build();
 
         // Add copy action
-        let copy_action = gio::SimpleAction::new("copy", None);
-        copy_action.connect_activate(clone!(@weak self as layout, @weak imp => move |_, _| {
-            let selection_start = imp.selection_start.get() as usize;
-            let selection_end = imp.selection_end.get() as usize;
+        let copy_action = gio::ActionEntry::<gio::SimpleActionGroup>::builder("copy")
+            .activate(clone!(@weak self as layout, @weak imp => move |_, _, _| {
+                let selection_start = imp.selection_start.get() as usize;
+                let selection_end = imp.selection_end.get() as usize;
 
-            if let Some(text) = imp.pango_layout.get().unwrap().text().get(selection_start.min(selection_end)..selection_start.max(selection_end)) {
-                layout.clipboard().set_text(text);
-            }
-        }));
+                if let Some(text) = imp.pango_layout.get().unwrap().text().get(selection_start.min(selection_end)..selection_start.max(selection_end)) {
+                    layout.clipboard().set_text(text);
+                }
+            }))
+            .build();
 
         // Add actions to text action group
         let text_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("text", Some(&text_group));
 
-        text_group.add_action(&select_action);
-        text_group.add_action(&copy_action);
+        text_group.add_action_entries([select_action, copy_action]);
     }
 
     //-----------------------------------
