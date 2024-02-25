@@ -568,6 +568,19 @@ impl PacViewWindow {
         imp.package_view.connect_closure("selected", false, closure_local!(@watch self as window => move |_: PackageView, pkg: Option<PkgObject>| {
             window.imp().info_pane.set_pkg(pkg.as_ref());
         }));
+
+        // Package view activate signal
+        imp.package_view.connect_closure("activated", false, closure_local!(@watch self as window => move |_: PackageView, index: u32| {
+            let imp = window.imp();
+
+            if let Some(pkg) = imp.package_view.imp().selection.item(index)
+                .and_downcast::<PkgObject>()
+            {
+                imp.info_pane.set_pkg(Some(pkg));
+
+                window.lookup_action("show-details").unwrap().activate(None);
+            }
+        }));
     }
 
     //-----------------------------------

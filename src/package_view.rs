@@ -78,7 +78,10 @@ mod imp {
                 vec![
                     Signal::builder("selected")
                         .param_types([Option::<PkgObject>::static_type()])
-                        .build()
+                        .build(),
+                    Signal::builder("activated")
+                        .param_types([u32::static_type()])
+                        .build(),
                 ]
             })
         }
@@ -203,6 +206,11 @@ impl PackageView {
                 .and_downcast::<PkgObject>();
 
             view.emit_by_name::<()>("selected", &[&selected_item]);
+        }));
+
+        // Column view activate signal
+        imp.view.connect_activate(clone!(@weak self as view => move |_, index| {
+            view.emit_by_name::<()>("activated", &[&index]);
         }));
     }
 
