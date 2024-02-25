@@ -200,14 +200,14 @@ impl InfoPane {
                 // Find link package by name
                 let mut new_pkg = pkg_model.iter::<glib::Object>()
                     .flatten()
-                    .map(|pkg| pkg.downcast::<PkgObject>().unwrap())
+                    .map(|pkg| pkg.downcast::<PkgObject>().expect("Could not downcast to 'PkgObject'"))
                     .find(|pkg| pkg.name() == pkg_name);
 
                 // If link package is none, find by provides
                 if new_pkg.is_none() {
                     new_pkg = pkg_model.iter::<glib::Object>()
                         .flatten()
-                        .map(|pkg| pkg.downcast::<PkgObject>().unwrap())
+                        .map(|pkg| pkg.downcast::<PkgObject>().expect("Could not downcast to 'PkgObject'"))
                         .find(|pkg| {
                             pkg.provides().iter().any(|s| s.contains(pkg_name))
                         });
@@ -261,7 +261,8 @@ impl InfoPane {
 
         let value = id.to_value();
 
-        let (_, enum_value) = glib::EnumValue::from_value(&value).unwrap();
+        let (_, enum_value) = glib::EnumValue::from_value(&value)
+            .expect("Could not create 'EnumValue'");
 
         let property_label = PropertyLabel::new(enum_value.name());
 

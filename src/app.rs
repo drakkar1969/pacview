@@ -70,7 +70,7 @@ mod imp {
             let style_manager = adw::StyleManager::default();
 
             // Get icon theme for default display
-            let display = gdk::Display::default().unwrap();
+            let display = gdk::Display::default().expect("Could not retrieve default display");
 
             let icon_theme = gtk::IconTheme::for_display(&display);
 
@@ -152,7 +152,7 @@ impl PacViewApplication {
     // Show about window
     //-----------------------------------
     fn show_about(&self) {
-        let window = self.active_window().unwrap();
+        let window = self.active_window().expect("Could not retrieve active window");
 
         let about_window = adw::AboutWindow::builder()
             .transient_for(&window)

@@ -316,7 +316,7 @@ mod imp {
                 },
                 PropType::Packager => {
                     lazy_static! {
-                        static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").unwrap();
+                        static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").expect("Regex error");
                     }
 
                     if let Some(m) = EXPR.captures(&layout.text())
@@ -335,7 +335,7 @@ mod imp {
                         layout.set_text("None");
                     } else {
                         lazy_static! {
-                            static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").unwrap();
+                            static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").expect("Regex error");
                         }
 
                         for caps in EXPR.captures_iter(&layout.text()).flatten() {
