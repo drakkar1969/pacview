@@ -138,31 +138,32 @@ impl PreferencesWindow {
     //-----------------------------------
     fn setup_actions(&self) {
         // Add AUR helper command action with parameter
-        let aur_action = gio::SimpleAction::new("aur-cmd", Some(&String::static_variant_type()));
+        let aur_action = gio::ActionEntry::builder("aur-cmd", )
+            .parameter_type(Some(&String::static_variant_type()))
+            .activate(clone!(@weak self as window => move |_, _, param| {
+                let param = param
+                    .expect("Must be a 'Variant'")
+                    .get::<String>()
+                    .expect("Must be a 'String'");
 
-        aur_action.connect_activate(clone!(@weak self as window => move |_, param| {
-            let param = param
-                .expect("Must be a 'Variant'")
-                .get::<String>()
-                .expect("Must be a 'String'");
+                let cmd = match param.as_str() {
+                    "paru" => "/usr/bin/paru -Qu --mode=ap",
+                    "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
+                    "trizen" => "/usr/bin/trizen -Qua --devel",
+                    "yay" => "/usr/bin/yay -Qua",
+                    _ => unreachable!()
+                };
 
-            let cmd = match param.as_str() {
-                "paru" => "/usr/bin/paru -Qu --mode=ap",
-                "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
-                "trizen" => "/usr/bin/trizen -Qua --devel",
-                "yay" => "/usr/bin/yay -Qua",
-                _ => unreachable!()
-            };
-
-            window.set_aur_command(cmd);
-        }));
+                window.set_aur_command(cmd);
+            }))
+            .build();
 
         // Add action to prefs group
         let prefs_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("prefs", Some(&prefs_group));
 
-        prefs_group.add_action(&aur_action);
+        prefs_group.add_action_entries([aur_action]);
     }
 
     //-----------------------------------
