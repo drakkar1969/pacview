@@ -389,7 +389,7 @@ impl PackageView {
     }
 
     pub fn set_repo_filter(&self, repo_id: Option<&str>) {
-        self.imp().repo_filter.set_search(repo_id.as_deref());
+        self.imp().repo_filter.set_search(repo_id);
     }
 
     pub fn set_status_filter(&self, status_id: PkgFlags) {
