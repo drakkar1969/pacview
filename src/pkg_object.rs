@@ -5,9 +5,7 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
-use alpm;
 use alpm_utils::DbListExt;
-use raur;
 
 use crate::utils::Utils;
 
@@ -81,12 +79,12 @@ impl PkgData {
             // Get status flags
             flags = if pkg.reason() == alpm::PackageReason::Explicit {
                 PkgFlags::EXPLICIT
+            } else if !pkg.required_by().is_empty() {
+                PkgFlags::DEPENDENCY
+            } else if !pkg.optional_for().is_empty() {
+                PkgFlags::OPTIONAL
             } else {
-                if !pkg.required_by().is_empty() {
-                    PkgFlags::DEPENDENCY
-                } else {
-                    if !pkg.optional_for().is_empty() {PkgFlags::OPTIONAL} else {PkgFlags::ORPHAN}
-                }
+                PkgFlags::ORPHAN
             };
 
             // Get installed date
@@ -187,15 +185,15 @@ impl PkgData {
         dep_vec
     }
 
-    fn aur_vec_to_string(vec: &Vec<String>) -> String {
-        let mut list_vec = vec.clone();
+    fn aur_vec_to_string(vec: &[String]) -> String {
+        let mut list_vec = vec.to_vec();
         list_vec.sort_unstable();
 
         list_vec.join(", ")
     }
 
-    fn aur_sorted_vec(vec: &Vec<String>) -> Vec<String> {
-        let mut list_vec = vec.clone();
+    fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
+        let mut list_vec = vec.to_vec();
         list_vec.sort_unstable();
 
         list_vec

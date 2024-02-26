@@ -116,13 +116,11 @@ impl BackupWindow {
 
             if sel_index == 0 {
                 imp.status_filter.set_search(None);
-            } else {
-                if let Some(sel_text) = dropdown.selected_item()
-                    .and_downcast::<gtk::StringObject>()
-                    .and_then(|obj| Some(obj.string()))
-                {
-                    imp.status_filter.set_search(Some(&sel_text));
-                }
+            } else if let Some(sel_text) = dropdown.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .map(|obj| obj.string())
+            {
+                imp.status_filter.set_search(Some(&sel_text));
             }
 
             imp.view.grab_focus();

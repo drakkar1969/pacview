@@ -13,28 +13,24 @@ use crate::search_tag::SearchTag;
 //------------------------------------------------------------------------------
 // ENUM: SearchMode
 //------------------------------------------------------------------------------
-#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
 #[enum_type(name = "SearchMode")]
 pub enum SearchMode {
+    #[default]
     All = 0,
     Any = 1,
     Exact = 2,
 }
 
-impl Default for SearchMode {
-    fn default() -> Self {
-        SearchMode::All
-    }
-}
-
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
-#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
 #[enum_type(name = "SearchProp")]
 pub enum SearchProp {
+    #[default]
     Name = 0,
     Desc = 1,
     Group = 2,
@@ -42,12 +38,6 @@ pub enum SearchProp {
     Optdeps = 4,
     Provides = 5,
     Files = 6,
-}
-
-impl Default for SearchProp {
-    fn default() -> Self {
-        SearchProp::Name
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -216,7 +206,7 @@ impl SearchHeader {
 
         // Bind search text to clear button visibility
         imp.search_text.bind_property("text", &imp.clear_button.get(), "visible")
-            .transform_to(|_, text: &str| Some(text != ""))
+            .transform_to(|_, text: &str| Some(!text.is_empty()))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -304,30 +294,28 @@ impl SearchHeader {
                 delay_id.remove();
             }
 
-            if search_text.text() == "" {
+            if search_text.text().is_empty() {
                 header.set_aur_error(false);
 
                 header.emit_changed_signal();
-            } else {
-                if header.include_aur() == false {
-                    // Start delay timer
-                    let delay_id = glib::timeout_add_local_once(
-                        Duration::from_millis(header.delay()),
-                        clone!(@weak imp => move || {
-                            header.emit_changed_signal();
+            } else if !header.include_aur() {
+                // Start delay timer
+                let delay_id = glib::timeout_add_local_once(
+                    Duration::from_millis(header.delay()),
+                    clone!(@weak imp => move || {
+                        header.emit_changed_signal();
 
-                            imp.delay_source_id.take();
-                        })
-                    );
+                        imp.delay_source_id.take();
+                    })
+                );
 
-                    imp.delay_source_id.replace(Some(delay_id));
-                }
+                imp.delay_source_id.replace(Some(delay_id));
             }
         }));
 
         // Search text activate signal
         imp.search_text.connect_activate(clone!(@weak self as header => move |search_text| {
-            if header.include_aur() == true && search_text.text() != "" {
+            if header.include_aur() && !search_text.text().is_empty() {
                 let text = search_text.text();
 
                 if text.split_whitespace().any(|t| t.len() < 4) {

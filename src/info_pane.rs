@@ -193,7 +193,7 @@ impl InfoPane {
     // Value label link handler
     //-----------------------------------
     fn link_handler(&self, link: &str) -> bool {
-        if let Some(url) = Url::parse(&link).ok().filter(|url| url.scheme() == "pkg") {
+        if let Some(url) = Url::parse(link).ok().filter(|url| url.scheme() == "pkg") {
             if let Some(pkg_name) = url.domain() {
                 let pkg_model = self.pkg_model();
 
@@ -378,11 +378,11 @@ impl InfoPane {
             self.set_property_value(PropID::Description, true, &pkg.description(), None);
             // Package URL
             let package_url = pkg.package_url();
-            self.set_property_value(PropID::PackageUrl, package_url != "", &package_url, None);
+            self.set_property_value(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
             // URL
-            self.set_property_value(PropID::Url, pkg.url() != "", &pkg.url(), None);
+            self.set_property_value(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
             // Licenses
-            self.set_property_value(PropID::Licenses, pkg.licenses() != "", &pkg.licenses(), None);
+            self.set_property_value(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
             // Status
             let status = &pkg.status();
             let status_icon = pkg.status_icon();
@@ -390,7 +390,7 @@ impl InfoPane {
             // Repository
             self.set_property_value(PropID::Repository, true, &pkg.repository(), None);
             // Groups
-            self.set_property_value(PropID::Groups, pkg.groups() != "", &pkg.groups(), None);
+            self.set_property_value(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
             // Provides
             self.set_property_value(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides().join("     "), None);
             // Depends
@@ -409,7 +409,7 @@ impl InfoPane {
             // Replaces
             self.set_property_value(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces().join("     "), None);
             // Architecture
-            self.set_property_value(PropID::Architecture, pkg.architecture() != "", &pkg.architecture(), None);
+            self.set_property_value(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
             // Packager
             self.set_property_value(PropID::Packager, true, &pkg.packager(), None);
             // Build date
@@ -423,9 +423,9 @@ impl InfoPane {
             // Has script
             self.set_property_value(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
             // SHA256 sum
-            self.set_property_value(PropID::SHA256Sum, pkg.sha256sum() != "", &pkg.sha256sum(), None);
+            self.set_property_value(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
             // MD5 sum
-            self.set_property_value(PropID::MD5Sum, pkg.md5sum() != "", &pkg.md5sum(), None);
+            self.set_property_value(PropID::MD5Sum, !pkg.md5sum().is_empty(), &pkg.md5sum(), None);
         }
     }
 

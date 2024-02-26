@@ -10,7 +10,6 @@ use glib::subclass::Signal;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use url::Url;
-use pangocairo;
 
 //------------------------------------------------------------------------------
 // GLOBAL: Color Variables
@@ -46,21 +45,16 @@ thread_local! {
 //------------------------------------------------------------------------------
 // ENUM: PropType
 //------------------------------------------------------------------------------
-#[derive(Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
 #[enum_type(name = "PropType")]
 pub enum PropType {
+    #[default]
     Text = 0,
     Title = 1,
     Link = 2,
     Packager = 3,
     LinkList = 4,
-}
-
-impl Default for PropType {
-    fn default() -> Self {
-        PropType::Text
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -268,7 +262,7 @@ mod imp {
             });
         }
 
-        pub fn do_format(&self, link_list: &Vec<Link>) {
+        pub fn do_format(&self, link_list: &[Link]) {
             let obj = self.obj();
 
             let layout = self.pango_layout.get().unwrap();
@@ -412,7 +406,7 @@ impl TextLayout {
             }
 
             // Show pango layout
-            pangocairo::functions::show_layout(&context, &layout);
+            pangocairo::functions::show_layout(context, layout);
         }));
     }
 
@@ -465,7 +459,7 @@ impl TextLayout {
         if inside {
             return self.imp().link_list.borrow().iter()
                 .find(|link| link.start <= index as usize && link.end > index as usize)
-                .and_then(|link| Some(link.url()))
+                .map(|link| link.url())
         }
 
         None
@@ -561,14 +555,14 @@ impl TextLayout {
                             let start = start_text
                                 .bytes()
                                 .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                .and_then(|start| Some(start + 1))
+                                .map(|start| start + 1)
                                 .unwrap_or(0);
 
                             if let Some(end_text) = text.get(index as usize..) {
                                 let end = end_text
                                     .bytes()
                                     .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                    .and_then(|end| Some(end + index as usize))
+                                    .map(|end| end + index as usize)
                                     .unwrap_or(text.len());
 
                                 imp.selection_start.set(start as i32);
@@ -624,7 +618,7 @@ impl TextLayout {
                 // Launch link if any
                 if let Some(pressed_link) = imp.pressed_link.take() {
                     if let Some(link) = layout.link_at_xy(x, y).filter(|link| link == &pressed_link) {
-                        if layout.emit_by_name::<bool>("link-activated", &[&link]) == false {
+                        if !layout.emit_by_name::<bool>("link-activated", &[&link]) {
                             if let Ok(url) = Url::parse(&link) {
                                 if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
                                     let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);

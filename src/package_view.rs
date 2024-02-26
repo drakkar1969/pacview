@@ -256,13 +256,13 @@ impl PackageView {
                     let mut results = term.split_whitespace()
                         .map(|t| {
                             match prop {
-                                SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(&t) },
-                                SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(&t) },
-                                SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(&t) },
-                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
-                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(&t)) },
+                                SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(t) },
+                                SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(t) },
+                                SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(t) },
+                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
                             }
                         });
 
@@ -279,7 +279,7 @@ impl PackageView {
     fn populate_aur_model(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool) {
         let imp = self.imp();
 
-        if include_aur == false || aur_error == true || prop == SearchProp::Files {
+        if !include_aur || aur_error || prop == SearchProp::Files {
             imp.aur_model.remove_all();
         } else {
             search_header.set_spinning(true);
@@ -385,7 +385,7 @@ impl PackageView {
     pub fn set_search_filter(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool) {
         let imp = self.imp();
 
-        if search_term == "" {
+        if search_term.is_empty() {
             imp.search_filter.unset_filter_func();
 
             imp.aur_model.remove_all();

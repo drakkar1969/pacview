@@ -50,7 +50,7 @@ mod imp {
             let window = if let Some(window) = application.active_window() {
                 window
             } else {
-                let window = PacViewWindow::new(&*application);
+                let window = PacViewWindow::new(&application);
                 window.upcast()
             };
 

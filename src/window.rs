@@ -241,9 +241,9 @@ impl PacViewWindow {
     fn init_config_dir(&self) {
         let config_dir = env::var("XDG_DATA_HOME")
             .or_else(|_| env::var("HOME")
-                .and_then(|var| Ok(Path::new(&var).join(".local/share").display().to_string()))
+                .map(|var| Path::new(&var).join(".local/share").display().to_string())
             )
-            .and_then(|var| Ok(Path::new(&var).join("pacview").display().to_string()))
+            .map(|var| Path::new(&var).join("pacview").display().to_string())
             .ok();
 
         self.imp().config_dir.set(config_dir).unwrap();
@@ -328,7 +328,7 @@ impl PacViewWindow {
 
                 let status_id = imp.status_listbox.selected_row()
                     .and_downcast::<FilterRow>()
-                    .and_then(|row| Some(row.status_id()))
+                    .map(|row| row.status_id())
                     .unwrap_or(PkgFlags::empty());
 
                 imp.saved_status_id.set(status_id);
@@ -530,7 +530,7 @@ impl PacViewWindow {
 
         // Search header enabled signal
         imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as window => move |_: SearchHeader, enabled: bool| {
-            if enabled == false {
+            if !enabled {
                 window.imp().package_view.imp().view.grab_focus();
             }
         }));
@@ -660,10 +660,8 @@ impl PacViewWindow {
                 if flag == PkgFlags::INSTALLED {
                     row.activate();
                 }
-            } else {
-                if flag == saved_status_id {
-                    row.activate();
-                }
+            } else if saved_status_id == flag {
+                row.activate();
             }
 
             if flag == PkgFlags::UPDATES {
@@ -697,7 +695,7 @@ impl PacViewWindow {
                 let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
 
                 // If AUR package list file does not exist, download it
-                if aur_file.query_exists(None::<&gio::Cancellable>) == false {
+                if !aur_file.query_exists(None::<&gio::Cancellable>) {
                     let res = gio::File::for_path(config_dir)
                         .make_directory_with_parents(None::<&gio::Cancellable>);
 
@@ -709,7 +707,7 @@ impl PacViewWindow {
                 // Load packages from AUR package list file
                 if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
                     if let Ok(s) = String::from_utf8(bytes.to_vec()) {
-                        aur_names = s.lines().into_iter()
+                        aur_names = s.lines()
                             .map(|line| line.to_string())
                             .collect::<Vec<String>>();
                     }
@@ -816,7 +814,7 @@ impl PacViewWindow {
                             .filter(|caps| caps.len() == 4)
                             .map(|caps| {
                                 let pkg_name = caps[1].to_string();
-                                let version = format!("{} \u{2192} {}", caps[2].to_string(), caps[3].to_string());
+                                let version = format!("{} \u{2192} {}", &caps[2], &caps[3]);
 
                                 (pkg_name, version)
                             })
@@ -832,7 +830,7 @@ impl PacViewWindow {
         glib::spawn_future_local(clone!(@weak imp => async move {
             while let Ok((error_msg, update_map)) = receiver.recv().await {
                 // If updates found
-                if update_map.len() > 0 {
+                if !update_map.is_empty() {
                     // Update status of packages with updates
                     imp.package_view.imp().pkg_model.iter::<PkgObject>()
                         .flatten()
@@ -888,7 +886,7 @@ impl PacViewWindow {
                     .and_then(|file_info| file_info.modification_date_time())
                     .and_then(|file_time| {
                         glib::DateTime::now_local().ok()
-                            .and_then(|current_time| Some(current_time.difference(&file_time).as_days()))
+                            .map(|current_time| current_time.difference(&file_time).as_days())
                     });
 
                 // Download AUR package list file if does not exist or older than 7 days
@@ -935,7 +933,7 @@ impl PacViewWindow {
         // Attach receiver for glib channel
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
-                if imp.prefs_window.auto_refresh() == true {
+                if imp.prefs_window.auto_refresh() {
                     let refresh_action = window.lookup_action("refresh").unwrap();
 
                     refresh_action.activate(None);

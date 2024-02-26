@@ -74,7 +74,7 @@ impl StatsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>, repo_names: &Vec<String>, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &impl IsA<gtk::Window>, repo_names: &[String], pkg_model: &gio::ListStore) -> Self {
         let window: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -108,7 +108,7 @@ impl StatsWindow {
     //-----------------------------------
     // Update widgets
     //-----------------------------------
-    fn update_ui(&self, repo_names: &Vec<String>, pkg_model: &gio::ListStore) {
+    fn update_ui(&self, repo_names: &[String], pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         // Iterate repos
@@ -144,8 +144,8 @@ impl StatsWindow {
         // Add item with totals to stats column view
         imp.model.append(&StatsObject::new(
             "<b>Total</b>",
-            &format!("<b>{}</b>", tot_pcount.to_string()),
-            &format!("<b>{}</b>", tot_icount.to_string()),
+            &format!("<b>{}</b>", tot_pcount),
+            &format!("<b>{}</b>", tot_icount),
             &format!("<b>{}</b>", &Utils::size_to_string(tot_isize, 2))
         ));
     }
