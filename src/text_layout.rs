@@ -228,24 +228,20 @@ mod imp {
             attr_list.insert(attr);
         }
 
-        fn format_link(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            LINK_RGBA.with(|link_rgba| {
-                let obj = self.obj();
+        fn format_link(&self, attr_list: &pango::AttrList, start: u32, end: u32, color: (u16, u16, u16)) {
+            let (red, green, blue) = color;
 
-                let (red, green, blue) = self.rgba_to_pango_rgb(link_rgba.get(), obj.parent().unwrap().color());
+            let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+            attr.set_start_index(start);
+            attr.set_end_index(end);
 
-                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+            attr_list.insert(attr);
 
-                attr_list.insert(attr);
+            let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+            attr.set_start_index(start);
+            attr.set_end_index(end);
 
-                let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
-
-                attr_list.insert(attr);
-            });
+            attr_list.insert(attr);
         }
 
         pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
@@ -277,8 +273,12 @@ mod imp {
             }
 
             // Format links
-            link_list.iter().for_each(|link| {
-                self.format_link(&attr_list, link.start as u32, link.end as u32);
+            LINK_RGBA.with(|link_rgba| {
+                let link_color = self.rgba_to_pango_rgb(link_rgba.get(), obj.parent().unwrap().color());
+
+                link_list.iter().for_each(|link| {
+                    self.format_link(&attr_list, link.start as u32, link.end as u32, link_color);
+                });
             });
 
             layout.set_attributes(Some(&attr_list));
