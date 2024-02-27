@@ -210,53 +210,53 @@ mod imp {
             ((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16)
         }
 
-        fn format_text(&self, attr_list: &pango::AttrList, start: usize, end: usize, weight: pango::Weight) {
+        fn format_text(&self, attr_list: &pango::AttrList, weight: pango::Weight) {
             let obj = self.obj();
 
             let (red, green, blue) = self.rgba_to_pango_rgb(obj.color(), obj.parent().unwrap().color());
 
             let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-            attr.set_start_index(start as u32);
-            attr.set_end_index(end as u32);
+            attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
+            attr.set_end_index(pango::ATTR_INDEX_TO_TEXT_END);
 
             attr_list.insert(attr);
 
             let mut attr = pango::AttrInt::new_weight(weight);
-            attr.set_start_index(start as u32);
-            attr.set_end_index(end as u32);
+            attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
+            attr.set_end_index(pango::ATTR_INDEX_TO_TEXT_END);
 
             attr_list.insert(attr);
         }
 
-        fn format_link(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
+        fn format_link(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             LINK_RGBA.with(|link_rgba| {
                 let obj = self.obj();
 
                 let (red, green, blue) = self.rgba_to_pango_rgb(link_rgba.get(), obj.parent().unwrap().color());
 
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(start as u32);
-                attr.set_end_index(end as u32);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
 
                 attr_list.insert(attr);
 
                 let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                attr.set_start_index(start as u32);
-                attr.set_end_index(end as u32);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
 
                 attr_list.insert(attr);
             });
         }
 
-        pub fn format_selection(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
+        pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             SELECTED_RGBA.with(|selected_rgba| {
                 let obj = self.obj();
 
                 let (red, green, blue) = self.rgba_to_pango_rgb(selected_rgba.get(), obj.parent().unwrap().color());
 
                 let mut attr = pango::AttrColor::new_background(red, green, blue);
-                attr.set_start_index(start as u32);
-                attr.set_end_index(end as u32);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
 
                 attr_list.insert(attr);
             });
@@ -271,14 +271,14 @@ mod imp {
 
             // Format text
             if obj.ptype() == PropType::Title {
-                self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Bold);
+                self.format_text(&attr_list, pango::Weight::Bold);
             } else {
-                self.format_text(&attr_list, 0, layout.text().len(), pango::Weight::Normal);
+                self.format_text(&attr_list, pango::Weight::Normal);
             }
 
             // Format links
             link_list.iter().for_each(|link| {
-                self.format_link(&attr_list, link.start, link.end);
+                self.format_link(&attr_list, link.start as u32, link.end as u32);
             });
 
             layout.set_attributes(Some(&attr_list));
@@ -399,7 +399,7 @@ impl TextLayout {
                 let selection_end = imp.selection_end.get();
 
                 if selection_start != -1 && selection_end != -1 && selection_start != selection_end {
-                    imp.format_selection(&attr_list, selection_start.min(selection_end) as usize, selection_start.max(selection_end) as usize);
+                    imp.format_selection(&attr_list, selection_start.min(selection_end) as u32, selection_start.max(selection_end) as u32);
                 }
 
                 layout.set_attributes(Some(&attr_list));
