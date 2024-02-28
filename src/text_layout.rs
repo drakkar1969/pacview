@@ -453,10 +453,16 @@ impl TextLayout {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
-    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32, i32) {
+    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
         let layout = self.imp().pango_layout.get().unwrap();
 
-        layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE)
+        let (inside, mut index, trailing) = layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE);
+
+        if trailing > 0 {
+            index += 1;
+        }
+
+        (inside, index)
     }
 
     fn link_at_index(&self, inside: bool, index: i32) -> Option<String> {
@@ -470,7 +476,7 @@ impl TextLayout {
     }
 
     fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
-        let (inside, index, _) = self.index_at_xy(x, y);
+        let (inside, index) = self.index_at_xy(x, y);
 
         self.link_at_index(inside, index)
     }
@@ -478,17 +484,13 @@ impl TextLayout {
     fn set_motion_cursor(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let (inside, index, trailing) = self.index_at_xy(x, y);
+        let (inside, index) = self.index_at_xy(x, y);
 
         let mut cursor = "text";
 
         // If text selection initiated, redraw to show selection
         if imp.is_selecting.get() {
-            if trailing > 0 {
-                imp.selection_end.set(index + 1);
-            } else {
-                imp.selection_end.set(index);
-            }
+            imp.selection_end.set(index);
 
             imp.draw_area.queue_draw();
         } else {
@@ -537,20 +539,15 @@ impl TextLayout {
             if link.is_none() {
                 if n == 1 {
                     // Single click: start selection, widget is redrawn on mouse move
-                    let (_, index, trailing) = layout.index_at_xy(x, y);
+                    let (_, index) = layout.index_at_xy(x, y);
 
-                    if trailing > 0 {
-                        imp.selection_start.set(index + 1);
-                    } else {
-                        imp.selection_start.set(index);
-                    }
-
+                    imp.selection_start.set(index);
                     imp.selection_end.set(-1);
 
                     imp.is_selecting.set(true);
                 } else if n == 2 {
                     // Double click: select word under cursor and redraw widget
-                    let (_, index, _) = layout.index_at_xy(x, y);
+                    let (_, index) = layout.index_at_xy(x, y);
 
                     let text = layout.text();
 
