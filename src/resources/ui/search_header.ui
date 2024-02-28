@@ -19,12 +19,12 @@
             <property name="child">
               <object class="GtkBox" id="search_box">
                 <property name="css-name">entry</property>
+                <property name="spacing">6</property>
                 <style>
                   <class name="search-header"/>
                 </style>
                 <child>
                   <object class="GtkStack" id="icon_stack">
-                    <property name="margin-start">6</property>
                     <child>
                       <object class="GtkStackPage">
                         <property name="name">icon</property>
@@ -48,7 +48,6 @@
                 <child>
                   <object class="GtkBox" id="tag_box">
                     <property name="valign">center</property>
-                    <property name="margin-start">6</property>
                     <property name="spacing">6</property>
                     <child>
                       <object class="SearchTag" id="tag_aur">
@@ -70,20 +69,22 @@
                 <child>
                   <object class="GtkText" id="search_text">
                     <property name="hexpand">true</property>
-                    <property name="margin-start">6</property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkButton" id="clear_button">
-                    <property name="can-focus">false</property>
-                    <property name="margin-start">6</property>
-                    <property name="icon-name">edit-clear-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkMenuButton" id="filter_button">
-                    <property name="icon-name">funnel-symbolic</property>
-                    <property name="menu-model">search_menu</property>
+                  <object class="GtkBox" id="button_box">
+                    <child>
+                      <object class="GtkButton" id="clear_button">
+                        <property name="can-focus">false</property>
+                        <property name="icon-name">edit-clear-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuButton" id="filter_button">
+                        <property name="icon-name">funnel-symbolic</property>
+                        <property name="menu-model">search_menu</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
