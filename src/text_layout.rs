@@ -584,13 +584,14 @@ impl TextLayout {
 
         click_gesture.connect_released(clone!(@weak self as layout, @weak imp => move |_, _, x, y| {
             // Redraw if necessary to hide selection
-            if imp.is_selecting.get() {
-                if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
-                    imp.selection_start.set(-1);
-                    imp.selection_end.set(-1);
+            let start = imp.selection_start.get();
+            let end = imp.selection_end.get();
 
-                    imp.draw_area.queue_draw();
-                }
+            if imp.is_selecting.get() && (end == -1 || start == end) {
+                imp.selection_start.set(-1);
+                imp.selection_end.set(-1);
+
+                imp.draw_area.queue_draw();
             }
 
             // End selection
