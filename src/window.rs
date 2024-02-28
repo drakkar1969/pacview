@@ -631,18 +631,17 @@ impl PacViewWindow {
             row.activate();
         }
 
-        imp.pacman_repos.borrow().iter()
-            .for_each(|repo| {
-                let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+        for repo in &*imp.pacman_repos.borrow() {
+            let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
 
-                let row = FilterRow::new("repository-symbolic", &display_label, Some(repo), PkgFlags::empty());
+            let row = FilterRow::new("repository-symbolic", &display_label, Some(repo), PkgFlags::empty());
 
-                imp.repo_listbox.append(&row);
+            imp.repo_listbox.append(&row);
 
-                if saved_repo_id.as_ref() == Some(repo) {
-                    row.activate();
-                }
-            });
+            if saved_repo_id.as_ref() == Some(repo) {
+                row.activate();
+            }
+        }
 
         // Add package status rows (enumerate PkgStatusFlags)
         let saved_status_id = imp.saved_status_id.get();
@@ -721,16 +720,15 @@ impl PacViewWindow {
 
             let mut data_list: Vec<PkgData> = vec![];
 
-            handle.syncdbs().iter()
-                .for_each(|db| {
-                    data_list.extend(db.pkgs().iter()
-                        .map(|syncpkg| {
-                            let localpkg = localdb.pkg(syncpkg.name());
+            for db in handle.syncdbs() {
+                data_list.extend(db.pkgs().iter()
+                    .map(|syncpkg| {
+                        let localpkg = localdb.pkg(syncpkg.name());
 
-                            PkgData::from_pkg(syncpkg, localpkg)
-                        })
-                    );
-                });
+                        PkgData::from_pkg(syncpkg, localpkg)
+                    })
+                );
+            }
 
             data_list.extend(localdb.pkgs().iter()
                 .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())

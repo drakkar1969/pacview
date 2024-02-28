@@ -276,9 +276,9 @@ mod imp {
             LINK_RGBA.with(|link_rgba| {
                 let link_color = self.rgba_to_pango_rgb(link_rgba.get(), obj.parent().unwrap().color());
 
-                link_list.iter().for_each(|link| {
+                for link in link_list {
                     self.format_link(&attr_list, link.start as u32, link.end as u32, link_color);
-                });
+                }
             });
 
             layout.set_attributes(Some(&attr_list));
