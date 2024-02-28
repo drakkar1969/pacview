@@ -475,7 +475,7 @@ impl TextLayout {
         self.link_at_index(inside, index)
     }
 
-    fn set_cursor_motion(&self, x: f64, y: f64) {
+    fn set_motion_cursor(&self, x: f64, y: f64) {
         let imp = self.imp();
 
         let (inside, index, trailing) = self.index_at_xy(x, y);
@@ -516,11 +516,11 @@ impl TextLayout {
         let motion_controller = gtk::EventControllerMotion::new();
 
         motion_controller.connect_enter(clone!(@weak self as layout => move |_, x, y| {
-            layout.set_cursor_motion(x, y);
+            layout.set_motion_cursor(x, y);
         }));
 
         motion_controller.connect_motion(clone!(@weak self as layout => move |_, x, y| {
-            layout.set_cursor_motion(x, y);
+            layout.set_motion_cursor(x, y);
         }));
 
         imp.draw_area.add_controller(motion_controller);
