@@ -399,11 +399,11 @@ impl TextLayout {
             if let Some(attr_list) = layout.attributes()
                 .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background))
             {
-                let selection_start = imp.selection_start.get();
-                let selection_end = imp.selection_end.get();
+                let start = imp.selection_start.get();
+                let end = imp.selection_end.get();
 
-                if selection_start != -1 && selection_end != -1 && selection_start != selection_end {
-                    imp.format_selection(&attr_list, selection_start.min(selection_end) as u32, selection_start.max(selection_end) as u32);
+                if start != -1 && end != -1 && start != end {
+                    imp.format_selection(&attr_list, start.min(end) as u32, start.max(end) as u32);
                 }
 
                 layout.set_attributes(Some(&attr_list));
@@ -433,10 +433,10 @@ impl TextLayout {
         // Add copy action
         let copy_action = gio::ActionEntry::builder("copy")
             .activate(clone!(@weak self as layout, @weak imp => move |_, _, _| {
-                let selection_start = imp.selection_start.get() as usize;
-                let selection_end = imp.selection_end.get() as usize;
+                let start = imp.selection_start.get() as usize;
+                let end = imp.selection_end.get() as usize;
 
-                if let Some(text) = layout.text().get(selection_start.min(selection_end)..selection_start.max(selection_end)) {
+                if let Some(text) = layout.text().get(start.min(end)..start.max(end)) {
                     layout.clipboard().set_text(text);
                 }
             }))
@@ -620,10 +620,10 @@ impl TextLayout {
 
         popup_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |_, _, x, y| {
             // Enable/disable copy action
-            let selection_start = imp.selection_start.get();
-            let selection_end = imp.selection_end.get();
+            let start = imp.selection_start.get();
+            let end = imp.selection_end.get();
 
-            layout.action_set_enabled("text.copy", selection_start != -1 && selection_end != -1 && selection_start != selection_end);
+            layout.action_set_enabled("text.copy", start != -1 && end != -1 && start != end);
 
             // Show popover menu
             let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
