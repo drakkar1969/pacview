@@ -602,13 +602,13 @@ impl TextLayout {
             imp.is_selecting.set(false);
 
             // Launch link if any
-            if let Some(pressed_link) = imp.pressed_link.take() {
-                if let Some(link) = layout.link_at_xy(x, y).filter(|link| link == &pressed_link) {
-                    if !layout.emit_by_name::<bool>("link-activated", &[&link]) {
-                        if let Ok(url) = Url::parse(&link) {
-                            if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
-                                let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
-                            }
+            if let Some(link) = imp.pressed_link.take()
+                .and_then(|pressed| layout.link_at_xy(x, y).filter(|link| link == &pressed))
+            {
+                if !layout.emit_by_name::<bool>("link-activated", &[&link]) {
+                    if let Ok(url) = Url::parse(&link) {
+                        if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
+                            let _ = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
                         }
                     }
                 }
