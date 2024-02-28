@@ -99,10 +99,10 @@ mod imp {
 
         pub link_list: RefCell<Vec<Link>>,
 
-        pub primary_pressed: Cell<bool>,
         pub cursor: RefCell<String>,
         pub pressed_link: RefCell<Option<String>>,
 
+        pub is_selecting: Cell<bool>,
         pub selection_start: Cell<i32>,
         pub selection_end: Cell<i32>,
     }
@@ -479,7 +479,7 @@ impl TextLayout {
         let mut cursor = "text";
 
         // If text selection initiated, redraw to show selection
-        if imp.primary_pressed.get() && imp.selection_start.get() != -1 {
+        if imp.is_selecting.get() {
             if trailing > 0 {
                 imp.selection_end.set(index + 1);
             } else {
@@ -523,106 +523,86 @@ impl TextLayout {
 
         // Add click gesture controller
         let click_gesture = gtk::GestureClick::new();
-        click_gesture.set_button(0);
+        click_gesture.set_button(gdk::BUTTON_PRIMARY);
 
         click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        click_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |gesture, n, x, y| {
-            let button = gesture.current_button();
+        click_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |_, n, x, y| {
+            let link = layout.link_at_xy(x, y);
 
-            if button == gdk::BUTTON_PRIMARY {
-                let link = layout.link_at_xy(x, y);
+            if link.is_none() {
+                if n == 1 {
+                    // Single click: start selection, widget is redrawn on mouse move
+                    let (_, index, trailing) = layout.index_at_xy(x, y);
 
-                if link.is_none() {
-                    if n == 1 {
-                        // Single click: initiate selection, widget redrawn on mouse move
-                        let (_, index, trailing) = layout.index_at_xy(x, y);
-
-                        if trailing > 0 {
-                            imp.selection_start.set(index + 1);
-                        } else {
-                            imp.selection_start.set(index);
-                        }
-
-                        imp.selection_end.set(-1);
-                    } else if n == 2 {
-                        // Double click: select word under cursor and redraw widget
-                        let (_, index, _) = layout.index_at_xy(x, y);
-
-                        let text = imp.pango_layout.get().unwrap().text();
-
-                        if let Some(start_text) = text.get(..index as usize) {
-                            let start = start_text
-                                .bytes()
-                                .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                .map(|start| start + 1)
-                                .unwrap_or(0);
-
-                            if let Some(end_text) = text.get(index as usize..) {
-                                let end = end_text
-                                    .bytes()
-                                    .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                    .map(|end| end + index as usize)
-                                    .unwrap_or(text.len());
-
-                                imp.selection_start.set(start as i32);
-                                imp.selection_end.set(end as i32);
-
-                                imp.draw_area.queue_draw();
-                            }
-                        }
-                    } else if n == 3 {
-                        // Triple click: select all text and redraw widget
-                        imp.selection_start.set(0);
-                        imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
-
-                        imp.draw_area.queue_draw();
+                    if trailing > 0 {
+                        imp.selection_start.set(index + 1);
+                    } else {
+                        imp.selection_start.set(index);
                     }
 
-                    imp.primary_pressed.set(true);
+                    imp.selection_end.set(-1);
+
+                    imp.is_selecting.set(true);
+                } else if n == 2 {
+                    // Double click: select word under cursor and redraw widget
+                    let (_, index, _) = layout.index_at_xy(x, y);
+
+                    let text = imp.pango_layout.get().unwrap().text();
+
+                    if let Some(start_text) = text.get(..index as usize) {
+                        let start = start_text
+                            .bytes()
+                            .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                            .map(|start| start + 1)
+                            .unwrap_or(0);
+
+                        if let Some(end_text) = text.get(index as usize..) {
+                            let end = end_text
+                                .bytes()
+                                .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                .map(|end| end + index as usize)
+                                .unwrap_or(text.len());
+
+                            imp.selection_start.set(start as i32);
+                            imp.selection_end.set(end as i32);
+
+                            imp.draw_area.queue_draw();
+                        }
+                    }
+                } else if n == 3 {
+                    // Triple click: select all text and redraw widget
+                    imp.selection_start.set(0);
+                    imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
+
+                    imp.draw_area.queue_draw();
                 }
-
-                imp.pressed_link.replace(link);
-            } else if button == gdk::BUTTON_SECONDARY {
-                // Enable/disable copy action
-                let selection_start = imp.selection_start.get();
-                let selection_end = imp.selection_end.get();
-
-                layout.action_set_enabled("text.copy", selection_start != -1 && selection_end != -1 && selection_start != selection_end);
-
-                // Show popover menu
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-                imp.popover_menu.set_pointing_to(Some(&rect));
-                imp.popover_menu.popup();
             }
+
+            imp.pressed_link.replace(link);
         }));
 
-        click_gesture.connect_released(clone!(@weak self as layout, @weak imp => move |gesture, _, x, y| {
-            let button = gesture.current_button();
+        click_gesture.connect_released(clone!(@weak self as layout, @weak imp => move |_, _, x, y| {
+            // Redraw if necessary to hide selection
+            if imp.is_selecting.get() {
+                if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
+                    imp.selection_start.set(-1);
+                    imp.selection_end.set(-1);
 
-            if button == gdk::BUTTON_PRIMARY {
-                // Redraw if necessary to hide selection
-                if imp.primary_pressed.get() {
-                    if imp.selection_end.get() == -1 || imp.selection_start.get() == imp.selection_end.get() {
-                        imp.selection_start.set(-1);
-                        imp.selection_end.set(-1);
-
-                        imp.draw_area.queue_draw();
-                    }
+                    imp.draw_area.queue_draw();
                 }
+            }
 
-                // Reset left button pressed
-                imp.primary_pressed.set(false);
+            // End selection
+            imp.is_selecting.set(false);
 
-                // Launch link if any
-                if let Some(pressed_link) = imp.pressed_link.take() {
-                    if let Some(link) = layout.link_at_xy(x, y).filter(|link| link == &pressed_link) {
-                        if !layout.emit_by_name::<bool>("link-activated", &[&link]) {
-                            if let Ok(url) = Url::parse(&link) {
-                                if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
-                                    let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
-                                }
+            // Launch link if any
+            if let Some(pressed_link) = imp.pressed_link.take() {
+                if let Some(link) = layout.link_at_xy(x, y).filter(|link| link == &pressed_link) {
+                    if !layout.emit_by_name::<bool>("link-activated", &[&link]) {
+                        if let Ok(url) = Url::parse(&link) {
+                            if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
+                                let _res = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
                             }
                         }
                     }
@@ -631,6 +611,26 @@ impl TextLayout {
         }));
 
         imp.draw_area.add_controller(click_gesture);
+
+        // Add popup gesture controller
+        let popup_gesture = gtk::GestureClick::new();
+        popup_gesture.set_button(gdk::BUTTON_SECONDARY);
+
+        popup_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |_, _, x, y| {
+            // Enable/disable copy action
+            let selection_start = imp.selection_start.get();
+            let selection_end = imp.selection_end.get();
+
+            layout.action_set_enabled("text.copy", selection_start != -1 && selection_end != -1 && selection_start != selection_end);
+
+            // Show popover menu
+            let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+
+            imp.popover_menu.set_pointing_to(Some(&rect));
+            imp.popover_menu.popup();
+        }));
+
+        imp.draw_area.add_controller(popup_gesture);
     }
 
     //-----------------------------------
