@@ -92,7 +92,7 @@ mod imp {
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
-        #[property(set = Self::set_text)]
+        #[property(get = Self::text, set = Self::set_text)]
         _text: RefCell<String>,
 
         pub pango_layout: OnceCell<pango::Layout>,
@@ -285,8 +285,12 @@ mod imp {
         }
 
         //-----------------------------------
-        // Text property custom setter
+        // Text property custom getter/setter
         //-----------------------------------
+        fn text(&self) -> String {
+            self.pango_layout.get().unwrap().text().to_string()
+        }
+
         fn set_text(&self, text: &str) {
             let obj = self.obj();
 
@@ -303,9 +307,9 @@ mod imp {
             match obj.ptype() {
                 PropType::Link => {
                     link_list.push(Link {
-                        url: layout.text().to_string(),
+                        url: text.to_string(),
                         start: 0,
-                        end: layout.text().len()
+                        end: text.len()
                     });
                 },
                 PropType::Packager => {
@@ -313,7 +317,7 @@ mod imp {
                         static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").expect("Regex error");
                     }
 
-                    if let Some(m) = EXPR.captures(&layout.text())
+                    if let Some(m) = EXPR.captures(text)
                         .ok()
                         .and_then(|caps_opt| caps_opt.and_then(|caps| caps.get(1)))
                     {
@@ -325,14 +329,14 @@ mod imp {
                     }
                 },
                 PropType::LinkList => {
-                    if layout.text().is_empty() {
+                    if text.is_empty() {
                         layout.set_text("None");
                     } else {
                         lazy_static! {
                             static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").expect("Regex error");
                         }
 
-                        for caps in EXPR.captures_iter(&layout.text()).flatten() {
+                        for caps in EXPR.captures_iter(text).flatten() {
                             if let Some(m) = caps.get(1) {
                                 link_list.push(Link {
                                     url: format!("pkg://{}", m.as_str()),
@@ -418,9 +422,9 @@ impl TextLayout {
 
         // Add select all action
         let select_action = gio::ActionEntry::builder("select-all")
-            .activate(clone!(@weak imp => move |_, _, _| {
+            .activate(clone!(@weak self as layout, @weak imp => move |_, _, _| {
                 imp.selection_start.set(0);
-                imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
+                imp.selection_end.set(layout.text().len() as i32);
 
                 imp.draw_area.queue_draw();
             }))
@@ -432,7 +436,7 @@ impl TextLayout {
                 let selection_start = imp.selection_start.get() as usize;
                 let selection_end = imp.selection_end.get() as usize;
 
-                if let Some(text) = imp.pango_layout.get().unwrap().text().get(selection_start.min(selection_end)..selection_start.max(selection_end)) {
+                if let Some(text) = layout.text().get(selection_start.min(selection_end)..selection_start.max(selection_end)) {
                     layout.clipboard().set_text(text);
                 }
             }))
@@ -548,7 +552,7 @@ impl TextLayout {
                     // Double click: select word under cursor and redraw widget
                     let (_, index, _) = layout.index_at_xy(x, y);
 
-                    let text = imp.pango_layout.get().unwrap().text();
+                    let text = layout.text();
 
                     if let Some(start_text) = text.get(..index as usize) {
                         let start = start_text
@@ -573,7 +577,7 @@ impl TextLayout {
                 } else if n == 3 {
                     // Triple click: select all text and redraw widget
                     imp.selection_start.set(0);
-                    imp.selection_end.set(imp.pango_layout.get().unwrap().text().len() as i32);
+                    imp.selection_end.set(layout.text().len() as i32);
 
                     imp.draw_area.queue_draw();
                 }
