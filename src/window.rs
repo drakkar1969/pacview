@@ -1,7 +1,7 @@
 use std::cell::{Cell, RefCell, OnceCell};
 use std::path::Path;
 use std::rc::Rc;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 use std::env;
 
@@ -689,12 +689,12 @@ impl PacViewWindow {
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
-            let mut aur_names: Vec<String> = vec![];
+            let mut aur_names: HashSet<String> = HashSet::new();
 
             if let Some(config_dir) = config_dir {
                 let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
 
-                // If AUR package list file does not exist, download it
+                // If AUR package names file does not exist, download it
                 if !aur_file.query_exists(None::<&gio::Cancellable>) {
                     let res = gio::File::for_path(config_dir)
                         .make_directory_with_parents(None::<&gio::Cancellable>);
@@ -704,12 +704,12 @@ impl PacViewWindow {
                     }
                 }
 
-                // Load packages from AUR package list file
+                // Load AUR package names from file
                 if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
                     if let Ok(s) = String::from_utf8(bytes.to_vec()) {
                         aur_names = s.lines()
                             .map(|line| line.to_string())
-                            .collect::<Vec<String>>();
+                            .collect::<HashSet<String>>();
                     }
                 };
             }
@@ -875,12 +875,12 @@ impl PacViewWindow {
 
         let config_dir = imp.config_dir.get().unwrap().clone();
 
-        // Spawn thread to load AUR package list file
+        // Spawn thread to load AUR package names file
         gio::spawn_blocking(move || {
             if let Some(config_dir) = config_dir {
                 let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
 
-                // Get AUR package list file age
+                // Get AUR package names file age
                 let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
                     .ok()
                     .and_then(|file_info| file_info.modification_date_time())
@@ -889,7 +889,7 @@ impl PacViewWindow {
                             .map(|current_time| current_time.difference(&file_time).as_days())
                     });
 
-                // Download AUR package list file if does not exist or older than 7 days
+                // Download AUR package names file if does not exist or older than 7 days
                 if file_days.is_none() || file_days.unwrap() >= 7 {
                     Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
                 }
