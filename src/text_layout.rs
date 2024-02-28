@@ -551,26 +551,26 @@ impl TextLayout {
 
                     let text = layout.text();
 
-                    if let Some(start_text) = text.get(..index as usize) {
-                        let start = start_text
-                            .bytes()
-                            .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                            .map(|start| start + 1)
-                            .unwrap_or(0);
+                    let start = text.get(..index as usize)
+                        .and_then(|s| {
+                            s.bytes()
+                                .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                .map(|start| start + 1)
+                        })
+                        .unwrap_or(0);
 
-                        if let Some(end_text) = text.get(index as usize..) {
-                            let end = end_text
-                                .bytes()
+                    let end = text.get(index as usize..)
+                        .and_then(|s| {
+                            s.bytes()
                                 .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
                                 .map(|end| end + index as usize)
-                                .unwrap_or(text.len());
+                        })
+                        .unwrap_or(text.len());
 
-                            imp.selection_start.set(start as i32);
-                            imp.selection_end.set(end as i32);
+                    imp.selection_start.set(start as i32);
+                    imp.selection_end.set(end as i32);
 
-                            imp.draw_area.queue_draw();
-                        }
-                    }
+                    imp.draw_area.queue_draw();
                 } else if n == 3 {
                     // Triple click: select all text and redraw widget
                     imp.selection_start.set(0);
