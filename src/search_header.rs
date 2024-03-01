@@ -23,6 +23,17 @@ pub enum SearchMode {
     Exact = 2,
 }
 
+impl SearchMode {
+    pub fn modes() -> Vec<String> {
+        let mode_enum = glib::EnumClass::new::<Self>();
+
+        mode_enum.values()
+            .iter()
+            .map(|v| {v.nick().to_string()})
+            .collect::<Vec<String>>()
+    }
+}
+
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
@@ -38,6 +49,17 @@ pub enum SearchProp {
     Optdeps = 4,
     Provides = 5,
     Files = 6,
+}
+
+impl SearchProp {
+    pub fn props() -> Vec<String> {
+        let prop_enum = glib::EnumClass::new::<Self>();
+
+        prop_enum.values()
+            .iter()
+            .map(|v| {v.nick().to_string()})
+            .collect::<Vec<String>>()
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -371,12 +393,14 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                match state.as_str() {
-                    "all" => group.activate_action("set-mode", Some(&"any".to_variant())),
-                    "any" => group.activate_action("set-mode", Some(&"exact".to_variant())),
-                    "exact" => group.activate_action("set-mode", Some(&"all".to_variant())),
-                    _ => unreachable!()
-                };
+                let modes = SearchMode::modes();
+
+                let new_state = modes.iter().position(|s| s == &state)
+                    .and_then(|i| i.checked_add(1))
+                    .and_then(|i| modes.get(i))
+                    .unwrap_or(&modes[0]);
+
+                group.activate_action("set-mode", Some(&new_state.to_variant()));
             })
             .build();
 
@@ -388,13 +412,15 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                match state.as_str() {
-                    "all" => group.activate_action("set-mode", Some(&"exact".to_variant())),
-                    "any" => group.activate_action("set-mode", Some(&"all".to_variant())),
-                    "exact" => group.activate_action("set-mode", Some(&"any".to_variant())),
-                    _ => unreachable!()
-                };
-            })
+                let modes = SearchMode::modes();
+
+                let new_state = modes.iter().position(|s| s == &state)
+                    .and_then(|i| i.checked_sub(1))
+                    .and_then(|i| modes.get(i))
+                    .unwrap_or(modes.last().unwrap());
+
+                group.activate_action("set-mode", Some(&new_state.to_variant()));
+                })
             .build();
 
         // Add cycle search prop action
@@ -405,16 +431,14 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                match state.as_str() {
-                    "name" => group.activate_action("set-prop", Some(&"desc".to_variant())),
-                    "desc" => group.activate_action("set-prop", Some(&"group".to_variant())),
-                    "group" => group.activate_action("set-prop", Some(&"deps".to_variant())),
-                    "deps" => group.activate_action("set-prop", Some(&"optdeps".to_variant())),
-                    "optdeps" => group.activate_action("set-prop", Some(&"provides".to_variant())),
-                    "provides" => group.activate_action("set-prop", Some(&"files".to_variant())),
-                    "files" => group.activate_action("set-prop", Some(&"name".to_variant())),
-                    _ => unreachable!()
-                }
+                let props = SearchProp::props();
+
+                let new_state = props.iter().position(|s| s == &state)
+                    .and_then(|i| i.checked_add(1))
+                    .and_then(|i| props.get(i))
+                    .unwrap_or(&props[0]);
+
+                group.activate_action("set-prop", Some(&new_state.to_variant()));
             })
             .build();
 
@@ -426,16 +450,14 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                match state.as_str() {
-                    "name" => group.activate_action("set-prop", Some(&"files".to_variant())),
-                    "desc" => group.activate_action("set-prop", Some(&"name".to_variant())),
-                    "group" => group.activate_action("set-prop", Some(&"desc".to_variant())),
-                    "deps" => group.activate_action("set-prop", Some(&"group".to_variant())),
-                    "optdeps" => group.activate_action("set-prop", Some(&"deps".to_variant())),
-                    "provides" => group.activate_action("set-prop", Some(&"optdeps".to_variant())),
-                    "files" => group.activate_action("set-prop", Some(&"provides".to_variant())),
-                    _ => unreachable!()
-                }
+                let props = SearchProp::props();
+
+                let new_state = props.iter().position(|s| s == &state)
+                    .and_then(|i| i.checked_sub(1))
+                    .and_then(|i| props.get(i))
+                    .unwrap_or(props.last().unwrap());
+
+                group.activate_action("set-prop", Some(&new_state.to_variant()));
             })
             .build();
 
