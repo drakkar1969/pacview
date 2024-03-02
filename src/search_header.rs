@@ -86,8 +86,6 @@ mod imp {
         pub spinner: TemplateChild<gtk::Spinner>,
 
         #[template_child]
-        pub tag_aur: TemplateChild<SearchTag>,
-        #[template_child]
         pub tag_mode: TemplateChild<SearchTag>,
         #[template_child]
         pub tag_prop: TemplateChild<SearchTag>,
@@ -112,8 +110,6 @@ mod imp {
         #[property(get, set, builder(SearchProp::default()))]
         prop: Cell<SearchProp>,
 
-        #[property(get, set)]
-        include_aur: Cell<bool>,
         #[property(get, set)]
         aur_error: Cell<bool>,
 
@@ -157,18 +153,24 @@ mod imp {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
                 vec![
+                    Signal::builder("enabled")
+                        .param_types([bool::static_type()])
+                        .build(),
                     Signal::builder("changed")
                         .param_types([
                             String::static_type(),
                             SearchMode::static_type(),
-                            SearchProp::static_type(),
-                            bool::static_type(),
-                            bool::static_type(),
+                            SearchProp::static_type()
                         ])
                         .build(),
-                    Signal::builder("enabled")
-                        .param_types([bool::static_type()])
-                        .build()
+                    Signal::builder("aur-search")
+                        .param_types([
+                            String::static_type(),
+                            SearchMode::static_type(),
+                            SearchProp::static_type(),
+                            bool::static_type()
+                        ])
+                        .build(),
                 ]
             })
         }
@@ -266,28 +268,14 @@ impl SearchHeader {
             header.emit_by_name::<()>("enabled", &[&header.enabled()]);
         });
 
-        // Include AUR property notify signal
-        self.connect_include_aur_notify(|header| {
-            let imp = header.imp();
-
-            imp.tag_aur.set_visible(header.include_aur());
-
-            imp.search_text.set_text("");
-            header.set_aur_error(false);
-
-            header.activate_action("search.reset-params", None).unwrap();
-        });
-
         // AUR error property notify signal
         self.connect_aur_error_notify(|header| {
             let imp = header.imp();
 
             if header.aur_error() {
                 imp.search_text.add_css_class("error");
-                imp.tag_aur.add_css_class("error");
             } else {
                 imp.search_text.remove_css_class("error");
-                imp.tag_aur.remove_css_class("error");
             }
         });
 
@@ -320,7 +308,7 @@ impl SearchHeader {
                 header.set_aur_error(false);
 
                 header.emit_changed_signal();
-            } else if !header.include_aur() {
+            } else {
                 // Start delay timer
                 let delay_id = glib::timeout_add_local_once(
                     Duration::from_millis(header.delay()),
@@ -337,17 +325,21 @@ impl SearchHeader {
 
         // Search text activate signal
         imp.search_text.connect_activate(clone!(@weak self as header => move |search_text| {
-            if header.include_aur() && !search_text.text().is_empty() {
-                let text = search_text.text();
+            let text = search_text.text();
 
-                if text.split_whitespace().any(|t| t.len() < 4) {
-                    header.set_aur_error(true);
-                } else {
-                    header.set_aur_error(false);
-                }
-
-                header.emit_changed_signal();
+            if text.split_whitespace().any(|t| t.len() < 4) {
+                header.set_aur_error(true);
+            } else {
+                header.set_aur_error(false);
             }
+
+            header.emit_by_name::<()>("aur-search",
+                &[
+                    &search_text.text(),
+                    &header.mode(),
+                    &header.prop(),
+                    &header.aur_error()
+                ]);
         }));
 
         // Clear button clicked signal
@@ -366,9 +358,7 @@ impl SearchHeader {
             &[
                 &imp.search_text.text(),
                 &self.mode(),
-                &self.prop(),
-                &self.include_aur(),
-                &self.aur_error()
+                &self.prop()
             ]);
     }
 
@@ -376,9 +366,6 @@ impl SearchHeader {
     // Setup actions
     //-----------------------------------
     fn setup_actions(&self) {
-        // Add include AUR property action
-        let aur_action = gio::PropertyAction::new("include-aur", self, "include-aur");
-
         // Add search mode property action
         let mode_action = gio::PropertyAction::new("set-mode", self, "mode");
 
@@ -474,7 +461,6 @@ impl SearchHeader {
 
         self.insert_action_group("search", Some(&search_group));
 
-        search_group.add_action(&aur_action);
         search_group.add_action(&mode_action);
         search_group.add_action(&prop_action);
 
@@ -487,12 +473,6 @@ impl SearchHeader {
     fn setup_shortcuts(&self) {
         // Create shortcut controller
         let controller = gtk::ShortcutController::new();
-
-        // Add include AUR shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>P"),
-            Some(gtk::NamedAction::new("search.include-aur"))
-        ));
 
         // Add cycle search mode shortcut
         controller.add_shortcut(gtk::Shortcut::new(

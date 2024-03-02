@@ -185,8 +185,6 @@ impl PacViewWindow {
         gsettings.bind("window-height", self, "default-height").build();
         gsettings.bind("window-maximized", self, "maximized").build();
 
-        gsettings.bind("search-include-aur", &imp.search_header.get(), "include-aur").build();
-
         gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
         gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
 
@@ -535,9 +533,14 @@ impl PacViewWindow {
             }
         }));
 
-        // Search header changed objsignal
-        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as window => move |search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool| {
-            window.imp().package_view.set_search_filter(search_header, search_term, mode, prop, include_aur, aur_error);
+        // Search header changed signal
+        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as window => move |_: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp| {
+            window.imp().package_view.set_search_filter(search_term, mode, prop);
+        }));
+
+        // Search header AUR Search signal
+        imp.search_header.connect_closure("aur-search", false, closure_local!(@watch self as window => move |search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, aur_error: bool| {
+            window.imp().package_view.search_in_aur(search_header, search_term, mode, prop, aur_error);
         }));
 
         // Repo listbox row activated signal

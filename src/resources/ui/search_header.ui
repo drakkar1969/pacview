@@ -50,11 +50,6 @@
                     <property name="valign">center</property>
                     <property name="spacing">6</property>
                     <child>
-                      <object class="SearchTag" id="tag_aur">
-                        <property name="text">AUR</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="SearchTag" id="tag_mode">
                         <property name="text">all</property>
                       </object>
@@ -69,6 +64,7 @@
                 <child>
                   <object class="GtkText" id="search_text">
                     <property name="hexpand">true</property>
+                    <property name="placeholder-text">Press Enter to search in AUR</property>
                   </object>
                 </child>
                 <child>
@@ -97,12 +93,6 @@
 
   <!--// Search menu //-->
   <menu id="search_menu">
-    <section>
-      <item>
-        <attribute name="label">Include AUR Results</attribute>
-        <attribute name="action">search.include-aur</attribute>
-      </item>
-    </section>
     <section>
       <attribute name="label">Search Type</attribute>
       <item>

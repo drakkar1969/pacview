@@ -215,184 +215,68 @@ impl PackageView {
     }
 
     //-----------------------------------
-    // Filter helper functions
-    //-----------------------------------
-    fn filter_pkg_model(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
-        let imp = self.imp();
-
-        if mode == SearchMode::Exact {
-            let term = search_term.to_string();
-
-            imp.search_filter.set_filter_func(move |item| {
-                let pkg: &PkgObject = item
-                    .downcast_ref::<PkgObject>()
-                    .expect("Could not downcast to 'PkgObject'");
-
-                if pkg.is_aur() {
-                    true
-                } else {
-                    match prop {
-                        SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
-                        SearchProp::Desc => { pkg.description().eq_ignore_ascii_case(&term) },
-                        SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
-                        SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                    }
-                }
-            });
-        } else {
-            let term = search_term.to_ascii_lowercase();
-
-            imp.search_filter.set_filter_func(move |item| {
-                let pkg: &PkgObject = item
-                    .downcast_ref::<PkgObject>()
-                    .expect("Could not downcast to 'PkgObject'");
-
-                if pkg.is_aur() {
-                    true
-                } else {
-                    let mut results = term.split_whitespace()
-                        .map(|t| {
-                            match prop {
-                                SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(t) },
-                                SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(t) },
-                                SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(t) },
-                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                            }
-                        });
-
-                    if mode == SearchMode::All {
-                        results.all(|x| x)
-                    } else {
-                        results.any(|x| x)
-                    }
-                }
-            });
-        }
-    }
-
-    fn populate_aur_model(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool) {
-        let imp = self.imp();
-
-        if !include_aur || aur_error || prop == SearchProp::Files {
-            imp.aur_model.remove_all();
-        } else {
-            search_header.set_spinning(true);
-
-            let term = search_term.to_ascii_lowercase();
-
-            let search_by = match prop {
-                SearchProp::Name => { raur::SearchBy::Name },
-                SearchProp::Desc => { raur::SearchBy::NameDesc },
-                SearchProp::Group => { raur::SearchBy::Groups },
-                SearchProp::Deps => { raur::SearchBy::Depends },
-                SearchProp::Optdeps => { raur::SearchBy::OptDepends },
-                SearchProp::Provides => { raur::SearchBy::Provides },
-                SearchProp::Files => unreachable!(),
-            };
-
-            // Create list of local package names
-            let local_pkgs: Vec<String> = imp.pkg_model.iter::<PkgObject>()
-                .flatten()
-                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
-                .map(|pkg| pkg.name())
-                .collect();
-
-            // Spawn thread to search AUR
-            let (sender, receiver) = async_channel::bounded(1);
-
-            gio::spawn_blocking(move || {
-                let handle = raur::blocking::Handle::new();
-
-                let mut aur_names: Vec<String> = vec![];
-
-                match mode {
-                    SearchMode::Exact => {
-                        if let Ok(aur_search) = handle.search_by(term, search_by) {
-                            aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
-                        }
-                    },
-                    SearchMode::Any => {
-                        for t in term.split_whitespace() {
-                            if let Ok(aur_search) = handle.search_by(t, search_by) {
-                                aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
-                            }
-                        }
-
-                        aur_names.sort_unstable();
-                        aur_names.dedup();
-                    },
-                    SearchMode::All => {
-                        let mut aur_sets: Vec<HashSet<String>> = vec![];
-
-                        for t in term.split_whitespace() {
-                            if let Ok(aur_search) = handle.search_by(t, search_by) {
-                                aur_sets.push(aur_search.iter()
-                                    .map(|pkg| pkg.name.to_string())
-                                    .collect::<HashSet<_>>()
-                                );
-                            }
-                        }
-
-                        if !aur_sets.is_empty() {
-                            aur_names.extend(aur_sets.iter()
-                                .skip(1)
-                                .fold(aur_sets[0].clone(), |acc, set| {
-                                    acc.intersection(set).cloned().collect()
-                                })
-                            );
-                        }
-                    }
-                }
-
-                let mut data_list: Vec<PkgData> = vec![];
-
-                if let Ok(aur_list) = handle.info(&aur_names) {
-                    data_list.extend(aur_list.into_iter()
-                        .filter(|aurpkg| !local_pkgs.contains(&aurpkg.name))
-                        .map(|aurpkg| {
-                            PkgData::from_aur(aurpkg)
-                        })
-                    );
-                }
-
-                sender.send_blocking(data_list).expect("Could not send through channel");
-            });
-
-            // Attach thread receiver
-            glib::spawn_future_local(clone!(@weak imp => async move {
-                while let Ok(data_list) = receiver.recv().await {
-                    let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                        .map(|data| PkgObject::new(None, data))
-                        .collect();
-
-                    imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
-
-                    search_header.set_spinning(false);
-                }
-            }));
-        }
-    }
-
-    //-----------------------------------
     // Public filter functions
     //-----------------------------------
-    pub fn set_search_filter(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, include_aur: bool, aur_error: bool) {
+    pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
         let imp = self.imp();
 
         if search_term.is_empty() {
             imp.search_filter.unset_filter_func();
-
-            imp.aur_model.remove_all();
         } else {
-            self.filter_pkg_model(search_term, mode, prop);
+            if mode == SearchMode::Exact {
+                let term = search_term.to_string();
 
-            self.populate_aur_model(search_header, search_term, mode, prop, include_aur, aur_error);
+                imp.search_filter.set_filter_func(move |item| {
+                    let pkg: &PkgObject = item
+                        .downcast_ref::<PkgObject>()
+                        .expect("Could not downcast to 'PkgObject'");
+
+                    if pkg.is_aur() {
+                        true
+                    } else {
+                        match prop {
+                            SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
+                            SearchProp::Desc => { pkg.description().eq_ignore_ascii_case(&term) },
+                            SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
+                            SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                            SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                            SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                            SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        }
+                    }
+                });
+            } else {
+                let term = search_term.to_ascii_lowercase();
+
+                imp.search_filter.set_filter_func(move |item| {
+                    let pkg: &PkgObject = item
+                        .downcast_ref::<PkgObject>()
+                        .expect("Could not downcast to 'PkgObject'");
+
+                    if pkg.is_aur() {
+                        true
+                    } else {
+                        let mut results = term.split_whitespace()
+                            .map(|t| {
+                                match prop {
+                                    SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(t) },
+                                    SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(t) },
+                                    SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(t) },
+                                    SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                    SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                    SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                    SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                }
+                            });
+
+                        if mode == SearchMode::All {
+                            results.all(|x| x)
+                        } else {
+                            results.any(|x| x)
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -408,6 +292,116 @@ impl PackageView {
 
             pkg.flags().intersects(status_id)
         });
+    }
+
+    //-----------------------------------
+    // Public search in AUR function
+    //-----------------------------------
+    pub fn search_in_aur(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, aur_error: bool) {
+        let imp = self.imp();
+
+        if aur_error || search_term.is_empty() {
+            imp.aur_model.remove_all();
+        } else {
+            if prop == SearchProp::Files {
+                imp.aur_model.remove_all();
+            } else {
+                search_header.set_spinning(true);
+
+                let term = search_term.to_ascii_lowercase();
+
+                let search_by = match prop {
+                    SearchProp::Name => { raur::SearchBy::Name },
+                    SearchProp::Desc => { raur::SearchBy::NameDesc },
+                    SearchProp::Group => { raur::SearchBy::Groups },
+                    SearchProp::Deps => { raur::SearchBy::Depends },
+                    SearchProp::Optdeps => { raur::SearchBy::OptDepends },
+                    SearchProp::Provides => { raur::SearchBy::Provides },
+                    SearchProp::Files => unreachable!(),
+                };
+
+                // Create list of local package names
+                let local_pkgs: Vec<String> = imp.pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                    .map(|pkg| pkg.name())
+                    .collect();
+
+                // Spawn thread to search AUR
+                let (sender, receiver) = async_channel::bounded(1);
+
+                gio::spawn_blocking(move || {
+                    let handle = raur::blocking::Handle::new();
+
+                    let mut aur_names: Vec<String> = vec![];
+
+                    match mode {
+                        SearchMode::Exact => {
+                            if let Ok(aur_search) = handle.search_by(term, search_by) {
+                                aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
+                            }
+                        },
+                        SearchMode::Any => {
+                            for t in term.split_whitespace() {
+                                if let Ok(aur_search) = handle.search_by(t, search_by) {
+                                    aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
+                                }
+                            }
+
+                            aur_names.sort_unstable();
+                            aur_names.dedup();
+                        },
+                        SearchMode::All => {
+                            let mut aur_sets: Vec<HashSet<String>> = vec![];
+
+                            for t in term.split_whitespace() {
+                                if let Ok(aur_search) = handle.search_by(t, search_by) {
+                                    aur_sets.push(aur_search.iter()
+                                        .map(|pkg| pkg.name.to_string())
+                                        .collect::<HashSet<_>>()
+                                    );
+                                }
+                            }
+
+                            if !aur_sets.is_empty() {
+                                aur_names.extend(aur_sets.iter()
+                                    .skip(1)
+                                    .fold(aur_sets[0].clone(), |acc, set| {
+                                        acc.intersection(set).cloned().collect()
+                                    })
+                                );
+                            }
+                        }
+                    }
+
+                    let mut data_list: Vec<PkgData> = vec![];
+
+                    if let Ok(aur_list) = handle.info(&aur_names) {
+                        data_list.extend(aur_list.into_iter()
+                            .filter(|aurpkg| !local_pkgs.contains(&aurpkg.name))
+                            .map(|aurpkg| {
+                                PkgData::from_aur(aurpkg)
+                            })
+                        );
+                    }
+
+                    sender.send_blocking(data_list).expect("Could not send through channel");
+                });
+
+                // Attach thread receiver
+                glib::spawn_future_local(clone!(@weak imp => async move {
+                    while let Ok(data_list) = receiver.recv().await {
+                        let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                            .map(|data| PkgObject::new(None, data))
+                            .collect();
+
+                        imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
+
+                        search_header.set_spinning(false);
+                    }
+                }));
+            }
+        }
     }
 
     //-----------------------------------

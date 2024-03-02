@@ -37,9 +37,6 @@
     <key name="remember-sorting" type="b">
       <default>false</default>
     </key>
-    <key name="search-include-aur" type="b">
-      <default>false</default>
-    </key>
     <key name="search-delay" type="d">
       <range min="0" max="2000"/>
       <default>150</default>

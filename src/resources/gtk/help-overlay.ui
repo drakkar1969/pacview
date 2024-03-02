@@ -109,12 +109,6 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;P</property>
-                <property name="title">Enable/Disable AUR Search</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;R</property>
                 <property name="title">Reset Search Parameters</property>
               </object>
