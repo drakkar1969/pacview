@@ -87,25 +87,17 @@ mod imp {
             // Connect style manager dark property notify signal
             style_manager.connect_dark_notify(move |style_manager| {
                 // Update icon resource paths when color scheme changes
-                let resource_paths = icon_theme.resource_path();
+                let mut resource_paths = icon_theme.resource_path();
 
-                let mut icon_paths: Vec<&str> = resource_paths.iter()
-                    .filter_map(|s| {
-                        if s.contains(icons_light_path) || s.contains(icons_dark_path) {
-                            None
-                        } else {
-                            Some(s.as_str())
-                        }
-                    })
-                    .collect();
+                resource_paths.retain(|s| !(s.contains(icons_light_path) || s.contains(icons_dark_path)));
 
                 if style_manager.is_dark() {
-                    icon_paths.push(icons_dark_path);
+                    resource_paths.push(glib::GString::from(icons_dark_path));
                 } else {
-                    icon_paths.push(icons_light_path);
+                    resource_paths.push(glib::GString::from(icons_light_path));
                 }
 
-                icon_theme.set_resource_path(&icon_paths);
+                icon_theme.set_resource_path(&resource_paths.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
             });
         }
     }

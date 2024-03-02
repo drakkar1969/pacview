@@ -404,7 +404,7 @@ impl DetailsWindow {
     //-----------------------------------
     // Update cache page
     //-----------------------------------
-    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &Vec<String>, pkg_model: &gio::ListStore) {
+    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &[String], pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         let pkg_name = &pkg.name();
