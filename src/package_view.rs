@@ -231,18 +231,14 @@ impl PackageView {
                         .downcast_ref::<PkgObject>()
                         .expect("Could not downcast to 'PkgObject'");
 
-                    if pkg.is_aur() {
-                        true
-                    } else {
-                        match prop {
-                            SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
-                            SearchProp::Desc => { pkg.description().eq_ignore_ascii_case(&term) },
-                            SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
-                            SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                            SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                            SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                            SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        }
+                    match prop {
+                        SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
+                        SearchProp::Desc => { pkg.name().eq_ignore_ascii_case(&term) || pkg.description().eq_ignore_ascii_case(&term) },
+                        SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
+                        SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
                     }
                 });
             } else {
@@ -253,27 +249,23 @@ impl PackageView {
                         .downcast_ref::<PkgObject>()
                         .expect("Could not downcast to 'PkgObject'");
 
-                    if pkg.is_aur() {
-                        true
-                    } else {
-                        let mut results = term.split_whitespace()
-                            .map(|t| {
-                                match prop {
-                                    SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(t) },
-                                    SearchProp::Desc => { pkg.description().to_ascii_lowercase().contains(t) },
-                                    SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(t) },
-                                    SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                    SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                    SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                    SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                }
-                            });
+                    let mut results = term.split_whitespace()
+                        .map(|t| {
+                            match prop {
+                                SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(t) },
+                                SearchProp::Desc => { pkg.name().to_ascii_lowercase().contains(t) || pkg.description().to_ascii_lowercase().contains(t) },
+                                SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(t) },
+                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                            }
+                        });
 
-                        if mode == SearchMode::All {
-                            results.all(|x| x)
-                        } else {
-                            results.any(|x| x)
-                        }
+                    if mode == SearchMode::All {
+                        results.all(|x| x)
+                    } else {
+                        results.any(|x| x)
                     }
                 });
             }

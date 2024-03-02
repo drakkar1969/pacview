@@ -101,7 +101,7 @@
         <attribute name="target">name</attribute>
       </item>
       <item>
-        <attribute name="label">Description</attribute>
+        <attribute name="label">Name or Description</attribute>
         <attribute name="action">search.set-prop</attribute>
         <attribute name="target">desc</attribute>
       </item>

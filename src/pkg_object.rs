@@ -35,7 +35,6 @@ impl Default for PkgFlags {
 //------------------------------------------------------------------------------
 #[derive(Default)]
 pub struct PkgData {
-    pub is_aur: bool,
     pub flags: PkgFlags,
     pub name: String,
     pub version: String,
@@ -93,7 +92,6 @@ impl PkgData {
 
         // Build PkgData
         Self {
-            is_aur: false,
             flags,
             name: syncpkg.name().to_string(),
             version: syncpkg.version().to_string(),
@@ -138,7 +136,6 @@ impl PkgData {
     pub fn from_aur(aurpkg: raur::Package) -> Self {
         // Build PkgData
         Self {
-            is_aur: true,
             flags: PkgFlags::NONE,
             name: aurpkg.name,
             version: aurpkg.version,
@@ -222,8 +219,6 @@ mod imp {
         #[property(name = "repository",   get, set, type = String,     member = repository)]
 
         // Read-only properties
-        #[property(name = "is-aur",         get, type = bool,     member = is_aur)]
-
         #[property(name = "name",           get, type = String,   member = name)]
         #[property(name = "status",         get, type = String,   member = status)]
         #[property(name = "status-icon",    get, type = String,   member = status_icon)]
