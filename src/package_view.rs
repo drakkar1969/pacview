@@ -233,7 +233,7 @@ impl PackageView {
 
                     match prop {
                         SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
-                        SearchProp::Desc => { pkg.name().eq_ignore_ascii_case(&term) || pkg.description().eq_ignore_ascii_case(&term) },
+                        SearchProp::NameDesc => { pkg.name().eq_ignore_ascii_case(&term) || pkg.description().eq_ignore_ascii_case(&term) },
                         SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
                         SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
                         SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
@@ -253,7 +253,7 @@ impl PackageView {
                         .map(|t| {
                             match prop {
                                 SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(t) },
-                                SearchProp::Desc => { pkg.name().to_ascii_lowercase().contains(t) || pkg.description().to_ascii_lowercase().contains(t) },
+                                SearchProp::NameDesc => { pkg.name().to_ascii_lowercase().contains(t) || pkg.description().to_ascii_lowercase().contains(t) },
                                 SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(t) },
                                 SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
                                 SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
@@ -304,7 +304,7 @@ impl PackageView {
 
                 let search_by = match prop {
                     SearchProp::Name => { raur::SearchBy::Name },
-                    SearchProp::Desc => { raur::SearchBy::NameDesc },
+                    SearchProp::NameDesc => { raur::SearchBy::NameDesc },
                     SearchProp::Group => { raur::SearchBy::Groups },
                     SearchProp::Deps => { raur::SearchBy::Depends },
                     SearchProp::Optdeps => { raur::SearchBy::OptDepends },

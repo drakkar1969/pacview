@@ -43,7 +43,7 @@ impl SearchMode {
 pub enum SearchProp {
     #[default]
     Name = 0,
-    Desc = 1,
+    NameDesc = 1,
     Group = 2,
     Deps = 3,
     Optdeps = 4,
