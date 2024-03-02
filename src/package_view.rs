@@ -228,7 +228,7 @@ impl PackageView {
             imp.search_filter.unset_filter_func();
         } else {
             if mode == SearchMode::Exact {
-                let term = search_term.to_string();
+                let term = search_term.to_lowercase();
 
                 imp.search_filter.set_filter_func(move |item| {
                     let pkg: &PkgObject = item
@@ -236,17 +236,17 @@ impl PackageView {
                         .expect("Could not downcast to 'PkgObject'");
 
                     match prop {
-                        SearchProp::Name => { pkg.name().eq_ignore_ascii_case(&term) },
-                        SearchProp::NameDesc => { pkg.name().eq_ignore_ascii_case(&term) || pkg.description().eq_ignore_ascii_case(&term) },
-                        SearchProp::Group => { pkg.groups().eq_ignore_ascii_case(&term) },
-                        SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
-                        SearchProp::Files => { pkg.files().iter().any(|s| s.eq_ignore_ascii_case(&term)) },
+                        SearchProp::Name => { pkg.name().eq(&term) },
+                        SearchProp::NameDesc => { pkg.name().eq(&term) || pkg.description().eq(&term) },
+                        SearchProp::Group => { pkg.groups().eq(&term) },
+                        SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq(&term)) },
+                        SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq(&term)) },
+                        SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq(&term)) },
+                        SearchProp::Files => { pkg.files().iter().any(|s| s.eq(&term)) },
                     }
                 });
             } else {
-                let term = search_term.to_ascii_lowercase();
+                let term = search_term.to_lowercase();
 
                 imp.search_filter.set_filter_func(move |item| {
                     let pkg: &PkgObject = item
@@ -256,13 +256,13 @@ impl PackageView {
                     let mut results = term.split_whitespace()
                         .map(|t| {
                             match prop {
-                                SearchProp::Name => { pkg.name().to_ascii_lowercase().contains(t) },
-                                SearchProp::NameDesc => { pkg.name().to_ascii_lowercase().contains(t) || pkg.description().to_ascii_lowercase().contains(t) },
-                                SearchProp::Group => { pkg.groups().to_ascii_lowercase().contains(t) },
-                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
-                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_ascii_lowercase().contains(t)) },
+                                SearchProp::Name => { pkg.name().to_lowercase().contains(t) },
+                                SearchProp::NameDesc => { pkg.name().to_lowercase().contains(t) || pkg.description().to_lowercase().contains(t) },
+                                SearchProp::Group => { pkg.groups().to_lowercase().contains(t) },
+                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_lowercase().contains(t)) },
+                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_lowercase().contains(t)) },
+                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_lowercase().contains(t)) },
+                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_lowercase().contains(t)) },
                             }
                         });
 
@@ -301,7 +301,7 @@ impl PackageView {
         } else {
             search_header.set_spinning(true);
 
-            let term = search_term.to_ascii_lowercase();
+            let term = search_term.to_lowercase();
 
             // Set search mode
             let search_by = match prop {
