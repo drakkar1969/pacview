@@ -103,7 +103,7 @@
       <item>
         <attribute name="label">Name or Description</attribute>
         <attribute name="action">search.set-prop</attribute>
-        <attribute name="target">desc</attribute>
+        <attribute name="target">name-desc</attribute>
       </item>
       <item>
         <attribute name="label">Group</attribute>
