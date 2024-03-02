@@ -69,7 +69,7 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;L</property>
+                <property name="accelerator">&lt;alt&gt;C</property>
                 <property name="title">Copy List</property>
               </object>
             </child>
