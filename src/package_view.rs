@@ -293,7 +293,7 @@ impl PackageView {
     //-----------------------------------
     // Public search in AUR function
     //-----------------------------------
-    pub fn search_in_aur(&self, search_header: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp, aur_error: bool) {
+    pub fn search_in_aur(&self, search_header: SearchHeader, search_term: &str, prop: SearchProp, aur_error: bool) {
         let imp = self.imp();
 
         if aur_error || search_term.is_empty() || prop == SearchProp::Files {
@@ -330,36 +330,16 @@ impl PackageView {
             gio::spawn_blocking(move || {
                 let handle = raur::blocking::Handle::new();
 
+                // Search for packages
                 let mut aur_names: HashSet<String> = HashSet::new();
 
-                match mode {
-                    SearchMode::Exact => {
-                        if let Ok(aur_search) = handle.search_by(term, search_by) {
-                            aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
-                        }
-                    },
-                    SearchMode::Any => {
-                        for t in term.split_whitespace() {
-                            if let Ok(aur_search) = handle.search_by(t, search_by) {
-                                aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
-                            }
-                        }
-                    },
-                    SearchMode::All => {
-                        for (i, t) in term.split_whitespace().enumerate() {
-                            if let Ok(aur_search) = handle.search_by(t, search_by) {
-                                if i == 0 {
-                                    aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
-                                } else {
-                                    let res = aur_search.iter().map(|pkg| pkg.name.to_string()).collect::<HashSet<String>>();
-
-                                    aur_names = aur_names.intersection(&res).cloned().collect::<HashSet<String>>();
-                                }
-                            }
-                        }
+                for t in term.split_whitespace() {
+                    if let Ok(aur_search) = handle.search_by(t, search_by) {
+                        aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
                     }
                 }
 
+                // Get package info
                 let mut data_list: Vec<PkgData> = vec![];
 
                 if let Ok(aur_list) = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())

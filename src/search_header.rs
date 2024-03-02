@@ -166,7 +166,6 @@ mod imp {
                     Signal::builder("aur-search")
                         .param_types([
                             String::static_type(),
-                            SearchMode::static_type(),
                             SearchProp::static_type(),
                             bool::static_type()
                         ])
@@ -367,7 +366,6 @@ impl SearchHeader {
         self.emit_by_name::<()>("aur-search",
             &[
                 &imp.search_text.text(),
-                &self.mode(),
                 &self.prop(),
                 &self.aur_error()
             ]);
