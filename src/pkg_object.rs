@@ -133,20 +133,20 @@ impl PkgData {
         }
     }
 
-    pub fn from_aur(aurpkg: raur::Package) -> Self {
+    pub fn from_aur(aurpkg: raur::ArcPackage) -> Self {
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,
-            name: aurpkg.name,
-            version: aurpkg.version,
+            name: aurpkg.name.to_string(),
+            version: aurpkg.version.to_string(),
             repository: "aur".to_string(),
             status: "".to_string(),
             status_icon: "".to_string(),
             install_date: 0,
             install_size: 0,
             groups: Self::aur_vec_to_string(&aurpkg.groups),
-            description: aurpkg.description.unwrap_or_default(),
-            url: aurpkg.url.unwrap_or_default(),
+            description: aurpkg.description.as_ref().map(|s| s.to_string()).unwrap_or_default(),
+            url: aurpkg.url.as_ref().map(|s| s.to_string()).unwrap_or_default(),
             licenses: Self::aur_vec_to_string(&aurpkg.license),
             provides: Self::aur_sorted_vec(&aurpkg.provides),
             depends: Self::aur_sorted_vec(&aurpkg.depends),
@@ -155,7 +155,7 @@ impl PkgData {
             conflicts: Self::aur_sorted_vec(&aurpkg.conflicts),
             replaces: Self::aur_sorted_vec(&aurpkg.replaces),
             architecture: "".to_string(),
-            packager: aurpkg.maintainer.unwrap_or("Unknown Packager".to_string()),
+            packager: aurpkg.maintainer.as_ref().map(|s| s.to_string()).unwrap_or("Unknown Packager".to_string()),
             build_date: 0,
             download_size: 0,
             has_script: false,

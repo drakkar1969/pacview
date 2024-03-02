@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashSet;
 use std::sync::OnceLock;
 
@@ -8,6 +9,7 @@ use glib::subclass::Signal;
 use glib::clone;
 
 use raur::blocking::Raur;
+use raur::ArcPackage;
 
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
@@ -48,6 +50,8 @@ mod imp {
         pub empty_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub popover_menu: TemplateChild<gtk::PopoverMenu>,
+
+        pub aur_cache: RefCell<HashSet<ArcPackage>>
     }
 
     //-----------------------------------
@@ -299,6 +303,7 @@ impl PackageView {
 
             let term = search_term.to_ascii_lowercase();
 
+            // Set search mode
             let search_by = match prop {
                 SearchProp::Name => { raur::SearchBy::Name },
                 SearchProp::NameDesc => { raur::SearchBy::NameDesc },
@@ -315,6 +320,9 @@ impl PackageView {
                 .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                 .map(|pkg| pkg.name())
                 .collect();
+
+            // Get AUR cache
+            let mut aur_cache = imp.aur_cache.borrow_mut().clone();
 
             // Spawn thread to search AUR
             let (sender, receiver) = async_channel::bounded(1);
@@ -354,7 +362,8 @@ impl PackageView {
 
                 let mut data_list: Vec<PkgData> = vec![];
 
-                if let Ok(aur_list) = handle.info(&aur_names.iter().collect::<Vec<&String>>()) {
+                if let Ok(aur_list) = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())
+                {
                     data_list.extend(aur_list.into_iter()
                         .filter(|aurpkg| !local_pkgs.contains(&aurpkg.name))
                         .map(|aurpkg| {
@@ -363,12 +372,12 @@ impl PackageView {
                     );
                 }
 
-                sender.send_blocking(data_list).expect("Could not send through channel");
+                sender.send_blocking((aur_cache, data_list)).expect("Could not send through channel");
             });
 
             // Attach thread receiver
             glib::spawn_future_local(clone!(@weak imp => async move {
-                while let Ok(data_list) = receiver.recv().await {
+                while let Ok((aur_cache, data_list)) = receiver.recv().await {
                     let pkg_list: Vec<PkgObject> = data_list.into_iter()
                         .map(|data| PkgObject::new(None, data))
                         .collect();
@@ -376,6 +385,8 @@ impl PackageView {
                     imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
 
                     search_header.set_spinning(false);
+
+                    imp.aur_cache.replace(aur_cache);
                 }
             }));
         }
