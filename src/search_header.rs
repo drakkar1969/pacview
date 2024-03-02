@@ -110,7 +110,7 @@ mod imp {
         #[property(get, set, builder(SearchProp::default()))]
         prop: Cell<SearchProp>,
 
-        #[property(get, set)]
+        #[property(get, set = Self::set_aur_error)]
         aur_error: Cell<bool>,
 
         #[property(get, set, default = 150, construct)]
@@ -198,6 +198,21 @@ mod imp {
     }
 
     impl WidgetImpl for SearchHeader {}
+
+    impl SearchHeader {
+        //-----------------------------------
+        // Custom AUR error property setter
+        //-----------------------------------
+        fn set_aur_error(&self, aur_error: bool) {
+            if aur_error {
+                self.search_text.add_css_class("error");
+            } else {
+                self.search_text.remove_css_class("error");
+            }
+
+            self.aur_error.set(aur_error);
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -266,17 +281,6 @@ impl SearchHeader {
             }
 
             header.emit_by_name::<()>("enabled", &[&header.enabled()]);
-        });
-
-        // AUR error property notify signal
-        self.connect_aur_error_notify(|header| {
-            let imp = header.imp();
-
-            if header.aur_error() {
-                imp.search_text.add_css_class("error");
-            } else {
-                imp.search_text.remove_css_class("error");
-            }
         });
 
         // Search mode property notify signal
