@@ -75,6 +75,8 @@ mod imp {
         pub saved_repo_id: RefCell<Option<String>>,
         pub saved_status_id: Cell<PkgFlags>,
 
+        pub all_repo_row: RefCell<FilterRow>,
+        pub all_status_row: RefCell<FilterRow>,
         pub update_row: RefCell<FilterRow>,
 
         pub notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
@@ -335,6 +337,16 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add show all packages action
+        let all_pkgs_action = gio::ActionEntry::builder("show-all-packages")
+            .activate(|window: &Self, _, _| {
+                let imp = window.imp();
+
+                imp.all_repo_row.borrow().activate();
+                imp.all_status_row.borrow().activate();
+            })
+            .build();
+
         // Add package view show stats action
         let stats_action = gio::ActionEntry::builder("show-stats")
             .activate(|window: &Self, _, _| {
@@ -386,7 +398,7 @@ impl PacViewWindow {
             .build();
 
         // Add package view actions to window
-        self.add_action_entries([refresh_action, stats_action, backup_action, copy_action]);
+        self.add_action_entries([refresh_action, all_pkgs_action, stats_action, backup_action, copy_action]);
 
         // Bind package view item count to copy list action enabled state
         let copy_action = self.lookup_action("copy-list").unwrap();
@@ -478,6 +490,12 @@ impl PacViewWindow {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("F5"),
             Some(gtk::NamedAction::new("win.refresh"))
+        ));
+
+        // Add view show all packages shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>A"),
+            Some(gtk::NamedAction::new("win.show-all-packages"))
         ));
 
         // Add view show stats shortcut
@@ -634,6 +652,8 @@ impl PacViewWindow {
             row.activate();
         }
 
+        imp.all_repo_row.replace(row);
+
         for repo in &*imp.pacman_repos.borrow() {
             let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
 
@@ -666,7 +686,10 @@ impl PacViewWindow {
                 row.activate();
             }
 
-            if flag == PkgFlags::UPDATES {
+            if flag == PkgFlags::ALL {
+                imp.all_status_row.replace(row);
+            }
+            else if flag == PkgFlags::UPDATES {
                 row.set_spinning(true);
                 row.set_sensitive(true);
 

@@ -51,6 +51,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;A</property>
+                <property name="title">Show All Packages</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;S</property>
                 <property name="title">Show Statistics</property>
               </object>
