@@ -172,7 +172,7 @@ impl PkgData {
         let mut list_vec: Vec<&str> = list.iter().collect();
         list_vec.sort_unstable();
 
-        list_vec.join(", ")
+        list_vec.join(" | ")
     }
 
     fn alpm_deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
@@ -186,7 +186,7 @@ impl PkgData {
         let mut list_vec = vec.to_vec();
         list_vec.sort_unstable();
 
-        list_vec.join(", ")
+        list_vec.join(" | ")
     }
 
     fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
