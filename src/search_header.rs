@@ -312,6 +312,7 @@ impl SearchHeader {
                 header.set_aur_error(false);
 
                 header.emit_changed_signal();
+                header.emit_aur_search_signal();
             } else {
                 // Start delay timer
                 let delay_id = glib::timeout_add_local_once(
@@ -337,13 +338,7 @@ impl SearchHeader {
                 header.set_aur_error(false);
             }
 
-            header.emit_by_name::<()>("aur-search",
-                &[
-                    &search_text.text(),
-                    &header.mode(),
-                    &header.prop(),
-                    &header.aur_error()
-                ]);
+            header.emit_aur_search_signal();
         }));
 
         // Clear button clicked signal
@@ -353,7 +348,7 @@ impl SearchHeader {
     }
 
     //-----------------------------------
-    // Emit changed signal helper function
+    // Signal emit helper functions
     //-----------------------------------
     fn emit_changed_signal(&self) {
         let imp = self.imp();
@@ -363,6 +358,18 @@ impl SearchHeader {
                 &imp.search_text.text(),
                 &self.mode(),
                 &self.prop()
+            ]);
+    }
+
+    fn emit_aur_search_signal(&self) {
+        let imp = self.imp();
+
+        self.emit_by_name::<()>("aur-search",
+            &[
+                &imp.search_text.text(),
+                &self.mode(),
+                &self.prop(),
+                &self.aur_error()
             ]);
     }
 
