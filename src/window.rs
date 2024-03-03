@@ -557,8 +557,8 @@ impl PacViewWindow {
         }));
 
         // Search header AUR Search signal
-        imp.search_header.connect_closure("aur-search", false, closure_local!(@watch self as window => move |search_header: SearchHeader, search_term: &str, prop: SearchProp, aur_error: bool| {
-            window.imp().package_view.search_in_aur(search_header, search_term, prop, aur_error);
+        imp.search_header.connect_closure("aur-search", false, closure_local!(@watch self as window => move |search_header: SearchHeader, search_term: &str, prop: SearchProp| {
+            window.imp().package_view.search_in_aur(search_header, search_term, prop);
         }));
 
         // Repo listbox row activated signal

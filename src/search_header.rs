@@ -166,8 +166,7 @@ mod imp {
                     Signal::builder("aur-search")
                         .param_types([
                             String::static_type(),
-                            SearchProp::static_type(),
-                            bool::static_type()
+                            SearchProp::static_type()
                         ])
                         .build(),
                 ]
@@ -329,15 +328,9 @@ impl SearchHeader {
 
         // Search text activate signal
         imp.search_text.connect_activate(clone!(@weak self as header => move |search_text| {
-            let text = search_text.text();
-
-            if text.split_whitespace().any(|t| t.len() < 4) {
-                header.set_aur_error(true);
-            } else {
-                header.set_aur_error(false);
+            if !search_text.text().is_empty() {
+                header.emit_aur_search_signal();
             }
-
-            header.emit_aur_search_signal();
         }));
 
         // Clear button clicked signal
@@ -366,8 +359,7 @@ impl SearchHeader {
         self.emit_by_name::<()>("aur-search",
             &[
                 &imp.search_text.text(),
-                &self.prop(),
-                &self.aur_error()
+                &self.prop()
             ]);
     }
 

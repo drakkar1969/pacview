@@ -293,26 +293,16 @@ impl PackageView {
     //-----------------------------------
     // Public search in AUR function
     //-----------------------------------
-    pub fn search_in_aur(&self, search_header: SearchHeader, search_term: &str, prop: SearchProp, aur_error: bool) {
+    pub fn search_in_aur(&self, search_header: SearchHeader, search_term: &str, prop: SearchProp) {
         let imp = self.imp();
 
-        if aur_error || search_term.is_empty() || prop == SearchProp::Files {
-            imp.aur_model.remove_all();
-        } else {
+        let term = search_term.to_lowercase();
+
+        glib::spawn_future_local(clone!(@weak imp => async move {
             search_header.set_spinning(true);
 
-            let term = search_term.to_lowercase();
-
-            // Set search mode
-            let search_by = match prop {
-                SearchProp::Name => { raur::SearchBy::Name },
-                SearchProp::NameDesc => { raur::SearchBy::NameDesc },
-                SearchProp::Group => { raur::SearchBy::Groups },
-                SearchProp::Deps => { raur::SearchBy::Depends },
-                SearchProp::Optdeps => { raur::SearchBy::OptDepends },
-                SearchProp::Provides => { raur::SearchBy::Provides },
-                SearchProp::Files => unreachable!(),
-            };
+            // Clear AUR search results
+            imp.aur_model.remove_all();
 
             // Create list of local package names
             let local_pkgs: HashSet<String> = imp.pkg_model.iter::<PkgObject>()
@@ -325,51 +315,68 @@ impl PackageView {
             let mut aur_cache = imp.aur_cache.borrow_mut().clone();
 
             // Spawn thread to search AUR
-            let (sender, receiver) = async_channel::bounded(1);
-
-            gio::spawn_blocking(move || {
+            let result: Result<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error> = gio::spawn_blocking(move || {
                 let handle = raur::blocking::Handle::new();
 
-                // Search for packages
+                // Set search mode
+                let search_by = match prop {
+                    SearchProp::Name => { raur::SearchBy::Name },
+                    SearchProp::NameDesc => { raur::SearchBy::NameDesc },
+                    SearchProp::Group => { raur::SearchBy::Groups },
+                    SearchProp::Deps => { raur::SearchBy::Depends },
+                    SearchProp::Optdeps => { raur::SearchBy::OptDepends },
+                    SearchProp::Provides => { raur::SearchBy::Provides },
+                    SearchProp::Files => unreachable!(),
+                };
+
+                // Search for AUR packages
                 let mut aur_names: HashSet<String> = HashSet::new();
 
                 for t in term.split_whitespace() {
-                    if let Ok(aur_search) = handle.search_by(t, search_by) {
-                        aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
-                    }
+                    let aur_search = handle.search_by(t, search_by)?;
+
+                    aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
                 }
 
-                // Get package info
+                // Get AUR package info using cache
                 let mut data_list: Vec<PkgData> = vec![];
 
-                if let Ok(aur_list) = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())
-                {
-                    data_list.extend(aur_list.into_iter()
-                        .filter(|aurpkg| !local_pkgs.contains(&aurpkg.name))
-                        .map(|aurpkg| {
-                            PkgData::from_aur(aurpkg)
-                        })
-                    );
-                }
+                let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())?;
 
-                sender.send_blocking((aur_cache, data_list)).expect("Could not send through channel");
-            });
+                data_list.extend(aur_list.into_iter()
+                    .filter(|aurpkg| !local_pkgs.contains(&aurpkg.name))
+                    .map(|aurpkg| {
+                        PkgData::from_aur(aurpkg)
+                    })
+                );
 
-            // Attach thread receiver
-            glib::spawn_future_local(clone!(@weak imp => async move {
-                while let Ok((aur_cache, data_list)) = receiver.recv().await {
+                Ok((aur_cache, data_list))
+            })
+            .await
+            .expect("Could not complete async task");
+
+            // Process thread result
+            match result {
+                Ok((aur_cache, data_list)) => {
                     let pkg_list: Vec<PkgObject> = data_list.into_iter()
                         .map(|data| PkgObject::new(None, data))
                         .collect();
 
                     imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
 
-                    search_header.set_spinning(false);
-
                     imp.aur_cache.replace(aur_cache);
+
+                    search_header.set_aur_error(false);
+                    search_header.set_tooltip_text(None);
+                },
+                Err(error) => {
+                    search_header.set_aur_error(true);
+                    search_header.set_tooltip_text(Some(&error.to_string()));
                 }
-            }));
-        }
+            }
+
+            search_header.set_spinning(false);
+        }));
     }
 
     //-----------------------------------
