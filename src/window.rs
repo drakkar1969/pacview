@@ -667,7 +667,7 @@ impl PacViewWindow {
         }
 
         // Add package status rows (enumerate PkgStatusFlags)
-        let saved_status_id = imp.saved_status_id.get();
+        let saved_status_id = imp.saved_status_id.replace(PkgFlags::empty());
 
         let flags = glib::FlagsClass::new::<PkgFlags>();
 
@@ -696,8 +696,6 @@ impl PacViewWindow {
                 imp.update_row.replace(row);
             }
         }
-
-        imp.saved_status_id.set(PkgFlags::empty());
     }
 
     //-----------------------------------
