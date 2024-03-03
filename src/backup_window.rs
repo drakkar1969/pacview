@@ -40,6 +40,8 @@ mod imp {
         pub selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub status_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub section_factory: TemplateChild<gtk::SignalListItemFactory>,
     }
 
     //-----------------------------------
@@ -125,6 +127,39 @@ impl BackupWindow {
 
             imp.view.grab_focus();
         }));
+
+        // View header factory signals
+        imp.section_factory.connect_setup(|_, item| {
+            let item = item
+                .downcast_ref::<gtk::ListHeader>()
+                .expect("Could not downcast to 'ListHeader'");
+
+            let label = gtk::Label::new(None);
+            label.set_xalign(0.0);
+
+            item.set_child(Some(&label));
+        });
+
+        imp.section_factory.connect_bind(|_, item| {
+            let item = item
+                .downcast_ref::<gtk::ListHeader>()
+                .expect("Could not downcast to 'ListHeader'");
+
+            let label = item.child()
+                .and_downcast::<gtk::Label>()
+                .expect("Could not downcast to 'Label'");
+
+            let obj = item.item()
+                .and_downcast::<BackupObject>()
+                .expect("Could not downcast to 'BackupObject'");
+
+            let text = format!("{} ({})",
+                obj.package().unwrap_or("(Unknown".to_string()),
+                item.n_items()
+            );
+
+            label.set_label(&text);
+        });
 
         // Open button clicked signal
         imp.open_button.connect_clicked(clone!(@weak imp => move |_| {
