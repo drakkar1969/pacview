@@ -160,12 +160,6 @@
     </section>
     <section>
       <item>
-        <attribute name="label">Show All Packages</attribute>
-        <attribute name="action">win.show-all-packages</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
         <attribute name="label">Show Statistics</attribute>
         <attribute name="action">win.show-stats</attribute>
       </item>
