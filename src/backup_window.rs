@@ -137,12 +137,10 @@ impl BackupWindow {
                 .and_downcast::<BackupObject>()
                 .expect("Could not downcast to 'BackupObject'");
 
-            let text = format!("{} ({})",
+            label.set_label(&format!("{} ({})",
                 obj.package().unwrap_or("(Unknown".to_string()),
                 item.n_items()
-            );
-
-            label.set_label(&text);
+            ));
         });
 
         // Status dropdown selected property notify signal
