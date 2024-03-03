@@ -112,22 +112,6 @@ impl BackupWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Status dropdown selected property notify signal
-        imp.status_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {
-            let sel_index = dropdown.selected();
-
-            if sel_index == 0 {
-                imp.status_filter.set_search(None);
-            } else if let Some(sel_text) = dropdown.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .map(|obj| obj.string())
-            {
-                imp.status_filter.set_search(Some(&sel_text));
-            }
-
-            imp.view.grab_focus();
-        }));
-
         // View header factory signals
         imp.section_factory.connect_setup(|_, item| {
             let item = item
@@ -160,6 +144,22 @@ impl BackupWindow {
 
             label.set_label(&text);
         });
+
+        // Status dropdown selected property notify signal
+        imp.status_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {
+            let sel_index = dropdown.selected();
+
+            if sel_index == 0 {
+                imp.status_filter.set_search(None);
+            } else if let Some(sel_text) = dropdown.selected_item()
+                .and_downcast::<gtk::StringObject>()
+                .map(|obj| obj.string())
+            {
+                imp.status_filter.set_search(Some(&sel_text));
+            }
+
+            imp.view.grab_focus();
+        }));
 
         // Open button clicked signal
         imp.open_button.connect_clicked(clone!(@weak imp => move |_| {
