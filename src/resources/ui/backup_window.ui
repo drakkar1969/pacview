@@ -96,7 +96,7 @@
                 <property name="vexpand">True</property>
                 <property name="margin-bottom">16</property>
                 <property name="child">
-                  <object class="GtkListView" id="view">
+                  <object class="GtkColumnView" id="view">
                     <style>
                       <class name="card-list"/>
                     </style>
@@ -140,11 +140,29 @@
                         <property name="resource">/com/github/PacView/ui/backup_window/section_item.ui</property>
                       </object>
                     </property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/backup_window/backup_item.ui</property>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="filename_column">
+                        <property name="title">Filename</property>
+                        <property name="resizable">True</property>
+                        <property name="expand">True</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/filename_item.ui</property>
+                          </object>
+                        </property>
                       </object>
-                    </property>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="status_column">
+                        <property name="title">Status</property>
+                        <property name="resizable">True</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
                   </object>
                 </property>
               </object>

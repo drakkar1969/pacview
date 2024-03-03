@@ -33,7 +33,7 @@ mod imp {
         pub copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub view: TemplateChild<gtk::ListView>,
+        pub view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -212,10 +212,9 @@ impl BackupWindow {
         status_list.dedup();
 
         imp.status_model.append("All");
-        imp.status_model.splice(1, 0, status_list.iter()
+        imp.status_model.splice(1, 0, &status_list.iter()
             .map(|s| s.as_str())
             .collect::<Vec<&str>>()
-            .as_slice()
         );
 
         // Bind backup files count to header label
@@ -239,6 +238,5 @@ impl BackupWindow {
 
         // Set initial focus on column view
         imp.view.grab_focus();
-        imp.view.scroll_to(0, gtk::ListScrollFlags::NONE, None);
     }
 }
