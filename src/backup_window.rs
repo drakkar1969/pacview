@@ -145,15 +145,14 @@ impl BackupWindow {
 
         // Status dropdown selected property notify signal
         imp.status_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {
-            let sel_index = dropdown.selected();
-
-            if sel_index == 0 {
+            if dropdown.selected() == 0 {
                 imp.status_filter.set_search(None);
-            } else if let Some(sel_text) = dropdown.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .map(|obj| obj.string())
-            {
-                imp.status_filter.set_search(Some(&sel_text));
+            } else {
+                let sel_text = dropdown.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .map(|obj| obj.string());
+
+                imp.status_filter.set_search(sel_text.as_deref());
             }
 
             imp.view.grab_focus();
