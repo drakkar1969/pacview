@@ -690,9 +690,6 @@ impl PacViewWindow {
                 imp.all_status_row.replace(row);
             }
             else if flag == PkgFlags::UPDATES {
-                row.set_spinning(true);
-                row.set_sensitive(true);
-
                 imp.update_row.replace(row);
             }
         }
@@ -798,6 +795,9 @@ impl PacViewWindow {
     fn get_package_updates_async(&self) {
         let imp = self.imp();
 
+        let update_row = imp.update_row.borrow();
+        update_row.set_spinning(true);
+
         // Get custom command for AUR updates
         let aur_command = imp.prefs_window.aur_command();
 
@@ -852,7 +852,7 @@ impl PacViewWindow {
         });
 
         // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak imp => async move {
+        glib::spawn_future_local(clone!(@weak imp, @strong update_row => async move {
             while let Ok((error_msg, update_map)) = receiver.recv().await {
                 // If updates found
                 if !update_map.is_empty() {
@@ -877,8 +877,6 @@ impl PacViewWindow {
                 }
 
                 // Show update status/count in sidebar
-                let update_row = imp.update_row.borrow();
-
                 update_row.set_spinning(false);
                 update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
                 update_row.set_count(update_map.len() as u32);
