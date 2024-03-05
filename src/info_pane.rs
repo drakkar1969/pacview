@@ -104,10 +104,9 @@ mod imp {
         #[property(get, set)]
         pkg_model: OnceCell<gtk::FlattenListModel>,
 
-        #[property(name = "pkg", type = Option<PkgObject>, get = Self::pkg, set = Self::set_pkg, nullable)]
-        pub history_selection: RefCell<gtk::SingleSelection>,
-
         pub property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
+
+        pub history_selection: RefCell<gtk::SingleSelection>,
     }
 
     //-----------------------------------
@@ -146,30 +145,6 @@ mod imp {
 
     impl WidgetImpl for InfoPane {}
     impl BinImpl for InfoPane {}
-
-    impl InfoPane {
-        //-----------------------------------
-        // Custom pkg property getter/setter
-        //-----------------------------------
-        fn pkg(&self) -> Option<PkgObject> {
-            self.history_selection.borrow().selected_item()
-                .and_downcast::<PkgObject>()
-        }
-
-        fn set_pkg(&self, pkg: Option<&PkgObject>) {
-            let hist_model = self.history_selection.borrow().model()
-                .and_downcast::<gio::ListStore>()
-                .expect("Could not downcast to 'ListStore'");
-
-            hist_model.remove_all();
-
-            if let Some(pkg) = pkg {
-                hist_model.append(pkg);
-            }
-
-            self.obj().update_display();
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -451,5 +426,27 @@ impl InfoPane {
                 self.update_display();
             }
         }
+    }
+
+    //-----------------------------------
+    // Public get/set pkg functions
+    //-----------------------------------
+    pub fn pkg(&self) -> Option<PkgObject> {
+        self.imp().history_selection.borrow().selected_item()
+            .and_downcast::<PkgObject>()
+    }
+
+    pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
+        let hist_model = self.imp().history_selection.borrow().model()
+            .and_downcast::<gio::ListStore>()
+            .expect("Could not downcast to 'ListStore'");
+
+        hist_model.remove_all();
+
+        if let Some(pkg) = pkg {
+            hist_model.append(pkg);
+        }
+
+        self.update_display();
     }
 }

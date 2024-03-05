@@ -597,7 +597,7 @@ impl PacViewWindow {
             if let Some(pkg) = imp.package_view.imp().selection.item(index)
                 .and_downcast::<PkgObject>()
             {
-                imp.info_pane.set_pkg(Some(pkg));
+                imp.info_pane.set_pkg(Some(&pkg));
 
                 ActionGroupExt::activate_action(window, "show-details", None);
             }
