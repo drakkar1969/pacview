@@ -1,7 +1,6 @@
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
 
 use titlecase::titlecase;
 
@@ -94,11 +93,15 @@ impl StatsWindow {
         // Add close window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(@weak self as window => @default-return glib::Propagation::Proceed, move |_, _| {
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let window = widget
+                    .downcast_ref::<StatsWindow>()
+                    .expect("Could not downcast to 'StatsWindow'");
+
                 window.close();
 
                 glib::Propagation::Proceed
-            })))
+            }))
         ));
 
         // Add shortcut controller to window

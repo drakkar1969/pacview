@@ -199,11 +199,15 @@ impl BackupWindow {
         // Add close window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(@weak self as window => @default-return glib::Propagation::Proceed, move |_, _| {
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let window = widget
+                    .downcast_ref::<BackupWindow>()
+                    .expect("Could not downcast to 'BackupWindow'");
+
                 window.close();
 
                 glib::Propagation::Proceed
-            })))
+            }))
         ));
 
         // Add shortcut controller to window
