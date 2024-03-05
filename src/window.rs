@@ -124,7 +124,7 @@ mod imp {
             obj.setup_shortcuts();
             obj.setup_signals();
 
-            obj.setup_alpm();
+            obj.setup_alpm(true);
 
             obj.setup_inotify();
         }
@@ -333,7 +333,7 @@ impl PacViewWindow {
 
                 imp.saved_status_id.set(status_id);
 
-                window.setup_alpm();
+                window.setup_alpm(false);
             })
             .build();
 
@@ -607,10 +607,10 @@ impl PacViewWindow {
     //-----------------------------------
     // Setup alpm
     //-----------------------------------
-    fn setup_alpm(&self) {
+    fn setup_alpm(&self, update_aur_file: bool) {
         self.get_pacman_config();
         self.populate_sidebar();
-        self.load_packages_async();
+        self.load_packages_async(update_aur_file);
     }
 
     //-----------------------------------
@@ -701,7 +701,7 @@ impl PacViewWindow {
     //-----------------------------------
     // Setup alpm: load alpm packages
     //-----------------------------------
-    fn load_packages_async(&self) {
+    fn load_packages_async(&self, update_aur_file: bool) {
         let imp = self.imp();
 
         let config_dir = imp.config_dir.get().unwrap().clone();
@@ -784,7 +784,10 @@ impl PacViewWindow {
                 imp.package_view.imp().stack.set_visible_child_name("view");
 
                 window.get_package_updates_async();
-                window.update_aur_file_async();
+
+                if update_aur_file {
+                    window.update_aur_file_async();
+                }
             }
         }));
     }
