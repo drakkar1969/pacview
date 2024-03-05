@@ -67,7 +67,7 @@ mod imp {
 
         pub gsettings: OnceCell<gio::Settings>,
 
-        pub config_dir: OnceCell<Option<String>>,
+        pub config_dir: RefCell<Option<String>>,
 
         pub pacman_config: RefCell<pacmanconf::Config>,
         pub pacman_repos: RefCell<Vec<String>>,
@@ -246,7 +246,7 @@ impl PacViewWindow {
             .map(|var| Path::new(&var).join("pacview").display().to_string())
             .ok();
 
-        self.imp().config_dir.set(config_dir).unwrap();
+        self.imp().config_dir.replace(config_dir);
     }
 
     //-----------------------------------
@@ -701,7 +701,7 @@ impl PacViewWindow {
     fn load_packages_async(&self, update_aur_file: bool) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.get().unwrap();
+        let config_dir = imp.config_dir.borrow();
 
         let pacman_config = imp.pacman_config.borrow();
 
@@ -896,7 +896,7 @@ impl PacViewWindow {
     fn update_aur_file_async(&self) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.get().unwrap();
+        let config_dir = imp.config_dir.borrow();
 
         // Spawn thread to load AUR package names file
         gio::spawn_blocking(clone!(@strong config_dir => move || {
