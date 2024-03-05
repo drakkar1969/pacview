@@ -138,7 +138,7 @@ impl BackupWindow {
                 .expect("Could not downcast to 'BackupObject'");
 
             label.set_label(&format!("{} ({})",
-                obj.package().unwrap_or("(Unknown".to_string()),
+                obj.package().unwrap_or("(Unknown)".to_string()),
                 item.n_items()
             ));
         });
