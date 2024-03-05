@@ -701,14 +701,14 @@ impl PacViewWindow {
     fn load_packages_async(&self, update_aur_file: bool) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.get().unwrap().clone();
+        let config_dir = imp.config_dir.get().unwrap();
 
-        let pacman_config = imp.pacman_config.borrow().clone();
+        let pacman_config = imp.pacman_config.borrow();
 
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(move || {
+        gio::spawn_blocking(clone!(@strong config_dir, @strong pacman_config => move || {
             let mut aur_names: HashSet<String> = HashSet::new();
 
             if let Some(config_dir) = config_dir {
@@ -765,7 +765,7 @@ impl PacViewWindow {
             );
 
             sender.send_blocking((handle, data_list)).expect("Could not send through channel");
-        });
+        }));
 
         // Attach thread receiver
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
@@ -896,10 +896,10 @@ impl PacViewWindow {
     fn update_aur_file_async(&self) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.get().unwrap().clone();
+        let config_dir = imp.config_dir.get().unwrap();
 
         // Spawn thread to load AUR package names file
-        gio::spawn_blocking(move || {
+        gio::spawn_blocking(clone!(@strong config_dir => move || {
             if let Some(config_dir) = config_dir {
                 let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
 
@@ -917,7 +917,7 @@ impl PacViewWindow {
                     Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
                 }
             }
-        });
+        }));
     }
 
     //-----------------------------------
