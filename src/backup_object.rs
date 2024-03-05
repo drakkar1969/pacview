@@ -51,7 +51,7 @@ impl BackupObject {
     // New function
     //-----------------------------------
     pub fn new(filename: &str, hash: &str, package: Option<&str>) -> Self {
-        let (status_icon, status_text) = if let Ok(file_hash) = alpm::compute_md5sum(filename.to_string()) {
+        let (status_icon, status_text) = if let Ok(file_hash) = alpm::compute_md5sum(filename) {
             if file_hash == hash {
                 ("backup-unmodified-symbolic", "unmodified")
             } else {

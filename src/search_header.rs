@@ -29,7 +29,7 @@ impl SearchMode {
 
         mode_enum.values()
             .iter()
-            .map(|v| {v.nick().to_string()})
+            .map(|v| v.nick().to_string())
             .collect::<Vec<String>>()
     }
 }
@@ -57,7 +57,7 @@ impl SearchProp {
 
         prop_enum.values()
             .iter()
-            .map(|v| {v.nick().to_string()})
+            .map(|v| v.nick().to_string())
             .collect::<Vec<String>>()
     }
 }
