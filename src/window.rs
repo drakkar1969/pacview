@@ -959,9 +959,7 @@ impl PacViewWindow {
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
                 if imp.prefs_window.auto_refresh() {
-                    let refresh_action = window.lookup_action("refresh").unwrap();
-
-                    refresh_action.activate(None);
+                    window.lookup_action("refresh").unwrap().activate(None);
                 }
             }
         }));
