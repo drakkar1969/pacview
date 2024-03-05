@@ -599,7 +599,7 @@ impl PacViewWindow {
             {
                 imp.info_pane.set_pkg(Some(pkg));
 
-                window.lookup_action("show-details").unwrap().activate(None);
+                ActionGroupExt::activate_action(window, "show-details", None);
             }
         }));
     }
@@ -959,7 +959,7 @@ impl PacViewWindow {
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
                 if imp.prefs_window.auto_refresh() {
-                    window.lookup_action("refresh").unwrap().activate(None);
+                    ActionGroupExt::activate_action(&window, "refresh", None);
                 }
             }
         }));
