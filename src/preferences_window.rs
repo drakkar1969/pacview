@@ -109,7 +109,7 @@ impl PreferencesWindow {
         let imp = self.imp();
 
         // Bind properties to widgets
-        self.bind_property("auto_refresh", &imp.refresh_switchrow.get(), "active")
+        self.bind_property("auto-refresh", &imp.refresh_switchrow.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
         self.bind_property("aur-command", &imp.aur_row.get(), "text")
