@@ -735,55 +735,60 @@ impl PacViewWindow {
             }
 
             // Load pacman database packages
-            let handle = alpm_utils::alpm_with_conf(&pacman_config).unwrap();
+            if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
+                let localdb = handle.localdb();
 
-            let localdb = handle.localdb();
+                let mut data_list: Vec<PkgData> = vec![];
 
-            let mut data_list: Vec<PkgData> = vec![];
+                for db in handle.syncdbs() {
+                    data_list.extend(db.pkgs().iter()
+                        .map(|syncpkg| {
+                            let localpkg = localdb.pkg(syncpkg.name());
 
-            for db in handle.syncdbs() {
-                data_list.extend(db.pkgs().iter()
-                    .map(|syncpkg| {
-                        let localpkg = localdb.pkg(syncpkg.name());
+                            PkgData::from_pkg(syncpkg, localpkg)
+                        })
+                    );
+                }
 
-                        PkgData::from_pkg(syncpkg, localpkg)
+                data_list.extend(localdb.pkgs().iter()
+                    .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
+                    .map(|pkg| {
+                        let mut data = PkgData::from_pkg(pkg, Ok(pkg));
+
+                        if aur_names.contains(&data.name) {
+                            data.repository = "aur".to_string();
+                        }
+
+                        data
                     })
                 );
+
+                sender.send_blocking(Ok((handle, data_list))).expect("Could not send through channel");
+            } else {
+                sender.send_blocking(Err(())).expect("Could not send through channel");
             }
 
-            data_list.extend(localdb.pkgs().iter()
-                .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
-                .map(|pkg| {
-                    let mut data = PkgData::from_pkg(pkg, Ok(pkg));
-
-                    if aur_names.contains(&data.name) {
-                        data.repository = "aur".to_string();
-                    }
-
-                    data
-                })
-            );
-
-            sender.send_blocking((handle, data_list)).expect("Could not send through channel");
         }));
 
         // Attach thread receiver
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            while let Ok((handle, data_list)) = receiver.recv().await {
-                let handle_ref = Rc::new(handle);
+            while let Ok(result) = receiver.recv().await {
+                if let Ok((handle, data_list)) = result {
+                    let handle_ref = Rc::new(handle);
 
-                let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                    .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
-                    .collect();
+                    let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                        .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
+                        .collect();
 
-                imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
+                    imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
 
-                imp.package_view.imp().stack.set_visible_child_name("view");
+                    imp.package_view.imp().stack.set_visible_child_name("view");
 
-                window.get_package_updates_async();
+                    window.get_package_updates_async();
 
-                if update_aur_file {
-                    window.update_aur_file_async();
+                    if update_aur_file {
+                        window.update_aur_file_async();
+                    }
                 }
             }
         }));
