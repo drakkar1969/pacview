@@ -418,7 +418,7 @@ impl PackageView {
             .iter::<gtk::ColumnViewColumn>()
             .flatten()
             .filter_map(|col| if col.is_visible() {col.id()} else {None})
-            .collect::<glib::StrV>()
+            .collect()
     }
 
     pub fn set_sorting(&self, id: &glib::GString, ascending: bool) {
