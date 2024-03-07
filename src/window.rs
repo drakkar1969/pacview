@@ -720,17 +720,15 @@ impl PacViewWindow {
                         .make_directory_with_parents(None::<&gio::Cancellable>);
 
                     if res.is_ok() || res.unwrap_err().matches(gio::IOErrorEnum::Exists) {
-                        Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
+                        Utils::download_aur_names(&aur_file);
                     }
                 }
 
                 // Load AUR package names from file
                 if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
-                    if let Ok(s) = String::from_utf8(bytes.to_vec()) {
-                        aur_names = s.lines()
-                            .map(|line| line.to_string())
-                            .collect::<HashSet<String>>();
-                    }
+                    aur_names = String::from_utf8_lossy(&bytes).lines()
+                        .map(|line| line.to_string())
+                        .collect();
                 };
             }
 
@@ -919,7 +917,7 @@ impl PacViewWindow {
 
                 // Download AUR package names file if does not exist or older than 7 days
                 if file_days.is_none() || file_days.unwrap() >= 7 {
-                    Utils::download_unpack_gz_file(&aur_file, "https://aur.archlinux.org/packages.gz");
+                    Utils::download_aur_names(&aur_file);
                 }
             }
         }));

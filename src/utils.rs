@@ -2,7 +2,7 @@ use std::process::Command;
 use std::io::prelude::*;
 
 use gtk::{glib, gio};
-use gtk::prelude::{AppInfoExt, FileExt, OutputStreamExt};
+use gtk::prelude::{AppInfoExt, FileExt};
 
 use flate2::read::GzDecoder;
 
@@ -33,21 +33,18 @@ impl Utils {
     }
 
     //-----------------------------------
-    // Download unpack file function
+    // Download AUR names function
     //-----------------------------------
-    pub fn download_unpack_gz_file(file: &gio::File, url: &str) {
+    pub fn download_aur_names(file: &gio::File) {
+        let url = "https://aur.archlinux.org/packages.gz";
+
         if let Ok(bytes) = reqwest::blocking::get(url).and_then(|res| res.bytes()) {
-            let mut gz_decoder = GzDecoder::new(&bytes[..]);
+            let mut decoder = GzDecoder::new(&bytes[..]);
 
             let mut gz_string = String::new();
 
-            if gz_decoder.read_to_string(&mut gz_string).is_ok() {
-                file.replace(None, false, gio::FileCreateFlags::REPLACE_DESTINATION, None::<&gio::Cancellable>)
-                    .and_then(|stream| {
-                        stream.write(gz_string.as_bytes(), None::<&gio::Cancellable>).unwrap_or_default();
-
-                        stream.close(None::<&gio::Cancellable>)
-                    }).unwrap_or_default();
+            if decoder.read_to_string(&mut gz_string).is_ok() {
+                file.replace_contents(gz_string.as_bytes(), None, false, gio::FileCreateFlags::REPLACE_DESTINATION, None::<&gio::Cancellable>).unwrap_or_default();
             }
         }
     }
