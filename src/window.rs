@@ -738,7 +738,9 @@ impl PacViewWindow {
                     let res = gio::File::for_path(config_dir)
                         .make_directory_with_parents(None::<&gio::Cancellable>);
 
-                    if res.is_ok() || res.unwrap_err().matches(gio::IOErrorEnum::Exists) {
+                    println!("{:?}", res);
+
+                    if res.is_ok() || res.is_err_and(|error| error.matches(gio::IOErrorEnum::Exists)) {
                         Self::download_aur_names(&aur_file);
                     }
                 }
