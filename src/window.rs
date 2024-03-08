@@ -892,7 +892,7 @@ impl PacViewWindow {
                             // Update info pane if currently displayed package has update
                             let info_pkg = imp.info_pane.pkg();
 
-                            if info_pkg.is_some() && info_pkg.unwrap() == pkg {
+                            if info_pkg.is_some_and(|info_pkg| info_pkg == pkg) {
                                 imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
                             }
                         });

@@ -437,7 +437,7 @@ impl PkgObject {
         let mut backups: Vec<(String, String)> = vec![];
 
         if let Ok(pkg) = self.pkg_from_handle() {
-             backups.extend(pkg.backup().iter()
+            backups.extend(pkg.backup().iter()
                 .map(|bck| (format!("/{}", bck.name()), bck.hash().to_string())));
             backups.sort_unstable_by(|(a_file, _), (b_file, _)| a_file.partial_cmp(b_file).unwrap());
         }
