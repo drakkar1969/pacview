@@ -1,10 +1,8 @@
 use std::process::Command;
-use std::io::prelude::*;
 
 use gtk::{glib, gio};
-use gtk::prelude::{AppInfoExt, FileExt};
+use gtk::prelude::AppInfoExt;
 
-use flate2::read::GzDecoder;
 
 //------------------------------------------------------------------------------
 // MODULE: Utils
@@ -30,23 +28,6 @@ impl Utils {
         }
 
         (code, stdout)
-    }
-
-    //-----------------------------------
-    // Download AUR names function
-    //-----------------------------------
-    pub fn download_aur_names(file: &gio::File) {
-        let url = "https://aur.archlinux.org/packages.gz";
-
-        if let Ok(bytes) = reqwest::blocking::get(url).and_then(|res| res.bytes()) {
-            let mut decoder = GzDecoder::new(&bytes[..]);
-
-            let mut gz_string = String::new();
-
-            if decoder.read_to_string(&mut gz_string).is_ok() {
-                file.replace_contents(gz_string.as_bytes(), None, false, gio::FileCreateFlags::REPLACE_DESTINATION, None::<&gio::Cancellable>).unwrap_or_default();
-            }
-        }
     }
 
     //-----------------------------------

@@ -4,6 +4,7 @@ use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 use std::env;
+use std::io::prelude::*;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -14,6 +15,7 @@ use alpm_utils::DbListExt;
 use titlecase::titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
+use flate2::read::GzDecoder;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
 use crate::APP_ID;
@@ -696,6 +698,23 @@ impl PacViewWindow {
     }
 
     //-----------------------------------
+    // Download AUR names helper function
+    //-----------------------------------
+    pub fn download_aur_names(file: &gio::File) {
+        let url = "https://aur.archlinux.org/packages.gz";
+
+        if let Ok(bytes) = reqwest::blocking::get(url).and_then(|res| res.bytes()) {
+            let mut decoder = GzDecoder::new(&bytes[..]);
+
+            let mut gz_string = String::new();
+
+            if decoder.read_to_string(&mut gz_string).is_ok() {
+                file.replace_contents(gz_string.as_bytes(), None, false, gio::FileCreateFlags::REPLACE_DESTINATION, None::<&gio::Cancellable>).unwrap_or_default();
+            }
+        }
+    }
+
+    //-----------------------------------
     // Setup alpm: load alpm packages
     //-----------------------------------
     fn load_packages_async(&self, update_aur_file: bool) {
@@ -720,7 +739,7 @@ impl PacViewWindow {
                         .make_directory_with_parents(None::<&gio::Cancellable>);
 
                     if res.is_ok() || res.unwrap_err().matches(gio::IOErrorEnum::Exists) {
-                        Utils::download_aur_names(&aur_file);
+                        Self::download_aur_names(&aur_file);
                     }
                 }
 
@@ -917,7 +936,7 @@ impl PacViewWindow {
 
                 // Download AUR package names file if does not exist or older than 7 days
                 if file_days.is_none() || file_days.unwrap() >= 7 {
-                    Utils::download_aur_names(&aur_file);
+                    Self::download_aur_names(&aur_file);
                 }
             }
         }));
