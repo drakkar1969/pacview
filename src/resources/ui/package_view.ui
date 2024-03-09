@@ -264,7 +264,6 @@
   <!--// Package view header menu //-->
   <menu id="header_menu">
     <section>
-      <attribute name="label">Show Columns</attribute>
       <item>
         <attribute name="label">Version</attribute>
         <attribute name="action">view.show-column-version</attribute>
