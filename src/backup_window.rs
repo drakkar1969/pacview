@@ -227,18 +227,17 @@ impl BackupWindow {
 
         pkg_model.iter::<PkgObject>()
             .flatten()
+            .filter(|pkg| !pkg.backup().is_empty())
             .for_each(|pkg| {
-                if !pkg.backup().is_empty() {
-                    backup_list.extend(pkg.backup().iter()
-                        .map(|(filename, hash)| {
-                            let obj = BackupObject::new(filename, hash, Some(&pkg.name()));
+                backup_list.extend(pkg.backup().iter()
+                    .map(|(filename, hash)| {
+                        let obj = BackupObject::new(filename, hash, Some(&pkg.name()));
 
-                            status_list.push(titlecase(&obj.status_text()));
+                        status_list.push(titlecase(&obj.status_text()));
 
-                            obj
-                        })
-                    );
-                }
+                        obj
+                    })
+                );
             });
 
         imp.model.extend_from_slice(&backup_list);
