@@ -820,58 +820,78 @@ impl PacViewWindow {
         let update_row = imp.update_row.borrow();
         update_row.set_spinning(true);
 
+        let config_dir = imp.config_dir.borrow();
+
+        // Need to clone pacman config to modify db path
+        let mut update_config = imp.pacman_config.borrow().clone();
+
         // Get custom command for AUR updates
         let aur_command = imp.prefs_window.aur_command();
 
         // Spawn thread to check for updates
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(move || {
-            let mut update_str = String::from("");
-
-            let mut error_msg: Option<&str> = None;
-
+        gio::spawn_blocking(clone!(@strong config_dir => move || {
             // Check for pacman updates
-            let (code, stdout) = Utils::run_command("/usr/bin/checkupdates");
+            let result = config_dir.ok_or(alpm::Error::NotADir)
+                .and_then(|config_dir| {
+                    // Create link to local package database in config dir
+                    let link_dest = Path::new(&update_config.db_path).join("local");
 
-            if code == Some(0) {
-                update_str += &stdout;
-            }
+                    gio::File::for_path(Path::new(&config_dir).join("local"))
+                        .make_symbolic_link(link_dest, None::<&gio::Cancellable>)
+                        .or_else(|error| {
+                            if error.matches(gio::IOErrorEnum::Exists) { Ok(()) } else { Err(alpm::Error::NotADir) }
+                        })?;
 
-            if code != Some(0) && code != Some(2) {
-                error_msg = Some("Error Retrieving Updates");
-            }
+                    // Sync copy of remote databases in config dir
+                    update_config.db_path = config_dir;
+
+                    let mut handle = alpm_utils::alpm_with_conf(&update_config)?;
+
+                    handle.syncdbs_mut().update(false)?;
+
+                    handle.trans_init(alpm::TransFlag::DB_ONLY | alpm::TransFlag::NO_DEPS)?;
+
+                    handle.sync_sysupgrade(false)?;
+
+                    handle.trans_prepare().or_else(|(_, error)| Err(error))?;
+
+                    Ok(handle.trans_add().iter()
+                        .map(|pkg| (pkg.name().to_string(), pkg.version().to_string()))
+                        .collect::<HashMap<String, String>>()
+                    )
+                });
+
+            // Create update map (package name, version)
+            let (mut update_map, error_msg) = match result {
+                Ok(pac_updates) => (pac_updates, None),
+                Err(_) => (HashMap::new(), Some("Error Retrieving Updates"))
+            };
 
             // Check for AUR updates
-            let (code, stdout) = Utils::run_command(&aur_command);
+            if let (Some(0), stdout) = Utils::run_command(&aur_command) {
+                // Extend update map with AUR updates
+                lazy_static! {
+                    static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
+                }
 
-            if code == Some(0) {
-                update_str += &stdout;
+                update_map.extend(stdout.lines()
+                    .filter_map(|s|
+                        EXPR.captures(s).ok().and_then(|caps| {
+                            caps
+                                .filter(|caps| caps.len() == 4)
+                                .map(|caps| {
+                                    (caps[1].to_string(), caps[3].to_string())
+                                })
+                        })
+                    )
+                );
             }
-
-            // Build update map (package name, version)
-            lazy_static! {
-                static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
-            }
-
-            let update_map: HashMap<String, String> = update_str.lines()
-                .filter_map(|s|
-                    EXPR.captures(s).ok().and_then(|caps| {
-                        caps
-                            .filter(|caps| caps.len() == 4)
-                            .map(|caps| {
-                                let pkg_name = caps[1].to_string();
-                                let version = format!("{} \u{2192} {}", &caps[2], &caps[3]);
-
-                                (pkg_name, version)
-                            })
-                    })
-                )
-                .collect();
 
             // Return thread result
             sender.send_blocking((error_msg, update_map)).expect("Could not send through channel");
-        });
+        }));
 
         // Attach thread receiver
         glib::spawn_future_local(clone!(@weak imp, @strong update_row => async move {
@@ -883,7 +903,7 @@ impl PacViewWindow {
                         .flatten()
                         .filter(|pkg| update_map.contains_key(&pkg.name()))
                         .for_each(|pkg| {
-                            pkg.set_version(update_map[&pkg.name()].to_string());
+                            pkg.set_version(format!("{} \u{2192} {}", pkg.version(), update_map[&pkg.name()]));
 
                             pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
 
