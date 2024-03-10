@@ -855,7 +855,7 @@ impl PacViewWindow {
 
                     handle.sync_sysupgrade(false)?;
 
-                    handle.trans_prepare().or_else(|(_, error)| Err(error))?;
+                    handle.trans_prepare().map_err(|(_, error)| error)?;
 
                     Ok(handle.trans_add().iter()
                         .map(|pkg| (pkg.name().to_string(), pkg.version().to_string()))
