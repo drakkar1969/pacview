@@ -51,7 +51,6 @@ mod imp {
         #[template_child]
         pub popover_menu: TemplateChild<gtk::PopoverMenu>,
 
-        pub local_pkgs: RefCell<HashSet<String>>,
         pub aur_cache: RefCell<HashSet<ArcPackage>>
     }
 
@@ -205,17 +204,6 @@ impl PackageView {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Package model items changed signal
-        imp.pkg_model.connect_items_changed(clone!(@weak imp => move |pkg_model, _, _, _| {
-            let local_pkgs: HashSet<String> = pkg_model.iter::<PkgObject>()
-                .flatten()
-                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
-                .map(|pkg| pkg.name())
-                .collect();
-
-            imp.local_pkgs.replace(local_pkgs);
-        }));
-
         // Column view selected item property notify signal
         imp.selection.connect_selected_item_notify(clone!(@weak self as view => move |selection| {
             let selected_item = selection.selected_item()
@@ -316,14 +304,18 @@ impl PackageView {
             // Clear AUR search results
             imp.aur_model.remove_all();
 
-            // Get list of local package names
-            let local_pkgs = imp.local_pkgs.borrow();
+            // Create list of local package names
+            let local_pkgs: HashSet<String> = imp.pkg_model.iter::<PkgObject>()
+                .flatten()
+                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                .map(|pkg| pkg.name())
+                .collect();
 
             // Get AUR cache
             let mut aur_cache = imp.aur_cache.borrow_mut().clone();
 
             // Spawn thread to search AUR
-            let result: Result<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error> = gio::spawn_blocking(clone!(@strong local_pkgs => move || {
+            let result: Result<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error> = gio::spawn_blocking(move || {
                 let handle = raur::blocking::Handle::new();
 
                 // Set search mode
@@ -359,7 +351,7 @@ impl PackageView {
                 );
 
                 Ok((aur_cache, data_list))
-            }))
+            })
             .await
             .expect("Could not complete async task");
 
