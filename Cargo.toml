@@ -7,8 +7,8 @@ edition = "2021"
 
 [dependencies]
 adw = { version = "0.6.0", package = "libadwaita", features = ["v1_4"] }
-alpm = "2.2.3"
-alpm-utils = "2.0.1"
+alpm = "3.0.5"
+alpm-utils = "3.0.2"
 async-channel = "2.2.0"
 fancy-regex = "0.13.0"
 flate2 = "1.0.28"

@@ -68,7 +68,7 @@ impl PkgData {
     //-----------------------------------
     // New functions
     //-----------------------------------
-    pub fn from_pkg(syncpkg: alpm::Package, localpkg: Result<alpm::Package, alpm::Error>) -> Self {
+    pub fn from_pkg(syncpkg: &alpm::Package, localpkg: Result<&alpm::Package, alpm::Error>) -> Self {
         // Defaults for package status flags and install date (non-installed)
         let mut flags = PkgFlags::NONE;
         let mut idate = 0;
@@ -175,7 +175,7 @@ impl PkgData {
         list_vec.join(" | ")
     }
 
-    fn alpm_deplist_to_vec(list: &alpm::AlpmList<alpm::Dep>) -> Vec<String> {
+    fn alpm_deplist_to_vec(list: &alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
         let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
         dep_vec.sort_unstable();
 
@@ -368,7 +368,7 @@ impl PkgObject {
     //-----------------------------------
     // Pkg from handle helper function
     //-----------------------------------
-    fn pkg_from_handle(&self) -> Result<alpm::Package, alpm::Error> {
+    fn pkg_from_handle(&self) -> Result<&alpm::Package, alpm::Error> {
         if let Some(handle) = self.imp().handle.get() {
             let pkg = if self.flags().intersects(PkgFlags::INSTALLED) {
                 handle.localdb().pkg(self.name())

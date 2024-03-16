@@ -752,10 +752,10 @@ impl PacViewWindow {
             }
 
             // Load pacman database packages
+            let mut data_list: Vec<PkgData> = vec![];
+
             if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                 let localdb = handle.localdb();
-
-                let mut data_list: Vec<PkgData> = vec![];
 
                 for db in handle.syncdbs() {
                     data_list.extend(db.pkgs().iter()
@@ -779,18 +779,15 @@ impl PacViewWindow {
                         data
                     })
                 );
-
-                sender.send_blocking(Ok((handle, data_list))).expect("Could not send through channel");
-            } else {
-                sender.send_blocking(Err(())).expect("Could not send through channel");
             }
 
+            sender.send_blocking(data_list).expect("Could not send through channel");
         }));
 
         // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            while let Ok(result) = receiver.recv().await {
-                if let Ok((handle, data_list)) = result {
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp, @strong pacman_config => async move {
+            while let Ok(data_list) = receiver.recv().await {
+                if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                     let handle_ref = Rc::new(handle);
 
                     let pkg_list: Vec<PkgObject> = data_list.into_iter()
@@ -855,7 +852,7 @@ impl PacViewWindow {
 
                     handle.sync_sysupgrade(false)?;
 
-                    handle.trans_prepare().map_err(|(_, error)| error)?;
+                    handle.trans_prepare()?;
 
                     Ok(handle.trans_add().iter()
                         .map(|pkg| (pkg.name().to_string(), pkg.version().to_string()))
