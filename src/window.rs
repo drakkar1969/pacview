@@ -69,7 +69,7 @@ mod imp {
 
         pub gsettings: OnceCell<gio::Settings>,
 
-        pub config_dir: RefCell<Option<String>>,
+        pub cache_dir: RefCell<Option<String>>,
 
         pub pacman_config: RefCell<pacmanconf::Config>,
         pub pacman_repos: RefCell<Vec<String>>,
@@ -119,7 +119,7 @@ mod imp {
             obj.init_gsettings();
             obj.load_gsettings();
 
-            obj.init_config_dir();
+            obj.init_cache_dir();
 
             obj.setup_widgets();
             obj.setup_actions();
@@ -238,17 +238,17 @@ impl PacViewWindow {
     }
 
     //-----------------------------------
-    // Init config dir
+    // Init cache dir
     //-----------------------------------
-    fn init_config_dir(&self) {
-        let config_dir = env::var("XDG_DATA_HOME")
+    fn init_cache_dir(&self) {
+        let cache_dir = env::var("XDG_CACHE_HOME")
             .or_else(|_| env::var("HOME")
-                .map(|var| Path::new(&var).join(".local/share").display().to_string())
+                .map(|var| Path::new(&var).join(".cache").display().to_string())
             )
             .map(|var| Path::new(&var).join("pacview").display().to_string())
             .ok();
 
-        self.imp().config_dir.replace(config_dir);
+        self.imp().cache_dir.replace(cache_dir);
     }
 
     //-----------------------------------
@@ -720,22 +720,22 @@ impl PacViewWindow {
     fn load_packages_async(&self, update_aur_file: bool) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.borrow();
+        let cache_dir = imp.cache_dir.borrow();
 
         let pacman_config = imp.pacman_config.borrow();
 
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(clone!(@strong config_dir, @strong pacman_config => move || {
+        gio::spawn_blocking(clone!(@strong cache_dir, @strong pacman_config => move || {
             let mut aur_names: HashSet<String> = HashSet::new();
 
-            if let Some(config_dir) = config_dir {
-                let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
+            if let Some(cache_dir) = cache_dir {
+                let aur_file = gio::File::for_path(Path::new(&cache_dir).join("aur_packages"));
 
                 // If AUR package names file does not exist, download it
                 if !aur_file.query_exists(None::<&gio::Cancellable>) {
-                    let res = gio::File::for_path(config_dir)
+                    let res = gio::File::for_path(cache_dir)
                         .make_directory_with_parents(None::<&gio::Cancellable>);
 
                     if res.is_ok() || res.is_err_and(|error| error.matches(gio::IOErrorEnum::Exists)) {
@@ -817,7 +817,7 @@ impl PacViewWindow {
         let update_row = imp.update_row.borrow();
         update_row.set_spinning(true);
 
-        let config_dir = imp.config_dir.borrow();
+        let cache_dir = imp.cache_dir.borrow();
 
         // Need to clone pacman config to modify db path
         let mut update_config = imp.pacman_config.borrow().clone();
@@ -828,21 +828,21 @@ impl PacViewWindow {
         // Spawn thread to check for updates
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(clone!(@strong config_dir => move || {
+        gio::spawn_blocking(clone!(@strong cache_dir => move || {
             // Check for pacman updates
-            let result = config_dir.ok_or(alpm::Error::NotADir)
-                .and_then(|config_dir| {
+            let result = cache_dir.ok_or(alpm::Error::NotADir)
+                .and_then(|cache_dir| {
                     // Create link to local package database in config dir
                     let link_dest = Path::new(&update_config.db_path).join("local");
 
-                    gio::File::for_path(Path::new(&config_dir).join("local"))
+                    gio::File::for_path(Path::new(&cache_dir).join("local"))
                         .make_symbolic_link(link_dest, None::<&gio::Cancellable>)
                         .or_else(|error| {
                             if error.matches(gio::IOErrorEnum::Exists) { Ok(()) } else { Err(alpm::Error::NotADir) }
                         })?;
 
                     // Sync copy of remote databases in config dir
-                    update_config.db_path = config_dir;
+                    update_config.db_path = cache_dir;
 
                     let mut handle = alpm_utils::alpm_with_conf(&update_config)?;
 
@@ -938,12 +938,12 @@ impl PacViewWindow {
     fn update_aur_file_async(&self) {
         let imp = self.imp();
 
-        let config_dir = imp.config_dir.borrow();
+        let cache_dir = imp.cache_dir.borrow();
 
         // Spawn thread to load AUR package names file
-        gio::spawn_blocking(clone!(@strong config_dir => move || {
-            if let Some(config_dir) = config_dir {
-                let aur_file = gio::File::for_path(Path::new(&config_dir).join("aur_packages"));
+        gio::spawn_blocking(clone!(@strong cache_dir => move || {
+            if let Some(cache_dir) = cache_dir {
+                let aur_file = gio::File::for_path(Path::new(&cache_dir).join("aur_packages"));
 
                 // Get AUR package names file age
                 let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
