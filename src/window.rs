@@ -854,15 +854,18 @@ impl PacViewWindow {
 
                     handle.trans_prepare()?;
 
-                    Ok(handle.trans_add().iter()
+                    let pacman_updates = handle.trans_add().iter()
                         .map(|pkg| (pkg.name().to_string(), pkg.version().to_string()))
-                        .collect::<HashMap<String, String>>()
-                    )
+                        .collect::<HashMap<String, String>>();
+
+                    handle.unlock()?;
+
+                    Ok(pacman_updates)
                 });
 
             // Create update map (package name, version)
             let (mut update_map, error_msg) = match result {
-                Ok(pac_updates) => (pac_updates, None),
+                Ok(pacman_updates) => (pacman_updates, None),
                 Err(_) => (HashMap::new(), Some("Error Retrieving Updates"))
             };
 
