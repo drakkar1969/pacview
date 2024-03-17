@@ -298,22 +298,22 @@ impl PackageView {
 
         let term = search_term.to_lowercase();
 
+        search_header.set_spinning(true);
+
+        // Create list of local package names
+        let local_pkgs: HashSet<String> = imp.pkg_model.iter::<PkgObject>()
+            .flatten()
+            .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+            .map(|pkg| pkg.name())
+            .collect();
+
+        // Get AUR cache (need to clone for mutable reference)
+        let mut aur_cache = imp.aur_cache.borrow_mut().clone();
+
+        // Clear AUR search results
+        imp.aur_model.remove_all();
+
         glib::spawn_future_local(clone!(@weak imp => async move {
-            search_header.set_spinning(true);
-
-            // Clear AUR search results
-            imp.aur_model.remove_all();
-
-            // Create list of local package names
-            let local_pkgs: HashSet<String> = imp.pkg_model.iter::<PkgObject>()
-                .flatten()
-                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
-                .map(|pkg| pkg.name())
-                .collect();
-
-            // Get AUR cache
-            let mut aur_cache = imp.aur_cache.borrow_mut().clone();
-
             // Spawn thread to search AUR
             let result: Result<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error> = gio::spawn_blocking(move || {
                 let handle = raur::blocking::Handle::new();
