@@ -96,12 +96,12 @@ impl BackupWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &impl IsA<gtk::Window>, pkg_snapshot: &[PkgObject]) -> Self {
         let window: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
 
-        window.update_ui(pkg_model);
+        window.update_ui(pkg_snapshot);
 
         window
     }
@@ -217,7 +217,7 @@ impl BackupWindow {
     //-----------------------------------
     // Update widgets
     //-----------------------------------
-    fn update_ui(&self, pkg_model: &gio::ListStore) {
+    fn update_ui(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         // Populate column view
@@ -225,8 +225,7 @@ impl BackupWindow {
 
         let mut backup_list: Vec<BackupObject> = vec![];
 
-        pkg_model.iter::<PkgObject>()
-            .flatten()
+        pkg_snapshot.iter()
             .filter(|pkg| !pkg.backup().is_empty())
             .for_each(|pkg| {
                 backup_list.extend(pkg.backup().iter()

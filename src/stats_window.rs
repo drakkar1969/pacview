@@ -73,12 +73,12 @@ impl StatsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>, repo_names: &[String], pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &impl IsA<gtk::Window>, repo_names: &[String], pkg_snapshot: &[PkgObject]) -> Self {
         let window: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
 
-        window.update_ui(repo_names, pkg_model);
+        window.update_ui(repo_names, pkg_snapshot);
 
         window
     }
@@ -111,14 +111,14 @@ impl StatsWindow {
     //-----------------------------------
     // Update widgets
     //-----------------------------------
-    fn update_ui(&self, repo_names: &[String], pkg_model: &gio::ListStore) {
+    fn update_ui(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         // Iterate repos
         let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
             .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
                 // Iterate packages per repo
-                let (pcount, icount, isize) = pkg_model.iter::<PkgObject>().flatten()
+                let (pcount, icount, isize) = pkg_snapshot.iter()
                     .filter(|pkg| pkg.repository() == *repo)
                     .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
                         pcount += 1;

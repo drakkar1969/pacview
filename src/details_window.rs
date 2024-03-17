@@ -144,7 +144,7 @@ impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_model: &gio::ListStore) -> Self {
+    pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_snapshot: &[PkgObject]) -> Self {
         let win: Self = glib::Object::builder()
             .property("transient-for", parent)
             .build();
@@ -154,7 +154,7 @@ impl DetailsWindow {
 
         win.update_ui_files_page(pkg);
         win.update_ui_logs_page(pkg, &pacman_config.log_file);
-        win.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_model);
+        win.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_snapshot);
         win.update_ui_backup_page(pkg);
 
         win
@@ -408,13 +408,13 @@ impl DetailsWindow {
     //-----------------------------------
     // Update cache page
     //-----------------------------------
-    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &[String], pkg_model: &gio::ListStore) {
+    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         let pkg_name = &pkg.name();
 
         // Get blacklist package names
-        let blacklist: Vec<String> = pkg_model.iter::<PkgObject>().flatten()
+        let blacklist: Vec<String> = pkg_snapshot.iter()
             .map(|pkg| pkg.name())
             .filter(|name| {
                 name.starts_with(pkg_name) &&

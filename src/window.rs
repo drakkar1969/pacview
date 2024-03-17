@@ -81,6 +81,8 @@ mod imp {
         pub all_status_row: RefCell<FilterRow>,
         pub update_row: RefCell<FilterRow>,
 
+        pub pkg_snapshot: RefCell<Vec<PkgObject>>,
+
         pub notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
     }
 
@@ -357,7 +359,7 @@ impl PacViewWindow {
                 let stats_window = StatsWindow::new(
                     window,
                     &imp.pacman_repos.borrow(),
-                    &imp.package_view.imp().pkg_model
+                    &imp.pkg_snapshot.borrow()
                 );
 
                 stats_window.present();
@@ -371,7 +373,7 @@ impl PacViewWindow {
 
                 let stats_window = BackupWindow::new(
                     window,
-                    &imp.package_view.imp().pkg_model
+                    &imp.pkg_snapshot.borrow()
                 );
 
                 stats_window.present();
@@ -435,7 +437,7 @@ impl PacViewWindow {
                         window,
                         &pkg,
                         &imp.pacman_config.borrow(),
-                        &imp.package_view.imp().pkg_model
+                        &imp.pkg_snapshot.borrow()
                     );
 
                     details_window.present();
@@ -795,6 +797,8 @@ impl PacViewWindow {
                         .collect();
 
                     imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
+
+                    imp.pkg_snapshot.replace(pkg_list);
 
                     imp.package_view.imp().stack.set_visible_child_name("view");
 
