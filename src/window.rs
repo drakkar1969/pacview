@@ -874,7 +874,7 @@ impl PacViewWindow {
             // Create update map (package name, version)
             let (mut update_map, error_msg) = match result {
                 Ok(pacman_updates) => (pacman_updates, None),
-                Err(_) => (HashMap::new(), Some("Error Retrieving Updates"))
+                Err(error) => (HashMap::new(), Some(format!("Error Retrieving Updates ({})", error)))
             };
 
             // Check for AUR updates
@@ -930,7 +930,7 @@ impl PacViewWindow {
                 update_row.set_spinning(false);
                 update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
                 update_row.set_count(update_map.len() as u32);
-                update_row.set_tooltip_text(error_msg);
+                update_row.set_tooltip_text(error_msg.as_deref());
 
                 // If update row is selected, refresh package status filter
                 if update_row.is_selected() {
