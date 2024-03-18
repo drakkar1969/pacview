@@ -280,11 +280,6 @@ impl PacViewWindow {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        // Bind package view model to info pane package model
-        imp.package_view.imp().filter_model.bind_property("model", &imp.info_pane.get(), "pkg-model")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
         // Set preferences window parent
         imp.prefs_window.set_transient_for(Some(self));
 
@@ -797,6 +792,15 @@ impl PacViewWindow {
                         .collect();
 
                     imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
+
+                    let local_pkg_names: HashSet<String> = pkg_list.iter()
+                        .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                        .map(|pkg| pkg.name())
+                        .collect();
+
+                    imp.package_view.imp().local_pkg_names.replace(local_pkg_names);
+
+                    imp.info_pane.imp().pkg_snapshot.replace(pkg_list.clone());
 
                     imp.pkg_snapshot.replace(pkg_list);
 

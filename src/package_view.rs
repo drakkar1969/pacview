@@ -51,6 +51,7 @@ mod imp {
         #[template_child]
         pub popover_menu: TemplateChild<gtk::PopoverMenu>,
 
+        pub local_pkg_names: RefCell<HashSet<String>>,
         pub aur_cache: RefCell<HashSet<ArcPackage>>
     }
 
@@ -300,12 +301,8 @@ impl PackageView {
 
         search_header.set_spinning(true);
 
-        // Create list of local package names
-        let local_pkgs: HashSet<String> = imp.pkg_model.iter::<PkgObject>()
-            .flatten()
-            .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
-            .map(|pkg| pkg.name())
-            .collect();
+        // Get list of local package names
+        let local_pkg_names = imp.local_pkg_names.borrow();
 
         // Get AUR cache (need to clone for mutable reference)
         let mut aur_cache = imp.aur_cache.borrow_mut().clone();
@@ -313,7 +310,7 @@ impl PackageView {
         // Clear AUR search results
         imp.aur_model.remove_all();
 
-        glib::spawn_future_local(clone!(@weak imp => async move {
+        glib::spawn_future_local(clone!(@weak imp, @strong local_pkg_names => async move {
             // Spawn thread to search AUR
             let result: Result<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error> = gio::spawn_blocking(move || {
                 let handle = raur::blocking::Handle::new();
@@ -344,7 +341,7 @@ impl PackageView {
                 let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())?;
 
                 data_list.extend(aur_list.into_iter()
-                    .filter(|aurpkg| !local_pkgs.contains(&aurpkg.name))
+                    .filter(|aurpkg| !local_pkg_names.contains(&aurpkg.name))
                     .map(|aurpkg| {
                         PkgData::from_aur(aurpkg)
                     })

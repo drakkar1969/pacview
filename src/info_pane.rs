@@ -1,4 +1,4 @@
-use std::cell::{OnceCell, RefCell};
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 use gtk::{glib, gio};
@@ -83,8 +83,7 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::InfoPane)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
@@ -101,8 +100,7 @@ mod imp {
         #[template_child]
         pub overlay_next_button: TemplateChild<gtk::Button>,
 
-        #[property(get, set)]
-        pkg_model: OnceCell<gtk::FlattenListModel>,
+        pub pkg_snapshot: RefCell<Vec<PkgObject>>,
 
         pub property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
 
@@ -129,7 +127,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for InfoPane {
         //-----------------------------------
         // Constructor
@@ -170,22 +167,16 @@ impl InfoPane {
     fn link_handler(&self, link: &str) -> bool {
         if let Some(url) = Url::parse(link).ok().filter(|url| url.scheme() == "pkg") {
             if let Some(pkg_name) = url.domain() {
-                let pkg_model = self.pkg_model();
+                let pkg_map = self.imp().pkg_snapshot.borrow();
 
                 // Find link package by name
-                let mut new_pkg = pkg_model.iter::<glib::Object>()
-                    .flatten()
-                    .map(|pkg| pkg.downcast::<PkgObject>().expect("Could not downcast to 'PkgObject'"))
+                let mut new_pkg = pkg_map.iter()
                     .find(|pkg| pkg.name() == pkg_name);
 
                 // If link package is none, find by provides
                 if new_pkg.is_none() {
-                    new_pkg = pkg_model.iter::<glib::Object>()
-                        .flatten()
-                        .map(|pkg| pkg.downcast::<PkgObject>().expect("Could not downcast to 'PkgObject'"))
-                        .find(|pkg| {
-                            pkg.provides().iter().any(|s| s.contains(pkg_name))
-                        });
+                    new_pkg = pkg_map.iter()
+                        .find(|pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)));
                 }
 
                 // If link package found
@@ -197,7 +188,7 @@ impl InfoPane {
                         .expect("Could not downcast to 'ListStore'");
 
                     // If link package is in infopane history, select it
-                    if let Some(i) = hist_model.find(&new_pkg) {
+                    if let Some(i) = hist_model.find(new_pkg) {
                         hist_sel.set_selected(i);
                     } else {
                         // If link package is not in history, get current history package
@@ -209,7 +200,7 @@ impl InfoPane {
                         }
 
                         // Add link package to history
-                        hist_model.append(&new_pkg);
+                        hist_model.append(new_pkg);
 
                         // Update history selection to link package
                         hist_sel.set_selected(hist_index + 1);
