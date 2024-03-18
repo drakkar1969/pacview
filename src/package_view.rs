@@ -336,16 +336,14 @@ impl PackageView {
                 }
 
                 // Get AUR package info using cache
-                let mut data_list: Vec<PkgData> = vec![];
-
                 let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())?;
 
-                data_list.extend(aur_list.into_iter()
+                let data_list: Vec<PkgData> = aur_list.into_iter()
                     .filter(|aurpkg| !local_pkg_names.contains(&aurpkg.name))
                     .map(|aurpkg| {
                         PkgData::from_aur(aurpkg)
                     })
-                );
+                    .collect();
 
                 Ok((aur_cache, data_list))
             })
