@@ -727,6 +727,7 @@ impl PacViewWindow {
         gio::spawn_blocking(clone!(@strong cache_dir, @strong pacman_config => move || {
             let mut aur_names: HashSet<String> = HashSet::new();
 
+            // Get AUR package names from local file
             if let Some(cache_dir) = cache_dir {
                 let aur_file = gio::File::for_path(Path::new(&cache_dir).join("aur_packages"));
 
@@ -754,6 +755,7 @@ impl PacViewWindow {
             if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                 let localdb = handle.localdb();
 
+                // Load sync packages
                 for db in handle.syncdbs() {
                     data_list.extend(db.pkgs().iter()
                         .map(|syncpkg| {
@@ -764,6 +766,7 @@ impl PacViewWindow {
                     );
                 }
 
+                // Load local packages not in sync databases
                 data_list.extend(localdb.pkgs().iter()
                     .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
                     .map(|pkg| {
