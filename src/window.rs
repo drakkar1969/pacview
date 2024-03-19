@@ -3,7 +3,7 @@ use std::path::Path;
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-use std::env;
+use std::{env, io};
 use std::io::prelude::*;
 
 use gtk::{gio, glib};
@@ -16,6 +16,7 @@ use titlecase::titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 use flate2::read::GzDecoder;
+use futures::join;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
 use crate::APP_ID;
@@ -836,58 +837,59 @@ impl PacViewWindow {
         // Get custom command for AUR updates
         let aur_command = imp.prefs_window.aur_command();
 
-        // Spawn thread to check for updates
-        let (sender, receiver) = async_channel::bounded(1);
+        // Spawn async context
+        glib::spawn_future_local(clone!(@weak imp, @strong update_row, @strong cache_dir => async move {
+            // Spawn thread to check for pacman updates
+            let pacman_handle = gio::spawn_blocking(move || {
+                let cache_dir = cache_dir.ok_or(alpm::Error::NotADir)?;
 
-        gio::spawn_blocking(clone!(@strong cache_dir => move || {
-            // Check for pacman updates
-            let result = cache_dir.ok_or(alpm::Error::NotADir)
-                .and_then(|cache_dir| {
-                    // Create link to local package database in config dir
-                    let link_dest = Path::new(&update_config.db_path).join("local");
+                // Create link to local package database in cache dir
+                let link_dest = Path::new(&update_config.db_path).join("local");
 
-                    gio::File::for_path(Path::new(&cache_dir).join("local"))
-                        .make_symbolic_link(link_dest, None::<&gio::Cancellable>)
-                        .or_else(|error| {
-                            if error.matches(gio::IOErrorEnum::Exists) { Ok(()) } else { Err(alpm::Error::NotADir) }
-                        })?;
+                gio::File::for_path(Path::new(&cache_dir).join("local"))
+                    .make_symbolic_link(link_dest, None::<&gio::Cancellable>)
+                    .or_else(|error| {
+                        if error.matches(gio::IOErrorEnum::Exists) { Ok(()) } else { Err(alpm::Error::NotADir) }
+                    })?;
 
-                    // Sync copy of remote databases in config dir
-                    update_config.db_path = cache_dir;
+                // Change pacman config DB path to cache dir
+                update_config.db_path = cache_dir;
 
-                    let mut handle = alpm_utils::alpm_with_conf(&update_config)?;
+                // Sync copy of remote databases in cache dir
+                let mut handle = alpm_utils::alpm_with_conf(&update_config)?;
 
-                    handle.syncdbs_mut().update(false)?;
+                handle.syncdbs_mut().update(false)
+                    .and_then(|_| {
+                        handle.unlock()?;
 
-                    handle.trans_init(alpm::TransFlag::DB_ONLY | alpm::TransFlag::NO_DEPS)?;
+                        handle.trans_init(alpm::TransFlag::NO_LOCK | alpm::TransFlag::DB_ONLY | alpm::TransFlag::NO_DEPS)?;
 
-                    handle.sync_sysupgrade(false)?;
+                        handle.sync_sysupgrade(false)?;
 
-                    handle.trans_prepare()?;
+                        // Create map with pacman updates (name, version)
+                        Ok(handle.trans_add().iter()
+                            .map(|pkg| (pkg.name().to_string(), pkg.version().to_string()))
+                            .collect::<HashMap<String, String>>()
+                        )
+                    })
+                    .or_else(|error| {
+                        handle.unlock().unwrap_or_default();
 
-                    let pacman_updates = handle.trans_add().iter()
-                        .map(|pkg| (pkg.name().to_string(), pkg.version().to_string()))
-                        .collect::<HashMap<String, String>>();
+                        Err(error)
+                    })
+            });
 
-                    handle.unlock()?;
+            // Spawn thread to check for AUR updates
+            let aur_handle = gio::spawn_blocking(move || {
+                // Run AUR helper
+                let stdout = Utils::run_command(&aur_command)?;
 
-                    Ok(pacman_updates)
-                });
-
-            // Create update map (package name, version)
-            let (mut update_map, error_msg) = match result {
-                Ok(pacman_updates) => (pacman_updates, None),
-                Err(error) => (HashMap::new(), Some(format!("Error Retrieving Updates ({})", error)))
-            };
-
-            // Check for AUR updates
-            if let (Some(0), stdout) = Utils::run_command(&aur_command) {
-                // Extend update map with AUR updates
+                // Create map with AUR updates (name, version)
                 lazy_static! {
                     static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
                 }
 
-                update_map.extend(stdout.lines()
+                let aur_map: HashMap<String, String> = stdout.lines()
                     .filter_map(|s|
                         EXPR.captures(s).ok().and_then(|caps| {
                             caps
@@ -897,48 +899,64 @@ impl PacViewWindow {
                                 })
                         })
                     )
-                );
+                    .collect();
+
+                Ok::<HashMap<String, String>, io::Error>(aur_map)
+            });
+
+            // Await threads and process results
+            let mut update_map: HashMap<String, String> = HashMap::new();
+            let mut error_msg: Option<String> = None;
+
+            let (pacman_result, aur_result) = join!(pacman_handle, aur_handle);
+
+            match pacman_result.unwrap() {
+                Ok(pacman_map) => { update_map.extend(pacman_map) },
+                Err(error) => {
+                    error_msg = Some(format!("Error Retrieving Pacman Updates ({})", error))
+                }
             }
 
-            // Return thread result
-            sender.send_blocking((error_msg, update_map)).expect("Could not send through channel");
-        }));
-
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak imp, @strong update_row => async move {
-            while let Ok((error_msg, update_map)) = receiver.recv().await {
-                // If updates found
-                if !update_map.is_empty() {
-                    // Update status of packages with updates
-                    imp.package_view.imp().pkg_model.iter::<PkgObject>()
-                        .flatten()
-                        .filter(|pkg| update_map.contains_key(&pkg.name()))
-                        .for_each(|pkg| {
-                            pkg.set_version(format!("{} \u{2192} {}", pkg.version(), update_map[&pkg.name()]));
-
-                            pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
-
-                            pkg.set_has_update(true);
-
-                            // Update info pane if currently displayed package has update
-                            let info_pkg = imp.info_pane.pkg();
-
-                            if info_pkg.is_some_and(|info_pkg| info_pkg == pkg) {
-                                imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
-                            }
-                        });
+            match aur_result.unwrap() {
+                Ok(aur_map) => { update_map.extend(aur_map) },
+                Err(error) =>
+                {
+                    if error_msg.is_none() {
+                        error_msg = Some(format!("Error Retrieving AUR Updates ({})", error))
+                    }
                 }
+            }
 
-                // Show update status/count in sidebar
-                update_row.set_spinning(false);
-                update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
-                update_row.set_count(update_map.len() as u32);
-                update_row.set_tooltip_text(error_msg.as_deref());
+            // Update status of packages with updates
+            if !update_map.is_empty() {
+                imp.package_view.imp().pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .filter(|pkg| update_map.contains_key(&pkg.name()))
+                    .for_each(|pkg| {
+                        pkg.set_version(format!("{} \u{2192} {}", pkg.version(), update_map[&pkg.name()]));
 
-                // If update row is selected, refresh package status filter
-                if update_row.is_selected() {
-                    imp.package_view.set_status_filter(update_row.status_id());
-                }
+                        pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
+
+                        pkg.set_has_update(true);
+
+                        // Update info pane if currently displayed package has update
+                        let info_pkg = imp.info_pane.pkg();
+
+                        if info_pkg.is_some_and(|info_pkg| info_pkg == pkg) {
+                            imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
+                        }
+                    });
+            }
+
+            // Show update status/count in sidebar
+            update_row.set_spinning(false);
+            update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
+            update_row.set_count(update_map.len() as u32);
+            update_row.set_tooltip_text(error_msg.as_deref());
+
+            // If update row is selected, refresh package status filter
+            if update_row.is_selected() {
+                imp.package_view.set_status_filter(update_row.status_id());
             }
         }));
     }

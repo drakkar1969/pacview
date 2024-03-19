@@ -1,4 +1,5 @@
 use std::process::Command;
+use std::io;
 
 use gtk::{glib, gio};
 use gtk::prelude::AppInfoExt;
@@ -16,18 +17,17 @@ impl Utils {
     //-----------------------------------
     // Run command function
     //-----------------------------------
-    pub fn run_command(cmd: &str) -> (Option<i32>, String) {
-        let mut code: Option<i32> = None;
-        let mut stdout: String = String::from("");
+    pub fn run_command(cmd: &str) -> Result<String, io::Error> {
+        let params = shlex::split(cmd)
+            .filter(|params| !params.is_empty())
+            .ok_or(io::Error::new(io::ErrorKind::Other, "Error parsing parameters"))?;
 
-        if let Some(params) = shlex::split(cmd).filter(|params| !params.is_empty()) {
-            if let Ok(output) = Command::new(&params[0]).args(&params[1..]).output() {
-                code = output.status.code();
-                stdout = String::from_utf8(output.stdout).unwrap_or_default();
-            }
-        }
+        let output = Command::new(&params[0]).args(&params[1..]).output()?;
 
-        (code, stdout)
+        let stdout = String::from_utf8(output.stdout)
+            .map_err(|error| io::Error::new(io::ErrorKind::Other, error))?;
+
+        Ok(stdout)
     }
 
     //-----------------------------------
