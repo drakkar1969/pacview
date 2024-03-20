@@ -244,13 +244,24 @@ impl PacViewWindow {
     // Init cache dir
     //-----------------------------------
     fn init_cache_dir(&self) {
+        // Create cache dir
         let cache_dir = env::var("XDG_CACHE_HOME")
             .or_else(|_| env::var("HOME")
                 .map(|var| Path::new(&var).join(".cache").display().to_string())
             )
             .map(|var| Path::new(&var).join("pacview").display().to_string())
-            .ok();
+            .map_or(None, |cache_dir| {
+                let res = gio::File::for_path(Path::new(&cache_dir))
+                    .make_directory_with_parents(None::<&gio::Cancellable>);
 
+                if res.is_ok() || res.is_err_and(|error| error.matches(gio::IOErrorEnum::Exists)) {
+                    Some(cache_dir)
+                } else {
+                    None
+                }
+            });
+
+        // Store cache dir
         self.imp().cache_dir.replace(cache_dir);
     }
 
@@ -734,12 +745,7 @@ impl PacViewWindow {
 
                 // If AUR package names file does not exist, download it
                 if !aur_file.query_exists(None::<&gio::Cancellable>) {
-                    let res = gio::File::for_path(cache_dir)
-                        .make_directory_with_parents(None::<&gio::Cancellable>);
-
-                    if res.is_ok() || res.is_err_and(|error| error.matches(gio::IOErrorEnum::Exists)) {
-                        Self::download_aur_names(&aur_file);
-                    }
+                    Self::download_aur_names(&aur_file);
                 }
 
                 // Load AUR package names from file
