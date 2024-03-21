@@ -312,7 +312,7 @@ impl PackageView {
 
         glib::spawn_future_local(clone!(@weak imp, @strong local_pkg_names => async move {
             // Spawn thread to search AUR
-            let result: Result<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error> = gio::spawn_blocking(move || {
+            let result = gio::spawn_blocking(move || {
                 let handle = raur::blocking::Handle::new();
 
                 // Set search mode
@@ -345,7 +345,7 @@ impl PackageView {
                     })
                     .collect();
 
-                Ok((aur_cache, data_list))
+                Ok::<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error>((aur_cache, data_list))
             })
             .await
             .expect("Could not complete async task");
@@ -366,7 +366,7 @@ impl PackageView {
                 },
                 Err(error) => {
                     search_header.set_aur_error(true);
-                    search_header.set_tooltip_text(Some(&error.to_string()));
+                    search_header.set_tooltip_text(Some(&format!("AUR Search Error ({})", error)));
                 }
             }
 
