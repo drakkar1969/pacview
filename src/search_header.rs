@@ -132,9 +132,6 @@ mod imp {
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
-            SearchTag::ensure_type();
-            SearchMode::ensure_type();
-
             klass.bind_template();
             klass.set_layout_manager_type::<gtk::BoxLayout>();
         }
