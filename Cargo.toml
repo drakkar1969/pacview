@@ -12,7 +12,6 @@ alpm-utils = "3.0.2"
 async-channel = "2.2.0"
 fancy-regex = "0.13.0"
 flate2 = "1.0.28"
-futures = "0.3.30"
 glib = "0.19.2"
 glob = "0.3.1"
 gtk = { version = "0.8.0", package = "gtk4", features = ["v4_12"] }
