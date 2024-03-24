@@ -241,8 +241,5 @@ impl BackupDialog {
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-        // Set initial focus on column view
-        imp.view.grab_focus();
     }
 }

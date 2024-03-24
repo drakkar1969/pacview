@@ -4,6 +4,7 @@
   <template class="BackupDialog" parent="AdwDialog">
     <property name="content-width">650</property>
     <property name="content-height">650</property>
+    <property name="focus-widget">view</property>
     <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
