@@ -900,32 +900,36 @@ impl PacViewWindow {
     }
 
     fn get_aur_updates(aur_command: &str) -> UpdateResult {
-        // Run AUR helper
-        Utils::run_command(aur_command)
-            .map(|stdout| {
-                // Create map with AUR updates (name, version)
-                lazy_static! {
-                    static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
-                }
+        if !aur_command.is_empty() {
+            // Run AUR helper
+            Utils::run_command(aur_command)
+                .map(|stdout| {
+                    // Create map with AUR updates (name, version)
+                    lazy_static! {
+                        static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
+                    }
 
-                let aur_map: HashMap<String, String> = stdout.lines()
-                    .filter_map(|s|
-                        EXPR.captures(s).ok().and_then(|caps| {
-                            caps
-                                .filter(|caps| caps.len() == 4)
-                                .map(|caps| {
-                                    (caps[1].to_string(), caps[3].to_string())
-                                })
-                        })
-                    )
-                    .collect();
+                    let aur_map: HashMap<String, String> = stdout.lines()
+                        .filter_map(|s|
+                            EXPR.captures(s).ok().and_then(|caps| {
+                                caps
+                                    .filter(|caps| caps.len() == 4)
+                                    .map(|caps| {
+                                        (caps[1].to_string(), caps[3].to_string())
+                                    })
+                            })
+                        )
+                        .collect();
 
-                aur_map
-            })
-            .map_or_else(
-                |error| UpdateResult::Error(format!("Error Retrieving AUR Updates ({})", error)),
-                |aur_map| UpdateResult::Map(aur_map)
-            )
+                    aur_map
+                })
+                .map_or_else(
+                    |error| UpdateResult::Error(format!("Error Retrieving AUR Updates ({})", error)),
+                    |aur_map| UpdateResult::Map(aur_map)
+                )
+        } else {
+            UpdateResult::Map(HashMap::new())
+        }
     }
 
     //-----------------------------------
