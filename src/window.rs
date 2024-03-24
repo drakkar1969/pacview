@@ -26,7 +26,7 @@ use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::package_view::PackageView;
 use crate::info_pane::{InfoPane, PropID};
 use crate::filter_row::FilterRow;
-use crate::stats_window::StatsWindow;
+use crate::stats_dialog::StatsDialog;
 use crate::backup_window::BackupWindow;
 use crate::preferences_dialog::PreferencesDialog;
 use crate::details_window::DetailsWindow;
@@ -373,13 +373,12 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
-                let stats_window = StatsWindow::new(
-                    window,
+                let stats_dialog = StatsDialog::new(
                     &imp.pacman_repos.borrow(),
                     &imp.pkg_snapshot.borrow()
                 );
 
-                stats_window.present();
+                stats_dialog.present(window);
             })
             .build();
 

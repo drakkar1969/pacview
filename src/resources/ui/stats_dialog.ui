@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// StatsWindow template //-->
-  <template class="StatsWindow" parent="AdwWindow">
-    <property name="default-width">520</property>
-    <property name="modal">True</property>
-    <property name="title"></property>
-    <property name="content">
+  <!--// StatsDialog template //-->
+  <template class="StatsDialog" parent="AdwDialog">
+    <property name="content-width">520</property>
+    <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
@@ -72,7 +70,7 @@
                     <property name="expand">True</property>
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/repository_item.ui</property>
+                        <property name="resource">/com/github/PacView/ui/stats_dialog/repository_item.ui</property>
                       </object>
                     </property>
                   </object>
@@ -82,7 +80,7 @@
                     <property name="title">Packages</property>
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/packages_item.ui</property>
+                        <property name="resource">/com/github/PacView/ui/stats_dialog/packages_item.ui</property>
                       </object>
                     </property>
                   </object>
@@ -92,7 +90,7 @@
                     <property name="title">Installed</property>
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/installed_item.ui</property>
+                        <property name="resource">/com/github/PacView/ui/stats_dialog/installed_item.ui</property>
                       </object>
                     </property>
                   </object>
@@ -102,7 +100,7 @@
                     <property name="title">Installed Size</property>
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/stats_window/size_item.ui</property>
+                        <property name="resource">/com/github/PacView/ui/stats_dialog/size_item.ui</property>
                       </object>
                     </property>
                   </object>

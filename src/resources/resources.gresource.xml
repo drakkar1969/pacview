@@ -48,10 +48,10 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/date_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/groups_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/repository_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/packages_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog/repository_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog/packages_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog/installed_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
@@ -63,7 +63,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/text_layout.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
   </gresource>
 </gresources>
