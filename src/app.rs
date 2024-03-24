@@ -1,6 +1,7 @@
 use gtk::{gio, glib, gdk};
 use gtk::prelude::*;
 use adw::subclass::prelude::*;
+use adw::prelude::AdwDialogExt;
 
 use crate::window::PacViewWindow;
 
@@ -141,13 +142,12 @@ impl PacViewApplication {
     }
 
     //-----------------------------------
-    // Show about window
+    // Show about dialog
     //-----------------------------------
     fn show_about(&self) {
         let window = self.active_window().expect("Could not retrieve active window");
 
-        let about_window = adw::AboutWindow::builder()
-            .transient_for(&window)
+        let about_dialog = adw::AboutDialog::builder()
             .application_name("PacView")
             .application_icon("software-properties")
             .developer_name("draKKar1969")
@@ -159,6 +159,6 @@ impl PacViewApplication {
             .license_type(gtk::License::Gpl30)
             .build();
 
-        about_window.present();
+        about_dialog.present(&window);
     }
 }
