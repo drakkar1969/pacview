@@ -464,9 +464,7 @@ impl PacViewWindow {
         // Add show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
             .activate(|window: &Self, _, _| {
-                let prefs_dialog = PreferencesDialog::new();
-
-                prefs_dialog.prepare(
+                let prefs_dialog = PreferencesDialog::new(
                     window.auto_refresh(),
                     &window.aur_command(),
                     window.search_delay(),
