@@ -95,12 +95,12 @@ impl BackupDialog {
     // New function
     //-----------------------------------
     pub fn new(pkg_snapshot: &[PkgObject]) -> Self {
-        let window: Self = glib::Object::builder()
+        let dialog: Self = glib::Object::builder()
             .build();
 
-        window.update_ui(pkg_snapshot);
+        dialog.update_ui(pkg_snapshot);
 
-        window
+        dialog
     }
 
     //-----------------------------------
@@ -165,7 +165,7 @@ impl BackupDialog {
         }));
 
         // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
             let copy_text = imp.selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     let backup = item
@@ -177,7 +177,7 @@ impl BackupDialog {
                 .collect::<Vec<String>>()
                 .join("\n");
 
-            window.clipboard().set_text(&copy_text);
+            dialog.clipboard().set_text(&copy_text);
         }));
 
         // Column view activate signal

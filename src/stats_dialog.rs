@@ -63,12 +63,12 @@ impl StatsDialog {
     // New function
     //-----------------------------------
     pub fn new(repo_names: &[String], pkg_snapshot: &[PkgObject]) -> Self {
-        let window: Self = glib::Object::builder()
+        let dialog: Self = glib::Object::builder()
             .build();
 
-        window.update_ui(repo_names, pkg_snapshot);
+        dialog.update_ui(repo_names, pkg_snapshot);
 
-        window
+        dialog
     }
 
     //-----------------------------------

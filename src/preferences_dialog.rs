@@ -145,7 +145,7 @@ impl PreferencesDialog {
         // Add AUR helper command action with parameter
         let aur_action = gio::ActionEntry::builder("aur-cmd", )
             .parameter_type(Some(&String::static_variant_type()))
-            .activate(clone!(@weak self as window => move |_, _, param| {
+            .activate(clone!(@weak self as dialog => move |_, _, param| {
                 let param = param
                     .expect("Could not retrieve Variant")
                     .get::<String>()
@@ -159,7 +159,7 @@ impl PreferencesDialog {
                     _ => unreachable!()
                 };
 
-                window.set_aur_command(cmd);
+                dialog.set_aur_command(cmd);
             }))
             .build();
 
@@ -178,7 +178,7 @@ impl PreferencesDialog {
         let imp = self.imp();
 
         // Preferences reset button clicked signal
-        imp.reset_button.connect_clicked(clone!(@weak self as window => move |_| {
+        imp.reset_button.connect_clicked(clone!(@weak self as dialog => move |_| {
             let reset_dialog = adw::AlertDialog::new(
                 Some("Reset Preferences?"),
                 Some("Reset all preferences to their default values.")
@@ -190,15 +190,15 @@ impl PreferencesDialog {
             reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
             reset_dialog.choose(
-                &window,
+                &dialog,
                 None::<&gio::Cancellable>,
-                clone!(@weak window => move |response| {
+                clone!(@weak dialog => move |response| {
                     if response == "reset" {
-                        window.set_auto_refresh(true);
-                        window.set_aur_command("");
-                        window.set_search_delay(150.0);
-                        window.set_remember_columns(true);
-                        window.set_remember_sort(false);
+                        dialog.set_auto_refresh(true);
+                        dialog.set_aur_command("");
+                        dialog.set_search_delay(150.0);
+                        dialog.set_remember_columns(true);
+                        dialog.set_remember_sort(false);
                     }
                 })
             );

@@ -140,18 +140,18 @@ impl DetailsDialog {
     // New function
     //-----------------------------------
     pub fn new(pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_snapshot: &[PkgObject]) -> Self {
-        let win: Self = glib::Object::builder()
+        let dialog: Self = glib::Object::builder()
             .build();
 
-        win.update_ui_banner(pkg);
-        win.update_ui_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
+        dialog.update_ui_banner(pkg);
+        dialog.update_ui_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
 
-        win.update_ui_files_page(pkg);
-        win.update_ui_logs_page(pkg, &pacman_config.log_file);
-        win.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_snapshot);
-        win.update_ui_backup_page(pkg);
+        dialog.update_ui_files_page(pkg);
+        dialog.update_ui_logs_page(pkg, &pacman_config.log_file);
+        dialog.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_snapshot);
+        dialog.update_ui_backup_page(pkg);
 
-        win
+        dialog
     }
 
     //-----------------------------------
@@ -202,7 +202,7 @@ impl DetailsDialog {
         }));
 
         // Files copy button clicked signal
-        imp.files_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.files_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
             let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     item
@@ -213,7 +213,7 @@ impl DetailsDialog {
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            window.clipboard().set_text(&copy_text);
+            dialog.clipboard().set_text(&copy_text);
         }));
 
         // Files listview activate signal
@@ -222,13 +222,13 @@ impl DetailsDialog {
         }));
 
         // Log copy button clicked signal
-        imp.log_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.log_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
             let copy_text = imp.log_model.iter::<gtk::StringObject>().flatten()
                 .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            window.clipboard().set_text(&copy_text);
+            dialog.clipboard().set_text(&copy_text);
         }));
 
         // Cache open button clicked signal
@@ -241,13 +241,13 @@ impl DetailsDialog {
         }));
 
         // Cache copy button clicked signal
-        imp.cache_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.cache_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
             let copy_text = imp.cache_model.iter::<gtk::StringObject>().flatten()
                 .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            window.clipboard().set_text(&copy_text);
+            dialog.clipboard().set_text(&copy_text);
         }));
 
         // Cache listview activate signal
@@ -265,7 +265,7 @@ impl DetailsDialog {
         }));
 
         // Backup copy button clicked signal
-        imp.backup_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
+        imp.backup_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
             let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
                 .map(|item| {
                     format!("{filename} ({status})", filename=item.filename(), status=item.status_text())
@@ -273,7 +273,7 @@ impl DetailsDialog {
                 .collect::<Vec<String>>()
                 .join("\n");
 
-            window.clipboard().set_text(&copy_text);
+            dialog.clipboard().set_text(&copy_text);
         }));
 
         // Backup listview activate signal
