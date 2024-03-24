@@ -11,7 +11,7 @@ mod property_value;
 mod preferences_dialog;
 mod stats_dialog;
 mod backup_dialog;
-mod details_window;
+mod details_dialog;
 mod pkg_object;
 mod stats_object;
 mod backup_object;

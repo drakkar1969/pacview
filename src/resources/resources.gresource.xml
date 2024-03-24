@@ -37,10 +37,10 @@
     <file compressed="true">icons-dark/pkg-update.svg</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/filename_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/status_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/file_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/cache_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/backup_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/file_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/log_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/cache_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/backup_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/package_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/version_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/repository_item.ui</file>
@@ -53,7 +53,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog/installed_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view.ui</file>

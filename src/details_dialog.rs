@@ -13,7 +13,7 @@ use crate::backup_object::BackupObject;
 use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
-// MODULE: DetailsWindow
+// MODULE: DetailsDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -22,8 +22,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/details_window.ui")]
-    pub struct DetailsWindow {
+    #[template(resource = "/com/github/PacView/ui/details_dialog.ui")]
+    pub struct DetailsDialog {
         #[template_child]
         pub pkg_label: TemplateChild<gtk::Label>,
 
@@ -93,10 +93,10 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for DetailsWindow {
-        const NAME: &'static str = "DetailsWindow";
-        type Type = super::DetailsWindow;
-        type ParentType = adw::ApplicationWindow;
+    impl ObjectSubclass for DetailsDialog {
+        const NAME: &'static str = "DetailsDialog";
+        type Type = super::DetailsDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             BackupObject::ensure_type();
@@ -109,7 +109,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for DetailsWindow {
+    impl ObjectImpl for DetailsDialog {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -119,34 +119,28 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
-            obj.setup_actions();
-            obj.setup_shortcuts();
         }
     }
 
-    impl WidgetImpl for DetailsWindow {}
-    impl WindowImpl for DetailsWindow {}
-    impl ApplicationWindowImpl for DetailsWindow {}
-    impl AdwApplicationWindowImpl for DetailsWindow {}
+    impl WidgetImpl for DetailsDialog {}
+    impl AdwDialogImpl for DetailsDialog {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: DetailsWindow
+// IMPLEMENTATION: DetailsDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct DetailsWindow(ObjectSubclass<imp::DetailsWindow>)
-        @extends gtk::Widget, gtk::Window, gtk::ApplicationWindow, adw::ApplicationWindow,
-        @implements gio::ActionGroup, gio::ActionMap, gtk::Accessible, gtk::Buildable,
-                    gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct DetailsDialog(ObjectSubclass<imp::DetailsDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl DetailsWindow {
+impl DetailsDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_snapshot: &[PkgObject]) -> Self {
+    pub fn new(pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_snapshot: &[PkgObject]) -> Self {
         let win: Self = glib::Object::builder()
-            .property("transient-for", parent)
             .build();
 
         win.update_ui_banner(pkg);
@@ -163,8 +157,35 @@ impl DetailsWindow {
     //-----------------------------------
     // Setup signals
     //-----------------------------------
+    fn activate_tab_button(&self, button: &gtk::ToggleButton) {
+        if button.is_active() {
+            let content = button.child()
+                .and_downcast::<adw::ButtonContent>()
+                .expect("Could not downcast to 'ButtonContent'");
+
+            self.imp().content_stack.set_visible_child_name(&content.label().to_lowercase());
+        }
+    }
+
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Tab buttons toggled signals
+        imp.files_button.connect_toggled(clone!(@weak self as dialog => move |button| {
+            dialog.activate_tab_button(button);
+        }));
+
+        imp.log_button.connect_toggled(clone!(@weak self as dialog => move |button| {
+            dialog.activate_tab_button(button);
+        }));
+
+        imp.cache_button.connect_toggled(clone!(@weak self as dialog => move |button| {
+            dialog.activate_tab_button(button);
+        }));
+
+        imp.backup_button.connect_toggled(clone!(@weak self as dialog => move |button| {
+            dialog.activate_tab_button(button);
+        }));
 
         // Files search entry search changed signal
         imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
@@ -262,59 +283,6 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Setup actions
-    //-----------------------------------
-    fn setup_actions(&self) {
-        // Add set tab action
-        let tab_action = gio::ActionEntry::builder("set-tab")
-            .parameter_type(Some(&str::static_variant_type()))
-            .state("none".to_variant())
-            .change_state(|window: &Self, action, state| {
-                let state = state
-                    .expect("Could not retrieve Variant");
-
-                let state_str = state
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                action.set_state(state);
-
-                window.imp().content_stack.set_visible_child_name(&state_str);
-                
-            })
-            .build();
-
-        // Add actions to window
-        self.add_action_entries([tab_action]);
-    }
-
-    //-----------------------------------
-    // Setup shortcuts
-    //-----------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-        controller.set_propagation_phase(gtk::PropagationPhase::Capture);
-
-        // Add close window shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let window = widget
-                    .downcast_ref::<DetailsWindow>()
-                    .expect("Could not downcast to 'DetailsWindow'");
-
-                window.close();
-
-                glib::Propagation::Proceed
-            }))
-        ));
-
-        // Add shortcut controller to window
-        self.add_controller(controller);
-    }
-
-    //-----------------------------------
     // Update banner
     //-----------------------------------
     fn update_ui_banner(&self, pkg: &PkgObject) {
@@ -328,14 +296,14 @@ impl DetailsWindow {
     fn update_ui_stack(&self, installed: bool) {
         let imp = self.imp();
 
-        if installed {
-            imp.files_button.emit_clicked();
-        }
-
         imp.files_button.set_sensitive(installed);
         imp.log_button.set_sensitive(installed);
         imp.cache_button.set_sensitive(installed);
         imp.backup_button.set_sensitive(installed);
+
+        if installed {
+            imp.files_button.set_active(true);
+        }
     }
 
     //-----------------------------------

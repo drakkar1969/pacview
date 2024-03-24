@@ -29,7 +29,7 @@ use crate::filter_row::FilterRow;
 use crate::stats_dialog::StatsDialog;
 use crate::backup_dialog::BackupDialog;
 use crate::preferences_dialog::PreferencesDialog;
-use crate::details_window::DetailsWindow;
+use crate::details_dialog::DetailsDialog;
 use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
@@ -446,14 +446,13 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(pkg) = imp.info_pane.pkg() {
-                    let details_window = DetailsWindow::new(
-                        window,
+                    let details_dialog = DetailsDialog::new(
                         &pkg,
                         &imp.pacman_config.borrow(),
                         &imp.pkg_snapshot.borrow()
                     );
 
-                    details_window.present();
+                    details_dialog.present(window);
                 }
             })
             .build();

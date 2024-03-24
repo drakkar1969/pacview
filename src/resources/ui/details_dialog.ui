@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// DetailsWindow template //-->
-  <template class="DetailsWindow" parent="AdwApplicationWindow">
-    <property name="default-width">650</property>
-    <property name="default-height">650</property>
-    <property name="modal">True</property>
-    <property name="title"></property>
-    <property name="content">
+  <!--// DetailsDialog template //-->
+  <template class="DetailsDialog" parent="AdwDialog">
+    <property name="content-width">650</property>
+    <property name="content-height">650</property>
+    <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
@@ -46,12 +44,8 @@
                 <property name="spacing">6</property>
                 <child>
                   <object class="GtkToggleButton" id="files_button">
-                    <property name="active">True</property>
-                    <property name="action-name">win.set-tab</property>
-                    <property name="action-target">"files"</property>
                     <property name="child">
                       <object class="AdwButtonContent">
-                        <property name="halign">center</property>
                         <property name="icon-name">details-files-symbolic</property>
                         <property name="label">Files</property>
                       </object>
@@ -61,11 +55,8 @@
                 <child>
                   <object class="GtkToggleButton" id="log_button">
                     <property name="group">files_button</property>
-                    <property name="action-name">win.set-tab</property>
-                    <property name="action-target">"log"</property>
                     <property name="child">
                       <object class="AdwButtonContent">
-                        <property name="halign">center</property>
                         <property name="icon-name">details-log-symbolic</property>
                         <property name="label">Log</property>
                       </object>
@@ -75,11 +66,8 @@
                 <child>
                   <object class="GtkToggleButton" id="cache_button">
                     <property name="group">files_button</property>
-                    <property name="action-name">win.set-tab</property>
-                    <property name="action-target">"cache"</property>
                     <property name="child">
                       <object class="AdwButtonContent">
-                        <property name="halign">center</property>
                         <property name="icon-name">details-cache-symbolic</property>
                         <property name="label">Cache</property>
                       </object>
@@ -89,11 +77,8 @@
                 <child>
                   <object class="GtkToggleButton" id="backup_button">
                     <property name="group">files_button</property>
-                    <property name="action-name">win.set-tab</property>
-                    <property name="action-target">"backup"</property>
                     <property name="child">
                       <object class="AdwButtonContent">
-                        <property name="halign">center</property>
                         <property name="icon-name">details-backup-symbolic</property>
                         <property name="label">Backup</property>
                       </object>
@@ -230,7 +215,7 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details_window/file_item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_dialog/file_item.ui</property>
                                   </object>
                                 </property>
                               </object>
@@ -309,7 +294,7 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details_window/log_item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_dialog/log_item.ui</property>
                                   </object>
                                 </property>
                               </object>
@@ -404,7 +389,7 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details_window/cache_item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_dialog/cache_item.ui</property>
                                   </object>
                                 </property>
                               </object>
@@ -499,7 +484,7 @@
                                 </property>
                                 <property name="factory">
                                   <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details_window/backup_item.ui</property>
+                                    <property name="resource">/com/github/PacView/ui/details_dialog/backup_item.ui</property>
                                   </object>
                                 </property>
                               </object>
