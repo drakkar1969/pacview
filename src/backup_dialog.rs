@@ -10,7 +10,7 @@ use crate::backup_object::BackupObject;
 use crate::utils::Utils;
 
 //------------------------------------------------------------------------------
-// MODULE: BackupWindow
+// MODULE: BackupDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -19,8 +19,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
-    pub struct BackupWindow {
+    #[template(resource = "/com/github/PacView/ui/backup_dialog.ui")]
+    pub struct BackupDialog {
         #[template_child]
         pub header_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -48,10 +48,10 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for BackupWindow {
-        const NAME: &'static str = "BackupWindow";
-        type Type = super::BackupWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for BackupDialog {
+        const NAME: &'static str = "BackupDialog";
+        type Type = super::BackupDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             BackupObject::ensure_type();
@@ -64,7 +64,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for BackupWindow {
+    impl ObjectImpl for BackupDialog {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -74,31 +74,28 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
-            obj.setup_shortcuts();
         }
     }
 
-    impl WidgetImpl for BackupWindow {}
-    impl WindowImpl for BackupWindow {}
-    impl AdwWindowImpl for BackupWindow {}
+    impl WidgetImpl for BackupDialog {}
+    impl AdwDialogImpl for BackupDialog {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: BackupWindow
+// IMPLEMENTATION: BackupDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct BackupWindow(ObjectSubclass<imp::BackupWindow>)
-        @extends adw::Window, gtk::Window, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct BackupDialog(ObjectSubclass<imp::BackupDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl BackupWindow {
+impl BackupDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>, pkg_snapshot: &[PkgObject]) -> Self {
+    pub fn new(pkg_snapshot: &[PkgObject]) -> Self {
         let window: Self = glib::Object::builder()
-            .property("transient-for", parent)
             .build();
 
         window.update_ui(pkg_snapshot);
@@ -187,31 +184,6 @@ impl BackupWindow {
         imp.view.connect_activate(clone!(@weak imp => move |_, _| {
             imp.open_button.emit_clicked();
         }));
-    }
-
-    //-----------------------------------
-    // Setup shortcuts
-    //-----------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-
-        // Add close window shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let window = widget
-                    .downcast_ref::<BackupWindow>()
-                    .expect("Could not downcast to 'BackupWindow'");
-
-                window.close();
-
-                glib::Propagation::Proceed
-            }))
-        ));
-
-        // Add shortcut controller to window
-        self.add_controller(controller);
     }
 
     //-----------------------------------

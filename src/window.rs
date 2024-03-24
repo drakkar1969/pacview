@@ -27,7 +27,7 @@ use crate::package_view::PackageView;
 use crate::info_pane::{InfoPane, PropID};
 use crate::filter_row::FilterRow;
 use crate::stats_dialog::StatsDialog;
-use crate::backup_window::BackupWindow;
+use crate::backup_dialog::BackupDialog;
 use crate::preferences_dialog::PreferencesDialog;
 use crate::details_window::DetailsWindow;
 use crate::utils::Utils;
@@ -387,12 +387,9 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
-                let stats_window = BackupWindow::new(
-                    window,
-                    &imp.pkg_snapshot.borrow()
-                );
+                let backup_dialog = BackupDialog::new(&imp.pkg_snapshot.borrow());
 
-                stats_window.present();
+                backup_dialog.present(window);
             })
             .build();
 

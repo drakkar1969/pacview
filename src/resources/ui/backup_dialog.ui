@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// BackupWindow template //-->
-  <template class="BackupWindow" parent="AdwWindow">
-    <property name="default-width">650</property>
-    <property name="default-height">650</property>
-    <property name="modal">True</property>
-    <property name="title"></property>
-    <property name="content">
+  <!--// BackupDialog template //-->
+  <template class="BackupDialog" parent="AdwDialog">
+    <property name="content-width">650</property>
+    <property name="content-height">650</property>
+    <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
@@ -146,7 +144,7 @@
                         <property name="expand">True</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_window/filename_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_dialog/filename_item.ui</property>
                           </object>
                         </property>
                       </object>
@@ -157,7 +155,7 @@
                         <property name="resizable">True</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_dialog/status_item.ui</property>
                           </object>
                         </property>
                       </object>

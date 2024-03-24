@@ -10,7 +10,7 @@ mod property_label;
 mod property_value;
 mod preferences_dialog;
 mod stats_dialog;
-mod backup_window;
+mod backup_dialog;
 mod details_window;
 mod pkg_object;
 mod stats_object;
