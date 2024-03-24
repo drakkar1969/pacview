@@ -23,7 +23,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
-use crate::package_view::PackageView;
+use crate::package_view::{PackageView, DEFAULT_COLS, DEFAULT_SORT_COL};
 use crate::info_pane::{InfoPane, PropID};
 use crate::filter_row::FilterRow;
 use crate::stats_dialog::StatsDialog;
@@ -187,8 +187,6 @@ impl PacViewWindow {
     fn init_gsettings(&self) {
         let gsettings = gio::Settings::new(APP_ID);
 
-        gsettings.delay();
-
         self.imp().gsettings.set(gsettings).unwrap();
     }
 
@@ -200,27 +198,41 @@ impl PacViewWindow {
 
         let gsettings = imp.gsettings.get().unwrap();
 
-        // Bind gsettings
-        gsettings.bind("window-width", self, "default-width").build();
-        gsettings.bind("window-height", self, "default-height").build();
-        gsettings.bind("window-maximized", self, "maximized").build();
+        // Load window settings
+        self.set_width_request(gsettings.int("window-width"));
+        self.set_height_request(gsettings.int("window-height"));
+        self.set_maximized(gsettings.boolean("window-maximized"));
 
-        gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
-        gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
+        // Load info pane settings
+        imp.info_pane.set_visible(gsettings.boolean("show-infopane"));
+        imp.pane.set_position(gsettings.int("infopane-position"));
 
-        gsettings.bind("auto-refresh", self, "auto-refresh").build();
-        gsettings.bind("aur-update-command", self, "aur-command").build();
-        gsettings.bind("search-delay", self, "search-delay").build();
-        gsettings.bind("remember-columns", self, "remember-columns").build();
-        gsettings.bind("remember-sorting", self, "remember-sort").build();
+        // Load preferences
+        self.set_auto_refresh(gsettings.boolean("auto-refresh"));
+        self.set_aur_command(gsettings.string("aur-update-command"));
+        self.set_search_delay(gsettings.double("search-delay"));
+        self.set_remember_columns(gsettings.boolean("remember-columns"));
+        self.set_remember_sort(gsettings.boolean("remember-sorting"));
 
-        // Restore package view columns if setting active
-        if self.remember_columns() {
-            imp.package_view.set_columns(&gsettings.strv("view-columns"));
-        }
+        // Load package view columns
+        imp.package_view.set_columns(&gsettings.strv("view-columns").iter().map(|s| s.as_str()).collect::<Vec<&str>>());
 
-        // Restore package view sort column/sort order
+        // Load package view sort column/sort order
         imp.package_view.set_sorting(&gsettings.string("sort-column"), gsettings.boolean("sort-ascending"));
+    }
+
+    //-----------------------------------
+    // Set gsetting helper function
+    //-----------------------------------
+    fn set_gsetting<T: FromVariant + ToVariant + PartialEq>(&self, gsettings: &gio::Settings, key: &str, value: T) {
+        let default: T = gsettings.default_value(key)
+            .expect("Could not get gsettings default value")
+            .get::<T>()
+            .expect("Could not retrieve value from variant");
+
+        if !(default == value && default == gsettings.get(key)) {
+            gsettings.set(key, value.to_variant()).unwrap();
+        }
     }
 
     //-----------------------------------
@@ -231,26 +243,41 @@ impl PacViewWindow {
 
         let gsettings = imp.gsettings.get().unwrap();
 
-        // Save package view column order if setting active
+        // Save window settings
+        let (width, height) = self.default_size();
+
+        self.set_gsetting(gsettings, "window-width", width);
+        self.set_gsetting(gsettings, "window-height", height);
+        self.set_gsetting(gsettings, "window-maximized", self.is_maximized());
+
+        // Save info pane settings
+        self.set_gsetting(gsettings, "show-infopane", imp.info_pane.is_visible());
+        self.set_gsetting(gsettings, "infopane-position", imp.pane.position());
+
+        // Save preferences
+        self.set_gsetting(gsettings, "auto-refresh", self.auto_refresh());
+        self.set_gsetting(gsettings, "aur-update-command", self.aur_command());
+        self.set_gsetting(gsettings, "search-delay", self.search_delay());
+        self.set_gsetting(gsettings, "remember-columns", self.remember_columns());
+        self.set_gsetting(gsettings, "remember-sorting", self.remember_sort());
+
+        // Save package view columns
         if self.remember_columns() {
-            gsettings.set_strv("view-columns", imp.package_view.columns()).unwrap();
+            self.set_gsetting(gsettings, "view-columns", imp.package_view.columns());
         } else {
-            gsettings.reset("view-columns");
+            self.set_gsetting(gsettings, "view-columns", DEFAULT_COLS.map(String::from).to_vec());
         }
 
-        // Save package view sort column/order if setting active
+        // Save package view sort column/sort order
         if self.remember_sort() {
             let (sort_col, sort_asc) = imp.package_view.sorting();
 
-            gsettings.set_string("sort-column", &sort_col).unwrap();
-            gsettings.set_boolean("sort-ascending", sort_asc).unwrap();
+            self.set_gsetting(gsettings, "sort-column", sort_col);
+            self.set_gsetting(gsettings, "sort-ascending", sort_asc);
         } else {
-            gsettings.reset("sort-column");
-            gsettings.reset("sort-ascending");
+            self.set_gsetting(gsettings, "sort-column", DEFAULT_SORT_COL.to_string());
+            self.set_gsetting(gsettings, "sort-ascending", true);
         }
-
-        // Save gsettings
-        gsettings.apply();
     }
 
     //-----------------------------------

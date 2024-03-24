@@ -14,6 +14,9 @@ use raur::ArcPackage;
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 
+pub const DEFAULT_COLS: [&str; 6] = ["package", "version", "repository", "status", "date", "size"];
+pub const DEFAULT_SORT_COL: &str = "package";
+
 //------------------------------------------------------------------------------
 // MODULE: PackageView
 //------------------------------------------------------------------------------
@@ -178,7 +181,7 @@ impl PackageView {
         // Add reset columns action
         let columns_action = gio::ActionEntry::builder("reset-columns")
             .activate(clone!(@weak self as view => move |_, _, _| {
-                view.reset_columns();
+                view.set_columns(&DEFAULT_COLS);
             }))
             .build();
 
@@ -375,9 +378,9 @@ impl PackageView {
     }
 
     //-----------------------------------
-    // Sort columns helper function
+    // Public column functions
     //-----------------------------------
-    fn sort_columns(&self, column_ids: &glib::StrV) {
+    pub fn set_columns(&self, column_ids: &[&str]) {
         let columns = self.imp().view.columns();
 
         // Iterate through column IDs
@@ -392,31 +395,20 @@ impl PackageView {
 
         // Show/hide columns
         for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
-            col.set_visible(column_ids.contains(&col.id().unwrap()));
+            col.set_visible(column_ids.contains(&col.id().unwrap().as_str()));
         }
     }
 
-    //-----------------------------------
-    // Public column functions
-    //-----------------------------------
-    pub fn reset_columns(&self) {
-        self.sort_columns(&["package", "version", "repository", "status", "date", "size"].into());
-    }
-
-    pub fn set_columns(&self, column_ids: &glib::StrV) {
-        self.sort_columns(column_ids);
-    }
-
-    pub fn columns(&self) -> glib::StrV {
+    pub fn columns(&self) -> Vec<String> {
         // Get visible column IDs
         self.imp().view.columns()
             .iter::<gtk::ColumnViewColumn>()
             .flatten()
-            .filter_map(|col| if col.is_visible() {col.id()} else {None})
+            .filter_map(|col| if col.is_visible() {col.id().map(|s| s.to_string())} else {None})
             .collect()
     }
 
-    pub fn set_sorting(&self, id: &glib::GString, ascending: bool) {
+    pub fn set_sorting(&self, id: &str, ascending: bool) {
         // Find sort column by ID
         let col = self.imp().view.columns().iter::<gtk::ColumnViewColumn>()
             .flatten()
@@ -426,7 +418,7 @@ impl PackageView {
         self.imp().view.sort_by_column(col.as_ref(), if ascending {gtk::SortType::Ascending} else {gtk::SortType::Descending});
     }
 
-    pub fn sorting(&self) -> (glib::GString, bool) {
+    pub fn sorting(&self) -> (String, bool) {
         // Get view sorter
         let sorter = self.imp().view.sorter()
             .and_downcast::<gtk::ColumnViewSorter>()
@@ -434,8 +426,8 @@ impl PackageView {
 
         // Get sort column ID
         let sort_col = sorter.primary_sort_column().map_or(
-            glib::GString::from(""),
-            |col| col.id().unwrap()
+            String::from(DEFAULT_SORT_COL),
+            |col| col.id().unwrap().to_string()
         );
 
         // Get sort order
