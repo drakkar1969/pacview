@@ -8,6 +8,7 @@ use std::io::prelude::*;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
+use adw::prelude::AdwDialogExt;
 use gtk::prelude::*;
 use glib::{clone, closure_local};
 
@@ -27,7 +28,7 @@ use crate::info_pane::{InfoPane, PropID};
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
-use crate::preferences_window::PreferencesWindow;
+use crate::preferences_dialog::PreferencesDialog;
 use crate::details_window::DetailsWindow;
 use crate::utils::Utils;
 
@@ -48,7 +49,8 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::PacViewWindow)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -72,8 +74,16 @@ mod imp {
         #[template_child]
         pub info_pane: TemplateChild<InfoPane>,
 
-        #[template_child]
-        pub prefs_window: TemplateChild<PreferencesWindow>,
+        #[property(get, set)]
+        auto_refresh: Cell<bool>,
+        #[property(get, set)]
+        aur_command: RefCell<String>,
+        #[property(get, set)]
+        search_delay: Cell<f64>,
+        #[property(get, set)]
+        remember_columns: Cell<bool>,
+        #[property(get, set)]
+        remember_sort: Cell<bool>,
 
         pub gsettings: OnceCell<gio::Settings>,
 
@@ -112,6 +122,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for PacViewWindow {
         //-----------------------------------
         // Constructor
@@ -197,14 +208,14 @@ impl PacViewWindow {
         gsettings.bind("show-infopane", &imp.info_pane.get(), "visible").build();
         gsettings.bind("infopane-position", &imp.pane.get(), "position").build();
 
-        gsettings.bind("auto-refresh", &imp.prefs_window.get(), "auto-refresh").build();
-        gsettings.bind("aur-update-command", &imp.prefs_window.get(), "aur-command").build();
-        gsettings.bind("search-delay", &imp.prefs_window.get(), "search-delay").build();
-        gsettings.bind("remember-columns", &imp.prefs_window.get(), "remember-columns").build();
-        gsettings.bind("remember-sorting", &imp.prefs_window.get(), "remember-sort").build();
+        gsettings.bind("auto-refresh", self, "auto-refresh").build();
+        gsettings.bind("aur-update-command", self, "aur-command").build();
+        gsettings.bind("search-delay", self, "search-delay").build();
+        gsettings.bind("remember-columns", self, "remember-columns").build();
+        gsettings.bind("remember-sorting", self, "remember-sort").build();
 
         // Restore package view columns if setting active
-        if imp.prefs_window.remember_columns() {
+        if self.remember_columns() {
             imp.package_view.set_columns(&gsettings.strv("view-columns"));
         }
 
@@ -221,14 +232,14 @@ impl PacViewWindow {
         let gsettings = imp.gsettings.get().unwrap();
 
         // Save package view column order if setting active
-        if imp.prefs_window.remember_columns() {
+        if self.remember_columns() {
             gsettings.set_strv("view-columns", imp.package_view.columns()).unwrap();
         } else {
             gsettings.reset("view-columns");
         }
 
         // Save package view sort column/order if setting active
-        if imp.prefs_window.remember_sort() {
+        if self.remember_sort() {
             let (sort_col, sort_asc) = imp.package_view.sorting();
 
             gsettings.set_string("sort-column", &sort_col).unwrap();
@@ -274,7 +285,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Bind search header delay preference
-        imp.prefs_window.bind_property("search-delay", &imp.search_header.get(), "delay")
+        self.bind_property("search-delay", &imp.search_header.get(), "delay")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -293,9 +304,6 @@ impl PacViewWindow {
             })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-        // Set preferences window parent
-        imp.prefs_window.set_transient_for(Some(self));
 
         // Set initial focus on package view
         imp.package_view.imp().view.grab_focus();
@@ -460,7 +468,25 @@ impl PacViewWindow {
         // Add show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
             .activate(|window: &Self, _, _| {
-                window.imp().prefs_window.present();
+                let prefs_dialog = PreferencesDialog::new();
+
+                prefs_dialog.prepare(
+                    window.auto_refresh(),
+                    &window.aur_command(),
+                    window.search_delay(),
+                    window.remember_columns(),
+                    window.remember_sort()
+                );
+
+                prefs_dialog.connect_closed(clone!(@weak window => move |prefs_dialog| {
+                    window.set_auto_refresh(prefs_dialog.auto_refresh());
+                    window.set_aur_command(prefs_dialog.aur_command());
+                    window.set_search_delay(prefs_dialog.search_delay());
+                    window.set_remember_columns(prefs_dialog.remember_columns());
+                    window.set_remember_sort(prefs_dialog.remember_sort());
+                }));
+
+                prefs_dialog.present(window);
             })
             .build();
 
@@ -924,7 +950,7 @@ impl PacViewWindow {
         let mut update_config = imp.pacman_config.borrow().clone();
 
         // Get custom command for AUR updates
-        let aur_command = imp.prefs_window.aur_command();
+        let aur_command = self.aur_command();
 
         // Spawn threads to check for pacman/AUR updates
         let (sender, receiver) = async_channel::bounded(1);
@@ -1061,7 +1087,7 @@ impl PacViewWindow {
         // Attach receiver for glib channel
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
-                if imp.prefs_window.auto_refresh() {
+                if window.auto_refresh() {
                     ActionGroupExt::activate_action(&window, "refresh", None);
                 }
             }

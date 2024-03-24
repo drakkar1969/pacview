@@ -195,8 +195,4 @@
       </item>
     </section>
   </menu>
-
-  <!--// Preferences window //-->
-  <object class="PreferencesWindow" id="prefs_window">
-  </object>
 </interface>

@@ -6,7 +6,7 @@ use adw::prelude::*;
 use glib::clone;
 
 //------------------------------------------------------------------------------
-// MODULE: PreferencesWindow
+// MODULE: PreferencesDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -15,9 +15,9 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::PreferencesWindow)]
-    #[template(resource = "/com/github/PacView/ui/preferences_window.ui")]
-    pub struct PreferencesWindow {
+    #[properties(wrapper_type = super::PreferencesDialog)]
+    #[template(resource = "/com/github/PacView/ui/preferences_dialog.ui")]
+    pub struct PreferencesDialog {
         #[template_child]
         pub refresh_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
@@ -49,10 +49,10 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for PreferencesWindow {
-        const NAME: &'static str = "PreferencesWindow";
-        type Type = super::PreferencesWindow;
-        type ParentType = adw::PreferencesWindow;
+    impl ObjectSubclass for PreferencesDialog {
+        const NAME: &'static str = "PreferencesDialog";
+        type Type = super::PreferencesDialog;
+        type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -64,7 +64,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for PreferencesWindow {
+    impl ObjectImpl for PreferencesDialog {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -79,27 +79,37 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for PreferencesWindow {}
-    impl WindowImpl for PreferencesWindow {}
-    impl AdwWindowImpl for PreferencesWindow {}
-    impl PreferencesWindowImpl for PreferencesWindow {}
+    impl WidgetImpl for PreferencesDialog {}
+    impl AdwDialogImpl for PreferencesDialog {}
+    impl PreferencesDialogImpl for PreferencesDialog {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: PreferencesWindow
+// IMPLEMENTATION: PreferencesDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct PreferencesWindow(ObjectSubclass<imp::PreferencesWindow>)
-        @extends adw::Window, gtk::Window, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct PreferencesDialog(ObjectSubclass<imp::PreferencesDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl PreferencesWindow {
+impl PreferencesDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Public prepare function
+    //-----------------------------------
+    pub fn prepare(&self, auto_refresh: bool, aur_command: &str, search_delay: f64, remember_columns: bool, remember_sort: bool) {
+        self.set_auto_refresh(auto_refresh);
+        self.set_aur_command(aur_command);
+        self.set_search_delay(search_delay);
+        self.set_remember_columns(remember_columns);
+        self.set_remember_sort(remember_sort);
     }
 
     //-----------------------------------

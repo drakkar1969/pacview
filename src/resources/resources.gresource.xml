@@ -57,7 +57,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/preferences_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/preferences_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/property_label.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/property_value.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/text_layout.ui</file>

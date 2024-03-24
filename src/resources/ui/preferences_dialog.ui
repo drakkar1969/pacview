@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// PreferencesWindow template //-->
-  <template class="PreferencesWindow" parent="AdwPreferencesWindow">
-    <property name="default-width">550</property>
-    <property name="default-height">-1</property>
-    <property name="modal">True</property>
-    <property name="hide-on-close">True</property>
-    <property name="search-enabled">False</property>
+  <!--// PreferencesDialog template //-->
+  <template class="PreferencesDialog" parent="AdwPreferencesDialog">
     <child>
       <object class="AdwPreferencesPage">
         <child>

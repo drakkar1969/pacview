@@ -8,7 +8,7 @@ mod info_pane;
 mod text_layout;
 mod property_label;
 mod property_value;
-mod preferences_window;
+mod preferences_dialog;
 mod stats_window;
 mod backup_window;
 mod details_window;
