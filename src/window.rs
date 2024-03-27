@@ -992,11 +992,11 @@ impl PacViewWindow {
         });
 
         // Attach thread receiver
-        let mut update_map: HashMap<String, String> = HashMap::new();
-        let mut error_msg: Option<String> = None;
-        let mut n_threads = 0;
-
         glib::spawn_future_local(clone!(@weak imp, @strong update_row => async move {
+            let mut update_map: HashMap<String, String> = HashMap::new();
+            let mut error_msg: Option<String> = None;
+            let mut n_threads = 0;
+
             while let Ok(result) = receiver.recv().await {
                 n_threads += 1;
 
