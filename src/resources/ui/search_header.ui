@@ -77,7 +77,7 @@
                     </child>
                     <child>
                       <object class="GtkMenuButton" id="filter_button">
-                        <property name="icon-name">funnel-symbolic</property>
+                        <property name="icon-name">filter-symbolic</property>
                         <property name="menu-model">search_menu</property>
                       </object>
                     </child>

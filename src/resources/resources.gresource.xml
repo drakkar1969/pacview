@@ -9,7 +9,7 @@
     <file alias="details-log-symbolic.svg">icons/details-log-symbolic.svg</file>
     <file alias="details-cache-symbolic.svg">icons/details-cache-symbolic.svg</file>
     <file alias="details-backup-symbolic.svg">icons/details-backup-symbolic.svg</file>
-    <file alias="funnel-symbolic.svg">icons/funnel-symbolic.svg</file>
+    <file alias="filter-symbolic.svg">icons/filter-symbolic.svg</file>
     <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
     <file alias="stats-symbolic.svg">icons/stats-symbolic.svg</file>
     <file alias="status-all-symbolic.svg">icons/status-all-symbolic.svg</file>
