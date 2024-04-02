@@ -1,9 +1,5 @@
-use std::process::Command;
-use std::io;
-
 use gtk::{glib, gio};
 use gtk::prelude::AppInfoExt;
-
 
 //------------------------------------------------------------------------------
 // MODULE: Utils
@@ -14,22 +10,6 @@ pub struct Utils;
 // IMPLEMENTATION: Utils
 //------------------------------------------------------------------------------
 impl Utils {
-    //-----------------------------------
-    // Run command function
-    //-----------------------------------
-    pub fn run_command(cmd: &str) -> Result<String, io::Error> {
-        let params = shlex::split(cmd)
-            .filter(|params| !params.is_empty())
-            .ok_or(io::Error::new(io::ErrorKind::Other, "Error parsing parameters"))?;
-
-        let output = Command::new(&params[0]).args(&params[1..]).output()?;
-
-        let stdout = String::from_utf8(output.stdout)
-            .map_err(|error| io::Error::new(io::ErrorKind::Other, error))?;
-
-        Ok(stdout)
-    }
-
     //-----------------------------------
     // Size to string function
     //-----------------------------------

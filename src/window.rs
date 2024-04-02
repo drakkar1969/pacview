@@ -4,7 +4,8 @@ use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 use std::env;
-use std::io::prelude::*;
+use std::io;
+use std::io::Read;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -16,6 +17,8 @@ use alpm_utils::DbListExt;
 use titlecase::titlecase;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
+use async_process::Command;
+use futures::join;
 use flate2::read::GzDecoder;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
@@ -30,15 +33,6 @@ use crate::stats_dialog::StatsDialog;
 use crate::backup_dialog::BackupDialog;
 use crate::preferences_dialog::PreferencesDialog;
 use crate::details_dialog::DetailsDialog;
-use crate::utils::Utils;
-
-//------------------------------------------------------------------------------
-// ENUM: UpdateResult
-//------------------------------------------------------------------------------
-enum UpdateResult {
-    Map(HashMap<String, String>),
-    Error(String)
-}
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -875,88 +869,37 @@ impl PacViewWindow {
     }
 
     //-----------------------------------
-    // Pacman/AUR update helper functions
+    // Update helper function
     //-----------------------------------
-    fn get_pacman_updates(cache_dir: Option<String>, update_config: &mut pacmanconf::Config) -> UpdateResult {
-        cache_dir
-            .ok_or(alpm::Error::NotADir)
-            .and_then(|cache_dir| {
-                // Create link to local package database in cache dir
-                let link_dest = Path::new(&update_config.db_path).join("local");
+    async fn run_update_command(&self, cmd: &str) -> io::Result<HashMap<String, String>> {
+        // Run external command
+        let params = shlex::split(cmd)
+            .filter(|params| !params.is_empty())
+            .ok_or(io::Error::new(io::ErrorKind::Other, "Error parsing parameters"))?;
 
-                gio::File::for_path(Path::new(&cache_dir).join("local"))
-                    .make_symbolic_link(link_dest, None::<&gio::Cancellable>)
-                    .or_else(|error| {
-                        if error.matches(gio::IOErrorEnum::Exists) { Ok(()) } else { Err(alpm::Error::NotADir) }
-                    })
-                    .map(|_| cache_dir)
-            })
-            .and_then(|cache_dir| {
-                // Change pacman config DB path to cache dir
-                update_config.db_path = cache_dir;
+        let output = Command::new(&params[0]).args(&params[1..]).output().await?;
 
-                // Sync copy of remote databases in cache dir
-                let mut handle = alpm_utils::alpm_with_conf(update_config)?;
+        let stdout = String::from_utf8(output.stdout)
+            .map_err(|error| io::Error::new(io::ErrorKind::Other, error))?;
 
-                handle.syncdbs_mut().update(false)
-                    .and_then(|_| {
-                        handle.unlock()?;
-
-                        handle.trans_init(alpm::TransFlag::NO_LOCK | alpm::TransFlag::DB_ONLY | alpm::TransFlag::NO_DEPS)?;
-
-                        handle.sync_sysupgrade(false)?;
-
-                        // Create map with pacman updates (name, version)
-                        let pacman_map = handle.trans_add().iter()
-                            .map(|pkg| (pkg.name().to_string(), pkg.version().to_string()))
-                            .collect::<HashMap<String, String>>();
-
-                        Ok(pacman_map)
-                    })
-                    .map_err(|error| {
-                        handle.unlock().unwrap_or_default();
-
-                        error
-                    })
-
-            })
-            .map_or_else(
-                |error| UpdateResult::Error(format!("Error Retrieving Pacman Updates ({})", error)),
-                |pacman_map| UpdateResult::Map(pacman_map)
-            )
-    }
-
-    fn get_aur_updates(aur_command: &str) -> UpdateResult {
-        if !aur_command.is_empty() {
-            // Run AUR helper
-            Utils::run_command(aur_command)
-                .map(|stdout| {
-                    // Create map with AUR updates (name, version)
-                    lazy_static! {
-                        static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
-                    }
-
-                    let aur_map: HashMap<String, String> = stdout.lines()
-                        .filter_map(|s|
-                            EXPR.captures(s).ok().and_then(|caps| {
-                                caps
-                                    .filter(|caps| caps.len() == 4)
-                                    .map(|caps| {
-                                        (caps[1].to_string(), caps[3].to_string())
-                                    })
-                            })
-                        )
-                        .collect();
-
-                    aur_map
-                })
-                .map_or_else(
-                    |error| UpdateResult::Error(format!("Error Retrieving AUR Updates ({})", error)),
-                    |aur_map| UpdateResult::Map(aur_map)
-                )
-        } else {
-            UpdateResult::Map(HashMap::new())
+        // Create map with updates (name, version)
+        lazy_static! {
+            static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
         }
+
+        let map: HashMap<String, String> = stdout.lines()
+            .filter_map(|s|
+                EXPR.captures(s).ok().and_then(|caps| {
+                    caps
+                        .filter(|caps| caps.len() == 4)
+                        .map(|caps| {
+                            (caps[1].to_string(), caps[3].to_string())
+                        })
+                })
+            )
+            .collect();
+
+        Ok(map)
     }
 
     //-----------------------------------
@@ -968,79 +911,70 @@ impl PacViewWindow {
         let update_row = imp.update_row.borrow();
         update_row.set_spinning(true);
 
-        let cache_dir = imp.cache_dir.borrow();
-
-        // Need to clone pacman config to modify db path
-        let mut update_config = imp.pacman_config.borrow().clone();
-
-        // Get custom command for AUR updates
-        let aur_command = self.aur_command();
-
-        // Spawn threads to check for pacman/AUR updates
-        let (sender, receiver) = async_channel::bounded(1);
-
-        let sender1 = sender.clone();
-
-        gio::spawn_blocking(clone!(@strong cache_dir => move || {
-            sender1.send_blocking(Self::get_pacman_updates(cache_dir, &mut update_config))
-                .expect("Could not send through channel");
-        }));
-
-        gio::spawn_blocking(move || {
-            sender.send_blocking(Self::get_aur_updates(&aur_command))
-                .expect("Could not send through channel");
-        });
-
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak imp, @strong update_row => async move {
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp, @strong update_row => async move {
             let mut update_map: HashMap<String, String> = HashMap::new();
             let mut error_msg: Option<String> = None;
-            let mut n_threads = 0;
 
-            while let Ok(result) = receiver.recv().await {
-                n_threads += 1;
+            let aur_command = window.aur_command();
 
-                // Get update map and error message
-                match result {
-                    UpdateResult::Map(map) => update_map.extend(map),
-                    UpdateResult::Error(error) => {
-                        if error_msg.is_none() { error_msg = Some(error) }
+            // Check for pacman updates async
+            let pacman_handle = window.run_update_command("/usr/bin/checkupdates");
+
+            let (pacman_res, aur_res) = if !aur_command.is_empty() {
+                // Check for AUR updates async
+                let aur_handle = window.run_update_command(&aur_command);
+
+                join!(pacman_handle, aur_handle)
+            } else {
+                (pacman_handle.await, Ok(HashMap::new()))
+            };
+
+            // Get pacman update results
+            match pacman_res {
+                Ok(pacman_map) => update_map.extend(pacman_map),
+                Err(error) => error_msg = Some(format!("Error Retrieving Pacman Updates ({})", error))
+            }
+
+            // Get AUR update results
+            match aur_res {
+                Ok(aur_map) => update_map.extend(aur_map),
+                Err(error) => {
+                    if error_msg.is_none() {
+                        error_msg = Some(format!("Error Retrieving AUR Updates ({})", error));
                     }
                 }
+            }
 
-                // Update status of packages with updates
-                if n_threads == 2 {
-                    if !update_map.is_empty() {
-                        imp.package_view.imp().pkg_model.iter::<PkgObject>()
-                            .flatten()
-                            .filter(|pkg| update_map.contains_key(&pkg.name()))
-                            .for_each(|pkg| {
-                                pkg.set_version(format!("{} \u{2192} {}", pkg.version(), update_map[&pkg.name()]));
+            // Update status of packages with updates
+            if !update_map.is_empty() {
+                imp.package_view.imp().pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .filter(|pkg| update_map.contains_key(&pkg.name()))
+                    .for_each(|pkg| {
+                        pkg.set_version(format!("{} \u{2192} {}", pkg.version(), update_map[&pkg.name()]));
 
-                                pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
+                        pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
 
-                                pkg.set_has_update(true);
+                        pkg.set_has_update(true);
 
-                                // Update info pane if currently displayed package has update
-                                let info_pkg = imp.info_pane.pkg();
+                        // Update info pane if currently displayed package has update
+                        let info_pkg = imp.info_pane.pkg();
 
-                                if info_pkg.is_some_and(|info_pkg| info_pkg == pkg) {
-                                    imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
-                                }
-                            });
-                    }
+                        if info_pkg.is_some_and(|info_pkg| info_pkg == pkg) {
+                            imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
+                        }
+                    });
+            }
 
-                    // Show update status/count in sidebar
-                    update_row.set_spinning(false);
-                    update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
-                    update_row.set_count(update_map.len() as u32);
-                    update_row.set_tooltip_text(error_msg.as_deref());
+            // Show update status/count in sidebar
+            update_row.set_spinning(false);
+            update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
+            update_row.set_count(update_map.len() as u32);
+            update_row.set_tooltip_text(error_msg.as_deref());
 
-                    // If update row is selected, refresh package status filter
-                    if update_row.is_selected() {
-                        imp.package_view.set_status_filter(update_row.status_id());
-                    }
-                }
+            // If update row is selected, refresh package status filter
+            if update_row.is_selected() {
+                imp.package_view.set_status_filter(update_row.status_id());
             }
         }));
     }
