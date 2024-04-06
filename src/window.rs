@@ -874,7 +874,7 @@ impl PacViewWindow {
     //-----------------------------------
     // Update helper function
     //-----------------------------------
-    async fn run_update_command(&self, cmd: &str) -> io::Result<HashMap<String, String>> {
+    async fn run_update_command(&self, cmd: &str) -> io::Result<(Option<i32>, String)> {
         // Run external command
         let params = shlex::split(cmd)
             .filter(|params| !params.is_empty())
@@ -885,24 +885,9 @@ impl PacViewWindow {
         let stdout = String::from_utf8(output.stdout)
             .map_err(|error| io::Error::new(io::ErrorKind::Other, error))?;
 
-        // Create map with updates (name, version)
-        lazy_static! {
-            static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
-        }
+        let code = output.status.code();
 
-        let map: HashMap<String, String> = stdout.lines()
-            .filter_map(|s|
-                EXPR.captures(s).ok().and_then(|caps| {
-                    caps
-                        .filter(|caps| caps.len() == 4)
-                        .map(|caps| {
-                            (caps[1].to_string(), caps[3].to_string())
-                        })
-                })
-            )
-            .collect();
-
-        Ok(map)
+        Ok((code, stdout))
     }
 
     //-----------------------------------
@@ -912,7 +897,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            let mut update_map: HashMap<String, String> = HashMap::new();
+            let mut update_str = String::from("");
             let mut error_msg: Option<String> = None;
 
             let aur_command = window.aur_command();
@@ -926,24 +911,51 @@ impl PacViewWindow {
 
                 join!(pacman_handle, aur_handle)
             } else {
-                (pacman_handle.await, Ok(HashMap::new()))
+                (pacman_handle.await, Ok((None, "".to_string())))
             };
 
             // Get pacman update results
             match pacman_res {
-                Ok(pacman_map) => update_map.extend(pacman_map),
+                Ok((code, stdout)) => {
+                    if code == Some(0) {
+                        update_str += &stdout;
+                    } else if code == Some(1) {
+                        error_msg = Some("Error Retrieving Pacman Updates (checkupdates error)".to_string())
+                    }
+                },
                 Err(error) => error_msg = Some(format!("Error Retrieving Pacman Updates ({})", error))
             }
 
             // Get AUR update results
             match aur_res {
-                Ok(aur_map) => update_map.extend(aur_map),
+                Ok((code, stdout)) => {
+                    if code == Some(0) {
+                        update_str += &stdout;
+                    }
+                },
                 Err(error) => {
                     if error_msg.is_none() {
                         error_msg = Some(format!("Error Retrieving AUR Updates ({})", error));
                     }
                 }
             }
+
+            // Create map with updates (name, version)
+            lazy_static! {
+                static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
+            }
+
+            let update_map: HashMap<String, String> = update_str.lines()
+                .filter_map(|s|
+                    EXPR.captures(s).ok().and_then(|caps| {
+                        caps
+                            .filter(|caps| caps.len() == 4)
+                            .map(|caps| {
+                                (caps[1].to_string(), caps[3].to_string())
+                            })
+                    })
+                )
+                .collect();
 
             // Update status of packages with updates
             if !update_map.is_empty() {
