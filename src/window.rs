@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
@@ -81,7 +81,7 @@ mod imp {
 
         pub gsettings: OnceCell<gio::Settings>,
 
-        pub cache_dir: RefCell<Option<String>>,
+        pub aur_file_path: RefCell<Option<PathBuf>>,
 
         pub pacman_config: RefCell<pacmanconf::Config>,
         pub pacman_repos: RefCell<Vec<String>>,
@@ -295,8 +295,11 @@ impl PacViewWindow {
                 }
             });
 
-        // Store cache dir
-        self.imp().cache_dir.replace(cache_dir);
+        // Store AUR package names file path
+        let aur_file_path = cache_dir
+            .and_then(|cache_dir| Some(Path::new(&cache_dir).join("aur_packages")));
+
+        self.imp().aur_file_path.replace(aur_file_path);
     }
 
     //-----------------------------------
@@ -774,19 +777,19 @@ impl PacViewWindow {
         let update_row = imp.update_row.borrow();
         update_row.set_spinning(true);
 
-        let cache_dir = imp.cache_dir.borrow();
+        let aur_file_path = imp.aur_file_path.borrow();
 
         let pacman_config = imp.pacman_config.borrow();
 
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(clone!(@strong cache_dir, @strong pacman_config => move || {
+        gio::spawn_blocking(clone!(@strong aur_file_path, @strong pacman_config => move || {
             let mut aur_names: HashSet<String> = HashSet::new();
 
             // Get AUR package names from local file
-            if let Some(cache_dir) = cache_dir {
-                let aur_file = gio::File::for_path(Path::new(&cache_dir).join("aur_packages"));
+            if let Some(aur_file_path) = aur_file_path {
+                let aur_file = gio::File::for_path(aur_file_path);
 
                 // If AUR package names file does not exist, download it
                 if !aur_file.query_exists(None::<&gio::Cancellable>) {
@@ -999,12 +1002,12 @@ impl PacViewWindow {
     fn update_aur_file_async(&self) {
         let imp = self.imp();
 
-        let cache_dir = imp.cache_dir.borrow();
+        let aur_file_path = imp.aur_file_path.borrow();
 
         // Spawn thread to load AUR package names file
-        gio::spawn_blocking(clone!(@strong cache_dir => move || {
-            if let Some(cache_dir) = cache_dir {
-                let aur_file = gio::File::for_path(Path::new(&cache_dir).join("aur_packages"));
+        gio::spawn_blocking(clone!(@strong aur_file_path => move || {
+            if let Some(aur_file_path) = aur_file_path {
+                let aur_file = gio::File::for_path(aur_file_path);
 
                 // Get AUR package names file age
                 let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
