@@ -774,9 +774,6 @@ impl PacViewWindow {
     fn load_packages_async(&self, update_aur_file: bool) {
         let imp = self.imp();
 
-        let update_row = imp.update_row.borrow();
-        update_row.set_spinning(true);
-
         let aur_file_path = imp.aur_file_path.borrow();
 
         let pacman_config = imp.pacman_config.borrow();
@@ -899,7 +896,10 @@ impl PacViewWindow {
     fn get_package_updates_async(&self) {
         let imp = self.imp();
 
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
+        let update_row = imp.update_row.borrow();
+        update_row.set_spinning(true);
+
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp, @strong update_row => async move {
             let mut update_str = String::from("");
             let mut error_msg: Option<String> = None;
 
@@ -982,8 +982,6 @@ impl PacViewWindow {
             }
 
             // Show update status/count in sidebar
-            let update_row = imp.update_row.borrow();
-
             update_row.set_spinning(false);
             update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
             update_row.set_count(update_map.len() as u32);
