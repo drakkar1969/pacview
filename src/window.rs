@@ -954,7 +954,7 @@ impl PacViewWindow {
                         caps
                             .filter(|caps| caps.len() == 4)
                             .map(|caps| {
-                                (caps[1].to_string(), caps[3].to_string())
+                                (caps[1].to_string(), format!("{} \u{2192} {}", &caps[2], &caps[3]))
                             })
                     })
                 )
@@ -966,7 +966,7 @@ impl PacViewWindow {
                     .flatten()
                     .filter(|pkg| update_map.contains_key(&pkg.name()))
                     .for_each(|pkg| {
-                        pkg.set_version(format!("{} \u{2192} {}", pkg.version(), update_map[&pkg.name()]));
+                        pkg.set_version(update_map[&pkg.name()].to_string());
 
                         pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
 
