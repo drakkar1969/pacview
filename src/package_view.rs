@@ -8,11 +8,12 @@ use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
 
-use raur::blocking::Raur;
+use raur::Raur;
 use raur::ArcPackage;
 
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
+use crate::utils::Utils;
 
 pub const DEFAULT_COLS: [&str; 6] = ["package", "version", "repository", "status", "date", "size"];
 pub const DEFAULT_SORT_COL: &str = "package";
@@ -315,8 +316,8 @@ impl PackageView {
 
         glib::spawn_future_local(clone!(@weak imp, @strong local_pkg_names => async move {
             // Spawn thread to search AUR
-            let result = gio::spawn_blocking(move || {
-                let handle = raur::blocking::Handle::new();
+            let result = Utils::tokio_runtime().spawn(async move {
+                let handle = raur::Handle::new();
 
                 // Set search mode
                 let search_by = match prop {
@@ -333,13 +334,13 @@ impl PackageView {
                 let mut aur_names: HashSet<String> = HashSet::new();
 
                 for t in term.split_whitespace() {
-                    let aur_search = handle.search_by(t, search_by)?;
+                    let aur_search = handle.search_by(t, search_by).await?;
 
                     aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
                 }
 
                 // Get AUR package info using cache
-                let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())?;
+                let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>()).await?;
 
                 let data_list: Vec<PkgData> = aur_list.into_iter()
                     .filter(|aurpkg| !local_pkg_names.contains(&aurpkg.name))
