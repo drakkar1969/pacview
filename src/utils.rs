@@ -1,5 +1,9 @@
+use std::sync::OnceLock;
+
 use gtk::{glib, gio};
 use gtk::prelude::AppInfoExt;
+
+use tokio::runtime::Runtime;
 
 //------------------------------------------------------------------------------
 // MODULE: Utils
@@ -10,6 +14,17 @@ pub struct Utils;
 // IMPLEMENTATION: Utils
 //------------------------------------------------------------------------------
 impl Utils {
+    //-----------------------------------
+    // Tokio runtime function
+    //-----------------------------------
+    pub fn tokio_runtime() -> &'static Runtime {
+        static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+
+        RUNTIME.get_or_init(|| {
+            Runtime::new().expect("Setting up tokio runtime needs to succeed.")
+        })
+    }
+
     //-----------------------------------
     // Size to string function
     //-----------------------------------

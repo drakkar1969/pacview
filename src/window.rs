@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
@@ -22,6 +22,7 @@ use futures::join;
 use flate2::read::GzDecoder;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
+use crate::utils::Utils;
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
@@ -81,7 +82,7 @@ mod imp {
 
         pub gsettings: OnceCell<gio::Settings>,
 
-        pub aur_file_path: RefCell<Option<PathBuf>>,
+        pub aur_file: RefCell<Option<gio::File>>,
 
         pub pacman_config: RefCell<pacmanconf::Config>,
         pub pacman_repos: RefCell<Vec<String>>,
@@ -296,10 +297,10 @@ impl PacViewWindow {
             });
 
         // Store AUR package names file path
-        let aur_file_path = cache_dir
-            .and_then(|cache_dir| Some(Path::new(&cache_dir).join("aur_packages")));
+        let aur_file = cache_dir
+            .map(|cache_dir| gio::File::for_path(Path::new(&cache_dir).join("aur_packages")));
 
-        self.imp().aur_file_path.replace(aur_file_path);
+        self.imp().aur_file.replace(aur_file);
     }
 
     //-----------------------------------
@@ -663,14 +664,19 @@ impl PacViewWindow {
     //-----------------------------------
     // Setup alpm
     //-----------------------------------
-    fn setup_alpm(&self, update_aur_file: bool) {
+    fn setup_alpm(&self, is_init: bool) {
         self.get_pacman_config();
         self.populate_sidebar();
-        self.load_packages_async(update_aur_file);
+
+        if is_init {
+            self.check_aur_file();
+        } else {
+            self.load_packages(false);
+        }
     }
 
     //-----------------------------------
-    // Setup alpm: get pacman configuration
+    // Setup alpm: get pacman config
     //-----------------------------------
     fn get_pacman_config(&self) {
         // Get pacman config
@@ -688,7 +694,7 @@ impl PacViewWindow {
     }
 
     //-----------------------------------
-    // Setup alpm: populate sidebar listboxes
+    // Setup alpm: populate sidebar
     //-----------------------------------
     fn populate_sidebar(&self) {
         let imp = self.imp();
@@ -754,16 +760,57 @@ impl PacViewWindow {
     //-----------------------------------
     // Download AUR names helper function
     //-----------------------------------
-    pub fn download_aur_names(file: &gio::File) {
-        let url = "https://aur.archlinux.org/packages.gz";
+    fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
+        Utils::tokio_runtime().spawn(clone!(@strong file => async move {
+            let url = "https://aur.archlinux.org/packages.gz";
 
-        if let Ok(bytes) = reqwest::blocking::get(url).and_then(|res| res.bytes()) {
-            let mut decoder = GzDecoder::new(&bytes[..]);
+            if let Ok(response) = reqwest::get(url).await {
+                if let Ok(bytes) = response.bytes().await {
+                    let mut decoder = GzDecoder::new(&bytes[..]);
 
-            let mut gz_string = String::new();
+                    let mut gz_string = String::new();
 
-            if decoder.read_to_string(&mut gz_string).is_ok() {
-                file.replace_contents(gz_string.as_bytes(), None, false, gio::FileCreateFlags::REPLACE_DESTINATION, None::<&gio::Cancellable>).unwrap_or_default();
+                    if decoder.read_to_string(&mut gz_string).is_ok() {
+                        file.replace_contents(
+                            gz_string.as_bytes(),
+                            None,
+                            false,
+                            gio::FileCreateFlags::REPLACE_DESTINATION,
+                            None::<&gio::Cancellable>
+                        ).unwrap_or_default();
+                    }
+                }
+            }
+
+            if let Some(sender) = sender {
+                sender.send(()).await.expect("Could not send through channel");
+            }
+        }));
+    }
+
+    //-----------------------------------
+    // Setup alpm: check AUR file
+    //-----------------------------------
+    fn check_aur_file(&self) {
+        let imp = self.imp();
+
+        let aur_file = &*imp.aur_file.borrow();
+
+        // If AUR package names file does not exist, download it
+        if let Some(aur_file) = aur_file {
+            if !aur_file.query_exists(None::<&gio::Cancellable>) {
+                let (sender, receiver) = async_channel::bounded(1);
+
+                self.download_aur_names(aur_file, Some(sender));
+
+                glib::spawn_future_local(clone!(@weak self as window => async move {
+                    while let Ok(_) = receiver.recv().await {
+                        window.load_packages(false);
+                    }
+                }));
+
+            } else {
+                self.load_packages(true);
             }
         }
     }
@@ -771,29 +818,21 @@ impl PacViewWindow {
     //-----------------------------------
     // Setup alpm: load alpm packages
     //-----------------------------------
-    fn load_packages_async(&self, update_aur_file: bool) {
+    fn load_packages(&self, update_aur_file: bool) {
         let imp = self.imp();
 
-        let aur_file_path = imp.aur_file_path.borrow();
+        let aur_file = imp.aur_file.borrow();
 
         let pacman_config = imp.pacman_config.borrow();
 
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(clone!(@strong aur_file_path, @strong pacman_config => move || {
+        gio::spawn_blocking(clone!(@strong aur_file, @strong pacman_config => move || {
             let mut aur_names: HashSet<String> = HashSet::new();
 
-            // Get AUR package names from local file
-            if let Some(aur_file_path) = aur_file_path {
-                let aur_file = gio::File::for_path(aur_file_path);
-
-                // If AUR package names file does not exist, download it
-                if !aur_file.query_exists(None::<&gio::Cancellable>) {
-                    Self::download_aur_names(&aur_file);
-                }
-
-                // Load AUR package names from file
+            // Load AUR package names from file
+            if let Some(aur_file) = aur_file {
                 if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
                     aur_names = String::from_utf8_lossy(&bytes).lines()
                         .map(|line| line.to_string())
@@ -861,10 +900,10 @@ impl PacViewWindow {
 
                     imp.package_view.imp().stack.set_visible_child_name("view");
 
-                    window.get_package_updates_async();
+                    window.get_package_updates();
 
                     if update_aur_file {
-                        window.update_aur_file_async();
+                        window.update_aur_file();
                     }
                 }
             }
@@ -893,7 +932,7 @@ impl PacViewWindow {
     //-----------------------------------
     // Setup alpm: get package updates
     //-----------------------------------
-    fn get_package_updates_async(&self) {
+    fn get_package_updates(&self) {
         let imp = self.imp();
 
         let update_row = imp.update_row.borrow();
@@ -997,31 +1036,26 @@ impl PacViewWindow {
     //-----------------------------------
     // Setup alpm: update AUR file
     //-----------------------------------
-    fn update_aur_file_async(&self) {
+    fn update_aur_file(&self) {
         let imp = self.imp();
 
-        let aur_file_path = imp.aur_file_path.borrow();
+        let aur_file = &*imp.aur_file.borrow();
 
-        // Spawn thread to load AUR package names file
-        gio::spawn_blocking(clone!(@strong aur_file_path => move || {
-            if let Some(aur_file_path) = aur_file_path {
-                let aur_file = gio::File::for_path(aur_file_path);
+        if let Some(aur_file) = aur_file {
+            // Get AUR package names file age
+            let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
+                .ok()
+                .and_then(|file_info| file_info.modification_date_time())
+                .and_then(|file_time| {
+                    glib::DateTime::now_local().ok()
+                        .map(|current_time| current_time.difference(&file_time).as_days())
+                });
 
-                // Get AUR package names file age
-                let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
-                    .ok()
-                    .and_then(|file_info| file_info.modification_date_time())
-                    .and_then(|file_time| {
-                        glib::DateTime::now_local().ok()
-                            .map(|current_time| current_time.difference(&file_time).as_days())
-                    });
-
-                // Download AUR package names file if does not exist or older than 7 days
-                if file_days.is_none() || file_days.unwrap() >= 7 {
-                    Self::download_aur_names(&aur_file);
-                }
+            // Download AUR package names file if does not exist or older than 7 days
+            if file_days.is_none() || file_days.unwrap() >= 7 {
+                self.download_aur_names(aur_file, None);
             }
-        }));
+        }
     }
 
     //-----------------------------------

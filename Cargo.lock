@@ -1380,6 +1380,7 @@ dependencies = [
  "reqwest",
  "shlex",
  "titlecase",
+ "tokio",
  "url",
 ]
 
