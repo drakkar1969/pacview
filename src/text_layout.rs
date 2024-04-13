@@ -741,8 +741,6 @@ impl TextLayout {
                 let label = gtk::Label::new(None);
                 label.add_css_class("css-label");
 
-                let style_manager = adw::StyleManager::default();
-
                 let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
 
                 let css_provider = gtk::CssProvider::new();
