@@ -52,6 +52,8 @@ mod imp {
         pub search_header: TemplateChild<SearchHeader>,
         #[template_child]
         pub search_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
+        pub infopane_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
         pub repo_listbox: TemplateChild<gtk::ListBox>,
@@ -319,6 +321,11 @@ impl PacViewWindow {
 
         // Bind search button state to search header enabled state
         imp.search_button.bind_property("active", &imp.search_header.get(), "enabled")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .build();
+
+        // Bind view infopane button state to infopane visibility
+        imp.infopane_button.bind_property("active", &imp.info_pane.get(), "visible")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 

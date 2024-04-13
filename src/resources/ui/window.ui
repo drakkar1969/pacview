@@ -113,6 +113,13 @@
                   </object>
                 </property>
                 <child type="end">
+                  <object class="GtkToggleButton" id="infopane_button">
+                    <property name="active">True</property>
+                    <property name="icon-name">view-infopane</property>
+                    <property name="tooltip-text">Toggle Info Pane</property>
+                  </object>
+                </child>
+                <child type="end">
                   <object class="GtkToggleButton" id="search_button">
                     <property name="active">False</property>
                     <property name="icon-name">edit-find-symbolic</property>
