@@ -16,7 +16,7 @@ use glib::{clone, closure_local};
 
 use alpm_utils::DbListExt;
 use titlecase::titlecase;
-use fancy_regex::Regex;
+use regex::Regex;
 use async_process::Command;
 use futures::join;
 use flate2::read::GzDecoder;
@@ -997,15 +997,13 @@ impl PacViewWindow {
             });
 
             let update_map: HashMap<String, String> = update_str.lines()
-                .filter_map(|s|
-                    expr.captures(s).ok().and_then(|caps| {
-                        caps
-                            .filter(|caps| caps.len() == 4)
-                            .map(|caps| {
-                                (caps[1].to_string(), format!("{} \u{2192} {}", &caps[2], &caps[3]))
-                            })
-                    })
-                )
+                .filter_map(|s| {
+                    expr.captures(s)
+                        .filter(|caps| caps.len() == 4)
+                        .map(|caps| {
+                            (caps[1].to_string(), format!("{} \u{2192} {}", &caps[2], &caps[3]))
+                        })
+                })
                 .collect();
 
             // Update status of packages with updates

@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use fancy_regex::Regex;
+use regex::Regex;
 use glob::glob;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -354,9 +354,7 @@ impl DetailsDialog {
 
             let log_lines: Vec<gtk::StringObject> = log.lines().rev()
                 .filter_map(|s| {
-                    let is_match = expr.is_match(s);
-
-                    if is_match.is_ok_and(|is_match| is_match) {
+                    if expr.is_match(s) {
                         Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
                     } else {
                         None
