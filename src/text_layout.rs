@@ -11,49 +11,42 @@ use fancy_regex::Regex;
 use url::Url;
 
 //------------------------------------------------------------------------------
+// GLOBAL: Color from CSS function
+//------------------------------------------------------------------------------
+fn color_from_css(css: &str) -> gdk::RGBA {
+    let label = gtk::Label::new(None);
+    label.add_css_class("css-label");
+
+    let css_provider = gtk::CssProvider::new();
+    css_provider.load_from_string(&format!("label.css-label {{ color: {css}; }}"));
+
+    gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    let color = label.color();
+
+    gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+
+    color
+}
+
+//------------------------------------------------------------------------------
 // GLOBAL: Color Variables
 //------------------------------------------------------------------------------
 thread_local! {
     static LINK_RGBA: Cell<gdk::RGBA> = Cell::new({
-        let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-        link_btn.color()
+        color_from_css("@accent_color")
     });
 
     static COMMENT_RGBA: Cell<gdk::RGBA> = Cell::new({
-        let label = gtk::Label::new(None);
-        label.add_css_class("css-label");
-
-        let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string("label.css-label { color: alpha(@view_fg_color, 0.55); }");
-
-        gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-        let comment_rgba = label.color();
-
-        gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
-
-        comment_rgba
+        color_from_css("alpha(@view_fg_color, 0.55)")
     });
 
     static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
-        let label = gtk::Label::new(None);
-        label.add_css_class("css-label");
-
         let style_manager = adw::StyleManager::default();
 
         let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
 
-        let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, {alpha}); }}"));
-
-        gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-        let selected_rgba = label.color();
-
-        gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
-
-        selected_rgba
+        color_from_css(&format!("alpha(@accent_bg_color, {alpha})"))
     });
 }
 
@@ -319,6 +312,7 @@ mod imp {
                 }
             });
 
+            // Format comments
             COMMENT_RGBA.with(|comment_rgba| {
                 let comment_color = self.rgba_to_pango_rgb(comment_rgba.get(), obj.parent().unwrap().color());
 
@@ -706,51 +700,30 @@ impl TextLayout {
         // Color scheme changed signal
         let style_manager = adw::StyleManager::default();
 
-        style_manager.connect_dark_notify(clone!(@weak imp => move |style_manager| {
+        style_manager.connect_dark_notify(clone!(@weak self as layout, @weak imp => move |style_manager| {
+            let layout_style = adw::StyleManager::for_display(&layout.display());
+
+            if style_manager.is_dark() {
+                layout_style.set_color_scheme(adw::ColorScheme::ForceDark);
+            } else {
+                layout_style.set_color_scheme(adw::ColorScheme::ForceLight);
+            }
+
             // Update link color
             LINK_RGBA.with(|link_rgba| {
-                let link_btn = gtk::LinkButton::new("www.gtk.org");
-
-                let btn_style = adw::StyleManager::for_display(&link_btn.display());
-
-                if style_manager.is_dark() {
-                    btn_style.set_color_scheme(adw::ColorScheme::ForceDark);
-                } else {
-                    btn_style.set_color_scheme(adw::ColorScheme::ForceLight);
-                }
-
-                link_rgba.set(link_btn.color());
+                link_rgba.set(color_from_css("@accent_color"));
             });
 
+            // Update comment color
             COMMENT_RGBA.with(|comment_rgba| {
-                let label = gtk::Label::new(None);
-                label.add_css_class("css-label");
-
-                let css_provider = gtk::CssProvider::new();
-                css_provider.load_from_string("label.css-label { color: alpha(@view_fg_color, 0.55); }");
-
-                gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-                comment_rgba.set(label.color());
-
-                gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+                comment_rgba.set(color_from_css("alpha(@view_fg_color, 0.55)"));
             });
 
             // Update selected background color
             SELECTED_RGBA.with(|selected_rgba| {
-                let label = gtk::Label::new(None);
-                label.add_css_class("css-label");
-
                 let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
 
-                let css_provider = gtk::CssProvider::new();
-                css_provider.load_from_string(&format!("label.css-label {{ color: alpha(@accent_bg_color, {alpha}); }}"));
-
-                gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-                selected_rgba.set(label.color());
-
-                gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+                selected_rgba.set(color_from_css(&format!("alpha(@accent_bg_color, {alpha})")));
             });
 
             // Format pango layout text
