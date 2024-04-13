@@ -439,3 +439,12 @@ impl InfoPane {
         self.update_display();
     }
 }
+
+impl Default for InfoPane {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}

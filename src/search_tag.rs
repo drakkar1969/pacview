@@ -90,3 +90,12 @@ impl SearchTag {
             .build();
     }
 }
+
+impl Default for SearchTag {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}

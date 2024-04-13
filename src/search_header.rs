@@ -566,3 +566,12 @@ impl SearchHeader {
         imp.capture_controller.replace(controller);
     }
 }
+
+impl Default for SearchHeader {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}

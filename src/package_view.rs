@@ -439,3 +439,12 @@ impl PackageView {
         (sort_col, sort_asc)
     }
 }
+
+impl Default for PackageView {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}

@@ -689,3 +689,12 @@ impl TextLayout {
         }));
     }
 }
+
+impl Default for TextLayout {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}
