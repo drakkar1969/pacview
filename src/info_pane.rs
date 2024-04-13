@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -101,6 +101,7 @@ mod imp {
         pub overlay_next_button: TemplateChild<gtk::Button>,
 
         pub pkg_snapshot: RefCell<Vec<PkgObject>>,
+        pub local_pkg_names: RefCell<HashSet<String>>,
 
         pub property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
 
@@ -297,6 +298,30 @@ impl InfoPane {
     }
 
     //-----------------------------------
+    // Get installed optdeps function
+    //-----------------------------------
+    fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
+        let imp = self.imp();
+
+        let local_pkg_names = imp.local_pkg_names.borrow();
+
+        optdepends.into_iter()
+            .map(|dep| {
+                let mut dep = dep.to_string();
+                
+                if dep.split_once(['<', '>', '=', ':'])
+                    .filter(|&(name, _)| local_pkg_names.contains(name))
+                    .is_some()
+                {
+                    dep.push_str(" [INSTALLED]");
+                }
+
+                dep
+            })
+            .collect::<Vec<String>>()
+    }
+
+    //-----------------------------------
     // Public display functions
     //-----------------------------------
     pub fn update_display(&self) {
@@ -360,7 +385,8 @@ impl InfoPane {
             // Depends
             self.set_property_value(PropID::Dependencies, true, &pkg.depends().join("     "), None);
             // Optdepends
-            self.set_property_value(PropID::Optional, !pkg.optdepends().is_empty(), &pkg.optdepends().join("     "), None);
+            let optdepends = self.installed_optdeps(&pkg.optdepends());
+            self.set_property_value(PropID::Optional, !optdepends.is_empty(), &optdepends.join("     "), None);
             // Makedepends
             self.set_property_value(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends().join("     "), None);
             // Required by

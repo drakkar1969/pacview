@@ -20,6 +20,22 @@ thread_local! {
         link_btn.color()
     });
 
+    static COMMENT_RGBA: Cell<gdk::RGBA> = Cell::new({
+        let label = gtk::Label::new(None);
+        label.add_css_class("css-label");
+
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_string("label.css-label { color: alpha(@view_fg_color, 0.55); }");
+
+        gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+        let comment_rgba = label.color();
+
+        gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+
+        comment_rgba
+    });
+
     static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
         let label = gtk::Label::new(None);
         label.add_css_class("css-label");
@@ -59,15 +75,15 @@ pub enum PropType {
 //------------------------------------------------------------------------------
 // STRUCT: Link
 //------------------------------------------------------------------------------
-pub struct Link {
-    url: String,
+pub struct Marker {
+    text: String,
     start: usize,
     end: usize,
 }
 
-impl Link {
-    pub fn url(&self) -> String {
-        self.url.to_owned()
+impl Marker {
+    pub fn text(&self) -> String {
+        self.text.to_owned()
     }
 }
 
@@ -96,7 +112,8 @@ mod imp {
 
         pub pango_layout: OnceCell<pango::Layout>,
 
-        pub link_list: RefCell<Vec<Link>>,
+        pub link_list: RefCell<Vec<Marker>>,
+        pub comment_list: RefCell<Vec<Marker>>,
 
         pub cursor: RefCell<String>,
         pub pressed_link: RefCell<Option<String>>,
@@ -243,6 +260,28 @@ mod imp {
             attr_list.insert(attr);
         }
 
+        fn format_comment(&self, attr_list: &pango::AttrList, start: u32, end: u32, color: (u16, u16, u16)) {
+            let (red, green, blue) = color;
+
+            let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+            attr.set_start_index(start);
+            attr.set_end_index(end);
+
+            attr_list.insert(attr);
+
+            let mut attr = pango::AttrInt::new_weight(pango::Weight::Bold);
+            attr.set_start_index(start);
+            attr.set_end_index(end);
+
+            attr_list.insert(attr);
+
+            let mut attr = pango::AttrFloat::new_scale(0.9);
+            attr.set_start_index(start);
+            attr.set_end_index(end);
+
+            attr_list.insert(attr);
+        }
+
         pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             SELECTED_RGBA.with(|selected_rgba| {
                 let obj = self.obj();
@@ -257,7 +296,7 @@ mod imp {
             });
         }
 
-        pub fn do_format(&self, link_list: &[Link]) {
+        pub fn do_format(&self, link_list: &[Marker], comment_list: &[Marker]) {
             let obj = self.obj();
 
             let layout = self.pango_layout.get().unwrap();
@@ -280,6 +319,14 @@ mod imp {
                 }
             });
 
+            COMMENT_RGBA.with(|comment_rgba| {
+                let comment_color = self.rgba_to_pango_rgb(comment_rgba.get(), obj.parent().unwrap().color());
+
+                for comment in comment_list {
+                    self.format_comment(&attr_list, comment.start as u32, comment.end as u32, comment_color);
+                }
+            });
+
             layout.set_attributes(Some(&attr_list));
         }
 
@@ -293,10 +340,12 @@ mod imp {
         fn set_text(&self, text: &str) {
             let obj = self.obj();
 
-            // Clear link map
+            // Clear link/comments maps
             let mut link_list = self.link_list.borrow_mut();
+            let mut comment_list = self.comment_list.borrow_mut();
 
             link_list.clear();
+            comment_list.clear();
 
             // Set pango layout text and store links in link map
             let layout = self.pango_layout.get().unwrap();
@@ -305,8 +354,8 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(Link {
-                        url: text.to_string(),
+                    link_list.push(Marker {
+                        text: text.to_string(),
                         start: 0,
                         end: text.len()
                     });
@@ -322,8 +371,8 @@ mod imp {
                         .ok()
                         .and_then(|caps_opt| caps_opt.and_then(|caps| caps.get(1)))
                     {
-                        link_list.push(Link {
-                            url: format!("mailto:{}", m.as_str()),
+                        link_list.push(Marker {
+                            text: format!("mailto:{}", m.as_str()),
                             start: m.start(),
                             end: m.end()
                         });
@@ -341,12 +390,22 @@ mod imp {
 
                         for caps in expr.captures_iter(text).flatten() {
                             if let Some(m) = caps.get(1) {
-                                link_list.push(Link {
-                                    url: format!("pkg://{}", m.as_str()),
+                                link_list.push(Marker {
+                                    text: format!("pkg://{}", m.as_str()),
                                     start: m.start(),
                                     end: m.end()
                                 });
                             }
+                        }
+
+                        let indices = text.match_indices(" [INSTALLED]");
+
+                        for (i, s) in indices {
+                            comment_list.push(Marker {
+                                text: s.to_string(),
+                                start: i,
+                                end: i + s.len()
+                            });
                         }
                     }
                 },
@@ -354,7 +413,7 @@ mod imp {
             }
 
             // Format pango layout text
-            self.do_format(&link_list);
+            self.do_format(&link_list, &comment_list);
 
             self.selection_start.set(-1);
             self.selection_end.set(-1);
@@ -472,7 +531,7 @@ impl TextLayout {
         if inside {
             return self.imp().link_list.borrow().iter()
                 .find(|link| link.start <= index as usize && link.end > index as usize)
-                .map(|link| link.url())
+                .map(|link| link.text())
         }
 
         None
@@ -663,6 +722,20 @@ impl TextLayout {
                 link_rgba.set(link_btn.color());
             });
 
+            COMMENT_RGBA.with(|comment_rgba| {
+                let label = gtk::Label::new(None);
+                label.add_css_class("css-label");
+
+                let css_provider = gtk::CssProvider::new();
+                css_provider.load_from_string("label.css-label { color: alpha(@view_fg_color, 0.55); }");
+
+                gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+                comment_rgba.set(label.color());
+
+                gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
+            });
+
             // Update selected background color
             SELECTED_RGBA.with(|selected_rgba| {
                 let label = gtk::Label::new(None);
@@ -684,8 +757,9 @@ impl TextLayout {
 
             // Format pango layout text
             let link_list = imp.link_list.borrow();
+            let comment_list = imp.comment_list.borrow();
 
-            imp.do_format(&link_list);
+            imp.do_format(&link_list, &comment_list);
         }));
     }
 }

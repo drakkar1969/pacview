@@ -899,7 +899,8 @@ impl PacViewWindow {
                         .map(|pkg| pkg.name())
                         .collect();
 
-                    imp.package_view.imp().local_pkg_names.replace(local_pkg_names);
+                    imp.package_view.imp().local_pkg_names.replace(local_pkg_names.clone());
+                    imp.info_pane.imp().local_pkg_names.replace(local_pkg_names);
 
                     imp.info_pane.imp().pkg_snapshot.replace(pkg_list.clone());
 
