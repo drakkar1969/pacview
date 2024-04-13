@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
+use std::sync::OnceLock;
 use std::path::Path;
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -16,7 +17,6 @@ use glib::{clone, closure_local};
 use alpm_utils::DbListExt;
 use titlecase::titlecase;
 use fancy_regex::Regex;
-use lazy_static::lazy_static;
 use async_process::Command;
 use futures::join;
 use flate2::read::GzDecoder;
@@ -990,13 +990,15 @@ impl PacViewWindow {
             }
 
             // Create map with updates (name, version)
-            lazy_static! {
-                static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").expect("Regex error");
-            }
+            static EXPR: OnceLock<Regex> = OnceLock::new();
+
+            let expr = EXPR.get_or_init(|| {
+                Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").expect("Regex error")
+            });
 
             let update_map: HashMap<String, String> = update_str.lines()
                 .filter_map(|s|
-                    EXPR.captures(s).ok().and_then(|caps| {
+                    expr.captures(s).ok().and_then(|caps| {
                         caps
                             .filter(|caps| caps.len() == 4)
                             .map(|caps| {

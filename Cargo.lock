@@ -1371,7 +1371,6 @@ dependencies = [
  "glib-build-tools",
  "glob",
  "gtk4",
- "lazy_static",
  "libadwaita",
  "notify-debouncer-full",
  "pacmanconf",

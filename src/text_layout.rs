@@ -8,7 +8,6 @@ use glib::clone;
 use glib::subclass::Signal;
 
 use fancy_regex::Regex;
-use lazy_static::lazy_static;
 use url::Url;
 
 //------------------------------------------------------------------------------
@@ -313,11 +312,13 @@ mod imp {
                     });
                 },
                 PropType::Packager => {
-                    lazy_static! {
-                        static ref EXPR: Regex = Regex::new("^(?:[^<]+?)<([^>]+?)>$").expect("Regex error");
-                    }
+                    static EXPR: OnceLock<Regex> = OnceLock::new();
 
-                    if let Some(m) = EXPR.captures(text)
+                    let expr = EXPR.get_or_init(|| {
+                        Regex::new("^(?:[^<]+?)<([^>]+?)>$").expect("Regex error")
+                    });
+
+                    if let Some(m) = expr.captures(text)
                         .ok()
                         .and_then(|caps_opt| caps_opt.and_then(|caps| caps.get(1)))
                     {
@@ -332,11 +333,13 @@ mod imp {
                     if text.is_empty() {
                         layout.set_text("None");
                     } else {
-                        lazy_static! {
-                            static ref EXPR: Regex = Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").expect("Regex error");
-                        }
+                        static EXPR: OnceLock<Regex> = OnceLock::new();
 
-                        for caps in EXPR.captures_iter(text).flatten() {
+                        let expr = EXPR.get_or_init(|| {
+                            Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").expect("Regex error")
+                        });
+
+                        for caps in expr.captures_iter(text).flatten() {
                             if let Some(m) = caps.get(1) {
                                 link_list.push(Link {
                                     url: format!("pkg://{}", m.as_str()),
