@@ -991,7 +991,7 @@ impl PacViewWindow {
 
             // Create map with updates (name, version)
             lazy_static! {
-                static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").unwrap();
+                static ref EXPR: Regex = Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").expect("Regex error");
             }
 
             let update_map: HashMap<String, String> = update_str.lines()
