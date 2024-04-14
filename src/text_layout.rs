@@ -210,8 +210,10 @@ mod imp {
         //-----------------------------------
         // Layout format helper functions
         //-----------------------------------
-        fn rgba_to_pango_rgb(&self, color: gdk::RGBA, bg_color: gdk::RGBA) -> (u16, u16, u16) {
+        fn rgba_to_pango_rgb(&self, color: gdk::RGBA) -> (u16, u16, u16) {
             // Fake transparency (pango bug)
+            let bg_color = self.obj().parent().unwrap().color();
+
             let red = ((1.0 - color.alpha()) * bg_color.red()) + (color.red() * color.alpha());
             let green = ((1.0 - color.alpha()) * bg_color.green()) + (color.green() * color.alpha());
             let blue = ((1.0 - color.alpha()) * bg_color.blue()) + (color.blue() * color.alpha());
@@ -219,10 +221,16 @@ mod imp {
             ((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16)
         }
 
-        fn format_text(&self, attr_list: &pango::AttrList, weight: pango::Weight) {
+        fn format_text(&self, attr_list: &pango::AttrList) {
             let obj = self.obj();
 
-            let (red, green, blue) = self.rgba_to_pango_rgb(obj.color(), obj.parent().unwrap().color());
+            let weight = if obj.ptype() == PropType::Title {
+                pango::Weight::Bold
+            } else {
+                pango::Weight::Normal
+            };
+
+            let (red, green, blue) = self.rgba_to_pango_rgb(obj.color());
 
             let mut attr = pango::AttrColor::new_foreground(red, green, blue);
             attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
@@ -237,49 +245,65 @@ mod imp {
             attr_list.insert(attr);
         }
 
-        fn format_link(&self, attr_list: &pango::AttrList, start: u32, end: u32, color: (u16, u16, u16)) {
-            let (red, green, blue) = color;
+        fn format_links(&self, attr_list: &pango::AttrList) {
+            let link_list = &*self.link_list.borrow();
 
-            let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-            attr.set_start_index(start);
-            attr.set_end_index(end);
+            LINK_RGBA.with(|link_rgba| {
+                let (red, green, blue) = self.rgba_to_pango_rgb(link_rgba.get());
 
-            attr_list.insert(attr);
+                for link in link_list {
+                    let start = link.start as u32;
+                    let end = link.end as u32;
 
-            let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-            attr.set_start_index(start);
-            attr.set_end_index(end);
+                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                    attr.set_start_index(start);
+                    attr.set_end_index(end);
 
-            attr_list.insert(attr);
+                    attr_list.insert(attr);
+
+                    let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+                    attr.set_start_index(start);
+                    attr.set_end_index(end);
+
+                    attr_list.insert(attr);
+                }
+            });
         }
 
-        fn format_comment(&self, attr_list: &pango::AttrList, start: u32, end: u32, color: (u16, u16, u16)) {
-            let (red, green, blue) = color;
+        fn format_comments(&self, attr_list: &pango::AttrList) {
+            let comment_list = &*self.comment_list.borrow();
 
-            let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-            attr.set_start_index(start);
-            attr.set_end_index(end);
+            COMMENT_RGBA.with(|comment_rgba| {
+                let (red, green, blue) = self.rgba_to_pango_rgb(comment_rgba.get());
 
-            attr_list.insert(attr);
+                for comment in comment_list {
+                    let start = comment.start as u32;
+                    let end = comment.end as u32;
 
-            let mut attr = pango::AttrInt::new_weight(pango::Weight::Bold);
-            attr.set_start_index(start);
-            attr.set_end_index(end);
+                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                    attr.set_start_index(start);
+                    attr.set_end_index(end);
 
-            attr_list.insert(attr);
+                    attr_list.insert(attr);
 
-            let mut attr = pango::AttrFloat::new_scale(0.9);
-            attr.set_start_index(start);
-            attr.set_end_index(end);
+                    let mut attr = pango::AttrInt::new_weight(pango::Weight::Bold);
+                    attr.set_start_index(start);
+                    attr.set_end_index(end);
 
-            attr_list.insert(attr);
+                    attr_list.insert(attr);
+
+                    let mut attr = pango::AttrFloat::new_scale(0.9);
+                    attr.set_start_index(start);
+                    attr.set_end_index(end);
+
+                    attr_list.insert(attr);
+                }
+            });
         }
 
         pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             SELECTED_RGBA.with(|selected_rgba| {
-                let obj = self.obj();
-
-                let (red, green, blue) = self.rgba_to_pango_rgb(selected_rgba.get(), obj.parent().unwrap().color());
+                let (red, green, blue) = self.rgba_to_pango_rgb(selected_rgba.get());
 
                 let mut attr = pango::AttrColor::new_background(red, green, blue);
                 attr.set_start_index(start);
@@ -289,37 +313,19 @@ mod imp {
             });
         }
 
-        pub fn do_format(&self, link_list: &[Marker], comment_list: &[Marker]) {
-            let obj = self.obj();
-
+        pub fn do_format(&self) {
             let layout = self.pango_layout.get().unwrap();
 
             let attr_list = pango::AttrList::new();
 
             // Format text
-            if obj.ptype() == PropType::Title {
-                self.format_text(&attr_list, pango::Weight::Bold);
-            } else {
-                self.format_text(&attr_list, pango::Weight::Normal);
-            }
+            self.format_text(&attr_list);
 
             // Format links
-            LINK_RGBA.with(|link_rgba| {
-                let link_color = self.rgba_to_pango_rgb(link_rgba.get(), obj.parent().unwrap().color());
-
-                for link in link_list {
-                    self.format_link(&attr_list, link.start as u32, link.end as u32, link_color);
-                }
-            });
+            self.format_links(&attr_list);
 
             // Format comments
-            COMMENT_RGBA.with(|comment_rgba| {
-                let comment_color = self.rgba_to_pango_rgb(comment_rgba.get(), obj.parent().unwrap().color());
-
-                for comment in comment_list {
-                    self.format_comment(&attr_list, comment.start as u32, comment.end as u32, comment_color);
-                }
-            });
+            self.format_comments(&attr_list);
 
             layout.set_attributes(Some(&attr_list));
         }
@@ -334,7 +340,7 @@ mod imp {
         fn set_text(&self, text: &str) {
             let obj = self.obj();
 
-            // Clear link/comments maps
+            // Clear link/comment lists
             let mut link_list = self.link_list.borrow_mut();
             let mut comment_list = self.comment_list.borrow_mut();
 
@@ -406,8 +412,12 @@ mod imp {
                 _ => {}
             }
 
+            // Need to drop to avoid panic in do_format function
+            drop(link_list);
+            drop(comment_list);
+
             // Format pango layout text
-            self.do_format(&link_list, &comment_list);
+            self.do_format();
 
             self.selection_start.set(-1);
             self.selection_end.set(-1);
@@ -727,10 +737,7 @@ impl TextLayout {
             });
 
             // Format pango layout text
-            let link_list = imp.link_list.borrow();
-            let comment_list = imp.comment_list.borrow();
-
-            imp.do_format(&link_list, &comment_list);
+            imp.do_format();
         }));
     }
 }
