@@ -112,6 +112,7 @@ mod imp {
         pub pressed_link: RefCell<Option<String>>,
 
         pub is_selecting: Cell<bool>,
+        pub is_clicked: Cell<bool>,
         pub selection_start: Cell<i32>,
         pub selection_end: Cell<i32>,
     }
@@ -550,27 +551,20 @@ impl TextLayout {
     fn set_motion_cursor(&self, x: f64, y: f64) {
         let imp = self.imp();
 
-        let (inside, index) = self.index_at_xy(x, y);
+        if !imp.is_selecting.get() {
+            // Get cursor
+            let cursor = if self.link_at_xy(x, y).is_some() {
+                "pointer"
+            } else {
+                "text"
+            };
 
-        let mut cursor = "text";
+            // Update cursor if necessary
+            if cursor != *imp.cursor.borrow() {
+                imp.draw_area.set_cursor_from_name(Some(cursor));
 
-        // If text selection initiated, redraw to show selection
-        if imp.is_selecting.get() {
-            imp.selection_end.set(index);
-
-            imp.draw_area.queue_draw();
-        } else {
-            // If no text selected, update cursor over links
-            if self.link_at_index(inside, index).is_some() {
-                cursor = "pointer";
+                imp.cursor.replace(cursor.to_string());
             }
-        }
-
-        // Update cursor if necessary
-        if cursor != *imp.cursor.borrow() {
-            imp.draw_area.set_cursor_from_name(Some(cursor));
-
-            imp.cursor.replace(cursor.to_string());
         }
     }
 
@@ -580,7 +574,7 @@ impl TextLayout {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
-        // Add mouse move controller
+        // Add mouse motion controller
         let motion_controller = gtk::EventControllerMotion::new();
 
         motion_controller.connect_enter(clone!(@weak self as layout => move |_, x, y| {
@@ -593,26 +587,63 @@ impl TextLayout {
 
         imp.draw_area.add_controller(motion_controller);
 
-        // Add click gesture controller
+        // Add mouse drag gesture controller
+        let drag_controller = gtk::GestureDrag::new();
+
+        drag_controller.connect_drag_begin(clone!(@weak self as layout, @weak imp => move |_, x, y| {
+            if !imp.is_clicked.get() {
+                let (_, index) = layout.index_at_xy(x, y);
+
+                imp.selection_start.set(index);
+                imp.selection_end.set(-1);
+            }
+
+            imp.is_selecting.set(true);
+        }));
+
+        drag_controller.connect_drag_update(clone!(@weak self as layout, @weak imp => move |controller, x, y| {
+            if !imp.is_clicked.get() {
+                if let Some((start_x, start_y)) = controller.start_point() {
+                    let (_, index) = layout.index_at_xy(start_x + x, start_y + y);
+
+                    imp.selection_end.set(index);
+
+                    imp.draw_area.queue_draw();
+                }
+            }
+        }));
+
+        drag_controller.connect_drag_end(clone!(@weak self as layout, @weak imp => move |_, _, _| {
+            if !imp.is_clicked.get() {
+                // Redraw if necessary to hide selection
+                let start = imp.selection_start.get();
+                let end = imp.selection_end.get();
+
+                if end == -1 || start == end {
+                    imp.selection_start.set(-1);
+                    imp.selection_end.set(-1);
+
+                    imp.draw_area.queue_draw();
+                }
+            }
+
+            imp.is_selecting.set(false);
+        }));
+
+        imp.draw_area.add_controller(drag_controller);
+
+        // Add mouse click gesture controller
         let click_gesture = gtk::GestureClick::new();
         click_gesture.set_button(gdk::BUTTON_PRIMARY);
-
-        click_gesture.set_propagation_phase(gtk::PropagationPhase::Capture);
 
         click_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |_, n, x, y| {
             let link = layout.link_at_xy(x, y);
 
             if link.is_none() {
-                if n == 1 {
-                    // Single click: start selection, widget is redrawn on mouse move
-                    let (_, index) = layout.index_at_xy(x, y);
-
-                    imp.selection_start.set(index);
-                    imp.selection_end.set(-1);
-
-                    imp.is_selecting.set(true);
-                } else if n == 2 {
+                if n == 2 {
                     // Double click: select word under cursor and redraw widget
+                    imp.is_clicked.set(true);
+
                     let (_, index) = layout.index_at_xy(x, y);
 
                     let text = layout.text();
@@ -639,6 +670,8 @@ impl TextLayout {
                     imp.draw_area.queue_draw();
                 } else if n == 3 {
                     // Triple click: select all text and redraw widget
+                    imp.is_clicked.set(true);
+
                     imp.selection_start.set(0);
                     imp.selection_end.set(layout.text().len() as i32);
 
@@ -650,19 +683,7 @@ impl TextLayout {
         }));
 
         click_gesture.connect_released(clone!(@weak self as layout, @weak imp => move |_, _, x, y| {
-            // Redraw if necessary to hide selection
-            let start = imp.selection_start.get();
-            let end = imp.selection_end.get();
-
-            if imp.is_selecting.get() && (end == -1 || start == end) {
-                imp.selection_start.set(-1);
-                imp.selection_end.set(-1);
-
-                imp.draw_area.queue_draw();
-            }
-
-            // End selection
-            imp.is_selecting.set(false);
+            imp.is_clicked.set(false);
 
             // Launch link if any
             if let Some(link) = imp.pressed_link.take()
