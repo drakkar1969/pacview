@@ -149,6 +149,8 @@ mod imp {
                         .param_types([String::static_type()])
                         .return_type::<bool>()
                         .build(),
+                    Signal::builder("selection-start")
+                        .build(),
                 ]
             })
         }
@@ -599,6 +601,8 @@ impl TextLayout {
             }
 
             imp.is_selecting.set(true);
+
+            layout.emit_by_name::<()>("selection-start", &[]);
         }));
 
         drag_controller.connect_drag_update(clone!(@weak self as layout, @weak imp => move |controller, x, y| {

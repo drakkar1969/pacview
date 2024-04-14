@@ -161,7 +161,7 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // Value label link handler
+    // PropertyValue link handler
     //-----------------------------------
     fn link_handler(&self, link: &str) -> bool {
         if let Some(url) = Url::parse(link).ok().filter(|url| url.scheme() == "pkg") {
@@ -219,6 +219,32 @@ impl InfoPane {
     }
 
     //-----------------------------------
+    // PropertyValue select handler
+    //-----------------------------------
+    fn select_handler(&self, select_layout: &TextLayout) {
+        let mut child = self.imp().grid.first_child();
+
+        while let Some(widget) = &child {
+            if let Some(value) = widget.downcast_ref::<PropertyValue>() {
+                let layout = value.imp().layout.get();
+
+                if select_layout != &layout {
+                    let imp = layout.imp();
+
+                    if imp.selection_start.get() != -1 || imp.selection_end.get() != -1 {
+                        imp.selection_start.set(-1);
+                        imp.selection_end.set(-1);
+    
+                        imp.draw_area.queue_draw();
+                    }
+                }
+            }
+
+            child = widget.next_sibling();
+        };
+    }
+
+    //-----------------------------------
     // Add property function
     //-----------------------------------
     fn add_property(&self, id: PropID, ptype: PropType) {
@@ -233,9 +259,15 @@ impl InfoPane {
 
         imp.grid.attach(&property_label, 0, enum_value.value(), 1, 1);
 
-        let property_value = PropertyValue::new(ptype, closure_local!(@watch self as infopane => move |_: TextLayout, link: String| -> bool {
-            infopane.link_handler(&link)
-        }));
+        let property_value = PropertyValue::new(
+            ptype,
+            closure_local!(@watch self as infopane => move |_: TextLayout, link: String| -> bool {
+                infopane.link_handler(&link)
+            }),
+            closure_local!(@watch self as infopane => move |layout: TextLayout| {
+                infopane.select_handler(&layout);
+            })
+        );
 
         imp.grid.attach(&property_value, 1, enum_value.value(), 1, 1);
 

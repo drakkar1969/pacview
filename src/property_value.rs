@@ -80,12 +80,15 @@ impl PropertyValue {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(ptype: PropType, link_handler: RustClosure) -> Self {
+    pub fn new(ptype: PropType, link_handler: RustClosure, select_handler: RustClosure) -> Self {
         let widget: Self = glib::Object::builder()
             .property("ptype", ptype)
             .build();
 
-        widget.imp().layout.connect_closure("link-activated", false, link_handler);
+        let imp = widget.imp();
+
+        imp.layout.connect_closure("link-activated", false, link_handler);
+        imp.layout.connect_closure("selection-start", false, select_handler);
 
         widget
     }
