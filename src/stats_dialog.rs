@@ -1,6 +1,7 @@
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+use adw::prelude::AdwDialogExt;
 
 use titlecase::titlecase;
 
@@ -62,13 +63,8 @@ impl StatsDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(repo_names: &[String], pkg_snapshot: &[PkgObject]) -> Self {
-        let dialog: Self = glib::Object::builder()
-            .build();
-
-        dialog.update_ui(repo_names, pkg_snapshot);
-
-        dialog
+    pub fn new() -> Self {
+        glib::Object::builder().build()
     }
 
     //-----------------------------------
@@ -114,5 +110,14 @@ impl StatsDialog {
             &format!("<b>{}</b>", tot_icount),
             &format!("<b>{}</b>", &Utils::size_to_string(tot_isize, 2))
         ));
+    }
+
+    //-----------------------------------
+    // Public show function
+    //-----------------------------------
+    pub fn show(&self, parent: &impl IsA<gtk::Widget>, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
+        self.update_ui(repo_names, pkg_snapshot);
+
+        self.present(parent);
     }
 }

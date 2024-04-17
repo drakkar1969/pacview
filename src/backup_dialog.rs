@@ -2,6 +2,7 @@ use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use adw::prelude::AdwDialogExt;
 
 use titlecase::titlecase;
 
@@ -94,13 +95,8 @@ impl BackupDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(pkg_snapshot: &[PkgObject]) -> Self {
-        let dialog: Self = glib::Object::builder()
-            .build();
-
-        dialog.update_ui(pkg_snapshot);
-
-        dialog
+    pub fn new() -> Self {
+        glib::Object::builder().build()
     }
 
     //-----------------------------------
@@ -241,5 +237,13 @@ impl BackupDialog {
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+    }
+    //-----------------------------------
+    // Public show function
+    //-----------------------------------
+    pub fn show(&self, parent: &impl IsA<gtk::Widget>, pkg_snapshot: &[PkgObject]) {
+        self.update_ui(pkg_snapshot);
+
+        self.present(parent);
     }
 }

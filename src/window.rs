@@ -405,12 +405,13 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
-                let stats_dialog = StatsDialog::new(
+                let stats_dialog = StatsDialog::new();
+
+                stats_dialog.show(
+                    window,
                     &imp.pacman_repos.borrow(),
                     &imp.pkg_snapshot.borrow()
                 );
-
-                stats_dialog.present(window);
             })
             .build();
 
@@ -419,9 +420,9 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
-                let backup_dialog = BackupDialog::new(&imp.pkg_snapshot.borrow());
+                let backup_dialog = BackupDialog::new();
 
-                backup_dialog.present(window);
+                backup_dialog.show(window, &imp.pkg_snapshot.borrow());
             })
             .build();
 
@@ -478,13 +479,14 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(pkg) = imp.info_pane.pkg() {
-                    let details_dialog = DetailsDialog::new(
+                    let details_dialog = DetailsDialog::new();
+
+                    details_dialog.show(
+                        window, 
                         &pkg,
                         &imp.pacman_config.borrow(),
                         &imp.pkg_snapshot.borrow()
                     );
-
-                    details_dialog.present(window);
                 }
             })
             .build();

@@ -4,6 +4,7 @@ use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use adw::prelude::AdwDialogExt;
 
 use regex::Regex;
 use glob::glob;
@@ -139,19 +140,8 @@ impl DetailsDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_snapshot: &[PkgObject]) -> Self {
-        let dialog: Self = glib::Object::builder()
-            .build();
-
-        dialog.update_ui_banner(pkg);
-        dialog.update_ui_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
-
-        dialog.update_ui_files_page(pkg);
-        dialog.update_ui_logs_page(pkg, &pacman_config.log_file);
-        dialog.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_snapshot);
-        dialog.update_ui_backup_page(pkg);
-
-        dialog
+    pub fn new() -> Self {
+        glib::Object::builder().build()
     }
 
     //-----------------------------------
@@ -441,5 +431,20 @@ impl DetailsDialog {
         // Set open/copy button states
         imp.backup_open_button.set_sensitive(n_items > 0);
         imp.backup_copy_button.set_sensitive(n_items > 0);
+    }
+
+    //-----------------------------------
+    // Public show function
+    //-----------------------------------
+    pub fn show(&self, parent: &impl IsA<gtk::Widget>, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_snapshot: &[PkgObject]) {
+        self.update_ui_banner(pkg);
+        self.update_ui_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
+
+        self.update_ui_files_page(pkg);
+        self.update_ui_logs_page(pkg, &pacman_config.log_file);
+        self.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_snapshot);
+        self.update_ui_backup_page(pkg);
+
+        self.present(parent);
     }
 }
