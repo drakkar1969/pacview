@@ -820,10 +820,11 @@ impl PacViewWindow {
                         window.load_packages(false);
                     }
                 }));
-
             } else {
                 self.load_packages(true);
             }
+        } else {
+            self.load_packages(true);
         }
     }
 
