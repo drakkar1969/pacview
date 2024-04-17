@@ -247,3 +247,12 @@ impl BackupDialog {
         self.present(parent);
     }
 }
+
+impl Default for BackupDialog {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}

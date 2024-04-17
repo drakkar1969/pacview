@@ -121,3 +121,12 @@ impl StatsDialog {
         self.present(parent);
     }
 }
+
+impl Default for StatsDialog {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}

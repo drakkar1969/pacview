@@ -448,3 +448,12 @@ impl DetailsDialog {
         self.present(parent);
     }
 }
+
+impl Default for DetailsDialog {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
+    }
+}
