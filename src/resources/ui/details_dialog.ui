@@ -271,34 +271,49 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow">
-                            <property name="hexpand">True</property>
-                            <property name="vexpand">True</property>
-                            <property name="margin-bottom">16</property>
-                            <property name="child">
-                              <object class="GtkListView" id="log_view">
-                                <style>
-                                  <class name="card-list"/>
-                                </style>
-                                <property name="margin-start">16</property>
-                                <property name="margin-end">16</property>
-                                <property name="tab-behavior">item</property>
-                                <property name="model">
-                                  <object class="GtkNoSelection" id="log_selection">
+                          <object class="GtkOverlay">
+                            <child>
+                              <object class="GtkScrolledWindow">
+                                <property name="hexpand">True</property>
+                                <property name="vexpand">True</property>
+                                <property name="margin-bottom">16</property>
+                                <property name="child">
+                                  <object class="GtkListView" id="log_view">
+                                    <style>
+                                      <class name="card-list"/>
+                                    </style>
+                                    <property name="margin-start">16</property>
+                                    <property name="margin-end">16</property>
+                                    <property name="tab-behavior">item</property>
                                     <property name="model">
-                                      <object class="GListStore" id="log_model">
-                                        <property name="item-type">GtkStringObject</property>
+                                      <object class="GtkNoSelection" id="log_selection">
+                                        <property name="model">
+                                          <object class="GListStore" id="log_model">
+                                            <property name="item-type">GtkStringObject</property>
+                                          </object>
+                                        </property>
+                                      </object>
+                                    </property>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory">
+                                        <property name="resource">/com/github/PacView/ui/details_dialog/log_item.ui</property>
                                       </object>
                                     </property>
                                   </object>
                                 </property>
-                                <property name="factory">
-                                  <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details_dialog/log_item.ui</property>
-                                  </object>
-                                </property>
                               </object>
-                            </property>
+                            </child>
+                            <child type="overlay">
+                              <object class="GtkLabel" id="log_overlay_label">
+                                <property name="halign">center</property>
+                                <property name="valign">center</property>
+                                <property name="label">Error retrieving logs</property>
+                                <style>
+                                  <class name="title-4"/>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>
@@ -366,34 +381,49 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkScrolledWindow">
-                            <property name="hexpand">True</property>
-                            <property name="vexpand">True</property>
-                            <property name="margin-bottom">16</property>
-                            <property name="child">
-                              <object class="GtkListView" id="cache_view">
-                                <style>
-                                  <class name="card-list"/>
-                                </style>
-                                <property name="margin-start">16</property>
-                                <property name="margin-end">16</property>
-                                <property name="tab-behavior">item</property>
-                                <property name="model">
-                                  <object class="GtkSingleSelection" id="cache_selection">
+                          <object class="GtkOverlay">
+                            <child>
+                              <object class="GtkScrolledWindow">
+                                <property name="hexpand">True</property>
+                                <property name="vexpand">True</property>
+                                <property name="margin-bottom">16</property>
+                                <property name="child">
+                                  <object class="GtkListView" id="cache_view">
+                                    <style>
+                                      <class name="card-list"/>
+                                    </style>
+                                    <property name="margin-start">16</property>
+                                    <property name="margin-end">16</property>
+                                    <property name="tab-behavior">item</property>
                                     <property name="model">
-                                      <object class="GListStore" id="cache_model">
-                                        <property name="item-type">GtkStringObject</property>
+                                      <object class="GtkSingleSelection" id="cache_selection">
+                                        <property name="model">
+                                          <object class="GListStore" id="cache_model">
+                                            <property name="item-type">GtkStringObject</property>
+                                          </object>
+                                        </property>
+                                      </object>
+                                    </property>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory">
+                                        <property name="resource">/com/github/PacView/ui/details_dialog/cache_item.ui</property>
                                       </object>
                                     </property>
                                   </object>
                                 </property>
-                                <property name="factory">
-                                  <object class="GtkBuilderListItemFactory">
-                                    <property name="resource">/com/github/PacView/ui/details_dialog/cache_item.ui</property>
-                                  </object>
-                                </property>
                               </object>
-                            </property>
+                            </child>
+                            <child type="overlay">
+                              <object class="GtkLabel" id="cache_overlay_label">
+                                <property name="halign">center</property>
+                                <property name="valign">center</property>
+                                <property name="label">Error retrieving cache</property>
+                                <style>
+                                  <class name="title-4"/>
+                                  <class name="dim-label"/>
+                                </style>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>

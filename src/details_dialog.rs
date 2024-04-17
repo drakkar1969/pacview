@@ -62,6 +62,8 @@ mod imp {
         pub log_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub log_selection: TemplateChild<gtk::NoSelection>,
+        #[template_child]
+        pub log_overlay_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub cache_header_label: TemplateChild<gtk::Label>,
@@ -75,6 +77,8 @@ mod imp {
         pub cache_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub cache_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub cache_overlay_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub backup_header_label: TemplateChild<gtk::Label>,
@@ -339,6 +343,8 @@ impl DetailsDialog {
         let imp = self.imp();
 
         // Populate log messages
+        let mut log_error = false;
+
         if let Ok(log) = fs::read_to_string(log_file) {
             let expr = Regex::new(&format!("\\[(.+?)T(.+?)\\+.+?\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).expect("Regex error");
 
@@ -353,12 +359,17 @@ impl DetailsDialog {
                 .collect();
 
             imp.log_model.extend_from_slice(&log_lines);
+        } else {
+            log_error = true;
         }
 
         // Set copy button state
         let n_items = imp.log_model.n_items();
 
         imp.log_copy_button.set_sensitive(n_items > 0);
+
+        // Set overlay label visibility
+        imp.log_overlay_label.set_visible(log_error);
     }
 
     //-----------------------------------
@@ -379,6 +390,8 @@ impl DetailsDialog {
             .collect();
 
         // Populate cache files list
+        let mut cache_error = false;
+
         for dir in cache_dirs {
             if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
                 // Find cache files that include package name
@@ -397,6 +410,8 @@ impl DetailsDialog {
                     .collect();
 
                 imp.cache_model.extend_from_slice(&cache_list);
+            } else {
+                cache_error = true;
             }
         }
 
@@ -408,6 +423,9 @@ impl DetailsDialog {
         // Set open/copy button states
         imp.cache_open_button.set_sensitive(n_items > 0);
         imp.cache_copy_button.set_sensitive(n_items > 0);
+
+        // Set overlay label visibility
+        imp.cache_overlay_label.set_visible(cache_error);
     }
 
     //-----------------------------------
