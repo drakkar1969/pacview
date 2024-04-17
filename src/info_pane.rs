@@ -337,7 +337,7 @@ impl InfoPane {
 
         let local_pkg_names = imp.local_pkg_names.borrow();
 
-        optdepends.into_iter()
+        optdepends.iter()
             .map(|dep| {
                 let mut dep = dep.to_string();
                 
