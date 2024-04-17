@@ -479,12 +479,15 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(pkg) = imp.info_pane.pkg() {
+                    let pacman_config = imp.pacman_config.borrow();
+
                     let details_dialog = DetailsDialog::new();
 
                     details_dialog.show(
                         window, 
                         &pkg,
-                        &imp.pacman_config.borrow(),
+                        &pacman_config.log_file,
+                        &pacman_config.cache_dir,
                         &imp.pkg_snapshot.borrow()
                     );
                 }

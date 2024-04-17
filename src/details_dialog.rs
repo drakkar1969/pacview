@@ -436,13 +436,13 @@ impl DetailsDialog {
     //-----------------------------------
     // Public show function
     //-----------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Widget>, pkg: &PkgObject, pacman_config: &pacmanconf::Config, pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, parent: &impl IsA<gtk::Widget>, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
         self.update_ui_banner(pkg);
         self.update_ui_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
 
         self.update_ui_files_page(pkg);
-        self.update_ui_logs_page(pkg, &pacman_config.log_file);
-        self.update_ui_cache_page(pkg, &pacman_config.cache_dir, pkg_snapshot);
+        self.update_ui_logs_page(pkg, log_file);
+        self.update_ui_cache_page(pkg, cache_dirs, pkg_snapshot);
         self.update_ui_backup_page(pkg);
 
         self.present(parent);
