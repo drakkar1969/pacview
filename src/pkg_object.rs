@@ -133,7 +133,7 @@ impl PkgData {
         }
     }
 
-    pub fn from_aur(aurpkg: raur::ArcPackage) -> Self {
+    pub fn from_aur(aurpkg: &raur::ArcPackage) -> Self {
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,
