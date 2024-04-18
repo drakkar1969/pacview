@@ -17,6 +17,7 @@
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage" id="image">
+            <property name="height-request">16</property>
           </object>
         </child>
         <child>
