@@ -33,13 +33,9 @@ fn color_from_css(css: &str) -> gdk::RGBA {
 // GLOBAL: Color Variables
 //------------------------------------------------------------------------------
 thread_local! {
-    static LINK_RGBA: Cell<gdk::RGBA> = Cell::new({
-        color_from_css("@accent_color")
-    });
+    static LINK_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("@accent_color"));
 
-    static COMMENT_RGBA: Cell<gdk::RGBA> = Cell::new({
-        color_from_css("alpha(@view_fg_color, 0.55)")
-    });
+    static COMMENT_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@view_fg_color, 0.55)"));
 
     static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
         let style_manager = adw::StyleManager::default();
