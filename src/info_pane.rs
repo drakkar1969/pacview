@@ -166,15 +166,15 @@ impl InfoPane {
     fn link_handler(&self, link: &str) -> bool {
         if let Some(url) = Url::parse(link).ok().filter(|url| url.scheme() == "pkg") {
             if let Some(pkg_name) = url.domain() {
-                let pkg_map = self.imp().pkg_snapshot.borrow();
+                let pkg_snapshot = self.imp().pkg_snapshot.borrow();
 
                 // Find link package by name
-                let mut new_pkg = pkg_map.iter()
+                let mut new_pkg = pkg_snapshot.iter()
                     .find(|pkg| pkg.name() == pkg_name);
 
                 // If link package is none, find by provides
                 if new_pkg.is_none() {
-                    new_pkg = pkg_map.iter()
+                    new_pkg = pkg_snapshot.iter()
                         .find(|pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)));
                 }
 
