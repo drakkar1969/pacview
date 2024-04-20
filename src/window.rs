@@ -39,8 +39,8 @@ use crate::details_dialog::DetailsDialog;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = RefCell::new(vec![]);
-    pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = RefCell::new(vec![]);
+    pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
 
