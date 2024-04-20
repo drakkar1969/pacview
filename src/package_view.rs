@@ -11,6 +11,7 @@ use glib::clone;
 use raur::Raur;
 use raur::ArcPackage;
 
+use crate::window::INSTALLED_PKG_NAMES;
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::utils::Utils;
@@ -55,7 +56,6 @@ mod imp {
         #[template_child]
         pub popover_menu: TemplateChild<gtk::PopoverMenu>,
 
-        pub local_pkg_names: RefCell<HashSet<String>>,
         pub aur_cache: RefCell<HashSet<ArcPackage>>
     }
 
@@ -305,79 +305,78 @@ impl PackageView {
 
         search_header.set_spinning(true);
 
-        // Get list of local package names
-        let local_pkg_names = imp.local_pkg_names.borrow();
+        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+            // Get AUR cache (need to clone for mutable reference)
+            let mut aur_cache = imp.aur_cache.borrow_mut().clone();
 
-        // Get AUR cache (need to clone for mutable reference)
-        let mut aur_cache = imp.aur_cache.borrow_mut().clone();
+            // Clear AUR search results
+            imp.aur_model.remove_all();
 
-        // Clear AUR search results
-        imp.aur_model.remove_all();
+            glib::spawn_future_local(clone!(@weak imp, @strong installed_pkg_names => async move {
+                // Spawn thread to search AUR
+                let result = Utils::tokio_runtime().spawn(async move {
+                    let handle = raur::Handle::new();
 
-        glib::spawn_future_local(clone!(@weak imp, @strong local_pkg_names => async move {
-            // Spawn thread to search AUR
-            let result = Utils::tokio_runtime().spawn(async move {
-                let handle = raur::Handle::new();
+                    // Set search mode
+                    let search_by = match prop {
+                        SearchProp::Name => { raur::SearchBy::Name },
+                        SearchProp::NameDesc => { raur::SearchBy::NameDesc },
+                        SearchProp::Group => { raur::SearchBy::Groups },
+                        SearchProp::Deps => { raur::SearchBy::Depends },
+                        SearchProp::Optdeps => { raur::SearchBy::OptDepends },
+                        SearchProp::Provides => { raur::SearchBy::Provides },
+                        SearchProp::Files => unreachable!(),
+                    };
 
-                // Set search mode
-                let search_by = match prop {
-                    SearchProp::Name => { raur::SearchBy::Name },
-                    SearchProp::NameDesc => { raur::SearchBy::NameDesc },
-                    SearchProp::Group => { raur::SearchBy::Groups },
-                    SearchProp::Deps => { raur::SearchBy::Depends },
-                    SearchProp::Optdeps => { raur::SearchBy::OptDepends },
-                    SearchProp::Provides => { raur::SearchBy::Provides },
-                    SearchProp::Files => unreachable!(),
-                };
+                    // Search for AUR packages
+                    let mut aur_names: HashSet<String> = HashSet::new();
 
-                // Search for AUR packages
-                let mut aur_names: HashSet<String> = HashSet::new();
+                    for t in term.split_whitespace() {
+                        let aur_search = handle.search_by(t, search_by).await?;
 
-                for t in term.split_whitespace() {
-                    let aur_search = handle.search_by(t, search_by).await?;
-
-                    aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
-                }
-
-                // Get AUR package info using cache
-                let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>()).await?;
-
-                let data_list: Vec<PkgData> = aur_list.into_iter()
-                    .filter(|aurpkg| !local_pkg_names.contains(&aurpkg.name))
-                    .map(|aurpkg| {
-                        PkgData::from_aur(&aurpkg)
-                    })
-                    .collect();
-
-                Ok::<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error>((aur_cache, data_list))
-            })
-            .await
-            .expect("Could not complete async task");
-
-            // Process thread result
-            match result {
-                Ok((aur_cache, data_list)) => {
-                    if search_header.enabled() {
-                        let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                            .map(|data| PkgObject::new(None, data))
-                            .collect();
-
-                        imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
+                        aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
                     }
 
-                    imp.aur_cache.replace(aur_cache);
+                    // Get AUR package info using cache
+                    let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>()).await?;
 
-                    search_header.set_aur_error(false);
-                    search_header.set_tooltip_text(None);
-                },
-                Err(error) => {
-                    search_header.set_aur_error(true);
-                    search_header.set_tooltip_text(Some(&format!("AUR Search Error ({})", error)));
+                    let data_list: Vec<PkgData> = aur_list.into_iter()
+                        .filter(|aurpkg| !installed_pkg_names.contains(&aurpkg.name))
+                        .map(|aurpkg| {
+                            PkgData::from_aur(&aurpkg)
+                        })
+                        .collect();
+
+                    Ok::<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error>((aur_cache, data_list))
+                })
+                .await
+                .expect("Could not complete async task");
+
+                // Process thread result
+                match result {
+                    Ok((aur_cache, data_list)) => {
+                        if search_header.enabled() {
+                            let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                                .map(|data| PkgObject::new(None, data))
+                                .collect();
+
+                            imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
+                        }
+
+                        imp.aur_cache.replace(aur_cache);
+
+                        search_header.set_aur_error(false);
+                        search_header.set_tooltip_text(None);
+                    },
+                    Err(error) => {
+                        search_header.set_aur_error(true);
+                        search_header.set_tooltip_text(Some(&format!("AUR Search Error ({})", error)));
+                    }
                 }
-            }
 
-            search_header.set_spinning(false);
-        }));
+                search_header.set_spinning(false);
+            }));
+        });
     }
 
     //-----------------------------------

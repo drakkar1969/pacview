@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -8,6 +8,7 @@ use glib::closure_local;
 
 use url::Url;
 
+use crate::window::{PKG_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::text_layout::{TextLayout, PropType};
 use crate::property_label::PropertyLabel;
 use crate::property_value::PropertyValue;
@@ -100,9 +101,6 @@ mod imp {
         #[template_child]
         pub overlay_next_button: TemplateChild<gtk::Button>,
 
-        pub pkg_snapshot: RefCell<Vec<PkgObject>>,
-        pub local_pkg_names: RefCell<HashSet<String>>,
-
         pub property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
 
         pub history_selection: RefCell<gtk::SingleSelection>,
@@ -166,48 +164,48 @@ impl InfoPane {
     fn link_handler(&self, link: &str) -> bool {
         if let Some(url) = Url::parse(link).ok().filter(|url| url.scheme() == "pkg") {
             if let Some(pkg_name) = url.domain() {
-                let pkg_snapshot = self.imp().pkg_snapshot.borrow();
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    // Find link package by name
+                    let mut new_pkg = pkg_snapshot.iter()
+                        .find(|&pkg| pkg.name() == pkg_name);
 
-                // Find link package by name
-                let mut new_pkg = pkg_snapshot.iter()
-                    .find(|pkg| pkg.name() == pkg_name);
-
-                // If link package is none, find by provides
-                if new_pkg.is_none() {
-                    new_pkg = pkg_snapshot.iter()
-                        .find(|pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)));
-                }
-
-                // If link package found
-                if let Some(new_pkg) = new_pkg {
-                    let hist_sel = self.imp().history_selection.borrow();
-
-                    let hist_model = hist_sel.model()
-                        .and_downcast::<gio::ListStore>()
-                        .expect("Could not downcast to 'ListStore'");
-
-                    // If link package is in infopane history, select it
-                    if let Some(i) = hist_model.find(new_pkg) {
-                        hist_sel.set_selected(i);
-                    } else {
-                        // If link package is not in history, get current history package
-                        let hist_index = hist_sel.selected();
-
-                        // If history package is not the last one in history, truncate history list
-                        if hist_index < hist_model.n_items() - 1 {
-                            hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
-                        }
-
-                        // Add link package to history
-                        hist_model.append(new_pkg);
-
-                        // Update history selection to link package
-                        hist_sel.set_selected(hist_index + 1);
+                    // If link package is none, find by provides
+                    if new_pkg.is_none() {
+                        new_pkg = pkg_snapshot.iter()
+                            .find(|&pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)));
                     }
 
-                    // Display link package
-                    self.update_display();
-                }
+                    // If link package found
+                    if let Some(new_pkg) = new_pkg {
+                        let hist_sel = self.imp().history_selection.borrow();
+
+                        let hist_model = hist_sel.model()
+                            .and_downcast::<gio::ListStore>()
+                            .expect("Could not downcast to 'ListStore'");
+
+                        // If link package is in infopane history, select it
+                        if let Some(i) = hist_model.find(new_pkg) {
+                            hist_sel.set_selected(i);
+                        } else {
+                            // If link package is not in history, get current history package
+                            let hist_index = hist_sel.selected();
+
+                            // If history package is not the last one in history, truncate history list
+                            if hist_index < hist_model.n_items() - 1 {
+                                hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
+                            }
+
+                            // Add link package to history
+                            hist_model.append(new_pkg);
+
+                            // Update history selection to link package
+                            hist_sel.set_selected(hist_index + 1);
+                        }
+
+                        // Display link package
+                        self.update_display();
+                    }
+                });
             }
 
             // Link handled
@@ -333,20 +331,18 @@ impl InfoPane {
     // Get installed optdeps function
     //-----------------------------------
     fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
-        let imp = self.imp();
-
-        let local_pkg_names = imp.local_pkg_names.borrow();
-
         optdepends.iter()
             .map(|dep| {
                 let mut dep = dep.to_string();
                 
-                if dep.split_once(['<', '>', '=', ':'])
-                    .filter(|&(name, _)| local_pkg_names.contains(name))
-                    .is_some()
-                {
-                    dep.push_str(" [INSTALLED]");
-                }
+                INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+                    if dep.split_once(['<', '>', '=', ':'])
+                        .filter(|&(name, _)| installed_pkg_names.contains(name))
+                        .is_some()
+                    {
+                        dep.push_str(" [INSTALLED]");
+                    }
+                });
 
                 dep
             })

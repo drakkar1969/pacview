@@ -36,6 +36,14 @@ use crate::preferences_dialog::PreferencesDialog;
 use crate::details_dialog::DetailsDialog;
 
 //------------------------------------------------------------------------------
+// GLOBAL VARIABLES
+//------------------------------------------------------------------------------
+thread_local! {
+    pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = RefCell::new(vec![]);
+    pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+}
+
+//------------------------------------------------------------------------------
 // MODULE: PacViewWindow
 //------------------------------------------------------------------------------
 mod imp {
@@ -95,8 +103,6 @@ mod imp {
         pub all_repo_row: RefCell<FilterRow>,
         pub all_status_row: RefCell<FilterRow>,
         pub update_row: RefCell<FilterRow>,
-
-        pub pkg_snapshot: RefCell<Vec<PkgObject>>,
 
         pub notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
     }
@@ -407,22 +413,24 @@ impl PacViewWindow {
 
                 let stats_dialog = StatsDialog::new();
 
-                stats_dialog.show(
-                    window,
-                    &imp.pacman_repos.borrow(),
-                    &imp.pkg_snapshot.borrow()
-                );
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    stats_dialog.show(
+                        window,
+                        &imp.pacman_repos.borrow(),
+                        pkg_snapshot
+                    );
+                });
             })
             .build();
 
         // Add package view show backup files action
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
                 let backup_dialog = BackupDialog::new();
 
-                backup_dialog.show(window, &imp.pkg_snapshot.borrow());
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    backup_dialog.show(window, pkg_snapshot);
+                });
             })
             .build();
 
@@ -483,13 +491,15 @@ impl PacViewWindow {
 
                     let details_dialog = DetailsDialog::new();
 
-                    details_dialog.show(
-                        window, 
-                        &pkg,
-                        &pacman_config.log_file,
-                        &pacman_config.cache_dir,
-                        &imp.pkg_snapshot.borrow()
-                    );
+                    PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                        details_dialog.show(
+                            window, 
+                            &pkg,
+                            &pacman_config.log_file,
+                            &pacman_config.cache_dir,
+                            pkg_snapshot
+                        );
+                    });
                 }
             })
             .build();
@@ -900,17 +910,13 @@ impl PacViewWindow {
 
                     imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
 
-                    let local_pkg_names: HashSet<String> = pkg_list.iter()
+                    let installed_pkg_names: HashSet<String> = pkg_list.iter()
                         .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                         .map(|pkg| pkg.name())
                         .collect();
 
-                    imp.package_view.imp().local_pkg_names.replace(local_pkg_names.clone());
-                    imp.info_pane.imp().local_pkg_names.replace(local_pkg_names);
-
-                    imp.info_pane.imp().pkg_snapshot.replace(pkg_list.clone());
-
-                    imp.pkg_snapshot.replace(pkg_list);
+                    PKG_SNAPSHOT.replace(pkg_list);
+                    INSTALLED_PKG_NAMES.replace(installed_pkg_names);
 
                     imp.package_view.imp().stack.set_visible_child_name("view");
 
