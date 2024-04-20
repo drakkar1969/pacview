@@ -512,7 +512,7 @@ impl TextLayout {
     //-----------------------------------
     // Controller helper functions
     //-----------------------------------
-    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
+    fn _inside_index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
         let layout = self.imp().pango_layout.get().unwrap();
 
         let (inside, mut index, trailing) = layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE);
@@ -524,7 +524,15 @@ impl TextLayout {
         (inside, index)
     }
 
-    fn link_at_index(&self, inside: bool, index: i32) -> Option<String> {
+    fn index_at_xy(&self, x: f64, y: f64) -> i32 {
+        let (_, index) = self._inside_index_at_xy(x, y);
+
+        index
+    }
+
+    fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
+        let (inside, index) = self._inside_index_at_xy(x, y);
+
         if inside {
             return self.imp().link_list.borrow().iter()
                 .find(|link| link.start <= index as usize && link.end > index as usize)
@@ -532,12 +540,6 @@ impl TextLayout {
         }
 
         None
-    }
-
-    fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
-        let (inside, index) = self.index_at_xy(x, y);
-
-        self.link_at_index(inside, index)
     }
 
     fn set_motion_cursor(&self, x: f64, y: f64) {
@@ -584,7 +586,7 @@ impl TextLayout {
 
         drag_controller.connect_drag_begin(clone!(@weak self as layout, @weak imp => move |_, x, y| {
             if !imp.is_clicked.get() {
-                let (_, index) = layout.index_at_xy(x, y);
+                let index = layout.index_at_xy(x, y);
 
                 imp.selection_start.set(index);
                 imp.selection_end.set(-1);
@@ -598,7 +600,7 @@ impl TextLayout {
         drag_controller.connect_drag_update(clone!(@weak self as layout, @weak imp => move |controller, x, y| {
             if !imp.is_clicked.get() {
                 if let Some((start_x, start_y)) = controller.start_point() {
-                    let (_, index) = layout.index_at_xy(start_x + x, start_y + y);
+                    let index = layout.index_at_xy(start_x + x, start_y + y);
 
                     imp.selection_end.set(index);
 
@@ -638,7 +640,7 @@ impl TextLayout {
                     // Double click: select word under cursor and redraw widget
                     imp.is_clicked.set(true);
 
-                    let (_, index) = layout.index_at_xy(x, y);
+                    let index = layout.index_at_xy(x, y);
 
                     let text = layout.text();
 
