@@ -251,69 +251,63 @@ mod imp {
         fn format_links(&self, attr_list: &pango::AttrList) {
             let link_list = &*self.link_list.borrow();
 
-            LINK_RGBA.with(|link_rgba| {
-                let (red, green, blue) = self.rgba_to_pango_rgb(link_rgba.get());
+            let (red, green, blue) = self.rgba_to_pango_rgb(LINK_RGBA.get());
 
-                for link in link_list {
-                    let start = link.start as u32;
-                    let end = link.end as u32;
+            for link in link_list {
+                let start = link.start as u32;
+                let end = link.end as u32;
 
-                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                    attr.set_start_index(start);
-                    attr.set_end_index(end);
+                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
 
-                    attr_list.insert(attr);
+                attr_list.insert(attr);
 
-                    let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                    attr.set_start_index(start);
-                    attr.set_end_index(end);
+                let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
 
-                    attr_list.insert(attr);
-                }
-            });
+                attr_list.insert(attr);
+            }
         }
 
         fn format_comments(&self, attr_list: &pango::AttrList) {
             let comment_list = &*self.comment_list.borrow();
 
-            COMMENT_RGBA.with(|comment_rgba| {
-                let (red, green, blue) = self.rgba_to_pango_rgb(comment_rgba.get());
+            let (red, green, blue) = self.rgba_to_pango_rgb(COMMENT_RGBA.get());
 
-                for comment in comment_list {
-                    let start = comment.start as u32;
-                    let end = comment.end as u32;
+            for comment in comment_list {
+                let start = comment.start as u32;
+                let end = comment.end as u32;
 
-                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                    attr.set_start_index(start);
-                    attr.set_end_index(end);
-
-                    attr_list.insert(attr);
-
-                    let mut attr = pango::AttrInt::new_weight(pango::Weight::Bold);
-                    attr.set_start_index(start);
-                    attr.set_end_index(end);
-
-                    attr_list.insert(attr);
-
-                    let mut attr = pango::AttrFloat::new_scale(0.9);
-                    attr.set_start_index(start);
-                    attr.set_end_index(end);
-
-                    attr_list.insert(attr);
-                }
-            });
-        }
-
-        pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            SELECTED_RGBA.with(|selected_rgba| {
-                let (red, green, blue) = self.rgba_to_pango_rgb(selected_rgba.get());
-
-                let mut attr = pango::AttrColor::new_background(red, green, blue);
+                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
                 attr.set_start_index(start);
                 attr.set_end_index(end);
 
                 attr_list.insert(attr);
-            });
+
+                let mut attr = pango::AttrInt::new_weight(pango::Weight::Bold);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
+
+                attr_list.insert(attr);
+
+                let mut attr = pango::AttrFloat::new_scale(0.9);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
+
+                attr_list.insert(attr);
+            }
+        }
+
+        pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
+            let (red, green, blue) = self.rgba_to_pango_rgb(SELECTED_RGBA.get());
+
+            let mut attr = pango::AttrColor::new_background(red, green, blue);
+            attr.set_start_index(start);
+            attr.set_end_index(end);
+
+            attr_list.insert(attr);
         }
 
         pub fn do_format(&self) {
@@ -745,21 +739,15 @@ impl TextLayout {
             }
 
             // Update link color
-            LINK_RGBA.with(|link_rgba| {
-                link_rgba.set(color_from_css("@accent_color"));
-            });
+            LINK_RGBA.set(color_from_css("@accent_color"));
 
             // Update comment color
-            COMMENT_RGBA.with(|comment_rgba| {
-                comment_rgba.set(color_from_css("alpha(@view_fg_color, 0.55)"));
-            });
+            COMMENT_RGBA.set(color_from_css("alpha(@view_fg_color, 0.55)"));
 
             // Update selected background color
-            SELECTED_RGBA.with(|selected_rgba| {
-                let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
+            let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
 
-                selected_rgba.set(color_from_css(&format!("alpha(@accent_bg_color, {alpha})")));
-            });
+            SELECTED_RGBA.set(color_from_css(&format!("alpha(@accent_bg_color, {alpha})")));
 
             // Format pango layout text
             imp.do_format();
