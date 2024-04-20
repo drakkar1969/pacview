@@ -11,7 +11,7 @@ use glib::clone;
 use raur::Raur;
 use raur::ArcPackage;
 
-use crate::window::INSTALLED_PKG_NAMES;
+use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::utils::Utils;
@@ -312,6 +312,8 @@ impl PackageView {
             // Clear AUR search results
             imp.aur_model.remove_all();
 
+            AUR_SNAPSHOT.replace(vec![]);
+
             glib::spawn_future_local(clone!(@weak imp, @strong installed_pkg_names => async move {
                 // Spawn thread to search AUR
                 let result = Utils::tokio_runtime().spawn(async move {
@@ -361,6 +363,8 @@ impl PackageView {
                                 .collect();
 
                             imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
+
+                            AUR_SNAPSHOT.replace(pkg_list);
                         }
 
                         imp.aur_cache.replace(aur_cache);

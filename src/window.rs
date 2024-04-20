@@ -40,6 +40,7 @@ use crate::details_dialog::DetailsDialog;
 //------------------------------------------------------------------------------
 thread_local! {
     pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = RefCell::new(vec![]);
+    pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = RefCell::new(vec![]);
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
 
