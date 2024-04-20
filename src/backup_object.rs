@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{OnceCell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -19,11 +19,16 @@ mod imp {
         #[property(get, set)]
         filename: RefCell<String>,
         #[property(get, set)]
-        status_icon: RefCell<String>,
-        #[property(get, set)]
-        status_text: RefCell<String>,
+        hash: RefCell<String>,
         #[property(get, set, nullable)]
         package: RefCell<Option<String>>,
+
+        #[property(get = Self::status_icon)]
+        _status_icon: RefCell<String>,
+        #[property(get = Self::status_text)]
+        _status_text: RefCell<String>,
+
+        file_hash: OnceCell<Result<String, alpm::ChecksumError>>,
     }
 
     //-----------------------------------
@@ -37,6 +42,41 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for BackupObject {}
+
+    impl BackupObject {
+        //-----------------------------------
+        // Custom property getters
+        //-----------------------------------
+        fn file_hash(&self) -> &Result<String, alpm::ChecksumError> {
+            self.file_hash.get_or_init(|| alpm::compute_md5sum(self.filename.borrow().as_str()))
+        }
+
+        fn status_icon(&self) -> String {
+            if let Ok(file_hash) = self.file_hash() {
+                if file_hash == &*self.hash.borrow() {
+                    "backup-unmodified-symbolic"
+                } else {
+                    "backup-modified-symbolic"
+                }
+            } else {
+                "backup-error-symbolic"
+            }
+            .to_string()
+        }
+        
+        fn status_text(&self) -> String {
+            if let Ok(file_hash) = self.file_hash() {
+                if file_hash == &*self.hash.borrow() {
+                    "unmodified"
+                } else {
+                    "modified"
+                }
+            } else {
+                "read error"
+            }
+            .to_string()
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -51,21 +91,10 @@ impl BackupObject {
     // New function
     //-----------------------------------
     pub fn new(filename: &str, hash: &str, package: Option<&str>) -> Self {
-        let (status_icon, status_text) = if let Ok(file_hash) = alpm::compute_md5sum(filename) {
-            if file_hash == hash {
-                ("backup-unmodified-symbolic", "unmodified")
-            } else {
-                ("backup-modified-symbolic", "modified")
-            }
-        } else {
-            ("backup-error-symbolic", "read error")
-        };
-
         // Build BackupObject
         glib::Object::builder()
             .property("filename", filename)
-            .property("status-icon", status_icon)
-            .property("status-text", status_text)
+            .property("hash", hash)
             .property("package", package)
             .build()
     }
