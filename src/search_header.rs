@@ -23,17 +23,6 @@ pub enum SearchMode {
     Exact = 2,
 }
 
-impl SearchMode {
-    pub fn modes() -> Vec<String> {
-        let mode_enum = glib::EnumClass::new::<Self>();
-
-        mode_enum.values()
-            .iter()
-            .map(|v| v.nick().to_string())
-            .collect()
-    }
-}
-
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
@@ -49,17 +38,6 @@ pub enum SearchProp {
     Optdeps = 4,
     Provides = 5,
     Files = 6,
-}
-
-impl SearchProp {
-    pub fn props() -> Vec<String> {
-        let prop_enum = glib::EnumClass::new::<Self>();
-
-        prop_enum.values()
-            .iter()
-            .map(|v| v.nick().to_string())
-            .collect()
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -378,14 +356,16 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let modes = SearchMode::modes();
+                let enum_class = glib::EnumClass::new::<SearchMode>();
+                let values = enum_class.values();
 
-                let new_state = modes.iter().position(|s| s == &state)
+                let new_state = values.iter()
+                    .position(|v| v.nick() == &state)
                     .and_then(|i| i.checked_add(1))
-                    .and_then(|i| modes.get(i))
-                    .unwrap_or(&modes[0]);
+                    .and_then(|i| values.get(i))
+                    .unwrap_or(values.first().unwrap());
 
-                group.activate_action("set-mode", Some(&new_state.to_variant()));
+                group.activate_action("set-mode", Some(&new_state.nick().to_variant()));
             })
             .build();
 
@@ -397,14 +377,16 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let modes = SearchMode::modes();
+                let enum_class = glib::EnumClass::new::<SearchMode>();
+                let values = enum_class.values();
 
-                let new_state = modes.iter().position(|s| s == &state)
+                let new_state = values.iter()
+                    .position(|v| v.nick() == &state)
                     .and_then(|i| i.checked_sub(1))
-                    .and_then(|i| modes.get(i))
-                    .unwrap_or(modes.last().unwrap());
+                    .and_then(|i| values.get(i))
+                    .unwrap_or(values.last().unwrap());
 
-                group.activate_action("set-mode", Some(&new_state.to_variant()));
+                group.activate_action("set-mode", Some(&new_state.nick().to_variant()));
                 })
             .build();
 
@@ -416,14 +398,16 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let props = SearchProp::props();
+                let enum_class = glib::EnumClass::new::<SearchProp>();
+                let values = enum_class.values();
 
-                let new_state = props.iter().position(|s| s == &state)
+                let new_state = values.iter()
+                    .position(|v| v.nick() == &state)
                     .and_then(|i| i.checked_add(1))
-                    .and_then(|i| props.get(i))
-                    .unwrap_or(&props[0]);
+                    .and_then(|i| values.get(i))
+                    .unwrap_or(values.first().unwrap());
 
-                group.activate_action("set-prop", Some(&new_state.to_variant()));
+                group.activate_action("set-prop", Some(&new_state.nick().to_variant()));
             })
             .build();
 
@@ -435,14 +419,16 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let props = SearchProp::props();
+                let enum_class = glib::EnumClass::new::<SearchProp>();
+                let values = enum_class.values();
 
-                let new_state = props.iter().position(|s| s == &state)
+                let new_state = values.iter()
+                    .position(|v| v.nick() == &state)
                     .and_then(|i| i.checked_sub(1))
-                    .and_then(|i| props.get(i))
-                    .unwrap_or(props.last().unwrap());
+                    .and_then(|i| values.get(i))
+                    .unwrap_or(values.last().unwrap());
 
-                group.activate_action("set-prop", Some(&new_state.to_variant()));
+                group.activate_action("set-prop", Some(&new_state.nick().to_variant()));
             })
             .build();
 
