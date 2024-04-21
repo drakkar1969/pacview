@@ -77,7 +77,7 @@ impl Marker {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: TextLayout
+// MODULE: TextWidget
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -86,9 +86,9 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::TextLayout)]
-    #[template(resource = "/com/github/PacView/ui/text_layout.ui")]
-    pub struct TextLayout {
+    #[properties(wrapper_type = super::TextWidget)]
+    #[template(resource = "/com/github/PacView/ui/text_widget.ui")]
+    pub struct TextWidget {
         #[template_child]
         pub draw_area: TemplateChild<gtk::DrawingArea>,
         #[template_child]
@@ -117,14 +117,14 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for TextLayout {
-        const NAME: &'static str = "TextLayout";
-        type Type = super::TextLayout;
+    impl ObjectSubclass for TextWidget {
+        const NAME: &'static str = "TextWidget";
+        type Type = super::TextWidget;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.set_css_name("text-layout");
+            klass.set_css_name("text-widget");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -133,7 +133,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for TextLayout {
+    impl ObjectImpl for TextWidget {
         //-----------------------------------
         // Custom signals
         //-----------------------------------
@@ -173,7 +173,7 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for TextLayout {
+    impl WidgetImpl for TextWidget {
         fn request_mode(&self) -> gtk::SizeRequestMode {
             gtk::SizeRequestMode::HeightForWidth
         }
@@ -205,7 +205,7 @@ mod imp {
         }
     }
 
-    impl TextLayout {
+    impl TextWidget {
         //-----------------------------------
         // Layout format helper functions
         //-----------------------------------
@@ -421,15 +421,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: TextLayout
+// IMPLEMENTATION: TextWidget
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct TextLayout(ObjectSubclass<imp::TextLayout>)
+    pub struct TextWidget(ObjectSubclass<imp::TextWidget>)
         @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl TextLayout {
+impl TextWidget {
     //-----------------------------------
     // New function
     //-----------------------------------
@@ -481,9 +481,9 @@ impl TextLayout {
 
         // Add select all action
         let select_action = gio::ActionEntry::builder("select-all")
-            .activate(clone!(@weak self as layout, @weak imp => move |_, _, _| {
+            .activate(clone!(@weak self as widget, @weak imp => move |_, _, _| {
                 imp.selection_start.set(0);
-                imp.selection_end.set(layout.text().len() as i32);
+                imp.selection_end.set(widget.text().len() as i32);
 
                 imp.draw_area.queue_draw();
             }))
@@ -491,12 +491,12 @@ impl TextLayout {
 
         // Add copy action
         let copy_action = gio::ActionEntry::builder("copy")
-            .activate(clone!(@weak self as layout, @weak imp => move |_, _, _| {
+            .activate(clone!(@weak self as widget, @weak imp => move |_, _, _| {
                 let start = imp.selection_start.get() as usize;
                 let end = imp.selection_end.get() as usize;
 
-                if let Some(text) = layout.text().get(start.min(end)..start.max(end)) {
-                    layout.clipboard().set_text(text);
+                if let Some(text) = widget.text().get(start.min(end)..start.max(end)) {
+                    widget.clipboard().set_text(text);
                 }
             }))
             .build();
@@ -571,12 +571,12 @@ impl TextLayout {
         // Add mouse motion controller
         let motion_controller = gtk::EventControllerMotion::new();
 
-        motion_controller.connect_enter(clone!(@weak self as layout => move |_, x, y| {
-            layout.set_motion_cursor(x, y);
+        motion_controller.connect_enter(clone!(@weak self as widget => move |_, x, y| {
+            widget.set_motion_cursor(x, y);
         }));
 
-        motion_controller.connect_motion(clone!(@weak self as layout => move |_, x, y| {
-            layout.set_motion_cursor(x, y);
+        motion_controller.connect_motion(clone!(@weak self as widget => move |_, x, y| {
+            widget.set_motion_cursor(x, y);
         }));
 
         imp.draw_area.add_controller(motion_controller);
@@ -584,9 +584,9 @@ impl TextLayout {
         // Add mouse drag gesture controller
         let drag_controller = gtk::GestureDrag::new();
 
-        drag_controller.connect_drag_begin(clone!(@weak self as layout, @weak imp => move |_, x, y| {
+        drag_controller.connect_drag_begin(clone!(@weak self as widget, @weak imp => move |_, x, y| {
             if !imp.is_clicked.get() {
-                let index = layout.index_at_xy(x, y);
+                let index = widget.index_at_xy(x, y);
 
                 imp.selection_start.set(index);
                 imp.selection_end.set(-1);
@@ -594,13 +594,13 @@ impl TextLayout {
 
             imp.is_selecting.set(true);
 
-            layout.emit_by_name::<()>("selection-start", &[]);
+            widget.emit_by_name::<()>("selection-start", &[]);
         }));
 
-        drag_controller.connect_drag_update(clone!(@weak self as layout, @weak imp => move |controller, x, y| {
+        drag_controller.connect_drag_update(clone!(@weak self as widget, @weak imp => move |controller, x, y| {
             if !imp.is_clicked.get() {
                 if let Some((start_x, start_y)) = controller.start_point() {
-                    let index = layout.index_at_xy(start_x + x, start_y + y);
+                    let index = widget.index_at_xy(start_x + x, start_y + y);
 
                     imp.selection_end.set(index);
 
@@ -609,7 +609,7 @@ impl TextLayout {
             }
         }));
 
-        drag_controller.connect_drag_end(clone!(@weak self as layout, @weak imp => move |_, _, _| {
+        drag_controller.connect_drag_end(clone!(@weak imp => move |_, _, _| {
             if !imp.is_clicked.get() {
                 // Redraw if necessary to hide selection
                 let start = imp.selection_start.get();
@@ -632,17 +632,17 @@ impl TextLayout {
         let click_gesture = gtk::GestureClick::new();
         click_gesture.set_button(gdk::BUTTON_PRIMARY);
 
-        click_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |_, n, x, y| {
-            let link = layout.link_at_xy(x, y);
+        click_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |_, n, x, y| {
+            let link = widget.link_at_xy(x, y);
 
             if link.is_none() {
                 if n == 2 {
                     // Double click: select word under cursor and redraw widget
                     imp.is_clicked.set(true);
 
-                    let index = layout.index_at_xy(x, y);
+                    let index = widget.index_at_xy(x, y);
 
-                    let text = layout.text();
+                    let text = widget.text();
 
                     let start = text.get(..index as usize)
                         .and_then(|s| {
@@ -669,7 +669,7 @@ impl TextLayout {
                     imp.is_clicked.set(true);
 
                     imp.selection_start.set(0);
-                    imp.selection_end.set(layout.text().len() as i32);
+                    imp.selection_end.set(widget.text().len() as i32);
 
                     imp.draw_area.queue_draw();
                 }
@@ -678,14 +678,14 @@ impl TextLayout {
             imp.pressed_link.replace(link);
         }));
 
-        click_gesture.connect_released(clone!(@weak self as layout, @weak imp => move |_, _, x, y| {
+        click_gesture.connect_released(clone!(@weak self as widget, @weak imp => move |_, _, x, y| {
             imp.is_clicked.set(false);
 
             // Launch link if any
             if let Some(link) = imp.pressed_link.take()
-                .and_then(|pressed| layout.link_at_xy(x, y).filter(|link| link == &pressed))
+                .and_then(|pressed| widget.link_at_xy(x, y).filter(|link| link == &pressed))
             {
-                if !layout.emit_by_name::<bool>("link-activated", &[&link]) {
+                if !widget.emit_by_name::<bool>("link-activated", &[&link]) {
                     if let Ok(url) = Url::parse(&link) {
                         if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
                             let _ = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
@@ -701,12 +701,12 @@ impl TextLayout {
         let popup_gesture = gtk::GestureClick::new();
         popup_gesture.set_button(gdk::BUTTON_SECONDARY);
 
-        popup_gesture.connect_pressed(clone!(@weak self as layout, @weak imp => move |_, _, x, y| {
+        popup_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |_, _, x, y| {
             // Enable/disable copy action
             let start = imp.selection_start.get();
             let end = imp.selection_end.get();
 
-            layout.action_set_enabled("text.copy", start != -1 && end != -1 && start != end);
+            widget.action_set_enabled("text.copy", start != -1 && end != -1 && start != end);
 
             // Show popover menu
             let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
@@ -727,13 +727,13 @@ impl TextLayout {
         // Color scheme changed signal
         let style_manager = adw::StyleManager::default();
 
-        style_manager.connect_dark_notify(clone!(@weak self as layout, @weak imp => move |style_manager| {
-            let layout_style = adw::StyleManager::for_display(&layout.display());
+        style_manager.connect_dark_notify(clone!(@weak self as widget, @weak imp => move |style_manager| {
+            let widget_style = adw::StyleManager::for_display(&widget.display());
 
             if style_manager.is_dark() {
-                layout_style.set_color_scheme(adw::ColorScheme::ForceDark);
+                widget_style.set_color_scheme(adw::ColorScheme::ForceDark);
             } else {
-                layout_style.set_color_scheme(adw::ColorScheme::ForceLight);
+                widget_style.set_color_scheme(adw::ColorScheme::ForceLight);
             }
 
             // Update link color
@@ -753,7 +753,7 @@ impl TextLayout {
     }
 }
 
-impl Default for TextLayout {
+impl Default for TextWidget {
     //-----------------------------------
     // Default constructor
     //-----------------------------------

@@ -67,10 +67,10 @@ box.property-label {
 }
 
 .property-value {
-	color: @view_bg_color; /* Note: this is needed for fake transparency in TextLayout */
+	color: @view_bg_color; /* Note: this is needed for fake transparency in TextWidget */
 }
 
-text-layout {
+text-widget {
 	color: @view_fg_color;
 }
 

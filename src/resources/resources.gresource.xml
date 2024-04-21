@@ -61,7 +61,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/preferences_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/property_label.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/property_value.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/text_layout.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/text_widget.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_dialog.ui</file>

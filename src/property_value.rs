@@ -5,7 +5,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::RustClosure;
 
-use crate::text_layout::{TextLayout, PropType};
+use crate::text_widget::{TextWidget, PropType};
 
 //------------------------------------------------------------------------------
 // MODULE: PropertyValue
@@ -23,7 +23,7 @@ mod imp {
         #[template_child]
         pub image: TemplateChild<gtk::Image>,
         #[template_child]
-        pub layout: TemplateChild<TextLayout>,
+        pub text_widget: TemplateChild<TextWidget>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -87,8 +87,8 @@ impl PropertyValue {
 
         let imp = widget.imp();
 
-        imp.layout.connect_closure("link-activated", false, link_handler);
-        imp.layout.connect_closure("selection-start", false, select_handler);
+        imp.text_widget.connect_closure("link-activated", false, link_handler);
+        imp.text_widget.connect_closure("selection-start", false, select_handler);
 
         widget
     }
@@ -100,11 +100,11 @@ impl PropertyValue {
         let imp = self.imp();
 
         // Bind properties to widgets
-        self.bind_property("ptype", &imp.layout.get(), "ptype")
+        self.bind_property("ptype", &imp.text_widget.get(), "ptype")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        self.bind_property("text", &imp.layout.get(), "text")
+        self.bind_property("text", &imp.text_widget.get(), "text")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 

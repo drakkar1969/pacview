@@ -9,7 +9,7 @@ use glib::closure_local;
 use url::Url;
 
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PKG_SNAPSHOT};
-use crate::text_layout::{TextLayout, PropType};
+use crate::text_widget::{TextWidget, PropType};
 use crate::property_label::PropertyLabel;
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -229,15 +229,15 @@ impl InfoPane {
     //-----------------------------------
     // PropertyValue select handler
     //-----------------------------------
-    fn select_handler(&self, select_layout: &TextLayout) {
+    fn select_handler(&self, select_widget: &TextWidget) {
         let mut child = self.imp().grid.first_child();
 
         while let Some(widget) = &child {
             if let Some(value) = widget.downcast_ref::<PropertyValue>() {
-                let layout = value.imp().layout.get();
+                let text_widget = value.imp().text_widget.get();
 
-                if select_layout != &layout {
-                    let imp = layout.imp();
+                if select_widget != &text_widget {
+                    let imp = text_widget.imp();
 
                     if imp.selection_start.get() != -1 || imp.selection_end.get() != -1 {
                         imp.selection_start.set(-1);
@@ -269,11 +269,11 @@ impl InfoPane {
 
         let property_value = PropertyValue::new(
             ptype,
-            closure_local!(@watch self as infopane => move |_: TextLayout, link: String| -> bool {
+            closure_local!(@watch self as infopane => move |_: TextWidget, link: String| -> bool {
                 infopane.link_handler(&link)
             }),
-            closure_local!(@watch self as infopane => move |layout: TextLayout| {
-                infopane.select_handler(&layout);
+            closure_local!(@watch self as infopane => move |text_widget: TextWidget| {
+                infopane.select_handler(&text_widget);
             })
         );
 

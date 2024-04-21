@@ -21,7 +21,7 @@
           </object>
         </child>
         <child>
-          <object class="TextLayout" id="layout">
+          <object class="TextWidget" id="text_widget">
             <property name="hexpand">true</property>
           </object>
         </child>
