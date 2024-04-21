@@ -2,10 +2,6 @@
 <interface>
   <!--// PropertyLabel template //-->
   <template class="PropertyLabel" parent="GtkBox">
-    <style>
-      <class name="property-box"/>
-      <class name="property-label"/>
-    </style>
     <child>
       <object class="GtkLabel" id="label">
         <property name="xalign">0</property>

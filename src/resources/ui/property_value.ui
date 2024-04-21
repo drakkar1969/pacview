@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PropertyValue template //-->
-  <template class="PropertyValue" parent="GtkBox">
-    <style>
-      <class name="property-box"/>
-    </style>
+  <template class="PropertyValue" parent="GtkWidget">
+    <property name="focusable">true</property>
+    <property name="hexpand">true</property>
     <child>
       <object class="GtkBox">
-        <style>
-          <class name="property-value"/>
-        </style>
         <property name="margin-start">10</property>
         <property name="margin-end">16</property>
         <property name="margin-top">8</property>

@@ -40,10 +40,12 @@ mod imp {
     impl ObjectSubclass for PropertyValue {
         const NAME: &'static str = "PropertyValue";
         type Type = super::PropertyValue;
-        type ParentType = gtk::Box;
+        type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+            klass.set_layout_manager_type::<gtk::BoxLayout>();
+            klass.set_css_name("property-value");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
