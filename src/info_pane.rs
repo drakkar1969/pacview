@@ -237,14 +237,7 @@ impl InfoPane {
                 let text_widget = value.imp().text_widget.get();
 
                 if select_widget != &text_widget {
-                    let imp = text_widget.imp();
-
-                    if imp.selection_start.get() != -1 || imp.selection_end.get() != -1 {
-                        imp.selection_start.set(-1);
-                        imp.selection_end.set(-1);
-    
-                        imp.draw_area.queue_draw();
-                    }
+                    text_widget.select_none();
                 }
             }
 

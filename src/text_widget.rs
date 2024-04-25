@@ -714,6 +714,15 @@ impl TextWidget {
         self.emit_by_name::<()>("selection-start", &[]);
     }
 
+    pub fn select_none(&self) {
+        let imp = self.imp();
+
+        imp.selection_start.set(-1);
+        imp.selection_end.set(-1);
+
+        imp.draw_area.queue_draw();
+    }
+
     pub fn selected_text(&self) -> Option<String> {
         let imp = self.imp();
 
