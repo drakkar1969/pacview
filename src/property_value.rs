@@ -140,10 +140,16 @@ impl PropertyValue {
     fn setup_actions(&self) {
         let imp = self.imp();
 
-        // Add select all action
-        let select_action = gio::ActionEntry::builder("select-all")
+        // Add selection actions
+        let select_all_action = gio::ActionEntry::builder("select-all")
             .activate(clone!(@weak imp => move |_, _, _| {
                 imp.text_widget.select_all();
+            }))
+            .build();
+
+        let select_none_action = gio::ActionEntry::builder("select-none")
+            .activate(clone!(@weak imp => move |_, _, _| {
+                imp.text_widget.select_none();
             }))
             .build();
 
@@ -161,7 +167,7 @@ impl PropertyValue {
 
         self.insert_action_group("text", Some(&text_group));
 
-        text_group.add_action_entries([select_action, copy_action]);
+        text_group.add_action_entries([select_all_action, select_none_action, copy_action]);
     }
 
     //-----------------------------------
@@ -171,13 +177,18 @@ impl PropertyValue {
         // Create shortcut controller
         let controller = gtk::ShortcutController::new();
 
-        // Add search start shortcut
+        // Add selection shortcuts
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>A"),
             Some(gtk::NamedAction::new("text.select-all"))
         ));
 
-        // Add search stop shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>A"),
+            Some(gtk::NamedAction::new("text.select-none"))
+        ));
+
+        // Add copy shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>C"),
             Some(gtk::NamedAction::new("text.copy"))
