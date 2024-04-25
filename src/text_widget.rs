@@ -37,13 +37,7 @@ thread_local! {
 
     static COMMENT_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@view_fg_color, 0.55)"));
 
-    static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new({
-        let style_manager = adw::StyleManager::default();
-
-        let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
-
-        color_from_css(&format!("alpha(@accent_bg_color, {alpha})"))
-    });
+    static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@accent_bg_color, 0.3)"));
 }
 
 //------------------------------------------------------------------------------
@@ -684,9 +678,7 @@ impl TextWidget {
             COMMENT_RGBA.set(color_from_css("alpha(@view_fg_color, 0.55)"));
 
             // Update selected background color
-            let alpha = if style_manager.is_dark() { 0.7 } else { 0.3 };
-
-            SELECTED_RGBA.set(color_from_css(&format!("alpha(@accent_bg_color, {alpha})")));
+            SELECTED_RGBA.set(color_from_css("alpha(@accent_bg_color, 0.3)"));
 
             // Format pango layout text
             imp.do_format();
