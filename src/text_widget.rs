@@ -91,8 +91,6 @@ mod imp {
     pub struct TextWidget {
         #[template_child]
         pub draw_area: TemplateChild<gtk::DrawingArea>,
-        #[template_child]
-        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -160,7 +158,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_layout();
-            obj.setup_actions();
             obj.setup_controllers();
             obj.setup_signals();
         }
@@ -474,42 +471,6 @@ impl TextWidget {
     }
 
     //-----------------------------------
-    // Setup actions
-    //-----------------------------------
-    fn setup_actions(&self) {
-        let imp = self.imp();
-
-        // Add select all action
-        let select_action = gio::ActionEntry::builder("select-all")
-            .activate(clone!(@weak self as widget, @weak imp => move |_, _, _| {
-                imp.selection_start.set(0);
-                imp.selection_end.set(widget.text().len() as i32);
-
-                imp.draw_area.queue_draw();
-            }))
-            .build();
-
-        // Add copy action
-        let copy_action = gio::ActionEntry::builder("copy")
-            .activate(clone!(@weak self as widget, @weak imp => move |_, _, _| {
-                let start = imp.selection_start.get() as usize;
-                let end = imp.selection_end.get() as usize;
-
-                if let Some(text) = widget.text().get(start.min(end)..start.max(end)) {
-                    widget.clipboard().set_text(text);
-                }
-            }))
-            .build();
-
-        // Add actions to text action group
-        let text_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("text", Some(&text_group));
-
-        text_group.add_action_entries([select_action, copy_action]);
-    }
-
-    //-----------------------------------
     // Controller helper functions
     //-----------------------------------
     fn _inside_index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
@@ -696,26 +657,6 @@ impl TextWidget {
         }));
 
         imp.draw_area.add_controller(click_gesture);
-
-        // Add popup gesture controller
-        let popup_gesture = gtk::GestureClick::new();
-        popup_gesture.set_button(gdk::BUTTON_SECONDARY);
-
-        popup_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |_, _, x, y| {
-            // Enable/disable copy action
-            let start = imp.selection_start.get();
-            let end = imp.selection_end.get();
-
-            widget.action_set_enabled("text.copy", start != -1 && end != -1 && start != end);
-
-            // Show popover menu
-            let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-            imp.popover_menu.set_pointing_to(Some(&rect));
-            imp.popover_menu.popup();
-        }));
-
-        imp.draw_area.add_controller(popup_gesture);
     }
 
     //-----------------------------------
@@ -750,6 +691,29 @@ impl TextWidget {
             // Format pango layout text
             imp.do_format();
         }));
+    }
+
+    //-----------------------------------
+    // Public functions
+    //-----------------------------------
+    pub fn select_all(&self) {
+        let imp = self.imp();
+
+        imp.selection_start.set(0);
+        imp.selection_end.set(self.text().len() as i32);
+
+        imp.draw_area.queue_draw();
+
+        self.emit_by_name::<()>("selection-start", &[]);
+    }
+
+    pub fn selected_text(&self) -> Option<String> {
+        let imp = self.imp();
+
+        let start = imp.selection_start.get() as usize;
+        let end = imp.selection_end.get() as usize;
+
+        self.text().get(start.min(end)..start.max(end)).and_then(|s| Some(s.to_string()))
     }
 }
 
