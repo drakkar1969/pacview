@@ -87,6 +87,8 @@ mod imp {
     pub struct TextWidget {
         #[template_child]
         pub draw_area: TemplateChild<gtk::DrawingArea>,
+        #[template_child]
+        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -157,6 +159,8 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_layout();
+            obj.setup_actions();
+            obj.setup_shortcuts();
             obj.setup_signals();
             obj.setup_controllers();
         }
@@ -474,6 +478,80 @@ impl TextWidget {
     }
 
     //-----------------------------------
+    // Action helper functions
+    //-----------------------------------
+    fn selected_text(&self) -> Option<String> {
+        let imp = self.imp();
+
+        let start = imp.selection_start.get() as usize;
+        let end = imp.selection_end.get() as usize;
+
+        self.text().get(start.min(end)..start.max(end)).and_then(|s| Some(s.to_string()))
+    }
+
+    //-----------------------------------
+    // Setup actions
+    //-----------------------------------
+    fn setup_actions(&self) {
+        // Add selection actions
+        let select_all_action = gio::ActionEntry::builder("select-all")
+            .activate(clone!(@weak self as widget => move |_, _, _| {
+                widget.select_all();
+            }))
+            .build();
+
+        let select_none_action = gio::ActionEntry::builder("select-none")
+            .activate(clone!(@weak self as widget => move |_, _, _| {
+                widget.select_none();
+            }))
+            .build();
+
+        // Add copy action
+        let copy_action = gio::ActionEntry::builder("copy")
+            .activate(clone!(@weak self as widget => move |_, _, _| {
+                if let Some(text) = widget.selected_text() {
+                    widget.clipboard().set_text(&text);
+                }
+            }))
+            .build();
+
+        // Add actions to text action group
+        let text_group = gio::SimpleActionGroup::new();
+
+        self.insert_action_group("text", Some(&text_group));
+
+        text_group.add_action_entries([select_all_action, select_none_action, copy_action]);
+    }
+
+    //-----------------------------------
+    // Setup shortcuts
+    //-----------------------------------
+    fn setup_shortcuts(&self) {
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
+
+        // Add selection shortcuts
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>A"),
+            Some(gtk::NamedAction::new("text.select-all"))
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>A"),
+            Some(gtk::NamedAction::new("text.select-none"))
+        ));
+
+        // Add copy shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>C"),
+            Some(gtk::NamedAction::new("text.copy"))
+        ));
+
+        // Add shortcut controller to window
+        self.add_controller(controller);
+    }
+
+    //-----------------------------------
     // Setup signals
     //-----------------------------------
     fn setup_signals(&self) {
@@ -698,10 +776,27 @@ impl TextWidget {
         }));
 
         imp.draw_area.add_controller(click_gesture);
+
+        // Add popup menu controller
+        let popup_gesture = gtk::GestureClick::new();
+        popup_gesture.set_button(gdk::BUTTON_SECONDARY);
+
+        popup_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |_, _, x, y| {
+            // Enable/disable copy action
+            widget.action_set_enabled("text.copy", widget.selected_text().is_some());
+
+            // Show popover menu
+            let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+
+            imp.popover_menu.set_pointing_to(Some(&rect));
+            imp.popover_menu.popup();
+        }));
+
+        imp.draw_area.add_controller(popup_gesture);
     }
 
     //-----------------------------------
-    // Public functions
+    // Public selection functions
     //-----------------------------------
     pub fn select_all(&self) {
         let imp = self.imp();
@@ -721,15 +816,6 @@ impl TextWidget {
         imp.selection_end.set(-1);
 
         imp.draw_area.queue_draw();
-    }
-
-    pub fn selected_text(&self) -> Option<String> {
-        let imp = self.imp();
-
-        let start = imp.selection_start.get() as usize;
-        let end = imp.selection_end.get() as usize;
-
-        self.text().get(start.min(end)..start.max(end)).and_then(|s| Some(s.to_string()))
     }
 }
 

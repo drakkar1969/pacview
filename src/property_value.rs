@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::{glib, gio, gdk};
+use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::RustClosure;
@@ -25,9 +25,6 @@ mod imp {
         pub image: TemplateChild<gtk::Image>,
         #[template_child]
         pub text_widget: TemplateChild<TextWidget>,
-
-        #[template_child]
-        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -68,8 +65,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_actions();
-            obj.setup_shortcuts();
             obj.setup_controllers();
         }
     }
@@ -135,94 +130,30 @@ impl PropertyValue {
     }
 
     //-----------------------------------
-    // Setup actions
-    //-----------------------------------
-    fn setup_actions(&self) {
-        let imp = self.imp();
-
-        // Add selection actions
-        let select_all_action = gio::ActionEntry::builder("select-all")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.text_widget.select_all();
-            }))
-            .build();
-
-        let select_none_action = gio::ActionEntry::builder("select-none")
-            .activate(clone!(@weak imp => move |_, _, _| {
-                imp.text_widget.select_none();
-            }))
-            .build();
-
-        // Add copy action
-        let copy_action = gio::ActionEntry::builder("copy")
-            .activate(clone!(@weak self as widget, @weak imp => move |_, _, _| {
-                if let Some(text) = imp.text_widget.selected_text() {
-                    widget.clipboard().set_text(&text);
-                }
-            }))
-            .build();
-
-        // Add actions to text action group
-        let text_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("text", Some(&text_group));
-
-        text_group.add_action_entries([select_all_action, select_none_action, copy_action]);
-    }
-
-    //-----------------------------------
-    // Setup shortcuts
-    //-----------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-
-        // Add selection shortcuts
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>A"),
-            Some(gtk::NamedAction::new("text.select-all"))
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>A"),
-            Some(gtk::NamedAction::new("text.select-none"))
-        ));
-
-        // Add copy shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>C"),
-            Some(gtk::NamedAction::new("text.copy"))
-        ));
-
-        // Add shortcut controller to window
-        self.add_controller(controller);
-    }
-
-    //-----------------------------------
     // Setup controllers
     //-----------------------------------
     fn setup_controllers(&self) {
         let imp = self.imp();
 
+        // Focus widget on mouse press
         let click_gesture = gtk::GestureClick::new();
         click_gesture.set_button(0);
 
-        click_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |gesture, _, x, y| {
-            // Focus widget on mouse press
+        click_gesture.connect_pressed(clone!(@weak self as widget => move |_, _, _, _| {
             widget.grab_focus();
-
-            if gesture.current_button() == gdk::BUTTON_SECONDARY {
-                // Enable/disable copy action
-                widget.action_set_enabled("text.copy", imp.text_widget.selected_text().is_some());
-
-                // Show popover menu
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-                imp.popover_menu.set_pointing_to(Some(&rect));
-                imp.popover_menu.popup();
-            }
         }));
 
         self.add_controller(click_gesture);
+
+        // Forward key presses to text widget
+        let key_gesture = gtk::EventControllerKey::new();
+
+        key_gesture.connect_key_pressed(clone!(@weak imp => @default-return glib::Propagation::Proceed, move |gesture, _, _, _| {
+            gesture.forward(&imp.text_widget.get());
+
+            glib::Propagation::Proceed
+        }));
+
+        self.add_controller(key_gesture);
     }
 }
