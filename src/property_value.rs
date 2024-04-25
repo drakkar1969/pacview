@@ -1,9 +1,10 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::glib;
+use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::RustClosure;
+use glib::clone;
 
 use crate::text_widget::{TextWidget, PropType};
 
@@ -61,7 +62,10 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            self.obj().setup_widgets();
+            let obj = self.obj();
+
+            obj.setup_widgets();
+            obj.setup_controllers();
         }
     }
 
@@ -118,5 +122,20 @@ impl PropertyValue {
         self.bind_property("icon", &imp.image.get(), "icon-name")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+    }
+
+    //-----------------------------------
+    // Setup controllers
+    //-----------------------------------
+    fn setup_controllers(&self) {
+        let click_gesture = gtk::GestureClick::new();
+        click_gesture.set_button(0);
+
+        click_gesture.connect_pressed(clone!(@weak self as widget => move |_, _, _, _| {
+            // Focus widget on mouse press
+            widget.grab_focus();
+        }));
+
+        self.add_controller(click_gesture);
     }
 }
