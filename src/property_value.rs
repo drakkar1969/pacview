@@ -127,6 +127,11 @@ impl PropertyValue {
         self.bind_property("icon", &imp.image.get(), "icon-name")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Bind focus state to text widget
+        self.bind_property("has-focus", &imp.text_widget.get(), "is_focused")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 
     //-----------------------------------

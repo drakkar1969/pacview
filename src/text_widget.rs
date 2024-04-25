@@ -37,7 +37,9 @@ thread_local! {
 
     static COMMENT_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@view_fg_color, 0.55)"));
 
-    static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@accent_bg_color, 0.3)"));
+    static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@view_fg_color, 0.1)"));
+
+    static SELECTED_RGBA_FOCUS: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@accent_bg_color, 0.3)"));
 }
 
 //------------------------------------------------------------------------------
@@ -90,6 +92,9 @@ mod imp {
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
         _text: RefCell<String>,
+
+        #[property(get, set)]
+        is_focused: Cell<bool>,
 
         pub pango_layout: OnceCell<pango::Layout>,
 
@@ -152,8 +157,8 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_layout();
-            obj.setup_controllers();
             obj.setup_signals();
+            obj.setup_controllers();
         }
 
         //-----------------------------------
@@ -288,7 +293,11 @@ mod imp {
         }
 
         pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            let (red, green, blue) = self.rgba_to_pango_rgb(SELECTED_RGBA.get());
+            let (red, green, blue) = if self.obj().is_focused() {
+                self.rgba_to_pango_rgb(SELECTED_RGBA_FOCUS.get())
+            } else {
+                self.rgba_to_pango_rgb(SELECTED_RGBA.get())
+            };
 
             let mut attr = pango::AttrColor::new_background(red, green, blue);
             attr.set_start_index(start);
@@ -461,6 +470,44 @@ impl TextWidget {
 
             // Show pango layout
             pangocairo::functions::show_layout(context, layout);
+        }));
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Is focused property notify signal
+        self.connect_is_focused_notify(|widget| {
+            widget.imp().draw_area.queue_draw();
+        });
+
+        // Color scheme changed signal
+        let style_manager = adw::StyleManager::default();
+
+        style_manager.connect_dark_notify(clone!(@weak self as widget, @weak imp => move |style_manager| {
+            let widget_style = adw::StyleManager::for_display(&widget.display());
+
+            if style_manager.is_dark() {
+                widget_style.set_color_scheme(adw::ColorScheme::ForceDark);
+            } else {
+                widget_style.set_color_scheme(adw::ColorScheme::ForceLight);
+            }
+
+            // Update link color
+            LINK_RGBA.set(color_from_css("@accent_color"));
+
+            // Update comment color
+            COMMENT_RGBA.set(color_from_css("alpha(@view_fg_color, 0.55)"));
+
+            // Update selected background color
+            SELECTED_RGBA.set(color_from_css("alpha(@view_fg_color, 0.1)"));
+            SELECTED_RGBA_FOCUS.set(color_from_css("alpha(@accent_bg_color, 0.3)"));
+
+            // Format pango layout text
+            imp.do_format();
         }));
     }
 
@@ -651,38 +698,6 @@ impl TextWidget {
         }));
 
         imp.draw_area.add_controller(click_gesture);
-    }
-
-    //-----------------------------------
-    // Setup signals
-    //-----------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
-
-        // Color scheme changed signal
-        let style_manager = adw::StyleManager::default();
-
-        style_manager.connect_dark_notify(clone!(@weak self as widget, @weak imp => move |style_manager| {
-            let widget_style = adw::StyleManager::for_display(&widget.display());
-
-            if style_manager.is_dark() {
-                widget_style.set_color_scheme(adw::ColorScheme::ForceDark);
-            } else {
-                widget_style.set_color_scheme(adw::ColorScheme::ForceLight);
-            }
-
-            // Update link color
-            LINK_RGBA.set(color_from_css("@accent_color"));
-
-            // Update comment color
-            COMMENT_RGBA.set(color_from_css("alpha(@view_fg_color, 0.55)"));
-
-            // Update selected background color
-            SELECTED_RGBA.set(color_from_css("alpha(@accent_bg_color, 0.3)"));
-
-            // Format pango layout text
-            imp.do_format();
-        }));
     }
 
     //-----------------------------------
