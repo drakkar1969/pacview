@@ -66,10 +66,11 @@ mod imp {
     impl ObjectSubclass for PackageView {
         const NAME: &'static str = "PackageView";
         type Type = super::PackageView;
-        type ParentType = adw::Bin;
+        type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+            klass.set_layout_manager_type::<gtk::BoxLayout>();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -113,12 +114,11 @@ mod imp {
         // Destructor
         //-----------------------------------
         fn dispose(&self) {
-            self.popover_menu.unparent();
+            self.dispose_template();
         }
     }
 
     impl WidgetImpl for PackageView {}
-    impl BinImpl for PackageView {}
 }
 
 //------------------------------------------------------------------------------
@@ -126,8 +126,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PackageView(ObjectSubclass<imp::PackageView>)
-        @extends adw::Bin, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+        @extends gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
 impl PackageView {
@@ -149,9 +149,6 @@ impl PackageView {
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-        // Set popover menu parent
-        imp.popover_menu.set_parent(self);
     }
 
     //-----------------------------------

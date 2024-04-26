@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PackageView template //-->
-  <template class="PackageView" parent="AdwBin">
-    <property name="child">
+  <template class="PackageView" parent="GtkWidget">
+    <child>
       <object class="GtkStack" id="stack">
         <child>
           <object class="GtkStackPage">
@@ -258,7 +258,15 @@
           </object>
         </child>
       </object>
-    </property>
+    </child>
+    <child>
+      <!--// Package view popover //-->
+      <object class="GtkPopoverMenu" id="popover_menu">
+        <property name="menu-model">popup_menu</property>
+        <property name="has-arrow">false</property>
+        <property name="halign">start</property>
+      </object>
+    </child>
   </template>
 
   <!--// Package view header menu //-->
@@ -296,13 +304,6 @@
       </item>
     </section>
   </menu>
-
-  <!--// Package view popover //-->
-  <object class="GtkPopoverMenu" id="popover_menu">
-    <property name="menu-model">popup_menu</property>
-    <property name="has-arrow">false</property>
-    <property name="halign">start</property>
-  </object>
 
   <!--// Package view popup menu //-->
   <menu id="popup_menu">
