@@ -78,7 +78,6 @@ mod imp {
     }
 
     impl WidgetImpl for PropertyValue {}
-    impl BoxImpl for PropertyValue {}
 }
 
 //------------------------------------------------------------------------------
@@ -86,7 +85,7 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PropertyValue(ObjectSubclass<imp::PropertyValue>)
-        @extends gtk::Box, gtk::Widget,
+        @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 

@@ -432,7 +432,7 @@ mod imp {
 glib::wrapper! {
     pub struct TextWidget(ObjectSubclass<imp::TextWidget>)
         @extends gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
 impl TextWidget {
