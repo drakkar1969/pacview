@@ -67,6 +67,13 @@ mod imp {
             obj.setup_widgets();
             obj.setup_controllers();
         }
+
+        //-----------------------------------
+        // Dispose function
+        //-----------------------------------
+        fn dispose(&self) {
+            self.dispose_template();
+        }
     }
 
     impl WidgetImpl for PropertyValue {}
