@@ -146,6 +146,8 @@ mod imp {
                         .build(),
                     Signal::builder("selection-start")
                         .build(),
+                    Signal::builder("grab-focus")
+                        .build(),
                 ]
             })
         }
@@ -665,20 +667,23 @@ impl TextWidget {
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(@weak self as widget, @weak imp => move |_, x, y| {
-            if !imp.is_clicked.get() {
-                let index = widget.index_at_xy(x, y);
+            if widget.link_at_xy(x, y).is_none() {
+                if !imp.is_clicked.get() {
+                    let index = widget.index_at_xy(x, y);
 
-                imp.selection_start.set(index);
-                imp.selection_end.set(-1);
+                    imp.selection_start.set(index);
+                    imp.selection_end.set(-1);
+                }
+
+                imp.is_selecting.set(true);
+
+                widget.emit_by_name::<()>("selection-start", &[]);
+                widget.emit_by_name::<()>("grab-focus", &[]);
             }
-
-            imp.is_selecting.set(true);
-
-            widget.emit_by_name::<()>("selection-start", &[]);
         }));
 
         drag_controller.connect_drag_update(clone!(@weak self as widget, @weak imp => move |controller, x, y| {
-            if !imp.is_clicked.get() {
+            if imp.is_selecting.get() {
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let index = widget.index_at_xy(start_x + x, start_y + y);
 
@@ -690,7 +695,7 @@ impl TextWidget {
         }));
 
         drag_controller.connect_drag_end(clone!(@weak imp => move |_, _, _| {
-            if !imp.is_clicked.get() {
+            if imp.is_selecting.get() {
                 // Redraw if necessary to hide selection
                 let start = imp.selection_start.get();
                 let end = imp.selection_end.get();

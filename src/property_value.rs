@@ -5,6 +5,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::RustClosure;
 use glib::clone;
+use glib::closure_local;
 
 use crate::text_widget::{TextWidget, PropType};
 
@@ -103,6 +104,12 @@ impl PropertyValue {
         imp.text_widget.connect_closure("link-activated", false, link_handler);
         imp.text_widget.connect_closure("selection-start", false, select_handler);
 
+        imp.text_widget.connect_closure("grab-focus", false,
+            closure_local!(@watch widget => move |_: TextWidget| {
+                widget.grab_focus();
+            })
+        );
+
         widget
     }
 
@@ -141,16 +148,6 @@ impl PropertyValue {
     //-----------------------------------
     fn setup_controllers(&self) {
         let imp = self.imp();
-
-        // Focus widget on mouse press
-        let click_gesture = gtk::GestureClick::new();
-        click_gesture.set_button(0);
-
-        click_gesture.connect_pressed(clone!(@weak self as widget => move |_, _, _, _| {
-            widget.grab_focus();
-        }));
-
-        self.add_controller(click_gesture);
 
         // Forward key presses to text widget
         let key_gesture = gtk::EventControllerKey::new();
