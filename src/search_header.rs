@@ -360,7 +360,7 @@ impl SearchHeader {
                 let values = enum_class.values();
 
                 let new_state = values.iter()
-                    .position(|v| v.nick() == &state)
+                    .position(|v| v.nick() == state)
                     .and_then(|i| i.checked_add(1))
                     .and_then(|i| values.get(i))
                     .unwrap_or(values.first().unwrap());
@@ -381,7 +381,7 @@ impl SearchHeader {
                 let values = enum_class.values();
 
                 let new_state = values.iter()
-                    .position(|v| v.nick() == &state)
+                    .position(|v| v.nick() == state)
                     .and_then(|i| i.checked_sub(1))
                     .and_then(|i| values.get(i))
                     .unwrap_or(values.last().unwrap());
@@ -402,7 +402,7 @@ impl SearchHeader {
                 let values = enum_class.values();
 
                 let new_state = values.iter()
-                    .position(|v| v.nick() == &state)
+                    .position(|v| v.nick() == state)
                     .and_then(|i| i.checked_add(1))
                     .and_then(|i| values.get(i))
                     .unwrap_or(values.first().unwrap());
@@ -423,7 +423,7 @@ impl SearchHeader {
                 let values = enum_class.values();
 
                 let new_state = values.iter()
-                    .position(|v| v.nick() == &state)
+                    .position(|v| v.nick() == state)
                     .and_then(|i| i.checked_sub(1))
                     .and_then(|i| values.get(i))
                     .unwrap_or(values.last().unwrap());

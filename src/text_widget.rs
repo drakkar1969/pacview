@@ -488,7 +488,8 @@ impl TextWidget {
         let start = imp.selection_start.get() as usize;
         let end = imp.selection_end.get() as usize;
 
-        self.text().get(start.min(end)..start.max(end)).and_then(|s| Some(s.to_string()))
+        self.text().get(start.min(end)..start.max(end))
+            .map(|s| s.to_string())
     }
 
     //-----------------------------------
