@@ -11,6 +11,11 @@ use fancy_regex::Regex;
 use url::Url;
 
 //------------------------------------------------------------------------------
+// CONST: Layout padding
+//------------------------------------------------------------------------------
+const PADDING: i32 = 4;
+
+//------------------------------------------------------------------------------
 // GLOBAL: Color from CSS function
 //------------------------------------------------------------------------------
 fn color_from_css(css: &str) -> gdk::RGBA {
@@ -60,6 +65,7 @@ pub enum PropType {
 //------------------------------------------------------------------------------
 // STRUCT: Link
 //------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq, Clone)]
 pub struct Marker {
     text: String,
     start: usize,
@@ -110,6 +116,8 @@ mod imp {
         pub is_clicked: Cell<bool>,
         pub selection_start: Cell<i32>,
         pub selection_end: Cell<i32>,
+
+        pub focus_link_index: Cell<Option<usize>>,
     }
 
     //-----------------------------------
@@ -194,7 +202,7 @@ mod imp {
                     measure_layout.set_width(for_size * pango::SCALE);
                 }
 
-                (measure_layout.pixel_size().1, measure_layout.pixel_size().1, -1, -1)
+                (measure_layout.pixel_size().1 + 2 * PADDING, measure_layout.pixel_size().1 + 2 * PADDING, -1, -1)
             }
         }
 
@@ -211,7 +219,7 @@ mod imp {
         //-----------------------------------
         // Layout format helper functions
         //-----------------------------------
-        fn rgba_to_pango_rgb(&self, color: gdk::RGBA) -> (u16, u16, u16) {
+        pub fn rgba_to_pango_rgb(&self, color: gdk::RGBA) -> (u16, u16, u16) {
             // Fake transparency (pango bug)
             let bg_color = self.obj().parent().unwrap().color();
 
@@ -411,6 +419,11 @@ mod imp {
                 _ => {}
             }
 
+            // Set focused link index
+            if !link_list.is_empty() {
+                self.focus_link_index.set(Some(0));
+            }
+
             // Need to drop to avoid panic in do_format function
             drop(link_list);
             drop(comment_list);
@@ -457,7 +470,7 @@ impl TextWidget {
         imp.pango_layout.set(layout).unwrap();
 
         // Connect drawing area draw function
-        imp.draw_area.set_draw_func(clone!(@weak imp => move |_, context, _, _| {
+        imp.draw_area.set_draw_func(clone!(@weak self as widget, @weak imp => move |_, context, _, _| {
             let layout = imp.pango_layout.get().unwrap();
 
             // Format pango layout text selection
@@ -475,7 +488,53 @@ impl TextWidget {
             }
 
             // Show pango layout
+            context.move_to(0.0, PADDING as f64);
             pangocairo::functions::show_layout(context, layout);
+
+            // Draw link focus indicator
+            let link_list = imp.link_list.borrow();
+
+            let index = imp.focus_link_index.get();
+
+            if widget.is_focused() {
+                if let Some(link) = index.and_then(|i| link_list.get(i)) {
+                    let (start_n, start_x) = layout.index_to_line_x(link.start as i32, false);
+                    let (end_n, end_x) = layout.index_to_line_x(link.end as i32, false);
+
+                    if start_n == end_n {
+                        // Link is all on one line
+                        let start_char_rect = layout.index_to_pos(link.start as i32);
+
+                        let y = (start_char_rect.y() + start_char_rect.height()) as f64 / pango::SCALE as f64 + PADDING as f64;
+
+                        context.move_to(start_x as f64 / pango::SCALE as f64, y);
+                        context.line_to(end_x as f64 / pango::SCALE as f64, y);
+                    } else {
+                        // Link is split across lines
+                        let start_char_rect = layout.index_to_pos(link.start as i32);
+                        let end_char_rect = layout.index_to_pos(link.end as i32);
+
+                        let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().pixel_extents();
+
+                        let start_y = (start_char_rect.y() + start_char_rect.height()) as f64 / pango::SCALE as f64 + PADDING as f64;
+
+                        context.move_to(start_x as f64 / pango::SCALE as f64, start_y);
+                        context.line_to(start_line_rect.width() as f64, start_y);
+
+                        let end_y = (end_char_rect.y() + end_char_rect.height()) as f64 / pango::SCALE as f64 + PADDING as f64;
+
+                        context.move_to(0.0, end_y);
+                        context.line_to(end_x as f64 / pango::SCALE as f64, end_y);
+                    }
+
+                    let (red, green, blue) = imp.rgba_to_pango_rgb(LINK_RGBA.get());
+
+                    context.set_source_rgb(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0);
+
+                    context.set_line_width(2.0);
+                    context.stroke().unwrap();
+                }
+            }
         }));
     }
 
@@ -562,7 +621,17 @@ impl TextWidget {
 
         // Is focused property notify signal
         self.connect_is_focused_notify(|widget| {
-            widget.imp().draw_area.queue_draw();
+            let imp = widget.imp();
+
+            if !widget.is_focused() {
+                if !imp.link_list.borrow().is_empty() {
+                    imp.focus_link_index.set(Some(0));
+                } else {
+                    imp.focus_link_index.set(None);
+                }
+            }
+
+            imp.draw_area.queue_draw();
         });
 
         // Color scheme changed signal
@@ -799,6 +868,65 @@ impl TextWidget {
         }));
 
         imp.draw_area.add_controller(popup_gesture);
+
+        // Add key press controller
+        let key_controller = gtk::EventControllerKey::new();
+
+        key_controller.connect_key_pressed(clone!(@weak self as widget, @weak imp => @default-return glib::Propagation::Proceed, move |_, key, _, state| {
+            if state == gdk::ModifierType::empty() && (key == gdk::Key::Left || key == gdk::Key::Right || key == gdk::Key::Return || key == gdk::Key::KP_Enter) {
+                let link_list = imp.link_list.borrow();
+
+                let index = imp.focus_link_index.get();
+
+                if key == gdk::Key::Left {
+                    let new_index = index
+                        .and_then(|i| i.checked_sub(1));
+
+                    if new_index.is_some()
+                    {
+                        imp.focus_link_index.set(new_index);
+
+                        imp.draw_area.queue_draw();
+                    }
+                }
+
+                if key == gdk::Key::Right {
+                    let new_index = index
+                        .and_then(|i| i.checked_add(1))
+                        .filter(|&i| i < link_list.len());
+
+                    if new_index.is_some()
+                    {
+                        imp.focus_link_index.set(new_index);
+
+                        imp.draw_area.queue_draw();
+                    }
+                }
+
+                if key == gdk::Key::Return || key == gdk::Key::KP_Enter {
+                    if let Some(focus_link) = index.and_then(|i| link_list.get(i)) {
+                        let link = focus_link.text();
+
+                        // Need to drop to avoid panic
+                        drop(link_list);
+
+                        if !widget.emit_by_name::<bool>("link-activated", &[&link]) {
+                            if let Ok(url) = Url::parse(&link) {
+                                if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
+                                    let _ = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return glib::Propagation::Stop
+            }
+
+            glib::Propagation::Proceed
+        }));
+
+        self.add_controller(key_controller);
     }
 
     //-----------------------------------

@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::glib;
+use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::RustClosure;
@@ -151,8 +151,12 @@ impl PropertyValue {
         // Forward key presses to text widget
         let key_gesture = gtk::EventControllerKey::new();
 
-        key_gesture.connect_key_pressed(clone!(@weak imp => @default-return glib::Propagation::Proceed, move |gesture, _, _, _| {
+        key_gesture.connect_key_pressed(clone!(@weak imp => @default-return glib::Propagation::Proceed, move |gesture, key, _, state| {
             gesture.forward(&imp.text_widget.get());
+
+            if state == gdk::ModifierType::empty() && (key == gdk::Key::Left || key == gdk::Key::Right || key == gdk::Key::Return || key == gdk::Key::KP_Enter) {
+                return glib::Propagation::Stop
+            }
 
             glib::Propagation::Proceed
         }));
