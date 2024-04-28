@@ -750,29 +750,25 @@ impl TextWidget {
         }));
 
         drag_controller.connect_drag_update(clone!(@weak self as widget, @weak imp => move |controller, x, y| {
-            if imp.is_selecting.get() {
-                if let Some((start_x, start_y)) = controller.start_point() {
-                    let index = widget.index_at_xy(start_x + x, start_y + y);
+            if let Some((start_x, start_y)) = controller.start_point() {
+                let index = widget.index_at_xy(start_x + x, start_y + y);
 
-                    imp.selection_end.set(index);
+                imp.selection_end.set(index);
 
-                    imp.draw_area.queue_draw();
-                }
+                imp.draw_area.queue_draw();
             }
         }));
 
         drag_controller.connect_drag_end(clone!(@weak imp => move |_, _, _| {
-            if imp.is_selecting.get() {
-                // Redraw if necessary to hide selection
-                let start = imp.selection_start.get();
-                let end = imp.selection_end.get();
+            // Redraw if necessary to hide selection
+            let start = imp.selection_start.get();
+            let end = imp.selection_end.get();
 
-                if end == -1 || start == end {
-                    imp.selection_start.set(-1);
-                    imp.selection_end.set(-1);
+            if end == -1 || start == end {
+                imp.selection_start.set(-1);
+                imp.selection_end.set(-1);
 
-                    imp.draw_area.queue_draw();
-                }
+                imp.draw_area.queue_draw();
             }
 
             imp.is_selecting.set(false);
