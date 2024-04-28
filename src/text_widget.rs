@@ -347,12 +347,9 @@ mod imp {
         fn set_text(&self, text: &str) {
             let obj = self.obj();
 
-            // Clear link/comment lists
-            let mut link_list = self.link_list.borrow_mut();
-            let mut comment_list = self.comment_list.borrow_mut();
-
-            link_list.clear();
-            comment_list.clear();
+            // Create link/comment lists
+            let mut link_list: Vec<Marker> = vec![];
+            let mut comment_list: Vec<Marker> = vec![];
 
             // Set pango layout text and store links in link map
             let layout = self.pango_layout.get().unwrap();
@@ -424,9 +421,9 @@ mod imp {
                 self.focus_link_index.set(Some(0));
             }
 
-            // Need to drop to avoid panic in do_format function
-            drop(link_list);
-            drop(comment_list);
+            // Store link/comment lists
+            self.link_list.replace(link_list);
+            self.comment_list.replace(comment_list);
 
             // Format pango layout text
             self.do_format();
