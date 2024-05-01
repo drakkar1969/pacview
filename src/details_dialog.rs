@@ -436,7 +436,7 @@ impl DetailsDialog {
 
         // Populate backup list
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
-            .map(|(filename, hash)| BackupObject::new(filename, hash, None))
+            .map(|(filename, hash)| BackupObject::new(filename, hash, None, alpm::compute_md5sum(filename.as_str()).ok().as_deref()))
             .collect();
 
         imp.backup_model.extend_from_slice(&backup_list);

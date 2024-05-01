@@ -1,4 +1,4 @@
-use std::cell::{OnceCell, RefCell};
+use std::cell::RefCell;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -22,13 +22,13 @@ mod imp {
         hash: RefCell<String>,
         #[property(get, set, nullable)]
         package: RefCell<Option<String>>,
+        #[property(get, set, nullable)]
+        file_hash: RefCell<Option<String>>,
 
         #[property(get = Self::status_icon)]
         _status_icon: RefCell<String>,
         #[property(get = Self::status_text)]
         _status_text: RefCell<String>,
-
-        file_hash: OnceCell<Result<String, alpm::ChecksumError>>,
     }
 
     //-----------------------------------
@@ -47,12 +47,8 @@ mod imp {
         //-----------------------------------
         // Custom property getters
         //-----------------------------------
-        fn file_hash(&self) -> &Result<String, alpm::ChecksumError> {
-            self.file_hash.get_or_init(|| alpm::compute_md5sum(self.filename.borrow().as_str()))
-        }
-
         fn status_icon(&self) -> String {
-            if let Ok(file_hash) = self.file_hash() {
+            if let Some(file_hash) = &*self.file_hash.borrow() {
                 if file_hash == &*self.hash.borrow() {
                     "backup-unmodified-symbolic"
                 } else {
@@ -63,9 +59,9 @@ mod imp {
             }
             .to_string()
         }
-        
+
         fn status_text(&self) -> String {
-            if let Ok(file_hash) = self.file_hash() {
+            if let Some(file_hash) = &*self.file_hash.borrow() {
                 if file_hash == &*self.hash.borrow() {
                     "unmodified"
                 } else {
@@ -90,12 +86,13 @@ impl BackupObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(filename: &str, hash: &str, package: Option<&str>) -> Self {
+    pub fn new(filename: &str, hash: &str, package: Option<&str>, file_hash: Option<&str>) -> Self {
         // Build BackupObject
         glib::Object::builder()
             .property("filename", filename)
             .property("hash", hash)
             .property("package", package)
+            .property("file-hash", file_hash)
             .build()
     }
 }

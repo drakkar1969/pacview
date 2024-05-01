@@ -2,7 +2,7 @@
 <interface>
   <!--// BackupDialog template //-->
   <template class="BackupDialog" parent="AdwDialog">
-    <property name="content-width">650</property>
+    <property name="content-width">750</property>
     <property name="content-height">650</property>
     <property name="focus-widget">view</property>
     <property name="child">

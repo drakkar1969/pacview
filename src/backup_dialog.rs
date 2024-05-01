@@ -188,55 +188,73 @@ impl BackupDialog {
     fn update_ui(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
-        // Populate column view
-        let mut status_list: Vec<String> = vec![];
-
-        let mut backup_list: Vec<BackupObject> = vec![];
-
-        pkg_snapshot.iter()
+        let backup_snapshot: Vec<(String, Vec<(String, String)>)> = pkg_snapshot.iter()
             .filter(|pkg| !pkg.backup().is_empty())
-            .for_each(|pkg| {
-                backup_list.extend(pkg.backup().iter()
-                    .map(|(filename, hash)| {
-                        let obj = BackupObject::new(filename, hash, Some(&pkg.name()));
+            .map(|pkg| (pkg.name(), pkg.backup()))
+            .collect();
+
+        // Spawn thread to compute backup file hashes
+        let (sender, receiver) = async_channel::bounded(1);
+
+        gio::spawn_blocking(move || {
+            let data_list: Vec<(String, String, String, Option<String>)> = backup_snapshot.iter()
+                .flat_map(|(name, backup)| {
+                    backup.iter()
+                        .map(|(filename, hash)| (filename.to_string(), hash.to_string(), name.to_string(), alpm::compute_md5sum(filename.as_str()).ok()))
+                })
+                .collect();
+
+            sender.send_blocking(data_list).expect("Could not send through channel");
+        });
+
+        // Attach thread receiver
+        glib::spawn_future_local(clone!(@weak imp => async move {
+            while let Ok(data_list) = receiver.recv().await {
+                // Populate column view
+                let mut status_list: Vec<String> = vec![];
+
+                let backup_list: Vec<BackupObject> = data_list.into_iter()
+                    .map(|(filename, hash, name, file_hash)| {
+                        let obj = BackupObject::new(&filename, &hash, Some(&name), file_hash.as_deref());
 
                         status_list.push(titlecase(&obj.status_text()));
 
                         obj
                     })
+                    .collect();
+
+                imp.model.extend_from_slice(&backup_list);
+
+                // Populate status dropdown
+                status_list.sort_unstable();
+                status_list.dedup();
+
+                imp.status_model.append("All");
+                imp.status_model.splice(1, 0, &status_list.iter()
+                    .map(|s| s.as_str())
+                    .collect::<Vec<&str>>()
                 );
-            });
 
-        imp.model.extend_from_slice(&backup_list);
+                // Bind backup files count to header label
+                let backup_len = backup_list.len();
 
-        // Populate status dropdown
-        status_list.sort_unstable();
-        status_list.dedup();
+                imp.selection.bind_property("n-items", &imp.header_label.get(), "label")
+                    .transform_to(move |_, n_items: u32| Some(format!("Backup Files ({n_items} of {backup_len})")))
+                    .flags(glib::BindingFlags::SYNC_CREATE)
+                    .build();
 
-        imp.status_model.append("All");
-        imp.status_model.splice(1, 0, &status_list.iter()
-            .map(|s| s.as_str())
-            .collect::<Vec<&str>>()
-        );
+                // Bind backup files count to open/copy button states
+                imp.selection.bind_property("n-items", &imp.open_button.get(), "sensitive")
+                    .transform_to(|_, n_items: u32| Some(n_items > 0))
+                    .flags(glib::BindingFlags::SYNC_CREATE)
+                    .build();
 
-        // Bind backup files count to header label
-        let backup_len = backup_list.len();
-
-        imp.selection.bind_property("n-items", &imp.header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(format!("Backup Files ({n_items} of {backup_len})")))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        // Bind backup files count to open/copy button states
-        imp.selection.bind_property("n-items", &imp.open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
+                imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                    .transform_to(|_, n_items: u32| Some(n_items > 0))
+                    .flags(glib::BindingFlags::SYNC_CREATE)
+                    .build();
+            }
+        }));
     }
     //-----------------------------------
     // Public show function
