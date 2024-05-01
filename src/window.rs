@@ -1081,7 +1081,7 @@ impl PacViewWindow {
     fn setup_inotify(&self) {
         let imp = self.imp();
 
-        // Create glib channel
+        // Create async channel
         let (sender, receiver) = async_channel::bounded(1);
 
         // Create new watcher
@@ -1108,7 +1108,7 @@ impl PacViewWindow {
         // Store watcher
         imp.notify_watcher.set(watcher).unwrap();
 
-        // Attach receiver for glib channel
+        // Attach receiver for async channel
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
                 if window.auto_refresh() {
