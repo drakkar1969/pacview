@@ -71,7 +71,7 @@ property-value > box {
 	color: @view_bg_color; /* Note: this is needed for fake transparency in TextWidget */
 }
 
-property-value:focus {
+property-value:focus-within {
 	outline: 2px solid alpha(@accent_color, 0.5);
 	outline-offset: -2px;
 }
