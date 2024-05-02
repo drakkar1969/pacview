@@ -227,25 +227,6 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // PropertyValue select handler
-    //-----------------------------------
-    fn select_handler(&self, select_widget: &TextWidget) {
-        let mut child = self.imp().grid.first_child();
-
-        while let Some(widget) = &child {
-            if let Some(value) = widget.downcast_ref::<PropertyValue>() {
-                let text_widget = value.imp().text_widget.get();
-
-                if select_widget != &text_widget {
-                    text_widget.select_none();
-                }
-            }
-
-            child = widget.next_sibling();
-        };
-    }
-
-    //-----------------------------------
     // Add property function
     //-----------------------------------
     fn add_property(&self, id: PropID, ptype: PropType) {
@@ -264,9 +245,6 @@ impl InfoPane {
             ptype,
             closure_local!(@watch self as infopane => move |_: TextWidget, link: String| -> bool {
                 infopane.link_handler(&link)
-            }),
-            closure_local!(@watch self as infopane => move |text_widget: TextWidget| {
-                infopane.select_handler(&text_widget);
             })
         );
 

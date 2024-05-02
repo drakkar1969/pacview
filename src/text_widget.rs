@@ -152,8 +152,6 @@ mod imp {
                         .param_types([String::static_type()])
                         .return_type::<bool>()
                         .build(),
-                    Signal::builder("selection-start")
-                        .build(),
                     Signal::builder("grab-focus")
                         .build(),
                 ]
@@ -744,7 +742,6 @@ impl TextWidget {
 
                 imp.is_selecting.set(true);
 
-                widget.emit_by_name::<()>("selection-start", &[]);
                 widget.emit_by_name::<()>("grab-focus", &[]);
             }
         }));
@@ -932,8 +929,6 @@ impl TextWidget {
         imp.selection_end.set(self.text().len() as i32);
 
         imp.draw_area.queue_draw();
-
-        self.emit_by_name::<()>("selection-start", &[]);
     }
 
     pub fn select_none(&self) {
