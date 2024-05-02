@@ -167,21 +167,13 @@ impl InfoPane {
                 PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
                     AUR_SNAPSHOT.with_borrow(|aur_snapshot| {
                         // Find link package by name
-                        let mut new_pkg = pkg_snapshot.iter()
-                            .find(|&pkg| pkg.name() == pkg_name)
-                            .or_else(|| {
-                                aur_snapshot.iter()
-                                    .find(|&pkg| pkg.name() == pkg_name)
-                            });
+                        let mut new_pkg = pkg_snapshot.iter().chain(aur_snapshot)
+                            .find(|&pkg| pkg.name() == pkg_name);
 
                         // If link package is none, find by provides
                         if new_pkg.is_none() {
-                            new_pkg = pkg_snapshot.iter()
-                                .find(|&pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)))
-                                .or_else(|| {
-                                    aur_snapshot.iter()
-                                        .find(|&pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)))
-                                });
+                            new_pkg = pkg_snapshot.iter().chain(aur_snapshot)
+                                .find(|&pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)));
                         }
 
                         // If link package found
