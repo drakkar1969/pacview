@@ -4,6 +4,9 @@
   <template class="PackageView" parent="GtkWidget">
     <child>
       <object class="GtkStack" id="stack">
+        <style>
+          <class name="view"/>
+        </style>
         <child>
           <object class="GtkStackPage">
             <property name="name">empty</property>
