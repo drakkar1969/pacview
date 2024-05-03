@@ -26,72 +26,72 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/details_dialog.ui")]
     pub struct DetailsDialog {
         #[template_child]
-        pub pkg_label: TemplateChild<gtk::Label>,
+        pub(super) pkg_label: TemplateChild<gtk::Label>,
 
         #[template_child]
-        pub content_stack: TemplateChild<gtk::Stack>,
+        pub(super) content_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub files_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) files_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub log_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) log_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub cache_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) cache_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub backup_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) backup_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
-        pub files_header_label: TemplateChild<gtk::Label>,
+        pub(super) files_header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub files_search_entry: TemplateChild<gtk::SearchEntry>,
+        pub(super) files_search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
-        pub files_open_button: TemplateChild<gtk::Button>,
+        pub(super) files_open_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub files_copy_button: TemplateChild<gtk::Button>,
+        pub(super) files_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub files_view: TemplateChild<gtk::ListView>,
+        pub(super) files_view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub files_model: TemplateChild<gio::ListStore>,
+        pub(super) files_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub files_selection: TemplateChild<gtk::SingleSelection>,
+        pub(super) files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub files_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) files_filter: TemplateChild<gtk::StringFilter>,
 
         #[template_child]
-        pub log_copy_button: TemplateChild<gtk::Button>,
+        pub(super) log_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub log_model: TemplateChild<gio::ListStore>,
+        pub(super) log_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub log_selection: TemplateChild<gtk::NoSelection>,
+        pub(super) log_selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
-        pub log_overlay_label: TemplateChild<gtk::Label>,
+        pub(super) log_overlay_label: TemplateChild<gtk::Label>,
 
         #[template_child]
-        pub cache_header_label: TemplateChild<gtk::Label>,
+        pub(super) cache_header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub cache_open_button: TemplateChild<gtk::Button>,
+        pub(super) cache_open_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub cache_copy_button: TemplateChild<gtk::Button>,
+        pub(super) cache_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub cache_view: TemplateChild<gtk::ListView>,
+        pub(super) cache_view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub cache_model: TemplateChild<gio::ListStore>,
+        pub(super) cache_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub cache_selection: TemplateChild<gtk::SingleSelection>,
+        pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub cache_overlay_label: TemplateChild<gtk::Label>,
+        pub(super) cache_overlay_label: TemplateChild<gtk::Label>,
 
         #[template_child]
-        pub backup_header_label: TemplateChild<gtk::Label>,
+        pub(super) backup_header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub backup_open_button: TemplateChild<gtk::Button>,
+        pub(super) backup_open_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub backup_copy_button: TemplateChild<gtk::Button>,
+        pub(super) backup_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub backup_view: TemplateChild<gtk::ListView>,
+        pub(super) backup_view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub backup_model: TemplateChild<gio::ListStore>,
+        pub(super) backup_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub backup_selection: TemplateChild<gtk::SingleSelection>,
+        pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
     }
 
     //-----------------------------------

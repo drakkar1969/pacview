@@ -20,17 +20,17 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/filter_row.ui")]
     pub struct FilterRow {
         #[template_child]
-        pub stack: TemplateChild<gtk::Stack>,
+        pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub image: TemplateChild<gtk::Image>,
+        pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
-        pub spinner: TemplateChild<gtk::Spinner>,
+        pub(super) spinner: TemplateChild<gtk::Spinner>,
         #[template_child]
-        pub text_label: TemplateChild<gtk::Label>,
+        pub(super) text_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub count_label: TemplateChild<gtk::Label>,
+        pub(super) count_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub count_box: TemplateChild<gtk::Box>,
+        pub(super) count_box: TemplateChild<gtk::Box>,
 
         #[property(get, set)]
         icon: RefCell<String>,

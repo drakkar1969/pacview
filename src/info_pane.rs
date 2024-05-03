@@ -20,7 +20,7 @@ use crate::pkg_object::{PkgObject, PkgFlags};
 #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum)]
 #[repr(u32)]
 #[enum_type(name = "PropID")]
-pub enum PropID {
+enum PropID {
     #[enum_value(name = "Name")]
     Name,
     #[enum_value(name = "Version")]
@@ -88,22 +88,22 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
-        pub stack: TemplateChild<gtk::Stack>,
+        pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub grid: TemplateChild<gtk::Grid>,
+        pub(super) grid: TemplateChild<gtk::Grid>,
 
         #[template_child]
-        pub overlay_box: TemplateChild<gtk::Box>,
+        pub(super) overlay_box: TemplateChild<gtk::Box>,
         #[template_child]
-        pub overlay_label: TemplateChild<gtk::Label>,
+        pub(super) overlay_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub overlay_prev_button: TemplateChild<gtk::Button>,
+        pub(super) overlay_prev_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub overlay_next_button: TemplateChild<gtk::Button>,
+        pub(super) overlay_next_button: TemplateChild<gtk::Button>,
 
-        pub property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
+        pub(super) property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
 
-        pub history_selection: RefCell<gtk::SingleSelection>,
+        pub(super) history_selection: RefCell<gtk::SingleSelection>,
     }
 
     //-----------------------------------
@@ -248,7 +248,7 @@ impl InfoPane {
     //-----------------------------------
     // Public set property value function
     //-----------------------------------
-    pub fn set_property_value(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
+    fn set_property_value(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
         if let Some((property_label, property_value)) = self.imp().property_map.borrow().get(&id) {
             property_label.set_visible(visible);
             property_value.set_visible(visible);

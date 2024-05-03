@@ -19,19 +19,19 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/preferences_dialog.ui")]
     pub struct PreferencesDialog {
         #[template_child]
-        pub refresh_switchrow: TemplateChild<adw::SwitchRow>,
+        pub(super) refresh_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub aur_row: TemplateChild<adw::EntryRow>,
+        pub(super) aur_row: TemplateChild<adw::EntryRow>,
         #[template_child]
-        pub delay_spinrow: TemplateChild<adw::SpinRow>,
+        pub(super) delay_spinrow: TemplateChild<adw::SpinRow>,
         #[template_child]
-        pub aur_menubutton: TemplateChild<gtk::MenuButton>,
+        pub(super) aur_menubutton: TemplateChild<gtk::MenuButton>,
         #[template_child]
-        pub column_switchrow: TemplateChild<adw::SwitchRow>,
+        pub(super) column_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub sort_switchrow: TemplateChild<adw::SwitchRow>,
+        pub(super) sort_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub reset_button: TemplateChild<gtk::Button>,
+        pub(super) reset_button: TemplateChild<gtk::Button>,
 
         #[property(get, set)]
         auto_refresh: Cell<bool>,

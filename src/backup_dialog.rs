@@ -23,26 +23,26 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/backup_dialog.ui")]
     pub struct BackupDialog {
         #[template_child]
-        pub header_label: TemplateChild<gtk::Label>,
+        pub(super) header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub status_dropdown: TemplateChild<gtk::DropDown>,
+        pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
-        pub status_model: TemplateChild<gtk::StringList>,
+        pub(super) status_model: TemplateChild<gtk::StringList>,
         #[template_child]
-        pub open_button: TemplateChild<gtk::Button>,
+        pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub copy_button: TemplateChild<gtk::Button>,
+        pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub view: TemplateChild<gtk::ColumnView>,
+        pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
-        pub model: TemplateChild<gio::ListStore>,
+        pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub selection: TemplateChild<gtk::SingleSelection>,
+        pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub status_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
-        pub section_factory: TemplateChild<gtk::SignalListItemFactory>,
+        pub(super) section_factory: TemplateChild<gtk::SignalListItemFactory>,
     }
 
     //-----------------------------------

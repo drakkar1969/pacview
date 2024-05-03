@@ -28,7 +28,7 @@ use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::package_view::{PackageView, DEFAULT_COLS, DEFAULT_SORT_COL};
-use crate::info_pane::{InfoPane, PropID};
+use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_dialog::StatsDialog;
 use crate::backup_dialog::BackupDialog;
@@ -58,27 +58,27 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
-        pub search_header: TemplateChild<SearchHeader>,
+        pub(super) search_header: TemplateChild<SearchHeader>,
         #[template_child]
-        pub search_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub infopane_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) infopane_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
-        pub repo_listbox: TemplateChild<gtk::ListBox>,
+        pub(super) repo_listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
-        pub status_listbox: TemplateChild<gtk::ListBox>,
+        pub(super) status_listbox: TemplateChild<gtk::ListBox>,
 
         #[template_child]
-        pub status_label: TemplateChild<gtk::Label>,
+        pub(super) status_label: TemplateChild<gtk::Label>,
 
         #[template_child]
-        pub pane: TemplateChild<gtk::Paned>,
+        pub(super) pane: TemplateChild<gtk::Paned>,
 
         #[template_child]
-        pub package_view: TemplateChild<PackageView>,
+        pub(super) package_view: TemplateChild<PackageView>,
         #[template_child]
-        pub info_pane: TemplateChild<InfoPane>,
+        pub(super) info_pane: TemplateChild<InfoPane>,
 
         #[property(get, set)]
         auto_refresh: Cell<bool>,
@@ -91,21 +91,21 @@ mod imp {
         #[property(get, set)]
         remember_sort: Cell<bool>,
 
-        pub gsettings: OnceCell<gio::Settings>,
+        pub(super) gsettings: OnceCell<gio::Settings>,
 
-        pub aur_file: RefCell<Option<gio::File>>,
+        pub(super) aur_file: RefCell<Option<gio::File>>,
 
-        pub pacman_config: RefCell<pacmanconf::Config>,
-        pub pacman_repos: RefCell<Vec<String>>,
+        pub(super) pacman_config: RefCell<pacmanconf::Config>,
+        pub(super) pacman_repos: RefCell<Vec<String>>,
 
-        pub saved_repo_id: RefCell<Option<String>>,
-        pub saved_status_id: Cell<PkgFlags>,
+        pub(super) saved_repo_id: RefCell<Option<String>>,
+        pub(super) saved_status_id: Cell<PkgFlags>,
 
-        pub all_repo_row: RefCell<FilterRow>,
-        pub all_status_row: RefCell<FilterRow>,
-        pub update_row: RefCell<FilterRow>,
+        pub(super) all_repo_row: RefCell<FilterRow>,
+        pub(super) all_status_row: RefCell<FilterRow>,
+        pub(super) update_row: RefCell<FilterRow>,
 
-        pub notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
+        pub(super) notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
     }
 
     //-----------------------------------
@@ -324,7 +324,7 @@ impl PacViewWindow {
             .build();
 
         // Set search header key capture widget
-        imp.search_header.set_key_capture_widget(imp.package_view.imp().view.get().upcast());
+        imp.search_header.set_key_capture_widget(imp.package_view.view().upcast());
 
         // Bind search button state to search header enabled state
         imp.search_button.bind_property("active", &imp.search_header.get(), "enabled")
@@ -337,7 +337,7 @@ impl PacViewWindow {
             .build();
 
         // Bind package view item count to status label text
-        imp.package_view.imp().selection.bind_property("n-items", &imp.status_label.get(), "label")
+        imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
             .transform_to(|_, n_items: u32| {
                 Some(format!("{n_items} matching package{}", if n_items != 1 {"s"} else {""}))
             })
@@ -345,7 +345,7 @@ impl PacViewWindow {
             .build();
 
         // Set initial focus on package view
-        imp.package_view.imp().view.grab_focus();
+        imp.package_view.view().grab_focus();
     }
 
     //-----------------------------------
@@ -440,17 +440,7 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
-                let copy_text = imp.package_view.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .map(|item| {
-                        let pkg = item
-                            .downcast::<PkgObject>()
-                            .expect("Could not downcast to 'PkgObject'");
-
-                        format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
-                    })
-                    .collect::<Vec<String>>()
-                    .join("\n");
+                let copy_text = imp.package_view.copy_list();
 
                 window.clipboard().set_text(&copy_text);
             })
@@ -462,10 +452,8 @@ impl PacViewWindow {
         // Bind package view item count to copy list action enabled state
         let copy_action = self.lookup_action("copy-list").unwrap();
 
-        imp.package_view.imp().selection.bind_property("n-items", &copy_action, "enabled")
-            .transform_to(|_, n_items: u32| {
-                Some(n_items > 0)
-            })
+        imp.package_view.bind_property("n-items", &copy_action, "enabled")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -627,7 +615,7 @@ impl PacViewWindow {
         // Search header enabled signal
         imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as window => move |_: SearchHeader, enabled: bool| {
             if !enabled {
-                window.imp().package_view.imp().view.grab_focus();
+                window.imp().package_view.view().grab_focus();
             }
         }));
 
@@ -650,7 +638,7 @@ impl PacViewWindow {
 
             imp.package_view.set_repo_filter(repo_id.as_deref());
 
-            imp.package_view.imp().view.grab_focus();
+            imp.package_view.view().grab_focus();
         }));
 
         // Status listbox row activated signal
@@ -662,7 +650,7 @@ impl PacViewWindow {
 
             imp.package_view.set_status_filter(status_id);
 
-            imp.package_view.imp().view.grab_focus();
+            imp.package_view.view().grab_focus();
         }));
 
         // Package view selected signal
@@ -905,7 +893,7 @@ impl PacViewWindow {
                         .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
                         .collect();
 
-                    imp.package_view.imp().pkg_model.splice(0, imp.package_view.imp().pkg_model.n_items(), &pkg_list);
+                    imp.package_view.splice_packages(&pkg_list);
 
                     let installed_pkg_names: HashSet<String> = pkg_list.iter()
                         .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
@@ -915,7 +903,7 @@ impl PacViewWindow {
                     PKG_SNAPSHOT.replace(pkg_list);
                     INSTALLED_PKG_NAMES.replace(installed_pkg_names);
 
-                    imp.package_view.imp().stack.set_visible_child_name("view");
+                    imp.package_view.set_loading(false);
 
                     window.get_package_updates();
 
@@ -1018,24 +1006,11 @@ impl PacViewWindow {
 
             // Update status of packages with updates
             if !update_map.is_empty() {
-                imp.package_view.imp().pkg_model.iter::<PkgObject>()
-                    .flatten()
-                    .filter(|pkg| update_map.contains_key(&pkg.name()))
-                    .for_each(|pkg| {
-                        pkg.set_version(update_map[&pkg.name()].to_string());
-
-                        pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
-
-                        pkg.set_has_update(true);
-
-                        // Update info pane if currently displayed package has update
-                        let info_pkg = imp.info_pane.pkg();
-
-                        if info_pkg.is_some_and(|info_pkg| info_pkg == pkg) {
-                            imp.info_pane.set_property_value(PropID::Version, true, &pkg.version(), Some("pkg-update"));
-                        }
-                    });
+                imp.package_view.update_packages(&update_map);
             }
+
+            // Update info pane package
+            imp.info_pane.update_display();
 
             // Show update status/count in sidebar
             update_row.set_spinning(false);

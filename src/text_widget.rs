@@ -66,14 +66,14 @@ pub enum PropType {
 // STRUCT: Link
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct Marker {
+struct Marker {
     text: String,
     start: usize,
     end: usize,
 }
 
 impl Marker {
-    pub fn text(&self) -> String {
+    fn text(&self) -> String {
         self.text.to_owned()
     }
 }
@@ -92,9 +92,9 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/text_widget.ui")]
     pub struct TextWidget {
         #[template_child]
-        pub draw_area: TemplateChild<gtk::DrawingArea>,
+        pub(super) draw_area: TemplateChild<gtk::DrawingArea>,
         #[template_child]
-        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
+        pub(super) popover_menu: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -104,20 +104,20 @@ mod imp {
         #[property(get, set)]
         is_focused: Cell<bool>,
 
-        pub pango_layout: OnceCell<pango::Layout>,
+        pub(super) pango_layout: OnceCell<pango::Layout>,
 
-        pub link_list: RefCell<Vec<Marker>>,
-        pub comment_list: RefCell<Vec<Marker>>,
+        pub(super) link_list: RefCell<Vec<Marker>>,
+        pub(super) comment_list: RefCell<Vec<Marker>>,
 
-        pub cursor: RefCell<String>,
-        pub pressed_link: RefCell<Option<String>>,
+        pub(super) cursor: RefCell<String>,
+        pub(super) pressed_link: RefCell<Option<String>>,
 
-        pub is_selecting: Cell<bool>,
-        pub is_clicked: Cell<bool>,
-        pub selection_start: Cell<i32>,
-        pub selection_end: Cell<i32>,
+        pub(super) is_selecting: Cell<bool>,
+        pub(super) is_clicked: Cell<bool>,
+        pub(super) selection_start: Cell<i32>,
+        pub(super) selection_end: Cell<i32>,
 
-        pub focus_link_index: Cell<Option<usize>>,
+        pub(super) focus_link_index: Cell<Option<usize>>,
     }
 
     //-----------------------------------
@@ -217,7 +217,7 @@ mod imp {
         //-----------------------------------
         // Layout format helper functions
         //-----------------------------------
-        pub fn rgba_to_pango_rgb(&self, color: gdk::RGBA) -> (u16, u16, u16) {
+        pub(super) fn rgba_to_pango_rgb(&self, color: gdk::RGBA) -> (u16, u16, u16) {
             // Fake transparency (pango bug)
             let bg_color = self.obj().parent().unwrap().color();
 
@@ -304,7 +304,7 @@ mod imp {
             }
         }
 
-        pub fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
+        pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             let (red, green, blue) = if self.obj().is_focused() {
                 self.rgba_to_pango_rgb(SELECTED_RGBA_FOCUS.get())
             } else {
@@ -318,7 +318,7 @@ mod imp {
             attr_list.insert(attr);
         }
 
-        pub fn do_format(&self) {
+        pub(super) fn do_format(&self) {
             let layout = self.pango_layout.get().unwrap();
 
             let attr_list = pango::AttrList::new();
@@ -920,9 +920,9 @@ impl TextWidget {
     }
 
     //-----------------------------------
-    // Public selection functions
+    // Selection functions
     //-----------------------------------
-    pub fn select_all(&self) {
+    fn select_all(&self) {
         let imp = self.imp();
 
         imp.selection_start.set(0);
@@ -931,7 +931,7 @@ impl TextWidget {
         imp.draw_area.queue_draw();
     }
 
-    pub fn select_none(&self) {
+    fn select_none(&self) {
         let imp = self.imp();
 
         imp.selection_start.set(-1);

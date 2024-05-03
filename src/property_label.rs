@@ -18,7 +18,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/property_label.ui")]
     pub struct PropertyLabel {
         #[template_child]
-        pub label: TemplateChild<gtk::Label>,
+        pub(super) label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
         text: RefCell<String>,

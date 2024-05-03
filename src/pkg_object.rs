@@ -210,7 +210,7 @@ mod imp {
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
         // Alpm handle
-        pub handle: OnceCell<Rc<alpm::Alpm>>,
+        pub(super) handle: OnceCell<Rc<alpm::Alpm>>,
 
         // Read-write properties
         #[property(name = "flags",        get, set, type = PkgFlags,   member = flags)]
@@ -225,7 +225,7 @@ mod imp {
         #[property(name = "install-date",   get, type = i64,      member = install_date)]
         #[property(name = "install-size",   get, type = i64,      member = install_size)]
         #[property(name = "groups",         get, type = String,   member = groups)]
-        pub data: RefCell<PkgData>,
+        pub(super) data: RefCell<PkgData>,
 
         // Read-only properties with custom getter
         #[property(name = "install-date-short", get = Self::install_date_short)]

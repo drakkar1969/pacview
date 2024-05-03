@@ -54,28 +54,28 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/search_header.ui")]
     pub struct SearchHeader {
         #[template_child]
-        pub stack: TemplateChild<gtk::Stack>,
+        pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub title_widget: TemplateChild<adw::WindowTitle>,
+        pub(super) title_widget: TemplateChild<adw::WindowTitle>,
 
         #[template_child]
-        pub icon_stack: TemplateChild<gtk::Stack>,
+        pub(super) icon_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub spinner: TemplateChild<gtk::Spinner>,
+        pub(super) spinner: TemplateChild<gtk::Spinner>,
 
         #[template_child]
-        pub tag_mode: TemplateChild<SearchTag>,
+        pub(super) tag_mode: TemplateChild<SearchTag>,
         #[template_child]
-        pub tag_prop: TemplateChild<SearchTag>,
+        pub(super) tag_prop: TemplateChild<SearchTag>,
 
         #[template_child]
-        pub search_text: TemplateChild<gtk::Text>,
+        pub(super) search_text: TemplateChild<gtk::Text>,
 
         #[template_child]
-        pub clear_button: TemplateChild<gtk::Button>,
+        pub(super) clear_button: TemplateChild<gtk::Button>,
 
-        pub capture_widget: RefCell<Option<gtk::Widget>>,
-        pub capture_controller: RefCell<gtk::EventControllerKey>,
+        pub(super) capture_widget: RefCell<Option<gtk::Widget>>,
+        pub(super) capture_controller: RefCell<gtk::EventControllerKey>,
 
         #[property(get, set, nullable)]
         title: RefCell<Option<String>>,
@@ -97,7 +97,7 @@ mod imp {
         #[property(get, set)]
         spinning: Cell<bool>,
 
-        pub delay_source_id: RefCell<Option<glib::SourceId>>,
+        pub(super) delay_source_id: RefCell<Option<glib::SourceId>>,
     }
 
     //-----------------------------------

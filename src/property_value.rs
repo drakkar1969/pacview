@@ -21,9 +21,9 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/property_value.ui")]
     pub struct PropertyValue {
         #[template_child]
-        pub image: TemplateChild<gtk::Image>,
+        pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
-        pub text_widget: TemplateChild<TextWidget>,
+        pub(super) text_widget: TemplateChild<TextWidget>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,

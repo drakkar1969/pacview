@@ -1,5 +1,5 @@
-use std::cell::RefCell;
-use std::collections::HashSet;
+use std::cell::{Cell, RefCell};
+use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
 use gtk::{glib, gio, gdk};
@@ -28,35 +28,41 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::PackageView)]
     #[template(resource = "/com/github/PacView/ui/package_view.ui")]
     pub struct PackageView {
         #[template_child]
-        pub stack: TemplateChild<gtk::Stack>,
+        pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub view: TemplateChild<gtk::ColumnView>,
+        pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
-        pub selection: TemplateChild<gtk::SingleSelection>,
+        pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub filter_model: TemplateChild<gtk::FilterListModel>,
+        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
-        pub flatten_model: TemplateChild<gtk::FlattenListModel>,
+        pub(super) flatten_model: TemplateChild<gtk::FlattenListModel>,
         #[template_child]
-        pub pkg_model: TemplateChild<gio::ListStore>,
+        pub(super) pkg_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub aur_model: TemplateChild<gio::ListStore>,
+        pub(super) aur_model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub repo_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) repo_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
-        pub status_filter: TemplateChild<gtk::CustomFilter>,
+        pub(super) status_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
-        pub search_filter: TemplateChild<gtk::CustomFilter>,
+        pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
-        pub empty_label: TemplateChild<gtk::Label>,
+        pub(super) empty_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub popover_menu: TemplateChild<gtk::PopoverMenu>,
+        pub(super) popover_menu: TemplateChild<gtk::PopoverMenu>,
 
-        pub aur_cache: RefCell<HashSet<ArcPackage>>
+        #[property(get, set, default = true, construct)]
+        loading: Cell<bool>,
+        #[property(get, set)]
+        n_items: Cell<u32>,
+
+        pub(super) aur_cache: RefCell<HashSet<ArcPackage>>
     }
 
     //-----------------------------------
@@ -78,6 +84,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for PackageView {
         //-----------------------------------
         // Custom signals
@@ -144,8 +151,19 @@ impl PackageView {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind item count to empty label visibility
-        imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
+        // Bind loading property to stack page
+        self.bind_property("loading", &imp.stack.get(), "visible-child-name")
+            .transform_to(|_, loading: bool| Some(if loading { "empty" } else { "view" }))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind selection item count to n_items property
+        imp.selection.bind_property("n-items", self, "n-items")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind selection item count to empty label visibility
+        imp.selection.bind_property("n-items", &imp.empty_label.get(), "visible")
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
@@ -440,6 +458,52 @@ impl PackageView {
         let sort_asc = sorter.primary_sort_order() == gtk::SortType::Ascending;
 
         (sort_col, sort_asc)
+    }
+
+    //-----------------------------------
+    // Public view function
+    //-----------------------------------
+    pub fn view(&self) -> gtk::ColumnView {
+        self.imp().view.get()
+    }
+
+    //-----------------------------------
+    // Public package functions
+    //-----------------------------------
+    pub fn splice_packages(&self, pkg_slice: &[PkgObject]) {
+        let imp = self.imp();
+
+        imp.pkg_model.splice(0, imp.pkg_model.n_items(), pkg_slice);
+    }
+
+    pub fn update_packages(&self, update_map: &HashMap<String, String>) {
+        self.imp().pkg_model.iter::<PkgObject>()
+            .flatten()
+            .filter(|pkg| update_map.contains_key(&pkg.name()))
+            .for_each(|pkg| {
+                pkg.set_version(update_map[&pkg.name()].to_string());
+
+                pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
+
+                pkg.set_has_update(true);
+            });
+    }
+
+    //-----------------------------------
+    // Public copy list function
+    //-----------------------------------
+    pub fn copy_list(&self) -> String {
+        self.imp().selection.iter::<glib::Object>()
+            .flatten()
+            .map(|item| {
+                let pkg = item
+                    .downcast::<PkgObject>()
+                    .expect("Could not downcast to 'PkgObject'");
+
+                format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
+            })
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 }
 

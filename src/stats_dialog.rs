@@ -22,7 +22,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/stats_dialog.ui")]
     pub struct StatsDialog {
         #[template_child]
-        pub model: TemplateChild<gio::ListStore>,
+        pub(super) model: TemplateChild<gio::ListStore>,
     }
 
     //-----------------------------------

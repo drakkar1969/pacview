@@ -18,7 +18,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/search_tag.ui")]
     pub struct SearchTag {
         #[template_child]
-        pub label: TemplateChild<gtk::Label>,
+        pub(super) label: TemplateChild<gtk::Label>,
 
         #[property(get, set, nullable)]
         text: RefCell<String>,
