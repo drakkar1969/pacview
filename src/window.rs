@@ -860,7 +860,7 @@ impl PacViewWindow {
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());
 
-                            PkgData::from_pkg(syncpkg, localpkg)
+                            PkgData::from_pkg(syncpkg, localpkg, None)
                         })
                     );
                 }
@@ -869,13 +869,11 @@ impl PacViewWindow {
                 data_list.extend(localdb.pkgs().iter()
                     .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
                     .map(|pkg| {
-                        let mut data = PkgData::from_pkg(pkg, Ok(pkg));
-
-                        if aur_names.contains(&data.name) {
-                            data.repository = "aur".to_string();
+                        if aur_names.contains(pkg.name()) {
+                            PkgData::from_pkg(pkg, Ok(pkg), Some("aur"))
+                        } else {
+                            PkgData::from_pkg(pkg, Ok(pkg), None)
                         }
-
-                        data
                     })
                 );
             }

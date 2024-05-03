@@ -35,40 +35,40 @@ impl Default for PkgFlags {
 //------------------------------------------------------------------------------
 #[derive(Default)]
 pub struct PkgData {
-    pub flags: PkgFlags,
-    pub name: String,
-    pub version: String,
-    pub repository: String,
-    pub status: String,
-    pub status_icon: String,
-    pub install_date: i64,
-    pub install_size: i64,
-    pub groups: String,
+    flags: PkgFlags,
+    name: String,
+    version: String,
+    repository: String,
+    status: String,
+    status_icon: String,
+    install_date: i64,
+    install_size: i64,
+    groups: String,
 
-    pub description: String,
-    pub url: String,
-    pub licenses: String,
-    pub provides: Vec<String>,
-    pub depends: Vec<String>,
-    pub optdepends: Vec<String>,
-    pub makedepends: Vec<String>,
-    pub conflicts: Vec<String>,
-    pub replaces: Vec<String>,
-    pub architecture: String,
-    pub packager: String,
-    pub build_date: i64,
-    pub download_size: i64,
-    pub has_script: bool,
-    pub sha256sum: String,
-    pub md5sum: String,
-    pub has_update: bool,
+    description: String,
+    url: String,
+    licenses: String,
+    provides: Vec<String>,
+    depends: Vec<String>,
+    optdepends: Vec<String>,
+    makedepends: Vec<String>,
+    conflicts: Vec<String>,
+    replaces: Vec<String>,
+    architecture: String,
+    packager: String,
+    build_date: i64,
+    download_size: i64,
+    has_script: bool,
+    sha256sum: String,
+    md5sum: String,
+    has_update: bool,
 }
 
 impl PkgData {
     //-----------------------------------
     // New functions
     //-----------------------------------
-    pub fn from_pkg(syncpkg: &alpm::Package, localpkg: Result<&alpm::Package, alpm::Error>) -> Self {
+    pub fn from_pkg(syncpkg: &alpm::Package, localpkg: Result<&alpm::Package, alpm::Error>, repository: Option<&str>) -> Self {
         // Defaults for package status flags and install date (non-installed)
         let mut flags = PkgFlags::NONE;
         let mut idate = 0;
@@ -95,7 +95,7 @@ impl PkgData {
             flags,
             name: syncpkg.name().to_string(),
             version: syncpkg.version().to_string(),
-            repository: syncpkg.db().unwrap().name().to_string(),
+            repository: repository.unwrap_or(syncpkg.db().unwrap().name()).to_string(),
             status: match flags {
                 PkgFlags::EXPLICIT => "explicit",
                 PkgFlags::DEPENDENCY => "dependency",
