@@ -251,11 +251,11 @@ mod imp {
         // Read-only property getters
         //-----------------------------------
         fn install_date_short(&self) -> String {
-            date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
+            date_to_string(self.data.borrow().install_date, "%Y/%m/%d %H:%M")
         }
 
         fn install_size_string(&self) -> String {
-            size_to_string(self.obj().install_size(), 1)
+            size_to_string(self.data.borrow().install_size, 1)
         }
     }
 }
@@ -274,11 +274,13 @@ impl PkgObject {
     pub fn new(handle: Option<Rc<alpm::Alpm>>, data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
 
+        let imp = pkg.imp();
+
         if let Some(handle) = handle {
-            pkg.imp().handle.set(handle).unwrap();
+            imp.handle.set(handle).unwrap();
         }
 
-        pkg.imp().data.replace(data);
+        imp.data.replace(data);
 
         pkg
     }
