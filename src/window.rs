@@ -1007,8 +1007,10 @@ impl PacViewWindow {
                 imp.package_view.update_packages(&update_map);
             }
 
-            // Update info pane package
-            imp.info_pane.update_display();
+            // Update info pane package if it has update
+            if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name())) {
+                imp.info_pane.update_display();
+            }
 
             // Show update status/count in sidebar
             update_row.set_spinning(false);
