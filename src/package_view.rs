@@ -14,7 +14,7 @@ use raur::ArcPackage;
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
-use crate::utils::Utils;
+use crate::utils::tokio_runtime;
 
 pub const DEFAULT_COLS: [&str; 6] = ["package", "version", "repository", "status", "date", "size"];
 pub const DEFAULT_SORT_COL: &str = "package";
@@ -334,7 +334,7 @@ impl PackageView {
 
             glib::spawn_future_local(clone!(@weak imp, @strong installed_pkg_names => async move {
                 // Spawn thread to search AUR
-                let result = Utils::tokio_runtime().spawn(async move {
+                let result = tokio_runtime().spawn(async move {
                     let handle = raur::Handle::new();
 
                     // Set search mode

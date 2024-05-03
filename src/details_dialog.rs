@@ -11,7 +11,7 @@ use glob::glob;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::backup_object::BackupObject;
-use crate::utils::Utils;
+use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
 // MODULE: DetailsDialog
@@ -192,7 +192,7 @@ impl DetailsDialog {
                 .and_downcast::<gtk::StringObject>()
                 .expect("Could not downcast to 'StringObject'");
 
-            Utils::open_file_manager(&item.string());
+            open_file_manager(&item.string());
         }));
 
         // Files copy button clicked signal
@@ -231,7 +231,7 @@ impl DetailsDialog {
                 .and_downcast::<gtk::StringObject>()
                 .expect("Could not downcast to 'StringObject'");
 
-            Utils::open_file_manager(&item.string());
+            open_file_manager(&item.string());
         }));
 
         // Cache copy button clicked signal
@@ -255,7 +255,7 @@ impl DetailsDialog {
                 .and_downcast::<BackupObject>()
                 .expect("Could not downcast to 'BackupObject'");
 
-            Utils::open_file_manager(&item.filename());
+            open_file_manager(&item.filename());
         }));
 
         // Backup copy button clicked signal

@@ -7,7 +7,7 @@ use titlecase::titlecase;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::stats_object::StatsObject;
-use crate::utils::Utils;
+use crate::utils::size_to_string;
 
 //------------------------------------------------------------------------------
 // MODULE: StatsDialog
@@ -97,7 +97,7 @@ impl StatsDialog {
                     &repo,
                     &pcount.to_string(),
                     &icount.to_string(),
-                    &Utils::size_to_string(isize, 2)
+                    &size_to_string(isize, 2)
                 ));
 
                 (tot_pcount + pcount, tot_icount + icount, tot_isize + isize)
@@ -108,7 +108,7 @@ impl StatsDialog {
             "<b>Total</b>",
             &format!("<b>{}</b>", tot_pcount),
             &format!("<b>{}</b>", tot_icount),
-            &format!("<b>{}</b>", &Utils::size_to_string(tot_isize, 2))
+            &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
         ));
     }
 

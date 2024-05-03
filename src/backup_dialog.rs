@@ -8,7 +8,7 @@ use titlecase::titlecase;
 
 use crate::pkg_object::PkgObject;
 use crate::backup_object::BackupObject;
-use crate::utils::Utils;
+use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
 // MODULE: BackupDialog
@@ -157,7 +157,7 @@ impl BackupDialog {
                 .and_downcast::<BackupObject>()
                 .expect("Could not downcast to 'BackupObject'");
 
-            Utils::open_file_manager(&item.filename());
+            open_file_manager(&item.filename());
         }));
 
         // Copy button clicked signal

@@ -6,72 +6,65 @@ use gtk::prelude::AppInfoExt;
 use tokio::runtime::Runtime;
 
 //------------------------------------------------------------------------------
-// MODULE: Utils
+// GLOBAL: Functions
 //------------------------------------------------------------------------------
-pub struct Utils;
+//-----------------------------------
+// Tokio runtime function
+//-----------------------------------
+pub fn tokio_runtime() -> &'static Runtime {
+    static RUNTIME: OnceLock<Runtime> = OnceLock::new();
 
-//------------------------------------------------------------------------------
-// IMPLEMENTATION: Utils
-//------------------------------------------------------------------------------
-impl Utils {
-    //-----------------------------------
-    // Tokio runtime function
-    //-----------------------------------
-    pub fn tokio_runtime() -> &'static Runtime {
-        static RUNTIME: OnceLock<Runtime> = OnceLock::new();
+    RUNTIME.get_or_init(|| {
+        Runtime::new().expect("Setting up tokio runtime needs to succeed.")
+    })
+}
 
-        RUNTIME.get_or_init(|| {
-            Runtime::new().expect("Setting up tokio runtime needs to succeed.")
-        })
-    }
+//-----------------------------------
+// Size to string function
+//-----------------------------------
+pub fn size_to_string(size: i64, decimals: usize) -> String {
+    let mut size = size as f64;
 
-    //-----------------------------------
-    // Size to string function
-    //-----------------------------------
-    pub fn size_to_string(size: i64, decimals: usize) -> String {
-        let mut size = size as f64;
+    if size == 0.0 {
+        String::from("0 B")
+    } else {
+        let mut unit = "";
 
-        if size == 0.0 {
-            String::from("0 B")
-        } else {
-            let mut unit = "";
+        for u in ["B", "KiB", "MiB", "GiB", "TiB", "PiB"] {
+            unit = u;
 
-            for u in ["B", "KiB", "MiB", "GiB", "TiB", "PiB"] {
-                unit = u;
-
-                if size < 1024.0 || u == "PiB" {
-                    break;
-                }
-
-                size /= 1024.0;
+            if size < 1024.0 || u == "PiB" {
+                break;
             }
 
-            format!("{size:.decimals$}\u{202F}{unit}")
+            size /= 1024.0;
         }
+
+        format!("{size:.decimals$}\u{202F}{unit}")
     }
+}
 
-    //-----------------------------------
-    // Date to string function
-    //-----------------------------------
-    pub fn date_to_string(date: i64, format: &str) -> String {
-        if date == 0 {
-            String::from("")
-        } else {
-            glib::DateTime::from_unix_local(date)
-                .and_then(|datetime| datetime.format(format))
-                .expect("Datetime error")
-                .to_string()
-        }
+//-----------------------------------
+// Date to string function
+//-----------------------------------
+pub fn date_to_string(date: i64, format: &str) -> String {
+    if date == 0 {
+        String::from("")
+    } else {
+        glib::DateTime::from_unix_local(date)
+            .and_then(|datetime| datetime.format(format))
+            .expect("Datetime error")
+            .to_string()
     }
+}
 
-    //-----------------------------------
-    // Open file manager function
-    //-----------------------------------
-    pub fn open_file_manager(path: &str) {
-        if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-            let path = format!("file://{path}");
+//-----------------------------------
+// Open file manager function
+//-----------------------------------
+pub fn open_file_manager(path: &str) {
+    if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
+        let path = format!("file://{path}");
 
-            let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
-        }
+        let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
     }
 }

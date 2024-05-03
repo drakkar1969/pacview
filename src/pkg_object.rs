@@ -7,7 +7,7 @@ use gtk::prelude::ObjectExt;
 
 use alpm_utils::DbListExt;
 
-use crate::utils::Utils;
+use crate::utils::{date_to_string, size_to_string};
 
 //------------------------------------------------------------------------------
 // FLAGS: PkgFlags
@@ -251,11 +251,11 @@ mod imp {
         // Read-only property getters
         //-----------------------------------
         fn install_date_short(&self) -> String {
-            Utils::date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
+            date_to_string(self.obj().install_date(), "%Y/%m/%d %H:%M")
         }
 
         fn install_size_string(&self) -> String {
-            Utils::size_to_string(self.obj().install_size(), 1)
+            size_to_string(self.obj().install_size(), 1)
         }
     }
 }
@@ -354,15 +354,15 @@ impl PkgObject {
     // Public string property getters
     //-----------------------------------
     pub fn install_date_long(&self) -> String {
-        Utils::date_to_string(self.install_date(), "%d %B %Y %H:%M")
+        date_to_string(self.install_date(), "%d %B %Y %H:%M")
     }
 
     pub fn build_date_long(&self) -> String {
-        Utils::date_to_string(self.build_date(), "%d %B %Y %H:%M")
+        date_to_string(self.build_date(), "%d %B %Y %H:%M")
     }
 
     pub fn download_size_string(&self) -> String {
-        Utils::size_to_string(self.download_size(), 1)
+        size_to_string(self.download_size(), 1)
     }
 
     //-----------------------------------

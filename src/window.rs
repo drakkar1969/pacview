@@ -22,7 +22,7 @@ use futures::join;
 use flate2::read::GzDecoder;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
 
-use crate::utils::Utils;
+use crate::utils::tokio_runtime;
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
@@ -768,7 +768,7 @@ impl PacViewWindow {
     // Download AUR names helper function
     //-----------------------------------
     fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
-        Utils::tokio_runtime().spawn(clone!(@strong file => async move {
+        tokio_runtime().spawn(clone!(@strong file => async move {
             let url = "https://aur.archlinux.org/packages.gz";
 
             if let Ok(response) = reqwest::get(url).await {
