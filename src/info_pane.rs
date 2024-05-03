@@ -246,9 +246,9 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // Public set property value function
+    // Set property functions
     //-----------------------------------
-    fn set_property_value(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
+    fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
         if let Some((property_label, property_value)) = self.imp().property_map.borrow().get(&id) {
             property_label.set_visible(visible);
             property_value.set_visible(visible);
@@ -258,6 +258,32 @@ impl InfoPane {
                 property_value.set_text(value);
             }
         }
+    }
+
+    fn set_vec_property(&self, id: PropID, visible: bool, value: &[String], icon: Option<&str>) {
+        self.set_string_property(id, visible, &value.join("     "), icon);
+    }
+
+    //-----------------------------------
+    // Get installed optdeps function
+    //-----------------------------------
+    fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
+        optdepends.iter()
+            .map(|dep| {
+                let mut dep = dep.to_string();
+                
+                INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+                    if dep.split_once(['<', '>', '=', ':'])
+                        .filter(|&(name, _)| installed_pkg_names.contains(name))
+                        .is_some()
+                    {
+                        dep.push_str(" [INSTALLED]");
+                    }
+                });
+
+                dep
+            })
+            .collect::<Vec<String>>()
     }
 
     //-----------------------------------
@@ -301,28 +327,6 @@ impl InfoPane {
     }
 
     //-----------------------------------
-    // Get installed optdeps function
-    //-----------------------------------
-    fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
-        optdepends.iter()
-            .map(|dep| {
-                let mut dep = dep.to_string();
-                
-                INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-                    if dep.split_once(['<', '>', '=', ':'])
-                        .filter(|&(name, _)| installed_pkg_names.contains(name))
-                        .is_some()
-                    {
-                        dep.push_str(" [INSTALLED]");
-                    }
-                });
-
-                dep
-            })
-            .collect::<Vec<String>>()
-    }
-
-    //-----------------------------------
     // Public display functions
     //-----------------------------------
     pub fn update_display(&self) {
@@ -361,62 +365,62 @@ impl InfoPane {
             }
 
             // Name
-            self.set_property_value(PropID::Name, true, &pkg.name(), None);
+            self.set_string_property(PropID::Name, true, &pkg.name(), None);
             // Version
-            self.set_property_value(PropID::Version, true, &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None});
+            self.set_string_property(PropID::Version, true, &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None});
             // Description
-            self.set_property_value(PropID::Description, true, &pkg.description(), None);
+            self.set_string_property(PropID::Description, true, &pkg.description(), None);
             // Package URL
             let package_url = pkg.package_url();
-            self.set_property_value(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
+            self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
             // URL
-            self.set_property_value(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
+            self.set_string_property(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
             // Licenses
-            self.set_property_value(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
+            self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
             // Status
-            let status = &pkg.status();
+            let status = pkg.status();
             let status_icon = pkg.status_icon();
-            self.set_property_value(PropID::Status, true, if pkg.flags().intersects(PkgFlags::INSTALLED) {status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
+            self.set_string_property(PropID::Status, true, if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
             // Repository
-            self.set_property_value(PropID::Repository, true, &pkg.repository(), None);
+            self.set_string_property(PropID::Repository, true, &pkg.repository(), None);
             // Groups
-            self.set_property_value(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
+            self.set_string_property(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
             // Provides
-            self.set_property_value(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides().join("     "), None);
+            self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides(), None);
             // Depends
-            self.set_property_value(PropID::Dependencies, true, &pkg.depends().join("     "), None);
+            self.set_vec_property(PropID::Dependencies, true, &pkg.depends(), None);
             // Optdepends
             let optdepends = self.installed_optdeps(&pkg.optdepends());
-            self.set_property_value(PropID::Optional, !optdepends.is_empty(), &optdepends.join("     "), None);
+            self.set_vec_property(PropID::Optional, !optdepends.is_empty(), &optdepends, None);
             // Makedepends
-            self.set_property_value(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends().join("     "), None);
+            self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends(), None);
             // Required by
-            self.set_property_value(PropID::RequiredBy, true, &pkg.required_by().join("     "), None);
+            self.set_vec_property(PropID::RequiredBy, true, &pkg.required_by(), None);
             // Optional for
             let optional_for = pkg.optional_for();
-            self.set_property_value(PropID::OptionalFor, !optional_for.is_empty(), &optional_for.join("     "), None);
+            self.set_vec_property(PropID::OptionalFor, !optional_for.is_empty(), &optional_for, None);
             // Conflicts
-            self.set_property_value(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts().join("     "), None);
+            self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts(), None);
             // Replaces
-            self.set_property_value(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces().join("     "), None);
+            self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces(), None);
             // Architecture
-            self.set_property_value(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
+            self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
             // Packager
-            self.set_property_value(PropID::Packager, true, &pkg.packager(), None);
+            self.set_string_property(PropID::Packager, true, &pkg.packager(), None);
             // Build date
-            self.set_property_value(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_long(), None);
+            self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_long(), None);
             // Install date
-            self.set_property_value(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
+            self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
             // Download size
-            self.set_property_value(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
+            self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
             // Installed size
-            self.set_property_value(PropID::InstalledSize, true, &pkg.install_size_string(), None);
+            self.set_string_property(PropID::InstalledSize, true, &pkg.install_size_string(), None);
             // Has script
-            self.set_property_value(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
+            self.set_string_property(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
             // SHA256 sum
-            self.set_property_value(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
+            self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
             // MD5 sum
-            self.set_property_value(PropID::MD5Sum, !pkg.md5sum().is_empty(), &pkg.md5sum(), None);
+            self.set_string_property(PropID::MD5Sum, !pkg.md5sum().is_empty(), &pkg.md5sum(), None);
         }
     }
 
