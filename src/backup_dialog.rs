@@ -198,10 +198,9 @@ impl BackupDialog {
 
         gio::spawn_blocking(move || {
             let data_list: Vec<(String, String, String, Option<String>)> = backup_snapshot.iter()
-                .flat_map(|(name, backup)| {
-                    backup.iter()
-                        .map(|(filename, hash)| (filename.to_string(), hash.to_string(), name.to_string(), alpm::compute_md5sum(filename.as_str()).ok()))
-                })
+                .flat_map(|(name, backup)| backup.iter()
+                    .map(|(filename, hash)| (filename.to_string(), hash.to_string(), name.to_string(), alpm::compute_md5sum(filename.as_str()).ok()))
+                )
                 .collect();
 
             sender.send_blocking(data_list).expect("Could not send through channel");

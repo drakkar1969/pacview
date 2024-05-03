@@ -855,15 +855,15 @@ impl PacViewWindow {
                 let localdb = handle.localdb();
 
                 // Load sync packages
-                for db in handle.syncdbs() {
-                    data_list.extend(db.pkgs().iter()
+                data_list.extend(handle.syncdbs().iter()
+                    .flat_map(|db| db.pkgs().iter()
                         .map(|syncpkg| {
                             let localpkg = localdb.pkg(syncpkg.name());
 
                             PkgData::from_pkg(syncpkg, localpkg, None)
                         })
-                    );
-                }
+                    )
+                );
 
                 // Load local packages not in sync databases
                 data_list.extend(localdb.pkgs().iter()
