@@ -10,6 +10,7 @@ use glib::clone;
 
 use raur::Raur;
 use raur::ArcPackage;
+use futures::future;
 
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
@@ -338,6 +339,10 @@ impl PackageView {
                     let handle = raur::Handle::new();
 
                     // Set search mode
+                    if prop == SearchProp::Files {
+                        return Err(raur::Error::Aur("Cannot search by files.".to_string()))
+                    }
+
                     let search_by = match prop {
                         SearchProp::Name => { raur::SearchBy::Name },
                         SearchProp::NameDesc => { raur::SearchBy::NameDesc },
@@ -349,12 +354,19 @@ impl PackageView {
                     };
 
                     // Search for AUR packages
+                    let search_results = future::join_all(term.split_whitespace()
+                        .map(|t| handle.search_by(t, search_by))
+                    )
+                    .await;
+
                     let mut aur_names: HashSet<String> = HashSet::new();
 
-                    for t in term.split_whitespace() {
-                        let aur_search = handle.search_by(t, search_by).await?;
-
-                        aur_names.extend(aur_search.iter().map(|pkg| pkg.name.to_string()));
+                    for res in search_results {
+                        if let Ok(aur_list) = res {
+                            aur_names.extend(aur_list.iter().map(|pkg| pkg.name.to_string()))
+                        } else {
+                            return Err(res.unwrap_err())
+                        }
                     }
 
                     // Get AUR package info using cache
