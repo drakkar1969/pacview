@@ -11,10 +11,12 @@ mod property_value;
 mod preferences_dialog;
 mod stats_dialog;
 mod backup_dialog;
+mod log_dialog;
 mod details_dialog;
 mod pkg_object;
 mod stats_object;
 mod backup_object;
+mod log_object;
 mod utils;
 
 use gtk::{gio, glib};

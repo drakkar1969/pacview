@@ -170,6 +170,10 @@
         <attribute name="action">win.show-backup-files</attribute>
       </item>
       <item>
+        <attribute name="label">Show Pacman Log</attribute>
+        <attribute name="action">win.show-pacman-log</attribute>
+      </item>
+      <item>
         <attribute name="label">Copy List</attribute>
         <attribute name="action">win.copy-list</attribute>
       </item>
