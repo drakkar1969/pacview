@@ -3,7 +3,7 @@ use std::cell::{Cell, RefCell};
 use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, closure_local,RustClosure};
+use glib::{clone, closure_local, RustClosure};
 
 use crate::text_widget::{TextWidget, PropType};
 
