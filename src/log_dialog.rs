@@ -129,48 +129,26 @@ impl LogDialog {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
-        // Spawn thread to load pacman log
-        let (sender, receiver) = async_channel::bounded(1);
+        // Populate column view
+        if let Ok(log) = fs::read_to_string(log_file) {
+            static EXPR: OnceLock<Regex> = OnceLock::new();
 
-        let log_file = log_file.to_string();
+            let expr = EXPR.get_or_init(|| {
+                Regex::new("\\[(.+?)T(.+?)\\+.+?\\] (.+)").expect("Regex error")
+            });
 
-        gio::spawn_blocking(clone!(@strong log_file => move || {
-            let mut log_lines: Vec<(String, String, String)> = vec![];
+            let log_list: Vec<LogObject> = log.lines()
+                .filter_map(|s| {
+                    expr.captures(s)
+                        .filter(|caps| caps.len() == 4)
+                        .map(|caps| {
+                            LogObject::new(&caps[1], &caps[2], &caps[3])
+                        })
+                })
+                .collect();
 
-            if let Ok(log) = fs::read_to_string(log_file) {
-                static EXPR: OnceLock<Regex> = OnceLock::new();
-
-                let expr = EXPR.get_or_init(|| {
-                    Regex::new("\\[(.+?)T(.+?)\\+.+?\\] (.+)").expect("Regex error")
-                });
-
-                log_lines.extend(log.lines()
-                    .filter_map(|s| {
-                        expr.captures(s)
-                            .filter(|caps| caps.len() == 4)
-                            .map(|caps| {
-                                (caps[1].to_string(), caps[2].to_string(), caps[3].to_string())
-                            })
-                    })
-                );
-            }
-
-            sender.send_blocking(log_lines).expect("Could not send through channel");
-        }));
-
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak imp => async move {
-            while let Ok(log_lines) = receiver.recv().await {
-                // Populate column view
-                let log_list: Vec<LogObject> = log_lines.into_iter()
-                    .map(|(date, time, message)| {
-                        LogObject::new(&date, &time, &message)
-                    })
-                    .collect();
-
-                imp.model.extend_from_slice(&log_list);
-            }
-        }));
+            imp.model.extend_from_slice(&log_list);
+        }
     }
 
     //-----------------------------------
