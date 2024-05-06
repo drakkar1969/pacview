@@ -204,8 +204,8 @@ impl PacViewWindow {
         let gsettings = imp.gsettings.get().unwrap();
 
         // Load window settings
-        self.set_width_request(gsettings.int("window-width"));
-        self.set_height_request(gsettings.int("window-height"));
+        self.set_default_width(gsettings.int("window-width"));
+        self.set_default_height(gsettings.int("window-height"));
         self.set_maximized(gsettings.boolean("window-maximized"));
 
         // Load info pane settings
