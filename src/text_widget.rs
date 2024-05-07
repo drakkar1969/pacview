@@ -509,12 +509,12 @@ impl TextWidget {
                         let start_char_rect = layout.index_to_pos(link.start as i32);
                         let end_char_rect = layout.index_to_pos(link.end as i32);
 
-                        let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().pixel_extents();
+                        let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
 
                         let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) + PADDING as f64;
 
                         context.move_to(pango::units_to_double(start_x), start_y);
-                        context.line_to(start_line_rect.width() as f64, start_y);
+                        context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
 
                         let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height()) + PADDING as f64;
 
