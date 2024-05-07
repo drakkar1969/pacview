@@ -500,10 +500,10 @@ impl TextWidget {
                         // Link is all on one line
                         let start_char_rect = layout.index_to_pos(link.start as i32);
 
-                        let y = (start_char_rect.y() + start_char_rect.height()) as f64 / pango::SCALE as f64 + PADDING as f64;
+                        let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) + PADDING as f64;
 
-                        context.move_to(start_x as f64 / pango::SCALE as f64, y);
-                        context.line_to(end_x as f64 / pango::SCALE as f64, y);
+                        context.move_to(pango::units_to_double(start_x), y);
+                        context.line_to(pango::units_to_double(end_x), y);
                     } else {
                         // Link is split across lines
                         let start_char_rect = layout.index_to_pos(link.start as i32);
@@ -511,15 +511,15 @@ impl TextWidget {
 
                         let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().pixel_extents();
 
-                        let start_y = (start_char_rect.y() + start_char_rect.height()) as f64 / pango::SCALE as f64 + PADDING as f64;
+                        let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) + PADDING as f64;
 
-                        context.move_to(start_x as f64 / pango::SCALE as f64, start_y);
+                        context.move_to(pango::units_to_double(start_x), start_y);
                         context.line_to(start_line_rect.width() as f64, start_y);
 
-                        let end_y = (end_char_rect.y() + end_char_rect.height()) as f64 / pango::SCALE as f64 + PADDING as f64;
+                        let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height()) + PADDING as f64;
 
                         context.move_to(0.0, end_y);
-                        context.line_to(end_x as f64 / pango::SCALE as f64, end_y);
+                        context.line_to(pango::units_to_double(end_x), end_y);
                     }
 
                     let (red, green, blue) = imp.rgba_to_pango_rgb(LINK_RGBA.get());
@@ -662,7 +662,7 @@ impl TextWidget {
     fn _inside_index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
         let layout = self.imp().pango_layout.get().unwrap();
 
-        let (inside, mut index, trailing) = layout.xy_to_index(x as i32 * pango::SCALE, y as i32 * pango::SCALE);
+        let (inside, mut index, trailing) = layout.xy_to_index(pango::units_from_double(x), pango::units_from_double(y));
 
         if trailing > 0 {
             index += 1;
