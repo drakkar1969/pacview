@@ -137,7 +137,7 @@ impl LogDialog {
                 Regex::new("\\[(.+?)T(.+?)\\+.+?\\] (.+)").expect("Regex error")
             });
 
-            let log_list: Vec<LogObject> = log.lines()
+            let log_list: Vec<LogObject> = log.lines().rev()
                 .filter_map(|s| {
                     expr.captures(s)
                         .filter(|caps| caps.len() == 4)
