@@ -158,13 +158,13 @@ impl PackageView {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        // Bind selection item count to n_items property
-        imp.selection.bind_property("n-items", self, "n-items")
+        // Bind item count to n_items property
+        imp.filter_model.bind_property("n-items", self, "n-items")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        // Bind selection item count to empty label visibility
-        imp.selection.bind_property("n-items", &imp.empty_label.get(), "visible")
+        // Bind item count to empty label visibility
+        imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
