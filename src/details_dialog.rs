@@ -51,6 +51,8 @@ mod imp {
         #[template_child]
         pub(super) files_model: TemplateChild<gio::ListStore>,
         #[template_child]
+        pub(super) files_filter_model: TemplateChild<gtk::FilterListModel>,
+        #[template_child]
         pub(super) files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) files_filter: TemplateChild<gtk::StringFilter>,
@@ -158,11 +160,11 @@ impl DetailsDialog {
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
         // Bind files count to files header label
-        imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
+        imp.files_filter_model.bind_property("n-items", &imp.files_header_label.get(), "label")
             .transform_to(move |binding, n_items: u32| {
                 let model = binding.source()
-                    .and_downcast::<gtk::SingleSelection>()
-                    .and_then(|selection| selection.model())
+                    .and_downcast::<gtk::FilterListModel>()
+                    .and_then(|filter_model| filter_model.model())
                     .expect("Could not downcast to 'ListModel'");
 
                 let files_len = model.n_items();
@@ -173,12 +175,12 @@ impl DetailsDialog {
             .build();
 
         // Bind files count to files open/copy button states
-        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
+        imp.files_filter_model.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
+        imp.files_filter_model.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
