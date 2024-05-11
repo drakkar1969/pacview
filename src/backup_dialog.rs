@@ -140,7 +140,7 @@ impl BackupDialog {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // View header factory signals
+        // View section header factory signals
         imp.section_factory.connect_setup(|_, item| {
             let item = item
                 .downcast_ref::<gtk::ListHeader>()
@@ -166,7 +166,7 @@ impl BackupDialog {
                 .expect("Could not downcast to 'BackupObject'");
 
             label.set_label(&format!("{} ({})",
-                obj.package().unwrap_or("(Unknown)".to_string()),
+                obj.package().unwrap_or("Unknown package".to_string()),
                 item.n_items()
             ));
         });
