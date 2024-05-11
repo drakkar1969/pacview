@@ -80,7 +80,7 @@ text-widget {
 	color: @view_fg_color;
 }
 
-/* Details window images */
+/* Dialog images */
 image.bubble {
 	border-radius: 50%;
 	background: alpha(currentColor, 0.15);
@@ -93,19 +93,18 @@ image.bubble.large {
 	min-height: 64px;
 }
 
-/* Details window search entry */
+/* Dialog rounded controls */
 entry.rounded {
 	border-radius: 9999px;
 	padding-right: 12px;
 }
 
-/* Backup dialog dropdown */
 dropdown.rounded,
 dropdown.rounded > button.toggle {
 	border-radius: 9999px;
 }
 
-/* Window lists */
+/* Dialog lists */
 listview.card-list {
 	background-color: transparent;
 }
