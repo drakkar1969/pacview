@@ -25,6 +25,8 @@ mod imp {
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
+        pub(super) package_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
         pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
@@ -34,7 +36,9 @@ mod imp {
         #[template_child]
         pub(super) selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
-        pub(super) message_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) package_filter: TemplateChild<gtk::CustomFilter>,
     }
 
     //-----------------------------------
@@ -99,7 +103,28 @@ impl LogDialog {
 
         // Files search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
-            imp.message_filter.set_search(Some(&entry.text()));
+            imp.search_filter.set_search(Some(&entry.text()));
+        }));
+
+        // Package button toggled signal
+        imp.package_button.connect_toggled(clone!(@weak imp => move |package_button| {
+            static EXPR: OnceLock<Regex> = OnceLock::new();
+
+            let expr = EXPR.get_or_init(|| {
+                Regex::new("\\[ALPM\\] installed|removed|upgraded|downgraded .+").expect("Regex error")
+            });
+
+            if package_button.is_active() {
+                imp.package_filter.set_filter_func(move |item| {
+                    let msg = item
+                        .downcast_ref::<LogObject>()
+                        .expect("Could not downcast to 'LogObject'");
+
+                    expr.is_match(&msg.message())
+                });
+            } else {
+                imp.package_filter.unset_filter_func();
+            }
         }));
 
         // Copy button clicked signal

@@ -61,6 +61,15 @@
                       <object class="GtkBox">
                         <property name="spacing">6</property>
                         <child>
+                          <object class="GtkToggleButton" id="package_button">
+                            <property name="icon-name">package-x-generic-symbolic</property>
+                            <property name="tooltip-text">Filter Package Events</property>
+                            <style>
+                              <class name="flat"/>
+                            </style>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkButton" id="copy_button">
                             <property name="icon-name">edit-copy-symbolic</property>
                             <property name="tooltip-text">Copy Log Messages</property>
@@ -93,10 +102,17 @@
                         <property name="model">
                           <object class="GtkFilterListModel" id="filter_model">
                             <property name="filter">
-                              <object class="GtkStringFilter" id="message_filter">
-                                <property name="expression">
-                                  <lookup name="message" type="LogObject"/>
-                                </property>
+                              <object class="GtkEveryFilter" id="message_filter">
+                                <child>
+                                  <object class="GtkStringFilter" id="search_filter">
+                                    <property name="expression">
+                                      <lookup name="message" type="LogObject"/>
+                                    </property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkCustomFilter" id="package_filter"/>
+                                </child>
                               </object>
                             </property>
                             <property name="model">
