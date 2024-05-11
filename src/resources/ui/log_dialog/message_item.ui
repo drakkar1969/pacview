@@ -5,7 +5,13 @@
       <object class="GtkLabel">
         <property name="margin-start">2</property>
         <property name="margin-end">2</property>
+        <property name="ellipsize">end</property>
         <binding name="label">
+          <lookup name="message" type="LogObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <binding name="tooltip-text">
           <lookup name="message" type="LogObject">
             <lookup name="item">GtkListItem</lookup>
           </lookup>
