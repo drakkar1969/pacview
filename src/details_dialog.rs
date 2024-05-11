@@ -4,7 +4,6 @@ use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use adw::prelude::AdwDialogExt;
 
 use regex::Regex;
 use glob::glob;
@@ -123,6 +122,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_widgets();
             obj.setup_signals();
         }
     }
@@ -146,6 +146,86 @@ impl DetailsDialog {
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Set files search entry key capture widget
+        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
+
+        // Bind files count to files header label
+        imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
+            .transform_to(move |binding, n_items: u32| {
+                let model = binding.source()
+                    .and_downcast::<gtk::SingleSelection>()
+                    .and_then(|selection| selection.model())
+                    .expect("Could not downcast to 'ListModel'");
+
+                let files_len = model.n_items();
+
+                Some(format!("Files ({n_items} of {files_len})"))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind files count to files open/copy button states
+        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind log count to log copy button state
+        imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind cache count to cache header label
+        imp.cache_selection.bind_property("n-items", &imp.cache_header_label.get(), "label")
+            .transform_to(move |_, n_items: u32| {
+                Some(format!("Cache Files ({n_items})"))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind cache count to cache open/copy button states
+        imp.cache_selection.bind_property("n-items", &imp.cache_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.cache_selection.bind_property("n-items", &imp.cache_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind backup count to backup header label
+        imp.backup_selection.bind_property("n-items", &imp.backup_header_label.get(), "label")
+            .transform_to(move |_, n_items: u32| {
+                Some(format!("Cache Files ({n_items})"))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind backup count to backup open/copy button states
+        imp.backup_selection.bind_property("n-items", &imp.backup_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.backup_selection.bind_property("n-items", &imp.backup_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 
     //-----------------------------------
@@ -277,17 +357,17 @@ impl DetailsDialog {
     }
 
     //-----------------------------------
-    // Update banner
+    // Populate banner
     //-----------------------------------
-    fn update_ui_banner(&self, pkg: &PkgObject) {
+    fn populate_banner(&self, pkg: &PkgObject) {
         // Set package name in banner
         self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repository(), name=pkg.name()));
     }
 
     //-----------------------------------
-    // Update stack
+    // Populate stack
     //-----------------------------------
-    fn update_ui_stack(&self, installed: bool) {
+    fn populate_stack(&self, installed: bool) {
         let imp = self.imp();
 
         imp.files_button.set_sensitive(installed);
@@ -301,13 +381,10 @@ impl DetailsDialog {
     }
 
     //-----------------------------------
-    // Update files page
+    // Populate files page
     //-----------------------------------
-    fn update_ui_files_page(&self, pkg: &PkgObject) {
+    fn populate_files_page(&self, pkg: &PkgObject) {
         let imp = self.imp();
-
-        // Set files search entry key capture widget
-        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
         // Populate files list
         let files_list: Vec<gtk::StringObject> = pkg.files().iter()
@@ -315,36 +392,15 @@ impl DetailsDialog {
             .collect();
 
         imp.files_model.extend_from_slice(&files_list);
-
-        // Bind files count to files header label
-        let files_len = files_list.len();
-
-        imp.files_selection.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(format!("Files ({n_items} of {files_len})")))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        // Bind files count to files open/copy button states
-        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
     }
 
     //-----------------------------------
-    // Update logs page
+    // Populate logs page
     //-----------------------------------
-    fn update_ui_logs_page(&self, pkg: &PkgObject, log_file: &str) {
+    fn populate_logs_page(&self, pkg: &PkgObject, log_file: &str) {
         let imp = self.imp();
 
         // Populate log messages
-        let mut log_error = false;
-
         if let Ok(log) = fs::read_to_string(log_file) {
             let expr = Regex::new(&format!("\\[(.+?)T(.+?)\\+.+?\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).expect("Regex error");
 
@@ -360,22 +416,15 @@ impl DetailsDialog {
 
             imp.log_model.extend_from_slice(&log_lines);
         } else {
-            log_error = true;
+            // Show overlay error label
+            imp.log_overlay_label.set_visible(true);
         }
-
-        // Set copy button state
-        let n_items = imp.log_model.n_items();
-
-        imp.log_copy_button.set_sensitive(n_items > 0);
-
-        // Set overlay label visibility
-        imp.log_overlay_label.set_visible(log_error);
     }
 
     //-----------------------------------
-    // Update cache page
+    // Populate cache page
     //-----------------------------------
-    fn update_ui_cache_page(&self, pkg: &PkgObject, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
+    fn populate_cache_page(&self, pkg: &PkgObject, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         let pkg_name = &pkg.name();
@@ -390,8 +439,6 @@ impl DetailsDialog {
             .collect();
 
         // Populate cache files list
-        let mut cache_error = false;
-
         for dir in cache_dirs {
             if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
                 // Find cache files that include package name
@@ -411,27 +458,16 @@ impl DetailsDialog {
 
                 imp.cache_model.extend_from_slice(&cache_list);
             } else {
-                cache_error = true;
+                // Show overlay error label
+                imp.cache_overlay_label.set_visible(true);
             }
         }
-
-        // Set cache header label
-        let n_items = imp.cache_model.n_items();
-
-        imp.cache_header_label.set_label(&format!("Cache Files ({n_items})"));
-
-        // Set open/copy button states
-        imp.cache_open_button.set_sensitive(n_items > 0);
-        imp.cache_copy_button.set_sensitive(n_items > 0);
-
-        // Set overlay label visibility
-        imp.cache_overlay_label.set_visible(cache_error);
     }
 
     //-----------------------------------
-    // Update backup page
+    // Populate backup page
     //-----------------------------------
-    fn update_ui_backup_page(&self, pkg: &PkgObject) {
+    fn populate_backup_page(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
         // Populate backup list
@@ -440,30 +476,19 @@ impl DetailsDialog {
             .collect();
 
         imp.backup_model.extend_from_slice(&backup_list);
-
-        // Set backup header label
-        let n_items = imp.backup_model.n_items();
-
-        imp.backup_header_label.set_label(&format!("Backup Files ({n_items})"));
-
-        // Set open/copy button states
-        imp.backup_open_button.set_sensitive(n_items > 0);
-        imp.backup_copy_button.set_sensitive(n_items > 0);
     }
 
     //-----------------------------------
-    // Public show function
+    // Populate widgets
     //-----------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Widget>, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
-        self.update_ui_banner(pkg);
-        self.update_ui_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
+    pub fn populate(&self, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
+        self.populate_banner(pkg);
+        self.populate_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
 
-        self.update_ui_files_page(pkg);
-        self.update_ui_logs_page(pkg, log_file);
-        self.update_ui_cache_page(pkg, cache_dirs, pkg_snapshot);
-        self.update_ui_backup_page(pkg);
-
-        self.present(parent);
+        self.populate_files_page(pkg);
+        self.populate_logs_page(pkg, log_file);
+        self.populate_cache_page(pkg, cache_dirs, pkg_snapshot);
+        self.populate_backup_page(pkg);
     }
 }
 
