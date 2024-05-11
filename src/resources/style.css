@@ -99,6 +99,12 @@ entry.rounded {
 	padding-right: 12px;
 }
 
+/* Backup dialog dropdown */
+dropdown.rounded,
+dropdown.rounded > button.toggle {
+	border-radius: 9999px;
+}
+
 /* Window lists */
 listview.card-list {
 	background-color: transparent;

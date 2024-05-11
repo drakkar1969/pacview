@@ -26,7 +26,7 @@ mod imp {
         #[template_child]
         pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
-        pub(super) status_model: TemplateChild<gtk::StringList>,
+        pub(super) status_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -263,10 +263,10 @@ impl BackupDialog {
                 status_list.sort_unstable();
                 status_list.dedup();
 
-                imp.status_model.append("All");
-                imp.status_model.splice(1, 0, &status_list.iter()
-                    .map(|s| s.as_str())
-                    .collect::<Vec<&str>>()
+                imp.status_model.append(&gtk::StringObject::new("All"));
+                imp.status_model.extend_from_slice(&status_list.iter()
+                    .map(|s| gtk::StringObject::new(s))
+                    .collect::<Vec<gtk::StringObject>>()
                 );
             }
         }));
