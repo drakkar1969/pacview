@@ -54,8 +54,7 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::PacViewWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -81,16 +80,8 @@ mod imp {
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
 
-        #[property(get, set)]
-        auto_refresh: Cell<bool>,
-        #[property(get, set)]
-        aur_command: RefCell<String>,
-        #[property(get, set)]
-        search_delay: Cell<f64>,
-        #[property(get, set)]
-        remember_columns: Cell<bool>,
-        #[property(get, set)]
-        remember_sort: Cell<bool>,
+        #[template_child]
+        pub(super) prefs_dialog: TemplateChild<PreferencesDialog>,
 
         pub(super) gsettings: OnceCell<gio::Settings>,
 
@@ -127,7 +118,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for PacViewWindow {
         //-----------------------------------
         // Constructor
@@ -213,11 +203,11 @@ impl PacViewWindow {
         imp.pane.set_position(gsettings.int("infopane-position"));
 
         // Load preferences
-        self.set_auto_refresh(gsettings.boolean("auto-refresh"));
-        self.set_aur_command(gsettings.string("aur-update-command"));
-        self.set_search_delay(gsettings.double("search-delay"));
-        self.set_remember_columns(gsettings.boolean("remember-columns"));
-        self.set_remember_sort(gsettings.boolean("remember-sorting"));
+        imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
+        imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
+        imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
+        imp.prefs_dialog.set_remember_columns(gsettings.boolean("remember-columns"));
+        imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
 
         // Load package view columns
         imp.package_view.set_columns(&gsettings.strv("view-columns").iter().map(|s| s.as_str()).collect::<Vec<&str>>());
@@ -260,21 +250,21 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "infopane-position", imp.pane.position());
 
         // Save preferences
-        self.set_gsetting(gsettings, "auto-refresh", self.auto_refresh());
-        self.set_gsetting(gsettings, "aur-update-command", self.aur_command());
-        self.set_gsetting(gsettings, "search-delay", self.search_delay());
-        self.set_gsetting(gsettings, "remember-columns", self.remember_columns());
-        self.set_gsetting(gsettings, "remember-sorting", self.remember_sort());
+        self.set_gsetting(gsettings, "auto-refresh", imp.prefs_dialog.auto_refresh());
+        self.set_gsetting(gsettings, "aur-update-command", imp.prefs_dialog.aur_command());
+        self.set_gsetting(gsettings, "search-delay", imp.prefs_dialog.search_delay());
+        self.set_gsetting(gsettings, "remember-columns", imp.prefs_dialog.remember_columns());
+        self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
 
         // Save package view columns
-        if self.remember_columns() {
+        if imp.prefs_dialog.remember_columns() {
             self.set_gsetting(gsettings, "view-columns", imp.package_view.columns());
         } else {
             self.set_gsetting(gsettings, "view-columns", DEFAULT_COLS.map(String::from).to_vec());
         }
 
         // Save package view sort column/sort order
-        if self.remember_sort() {
+        if imp.prefs_dialog.remember_sort() {
             let (sort_col, sort_asc) = imp.package_view.sorting();
 
             self.set_gsetting(gsettings, "sort-column", sort_col);
@@ -320,7 +310,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Bind search header delay preference
-        self.bind_property("search-delay", &imp.search_header.get(), "delay")
+        imp.prefs_dialog.bind_property("search-delay", &imp.search_header.get(), "delay")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -511,23 +501,7 @@ impl PacViewWindow {
         // Add show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
             .activate(|window: &Self, _, _| {
-                let prefs_dialog = PreferencesDialog::new(
-                    window.auto_refresh(),
-                    &window.aur_command(),
-                    window.search_delay(),
-                    window.remember_columns(),
-                    window.remember_sort()
-                );
-
-                prefs_dialog.connect_closed(clone!(@weak window => move |prefs_dialog| {
-                    window.set_auto_refresh(prefs_dialog.auto_refresh());
-                    window.set_aur_command(prefs_dialog.aur_command());
-                    window.set_search_delay(prefs_dialog.search_delay());
-                    window.set_remember_columns(prefs_dialog.remember_columns());
-                    window.set_remember_sort(prefs_dialog.remember_sort());
-                }));
-
-                prefs_dialog.present(window);
+                window.imp().prefs_dialog.present(window);
             })
             .build();
 
@@ -963,7 +937,7 @@ impl PacViewWindow {
             let mut update_str = String::from("");
             let mut error_msg: Option<String> = None;
 
-            let aur_command = window.aur_command();
+            let aur_command = imp.prefs_dialog.aur_command();
 
             // Check for pacman updates async
             let pacman_handle = window.run_update_command("/usr/bin/checkupdates");
@@ -1104,7 +1078,7 @@ impl PacViewWindow {
         // Attach receiver for async channel
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
             while let Ok(()) = receiver.recv().await {
-                if window.auto_refresh() {
+                if imp.prefs_dialog.auto_refresh() {
                     ActionGroupExt::activate_action(&window, "refresh", None);
                 }
             }
