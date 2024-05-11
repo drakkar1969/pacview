@@ -55,6 +55,9 @@
                     <child>
                       <object class="GtkSearchEntry" id="search_entry">
                         <property name="tooltip-text">Search in Messages</property>
+                        <style>
+                          <class name="rounded"/>
+                        </style>
                       </object>
                     </child>
                     <child>
@@ -66,6 +69,7 @@
                             <property name="tooltip-text">Filter Package Events</property>
                             <style>
                               <class name="flat"/>
+                              <class name="circular"/>
                             </style>
                           </object>
                         </child>
@@ -75,6 +79,7 @@
                             <property name="tooltip-text">Copy Log Messages</property>
                             <style>
                               <class name="flat"/>
+                              <class name="circular"/>
                             </style>
                           </object>
                         </child>
