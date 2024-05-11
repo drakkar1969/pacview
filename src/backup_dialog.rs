@@ -37,6 +37,8 @@ mod imp {
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
+        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
+        #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
@@ -106,11 +108,11 @@ impl BackupDialog {
         let imp = self.imp();
 
         // Bind backup files count to header label
-        imp.selection.bind_property("n-items", &imp.header_label.get(), "label")
+        imp.filter_model.bind_property("n-items", &imp.header_label.get(), "label")
             .transform_to(move |binding, n_items: u32| {
                 let model = binding.source()
-                    .and_downcast::<gtk::SingleSelection>()
-                    .and_then(|selection| selection.model())
+                    .and_downcast::<gtk::FilterListModel>()
+                    .and_then(|filter_model| filter_model.model())
                     .expect("Could not downcast to 'ListModel'");
 
                 let backup_len = model.n_items();
@@ -121,12 +123,12 @@ impl BackupDialog {
             .build();
 
         // Bind backup files count to open/copy button states
-        imp.selection.bind_property("n-items", &imp.open_button.get(), "sensitive")
+        imp.filter_model.bind_property("n-items", &imp.open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+        imp.filter_model.bind_property("n-items", &imp.copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
