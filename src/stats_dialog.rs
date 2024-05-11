@@ -1,7 +1,6 @@
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use adw::prelude::AdwDialogExt;
 
 use titlecase::titlecase;
 
@@ -68,9 +67,9 @@ impl StatsDialog {
     }
 
     //-----------------------------------
-    // Update widgets
+    // Populate widgets
     //-----------------------------------
-    fn update_ui(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
+    pub fn populate(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         // Iterate repos
@@ -110,15 +109,6 @@ impl StatsDialog {
             &format!("<b>{}</b>", tot_icount),
             &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
         ));
-    }
-
-    //-----------------------------------
-    // Public show function
-    //-----------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Widget>, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
-        self.update_ui(repo_names, pkg_snapshot);
-
-        self.present(parent);
     }
 }
 

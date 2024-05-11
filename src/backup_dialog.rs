@@ -2,7 +2,6 @@ use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use adw::prelude::AdwDialogExt;
 
 use titlecase::titlecase;
 
@@ -74,6 +73,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_widgets();
             obj.setup_signals();
         }
     }
@@ -97,6 +97,39 @@ impl BackupDialog {
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind backup files count to header label
+        imp.selection.bind_property("n-items", &imp.header_label.get(), "label")
+            .transform_to(move |binding, n_items: u32| {
+                let model = binding.source()
+                    .and_downcast::<gtk::SingleSelection>()
+                    .and_then(|selection| selection.model())
+                    .expect("Could not downcast to 'ListModel'");
+
+                let backup_len = model.n_items();
+
+                Some(format!("Backup Files ({n_items} of {backup_len})"))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind backup files count to open/copy button states
+        imp.selection.bind_property("n-items", &imp.open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 
     //-----------------------------------
@@ -183,9 +216,9 @@ impl BackupDialog {
     }
 
     //-----------------------------------
-    // Update widgets
+    // Populate widgets
     //-----------------------------------
-    fn update_ui(&self, pkg_snapshot: &[PkgObject]) {
+    pub fn populate(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         let backup_snapshot: Vec<(String, Vec<(String, String)>)> = pkg_snapshot.iter()
@@ -233,35 +266,8 @@ impl BackupDialog {
                     .map(|s| s.as_str())
                     .collect::<Vec<&str>>()
                 );
-
-                // Bind backup files count to header label
-                let backup_len = backup_list.len();
-
-                imp.selection.bind_property("n-items", &imp.header_label.get(), "label")
-                    .transform_to(move |_, n_items: u32| Some(format!("Backup Files ({n_items} of {backup_len})")))
-                    .flags(glib::BindingFlags::SYNC_CREATE)
-                    .build();
-
-                // Bind backup files count to open/copy button states
-                imp.selection.bind_property("n-items", &imp.open_button.get(), "sensitive")
-                    .transform_to(|_, n_items: u32| Some(n_items > 0))
-                    .flags(glib::BindingFlags::SYNC_CREATE)
-                    .build();
-
-                imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                    .transform_to(|_, n_items: u32| Some(n_items > 0))
-                    .flags(glib::BindingFlags::SYNC_CREATE)
-                    .build();
             }
         }));
-    }
-    //-----------------------------------
-    // Public show function
-    //-----------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Widget>, pkg_snapshot: &[PkgObject]) {
-        self.update_ui(pkg_snapshot);
-
-        self.present(parent);
     }
 }
 

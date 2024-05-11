@@ -5,7 +5,6 @@ use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
-use adw::prelude::AdwDialogExt;
 
 use regex::Regex;
 
@@ -121,9 +120,9 @@ impl LogDialog {
     }
 
     //-----------------------------------
-    // Update widgets
+    // Populate widgets
     //-----------------------------------
-    fn update_ui(&self, log_file: &str) {
+    pub fn populate(&self, log_file: &str) {
         let imp = self.imp();
 
         // Set search entry key capture widget
@@ -149,15 +148,6 @@ impl LogDialog {
 
             imp.model.extend_from_slice(&log_list);
         }
-    }
-
-    //-----------------------------------
-    // Public show function
-    //-----------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Widget>, log_file: &str) {
-        self.update_ui(log_file);
-
-        self.present(parent);
     }
 }
 
