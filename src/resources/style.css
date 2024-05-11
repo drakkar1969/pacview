@@ -84,8 +84,13 @@ text-widget {
 image.bubble {
 	border-radius: 50%;
 	background: alpha(currentColor, 0.15);
-	min-width: 32px;
-	min-height: 32px;
+	min-width: 36px;
+	min-height: 36px;
+}
+
+image.bubble.medium {
+	min-width: 40px;
+	min-height: 40px;
 }
 
 image.bubble.large {

@@ -33,6 +33,7 @@
                     <property name="icon-name">details-log-symbolic</property>
                     <style>
                       <class name="bubble"/>
+                      <class name="medium"/>
                     </style>
                   </object>
                 </child>
@@ -50,10 +51,12 @@
                   <object class="GtkBox">
                     <property name="hexpand">True</property>
                     <property name="halign">end</property>
+                    <property name="valign">center</property>
                     <property name="margin-start">20</property>
                     <property name="spacing">20</property>
                     <child>
                       <object class="GtkSearchEntry" id="search_entry">
+                        <property name="valign">center</property>
                         <property name="tooltip-text">Search in Messages</property>
                         <style>
                           <class name="rounded"/>
@@ -62,6 +65,7 @@
                     </child>
                     <child>
                       <object class="GtkBox">
+                        <property name="valign">center</property>
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkToggleButton" id="package_button">

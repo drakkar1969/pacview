@@ -33,6 +33,7 @@
                     <property name="icon-name">details-backup-symbolic</property>
                     <style>
                       <class name="bubble"/>
+                      <class name="medium"/>
                     </style>
                   </object>
                 </child>
@@ -55,6 +56,7 @@
                     <child>
                       <object class="GtkDropDown" id="status_dropdown">
                         <property name="width-request">160</property>
+                        <property name="valign">center</property>
                         <property name="margin-start">24</property>
                         <property name="model">
                           <object class="GListStore" id="status_model">
@@ -78,6 +80,7 @@
                     </child>
                     <child>
                       <object class="GtkBox">
+                        <property name="valign">center</property>
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkButton" id="open_button">
