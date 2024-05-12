@@ -245,61 +245,6 @@ impl PackageView {
     //-----------------------------------
     // Public filter functions
     //-----------------------------------
-    pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
-        let imp = self.imp();
-
-        if search_term.is_empty() {
-            imp.search_filter.unset_filter_func();
-        } else {
-            if mode == SearchMode::Exact {
-                let term = search_term.to_lowercase();
-
-                imp.search_filter.set_filter_func(move |item| {
-                    let pkg: &PkgObject = item
-                        .downcast_ref::<PkgObject>()
-                        .expect("Could not downcast to 'PkgObject'");
-
-                    match prop {
-                        SearchProp::Name => { pkg.name().eq(&term) },
-                        SearchProp::NameDesc => { pkg.name().eq(&term) || pkg.description().eq(&term) },
-                        SearchProp::Group => { pkg.groups().eq(&term) },
-                        SearchProp::Deps => { pkg.depends().iter().any(|s| s.eq(&term)) },
-                        SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.eq(&term)) },
-                        SearchProp::Provides => { pkg.provides().iter().any(|s| s.eq(&term)) },
-                        SearchProp::Files => { pkg.files().iter().any(|s| s.eq(&term)) },
-                    }
-                });
-            } else {
-                let term = search_term.to_lowercase();
-
-                imp.search_filter.set_filter_func(move |item| {
-                    let pkg: &PkgObject = item
-                        .downcast_ref::<PkgObject>()
-                        .expect("Could not downcast to 'PkgObject'");
-
-                    let mut results = term.split_whitespace()
-                        .map(|t| {
-                            match prop {
-                                SearchProp::Name => { pkg.name().to_lowercase().contains(t) },
-                                SearchProp::NameDesc => { pkg.name().to_lowercase().contains(t) || pkg.description().to_lowercase().contains(t) },
-                                SearchProp::Group => { pkg.groups().to_lowercase().contains(t) },
-                                SearchProp::Deps => { pkg.depends().iter().any(|s| s.to_lowercase().contains(t)) },
-                                SearchProp::Optdeps => { pkg.optdepends().iter().any(|s| s.to_lowercase().contains(t)) },
-                                SearchProp::Provides => { pkg.provides().iter().any(|s| s.to_lowercase().contains(t)) },
-                                SearchProp::Files => { pkg.files().iter().any(|s| s.to_lowercase().contains(t)) },
-                            }
-                        });
-
-                    if mode == SearchMode::All {
-                        results.all(|x| x)
-                    } else {
-                        results.any(|x| x)
-                    }
-                });
-            }
-        }
-    }
-
     pub fn set_repo_filter(&self, repo_id: Option<&str>) {
         self.imp().repo_filter.set_search(repo_id);
     }
@@ -312,6 +257,47 @@ impl PackageView {
 
             pkg.flags().intersects(status_id)
         });
+    }
+
+    pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
+        let imp = self.imp();
+
+        if search_term.is_empty() {
+            imp.search_filter.unset_filter_func();
+        } else {
+            let term = search_term.to_lowercase();
+
+            imp.search_filter.set_filter_func(move |item| {
+                let pkg: &PkgObject = item
+                    .downcast_ref::<PkgObject>()
+                    .expect("Could not downcast to 'PkgObject'");
+
+                let search_fields = match prop {
+                    SearchProp::Name => { vec![pkg.name()] },
+                    SearchProp::NameDesc => { vec![pkg.name(), pkg.description()] },
+                    SearchProp::Group => { vec![pkg.groups()] },
+                    SearchProp::Deps => { pkg.depends() },
+                    SearchProp::Optdeps => { pkg.optdepends() },
+                    SearchProp::Provides => { pkg.provides() },
+                    SearchProp::Files => { pkg.files() },
+                };
+
+                if mode == SearchMode::Exact {
+                    search_fields.iter().any(|s| s.eq(&term))
+                } else {
+                    let mut results = term.split_whitespace()
+                        .map(|t| {
+                            search_fields.iter().any(|s| s.to_lowercase().contains(t))
+                        });
+
+                    if mode == SearchMode::All {
+                        results.all(|x| x)
+                    } else {
+                        results.any(|x| x)
+                    }
+                }
+            });
+        }
     }
 
     //-----------------------------------
