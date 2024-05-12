@@ -40,6 +40,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/dropdown_list_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/filename_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/status_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/section_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/log_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/cache_item.ui</file>

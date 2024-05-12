@@ -43,7 +43,7 @@ mod imp {
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
-        pub(super) section_factory: TemplateChild<gtk::SignalListItemFactory>,
+        pub(super) section_factory: TemplateChild<gtk::BuilderListItemFactory>,
     }
 
     //-----------------------------------
@@ -59,6 +59,8 @@ mod imp {
             BackupObject::ensure_type();
 
             klass.bind_template();
+
+            klass.rust_template_scope();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -132,6 +134,24 @@ impl BackupDialog {
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Add section header factory callback
+        let section_factory_scope = imp.section_factory.scope()
+            .and_downcast::<gtk::BuilderRustScope>()
+            .expect("Could not downcast to 'BuilderRustScope'");
+
+        section_factory_scope.add_callback("get_section_header", |values| {
+            let header = values.get(0)
+                .and_then(|value| value.get::<gtk::ListHeader>().ok())
+                .expect("Could not get 'ListHeader' from Value");
+
+            let package = values.get(1)
+                .and_then(|value| value.get::<BackupObject>().ok())
+                .and_then(|obj| obj.package())
+                .unwrap_or("Unknown package".to_string());
+
+            Some(format!("{} ({})", package, header.n_items()).to_value())
+        });
     }
 
     //-----------------------------------
@@ -139,38 +159,6 @@ impl BackupDialog {
     //-----------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
-
-        // View section header factory signals
-        imp.section_factory.connect_setup(|_, item| {
-            let item = item
-                .downcast_ref::<gtk::ListHeader>()
-                .expect("Could not downcast to 'ListHeader'");
-
-            let label = gtk::Label::builder()
-                .xalign(0.0)
-                .build();
-
-            item.set_child(Some(&label));
-        });
-
-        imp.section_factory.connect_bind(|_, item| {
-            let item = item
-                .downcast_ref::<gtk::ListHeader>()
-                .expect("Could not downcast to 'ListHeader'");
-
-            let label = item.child()
-                .and_downcast::<gtk::Label>()
-                .expect("Could not downcast to 'Label'");
-
-            let obj = item.item()
-                .and_downcast::<BackupObject>()
-                .expect("Could not downcast to 'BackupObject'");
-
-            label.set_label(&format!("{} ({})",
-                obj.package().unwrap_or("Unknown package".to_string()),
-                item.n_items()
-            ));
-        });
 
         // Status dropdown selected property notify signal
         imp.status_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {

@@ -155,7 +155,8 @@
                       </object>
                     </property>
                     <property name="header-factory">
-                      <object class="GtkSignalListItemFactory" id="section_factory">
+                      <object class="GtkBuilderListItemFactory" id="section_factory">
+                        <property name="resource">/com/github/PacView/ui/backup_dialog/section_header.ui</property>
                       </object>
                     </property>
                     <child>

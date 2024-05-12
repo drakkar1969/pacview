@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListHeader">
+    <property name="child">
+      <object class="GtkLabel">
+        <binding name="label">
+          <closure type="gchararray" function="get_section_header">
+            <lookup name="item">GtkListHeader</lookup>
+          </closure>
+        </binding>
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>
