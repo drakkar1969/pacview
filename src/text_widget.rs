@@ -19,8 +19,9 @@ const PADDING: i32 = 4;
 // GLOBAL: Color from CSS function
 //------------------------------------------------------------------------------
 fn color_from_css(css: &str) -> gdk::RGBA {
-    let label = gtk::Label::new(None);
-    label.add_css_class("css-label");
+    let label = gtk::Label::builder()
+        .css_classes(["css-label"])
+        .build();
 
     let css_provider = gtk::CssProvider::new();
     css_provider.load_from_string(&format!("label.css-label {{ color: {css}; }}"));
@@ -774,8 +775,9 @@ impl TextWidget {
         imp.draw_area.add_controller(drag_controller);
 
         // Add mouse click gesture controller
-        let click_gesture = gtk::GestureClick::new();
-        click_gesture.set_button(gdk::BUTTON_PRIMARY);
+        let click_gesture = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_PRIMARY)
+            .build();
 
         click_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |_, n, x, y| {
             let link = widget.link_at_xy(x, y);
@@ -843,8 +845,9 @@ impl TextWidget {
         imp.draw_area.add_controller(click_gesture);
 
         // Add popup menu controller
-        let popup_gesture = gtk::GestureClick::new();
-        popup_gesture.set_button(gdk::BUTTON_SECONDARY);
+        let popup_gesture = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_SECONDARY)
+            .build();
 
         popup_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |_, _, x, y| {
             // Enable/disable copy action

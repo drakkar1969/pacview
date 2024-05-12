@@ -146,8 +146,9 @@ impl BackupDialog {
                 .downcast_ref::<gtk::ListHeader>()
                 .expect("Could not downcast to 'ListHeader'");
 
-            let label = gtk::Label::new(None);
-            label.set_xalign(0.0);
+            let label = gtk::Label::builder()
+                .xalign(0.0)
+                .build();
 
             item.set_child(Some(&label));
         });

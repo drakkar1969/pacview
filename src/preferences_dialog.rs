@@ -179,14 +179,13 @@ impl PreferencesDialog {
 
         // Preferences reset button clicked signal
         imp.reset_button.connect_clicked(clone!(@weak self as dialog => move |_| {
-            let reset_dialog = adw::AlertDialog::new(
-                Some("Reset Preferences?"),
-                Some("Reset all preferences to their default values.")
-            );
+            let reset_dialog = adw::AlertDialog::builder()
+                .heading("Reset Preferences?")
+                .body("Reset all preferences to their default values.")
+                .default_response("reset")
+                .build();
 
             reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
-            reset_dialog.set_default_response(Some("reset"));
-
             reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
             reset_dialog.choose(
