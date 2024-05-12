@@ -2,13 +2,46 @@
 <interface>
   <template class="GtkListHeader">
     <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <closure type="gchararray" function="get_section_header">
-            <lookup name="item">GtkListHeader</lookup>
-          </closure>
-        </binding>
-        <property name="xalign">0</property>
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">4</property>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkLabel">
+                <style>
+                  <class name="title-4"/>
+                </style>
+                <binding name="label">
+                  <lookup name="package" type="BackupObject">
+                    <lookup name="item">GtkListHeader</lookup>
+                  </lookup>
+                </binding>
+                <property name="xalign">0</property>
+                <property name="valign">baseline-fill</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator">
+                <style>
+                  <class name="spacer"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <binding name="label">
+                  <lookup name="n-items">GtkListHeader</lookup>
+                </binding>
+                <property name="xalign">0</property>
+                <property name="valign">baseline-fill</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkSeparator"/>
+        </child>
       </object>
     </property>
   </template>
