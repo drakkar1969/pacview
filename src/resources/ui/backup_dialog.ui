@@ -51,13 +51,13 @@
                   <object class="GtkBox">
                     <property name="hexpand">True</property>
                     <property name="halign">end</property>
-                    <property name="margin-start">20</property>
-                    <property name="spacing">20</property>
+                    <property name="valign">center</property>
+                    <property name="spacing">6</property>
                     <child>
                       <object class="GtkDropDown" id="status_dropdown">
                         <property name="width-request">160</property>
-                        <property name="valign">center</property>
-                        <property name="margin-start">24</property>
+                        <property name="margin-start">20</property>
+                        <property name="margin-end">14</property>
                         <property name="model">
                           <object class="GListStore" id="status_model">
                             <property name="item-type">GtkStringObject</property>
@@ -79,29 +79,23 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkBox">
-                        <property name="valign">center</property>
-                        <property name="spacing">6</property>
-                        <child>
-                          <object class="GtkButton" id="open_button">
-                            <property name="icon-name">folder-open-symbolic</property>
-                            <property name="tooltip-text">Show Selected in File Manager</property>
-                            <style>
-                              <class name="flat"/>
-                              <class name="circular"/>
-                            </style>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="copy_button">
-                            <property name="icon-name">edit-copy-symbolic</property>
-                            <property name="tooltip-text">Copy Backup List</property>
-                            <style>
-                              <class name="flat"/>
-                              <class name="circular"/>
-                            </style>
-                          </object>
-                        </child>
+                      <object class="GtkButton" id="open_button">
+                        <property name="icon-name">folder-open-symbolic</property>
+                        <property name="tooltip-text">Show Selected in File Manager</property>
+                        <style>
+                          <class name="flat"/>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="copy_button">
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <property name="tooltip-text">Copy Backup List</property>
+                        <style>
+                          <class name="flat"/>
+                          <class name="circular"/>
+                        </style>
                       </object>
                     </child>
                   </object>
