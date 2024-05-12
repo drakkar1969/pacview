@@ -74,8 +74,7 @@ mod imp {
         #[template_child]
         pub(super) clear_button: TemplateChild<gtk::Button>,
 
-        pub(super) capture_widget: RefCell<Option<gtk::Widget>>,
-        pub(super) capture_controller: RefCell<gtk::EventControllerKey>,
+        pub(super) has_capture_widget: Cell<bool>,
 
         #[property(get, set, nullable)]
         title: RefCell<Option<String>>,
@@ -530,28 +529,24 @@ impl SearchHeader {
     pub fn set_key_capture_widget(&self, widget: gtk::Widget) {
         let imp = self.imp();
 
-        if let Some(current_widget) = &*imp.capture_widget.borrow() {
-            current_widget.remove_controller(&*imp.capture_controller.borrow());
-        }
+        if !imp.has_capture_widget.get() {
+            let controller = gtk::EventControllerKey::new();
 
-        let controller = gtk::EventControllerKey::new();
-
-        controller.connect_key_pressed(clone!(@weak self as header => @default-return glib::Propagation::Proceed, move |controller, _, _, state| {
-            if !(state.contains(gdk::ModifierType::ALT_MASK) || state.contains(gdk::ModifierType::CONTROL_MASK))
-            {
-                if controller.forward(&header.imp().search_text.get()) {
+            controller.connect_key_pressed(clone!(@weak self as header => @default-return glib::Propagation::Proceed, move |controller, _, _, state| {
+                if !(state.contains(gdk::ModifierType::ALT_MASK) ||
+                    state.contains(gdk::ModifierType::CONTROL_MASK)) &&
+                    controller.forward(&header.imp().search_text.get())
+                {
                     header.set_enabled(true);
                 }
-            }
 
-            glib::Propagation::Proceed
-        }));
+                glib::Propagation::Proceed
+            }));
 
-        widget.add_controller(controller.clone());
+            widget.add_controller(controller);
 
-        imp.capture_widget.replace(Some(widget));
-
-        imp.capture_controller.replace(controller);
+            imp.has_capture_widget.set(true);
+        }
     }
 }
 
