@@ -177,10 +177,12 @@ mod imp {
         // Custom AUR error property setter
         //-----------------------------------
         fn set_aur_error(&self, aur_error: bool) {
+            let obj = self.obj();
+
             if aur_error {
-                self.search_text.add_css_class("error");
+                obj.add_css_class("error");
             } else {
-                self.search_text.remove_css_class("error");
+                obj.remove_css_class("error");
             }
 
             self.aur_error.set(aur_error);
