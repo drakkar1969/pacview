@@ -3,10 +3,8 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use titlecase::titlecase;
-
 use crate::pkg_object::PkgObject;
-use crate::backup_object::BackupObject;
+use crate::backup_object::{BackupObject, BackupStatus};
 use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
@@ -108,6 +106,16 @@ impl BackupDialog {
     //-----------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Populate status dropdown
+        imp.status_model.append(&gtk::StringObject::new("All"));
+
+        let enum_class = glib::EnumClass::new::<BackupStatus>();
+
+        imp.status_model.extend_from_slice(&enum_class.values().iter()
+            .map(|value| gtk::StringObject::new(value.name()))
+            .collect::<Vec<gtk::StringObject>>()
+        );
 
         // Bind backup files count to header label
         imp.filter_model.bind_property("n-items", &imp.header_label.get(), "label")
@@ -234,29 +242,13 @@ impl BackupDialog {
         glib::spawn_future_local(clone!(@weak imp => async move {
             while let Ok(data_list) = receiver.recv().await {
                 // Populate column view
-                let mut status_list: Vec<String> = vec![];
-
                 let backup_list: Vec<BackupObject> = data_list.into_iter()
                     .map(|(filename, hash, name, file_hash)| {
-                        let obj = BackupObject::new(&filename, &hash, Some(&name), file_hash.as_deref());
-
-                        status_list.push(titlecase(&obj.status_text()));
-
-                        obj
+                        BackupObject::new(&filename, &hash, Some(&name), file_hash.as_deref())
                     })
                     .collect();
 
                 imp.model.extend_from_slice(&backup_list);
-
-                // Populate status dropdown
-                status_list.sort_unstable();
-                status_list.dedup();
-
-                imp.status_model.append(&gtk::StringObject::new("All"));
-                imp.status_model.extend_from_slice(&status_list.iter()
-                    .map(|s| gtk::StringObject::new(s))
-                    .collect::<Vec<gtk::StringObject>>()
-                );
             }
         }));
     }
