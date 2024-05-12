@@ -93,8 +93,8 @@ impl BackupObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(filename: &str, hash: &str, package: Option<&str>, file_hash: Option<&str>) -> Self {
-        let status = if let Some(file_hash) = file_hash {
+    pub fn new(filename: &str, hash: &str, package: Option<&str>, file_hash: Result<&str, &alpm::ChecksumError>) -> Self {
+        let status = if let Ok(file_hash) = file_hash {
             if file_hash == hash {
                 BackupStatus::Unmodified
             } else {

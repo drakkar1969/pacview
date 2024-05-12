@@ -229,9 +229,9 @@ impl BackupDialog {
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
-            let data_list: Vec<(String, String, String, Option<String>)> = backup_snapshot.iter()
+            let data_list: Vec<(String, String, String, Result<String, alpm::ChecksumError>)> = backup_snapshot.iter()
                 .flat_map(|(name, backup)| backup.iter()
-                    .map(|(filename, hash)| (filename.to_string(), hash.to_string(), name.to_string(), alpm::compute_md5sum(filename.as_str()).ok()))
+                    .map(|(filename, hash)| (filename.to_string(), hash.to_string(), name.to_string(), alpm::compute_md5sum(filename.as_str())))
                 )
                 .collect();
 
