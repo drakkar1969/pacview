@@ -10,7 +10,7 @@
             <child>
               <object class="AdwSwitchRow" id="refresh_switchrow">
                 <property name="title">Auto _Refresh</property>
-                <property name="subtitle">Refresh window on package changes</property>
+                <property name="subtitle">Refresh window when local pacman database changes</property>
                 <property name="use-underline">True</property>
               </object>
             </child>
