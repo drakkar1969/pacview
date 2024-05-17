@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
 use crate::pkg_object::PkgObject;
-use crate::backup_object::{BackupObject, BackupStatus};
+use crate::backup_object::{BackupObject, BackupStatus, BackupData};
 use crate::traits::EnumClassExt;
 use crate::utils::open_file_manager;
 
@@ -201,7 +203,7 @@ impl BackupDialog {
     pub fn populate(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
-        let backup_snapshot: Vec<(String, Vec<(String, String)>)> = pkg_snapshot.iter()
+        let backup_snapshot: HashMap<String, Vec<(String, String)>> = pkg_snapshot.iter()
             .filter(|pkg| !pkg.backup().is_empty())
             .map(|pkg| (pkg.name(), pkg.backup()))
             .collect();
@@ -210,9 +212,9 @@ impl BackupDialog {
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
-            let data_list: Vec<(String, String, Option<String>, Result<String, alpm::ChecksumError>)> = backup_snapshot.iter()
-                .flat_map(|(name, backup)| backup.iter()
-                    .map(|(filename, hash)| (filename.to_string(), hash.to_string(), Some(name.to_string()), alpm::compute_md5sum(filename.as_str())))
+            let data_list: Vec<BackupData> = backup_snapshot.iter()
+                .flat_map(|(package, backup)| backup.iter()
+                    .map(|(filename, hash)| BackupData::new(filename, hash, Some(package)))
                 )
                 .collect();
 
@@ -224,9 +226,7 @@ impl BackupDialog {
             while let Ok(data_list) = receiver.recv().await {
                 // Populate column view
                 let backup_list: Vec<BackupObject> = data_list.into_iter()
-                    .map(|(filename, hash, name, file_hash)| {
-                        BackupObject::new(&filename, &hash, name.as_deref(), file_hash.as_deref())
-                    })
+                    .map(|data| BackupObject::from_data(&data))
                     .collect();
 
                 imp.model.extend_from_slice(&backup_list);
