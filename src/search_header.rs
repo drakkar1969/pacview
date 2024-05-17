@@ -104,6 +104,8 @@ mod imp {
         spinning: Cell<bool>,
 
         pub(super) delay_source_id: RefCell<Option<glib::SourceId>>,
+
+        pub(super) action_group: RefCell<gio::SimpleActionGroup>,
     }
 
     //-----------------------------------
@@ -352,62 +354,6 @@ impl SearchHeader {
         // Add search prop property action
         let prop_action = gio::PropertyAction::new("set-prop", self, "prop");
 
-        // Add cycle search mode action
-        let cycle_mode_action = gio::ActionEntry::builder("cycle-mode")
-            .activate(|group: &gio::SimpleActionGroup, _, _| {
-                let state = group.action_state("set-mode")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchMode::next_nick(&state);
-
-                group.activate_action("set-mode", Some(&new_state.to_variant()));
-            })
-            .build();
-
-        // Add reverse cycle search mode action
-        let reverse_mode_action = gio::ActionEntry::builder("rev-cycle-mode")
-            .activate(|group: &gio::SimpleActionGroup, _, _| {
-                let state = group.action_state("set-mode")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchMode::previous_nick(&state);
-
-                group.activate_action("set-mode", Some(&new_state.to_variant()));
-            })
-            .build();
-
-        // Add cycle search prop action
-        let cycle_prop_action = gio::ActionEntry::builder("cycle-prop")
-            .activate(|group: &gio::SimpleActionGroup, _, _| {
-                let state = group.action_state("set-prop")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchProp::next_nick(&state);
-
-                group.activate_action("set-prop", Some(&new_state.to_variant()));
-            })
-            .build();
-
-        // Add reverse cycle search prop action
-        let reverse_prop_action = gio::ActionEntry::builder("rev-cycle-prop")
-            .activate(|group: &gio::SimpleActionGroup, _, _| {
-                let state = group.action_state("set-prop")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchProp::previous_nick(&state);
-
-                group.activate_action("set-prop", Some(&new_state.to_variant()));
-            })
-            .build();
-
         // Add reset search params action
         let reset_params_action = gio::ActionEntry::builder("reset-params")
             .activate(|group: &gio::SimpleActionGroup, _, _| {
@@ -424,7 +370,10 @@ impl SearchHeader {
         search_group.add_action(&mode_action);
         search_group.add_action(&prop_action);
 
-        search_group.add_action_entries([cycle_mode_action, reverse_mode_action, cycle_prop_action, reverse_prop_action, reset_params_action]);
+        search_group.add_action_entries([reset_params_action]);
+
+        // Store search action group
+        self.imp().action_group.replace(search_group);
     }
 
     //-----------------------------------
@@ -437,13 +386,47 @@ impl SearchHeader {
         // Add cycle search mode shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>M"),
-            Some(gtk::NamedAction::new("search.cycle-mode"))
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let header = widget
+                    .downcast_ref::<SearchHeader>()
+                    .expect("Could not downcast to 'SearchHeader'");
+
+                let action_group = header.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-mode")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchMode::next_nick(&state);
+
+                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
+
+                glib::Propagation::Proceed
+            }))
         ));
 
         // Add reverse cycle search mode shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>M"),
-            Some(gtk::NamedAction::new("search.rev-cycle-mode"))
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let header = widget
+                    .downcast_ref::<SearchHeader>()
+                    .expect("Could not downcast to 'SearchHeader'");
+
+                let action_group = header.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-mode")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchMode::previous_nick(&state);
+
+                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
+
+                glib::Propagation::Proceed
+            }))
         ));
 
         // Add search mode letter shortcuts
@@ -468,13 +451,47 @@ impl SearchHeader {
         // Add cycle search prop shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>T"),
-            Some(gtk::NamedAction::new("search.cycle-prop"))
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let header = widget
+                    .downcast_ref::<SearchHeader>()
+                    .expect("Could not downcast to 'SearchHeader'");
+
+                let action_group = header.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-prop")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchProp::next_nick(&state);
+
+                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
+
+                glib::Propagation::Proceed
+            }))
         ));
 
         // Add reverse cycle search prop shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>T"),
-            Some(gtk::NamedAction::new("search.rev-cycle-prop"))
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let header = widget
+                    .downcast_ref::<SearchHeader>()
+                    .expect("Could not downcast to 'SearchHeader'");
+
+                let action_group = header.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-prop")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchProp::previous_nick(&state);
+
+                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
+
+                glib::Propagation::Proceed
+            }))
         ));
 
         // Add search prop numbered shortcuts
