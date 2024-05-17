@@ -23,6 +23,8 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/log_dialog.ui")]
     pub struct LogDialog {
         #[template_child]
+        pub(super) header_sub_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
         pub(super) package_button: TemplateChild<gtk::ToggleButton>,
@@ -33,6 +35,8 @@ mod imp {
         pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
@@ -70,6 +74,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_widgets();
             obj.setup_signals();
         }
     }
@@ -93,6 +98,20 @@ impl LogDialog {
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
+            .transform_to(|_, n_items: u32| {
+                Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
+            })
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
     }
 
     //-----------------------------------

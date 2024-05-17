@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -23,7 +23,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/backup_dialog.ui")]
     pub struct BackupDialog {
         #[template_child]
-        pub(super) header_label: TemplateChild<gtk::Label>,
+        pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
@@ -119,16 +119,25 @@ impl BackupDialog {
         );
 
         // Bind backup files count to header label
-        imp.filter_model.bind_property("n-items", &imp.header_label.get(), "label")
+        imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
             .transform_to(move |binding, n_items: u32| {
-                let model = binding.source()
+                let filter_model = binding.source()
                     .and_downcast::<gtk::FilterListModel>()
-                    .and_then(|filter_model| filter_model.model())
-                    .expect("Could not downcast to 'ListModel'");
+                    .expect("Could not downcast to 'FilterListModel'");
 
-                let backup_len = model.n_items();
+                let section_map: HashSet<String> = filter_model.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<BackupObject>()
+                            .expect("Could not downcast to 'BackupObject'")
+                            .package()
+                            .unwrap_or_default()
+                    })
+                    .collect();
 
-                Some(format!("Backup Files ({n_items} of {backup_len})"))
+                let section_len = section_map.len();
+
+                Some(format!("{n_items} files in {section_len} package{}", if section_len != 1 {"s"} else {""}))
             })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
