@@ -436,7 +436,7 @@ impl PacViewWindow {
             .build();
 
         // Add package view copy list action
-        let copy_action = gio::ActionEntry::builder("copy-list")
+        let copy_action = gio::ActionEntry::builder("copy-package-list")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
@@ -450,7 +450,7 @@ impl PacViewWindow {
         self.add_action_entries([refresh_action, all_pkgs_action, stats_action, backup_action, log_action, copy_action]);
 
         // Bind package view item count to copy list action enabled state
-        let copy_action = self.lookup_action("copy-list").unwrap();
+        let copy_action = self.lookup_action("copy-package-list").unwrap();
 
         imp.package_view.bind_property("n-items", &copy_action, "enabled")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
@@ -458,20 +458,20 @@ impl PacViewWindow {
             .build();
 
         // Add info pane prev/next actions
-        let prev_action = gio::ActionEntry::builder("previous")
+        let prev_action = gio::ActionEntry::builder("infopane-previous")
             .activate(|window: &Self, _, _| {
                 window.imp().info_pane.display_prev();
             })
             .build();
 
-        let next_action = gio::ActionEntry::builder("next")
+        let next_action = gio::ActionEntry::builder("infopane-next")
             .activate(|window: &Self, _, _| {
                 window.imp().info_pane.display_next();
             })
             .build();
 
         // Add info pane show details action
-        let details_action = gio::ActionEntry::builder("show-details")
+        let details_action = gio::ActionEntry::builder("infopane-show-details")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
@@ -572,25 +572,25 @@ impl PacViewWindow {
         // Add view copy list shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>C"),
-            Some(gtk::NamedAction::new("win.copy-list"))
+            Some(gtk::NamedAction::new("win.copy-package-list"))
         ));
 
         // Add infopane previous shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>Left"),
-            Some(gtk::NamedAction::new("win.previous"))
+            Some(gtk::NamedAction::new("win.infopane-previous"))
         ));
 
         // Add infopane next shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>Right"),
-            Some(gtk::NamedAction::new("win.next"))
+            Some(gtk::NamedAction::new("win.infopane-next"))
         ));
 
         // Add infopane show details shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>Return|<alt>KP_Enter"),
-            Some(gtk::NamedAction::new("win.show-details"))
+            Some(gtk::NamedAction::new("win.infopane-show-details"))
         ));
 
         // Add shortcut controller to window

@@ -78,7 +78,7 @@
                           <object class="GtkButton" id="overlay_prev_button">
                             <property name="icon-name">go-previous-symbolic</property>
                             <property name="tooltip-text">Previous</property>
-                            <property name="action-name">win.previous</property>
+                            <property name="action-name">win.infopane-previous</property>
                             <style>
                               <class name="circular"/>
                               <class name="flat"/>
@@ -89,7 +89,7 @@
                           <object class="GtkButton" id="overlay_next_button">
                             <property name="icon-name">go-next-symbolic</property>
                             <property name="tooltip-text">Next</property>
-                            <property name="action-name">win.next</property>
+                            <property name="action-name">win.infopane-next</property>
                             <style>
                               <class name="circular"/>
                               <class name="flat"/>
@@ -106,7 +106,7 @@
                         <property name="margin-bottom">4</property>
                         <property name="icon-name">dialog-information-symbolic</property>
                         <property name="tooltip-text">Show Package Details</property>
-                        <property name="action-name">win.show-details</property>
+                        <property name="action-name">win.infopane-show-details</property>
                         <style>
                           <class name="circular"/>
                           <class name="flat"/>

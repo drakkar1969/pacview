@@ -323,7 +323,7 @@
       </item>
       <item>
         <attribute name="label">Copy List</attribute>
-        <attribute name="action">win.copy-list</attribute>
+        <attribute name="action">win.copy-package-list</attribute>
       </item>
     </section>
   </menu>
