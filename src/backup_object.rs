@@ -13,11 +13,11 @@ use crate::traits::{EnumValueExt, EnumClassExt};
 #[repr(u32)]
 #[enum_type(name = "BackupStatus")]
 pub enum BackupStatus {
-    Modified = 0,
-    Unmodified = 1,
+    Modified,
+    Unmodified,
     #[default]
     #[enum_value(name = "Read Error")]
-    Error = 2,
+    Error,
 }
 
 impl EnumValueExt for BackupStatus {}

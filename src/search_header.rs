@@ -19,9 +19,9 @@ use crate::traits::{EnumValueExt, EnumClassExt};
 #[enum_type(name = "SearchMode")]
 pub enum SearchMode {
     #[default]
-    All = 0,
-    Any = 1,
-    Exact = 2,
+    All,
+    Any,
+    Exact,
 }
 
 impl EnumValueExt for SearchMode {}
@@ -35,13 +35,13 @@ impl EnumClassExt for SearchMode {}
 #[enum_type(name = "SearchProp")]
 pub enum SearchProp {
     #[default]
-    Name = 0,
-    NameDesc = 1,
-    Group = 2,
-    Deps = 3,
-    Optdeps = 4,
-    Provides = 5,
-    Files = 6,
+    Name,
+    NameDesc,
+    Group,
+    Deps,
+    Optdeps,
+    Provides,
+    Files,
 }
 
 impl EnumValueExt for SearchProp {}

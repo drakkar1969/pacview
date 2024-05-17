@@ -56,11 +56,11 @@ thread_local! {
 #[enum_type(name = "PropType")]
 pub enum PropType {
     #[default]
-    Text = 0,
-    Title = 1,
-    Link = 2,
-    Packager = 3,
-    LinkList = 4,
+    Text,
+    Title,
+    Link,
+    Packager,
+    LinkList,
 }
 
 //------------------------------------------------------------------------------
