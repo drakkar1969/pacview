@@ -161,16 +161,9 @@ impl DetailsDialog {
 
         // Bind files count to files header label
         imp.files_filter_model.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(move |binding, n_items: u32| {
-                let model = binding.source()
-                    .and_downcast::<gtk::FilterListModel>()
-                    .and_then(|filter_model| filter_model.model())
-                    .expect("Could not downcast to 'ListModel'");
-
-                let files_len = model.n_items();
-
-                Some(format!("Files ({n_items} of {files_len})"))
-            })
+            .transform_to(move |_, n_items: u32| 
+                Some(format!("Files <span size='90%'>| {n_items}</span>"))
+            )
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -193,9 +186,9 @@ impl DetailsDialog {
 
         // Bind cache count to cache header label
         imp.cache_selection.bind_property("n-items", &imp.cache_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| {
-                Some(format!("Cache Files ({n_items})"))
-            })
+            .transform_to(move |_, n_items: u32|
+                Some(format!("Cache Files <span size='90%'>| {n_items}</span>"))
+            )
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -212,9 +205,9 @@ impl DetailsDialog {
 
         // Bind backup count to backup header label
         imp.backup_selection.bind_property("n-items", &imp.backup_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| {
-                Some(format!("Cache Files ({n_items})"))
-            })
+            .transform_to(move |_, n_items: u32|
+                Some(format!("Backup Files <span size='90%'>| {n_items}</span>"))
+            )
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
