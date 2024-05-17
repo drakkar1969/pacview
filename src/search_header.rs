@@ -9,6 +9,7 @@ use glib::subclass::Signal;
 use glib::clone;
 
 use crate::search_tag::SearchTag;
+use crate::traits::{EnumValueExt, EnumClassExt};
 
 //------------------------------------------------------------------------------
 // ENUM: SearchMode
@@ -22,6 +23,9 @@ pub enum SearchMode {
     Any = 1,
     Exact = 2,
 }
+
+impl EnumValueExt for SearchMode {}
+impl EnumClassExt for SearchMode {}
 
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
@@ -39,6 +43,9 @@ pub enum SearchProp {
     Provides = 5,
     Files = 6,
 }
+
+impl EnumValueExt for SearchProp {}
+impl EnumClassExt for SearchProp {}
 
 //------------------------------------------------------------------------------
 // MODULE: SearchHeader
@@ -259,20 +266,16 @@ impl SearchHeader {
 
         // Search mode property notify signal
         self.connect_mode_notify(|header| {
-            if let Some((_, value)) = glib::EnumValue::from_value(&header.mode().to_value()) {
-                header.imp().tag_mode.set_text(Some(value.nick()));
+            header.imp().tag_mode.set_text(Some(header.mode().nick()));
 
-                header.emit_changed_signal();
-            }
+            header.emit_changed_signal();
         });
 
         // Search prop property notify signal
         self.connect_prop_notify(|header| {
-            if let Some((_, value)) = glib::EnumValue::from_value(&header.prop().to_value()) {
-                header.imp().tag_prop.set_text(Some(value.nick()));
+            header.imp().tag_prop.set_text(Some(header.prop().nick()));
 
-                header.emit_changed_signal();
-            }
+            header.emit_changed_signal();
         });
 
         // Search text changed signal
@@ -357,16 +360,9 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let enum_class = glib::EnumClass::new::<SearchMode>();
-                let values = enum_class.values();
+                let new_state = SearchMode::next_nick(&state);
 
-                let new_state = values.iter()
-                    .position(|v| v.nick() == state)
-                    .and_then(|i| i.checked_add(1))
-                    .and_then(|i| values.get(i))
-                    .unwrap_or(values.first().unwrap());
-
-                group.activate_action("set-mode", Some(&new_state.nick().to_variant()));
+                group.activate_action("set-mode", Some(&new_state.to_variant()));
             })
             .build();
 
@@ -378,17 +374,10 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let enum_class = glib::EnumClass::new::<SearchMode>();
-                let values = enum_class.values();
+                let new_state = SearchMode::previous_nick(&state);
 
-                let new_state = values.iter()
-                    .position(|v| v.nick() == state)
-                    .and_then(|i| i.checked_sub(1))
-                    .and_then(|i| values.get(i))
-                    .unwrap_or(values.last().unwrap());
-
-                group.activate_action("set-mode", Some(&new_state.nick().to_variant()));
-                })
+                group.activate_action("set-mode", Some(&new_state.to_variant()));
+            })
             .build();
 
         // Add cycle search prop action
@@ -399,16 +388,9 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let enum_class = glib::EnumClass::new::<SearchProp>();
-                let values = enum_class.values();
+                let new_state = SearchProp::next_nick(&state);
 
-                let new_state = values.iter()
-                    .position(|v| v.nick() == state)
-                    .and_then(|i| i.checked_add(1))
-                    .and_then(|i| values.get(i))
-                    .unwrap_or(values.first().unwrap());
-
-                group.activate_action("set-prop", Some(&new_state.nick().to_variant()));
+                group.activate_action("set-prop", Some(&new_state.to_variant()));
             })
             .build();
 
@@ -420,24 +402,17 @@ impl SearchHeader {
                     .get::<String>()
                     .expect("Could not retrieve String from variant");
 
-                let enum_class = glib::EnumClass::new::<SearchProp>();
-                let values = enum_class.values();
+                let new_state = SearchProp::previous_nick(&state);
 
-                let new_state = values.iter()
-                    .position(|v| v.nick() == state)
-                    .and_then(|i| i.checked_sub(1))
-                    .and_then(|i| values.get(i))
-                    .unwrap_or(values.last().unwrap());
-
-                group.activate_action("set-prop", Some(&new_state.nick().to_variant()));
+                group.activate_action("set-prop", Some(&new_state.to_variant()));
             })
             .build();
 
         // Add reset search params action
         let reset_params_action = gio::ActionEntry::builder("reset-params")
             .activate(|group: &gio::SimpleActionGroup, _, _| {
-                group.activate_action("set-mode", Some(&"all".to_variant()));
-                group.activate_action("set-prop", Some(&"name".to_variant()));
+                group.activate_action("set-mode", Some(&SearchMode::All.to_variant()));
+                group.activate_action("set-prop", Some(&SearchProp::Name.to_variant()));
             })
             .build();
 
@@ -475,19 +450,19 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>L"),
             Some(gtk::NamedAction::new("search.set-mode")),
-            &"all".to_variant()
+            &SearchMode::All.to_variant()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>N"),
             Some(gtk::NamedAction::new("search.set-mode")),
-            &"any".to_variant()
+            &SearchMode::Any.to_variant()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>E"),
             Some(gtk::NamedAction::new("search.set-mode")),
-            &"exact".to_variant()
+            &SearchMode::Exact.to_variant()
         ));
 
         // Add cycle search prop shortcut
@@ -503,7 +478,7 @@ impl SearchHeader {
         ));
 
         // Add search prop numbered shortcuts
-        let enum_class = glib::EnumClass::new::<SearchProp>();
+        let enum_class = SearchProp::enum_class();
 
         for (i, value) in enum_class.values().iter().enumerate() {
             controller.add_shortcut(gtk::Shortcut::with_arguments(

@@ -3,7 +3,8 @@ use std::cell::{Cell, RefCell};
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
-use glib::value::ToValue;
+
+use crate::traits::{EnumValueExt, EnumClassExt};
 
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus
@@ -18,6 +19,9 @@ pub enum BackupStatus {
     #[enum_value(name = "Read Error")]
     Error = 2,
 }
+
+impl EnumValueExt for BackupStatus {}
+impl EnumClassExt for BackupStatus {}
 
 //------------------------------------------------------------------------------
 // MODULE: BackupObject
@@ -63,21 +67,11 @@ mod imp {
         // Custom property getters
         //-----------------------------------
         fn status_icon(&self) -> String {
-            let status = self.obj().status().to_value();
-
-            let (_, enum_value) = glib::EnumValue::from_value(&status)
-                .expect("Could not create 'EnumValue'");
-
-            format!("backup-{}-symbolic", enum_value.nick())
+            format!("backup-{}-symbolic", self.obj().status().nick())
         }
 
         fn status_text(&self) -> String {
-            let status = self.obj().status().to_value();
-
-            let (_, enum_value) = glib::EnumValue::from_value(&status)
-                .expect("Could not create 'EnumValue'");
-
-            enum_value.name().to_ascii_lowercase()
+            self.obj().status().name().to_ascii_lowercase()
         }
     }
 }

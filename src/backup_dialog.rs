@@ -5,6 +5,7 @@ use glib::clone;
 
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
+use crate::traits::EnumClassExt;
 use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
@@ -108,7 +109,7 @@ impl BackupDialog {
         // Populate status dropdown
         imp.status_model.append(&gtk::StringObject::new("All"));
 
-        let enum_class = glib::EnumClass::new::<BackupStatus>();
+        let enum_class = BackupStatus::enum_class();
 
         imp.status_model.extend_from_slice(&enum_class.values().iter()
             .map(|value| gtk::StringObject::new(value.name()))

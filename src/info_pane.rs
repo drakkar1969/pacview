@@ -13,6 +13,7 @@ use crate::text_widget::{TextWidget, PropType};
 use crate::property_label::PropertyLabel;
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: PropID
@@ -74,6 +75,8 @@ enum PropID {
     #[enum_value(name = "MD5 Sum")]
     MD5Sum,
 }
+
+impl EnumValueExt for PropID {}
 
 //------------------------------------------------------------------------------
 // MODULE: InfoPane
@@ -224,14 +227,11 @@ impl InfoPane {
     fn add_property(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let value = id.to_value();
+        let id_value = id.enum_value();
 
-        let (_, enum_value) = glib::EnumValue::from_value(&value)
-            .expect("Could not create 'EnumValue'");
+        let property_label = PropertyLabel::new(id_value.name());
 
-        let property_label = PropertyLabel::new(enum_value.name());
-
-        imp.grid.attach(&property_label, 0, enum_value.value(), 1, 1);
+        imp.grid.attach(&property_label, 0, id_value.value(), 1, 1);
 
         let property_value = PropertyValue::new(
             ptype,
@@ -240,7 +240,7 @@ impl InfoPane {
             })
         );
 
-        imp.grid.attach(&property_value, 1, enum_value.value(), 1, 1);
+        imp.grid.attach(&property_value, 1, id_value.value(), 1, 1);
 
         imp.property_map.borrow_mut().insert(id, (property_label, property_value));
     }
