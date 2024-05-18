@@ -98,7 +98,7 @@ impl PropertyValue {
 
         let imp = widget.imp();
 
-        imp.text_widget.connect_closure("link-activated", false, link_handler);
+        imp.text_widget.connect_closure("package-link", false, link_handler);
 
         imp.text_widget.connect_closure("grab-focus", false,
             closure_local!(@watch widget => move |_: TextWidget| {

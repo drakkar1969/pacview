@@ -64,7 +64,7 @@ pub enum PropType {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: Link
+// STRUCT: Marker
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct Marker {
@@ -111,7 +111,7 @@ mod imp {
         pub(super) comment_list: RefCell<Vec<Marker>>,
 
         pub(super) cursor: RefCell<String>,
-        pub(super) pressed_link: RefCell<Option<String>>,
+        pub(super) pressed_link_url: RefCell<Option<String>>,
 
         pub(super) is_selecting: Cell<bool>,
         pub(super) is_clicked: Cell<bool>,
@@ -149,9 +149,8 @@ mod imp {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
                 vec![
-                    Signal::builder("link-activated")
+                    Signal::builder("package-link")
                         .param_types([String::static_type()])
-                        .return_type::<bool>()
                         .build(),
                     Signal::builder("grab-focus")
                         .build(),
@@ -678,7 +677,7 @@ impl TextWidget {
         index
     }
 
-    fn link_at_xy(&self, x: f64, y: f64) -> Option<String> {
+    fn link_url_at_xy(&self, x: f64, y: f64) -> Option<String> {
         let (inside, index) = self._inside_index_at_xy(x, y);
 
         if inside {
@@ -695,7 +694,7 @@ impl TextWidget {
 
         if !imp.is_selecting.get() {
             // Get cursor
-            let cursor = if self.link_at_xy(x, y).is_some() {
+            let cursor = if self.link_url_at_xy(x, y).is_some() {
                 "pointer"
             } else {
                 "text"
@@ -706,6 +705,20 @@ impl TextWidget {
                 imp.draw_area.set_cursor_from_name(Some(cursor));
 
                 imp.cursor.replace(cursor.to_string());
+            }
+        }
+    }
+
+    fn handle_link(&self, link_url: &str) {
+        if let Ok(url) = Url::parse(link_url) {
+            let url_scheme = url.scheme();
+
+            if url_scheme == "pkg" {
+                let pkg_name = url.domain().unwrap_or_default();
+
+                self.emit_by_name::<()>("package-link", &[&pkg_name]);
+            } else if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url_scheme) {
+                let _ = handler.launch_uris(&[&link_url], None::<&gio::AppLaunchContext>);
             }
         }
     }
@@ -733,7 +746,7 @@ impl TextWidget {
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(@weak self as widget, @weak imp => move |_, x, y| {
-            if widget.link_at_xy(x, y).is_none() {
+            if widget.link_url_at_xy(x, y).is_none() {
                 if !imp.is_clicked.get() {
                     let index = widget.index_at_xy(x, y);
 
@@ -780,9 +793,9 @@ impl TextWidget {
             .build();
 
         click_gesture.connect_pressed(clone!(@weak self as widget, @weak imp => move |_, n, x, y| {
-            let link = widget.link_at_xy(x, y);
+            let link_url = widget.link_url_at_xy(x, y);
 
-            if link.is_none() {
+            if link_url.is_none() {
                 if n == 2 {
                     // Double click: select word under cursor and redraw widget
                     imp.is_clicked.set(true);
@@ -822,23 +835,17 @@ impl TextWidget {
                 }
             }
 
-            imp.pressed_link.replace(link);
+            imp.pressed_link_url.replace(link_url);
         }));
 
         click_gesture.connect_released(clone!(@weak self as widget, @weak imp => move |_, _, x, y| {
             imp.is_clicked.set(false);
 
             // Launch link if any
-            if let Some(link) = imp.pressed_link.take()
-                .and_then(|pressed| widget.link_at_xy(x, y).filter(|link| link == &pressed))
+            if let Some(link_url) = imp.pressed_link_url.take()
+                .and_then(|pressed| widget.link_url_at_xy(x, y).filter(|link| link == &pressed))
             {
-                if !widget.emit_by_name::<bool>("link-activated", &[&link]) {
-                    if let Ok(url) = Url::parse(&link) {
-                        if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
-                            let _ = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
-                        }
-                    }
-                }
+                widget.handle_link(&link_url);
             }
         }));
 
@@ -900,18 +907,12 @@ impl TextWidget {
 
                 if key == gdk::Key::Return || key == gdk::Key::KP_Enter {
                     if let Some(focus_link) = index.and_then(|i| link_list.get(i)) {
-                        let link = focus_link.text();
+                        let link_url = focus_link.text();
 
                         // Need to drop to avoid panic
                         drop(link_list);
 
-                        if !widget.emit_by_name::<bool>("link-activated", &[&link]) {
-                            if let Ok(url) = Url::parse(&link) {
-                                if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url.scheme()) {
-                                    let _ = handler.launch_uris(&[&link], None::<&gio::AppLaunchContext>);
-                                }
-                            }
-                        }
+                        widget.handle_link(&link_url);
                     }
                 }
 
