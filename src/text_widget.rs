@@ -873,7 +873,8 @@ impl TextWidget {
 
                 if key == gdk::Key::Left {
                     let new_index = index
-                        .and_then(|i| i.checked_sub(1));
+                        .and_then(|i| i.checked_sub(1))
+                        .or_else(|| link_list.len().checked_sub(1));
 
                     if new_index.is_some()
                     {
@@ -886,7 +887,8 @@ impl TextWidget {
                 if key == gdk::Key::Right {
                     let new_index = index
                         .and_then(|i| i.checked_add(1))
-                        .filter(|&i| i < link_list.len());
+                        .filter(|&i| i < link_list.len())
+                        .or_else(|| if link_list.is_empty() { None } else { Some(0) });
 
                     if new_index.is_some()
                     {
