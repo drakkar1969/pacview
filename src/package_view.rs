@@ -36,6 +36,8 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
+        pub(super) loading_spinner: TemplateChild<gtk::Spinner>,
+        #[template_child]
         pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
@@ -155,6 +157,11 @@ impl PackageView {
         // Bind loading property to stack page
         self.bind_property("loading", &imp.stack.get(), "visible-child-name")
             .transform_to(|_, loading: bool| Some(if loading { "empty" } else { "view" }))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind loading property to loading spinner state
+        self.bind_property("loading", &imp.loading_spinner.get(), "spinning")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
