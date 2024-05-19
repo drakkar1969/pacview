@@ -106,6 +106,10 @@ impl LogDialog {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
+        // Set search entry key capture widget
+        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+
+        // Bind view count to header sub label
         imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
             .transform_to(|_, n_items: u32| {
                 Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
@@ -169,9 +173,6 @@ impl LogDialog {
     //-----------------------------------
     pub fn populate(&self, log_file: &str) {
         let imp = self.imp();
-
-        // Set search entry key capture widget
-        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
         // Populate column view
         if let Ok(log) = fs::read_to_string(log_file) {

@@ -118,7 +118,7 @@ impl BackupDialog {
             .collect::<Vec<gtk::StringObject>>()
         );
 
-        // Bind backup files count to header label
+        // Bind backup files count to header sub label
         imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
             .transform_to(move |binding, n_items: u32| {
                 let filter_model = binding.source()
