@@ -39,14 +39,19 @@ fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
 //------------------------------------------------------------------------------
 // GLOBAL: Pango color Variables
 //------------------------------------------------------------------------------
+const LINK_CSS: &str = "@accent_color";
+const COMMENT_CSS: &str = "@success_color";
+const SELECTED_CSS: &str = "alpha(@view_fg_color, 0.1)";
+const SELECTED_CSS_FOCUS: &str = "alpha(@accent_bg_color, 0.3)";
+
 thread_local! {
-    static LINK_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("@accent_color"));
+    static LINK_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(LINK_CSS));
 
-    static COMMENT_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("@success_color"));
+    static COMMENT_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(COMMENT_CSS));
 
-    static SELECTED_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("alpha(@view_fg_color, 0.1)"));
+    static SELECTED_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SELECTED_CSS));
 
-    static SELECTED_RGBA_FOCUS: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("alpha(@accent_bg_color, 0.3)"));
+    static SELECTED_RGBA_FOCUS: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SELECTED_CSS_FOCUS));
 }
 
 //------------------------------------------------------------------------------
@@ -639,15 +644,11 @@ impl TextWidget {
                 widget_style.set_color_scheme(adw::ColorScheme::ForceLight);
             }
 
-            // Update link color
-            LINK_RGBA.set(pango_color_from_css("@accent_color"));
-
-            // Update comment color
-            COMMENT_RGBA.set(pango_color_from_css("@success_color"));
-
-            // Update selected background color
-            SELECTED_RGBA.set(pango_color_from_css("alpha(@view_fg_color, 0.1)"));
-            SELECTED_RGBA_FOCUS.set(pango_color_from_css("alpha(@accent_bg_color, 0.3)"));
+            // Update pango color variables
+            LINK_RGBA.set(pango_color_from_css(LINK_CSS));
+            COMMENT_RGBA.set(pango_color_from_css(COMMENT_CSS));
+            SELECTED_RGBA.set(pango_color_from_css(SELECTED_CSS));
+            SELECTED_RGBA_FOCUS.set(pango_color_from_css(SELECTED_CSS_FOCUS));
 
             // Format pango layout text
             imp.do_format();
