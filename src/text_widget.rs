@@ -16,9 +16,9 @@ use url::Url;
 const PADDING: i32 = 4;
 
 //------------------------------------------------------------------------------
-// GLOBAL: Color from CSS function
+// GLOBAL: Pango color from CSS function
 //------------------------------------------------------------------------------
-fn color_from_css(css: &str) -> gdk::RGBA {
+fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
     let label = gtk::Label::builder()
         .css_classes(["css-label"])
         .build();
@@ -32,20 +32,20 @@ fn color_from_css(css: &str) -> gdk::RGBA {
 
     gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
 
-    color
+    ((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16, (color.alpha() * 65535.0) as u16)
 }
 
 //------------------------------------------------------------------------------
-// GLOBAL: Color Variables
+// GLOBAL: Pango color Variables
 //------------------------------------------------------------------------------
 thread_local! {
-    static LINK_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("@accent_color"));
+    static LINK_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("@accent_color"));
 
-    static COMMENT_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@view_fg_color, 0.55)"));
+    static COMMENT_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("alpha(@view_fg_color, 0.55)"));
 
-    static SELECTED_RGBA: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@view_fg_color, 0.1)"));
+    static SELECTED_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("alpha(@view_fg_color, 0.1)"));
 
-    static SELECTED_RGBA_FOCUS: Cell<gdk::RGBA> = Cell::new(color_from_css("alpha(@accent_bg_color, 0.3)"));
+    static SELECTED_RGBA_FOCUS: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("alpha(@accent_bg_color, 0.3)"));
 }
 
 //------------------------------------------------------------------------------
@@ -212,18 +212,7 @@ mod imp {
         //-----------------------------------
         // Layout format helper functions
         //-----------------------------------
-        pub(super) fn rgba_to_pango_rgb(&self, color: gdk::RGBA) -> (u16, u16, u16) {
-            // Fake transparency (pango bug)
-            let bg_color = self.obj().parent().unwrap().color();
-
-            let red = ((1.0 - color.alpha()) * bg_color.red()) + (color.red() * color.alpha());
-            let green = ((1.0 - color.alpha()) * bg_color.green()) + (color.green() * color.alpha());
-            let blue = ((1.0 - color.alpha()) * bg_color.blue()) + (color.blue() * color.alpha());
-
-            ((red * 65535.0) as u16, (green * 65535.0) as u16, (blue * 65535.0) as u16)
-        }
-
-        fn format_text(&self, attr_list: &pango::AttrList) {
+        fn format_weight(&self, attr_list: &pango::AttrList) {
             let obj = self.obj();
 
             let weight = if obj.ptype() == PropType::Title {
@@ -231,14 +220,6 @@ mod imp {
             } else {
                 pango::Weight::Normal
             };
-
-            let (red, green, blue) = self.rgba_to_pango_rgb(obj.color());
-
-            let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-            attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
-            attr.set_end_index(pango::ATTR_INDEX_TO_TEXT_END);
-
-            attr_list.insert(attr);
 
             let mut attr = pango::AttrInt::new_weight(weight);
             attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
@@ -250,13 +231,19 @@ mod imp {
         fn format_links(&self, attr_list: &pango::AttrList) {
             let link_list = &*self.link_list.borrow();
 
-            let (red, green, blue) = self.rgba_to_pango_rgb(LINK_RGBA.get());
+            let (red, green, blue, alpha) = LINK_RGBA.get();
 
             for link in link_list {
                 let start = link.start as u32;
                 let end = link.end as u32;
 
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
+
+                attr_list.insert(attr);
+
+                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
                 attr.set_start_index(start);
                 attr.set_end_index(end);
 
@@ -273,13 +260,19 @@ mod imp {
         fn format_comments(&self, attr_list: &pango::AttrList) {
             let comment_list = &*self.comment_list.borrow();
 
-            let (red, green, blue) = self.rgba_to_pango_rgb(COMMENT_RGBA.get());
+            let (red, green, blue, alpha) = COMMENT_RGBA.get();
 
             for comment in comment_list {
                 let start = comment.start as u32;
                 let end = comment.end as u32;
 
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                attr.set_start_index(start);
+                attr.set_end_index(end);
+
+                attr_list.insert(attr);
+
+                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
                 attr.set_start_index(start);
                 attr.set_end_index(end);
 
@@ -300,13 +293,19 @@ mod imp {
         }
 
         pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            let (red, green, blue) = if self.obj().has_focus() {
-                self.rgba_to_pango_rgb(SELECTED_RGBA_FOCUS.get())
+            let (red, green, blue, alpha) = if self.obj().has_focus() {
+                SELECTED_RGBA_FOCUS.get()
             } else {
-                self.rgba_to_pango_rgb(SELECTED_RGBA.get())
+                SELECTED_RGBA.get()
             };
 
             let mut attr = pango::AttrColor::new_background(red, green, blue);
+            attr.set_start_index(start);
+            attr.set_end_index(end);
+
+            attr_list.insert(attr);
+
+            let mut attr = pango::AttrInt::new_background_alpha(alpha);
             attr.set_start_index(start);
             attr.set_end_index(end);
 
@@ -319,7 +318,7 @@ mod imp {
             let attr_list = pango::AttrList::new();
 
             // Format text
-            self.format_text(&attr_list);
+            self.format_weight(&attr_list);
 
             // Format links
             self.format_links(&attr_list);
@@ -469,7 +468,7 @@ impl TextWidget {
 
             // Format pango layout text selection
             if let Some(attr_list) = layout.attributes()
-                .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background))
+                .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background && attr.type_() != pango::AttrType::BackgroundAlpha))
             {
                 let start = imp.selection_start.get();
                 let end = imp.selection_end.get();
@@ -482,7 +481,11 @@ impl TextWidget {
             }
 
             // Show pango layout
+            let text_color = widget.color();
+
+            context.set_source_rgba(text_color.red() as f64, text_color.green() as f64, text_color.blue() as f64, text_color.alpha() as f64);
             context.move_to(0.0, PADDING as f64);
+
             pangocairo::functions::show_layout(context, layout);
 
             // Draw link focus indicator
@@ -521,9 +524,9 @@ impl TextWidget {
                         context.line_to(pango::units_to_double(end_x), end_y);
                     }
 
-                    let (red, green, blue) = imp.rgba_to_pango_rgb(LINK_RGBA.get());
+                    let (red, green, blue, alpha) = LINK_RGBA.get();
 
-                    context.set_source_rgb(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0);
+                    context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, alpha as f64 / 65535.0);
 
                     context.set_line_width(2.0);
                     context.stroke().unwrap();
@@ -641,14 +644,14 @@ impl TextWidget {
             }
 
             // Update link color
-            LINK_RGBA.set(color_from_css("@accent_color"));
+            LINK_RGBA.set(pango_color_from_css("@accent_color"));
 
             // Update comment color
-            COMMENT_RGBA.set(color_from_css("alpha(@view_fg_color, 0.55)"));
+            COMMENT_RGBA.set(pango_color_from_css("alpha(@view_fg_color, 0.55)"));
 
             // Update selected background color
-            SELECTED_RGBA.set(color_from_css("alpha(@view_fg_color, 0.1)"));
-            SELECTED_RGBA_FOCUS.set(color_from_css("alpha(@accent_bg_color, 0.3)"));
+            SELECTED_RGBA.set(pango_color_from_css("alpha(@view_fg_color, 0.1)"));
+            SELECTED_RGBA_FOCUS.set(pango_color_from_css("alpha(@accent_bg_color, 0.3)"));
 
             // Format pango layout text
             imp.do_format();
