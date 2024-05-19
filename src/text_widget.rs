@@ -800,11 +800,11 @@ impl TextWidget {
                     // Double click: select word under cursor and redraw widget
                     imp.is_clicked.set(true);
 
-                    let index = widget.index_at_xy(x, y);
+                    let index = widget.index_at_xy(x, y) as usize;
 
                     let text = widget.text();
 
-                    let start = text.get(..index as usize)
+                    let start = text.get(..index)
                         .and_then(|s| {
                             s.bytes()
                                 .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
@@ -812,11 +812,11 @@ impl TextWidget {
                         })
                         .unwrap_or(0);
 
-                    let end = text.get(index as usize..)
+                    let end = text.get(index..)
                         .and_then(|s| {
                             s.bytes()
                                 .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                .map(|end| end + index as usize)
+                                .map(|end| end + index)
                         })
                         .unwrap_or(text.len());
 
