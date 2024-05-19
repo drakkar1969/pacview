@@ -223,8 +223,8 @@ impl InfoPane {
 
         let property_value = PropertyValue::new(
             ptype,
-            closure_local!(@watch self as infopane => move |_: TextWidget, pkg_name: String| {
-                infopane.pkg_link_handler(&pkg_name)
+            closure_local!(@watch self as infopane => move |_: TextWidget, pkg_name: &str| {
+                infopane.pkg_link_handler(pkg_name)
             })
         );
 
