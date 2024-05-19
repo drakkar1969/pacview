@@ -633,17 +633,9 @@ impl TextWidget {
         });
 
         // Color scheme changed signal
-        let style_manager = adw::StyleManager::default();
+        let style_manager = adw::StyleManager::for_display(&self.display());
 
-        style_manager.connect_dark_notify(clone!(@weak self as widget, @weak imp => move |style_manager| {
-            let widget_style = adw::StyleManager::for_display(&widget.display());
-
-            if style_manager.is_dark() {
-                widget_style.set_color_scheme(adw::ColorScheme::ForceDark);
-            } else {
-                widget_style.set_color_scheme(adw::ColorScheme::ForceLight);
-            }
-
+        style_manager.connect_dark_notify(clone!(@weak imp => move |_| {
             // Update pango color variables
             LINK_RGBA.set(pango_color_from_css(LINK_CSS));
             COMMENT_RGBA.set(pango_color_from_css(COMMENT_CSS));
