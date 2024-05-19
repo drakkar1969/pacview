@@ -7,7 +7,8 @@ use gtk::prelude::*;
 use glib::clone;
 use glib::subclass::Signal;
 
-use fancy_regex::Regex;
+use fancy_regex::Regex as FancyRegex;
+use regex::Regex;
 use url::Url;
 
 //------------------------------------------------------------------------------
@@ -363,10 +364,7 @@ mod imp {
                         Regex::new("^(?:[^<]+?)<([^>]+?)>$").expect("Regex error")
                     });
 
-                    if let Some(m) = expr.captures(text)
-                        .ok()
-                        .and_then(|caps_opt| caps_opt.and_then(|caps| caps.get(1)))
-                    {
+                    if let Some(m) = expr.captures(text).and_then(|caps| caps.get(1)) {
                         link_list.push(Marker {
                             text: format!("mailto:{}", m.as_str()),
                             start: m.start(),
@@ -378,10 +376,10 @@ mod imp {
                     if text.is_empty() {
                         layout.set_text("None");
                     } else {
-                        static EXPR: OnceLock<Regex> = OnceLock::new();
+                        static EXPR: OnceLock<FancyRegex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
-                            Regex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").expect("Regex error")
+                            FancyRegex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").expect("Regex error")
                         });
 
                         for caps in expr.captures_iter(text).flatten() {
