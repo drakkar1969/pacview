@@ -1,9 +1,9 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::{glib, gdk};
+use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, closure_local, RustClosure};
+use glib::RustClosure;
 
 use crate::text_widget::{TextWidget, PropType};
 
@@ -64,7 +64,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_controllers();
         }
 
         //-----------------------------------
@@ -100,12 +99,6 @@ impl PropertyValue {
 
         imp.text_widget.connect_closure("package-link", false, link_handler);
 
-        imp.text_widget.connect_closure("grab-focus", false,
-            closure_local!(@watch widget => move |_: TextWidget| {
-                widget.grab_focus();
-            })
-        );
-
         widget
     }
 
@@ -132,32 +125,5 @@ impl PropertyValue {
         self.bind_property("icon", &imp.image.get(), "icon-name")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-
-        // Bind focus state to text widget
-        self.bind_property("has-focus", &imp.text_widget.get(), "is_focused")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-    }
-
-    //-----------------------------------
-    // Setup controllers
-    //-----------------------------------
-    fn setup_controllers(&self) {
-        let imp = self.imp();
-
-        // Forward key presses to text widget
-        let key_gesture = gtk::EventControllerKey::new();
-
-        key_gesture.connect_key_pressed(clone!(@weak imp => @default-return glib::Propagation::Proceed, move |gesture, key, _, state| {
-            gesture.forward(&imp.text_widget.get());
-
-            if state == gdk::ModifierType::empty() && (key == gdk::Key::Left || key == gdk::Key::Right || key == gdk::Key::Return || key == gdk::Key::KP_Enter) {
-                return glib::Propagation::Stop
-            }
-
-            glib::Propagation::Proceed
-        }));
-
-        self.add_controller(key_gesture);
     }
 }

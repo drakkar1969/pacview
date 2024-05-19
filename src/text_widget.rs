@@ -102,9 +102,6 @@ mod imp {
         #[property(get = Self::text, set = Self::set_text)]
         _text: RefCell<String>,
 
-        #[property(get, set)]
-        is_focused: Cell<bool>,
-
         pub(super) pango_layout: OnceCell<pango::Layout>,
 
         pub(super) link_list: RefCell<Vec<Marker>>,
@@ -152,8 +149,6 @@ mod imp {
                     Signal::builder("package-link")
                         .param_types([String::static_type()])
                         .build(),
-                    Signal::builder("grab-focus")
-                        .build(),
                 ]
             })
         }
@@ -200,7 +195,7 @@ mod imp {
                     measure_layout.set_width(for_size * pango::SCALE);
                 }
 
-                (measure_layout.pixel_size().1 + 2 * PADDING, measure_layout.pixel_size().1 + 2 * PADDING, -1, -1)
+                (measure_layout.pixel_size().1 + 4 * PADDING, measure_layout.pixel_size().1 + 4 * PADDING, -1, -1)
             }
         }
 
@@ -305,7 +300,7 @@ mod imp {
         }
 
         pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            let (red, green, blue) = if self.obj().is_focused() {
+            let (red, green, blue) = if self.obj().has_focus() {
                 self.rgba_to_pango_rgb(SELECTED_RGBA_FOCUS.get())
             } else {
                 self.rgba_to_pango_rgb(SELECTED_RGBA.get())
@@ -464,6 +459,10 @@ impl TextWidget {
 
         imp.pango_layout.set(layout).unwrap();
 
+        // Set drawing margins
+        imp.draw_area.set_margin_top(PADDING);
+        imp.draw_area.set_margin_bottom(PADDING);
+
         // Connect drawing area draw function
         imp.draw_area.set_draw_func(clone!(@weak self as widget, @weak imp => move |_, context, _, _| {
             let layout = imp.pango_layout.get().unwrap();
@@ -491,7 +490,7 @@ impl TextWidget {
 
             let index = imp.focus_link_index.get();
 
-            if widget.is_focused() {
+            if widget.has_focus() {
                 if let Some(link) = index.and_then(|i| link_list.get(i)) {
                     let (start_n, start_x) = layout.index_to_line_x(link.start as i32, false);
                     let (end_n, end_x) = layout.index_to_line_x(link.end as i32, false);
@@ -614,11 +613,11 @@ impl TextWidget {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Is focused property notify signal
-        self.connect_is_focused_notify(|widget| {
+        // Has focus property notify signal
+        self.connect_has_focus_notify(|widget| {
             let imp = widget.imp();
 
-            if !widget.is_focused() {
+            if !widget.has_focus() {
                 if !imp.link_list.borrow().is_empty() {
                     imp.focus_link_index.set(Some(0));
                 } else {
@@ -756,7 +755,7 @@ impl TextWidget {
 
                 imp.is_selecting.set(true);
 
-                widget.emit_by_name::<()>("grab-focus", &[]);
+                widget.grab_focus();
             }
         }));
 

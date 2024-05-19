@@ -2,6 +2,7 @@
 <interface>
   <!--// TextWidget template //-->
   <template class="TextWidget" parent="GtkWidget">
+    <property name="focusable">true</property>
     <child>
       <object class="GtkDrawingArea" id="draw_area">
         <property name="hexpand">true</property>
