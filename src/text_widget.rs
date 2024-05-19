@@ -553,16 +553,24 @@ impl TextWidget {
     // Setup actions
     //-----------------------------------
     fn setup_actions(&self) {
+        let imp = self.imp();
+
         // Add selection actions
         let select_all_action = gio::ActionEntry::builder("select-all")
-            .activate(clone!(@weak self as widget => move |_, _, _| {
-                widget.select_all();
+            .activate(clone!(@weak self as widget, @weak imp => move |_, _, _| {
+                imp.selection_start.set(0);
+                imp.selection_end.set(widget.text().len() as i32);
+
+                imp.draw_area.queue_draw();
             }))
             .build();
 
         let select_none_action = gio::ActionEntry::builder("select-none")
-            .activate(clone!(@weak self as widget => move |_, _, _| {
-                widget.select_none();
+            .activate(clone!(@weak imp => move |_, _, _| {
+                imp.selection_start.set(-1);
+                imp.selection_end.set(-1);
+
+                imp.draw_area.queue_draw();
             }))
             .build();
 
@@ -914,27 +922,6 @@ impl TextWidget {
         }));
 
         self.add_controller(key_controller);
-    }
-
-    //-----------------------------------
-    // Selection functions
-    //-----------------------------------
-    fn select_all(&self) {
-        let imp = self.imp();
-
-        imp.selection_start.set(0);
-        imp.selection_end.set(self.text().len() as i32);
-
-        imp.draw_area.queue_draw();
-    }
-
-    fn select_none(&self) {
-        let imp = self.imp();
-
-        imp.selection_start.set(-1);
-        imp.selection_end.set(-1);
-
-        imp.draw_area.queue_draw();
     }
 }
 
