@@ -20,9 +20,6 @@
               <object class="GtkBox" id="search_box">
                 <property name="css-name">entry</property>
                 <property name="spacing">6</property>
-                <style>
-                  <class name="search-header"/>
-                </style>
                 <child>
                   <object class="GtkStack" id="icon_stack">
                     <child>
