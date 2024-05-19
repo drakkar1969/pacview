@@ -284,7 +284,7 @@ mod imp {
 
                 attr_list.insert(attr);
 
-                let mut attr = pango::AttrInt::new_weight(pango::Weight::Bold);
+                let mut attr = pango::AttrInt::new_weight(pango::Weight::Medium);
                 attr.set_start_index(start);
                 attr.set_end_index(end);
 
