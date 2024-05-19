@@ -397,7 +397,8 @@ impl DetailsDialog {
 
         // Populate log messages
         if let Ok(log) = fs::read_to_string(log_file) {
-            let expr = Regex::new(&format!("\\[(.+?)T(.+?)\\+.+?\\] \\[ALPM\\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name())).expect("Regex error");
+            let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
+                .expect("Regex error");
 
             let log_lines: Vec<gtk::StringObject> = log.lines().rev()
                 .filter_map(|s| {

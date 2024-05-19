@@ -366,7 +366,8 @@ mod imp {
                     static EXPR: OnceLock<Regex> = OnceLock::new();
 
                     let expr = EXPR.get_or_init(|| {
-                        Regex::new("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}").expect("Regex error")
+                        Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}")
+                            .expect("Regex error")
                     });
 
                     if let Some(m) = expr.find(text) {
@@ -384,7 +385,8 @@ mod imp {
                         static EXPR: OnceLock<FancyRegex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
-                            FancyRegex::new("(?<=^|     )[a-zA-Z0-9@._+-]+(?=<|>|=|:|     |$)").expect("Regex error")
+                            FancyRegex::new(r"(?<=^|     )[a-zA-Z0-9@._+-]+(?=<|>|=|:|     |$)")
+                                .expect("Regex error")
                         });
 
                         for m in expr.find_iter(text).flatten() {

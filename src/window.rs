@@ -980,13 +980,13 @@ impl PacViewWindow {
             static EXPR: OnceLock<Regex> = OnceLock::new();
 
             let expr = EXPR.get_or_init(|| {
-                Regex::new("([a-zA-Z0-9@._+-]+?)[ \\t]+?([a-zA-Z0-9@._+-:]+?)[ \\t]+?->[ \\t]+?([a-zA-Z0-9@._+-:]+)").expect("Regex error")
+                Regex::new(r"([a-zA-Z0-9@._+-]+?)[ \t]+?([a-zA-Z0-9@._+-:]+?)[ \t]+?->[ \t]+?([a-zA-Z0-9@._+-:]+)")
+                    .expect("Regex error")
             });
 
             let update_map: HashMap<String, String> = update_str.lines()
                 .filter_map(|s| {
                     expr.captures(s)
-                        .filter(|caps| caps.len() == 4)
                         .map(|caps| {
                             (caps[1].to_string(), format!("{} \u{2192} {}", &caps[2], &caps[3]))
                         })

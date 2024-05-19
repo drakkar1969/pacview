@@ -130,7 +130,8 @@ impl LogDialog {
             static EXPR: OnceLock<Regex> = OnceLock::new();
 
             let expr = EXPR.get_or_init(|| {
-                Regex::new("\\[ALPM\\] installed|removed|upgraded|downgraded .+").expect("Regex error")
+                Regex::new(r"\[ALPM\] installed|removed|upgraded|downgraded .+")
+                    .expect("Regex error")
             });
 
             if package_button.is_active() {
@@ -177,13 +178,13 @@ impl LogDialog {
             static EXPR: OnceLock<Regex> = OnceLock::new();
 
             let expr = EXPR.get_or_init(|| {
-                Regex::new("\\[(.+?)T(.+?)\\+.+?\\] (.+)").expect("Regex error")
+                Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
+                    .expect("Regex error")
             });
 
             let log_list: Vec<LogObject> = log.lines().rev()
                 .filter_map(|s| {
                     expr.captures(s)
-                        .filter(|caps| caps.len() == 4)
                         .map(|caps| {
                             LogObject::new(&caps[1], &caps[2], &caps[3])
                         })
