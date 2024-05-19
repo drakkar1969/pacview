@@ -361,10 +361,10 @@ mod imp {
                     static EXPR: OnceLock<Regex> = OnceLock::new();
 
                     let expr = EXPR.get_or_init(|| {
-                        Regex::new("^(?:[^<]+?)<([^>]+?)>$").expect("Regex error")
+                        Regex::new("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}").expect("Regex error")
                     });
 
-                    if let Some(m) = expr.captures(text).and_then(|caps| caps.get(1)) {
+                    if let Some(m) = expr.find(text) {
                         link_list.push(Marker {
                             text: format!("mailto:{}", m.as_str()),
                             start: m.start(),
@@ -379,17 +379,15 @@ mod imp {
                         static EXPR: OnceLock<FancyRegex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
-                            FancyRegex::new("(?:^|     )([a-zA-Z0-9@._+-]+)(?=<|>|=|:|     |$)").expect("Regex error")
+                            FancyRegex::new("(?<=^|     )[a-zA-Z0-9@._+-]+(?=<|>|=|:|     |$)").expect("Regex error")
                         });
 
-                        for caps in expr.captures_iter(text).flatten() {
-                            if let Some(m) = caps.get(1) {
-                                link_list.push(Marker {
-                                    text: format!("pkg://{}", m.as_str()),
-                                    start: m.start(),
-                                    end: m.end()
-                                });
-                            }
+                        for m in expr.find_iter(text).flatten() {
+                            link_list.push(Marker {
+                                text: format!("pkg://{}", m.as_str()),
+                                start: m.start(),
+                                end: m.end()
+                            });
                         }
 
                         let indices = text.match_indices(" [INSTALLED]");
