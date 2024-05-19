@@ -42,7 +42,7 @@ fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
 thread_local! {
     static LINK_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("@accent_color"));
 
-    static COMMENT_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("alpha(@view_fg_color, 0.55)"));
+    static COMMENT_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("@success_color"));
 
     static SELECTED_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css("alpha(@view_fg_color, 0.1)"));
 
@@ -643,7 +643,7 @@ impl TextWidget {
             LINK_RGBA.set(pango_color_from_css("@accent_color"));
 
             // Update comment color
-            COMMENT_RGBA.set(pango_color_from_css("alpha(@view_fg_color, 0.55)"));
+            COMMENT_RGBA.set(pango_color_from_css("@success_color"));
 
             // Update selected background color
             SELECTED_RGBA.set(pango_color_from_css("alpha(@view_fg_color, 0.1)"));
