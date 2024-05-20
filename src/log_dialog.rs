@@ -124,7 +124,14 @@ impl LogDialog {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Files search entry search changed signal
+        // Search entry search started signal
+        imp.search_entry.connect_search_started(|entry| {
+            if !entry.has_focus() {
+                entry.grab_focus();
+            }
+        });
+
+        // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
             imp.search_filter.set_search(Some(&entry.text()));
         }));
