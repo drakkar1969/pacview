@@ -256,6 +256,13 @@ impl DetailsDialog {
             dialog.activate_tab_button(button);
         }));
 
+        // Files search entry search started signal
+        imp.files_search_entry.connect_search_started(|entry| {
+            if !entry.has_focus() {
+                entry.grab_focus();
+            }
+        });
+
         // Files search entry search changed signal
         imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
             imp.files_filter.set_search(Some(&entry.text()));
