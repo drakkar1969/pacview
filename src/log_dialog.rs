@@ -174,8 +174,18 @@ impl LogDialog {
     pub fn populate(&self, log_file: &str) {
         let imp = self.imp();
 
-        // Populate column view
         if let Ok(log) = fs::read_to_string(log_file) {
+            // Strip ANSI control sequences from log
+            static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+
+            let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                Regex::new(r"\x1b(\[[0-9;]*m|\(B)")
+                    .expect("Regex error")
+            });
+
+            // Populate column view
+            let log = ansi_expr.replace_all(&log, "");
+
             static EXPR: OnceLock<Regex> = OnceLock::new();
 
             let expr = EXPR.get_or_init(|| {
