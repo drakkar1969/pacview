@@ -9,7 +9,7 @@ use crate::stats_object::StatsObject;
 use crate::utils::size_to_string;
 
 //------------------------------------------------------------------------------
-// MODULE: StatsDialog
+// MODULE: StatsWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -18,8 +18,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/stats_dialog.ui")]
-    pub struct StatsDialog {
+    #[template(resource = "/com/github/PacView/ui/stats_window.ui")]
+    pub struct StatsWindow {
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
     }
@@ -28,15 +28,28 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for StatsDialog {
-        const NAME: &'static str = "StatsDialog";
-        type Type = super::StatsDialog;
-        type ParentType = adw::Dialog;
+    impl ObjectSubclass for StatsWindow {
+        const NAME: &'static str = "StatsWindow";
+        type Type = super::StatsWindow;
+        type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
             StatsObject::ensure_type();
 
             klass.bind_template();
+
+            klass.add_shortcut(&gtk::Shortcut::new(
+                gtk::ShortcutTrigger::parse_string("Escape"),
+                Some(gtk::CallbackAction::new(|widget, _| {
+                    let window = widget
+                        .downcast_ref::<crate::stats_window::StatsWindow>()
+                        .expect("Could not downcast to 'StatsWindow'");
+
+                    window.close();
+
+                    glib::Propagation::Proceed
+                }))
+            ))
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -44,26 +57,29 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for StatsDialog {}
-    impl WidgetImpl for StatsDialog {}
-    impl AdwDialogImpl for StatsDialog {}
+    impl ObjectImpl for StatsWindow {}
+    impl WidgetImpl for StatsWindow {}
+    impl WindowImpl for StatsWindow {}
+    impl AdwWindowImpl for StatsWindow {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: StatsDialog
+// IMPLEMENTATION: StatsWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct StatsDialog(ObjectSubclass<imp::StatsDialog>)
-        @extends adw::Dialog, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+    pub struct StatsWindow(ObjectSubclass<imp::StatsWindow>)
+        @extends adw::Window, gtk::Window, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
-impl StatsDialog {
+impl StatsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
+        glib::Object::builder()
+            .property("transient-for", parent)
+            .build()
     }
 
     //-----------------------------------
@@ -109,14 +125,5 @@ impl StatsDialog {
             &format!("<b>{}</b>", tot_icount),
             &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
         ));
-    }
-}
-
-impl Default for StatsDialog {
-    //-----------------------------------
-    // Default constructor
-    //-----------------------------------
-    fn default() -> Self {
-        Self::new()
     }
 }

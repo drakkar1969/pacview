@@ -30,7 +30,7 @@ use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::package_view::{PackageView, DEFAULT_COLS, DEFAULT_SORT_COL};
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
-use crate::stats_dialog::StatsDialog;
+use crate::stats_window::StatsWindow;
 use crate::backup_dialog::BackupDialog;
 use crate::log_dialog::LogDialog;
 use crate::preferences_dialog::PreferencesDialog;
@@ -402,11 +402,11 @@ impl PacViewWindow {
         let stats_action = gio::ActionEntry::builder("show-stats")
             .activate(|window: &Self, _, _| {
                 PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    let stats_dialog = StatsDialog::new();
+                    let stats_window = StatsWindow::new(window);
 
-                    stats_dialog.populate(&window.imp().pacman_repos.borrow(), pkg_snapshot);
+                    stats_window.populate(&window.imp().pacman_repos.borrow(), pkg_snapshot);
 
-                    stats_dialog.present(window);
+                    stats_window.present();
                 });
             })
             .build();

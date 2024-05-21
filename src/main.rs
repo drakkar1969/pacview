@@ -9,7 +9,7 @@ mod text_widget;
 mod property_label;
 mod property_value;
 mod preferences_dialog;
-mod stats_dialog;
+mod stats_window;
 mod backup_dialog;
 mod log_dialog;
 mod details_dialog;
