@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// BackupDialog template //-->
-  <template class="BackupDialog" parent="AdwDialog">
-    <property name="content-width">750</property>
-    <property name="content-height">650</property>
-    <property name="focus-widget">view</property>
-    <property name="child">
+  <!--// BackupWindow template //-->
+  <template class="BackupWindow" parent="AdwWindow">
+    <property name="default-width">750</property>
+    <property name="default-height">650</property>
+    <property name="modal">True</property>
+    <property name="title"></property>
+    <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
@@ -82,12 +83,12 @@
                         </property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_dialog/dropdown_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_window/dropdown_item.ui</property>
                           </object>
                         </property>
                         <property name="list-factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_dialog/dropdown_list_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_window/dropdown_list_item.ui</property>
                           </object>
                         </property>
                         <style>
@@ -167,7 +168,7 @@
                     </property>
                     <property name="header-factory">
                       <object class="GtkBuilderListItemFactory" id="section_factory">
-                        <property name="resource">/com/github/PacView/ui/backup_dialog/section_header.ui</property>
+                        <property name="resource">/com/github/PacView/ui/backup_window/section_header.ui</property>
                       </object>
                     </property>
                     <child>
@@ -177,7 +178,7 @@
                         <property name="expand">True</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_dialog/filename_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_window/filename_item.ui</property>
                           </object>
                         </property>
                       </object>
@@ -188,7 +189,7 @@
                         <property name="resizable">True</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_dialog/status_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
                           </object>
                         </property>
                       </object>

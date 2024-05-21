@@ -31,7 +31,7 @@ use crate::package_view::{PackageView, DEFAULT_COLS, DEFAULT_SORT_COL};
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
-use crate::backup_dialog::BackupDialog;
+use crate::backup_window::BackupWindow;
 use crate::log_dialog::LogDialog;
 use crate::preferences_dialog::PreferencesDialog;
 use crate::details_dialog::DetailsDialog;
@@ -415,11 +415,9 @@ impl PacViewWindow {
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
                 PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    let backup_dialog = BackupDialog::new();
+                    let backup_window = BackupWindow::new(window);
 
-                    backup_dialog.populate(pkg_snapshot);
-
-                    backup_dialog.present(window);
+                    backup_window.populate(pkg_snapshot);
                 });
             })
             .build();

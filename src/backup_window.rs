@@ -11,7 +11,7 @@ use crate::traits::EnumClassExt;
 use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
-// MODULE: BackupDialog
+// MODULE: BackupWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -20,8 +20,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/backup_dialog.ui")]
-    pub struct BackupDialog {
+    #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
+    pub struct BackupWindow {
         #[template_child]
         pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -51,15 +51,28 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for BackupDialog {
-        const NAME: &'static str = "BackupDialog";
-        type Type = super::BackupDialog;
-        type ParentType = adw::Dialog;
+    impl ObjectSubclass for BackupWindow {
+        const NAME: &'static str = "BackupWindow";
+        type Type = super::BackupWindow;
+        type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
             BackupObject::ensure_type();
 
             klass.bind_template();
+
+            klass.add_shortcut(&gtk::Shortcut::new(
+                gtk::ShortcutTrigger::parse_string("Escape"),
+                Some(gtk::CallbackAction::new(|widget, _| {
+                    let window = widget
+                        .downcast_ref::<crate::backup_window::BackupWindow>()
+                        .expect("Could not downcast to 'BackupWindow'");
+
+                    window.close();
+
+                    glib::Propagation::Proceed
+                }))
+            ))
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -67,7 +80,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for BackupDialog {
+    impl ObjectImpl for BackupWindow {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -81,25 +94,28 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for BackupDialog {}
-    impl AdwDialogImpl for BackupDialog {}
+    impl WidgetImpl for BackupWindow {}
+    impl WindowImpl for BackupWindow {}
+    impl AdwWindowImpl for BackupWindow {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: BackupDialog
+// IMPLEMENTATION: BackupWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct BackupDialog(ObjectSubclass<imp::BackupDialog>)
-        @extends adw::Dialog, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+    pub struct BackupWindow(ObjectSubclass<imp::BackupWindow>)
+        @extends adw::Window, gtk::Window, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
-impl BackupDialog {
+impl BackupWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
+        glib::Object::builder()
+            .property("transient-for", parent)
+            .build()
     }
 
     //-----------------------------------
@@ -152,6 +168,9 @@ impl BackupDialog {
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Set initial focus on view
+        imp.view.grab_focus();
     }
 
     //-----------------------------------
@@ -185,7 +204,7 @@ impl BackupDialog {
         }));
 
         // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
+        imp.copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     let backup = item
@@ -197,7 +216,7 @@ impl BackupDialog {
                 .collect::<Vec<String>>()
                 .join("\n");
 
-            dialog.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Column view activate signal
@@ -217,38 +236,25 @@ impl BackupDialog {
             .map(|pkg| (pkg.name(), pkg.backup()))
             .collect();
 
-        // Spawn thread to compute backup file hashes
-        let (sender, receiver) = async_channel::bounded(1);
+        // Spawn thread to populate column view
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
+            let data_list = gio::spawn_blocking(move || {
+                backup_snapshot.iter()
+                    .flat_map(|(package, backup)| backup.iter()
+                        .map(|(filename, hash)| BackupData::new(filename, hash, Some(package)))
+                    )
+                    .collect::<Vec<BackupData>>()
+            })
+            .await
+            .expect("Could not complete async task");
 
-        gio::spawn_blocking(move || {
-            let data_list: Vec<BackupData> = backup_snapshot.iter()
-                .flat_map(|(package, backup)| backup.iter()
-                    .map(|(filename, hash)| BackupData::new(filename, hash, Some(package)))
-                )
+            let backup_list: Vec<BackupObject> = data_list.into_iter()
+                .map(|data| BackupObject::from_data(&data))
                 .collect();
 
-            sender.send_blocking(data_list).expect("Could not send through channel");
-        });
+            imp.model.extend_from_slice(&backup_list);
 
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak imp => async move {
-            while let Ok(data_list) = receiver.recv().await {
-                // Populate column view
-                let backup_list: Vec<BackupObject> = data_list.into_iter()
-                    .map(|data| BackupObject::from_data(&data))
-                    .collect();
-
-                imp.model.extend_from_slice(&backup_list);
-            }
+            window.present();
         }));
-    }
-}
-
-impl Default for BackupDialog {
-    //-----------------------------------
-    // Default constructor
-    //-----------------------------------
-    fn default() -> Self {
-        Self::new()
     }
 }
