@@ -125,5 +125,7 @@ impl StatsWindow {
             &format!("<b>{}</b>", tot_icount),
             &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
         ));
+
+        self.present();
     }
 }

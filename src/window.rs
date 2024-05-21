@@ -405,8 +405,6 @@ impl PacViewWindow {
                     let stats_window = StatsWindow::new(window);
 
                     stats_window.populate(&window.imp().pacman_repos.borrow(), pkg_snapshot);
-
-                    stats_window.present();
                 });
             })
             .build();
