@@ -11,7 +11,7 @@ use regex::Regex;
 use crate::log_object::LogObject;
 
 //------------------------------------------------------------------------------
-// MODULE: LogDialog
+// MODULE: LogWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -20,8 +20,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/log_dialog.ui")]
-    pub struct LogDialog {
+    #[template(resource = "/com/github/PacView/ui/log_window.ui")]
+    pub struct LogWindow {
         #[template_child]
         pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -49,15 +49,28 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for LogDialog {
-        const NAME: &'static str = "LogDialog";
-        type Type = super::LogDialog;
-        type ParentType = adw::Dialog;
+    impl ObjectSubclass for LogWindow {
+        const NAME: &'static str = "LogWindow";
+        type Type = super::LogWindow;
+        type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
             LogObject::ensure_type();
 
             klass.bind_template();
+
+            klass.add_shortcut(&gtk::Shortcut::new(
+                gtk::ShortcutTrigger::parse_string("Escape"),
+                Some(gtk::CallbackAction::new(|widget, _| {
+                    let window = widget
+                        .downcast_ref::<crate::log_window::LogWindow>()
+                        .expect("Could not downcast to 'BackupWindow'");
+
+                    window.close();
+
+                    glib::Propagation::Proceed
+                }))
+            ))
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -65,7 +78,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for LogDialog {
+    impl ObjectImpl for LogWindow {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -79,25 +92,28 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for LogDialog {}
-    impl AdwDialogImpl for LogDialog {}
+    impl WidgetImpl for LogWindow {}
+    impl WindowImpl for LogWindow {}
+    impl AdwWindowImpl for LogWindow {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: LogDialog
+// IMPLEMENTATION: LogWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct LogDialog(ObjectSubclass<imp::LogDialog>)
-        @extends adw::Dialog, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+    pub struct LogWindow(ObjectSubclass<imp::LogWindow>)
+    @extends adw::Window, gtk::Window, gtk::Widget,
+    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
-impl LogDialog {
+impl LogWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
+        glib::Object::builder()
+            .property("transient-for", parent)
+            .build()
     }
 
     //-----------------------------------
@@ -116,6 +132,9 @@ impl LogDialog {
             })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Set initial focus on view
+        imp.view.grab_focus();
     }
 
     //-----------------------------------
@@ -159,7 +178,7 @@ impl LogDialog {
         }));
 
         // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
+        imp.copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     let log = item
@@ -171,7 +190,7 @@ impl LogDialog {
                 .collect::<Vec<String>>()
                 .join("\n");
 
-            dialog.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
     }
 
@@ -181,44 +200,53 @@ impl LogDialog {
     pub fn populate(&self, log_file: &str) {
         let imp = self.imp();
 
-        if let Ok(log) = fs::read_to_string(log_file) {
-            // Strip ANSI control sequences from log
-            static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+        let log_file = log_file.to_string();
 
-            let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                Regex::new(r"\x1b(\[[0-9;]*m|\(B)")
-                    .expect("Regex error")
-            });
+        // Spawn thread to populate column view
+        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
+            let log_lines = gio::spawn_blocking(move || {
+                let mut log_lines: Vec<(String, String, String)> = vec![];
+
+                if let Ok(log) = fs::read_to_string(log_file) {
+                    // Strip ANSI control sequences from log
+                    static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+
+                    let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                        Regex::new(r"\x1b(\[[0-9;]*m|\(B)")
+                            .expect("Regex error")
+                    });
+
+                    let log = ansi_expr.replace_all(&log, "");
+
+                    // Get log lines
+                    static EXPR: OnceLock<Regex> = OnceLock::new();
+
+                    let expr = EXPR.get_or_init(|| {
+                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
+                            .expect("Regex error")
+                    });
+
+                    log_lines.extend(log.lines().rev()
+                        .filter_map(|s| {
+                            expr.captures(s)
+                                .map(|caps| (caps[1].to_string(), caps[2].to_string(), caps[3].to_string()))
+                        })
+                    );
+                }
+
+                log_lines
+            })
+            .await
+            .expect("Could not complete async task");
 
             // Populate column view
-            let log = ansi_expr.replace_all(&log, "");
-
-            static EXPR: OnceLock<Regex> = OnceLock::new();
-
-            let expr = EXPR.get_or_init(|| {
-                Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
-                    .expect("Regex error")
-            });
-
-            let log_list: Vec<LogObject> = log.lines().rev()
-                .filter_map(|s| {
-                    expr.captures(s)
-                        .map(|caps| {
-                            LogObject::new(&caps[1], &caps[2], &caps[3])
-                        })
-                })
+            let log_list: Vec<LogObject> = log_lines.into_iter()
+                .map(|(date, time, msg)| LogObject::new(&date, &time, &msg))
                 .collect();
 
             imp.model.extend_from_slice(&log_list);
-        }
-    }
-}
 
-impl Default for LogDialog {
-    //-----------------------------------
-    // Default constructor
-    //-----------------------------------
-    fn default() -> Self {
-        Self::new()
+            window.present();
+        }));
     }
 }

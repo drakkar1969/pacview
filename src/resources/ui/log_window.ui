@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// LogDialog template //-->
-  <template class="LogDialog" parent="AdwDialog">
-    <property name="content-width">850</property>
-    <property name="content-height">650</property>
-    <property name="focus-widget">view</property>
-    <property name="child">
+  <!--// LogWindow template //-->
+  <template class="LogWindow" parent="AdwWindow">
+    <property name="default-width">850</property>
+    <property name="default-height">650</property>
+    <property name="modal">True</property>
+    <property name="title"></property>
+    <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
@@ -150,7 +151,7 @@
                         <property name="resizable">True</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/log_dialog/date_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/log_window/date_item.ui</property>
                           </object>
                         </property>
                       </object>
@@ -161,7 +162,7 @@
                         <property name="resizable">True</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/log_dialog/time_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/log_window/time_item.ui</property>
                           </object>
                         </property>
                       </object>
@@ -173,7 +174,7 @@
                         <property name="expand">True</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/log_dialog/message_item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/log_window/message_item.ui</property>
                           </object>
                         </property>
                       </object>
