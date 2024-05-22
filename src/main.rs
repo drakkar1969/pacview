@@ -12,7 +12,7 @@ mod preferences_dialog;
 mod stats_window;
 mod backup_window;
 mod log_window;
-mod details_dialog;
+mod details_window;
 mod pkg_object;
 mod stats_object;
 mod backup_object;

@@ -13,7 +13,7 @@ use crate::backup_object::BackupObject;
 use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
-// MODULE: DetailsDialog
+// MODULE: DetailsWindow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -22,8 +22,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/details_dialog.ui")]
-    pub struct DetailsDialog {
+    #[template(resource = "/com/github/PacView/ui/details_window.ui")]
+    pub struct DetailsWindow {
         #[template_child]
         pub(super) pkg_label: TemplateChild<gtk::Label>,
 
@@ -99,15 +99,28 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for DetailsDialog {
-        const NAME: &'static str = "DetailsDialog";
-        type Type = super::DetailsDialog;
-        type ParentType = adw::Dialog;
+    impl ObjectSubclass for DetailsWindow {
+        const NAME: &'static str = "DetailsWindow";
+        type Type = super::DetailsWindow;
+        type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
             BackupObject::ensure_type();
 
             klass.bind_template();
+
+            klass.add_shortcut(&gtk::Shortcut::new(
+                gtk::ShortcutTrigger::parse_string("Escape"),
+                Some(gtk::CallbackAction::new(|widget, _| {
+                    let window = widget
+                        .downcast_ref::<crate::details_window::DetailsWindow>()
+                        .expect("Could not downcast to 'BackupWindow'");
+
+                    window.close();
+
+                    glib::Propagation::Proceed
+                }))
+            ))
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -115,7 +128,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for DetailsDialog {
+    impl ObjectImpl for DetailsWindow {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -129,25 +142,28 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for DetailsDialog {}
-    impl AdwDialogImpl for DetailsDialog {}
+    impl WidgetImpl for DetailsWindow {}
+    impl WindowImpl for DetailsWindow {}
+    impl AdwWindowImpl for DetailsWindow {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: DetailsDialog
+// IMPLEMENTATION: DetailsWindow
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct DetailsDialog(ObjectSubclass<imp::DetailsDialog>)
-        @extends adw::Dialog, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+    pub struct DetailsWindow(ObjectSubclass<imp::DetailsWindow>)
+        @extends adw::Window, gtk::Window, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
-impl DetailsDialog {
+impl DetailsWindow {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
+    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
+        glib::Object::builder()
+            .property("transient-for", parent)
+            .build()
     }
 
     //-----------------------------------
@@ -240,20 +256,20 @@ impl DetailsDialog {
         let imp = self.imp();
 
         // Tab buttons toggled signals
-        imp.files_button.connect_toggled(clone!(@weak self as dialog => move |button| {
-            dialog.activate_tab_button(button);
+        imp.files_button.connect_toggled(clone!(@weak self as window => move |button| {
+            window.activate_tab_button(button);
         }));
 
-        imp.log_button.connect_toggled(clone!(@weak self as dialog => move |button| {
-            dialog.activate_tab_button(button);
+        imp.log_button.connect_toggled(clone!(@weak self as window => move |button| {
+            window.activate_tab_button(button);
         }));
 
-        imp.cache_button.connect_toggled(clone!(@weak self as dialog => move |button| {
-            dialog.activate_tab_button(button);
+        imp.cache_button.connect_toggled(clone!(@weak self as window => move |button| {
+            window.activate_tab_button(button);
         }));
 
-        imp.backup_button.connect_toggled(clone!(@weak self as dialog => move |button| {
-            dialog.activate_tab_button(button);
+        imp.backup_button.connect_toggled(clone!(@weak self as window => move |button| {
+            window.activate_tab_button(button);
         }));
 
         // Files search entry search started signal
@@ -278,7 +294,7 @@ impl DetailsDialog {
         }));
 
         // Files copy button clicked signal
-        imp.files_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
+        imp.files_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
                 .map(|item| {
                     item
@@ -289,7 +305,7 @@ impl DetailsDialog {
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            dialog.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Files listview activate signal
@@ -298,13 +314,13 @@ impl DetailsDialog {
         }));
 
         // Log copy button clicked signal
-        imp.log_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
+        imp.log_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.log_model.iter::<gtk::StringObject>().flatten()
                 .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            dialog.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Cache open button clicked signal
@@ -317,13 +333,13 @@ impl DetailsDialog {
         }));
 
         // Cache copy button clicked signal
-        imp.cache_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
+        imp.cache_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.cache_model.iter::<gtk::StringObject>().flatten()
                 .map(|item| item.string())
                 .collect::<Vec<glib::GString>>()
                 .join("\n");
 
-            dialog.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Cache listview activate signal
@@ -341,7 +357,7 @@ impl DetailsDialog {
         }));
 
         // Backup copy button clicked signal
-        imp.backup_copy_button.connect_clicked(clone!(@weak self as dialog, @weak imp => move |_| {
+        imp.backup_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
             let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
                 .map(|item| {
                     format!("{filename} ({status})", filename=item.filename(), status=item.status_text())
@@ -349,7 +365,7 @@ impl DetailsDialog {
                 .collect::<Vec<String>>()
                 .join("\n");
 
-            dialog.clipboard().set_text(&copy_text);
+            window.clipboard().set_text(&copy_text);
         }));
 
         // Backup listview activate signal
@@ -492,14 +508,7 @@ impl DetailsDialog {
         self.populate_logs_page(pkg, log_file);
         self.populate_cache_page(pkg, cache_dirs, pkg_snapshot);
         self.populate_backup_page(pkg);
-    }
-}
 
-impl Default for DetailsDialog {
-    //-----------------------------------
-    // Default constructor
-    //-----------------------------------
-    fn default() -> Self {
-        Self::new()
+        self.present();
     }
 }

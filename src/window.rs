@@ -34,7 +34,7 @@ use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
 use crate::log_window::LogWindow;
 use crate::preferences_dialog::PreferencesDialog;
-use crate::details_dialog::DetailsDialog;
+use crate::details_window::DetailsWindow;
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -473,16 +473,14 @@ impl PacViewWindow {
                     PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
                         let pacman_config = imp.pacman_config.borrow();
 
-                        let details_dialog = DetailsDialog::new();
+                        let details_window = DetailsWindow::new(window);
     
-                        details_dialog.populate(
+                        details_window.populate(
                             &pkg,
                             &pacman_config.log_file,
                             &pacman_config.cache_dir,
                             pkg_snapshot
                         );
-
-                        details_dialog.present(window);
                     });
                 }
             })

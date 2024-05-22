@@ -41,10 +41,10 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/filename_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/section_header.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/file_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/log_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/cache_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog/backup_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/file_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/cache_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/backup_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/time_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/date_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/message_item.ui</file>
@@ -60,7 +60,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/details_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window.ui</file>
