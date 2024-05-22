@@ -470,7 +470,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(pkg) = imp.info_pane.pkg() {
-                    PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
                         let pacman_config = imp.pacman_config.borrow();
 
                         let details_window = DetailsWindow::new(window);
@@ -479,7 +479,7 @@ impl PacViewWindow {
                             &pkg,
                             &pacman_config.log_file,
                             &pacman_config.cache_dir,
-                            pkg_snapshot
+                            installed_pkg_names
                         );
                     });
                 }

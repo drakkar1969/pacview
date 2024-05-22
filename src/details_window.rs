@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::fs;
 
 use gtk::{gio, glib};
@@ -377,7 +378,7 @@ impl DetailsWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], installed_pkg_names: &HashSet<String>) {
         let imp = self.imp();
 
         let pkg_name = pkg.name();
@@ -425,12 +426,10 @@ impl DetailsWindow {
             imp.log_overlay_label.set_visible(true);
         }
 
-        // Get blacklist package names
-        let blacklist: Vec<String> = pkg_snapshot.iter()
-            .map(|pkg| pkg.name())
-            .filter(|name| {
-                name.starts_with(&pkg_name) &&
-                *name != pkg_name
+        // Get cache blacklist package names
+        let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
+            .filter(|&name| {
+                name.starts_with(&pkg_name) && name != &pkg_name
             })
             .collect();
 
@@ -444,7 +443,7 @@ impl DetailsWindow {
                         let cache_file = path.display().to_string();
 
                         // Exclude cache files that include blacklist package names
-                        if blacklist.iter().any(|s| cache_file.contains(s)) {
+                        if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
                             None
                         } else {
                             Some(gtk::StringObject::new(&cache_file))
