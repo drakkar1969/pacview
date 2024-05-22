@@ -375,9 +375,9 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Populate widgets
+    // Show window
     //-----------------------------------
-    pub fn populate(&self, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         let pkg_name = pkg.name();

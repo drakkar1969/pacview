@@ -83,9 +83,9 @@ impl StatsWindow {
     }
 
     //-----------------------------------
-    // Populate widgets
+    // Show window
     //-----------------------------------
-    pub fn populate(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         // Iterate repos

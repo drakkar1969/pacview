@@ -404,7 +404,7 @@ impl PacViewWindow {
                 PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
                     let stats_window = StatsWindow::new(window);
 
-                    stats_window.populate(&window.imp().pacman_repos.borrow(), pkg_snapshot);
+                    stats_window.show(&window.imp().pacman_repos.borrow(), pkg_snapshot);
                 });
             })
             .build();
@@ -415,7 +415,7 @@ impl PacViewWindow {
                 PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
                     let backup_window = BackupWindow::new(window);
 
-                    backup_window.populate(pkg_snapshot);
+                    backup_window.show(pkg_snapshot);
                 });
             })
             .build();
@@ -425,7 +425,7 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let log_window = LogWindow::new(window);
 
-                log_window.populate(&window.imp().pacman_config.borrow().log_file);
+                log_window.show(&window.imp().pacman_config.borrow().log_file);
             })
             .build();
 
@@ -475,7 +475,7 @@ impl PacViewWindow {
 
                         let details_window = DetailsWindow::new(window);
     
-                        details_window.populate(
+                        details_window.show(
                             &pkg,
                             &pacman_config.log_file,
                             &pacman_config.cache_dir,

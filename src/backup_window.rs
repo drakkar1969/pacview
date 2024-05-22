@@ -226,9 +226,9 @@ impl BackupWindow {
     }
 
     //-----------------------------------
-    // Populate widgets
+    // Show window
     //-----------------------------------
-    pub fn populate(&self, pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         let backup_snapshot: HashMap<String, Vec<(String, String)>> = pkg_snapshot.iter()

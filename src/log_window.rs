@@ -195,9 +195,9 @@ impl LogWindow {
     }
 
     //-----------------------------------
-    // Populate widgets
+    // Show window
     //-----------------------------------
-    pub fn populate(&self, log_file: &str) {
+    pub fn show(&self, log_file: &str) {
         let imp = self.imp();
 
         let log_file = log_file.to_string();
