@@ -375,18 +375,18 @@ impl DetailsWindow {
     }
 
     //-----------------------------------
-    // Populate banner
+    // Populate widgets
     //-----------------------------------
-    fn populate_banner(&self, pkg: &PkgObject) {
-        // Set package name in banner
-        self.imp().pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repository(), name=pkg.name()));
-    }
-
-    //-----------------------------------
-    // Populate stack
-    //-----------------------------------
-    fn populate_stack(&self, installed: bool) {
+    pub fn populate(&self, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
+
+        let pkg_name = pkg.name();
+
+        // Set package name in banner
+        imp.pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repository(), name=pkg_name));
+
+        // Set toggle button states
+        let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
 
         imp.files_button.set_sensitive(installed);
         imp.log_button.set_sensitive(installed);
@@ -396,31 +396,17 @@ impl DetailsWindow {
         if installed {
             imp.files_button.set_active(true);
         }
-    }
 
-    //-----------------------------------
-    // Populate files page
-    //-----------------------------------
-    fn populate_files_page(&self, pkg: &PkgObject) {
-        let imp = self.imp();
-
-        // Populate files list
+        // Populate files view
         let files_list: Vec<gtk::StringObject> = pkg.files().iter()
             .map(|s| gtk::StringObject::new(s))
             .collect();
 
         imp.files_model.extend_from_slice(&files_list);
-    }
 
-    //-----------------------------------
-    // Populate logs page
-    //-----------------------------------
-    fn populate_logs_page(&self, pkg: &PkgObject, log_file: &str) {
-        let imp = self.imp();
-
-        // Populate log messages
+        // Populate log view
         if let Ok(log) = fs::read_to_string(log_file) {
-            let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
+            let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg_name))
                 .expect("Regex error");
 
             let log_lines: Vec<gtk::StringObject> = log.lines().rev()
@@ -438,26 +424,17 @@ impl DetailsWindow {
             // Show overlay error label
             imp.log_overlay_label.set_visible(true);
         }
-    }
-
-    //-----------------------------------
-    // Populate cache page
-    //-----------------------------------
-    fn populate_cache_page(&self, pkg: &PkgObject, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
-        let imp = self.imp();
-
-        let pkg_name = &pkg.name();
 
         // Get blacklist package names
         let blacklist: Vec<String> = pkg_snapshot.iter()
             .map(|pkg| pkg.name())
             .filter(|name| {
-                name.starts_with(pkg_name) &&
-                name != pkg_name
+                name.starts_with(&pkg_name) &&
+                *name != pkg_name
             })
             .collect();
 
-        // Populate cache files list
+        // Populate cache view
         for dir in cache_dirs {
             if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
                 // Find cache files that include package name
@@ -481,33 +458,13 @@ impl DetailsWindow {
                 imp.cache_overlay_label.set_visible(true);
             }
         }
-    }
 
-    //-----------------------------------
-    // Populate backup page
-    //-----------------------------------
-    fn populate_backup_page(&self, pkg: &PkgObject) {
-        let imp = self.imp();
-
-        // Populate backup list
+        // Populate backup view
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
             .map(|(filename, hash)| BackupObject::new(filename, hash, None, alpm::compute_md5sum(filename.as_str()).as_deref()))
             .collect();
 
         imp.backup_model.extend_from_slice(&backup_list);
-    }
-
-    //-----------------------------------
-    // Populate widgets
-    //-----------------------------------
-    pub fn populate(&self, pkg: &PkgObject, log_file: &str, cache_dirs: &[String], pkg_snapshot: &[PkgObject]) {
-        self.populate_banner(pkg);
-        self.populate_stack(pkg.flags().intersects(PkgFlags::INSTALLED));
-
-        self.populate_files_page(pkg);
-        self.populate_logs_page(pkg, log_file);
-        self.populate_cache_page(pkg, cache_dirs, pkg_snapshot);
-        self.populate_backup_page(pkg);
 
         self.present();
     }
