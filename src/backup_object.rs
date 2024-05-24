@@ -24,27 +24,6 @@ impl EnumValueExt for BackupStatus {}
 impl EnumClassExt for BackupStatus {}
 
 //------------------------------------------------------------------------------
-// STRUCT: BackupData
-//------------------------------------------------------------------------------
-pub struct BackupData {
-    filename: String,
-    hash: String,
-    package: Option<String>,
-    file_hash: Result<String, alpm::ChecksumError>
-}
-
-impl BackupData {
-    pub fn new(filename: &str, hash: &str, package: Option<&str>) -> Self {
-        Self {
-            filename: filename.to_string(),
-            hash: hash.to_string(),
-            package: package.map(str::to_string),
-            file_hash: alpm::compute_md5sum(filename)
-        }
-    }
-}
-
-//------------------------------------------------------------------------------
 // MODULE: BackupObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -126,12 +105,5 @@ impl BackupObject {
             .property("package", package)
             .property("status", status)
             .build()
-    }
-
-    //-----------------------------------
-    // From data function
-    //-----------------------------------
-    pub fn from_data(data: &BackupData) -> Self {
-        Self::new(&data.filename, &data.hash, data.package.as_deref(), data.file_hash.as_deref())
     }
 }

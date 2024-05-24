@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -6,7 +6,7 @@ use gtk::prelude::*;
 use glib::clone;
 
 use crate::pkg_object::PkgObject;
-use crate::backup_object::{BackupObject, BackupStatus, BackupData};
+use crate::backup_object::{BackupObject, BackupStatus};
 use crate::traits::EnumClassExt;
 use crate::utils::open_file_manager;
 
@@ -231,25 +231,15 @@ impl BackupWindow {
     pub fn show(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
-        let backup_snapshot: HashMap<String, Vec<(String, String)>> = pkg_snapshot.iter()
-            .filter(|pkg| !pkg.backup().is_empty())
-            .map(|pkg| (pkg.name(), pkg.backup()))
-            .collect();
+        let pkg_snapshot = pkg_snapshot.to_vec();
 
         // Spawn thread to populate column view
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            let data_list = gio::spawn_blocking(move || {
-                backup_snapshot.iter()
-                    .flat_map(|(package, backup)| backup.iter()
-                        .map(|(filename, hash)| BackupData::new(filename, hash, Some(package)))
-                    )
-                    .collect::<Vec<BackupData>>()
-            })
-            .await
-            .expect("Could not complete async task");
 
-            let backup_list: Vec<BackupObject> = data_list.into_iter()
-                .map(|data| BackupObject::from_data(&data))
+            let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
+                .flat_map(|pkg| { pkg.backup().into_iter()
+                    .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name()), alpm::compute_md5sum(filename.as_str()).as_deref()))
+                })
                 .collect();
 
             imp.model.extend_from_slice(&backup_list);

@@ -204,47 +204,34 @@ impl LogWindow {
 
         // Spawn thread to populate column view
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            let log_lines = gio::spawn_blocking(move || {
-                let mut log_lines: Vec<(String, String, String)> = vec![];
+            if let Ok(log) = fs::read_to_string(log_file) {
+                // Strip ANSI control sequences from log
+                static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
-                if let Ok(log) = fs::read_to_string(log_file) {
-                    // Strip ANSI control sequences from log
-                    static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+                let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                    Regex::new(r"\x1b(\[[0-9;]*m|\(B)")
+                        .expect("Regex error")
+                });
 
-                    let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                        Regex::new(r"\x1b(\[[0-9;]*m|\(B)")
-                            .expect("Regex error")
-                    });
+                let log = ansi_expr.replace_all(&log, "");
 
-                    let log = ansi_expr.replace_all(&log, "");
+                // Populate column view
+                static EXPR: OnceLock<Regex> = OnceLock::new();
 
-                    // Get log lines
-                    static EXPR: OnceLock<Regex> = OnceLock::new();
+                let expr = EXPR.get_or_init(|| {
+                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
+                        .expect("Regex error")
+                });
 
-                    let expr = EXPR.get_or_init(|| {
-                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
-                            .expect("Regex error")
-                    });
+                let log_lines: Vec<LogObject> = log.lines().rev()
+                    .filter_map(|s| {
+                        expr.captures(s)
+                            .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3]))
+                    })
+                    .collect();
 
-                    log_lines.extend(log.lines().rev()
-                        .filter_map(|s| {
-                            expr.captures(s)
-                                .map(|caps| (caps[1].to_string(), caps[2].to_string(), caps[3].to_string()))
-                        })
-                    );
-                }
-
-                log_lines
-            })
-            .await
-            .expect("Could not complete async task");
-
-            // Populate column view
-            let log_list: Vec<LogObject> = log_lines.into_iter()
-                .map(|(date, time, msg)| LogObject::new(&date, &time, &msg))
-                .collect();
-
-            imp.model.extend_from_slice(&log_list);
+                imp.model.extend_from_slice(&log_lines);
+            }
 
             window.present();
         }));
