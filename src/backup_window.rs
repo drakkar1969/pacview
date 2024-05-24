@@ -231,11 +231,12 @@ impl BackupWindow {
     pub fn show(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
+        self.present();
+
         let pkg_snapshot = pkg_snapshot.to_vec();
 
         // Spawn thread to populate column view
         glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-
             let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
                 .flat_map(|pkg| { pkg.backup().into_iter()
                     .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name()), alpm::compute_md5sum(filename.as_str()).as_deref()))
@@ -243,8 +244,6 @@ impl BackupWindow {
                 .collect();
 
             imp.model.extend_from_slice(&backup_list);
-
-            window.present();
         }));
     }
 }

@@ -203,6 +203,8 @@ impl LogWindow {
     pub fn show(&self, log_file: &str) {
         let imp = self.imp();
 
+        self.present();
+
         let log_file = log_file.to_string();
 
         // Spawn thread to populate column view
@@ -238,8 +240,6 @@ impl LogWindow {
                 // Show overlay error label
                 imp.overlay_label.set_visible(true);
             }
-
-            window.present();
         }));
     }
 }
