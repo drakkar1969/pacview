@@ -43,6 +43,9 @@ mod imp {
         pub(super) search_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) package_filter: TemplateChild<gtk::CustomFilter>,
+
+        #[template_child]
+        pub(super) overlay_label: TemplateChild<gtk::Label>,
     }
 
     //-----------------------------------
@@ -231,6 +234,9 @@ impl LogWindow {
                     .collect();
 
                 imp.model.extend_from_slice(&log_lines);
+            } else {
+                // Show overlay error label
+                imp.overlay_label.set_visible(true);
             }
 
             window.present();

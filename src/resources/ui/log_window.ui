@@ -106,81 +106,97 @@
               </object>
             </child>
             <child>
-              <object class="GtkScrolledWindow">
-                <property name="hexpand">True</property>
-                <property name="vexpand">True</property>
-                <property name="margin-bottom">16</property>
-                <property name="child">
-                  <object class="GtkColumnView" id="view">
-                    <style>
-                      <class name="card-list"/>
-                    </style>
-                    <property name="margin-start">16</property>
-                    <property name="margin-end">16</property>
-                    <property name="tab-behavior">item</property>
-                    <property name="model">
-                      <object class="GtkNoSelection" id="selection">
+              <object class="GtkOverlay">
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="child">
+                      <object class="GtkColumnView" id="view">
+                        <style>
+                          <class name="card-list"/>
+                        </style>
+                        <property name="margin-start">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="tab-behavior">item</property>
                         <property name="model">
-                          <object class="GtkFilterListModel" id="filter_model">
-                            <property name="filter">
-                              <object class="GtkEveryFilter" id="message_filter">
-                                <child>
-                                  <object class="GtkStringFilter" id="search_filter">
-                                    <property name="expression">
-                                      <lookup name="message" type="LogObject"/>
-                                    </property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkCustomFilter" id="package_filter"/>
-                                </child>
-                              </object>
-                            </property>
+                          <object class="GtkNoSelection" id="selection">
                             <property name="model">
-                              <object class="GListStore" id="model">
-                                <property name="item-type">LogObject</property>
+                              <object class="GtkFilterListModel" id="filter_model">
+                                <property name="filter">
+                                  <object class="GtkEveryFilter" id="message_filter">
+                                    <child>
+                                      <object class="GtkStringFilter" id="search_filter">
+                                        <property name="expression">
+                                          <lookup name="message" type="LogObject"/>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCustomFilter" id="package_filter"/>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="model">
+                                  <object class="GListStore" id="model">
+                                    <property name="item-type">LogObject</property>
+                                  </object>
+                                </property>
                               </object>
                             </property>
                           </object>
                         </property>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="date_column">
+                            <property name="title">Date</property>
+                            <property name="resizable">True</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/log_window/date_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="time_column">
+                            <property name="title">Time</property>
+                            <property name="resizable">True</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/log_window/time_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="message_column">
+                            <property name="title">Message</property>
+                            <property name="resizable">True</property>
+                            <property name="expand">True</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/log_window/message_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
                       </object>
                     </property>
-                    <child>
-                      <object class="GtkColumnViewColumn" id="date_column">
-                        <property name="title">Date</property>
-                        <property name="resizable">True</property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/log_window/date_item.ui</property>
-                          </object>
-                        </property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkColumnViewColumn" id="time_column">
-                        <property name="title">Time</property>
-                        <property name="resizable">True</property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/log_window/time_item.ui</property>
-                          </object>
-                        </property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkColumnViewColumn" id="message_column">
-                        <property name="title">Message</property>
-                        <property name="resizable">True</property>
-                        <property name="expand">True</property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/log_window/message_item.ui</property>
-                          </object>
-                        </property>
-                      </object>
-                    </child>
                   </object>
-                </property>
+                </child>
+                <child type="overlay">
+                  <object class="GtkLabel" id="overlay_label">
+                    <property name="visible">false</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="label">Error retrieving log</property>
+                    <style>
+                      <class name="title-3"/>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
