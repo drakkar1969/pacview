@@ -794,7 +794,7 @@ impl PacViewWindow {
                 self.download_aur_names(aur_file, Some(sender));
 
                 glib::spawn_future_local(clone!(@weak self as window => async move {
-                    while let Ok(_) = receiver.recv().await {
+                    while let Ok(()) = receiver.recv().await {
                         window.load_packages(false);
                     }
                 }));
