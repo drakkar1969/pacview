@@ -33,7 +33,7 @@ use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
 use crate::log_window::LogWindow;
-use crate::config_window::ConfigWindow;
+use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::PreferencesDialog;
 use crate::details_window::DetailsWindow;
 
@@ -493,9 +493,9 @@ impl PacViewWindow {
         // Add show pacman config window action
         let config_action = gio::ActionEntry::builder("show-pacman-config")
             .activate(|window: &Self, _, _| {
-                let config_window = ConfigWindow::new(window);
+                let config_dialog = ConfigDialog::new();
 
-                config_window.show(&window.imp().pacman_config.borrow());
+                config_dialog.show(window, &window.imp().pacman_config.borrow());
             })
             .build();
 

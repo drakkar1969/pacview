@@ -1,12 +1,12 @@
 use gtk::glib;
-use adw::{subclass::prelude::*, prelude::ActionRowExt};
-use gtk::prelude::*;
+use adw::subclass::prelude::*;
+use adw::prelude::*;
 use glib::clone;
 
 use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
-// MODULE: ConfigWindow
+// MODULE: ConfigDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -15,8 +15,8 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/config_window.ui")]
-    pub struct ConfigWindow {
+    #[template(resource = "/com/github/PacView/ui/config_dialog.ui")]
+    pub struct ConfigDialog {
         #[template_child]
         pub(super) rootdir_row: TemplateChild<adw::ActionRow>,
         #[template_child]
@@ -89,26 +89,13 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for ConfigWindow {
-        const NAME: &'static str = "ConfigWindow";
-        type Type = super::ConfigWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for ConfigDialog {
+        const NAME: &'static str = "ConfigDialog";
+        type Type = super::ConfigDialog;
+        type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-
-            klass.add_shortcut(&gtk::Shortcut::new(
-                gtk::ShortcutTrigger::parse_string("Escape"),
-                Some(gtk::CallbackAction::new(|widget, _| {
-                    let window = widget
-                        .downcast_ref::<crate::config_window::ConfigWindow>()
-                        .expect("Could not downcast to 'ConfigWindow'");
-
-                    window.close();
-
-                    glib::Propagation::Proceed
-                }))
-            ))
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -116,7 +103,7 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for ConfigWindow {
+    impl ObjectImpl for ConfigDialog {
         //-----------------------------------
         // Constructor
         //-----------------------------------
@@ -130,27 +117,26 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for ConfigWindow {}
-    impl WindowImpl for ConfigWindow {}
-    impl AdwWindowImpl for ConfigWindow {}
+    impl WidgetImpl for ConfigDialog {}
+    impl AdwDialogImpl for ConfigDialog {}
+    impl PreferencesDialogImpl for ConfigDialog {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: ConfigWindow
+// IMPLEMENTATION: ConfigDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct ConfigWindow(ObjectSubclass<imp::ConfigWindow>)
-    @extends adw::Window, gtk::Window, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct ConfigDialog(ObjectSubclass<imp::ConfigDialog>)
+    @extends adw::Dialog, gtk::Widget,
+    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl ConfigWindow {
+impl ConfigDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
+    pub fn new() -> Self {
         glib::Object::builder()
-            .property("transient-for", parent)
             .build()
     }
 
@@ -210,7 +196,7 @@ impl ConfigWindow {
 
         // CacheDir open button clicked signal
         imp.cachedir_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            for item in imp.cachedir_row.subtitle().unwrap_or_default().split("\n") {
+            for item in imp.cachedir_row.subtitle().unwrap_or_default().split('\n') {
                 open_file_manager(item);
             }
         }));
@@ -227,7 +213,7 @@ impl ConfigWindow {
 
         // HookDir open button clicked signal
         imp.hookdir_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            for item in imp.hookdir_row.subtitle().unwrap_or_default().split("\n") {
+            for item in imp.hookdir_row.subtitle().unwrap_or_default().split('\n') {
                 open_file_manager(item);
             }
         }));
@@ -236,10 +222,10 @@ impl ConfigWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self, config: &pacmanconf::Config) {
+    pub fn show(&self, parent: &impl IsA<gtk::Widget>, config: &pacmanconf::Config) {
         let imp = self.imp();
 
-        self.present();
+        self.present(parent);
 
         imp.rootdir_row.set_subtitle(&config.root_dir);
         imp.dbpath_row.set_subtitle(&config.db_path);
@@ -271,3 +257,10 @@ impl ConfigWindow {
         imp.remotefilesiglevel_row.set_subtitle(&config.remote_file_sig_level.join(" | "));
     }
 }
+
+impl Default for ConfigDialog {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+    
