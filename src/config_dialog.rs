@@ -112,7 +112,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
         }
     }
@@ -138,44 +137,6 @@ impl ConfigDialog {
     pub fn new() -> Self {
         glib::Object::builder()
             .build()
-    }
-
-    //-----------------------------------
-    // Setup widgets
-    //-----------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind row subtitles to open button states
-        imp.rootdir_row.bind_property("subtitle", &imp.rootdir_open_button.get(), "sensitive")
-            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.dbpath_row.bind_property("subtitle", &imp.dbpath_open_button.get(), "sensitive")
-            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.cachedir_row.bind_property("subtitle", &imp.cachedir_open_button.get(), "sensitive")
-            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.logfile_row.bind_property("subtitle", &imp.logfile_open_button.get(), "sensitive")
-            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.gpgdir_row.bind_property("subtitle", &imp.gpgdir_open_button.get(), "sensitive")
-            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        imp.hookdir_row.bind_property("subtitle", &imp.hookdir_open_button.get(), "sensitive")
-            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
     }
 
     //-----------------------------------
@@ -227,6 +188,7 @@ impl ConfigDialog {
 
         self.present(parent);
 
+        // Populate config rows
         imp.rootdir_row.set_subtitle(&config.root_dir);
         imp.dbpath_row.set_subtitle(&config.db_path);
         imp.cachedir_row.set_subtitle(&config.cache_dir.join("\n"));
@@ -255,6 +217,14 @@ impl ConfigDialog {
         imp.siglevel_row.set_subtitle(&config.sig_level.join(" | "));
         imp.localfilesiglevel_row.set_subtitle(&config.local_file_sig_level.join(" | "));
         imp.remotefilesiglevel_row.set_subtitle(&config.remote_file_sig_level.join(" | "));
+
+        // Set open button sensitivity
+        imp.rootdir_open_button.set_sensitive(!config.root_dir.is_empty());
+        imp.dbpath_open_button.set_sensitive(!config.db_path.is_empty());
+        imp.cachedir_open_button.set_sensitive(!config.cache_dir.is_empty());
+        imp.logfile_open_button.set_sensitive(!config.log_file.is_empty());
+        imp.gpgdir_open_button.set_sensitive(!config.gpg_dir.is_empty());
+        imp.hookdir_open_button.set_sensitive(!config.hook_dir.is_empty());
     }
 }
 
