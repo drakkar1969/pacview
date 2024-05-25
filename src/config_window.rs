@@ -1,6 +1,9 @@
 use gtk::glib;
 use adw::{subclass::prelude::*, prelude::ActionRowExt};
 use gtk::prelude::*;
+use glib::clone;
+
+use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
 // MODULE: ConfigWindow
@@ -32,6 +35,19 @@ mod imp {
         pub(super) cleanmethod_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) architecture_row: TemplateChild<adw::ActionRow>,
+
+        #[template_child]
+        pub(super) rootdir_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) dbpath_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) cachedir_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) logfile_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) gpgdir_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) hookdir_open_button: TemplateChild<gtk::Button>,
 
         #[template_child]
         pub(super) holdpkg_row: TemplateChild<adw::ActionRow>,
@@ -107,10 +123,10 @@ mod imp {
         fn constructed(&self) {
             self.parent_constructed();
 
-            // let obj = self.obj();
+            let obj = self.obj();
 
-            // obj.setup_widgets();
-            // obj.setup_signals();
+            obj.setup_widgets();
+            obj.setup_signals();
         }
     }
 
@@ -138,19 +154,84 @@ impl ConfigWindow {
             .build()
     }
 
-    // //-----------------------------------
-    // // Setup widgets
-    // //-----------------------------------
-    // fn setup_widgets(&self) {
-    //     let imp = self.imp();
-    // }
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
 
-    // //-----------------------------------
-    // // Setup signals
-    // //-----------------------------------
-    // fn setup_signals(&self) {
-    //     let imp = self.imp();
-    // }
+        // Bind row subtitles to open button states
+        imp.rootdir_row.bind_property("subtitle", &imp.rootdir_open_button.get(), "sensitive")
+            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.dbpath_row.bind_property("subtitle", &imp.dbpath_open_button.get(), "sensitive")
+            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.cachedir_row.bind_property("subtitle", &imp.cachedir_open_button.get(), "sensitive")
+            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.logfile_row.bind_property("subtitle", &imp.logfile_open_button.get(), "sensitive")
+            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.gpgdir_row.bind_property("subtitle", &imp.gpgdir_open_button.get(), "sensitive")
+            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.hookdir_row.bind_property("subtitle", &imp.hookdir_open_button.get(), "sensitive")
+            .transform_to(|_, subtitle: glib::GString| Some(!subtitle.is_empty()))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // RootDir open button clicked signal
+        imp.rootdir_open_button.connect_clicked(clone!(@weak imp => move |_| {
+            open_file_manager(&imp.rootdir_row.subtitle().unwrap_or_default());
+        }));
+
+        // DBPath open button clicked signal
+        imp.dbpath_open_button.connect_clicked(clone!(@weak imp => move |_| {
+            open_file_manager(&imp.dbpath_row.subtitle().unwrap_or_default());
+        }));
+
+        // CacheDir open button clicked signal
+        imp.cachedir_open_button.connect_clicked(clone!(@weak imp => move |_| {
+            for item in imp.cachedir_row.subtitle().unwrap_or_default().split("\n") {
+                open_file_manager(item);
+            }
+        }));
+
+        // LogFile open button clicked signal
+        imp.logfile_open_button.connect_clicked(clone!(@weak imp => move |_| {
+            open_file_manager(&imp.logfile_row.subtitle().unwrap_or_default());
+        }));
+
+        // GPGDir open button clicked signal
+        imp.gpgdir_open_button.connect_clicked(clone!(@weak imp => move |_| {
+            open_file_manager(&imp.gpgdir_row.subtitle().unwrap_or_default());
+        }));
+
+        // HookDir open button clicked signal
+        imp.hookdir_open_button.connect_clicked(clone!(@weak imp => move |_| {
+            for item in imp.hookdir_row.subtitle().unwrap_or_default().split("\n") {
+                open_file_manager(item);
+            }
+        }));
+    }
 
     //-----------------------------------
     // Show window
