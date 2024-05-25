@@ -177,6 +177,10 @@
         <attribute name="action">win.show-pacman-log</attribute>
       </item>
       <item>
+        <attribute name="label">Show Pacman Config</attribute>
+        <attribute name="action">win.show-pacman-config</attribute>
+      </item>
+      <item>
         <attribute name="label">Copy List</attribute>
         <attribute name="action">win.copy-package-list</attribute>
       </item>

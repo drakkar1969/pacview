@@ -33,6 +33,7 @@ use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
 use crate::log_window::LogWindow;
+use crate::config_window::ConfigWindow;
 use crate::preferences_dialog::PreferencesDialog;
 use crate::details_window::DetailsWindow;
 
@@ -429,6 +430,15 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add package view show pacman config action
+        let config_action = gio::ActionEntry::builder("show-pacman-config")
+            .activate(|window: &Self, _, _| {
+                let config_window = ConfigWindow::new(window);
+
+                config_window.show(&window.imp().pacman_config.borrow());
+            })
+            .build();
+
         // Add package view copy list action
         let copy_action = gio::ActionEntry::builder("copy-package-list")
             .activate(|window: &Self, _, _| {
@@ -441,7 +451,7 @@ impl PacViewWindow {
             .build();
 
         // Add package view actions to window
-        self.add_action_entries([refresh_action, all_pkgs_action, stats_action, backup_action, log_action, copy_action]);
+        self.add_action_entries([refresh_action, all_pkgs_action, stats_action, backup_action, log_action, config_action, copy_action]);
 
         // Bind package view item count to copy list action enabled state
         let copy_action = self.lookup_action("copy-package-list").unwrap();
@@ -559,6 +569,12 @@ impl PacViewWindow {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>L"),
             Some(gtk::NamedAction::new("win.show-pacman-log"))
+        ));
+
+        // Add view show pacman config shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<alt>P"),
+            Some(gtk::NamedAction::new("win.show-pacman-config"))
         ));
 
         // Add view copy list shortcut

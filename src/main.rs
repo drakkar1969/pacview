@@ -13,6 +13,7 @@ mod stats_window;
 mod backup_window;
 mod log_window;
 mod details_window;
+mod config_window;
 mod pkg_object;
 mod stats_object;
 mod backup_object;

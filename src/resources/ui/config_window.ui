@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// ConfigWindow template //-->
+  <template class="ConfigWindow" parent="AdwWindow">
+    <property name="default-width">500</property>
+    <property name="default-height">500</property>
+    <property name="modal">True</property>
+    <property name="title"></property>
+    <property name="content">
+      <object class="AdwToolbarView" id="toolbar_view">
+        <child type="top">
+          <object class="AdwHeaderBar" id="header_bar">
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkScrolledWindow">
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="margin-start">24</property>
+                <property name="margin-end">24</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">24</property>
+                <property name="spacing">24</property>
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdwActionRow" id="rootdir_row">
+                        <property name="title">RootDir</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                        <child>
+                          <object class="GtkButton" id="rootdir_open_button">
+                            <property name="valign">center</property>
+                            <property name="icon-name">folder-open-symbolic</property>
+                            <property name="tooltip-text">Show in File Manager</property>
+                            <style>
+                              <class name="flat"/>
+                              <class name="circular"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="dbpath_row">
+                        <property name="title">DBPath</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="cachedir_row">
+                        <property name="title">CacheDir</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="logfile_row">
+                        <property name="title">LogFile</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="gpgdir_row">
+                        <property name="title">GPGDir</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="hookdir_row">
+                        <property name="title">HookDir</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="xfercommand_row">
+                        <property name="title">XferCommand</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="cleanmethod_row">
+                        <property name="title">CleanMethod</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="architecture_row">
+                        <property name="title">Architecture</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdwActionRow" id="holdpkg_row">
+                        <property name="title">HoldPkg</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="ignorepkg_row">
+                        <property name="title">IgnorePkg</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="ignoregroup_row">
+                        <property name="title">IgnoreGroup</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="noupgrade_row">
+                        <property name="title">NoUpgrade</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="noextract_row">
+                        <property name="title">NoExtract</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdwActionRow" id="usesyslog_row">
+                        <property name="title">UseSyslog</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="color_row">
+                        <property name="title">Color</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="checkspace_row">
+                        <property name="title">CheckSpace</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="verbosepkglists_row">
+                        <property name="title">VerbosePkgLists</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="paralleldownloads_row">
+                        <property name="title">ParallelDownloads</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="totaldownload_row">
+                        <property name="title">TotalDownload</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="disabledownloadtimeout_row">
+                        <property name="title">DisableDownloadTimeout</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="ilovecandy_row">
+                        <property name="title">ILoveCandy</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwPreferencesGroup">
+                    <child>
+                      <object class="AdwActionRow" id="siglevel_row">
+                        <property name="title">SigLevel</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="localfilesiglevel_row">
+                        <property name="title">LocalFileSigLevel</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwActionRow" id="remotefilesiglevel_row">
+                        <property name="title">RemoteFileSigLevel</property>
+                        <property name="subtitle">Subtitle</property>
+                        <property name="subtitle-selectable">True</property>
+                        <style>
+                          <class name="property"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+          <!-- <object class="GtkBox" id="main_box">
+            <style>
+              <class name="card"/>
+            </style>
+            <property name="orientation">vertical</property>
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">24</property>
+            <property name="spacing">16</property>
+            <child>
+              <object class="GtkBox" id="header_box">
+                <property name="margin-start">16</property>
+                <property name="margin-end">16</property>
+                <property name="margin-top">16</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkImage" id="header_image">
+                    <property name="valign">center</property>
+                    <property name="icon-name">details-log-symbolic</property>
+                    <style>
+                      <class name="bubble"/>
+                      <class name="medium"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="GtkLabel" id="header_label">
+                        <property name="xalign">0</property>
+                        <property name="yalign">0.5</property>
+                        <property name="label">Pacman Log</property>
+                        <style>
+                          <class name="title-3"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="header_sub_label">
+                        <property name="xalign">0</property>
+                        <property name="yalign">0.5</property>
+                        <property name="label"></property>
+                        <style>
+                          <class name="heading"/>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="hexpand">True</property>
+                    <property name="halign">end</property>
+                    <property name="valign">center</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <property name="margin-start">20</property>
+                        <property name="margin-end">14</property>
+                        <property name="tooltip-text">Search in Messages</property>
+                        <style>
+                          <class name="rounded"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkToggleButton" id="package_button">
+                        <property name="icon-name">package-x-generic-symbolic</property>
+                        <property name="tooltip-text">Filter Package Events</property>
+                        <style>
+                          <class name="flat"/>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="copy_button">
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <property name="tooltip-text">Copy Log Messages</property>
+                        <style>
+                          <class name="flat"/>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkOverlay">
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="child">
+                      <object class="GtkColumnView" id="view">
+                        <style>
+                          <class name="card-list"/>
+                        </style>
+                        <property name="margin-start">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="tab-behavior">item</property>
+                        <property name="model">
+                          <object class="GtkNoSelection" id="selection">
+                            <property name="model">
+                              <object class="GtkFilterListModel" id="filter_model">
+                                <property name="filter">
+                                  <object class="GtkEveryFilter" id="message_filter">
+                                    <child>
+                                      <object class="GtkStringFilter" id="search_filter">
+                                        <property name="expression">
+                                          <lookup name="message" type="LogObject"/>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCustomFilter" id="package_filter"/>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="model">
+                                  <object class="GListStore" id="model">
+                                    <property name="item-type">LogObject</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                          </object>
+                        </property>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="date_column">
+                            <property name="title">Date</property>
+                            <property name="resizable">True</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/log_window/date_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="time_column">
+                            <property name="title">Time</property>
+                            <property name="resizable">True</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/log_window/time_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="message_column">
+                            <property name="title">Message</property>
+                            <property name="resizable">True</property>
+                            <property name="expand">True</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/log_window/message_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child type="overlay">
+                  <object class="GtkLabel" id="overlay_label">
+                    <property name="visible">false</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <property name="label">Error retrieving log</property>
+                    <style>
+                      <class name="title-3"/>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object> -->
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>
