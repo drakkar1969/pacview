@@ -51,38 +51,14 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;A</property>
-                <property name="title">Show All Packages</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;S</property>
-                <property name="title">Show Statistics</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;B</property>
-                <property name="title">Show Backup Files</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;L</property>
-                <property name="title">Show Pacman Log</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;P</property>
-                <property name="title">Show Pacman Config</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;C</property>
                 <property name="title">Copy List</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;A</property>
+                <property name="title">Show All Packages</property>
               </object>
             </child>
           </object>
@@ -129,6 +105,35 @@
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">Return</property>
                 <property name="title">Activate Link</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Windows</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;S</property>
+                <property name="title">Show Statistics</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;B</property>
+                <property name="title">Show Backup Files</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;L</property>
+                <property name="title">Show Pacman Log</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;P</property>
+                <property name="title">Show Pacman Config</property>
               </object>
             </child>
           </object>

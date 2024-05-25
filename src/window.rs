@@ -389,56 +389,6 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add show all packages action
-        let all_pkgs_action = gio::ActionEntry::builder("show-all-packages")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                imp.all_repo_row.borrow().activate();
-                imp.all_status_row.borrow().activate();
-            })
-            .build();
-
-        // Add package view show stats action
-        let stats_action = gio::ActionEntry::builder("show-stats")
-            .activate(|window: &Self, _, _| {
-                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    let stats_window = StatsWindow::new(window);
-
-                    stats_window.show(&window.imp().pacman_repos.borrow(), pkg_snapshot);
-                });
-            })
-            .build();
-
-        // Add package view show backup files action
-        let backup_action = gio::ActionEntry::builder("show-backup-files")
-            .activate(|window: &Self, _, _| {
-                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    let backup_window = BackupWindow::new(window);
-
-                    backup_window.show(pkg_snapshot);
-                });
-            })
-            .build();
-
-        // Add package view show pacman log action
-        let log_action = gio::ActionEntry::builder("show-pacman-log")
-            .activate(|window: &Self, _, _| {
-                let log_window = LogWindow::new(window);
-
-                log_window.show(&window.imp().pacman_config.borrow().log_file);
-            })
-            .build();
-
-        // Add package view show pacman config action
-        let config_action = gio::ActionEntry::builder("show-pacman-config")
-            .activate(|window: &Self, _, _| {
-                let config_window = ConfigWindow::new(window);
-
-                config_window.show(&window.imp().pacman_config.borrow());
-            })
-            .build();
-
         // Add package view copy list action
         let copy_action = gio::ActionEntry::builder("copy-package-list")
             .activate(|window: &Self, _, _| {
@@ -450,8 +400,18 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add spackage view how all packages action
+        let all_pkgs_action = gio::ActionEntry::builder("show-all-packages")
+            .activate(|window: &Self, _, _| {
+                let imp = window.imp();
+
+                imp.all_repo_row.borrow().activate();
+                imp.all_status_row.borrow().activate();
+            })
+            .build();
+
         // Add package view actions to window
-        self.add_action_entries([refresh_action, all_pkgs_action, stats_action, backup_action, log_action, config_action, copy_action]);
+        self.add_action_entries([refresh_action, copy_action, all_pkgs_action]);
 
         // Bind package view item count to copy list action enabled state
         let copy_action = self.lookup_action("copy-package-list").unwrap();
@@ -498,6 +458,49 @@ impl PacViewWindow {
 
         // Add info pane actions to window
         self.add_action_entries([prev_action, next_action, details_action]);
+
+        // Add show stats window action
+        let stats_action = gio::ActionEntry::builder("show-stats")
+            .activate(|window: &Self, _, _| {
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    let stats_window = StatsWindow::new(window);
+
+                    stats_window.show(&window.imp().pacman_repos.borrow(), pkg_snapshot);
+                });
+            })
+            .build();
+
+        // Add show backup files window action
+        let backup_action = gio::ActionEntry::builder("show-backup-files")
+            .activate(|window: &Self, _, _| {
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    let backup_window = BackupWindow::new(window);
+
+                    backup_window.show(pkg_snapshot);
+                });
+            })
+            .build();
+
+        // Add show pacman log window action
+        let log_action = gio::ActionEntry::builder("show-pacman-log")
+            .activate(|window: &Self, _, _| {
+                let log_window = LogWindow::new(window);
+
+                log_window.show(&window.imp().pacman_config.borrow().log_file);
+            })
+            .build();
+
+        // Add show pacman config window action
+        let config_action = gio::ActionEntry::builder("show-pacman-config")
+            .activate(|window: &Self, _, _| {
+                let config_window = ConfigWindow::new(window);
+
+                config_window.show(&window.imp().pacman_config.borrow());
+            })
+            .build();
+
+        // Add window actions to window
+        self.add_action_entries([stats_action, backup_action, log_action, config_action]);
 
         // Add show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
