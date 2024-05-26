@@ -214,7 +214,7 @@ impl LogWindow {
                 static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
                 let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                    Regex::new(r"\x1b(\[[0-9;]*m|\(B)")
+                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
                         .expect("Regex error")
                 });
 
