@@ -229,6 +229,9 @@ impl ConfigDialog {
 }
 
 impl Default for ConfigDialog {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
     fn default() -> Self {
         Self::new()
     }
