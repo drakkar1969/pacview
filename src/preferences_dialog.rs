@@ -97,14 +97,8 @@ impl PreferencesDialog {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(auto_refresh: bool, aur_command: &str, search_delay: f64, remember_columns: bool, remember_sort: bool) -> Self {
-        glib::Object::builder()
-            .property("auto-refresh", auto_refresh)
-            .property("aur-command", aur_command)
-            .property("search-delay", search_delay)
-            .property("remember-columns", remember_columns)
-            .property("remember-sort", remember_sort)
-            .build()
+    pub fn new() -> Self {
+        glib::Object::builder().build()
     }
 
     //-----------------------------------
@@ -202,5 +196,14 @@ impl PreferencesDialog {
                 })
             );
         }));
+    }
+}
+
+impl Default for PreferencesDialog {
+    //-----------------------------------
+    // Default constructor
+    //-----------------------------------
+    fn default() -> Self {
+        Self::new()
     }
 }
