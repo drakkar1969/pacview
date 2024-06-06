@@ -153,6 +153,8 @@
 
     <object class="PreferencesDialog" id="prefs_dialog">
     </object>
+    <object class="ConfigDialog" id="config_dialog">
+    </object>
   </template>
 
   <!--// Primary menu //-->

@@ -83,6 +83,8 @@ mod imp {
 
         #[template_child]
         pub(super) prefs_dialog: TemplateChild<PreferencesDialog>,
+        #[template_child]
+        pub(super) config_dialog: TemplateChild<ConfigDialog>,
 
         pub(super) gsettings: OnceCell<gio::Settings>,
 
@@ -493,9 +495,7 @@ impl PacViewWindow {
         // Add show pacman config window action
         let config_action = gio::ActionEntry::builder("show-pacman-config")
             .activate(|window: &Self, _, _| {
-                let config_dialog = ConfigDialog::new();
-
-                config_dialog.show(window, &window.imp().pacman_config.borrow());
+                window.imp().config_dialog.present(window);
             })
             .build();
 
@@ -688,6 +688,8 @@ impl PacViewWindow {
     // Setup alpm: get pacman config
     //-----------------------------------
     fn get_pacman_config(&self) {
+        let imp = self.imp();
+
         // Get pacman config
         let pacman_config = pacmanconf::Config::new().unwrap();
 
@@ -697,9 +699,12 @@ impl PacViewWindow {
             .chain([String::from("aur"), String::from("local")])
             .collect();
 
+        // Init config dialog
+        imp.config_dialog.init(&pacman_config);
+
         // Store pacman config/repos
-        self.imp().pacman_config.replace(pacman_config);
-        self.imp().pacman_repos.replace(pacman_repos);
+        imp.pacman_config.replace(pacman_config);
+        imp.pacman_repos.replace(pacman_repos);
     }
 
     //-----------------------------------

@@ -181,12 +181,10 @@ impl ConfigDialog {
     }
 
     //-----------------------------------
-    // Show window
+    // Init dialog
     //-----------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Widget>, config: &pacmanconf::Config) {
+    pub fn init(&self, config: &pacmanconf::Config) {
         let imp = self.imp();
-
-        self.present(parent);
 
         // Populate config rows
         imp.rootdir_row.set_subtitle(&config.root_dir);
