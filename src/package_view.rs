@@ -2,7 +2,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
 
-use gtk::{glib, gio, gdk};
+use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
@@ -57,8 +57,6 @@ mod imp {
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) empty_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) popover_menu: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set, default = true, construct)]
         loading: Cell<bool>,
@@ -115,7 +113,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_controllers();
             obj.setup_actions();
             obj.setup_signals();
         }
@@ -175,27 +172,6 @@ impl PackageView {
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-    }
-
-    //-----------------------------------
-    // Setup controllers
-    //-----------------------------------
-    fn setup_controllers(&self) {
-        let imp = self.imp();
-
-        // Column view click gesture
-        let gesture = gtk::GestureClick::builder()
-            .button(gdk::BUTTON_SECONDARY)
-            .build();
-
-        gesture.connect_pressed(clone!(@weak imp => move |_ , _, x, y| {
-            let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-            imp.popover_menu.set_pointing_to(Some(&rect));
-            imp.popover_menu.popup();
-        }));
-
-        self.add_controller(gesture);
     }
 
     //-----------------------------------
