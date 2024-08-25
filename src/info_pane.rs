@@ -378,7 +378,11 @@ impl InfoPane {
             // Depends
             self.set_vec_property(PropID::Dependencies, true, &pkg.depends(), None);
             // Optdepends
-            let optdepends = self.installed_optdeps(&pkg.optdepends());
+            let optdepends = if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                self.installed_optdeps(&pkg.optdepends())
+            } else {
+                pkg.optdepends()
+            };
             self.set_vec_property(PropID::Optional, !optdepends.is_empty(), &optdepends, None);
             // Makedepends
             self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends(), None);
