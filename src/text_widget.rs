@@ -719,7 +719,7 @@ impl TextWidget {
 
                 self.emit_by_name::<()>("package-link", &[&pkg_name]);
             } else if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url_scheme) {
-                let _ = handler.launch_uris(&[&link_url], None::<&gio::AppLaunchContext>);
+                let _ = handler.launch_uris(&[link_url], None::<&gio::AppLaunchContext>);
             }
         }
     }
