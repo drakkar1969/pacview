@@ -1416,7 +1416,7 @@ dependencies = [
 
 [[package]]
 name = "pacview"
-version = "2.5.4"
+version = "2.5.5"
 dependencies = [
  "alpm",
  "alpm-utils",
