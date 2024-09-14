@@ -210,6 +210,24 @@
         <child>
           <object class="AdwPreferencesGroup">
             <child>
+              <object class="AdwActionRow" id="downloaduser_row">
+                <property name="title">DownloadUser</property>
+                <property name="subtitle-selectable">True</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="disablesandbox_row">
+                <property name="title">DisableSandBox</property>
+                <property name="subtitle-selectable">True</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
               <object class="AdwActionRow" id="usesyslog_row">
                 <property name="title">UseSyslog</property>
                 <property name="subtitle-selectable">True</property>

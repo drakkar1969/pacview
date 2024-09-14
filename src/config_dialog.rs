@@ -61,6 +61,10 @@ mod imp {
         pub(super) noextract_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
+        pub(super) downloaduser_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) disablesandbox_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
         pub(super) usesyslog_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) color_row: TemplateChild<adw::ActionRow>,
@@ -203,6 +207,8 @@ impl ConfigDialog {
         imp.noupgrade_row.set_subtitle(&config.no_upgrade.join(" | "));
         imp.noextract_row.set_subtitle(&config.no_extract.join(" | "));
 
+        imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or("None".to_string()));
+        imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
         imp.usesyslog_row.set_subtitle(&config.use_syslog.to_string());
         imp.color_row.set_subtitle(&config.color.to_string());
         imp.checkspace_row.set_subtitle(&config.check_space.to_string());
