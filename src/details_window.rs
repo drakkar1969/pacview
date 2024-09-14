@@ -27,6 +27,8 @@ mod imp {
     pub struct DetailsWindow {
         #[template_child]
         pub(super) pkg_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) repo_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) content_stack: TemplateChild<gtk::Stack>,
@@ -384,7 +386,10 @@ impl DetailsWindow {
         let pkg_name = pkg.name();
 
         // Set package name in banner
-        imp.pkg_label.set_label(&format!("{repo}/{name}", repo=pkg.repository(), name=pkg_name));
+        imp.pkg_label.set_label(&pkg_name);
+
+        // Set repository name in banner
+        imp.repo_label.set_label(&pkg.repository());
 
         // Set toggle button states
         let installed = pkg.flags().intersects(PkgFlags::INSTALLED);

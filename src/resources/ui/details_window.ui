@@ -3,7 +3,7 @@
   <!--// DetailsWindow template //-->
   <template class="DetailsWindow" parent="AdwWindow">
     <property name="default-width">650</property>
-    <property name="default-height">650</property>
+    <property name="default-height">670</property>
     <property name="modal">True</property>
     <property name="title"></property>
     <property name="content">
@@ -31,13 +31,26 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel" id="pkg_label">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
                 <property name="margin-start">16</property>
                 <property name="margin-end">16</property>
-                <property name="margin-bottom">24</property>
-                <style>
-                  <class name="title-2"/>
-                </style>
+                <property name="margin-bottom">30</property>
+                <property name="spacing">2</property>
+                <child>
+                  <object class="GtkLabel" id="pkg_label">
+                    <style>
+                      <class name="title-2"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="repo_label">
+                    <style>
+                      <class name="title-4"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
