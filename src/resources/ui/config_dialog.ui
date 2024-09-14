@@ -9,6 +9,7 @@
       <object class="AdwPreferencesPage">
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title">Paths</property>
             <child>
               <object class="AdwActionRow" id="rootdir_row">
                 <property name="title">RootDir</property>
@@ -129,6 +130,11 @@
                 </child>
               </object>
             </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Download</property>
             <child>
               <object class="AdwActionRow" id="xfercommand_row">
                 <property name="title">XferCommand</property>
@@ -139,8 +145,35 @@
               </object>
             </child>
             <child>
-              <object class="AdwActionRow" id="cleanmethod_row">
-                <property name="title">CleanMethod</property>
+              <object class="AdwActionRow" id="paralleldownloads_row">
+                <property name="title">ParallelDownloads</property>
+                <property name="subtitle-selectable">True</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="disabledownloadtimeout_row">
+                <property name="title">DisableDownloadTimeout</property>
+                <property name="subtitle-selectable">True</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="downloaduser_row">
+                <property name="title">DownloadUser</property>
+                <property name="subtitle-selectable">True</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="disablesandbox_row">
+                <property name="title">DisableSandBox</property>
                 <property name="subtitle-selectable">True</property>
                 <style>
                   <class name="property"/>
@@ -160,6 +193,7 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title">Packages</property>
             <child>
               <object class="AdwActionRow" id="holdpkg_row">
                 <property name="title">HoldPkg</property>
@@ -209,24 +243,7 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
-            <child>
-              <object class="AdwActionRow" id="downloaduser_row">
-                <property name="title">DownloadUser</property>
-                <property name="subtitle-selectable">True</property>
-                <style>
-                  <class name="property"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="AdwActionRow" id="disablesandbox_row">
-                <property name="title">DisableSandBox</property>
-                <property name="subtitle-selectable">True</property>
-                <style>
-                  <class name="property"/>
-                </style>
-              </object>
-            </child>
+            <property name="title">Miscellaneous</property>
             <child>
               <object class="AdwActionRow" id="usesyslog_row">
                 <property name="title">UseSyslog</property>
@@ -255,35 +272,17 @@
               </object>
             </child>
             <child>
+              <object class="AdwActionRow" id="cleanmethod_row">
+                <property name="title">CleanMethod</property>
+                <property name="subtitle-selectable">True</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
               <object class="AdwActionRow" id="verbosepkglists_row">
                 <property name="title">VerbosePkgLists</property>
-                <property name="subtitle-selectable">True</property>
-                <style>
-                  <class name="property"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="AdwActionRow" id="paralleldownloads_row">
-                <property name="title">ParallelDownloads</property>
-                <property name="subtitle-selectable">True</property>
-                <style>
-                  <class name="property"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="AdwActionRow" id="totaldownload_row">
-                <property name="title">TotalDownload</property>
-                <property name="subtitle-selectable">True</property>
-                <style>
-                  <class name="property"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="AdwActionRow" id="disabledownloadtimeout_row">
-                <property name="title">DisableDownloadTimeout</property>
                 <property name="subtitle-selectable">True</property>
                 <style>
                   <class name="property"/>
@@ -303,6 +302,7 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title">Signature Levels</property>
             <child>
               <object class="AdwActionRow" id="siglevel_row">
                 <property name="title">SigLevel</property>
