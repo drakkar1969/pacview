@@ -10,9 +10,6 @@ SCRIPTFOLDER=$(dirname $(realpath $0))
 # HELPER FUNCTIONS
 #==========================================================================================
 GREEN=$(tput setaf 10)
-# BLUE=$(tput setaf 4)
-# YELLOW=$(tput setaf 11)
-# RED=$(tput setaf 9)
 BOLD=$(tput bold)
 RESET=$(tput sgr0)
 
