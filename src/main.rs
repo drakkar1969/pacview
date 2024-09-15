@@ -34,7 +34,7 @@ fn main() -> glib::ExitCode {
         .expect("Failed to register resources");
 
     // Run app
-    let app = PacViewApplication::new(APP_ID, &gio::ApplicationFlags::empty());
+    let app = PacViewApplication::new(APP_ID, &gio::ApplicationFlags::default());
 
     app.run()
 }
