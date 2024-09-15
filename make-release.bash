@@ -50,9 +50,6 @@ make_release()
 		print_item "Updating version in Cargo.toml"
 		sed -i "/^version = / c version = \"${version}\"" "$SCRIPTFOLDER/Cargo.toml"
 
-		print_item "Updating version in app.rs"
-		sed -i "/.version/ c \            .version(\"${version}\")" "$SCRIPTFOLDER/src/app.rs"
-
 		print_item "Building release version"
 		cargo build --release
 
