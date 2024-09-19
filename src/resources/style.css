@@ -49,7 +49,7 @@ box.count-indicator label {
 
 /* Package view spinner */
 spinner.dim-spinner {
-	opacity: 0.5;
+	opacity: var(--dim-opacity);
 }
 
 /* Info pane overlay toolbar */
