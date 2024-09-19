@@ -48,7 +48,7 @@ box.count-indicator label {
 }
 
 /* Package view spinner */
-spinner.dim-spinner {
+image.spinner.dim-spinner {
 	opacity: var(--dim-opacity);
 }
 

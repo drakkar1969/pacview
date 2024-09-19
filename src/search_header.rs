@@ -67,8 +67,6 @@ mod imp {
 
         #[template_child]
         pub(super) icon_stack: TemplateChild<gtk::Stack>,
-        #[template_child]
-        pub(super) spinner: TemplateChild<gtk::Spinner>,
 
         #[template_child]
         pub(super) tag_mode: TemplateChild<SearchTag>,
@@ -101,7 +99,7 @@ mod imp {
         delay: Cell<u64>,
 
         #[property(get, set)]
-        spinning: Cell<bool>,
+        searching: Cell<bool>,
 
         pub(super) delay_source_id: RefCell<Option<glib::SourceId>>,
 
@@ -233,13 +231,9 @@ impl SearchHeader {
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
-        // Bind spinning property to widgets
-        self.bind_property("spinning", &imp.icon_stack.get(), "visible-child-name")
-            .transform_to(|_, spinning: bool| if spinning { Some("spinner") } else { Some("icon") })
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        self.bind_property("spinning", &imp.spinner.get(), "spinning")
+        // Bind searching property to widgets
+        self.bind_property("searching", &imp.icon_stack.get(), "visible-child-name")
+            .transform_to(|_, searching: bool| if searching { Some("spinner") } else { Some("icon") })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
     }

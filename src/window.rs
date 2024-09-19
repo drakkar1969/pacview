@@ -983,7 +983,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         let update_row = imp.update_row.borrow();
-        update_row.set_spinning(true);
+        update_row.set_updating(true);
 
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
@@ -1061,7 +1061,7 @@ impl PacViewWindow {
                 }
 
                 // Show update status/count in sidebar
-                update_row.set_spinning(false);
+                update_row.set_updating(false);
                 update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
                 update_row.set_count(update_map.len() as u32);
                 update_row.set_tooltip_text(error_msg.as_deref());

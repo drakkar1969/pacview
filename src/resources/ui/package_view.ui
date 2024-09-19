@@ -16,8 +16,7 @@
                 <property name="valign">center</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="GtkSpinner" id="loading_spinner">
-                    <property name="spinning">True</property>
+                  <object class="AdwSpinner" id="loading_spinner">
                     <style>
                       <class name="dim-spinner"/>
                     </style>

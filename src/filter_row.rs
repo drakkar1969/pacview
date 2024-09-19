@@ -24,8 +24,6 @@ mod imp {
         #[template_child]
         pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
-        pub(super) spinner: TemplateChild<gtk::Spinner>,
-        #[template_child]
         pub(super) text_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
@@ -39,7 +37,7 @@ mod imp {
         #[property(get, set)]
         count: Cell<u32>,
         #[property(get, set)]
-        spinning: Cell<bool>,
+        updating: Cell<bool>,
 
         #[property(get, set, nullable)]
         repo_id: RefCell<Option<String>>,
@@ -110,11 +108,8 @@ impl FilterRow {
         let imp = self.imp();
 
         // Bind properties to widgets
-        self.bind_property("spinning", &imp.stack.get(), "visible_child_name")
-            .transform_to(|_, spinning: bool| Some(if spinning {"spinner"} else {"icon"}))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-        self.bind_property("spinning", &imp.spinner.get(), "spinning")
+        self.bind_property("updating", &imp.stack.get(), "visible_child_name")
+            .transform_to(|_, updating: bool| Some(if updating {"spinner"} else {"icon"}))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
         self.bind_property("icon", &imp.image.get(), "icon-name")
