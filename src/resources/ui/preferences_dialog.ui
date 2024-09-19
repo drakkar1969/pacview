@@ -73,20 +73,12 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Preferences</property>
             <child>
-              <object class="AdwActionRow">
+              <object class="AdwButtonRow" id="reset_button2">
                 <property name="title">Reset _Preferences</property>
-                <property name="subtitle">Reset all preferences to default values</property>
                 <property name="use-underline">True</property>
-                <property name="activatable-widget">reset_button</property>
-                <child>
-                  <object class="GtkButton" id="reset_button">
-                    <property name="valign">center</property>
-                    <property name="label">Reset</property>
-                    <style>
-                      <class name="destructive-action"/>
-                    </style>
-                  </object>
-                </child>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
               </object>
             </child>
           </object>

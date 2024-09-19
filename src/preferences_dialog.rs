@@ -31,7 +31,7 @@ mod imp {
         #[template_child]
         pub(super) sort_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub(super) reset_button: TemplateChild<gtk::Button>,
+        pub(super) reset_button2: TemplateChild<adw::ButtonRow>,
 
         #[property(get, set)]
         auto_refresh: Cell<bool>,
@@ -175,7 +175,7 @@ impl PreferencesDialog {
         let imp = self.imp();
 
         // Preferences reset button clicked signal
-        imp.reset_button.connect_clicked(clone!(
+        imp.reset_button2.connect_activated(clone!(
             #[weak(rename_to = dialog)] self,
             move |_| {
                 let reset_dialog = adw::AlertDialog::builder()
