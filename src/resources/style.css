@@ -36,13 +36,13 @@ searchtag label {
 /* Sidebar list count indicator */
 box.count-indicator {
 	min-width: 20px;
-	background: @accent_bg_color;
+	background: var(--accent-bg-color);
 	border-radius: 9999px;
 }
 
 box.count-indicator label {
 	line-height: 20px;
-	color: @accent_fg_color;
+	color: var(--accent-fg-color);
 	margin: 0 6px;
 	padding: 0;
 }
@@ -60,15 +60,15 @@ box.rounded {
 /* Info pane property rows */
 property-label:not(:nth-last-child(-n+2)),
 property-value:not(:nth-last-child(-n+2)) {
-	border-bottom: 1px solid @borders;
+	border-bottom: 1px solid var(--border-color);
 }
 
 property-label {
-	border-right: 1px solid @borders;
+	border-right: 1px solid var(--border-color);
 }
 
 property-value:focus-within {
-	outline: 2px solid alpha(@accent_color, 0.5);
+	outline: 2px solid alpha(var(--accent-color), 0.5);
 	outline-offset: -2px;
 }
 
