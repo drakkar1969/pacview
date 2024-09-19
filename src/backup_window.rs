@@ -180,49 +180,62 @@ impl BackupWindow {
         let imp = self.imp();
 
         // Status dropdown selected property notify signal
-        imp.status_dropdown.connect_selected_item_notify(clone!(@weak imp => move |dropdown| {
-            if dropdown.selected() == 0 {
-                imp.status_filter.set_search(None);
-            } else {
-                let sel_text = dropdown.selected_item()
-                    .and_downcast::<gtk::StringObject>()
-                    .map(|obj| obj.string());
+        imp.status_dropdown.connect_selected_item_notify(clone!(
+            #[weak] imp,
+            move |dropdown| {
+                if dropdown.selected() == 0 {
+                    imp.status_filter.set_search(None);
+                } else {
+                    let sel_text = dropdown.selected_item()
+                        .and_downcast::<gtk::StringObject>()
+                        .map(|obj| obj.string());
 
-                imp.status_filter.set_search(sel_text.as_deref());
+                    imp.status_filter.set_search(sel_text.as_deref());
+                }
+
+                imp.view.grab_focus();
             }
-
-            imp.view.grab_focus();
-        }));
+        ));
 
         // Open button clicked signal
-        imp.open_button.connect_clicked(clone!(@weak imp => move |_| {
-            let item = imp.selection.selected_item()
-                .and_downcast::<BackupObject>()
-                .expect("Could not downcast to 'BackupObject'");
+        imp.open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .expect("Could not downcast to 'BackupObject'");
 
-            open_file_manager(&item.filename());
-        }));
+                open_file_manager(&item.filename());
+            }
+        ));
 
         // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            let copy_text = imp.selection.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let backup = item
-                        .downcast::<BackupObject>()
-                        .expect("Could not downcast to 'BackupObject'");
+        imp.copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        let backup = item
+                            .downcast::<BackupObject>()
+                            .expect("Could not downcast to 'BackupObject'");
 
-                    format!("{package} => {filename} ({status})", package=backup.package().unwrap_or("None".to_string()), filename=backup.filename(), status=backup.status_text())
-                })
-                .collect::<Vec<String>>()
-                .join("\n");
+                        format!("{package} => {filename} ({status})", package=backup.package().unwrap_or("None".to_string()), filename=backup.filename(), status=backup.status_text())
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
 
-            window.clipboard().set_text(&copy_text);
-        }));
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
 
         // Column view activate signal
-        imp.view.connect_activate(clone!(@weak imp => move |_, _| {
-            imp.open_button.emit_clicked();
-        }));
+        imp.view.connect_activate(clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.open_button.emit_clicked();
+            }
+        ));
     }
 
     //-----------------------------------
@@ -236,14 +249,17 @@ impl BackupWindow {
         let pkg_snapshot = pkg_snapshot.to_vec();
 
         // Spawn thread to populate column view
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
-                .flat_map(|pkg| { pkg.backup().into_iter()
-                    .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name()), alpm::compute_md5sum(filename.as_str()).as_deref()))
-                })
-                .collect();
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            async move {
+                let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
+                    .flat_map(|pkg| { pkg.backup().into_iter()
+                        .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name()), alpm::compute_md5sum(filename.as_str()).as_deref()))
+                    })
+                    .collect();
 
-            imp.model.extend_from_slice(&backup_list);
-        }));
+                imp.model.extend_from_slice(&backup_list);
+            }
+        ));
     }
 }

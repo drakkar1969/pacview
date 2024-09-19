@@ -282,43 +282,61 @@ impl SearchHeader {
         });
 
         // Search text changed signal
-        imp.search_text.connect_changed(clone!(@weak self as header, @weak imp => move |search_text| {
-            // Remove delay timer if present
-            if let Some(delay_id) = imp.delay_source_id.take() {
-                delay_id.remove();
+        imp.search_text.connect_changed(clone!(
+            #[weak(rename_to = header)]
+            self,
+            #[weak]
+            imp,
+            move |search_text| {
+                // Remove delay timer if present
+                if let Some(delay_id) = imp.delay_source_id.take() {
+                    delay_id.remove();
+                }
+
+                if search_text.text().is_empty() {
+                    header.set_aur_error(false);
+
+                    header.emit_changed_signal();
+                    header.emit_aur_search_signal();
+                } else {
+                    // Start delay timer
+                    let delay_id = glib::timeout_add_local_once(
+                        Duration::from_millis(header.delay()),
+                        clone!(
+                            #[weak]
+                            imp,
+                            move || {
+                                header.emit_changed_signal();
+
+                                imp.delay_source_id.take();
+                            }
+                        )
+                    );
+
+                    imp.delay_source_id.replace(Some(delay_id));
+                }
             }
-
-            if search_text.text().is_empty() {
-                header.set_aur_error(false);
-
-                header.emit_changed_signal();
-                header.emit_aur_search_signal();
-            } else {
-                // Start delay timer
-                let delay_id = glib::timeout_add_local_once(
-                    Duration::from_millis(header.delay()),
-                    clone!(@weak imp => move || {
-                        header.emit_changed_signal();
-
-                        imp.delay_source_id.take();
-                    })
-                );
-
-                imp.delay_source_id.replace(Some(delay_id));
-            }
-        }));
+        ));
 
         // Search text activate signal
-        imp.search_text.connect_activate(clone!(@weak self as header => move |search_text| {
-            if !search_text.text().is_empty() {
-                header.emit_aur_search_signal();
+        imp.search_text.connect_activate(clone!(
+            #[weak(rename_to = header)]
+            self,
+            move |search_text| {
+                if !search_text.text().is_empty() {
+                    header.emit_aur_search_signal();
+                }
             }
-        }));
+        ));
 
         // Clear button clicked signal
-        imp.clear_button.connect_clicked(clone!(@weak imp => move |_| {
-            imp.search_text.set_text("");
-        }));
+        imp.clear_button.connect_clicked(clone!(
+            #[weak]
+            imp,
+            move |_| {
+                imp.search_text.set_text("");
+            }
+        ));
     }
 
     //-----------------------------------
@@ -525,16 +543,20 @@ impl SearchHeader {
         if !imp.has_capture_widget.get() {
             let controller = gtk::EventControllerKey::new();
 
-            controller.connect_key_pressed(clone!(@weak self as header => @default-return glib::Propagation::Proceed, move |controller, _, _, state| {
-                if !(state.contains(gdk::ModifierType::ALT_MASK) ||
-                    state.contains(gdk::ModifierType::CONTROL_MASK)) &&
-                    controller.forward(&header.imp().search_text.get())
-                {
-                    header.set_enabled(true);
-                }
+            controller.connect_key_pressed(clone!(
+                #[weak(rename_to = header)] self,
+                #[upgrade_or] glib::Propagation::Proceed,
+                move |controller, _, _, state| {
+                    if !(state.contains(gdk::ModifierType::ALT_MASK) ||
+                        state.contains(gdk::ModifierType::CONTROL_MASK)) &&
+                        controller.forward(&header.imp().search_text.get())
+                    {
+                        header.set_enabled(true);
+                    }
 
-                glib::Propagation::Proceed
-            }));
+                    glib::Propagation::Proceed
+                }
+            ));
 
             widget.add_controller(controller);
 

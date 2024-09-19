@@ -223,9 +223,13 @@ impl InfoPane {
 
         let property_value = PropertyValue::new(
             ptype,
-            closure_local!(@watch self as infopane => move |_: TextWidget, pkg_name: &str| {
-                infopane.pkg_link_handler(pkg_name)
-            })
+            closure_local!(
+                #[watch(rename_to = infopane)]
+                self,
+                move |_: TextWidget, pkg_name: &str| {
+                    infopane.pkg_link_handler(pkg_name)
+                }
+            )
         );
 
         imp.grid.attach(&property_value, 1, id_value.value(), 1, 1);

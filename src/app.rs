@@ -159,6 +159,6 @@ impl PacViewApplication {
             .license_type(gtk::License::Gpl30)
             .build();
 
-        about_dialog.present(&window);
+        about_dialog.present(Some(&window));
     }
 }

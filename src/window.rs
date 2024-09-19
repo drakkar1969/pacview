@@ -495,7 +495,7 @@ impl PacViewWindow {
         // Add show pacman config window action
         let config_action = gio::ActionEntry::builder("show-pacman-config")
             .activate(|window: &Self, _, _| {
-                window.imp().config_dialog.present(window);
+                window.imp().config_dialog.present(Some(window));
             })
             .build();
 
@@ -505,7 +505,7 @@ impl PacViewWindow {
         // Add show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
             .activate(|window: &Self, _, _| {
-                window.imp().prefs_dialog.present(window);
+                window.imp().prefs_dialog.present(Some(window));
             })
             .build();
 
@@ -615,59 +615,81 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Search header enabled signal
-        imp.search_header.connect_closure("enabled", false, closure_local!(@watch self as window => move |_: SearchHeader, enabled: bool| {
-            if !enabled {
-                window.imp().package_view.view().grab_focus();
+        imp.search_header.connect_closure("enabled", false, closure_local!(
+            #[watch(rename_to = window)] self,
+            move |_: SearchHeader, enabled: bool| {
+                if !enabled {
+                    window.imp().package_view.view().grab_focus();
+                }
             }
-        }));
+        ));
 
         // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(@watch self as window => move |_: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp| {
-            window.imp().package_view.set_search_filter(search_term, mode, prop);
-        }));
+        imp.search_header.connect_closure("changed", false, closure_local!(
+            #[watch(rename_to = window)] self,
+            
+            move |_: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp| {
+                window.imp().package_view.set_search_filter(search_term, mode, prop);
+            }
+        ));
 
         // Search header AUR Search signal
-        imp.search_header.connect_closure("aur-search", false, closure_local!(@watch self as window => move |search_header: SearchHeader, search_term: &str, prop: SearchProp| {
-            window.imp().package_view.search_in_aur(search_header, search_term, prop);
-        }));
+        imp.search_header.connect_closure("aur-search", false, closure_local!(
+            #[watch(rename_to = window)] self,
+            move |search_header: SearchHeader, search_term: &str, prop: SearchProp| {
+                window.imp().package_view.search_in_aur(search_header, search_term, prop);
+            }
+        ));
 
         // Repo listbox row activated signal
-        imp.repo_listbox.connect_row_activated(clone!(@weak imp => move |_, row| {
-            let repo_id = row
-                .downcast_ref::<FilterRow>()
-                .expect("Could not downcast to 'FilterRow'")
-                .repo_id();
+        imp.repo_listbox.connect_row_activated(clone!(
+            #[weak] imp,
+            move |_, row| {
+                let repo_id = row
+                    .downcast_ref::<FilterRow>()
+                    .expect("Could not downcast to 'FilterRow'")
+                    .repo_id();
 
-            imp.package_view.set_repo_filter(repo_id.as_deref());
+                imp.package_view.set_repo_filter(repo_id.as_deref());
 
-            imp.package_view.view().grab_focus();
-        }));
+                imp.package_view.view().grab_focus();
+            }
+        ));
 
         // Status listbox row activated signal
-        imp.status_listbox.connect_row_activated(clone!(@weak imp => move |_, row| {
-            let status_id = row
-                .downcast_ref::<FilterRow>()
-                .expect("Could not downcast to 'FilterRow'")
-                .status_id();
+        imp.status_listbox.connect_row_activated(clone!(
+            #[weak] imp,
+            move |_, row| {
+                let status_id = row
+                    .downcast_ref::<FilterRow>()
+                    .expect("Could not downcast to 'FilterRow'")
+                    .status_id();
 
-            imp.package_view.set_status_filter(status_id);
+                imp.package_view.set_status_filter(status_id);
 
-            imp.package_view.view().grab_focus();
-        }));
+                imp.package_view.view().grab_focus();
+            }
+        ));
 
         // Package view selected signal
-        imp.package_view.connect_closure("selected", false, closure_local!(@watch self as window => move |_: PackageView, pkg: Option<PkgObject>| {
-            window.imp().info_pane.set_pkg(pkg.as_ref());
-        }));
+        imp.package_view.connect_closure("selected", false, closure_local!(
+            #[watch(rename_to = window)] self,
+            move |_: PackageView, pkg: Option<PkgObject>| {
+                window.imp().info_pane.set_pkg(pkg.as_ref());
+            }
+        ));
 
         // Package view activate signal
-        imp.package_view.connect_closure("activated", false, closure_local!(@watch self as window => move |_: PackageView, pkg: Option<PkgObject>| {
-            let imp = window.imp();
+        imp.package_view.connect_closure("activated", false, closure_local!(
+            #[watch(rename_to = window)] self,
+            move |_: PackageView, pkg: Option<PkgObject>| {
+                let imp = window.imp();
 
-            if pkg != imp.info_pane.pkg() {
-                imp.info_pane.set_pkg(pkg.as_ref());
+                if pkg != imp.info_pane.pkg() {
+                    imp.info_pane.set_pkg(pkg.as_ref());
+                }
             }
-        }));
+        ));
     }
 
     //-----------------------------------
@@ -775,31 +797,34 @@ impl PacViewWindow {
     // Download AUR names helper function
     //-----------------------------------
     fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
-        tokio_runtime().spawn(clone!(@strong file => async move {
-            let url = "https://aur.archlinux.org/packages.gz";
+        tokio_runtime().spawn(clone!(
+            #[strong] file,
+            async move {
+                let url = "https://aur.archlinux.org/packages.gz";
 
-            if let Ok(response) = reqwest::get(url).await {
-                if let Ok(bytes) = response.bytes().await {
-                    let mut decoder = GzDecoder::new(&bytes[..]);
+                if let Ok(response) = reqwest::get(url).await {
+                    if let Ok(bytes) = response.bytes().await {
+                        let mut decoder = GzDecoder::new(&bytes[..]);
 
-                    let mut gz_string = String::new();
+                        let mut gz_string = String::new();
 
-                    if decoder.read_to_string(&mut gz_string).is_ok() {
-                        file.replace_contents(
-                            gz_string.as_bytes(),
-                            None,
-                            false,
-                            gio::FileCreateFlags::REPLACE_DESTINATION,
-                            None::<&gio::Cancellable>
-                        ).unwrap_or_default();
+                        if decoder.read_to_string(&mut gz_string).is_ok() {
+                            file.replace_contents(
+                                gz_string.as_bytes(),
+                                None,
+                                false,
+                                gio::FileCreateFlags::REPLACE_DESTINATION,
+                                None::<&gio::Cancellable>
+                            ).unwrap_or_default();
+                        }
                     }
                 }
-            }
 
-            if let Some(sender) = sender {
-                sender.send(()).await.expect("Could not send through channel");
+                if let Some(sender) = sender {
+                    sender.send(()).await.expect("Could not send through channel");
+                }
             }
-        }));
+        ));
     }
 
     //-----------------------------------
@@ -817,11 +842,14 @@ impl PacViewWindow {
 
                 self.download_aur_names(aur_file, Some(sender));
 
-                glib::spawn_future_local(clone!(@weak self as window => async move {
-                    while let Ok(()) = receiver.recv().await {
-                        window.load_packages(false);
+                glib::spawn_future_local(clone!(
+                    #[weak(rename_to = window)] self,
+                    async move {
+                        while let Ok(()) = receiver.recv().await {
+                            window.load_packages(false);
+                        }
                     }
-                }));
+                ));
             } else {
                 self.load_packages(true);
             }
@@ -843,81 +871,90 @@ impl PacViewWindow {
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(clone!(@strong aur_file, @strong pacman_config => move || {
-            let mut aur_names: HashSet<String> = HashSet::new();
+        gio::spawn_blocking(clone!(
+            #[strong] aur_file,
+            #[strong] pacman_config,
+            move || {
+                let mut aur_names: HashSet<String> = HashSet::new();
 
-            // Load AUR package names from file
-            if let Some(aur_file) = aur_file {
-                if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
-                    aur_names = String::from_utf8_lossy(&bytes).lines()
-                        .map(|line| line.to_string())
-                        .collect();
-                };
-            }
+                // Load AUR package names from file
+                if let Some(aur_file) = aur_file {
+                    if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
+                        aur_names = String::from_utf8_lossy(&bytes).lines()
+                            .map(|line| line.to_string())
+                            .collect();
+                    };
+                }
 
-            // Load pacman database packages
-            let mut data_list: Vec<PkgData> = vec![];
+                // Load pacman database packages
+                let mut data_list: Vec<PkgData> = vec![];
 
-            if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
-                let localdb = handle.localdb();
+                if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
+                    let localdb = handle.localdb();
 
-                // Load sync packages
-                data_list.extend(handle.syncdbs().iter()
-                    .flat_map(|db| db.pkgs().iter()
-                        .map(|syncpkg| {
-                            let localpkg = localdb.pkg(syncpkg.name());
+                    // Load sync packages
+                    data_list.extend(handle.syncdbs().iter()
+                        .flat_map(|db| db.pkgs().iter()
+                            .map(|syncpkg| {
+                                let localpkg = localdb.pkg(syncpkg.name());
 
-                            PkgData::from_pkg(syncpkg, localpkg, None)
+                                PkgData::from_pkg(syncpkg, localpkg, None)
+                            })
+                        )
+                    );
+
+                    // Load local packages not in sync databases
+                    data_list.extend(localdb.pkgs().iter()
+                        .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
+                        .map(|pkg| {
+                            if aur_names.contains(pkg.name()) {
+                                PkgData::from_pkg(pkg, Ok(pkg), Some("aur"))
+                            } else {
+                                PkgData::from_pkg(pkg, Ok(pkg), None)
+                            }
                         })
-                    )
-                );
+                    );
+                }
 
-                // Load local packages not in sync databases
-                data_list.extend(localdb.pkgs().iter()
-                    .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
-                    .map(|pkg| {
-                        if aur_names.contains(pkg.name()) {
-                            PkgData::from_pkg(pkg, Ok(pkg), Some("aur"))
-                        } else {
-                            PkgData::from_pkg(pkg, Ok(pkg), None)
-                        }
-                    })
-                );
+                sender.send_blocking(data_list).expect("Could not send through channel");
             }
-
-            sender.send_blocking(data_list).expect("Could not send through channel");
-        }));
+        ));
 
         // Attach thread receiver
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp, @strong pacman_config => async move {
-            while let Ok(data_list) = receiver.recv().await {
-                if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
-                    let handle_ref = Rc::new(handle);
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            #[strong] pacman_config,
+            async move {
+                while let Ok(data_list) = receiver.recv().await {
+                    if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
+                        let handle_ref = Rc::new(handle);
 
-                    let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                        .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
-                        .collect();
+                        let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                            .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
+                            .collect();
 
-                    imp.package_view.splice_packages(&pkg_list);
+                        imp.package_view.splice_packages(&pkg_list);
 
-                    let installed_pkg_names: HashSet<String> = pkg_list.iter()
-                        .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
-                        .map(|pkg| pkg.name())
-                        .collect();
+                        let installed_pkg_names: HashSet<String> = pkg_list.iter()
+                            .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                            .map(|pkg| pkg.name())
+                            .collect();
 
-                    PKG_SNAPSHOT.replace(pkg_list);
-                    INSTALLED_PKG_NAMES.replace(installed_pkg_names);
+                        PKG_SNAPSHOT.replace(pkg_list);
+                        INSTALLED_PKG_NAMES.replace(installed_pkg_names);
 
-                    imp.package_view.set_loading(false);
+                        imp.package_view.set_loading(false);
 
-                    window.get_package_updates();
+                        window.get_package_updates();
 
-                    if update_aur_file {
-                        window.update_aur_file();
+                        if update_aur_file {
+                            window.update_aur_file();
+                        }
                     }
                 }
             }
-        }));
+        ));
     }
 
     //-----------------------------------
@@ -948,88 +985,93 @@ impl PacViewWindow {
         let update_row = imp.update_row.borrow();
         update_row.set_spinning(true);
 
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp, @strong update_row => async move {
-            let mut update_str = String::from("");
-            let mut error_msg: Option<String> = None;
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            #[strong] update_row,
+            async move {
+                let mut update_str = String::from("");
+                let mut error_msg: Option<String> = None;
 
-            let aur_command = imp.prefs_dialog.aur_command();
+                let aur_command = imp.prefs_dialog.aur_command();
 
-            // Check for pacman updates async
-            let pacman_handle = window.run_update_command("/usr/bin/checkupdates");
+                // Check for pacman updates async
+                let pacman_handle = window.run_update_command("/usr/bin/checkupdates");
 
-            let (pacman_res, aur_res) = if !aur_command.is_empty() {
-                // Check for AUR updates async
-                let aur_handle = window.run_update_command(&aur_command);
+                let (pacman_res, aur_res) = if !aur_command.is_empty() {
+                    // Check for AUR updates async
+                    let aur_handle = window.run_update_command(&aur_command);
 
-                join!(pacman_handle, aur_handle)
-            } else {
-                (pacman_handle.await, Ok((None, "".to_string())))
-            };
+                    join!(pacman_handle, aur_handle)
+                } else {
+                    (pacman_handle.await, Ok((None, "".to_string())))
+                };
 
-            // Get pacman update results
-            match pacman_res {
-                Ok((code, stdout)) => {
-                    if code == Some(0) {
-                        update_str += &stdout;
-                    } else if code == Some(1) {
-                        error_msg = Some("Error Retrieving Pacman Updates (checkupdates error)".to_string())
-                    }
-                },
-                Err(error) => error_msg = Some(format!("Error Retrieving Pacman Updates ({})", error))
-            }
+                // Get pacman update results
+                match pacman_res {
+                    Ok((code, stdout)) => {
+                        if code == Some(0) {
+                            update_str += &stdout;
+                        } else if code == Some(1) {
+                            error_msg = Some("Error Retrieving Pacman Updates (checkupdates error)".to_string())
+                        }
+                    },
+                    Err(error) => error_msg = Some(format!("Error Retrieving Pacman Updates ({})", error))
+                }
 
-            // Get AUR update results
-            match aur_res {
-                Ok((code, stdout)) => {
-                    if code == Some(0) {
-                        update_str += &stdout;
-                    }
-                },
-                Err(error) => {
-                    if error_msg.is_none() {
-                        error_msg = Some(format!("Error Retrieving AUR Updates ({})", error));
+                // Get AUR update results
+                match aur_res {
+                    Ok((code, stdout)) => {
+                        if code == Some(0) {
+                            update_str += &stdout;
+                        }
+                    },
+                    Err(error) => {
+                        if error_msg.is_none() {
+                            error_msg = Some(format!("Error Retrieving AUR Updates ({})", error));
+                        }
                     }
                 }
+
+                // Create map with updates (name, version)
+                static EXPR: OnceLock<Regex> = OnceLock::new();
+
+                let expr = EXPR.get_or_init(|| {
+                    Regex::new(r"([a-zA-Z0-9@._+-]+?)[ \t]+?([a-zA-Z0-9@._+-:]+?)[ \t]+?->[ \t]+?([a-zA-Z0-9@._+-:]+)")
+                        .expect("Regex error")
+                });
+
+                let update_map: HashMap<String, String> = update_str.lines()
+                    .filter_map(|s| {
+                        expr.captures(s)
+                            .map(|caps| {
+                                (caps[1].to_string(), format!("{} \u{2192} {}", &caps[2], &caps[3]))
+                            })
+                    })
+                    .collect();
+
+                // Update status of packages with updates
+                if !update_map.is_empty() {
+                    imp.package_view.update_packages(&update_map);
+                }
+
+                // Update info pane package if it has update
+                if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name())) {
+                    imp.info_pane.update_display();
+                }
+
+                // Show update status/count in sidebar
+                update_row.set_spinning(false);
+                update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
+                update_row.set_count(update_map.len() as u32);
+                update_row.set_tooltip_text(error_msg.as_deref());
+
+                // If update row is selected, refresh package status filter
+                if update_row.is_selected() {
+                    imp.package_view.set_status_filter(update_row.status_id());
+                }
             }
-
-            // Create map with updates (name, version)
-            static EXPR: OnceLock<Regex> = OnceLock::new();
-
-            let expr = EXPR.get_or_init(|| {
-                Regex::new(r"([a-zA-Z0-9@._+-]+?)[ \t]+?([a-zA-Z0-9@._+-:]+?)[ \t]+?->[ \t]+?([a-zA-Z0-9@._+-:]+)")
-                    .expect("Regex error")
-            });
-
-            let update_map: HashMap<String, String> = update_str.lines()
-                .filter_map(|s| {
-                    expr.captures(s)
-                        .map(|caps| {
-                            (caps[1].to_string(), format!("{} \u{2192} {}", &caps[2], &caps[3]))
-                        })
-                })
-                .collect();
-
-            // Update status of packages with updates
-            if !update_map.is_empty() {
-                imp.package_view.update_packages(&update_map);
-            }
-
-            // Update info pane package if it has update
-            if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name())) {
-                imp.info_pane.update_display();
-            }
-
-            // Show update status/count in sidebar
-            update_row.set_spinning(false);
-            update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
-            update_row.set_count(update_map.len() as u32);
-            update_row.set_tooltip_text(error_msg.as_deref());
-
-            // If update row is selected, refresh package status filter
-            if update_row.is_selected() {
-                imp.package_view.set_status_filter(update_row.status_id());
-            }
-        }));
+        ));
     }
 
     //-----------------------------------
@@ -1091,12 +1133,16 @@ impl PacViewWindow {
         imp.notify_watcher.set(watcher).unwrap();
 
         // Attach receiver for async channel
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            while let Ok(()) = receiver.recv().await {
-                if imp.prefs_dialog.auto_refresh() {
-                    ActionGroupExt::activate_action(&window, "refresh", None);
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            async move {
+                while let Ok(()) = receiver.recv().await {
+                    if imp.prefs_dialog.auto_refresh() {
+                        ActionGroupExt::activate_action(&window, "refresh", None);
+                    }
                 }
             }
-        }));
+        ));
     }
 }

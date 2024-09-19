@@ -259,21 +259,33 @@ impl DetailsWindow {
         let imp = self.imp();
 
         // Tab buttons toggled signals
-        imp.files_button.connect_toggled(clone!(@weak self as window => move |button| {
-            window.activate_tab_button(button);
-        }));
+        imp.files_button.connect_toggled(clone!(
+            #[weak(rename_to = window)] self,
+            move |button| {
+                window.activate_tab_button(button);
+            }
+        ));
 
-        imp.log_button.connect_toggled(clone!(@weak self as window => move |button| {
-            window.activate_tab_button(button);
-        }));
+        imp.log_button.connect_toggled(clone!(
+            #[weak(rename_to = window)] self,
+            move |button| {
+                window.activate_tab_button(button);
+            }
+        ));
 
-        imp.cache_button.connect_toggled(clone!(@weak self as window => move |button| {
-            window.activate_tab_button(button);
-        }));
+        imp.cache_button.connect_toggled(clone!(
+            #[weak(rename_to = window)] self,
+            move |button| {
+                window.activate_tab_button(button);
+            }
+        ));
 
-        imp.backup_button.connect_toggled(clone!(@weak self as window => move |button| {
-            window.activate_tab_button(button);
-        }));
+        imp.backup_button.connect_toggled(clone!(
+            #[weak(rename_to = window)] self,
+            move |button| {
+                window.activate_tab_button(button);
+            }
+        ));
 
         // Files search entry search started signal
         imp.files_search_entry.connect_search_started(|entry| {
@@ -283,98 +295,135 @@ impl DetailsWindow {
         });
 
         // Files search entry search changed signal
-        imp.files_search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
-            imp.files_filter.set_search(Some(&entry.text()));
-        }));
+        imp.files_search_entry.connect_search_changed(clone!(
+            #[weak] imp,
+            move |entry| {
+                imp.files_filter.set_search(Some(&entry.text()));
+            }
+        ));
 
         // Files open button clicked signal
-        imp.files_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            let item = imp.files_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Could not downcast to 'StringObject'");
+        imp.files_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.files_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .expect("Could not downcast to 'StringObject'");
 
-            open_file_manager(&item.string());
-        }));
+                open_file_manager(&item.string());
+            }
+        ));
 
         // Files copy button clicked signal
-        imp.files_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    item
-                        .downcast::<gtk::StringObject>()
-                        .expect("Could not downcast to 'StringObject'")
-                        .string()
-                })
-                .collect::<Vec<glib::GString>>()
-                .join("\n");
+        imp.files_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<gtk::StringObject>()
+                            .expect("Could not downcast to 'StringObject'")
+                            .string()
+                    })
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
 
-            window.clipboard().set_text(&copy_text);
-        }));
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
 
         // Files listview activate signal
-        imp.files_view.connect_activate(clone!(@weak imp => move |_, _| {
-            imp.files_open_button.emit_clicked();
-        }));
+        imp.files_view.connect_activate(clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.files_open_button.emit_clicked();
+            }
+        ));
 
         // Log copy button clicked signal
-        imp.log_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            let copy_text = imp.log_model.iter::<gtk::StringObject>().flatten()
-                .map(|item| item.string())
-                .collect::<Vec<glib::GString>>()
-                .join("\n");
+        imp.log_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.log_model.iter::<gtk::StringObject>().flatten()
+                    .map(|item| item.string())
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
 
-            window.clipboard().set_text(&copy_text);
-        }));
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
 
         // Cache open button clicked signal
-        imp.cache_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            let item = imp.cache_selection.selected_item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("Could not downcast to 'StringObject'");
+        imp.cache_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.cache_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .expect("Could not downcast to 'StringObject'");
 
-            open_file_manager(&item.string());
-        }));
+                open_file_manager(&item.string());
+            }
+        ));
 
         // Cache copy button clicked signal
-        imp.cache_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            let copy_text = imp.cache_model.iter::<gtk::StringObject>().flatten()
-                .map(|item| item.string())
-                .collect::<Vec<glib::GString>>()
-                .join("\n");
+        imp.cache_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.cache_model.iter::<gtk::StringObject>().flatten()
+                    .map(|item| item.string())
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
 
-            window.clipboard().set_text(&copy_text);
-        }));
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
 
         // Cache listview activate signal
-        imp.cache_view.connect_activate(clone!(@weak imp => move |_, _| {
-            imp.cache_open_button.emit_clicked();
-        }));
+        imp.cache_view.connect_activate(clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.cache_open_button.emit_clicked();
+            }
+        ));
 
         // Backup open button clicked signal
-        imp.backup_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            let item = imp.backup_selection.selected_item()
-                .and_downcast::<BackupObject>()
-                .expect("Could not downcast to 'BackupObject'");
+        imp.backup_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.backup_selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .expect("Could not downcast to 'BackupObject'");
 
-            open_file_manager(&item.filename());
-        }));
+                open_file_manager(&item.filename());
+            }
+        ));
 
         // Backup copy button clicked signal
-        imp.backup_copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
-                .map(|item| {
-                    format!("{filename} ({status})", filename=item.filename(), status=item.status_text())
-                })
-                .collect::<Vec<String>>()
-                .join("\n");
+        imp.backup_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
+                    .map(|item| {
+                        format!("{filename} ({status})", filename=item.filename(), status=item.status_text())
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
 
-            window.clipboard().set_text(&copy_text);
-        }));
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
 
         // Backup listview activate signal
-        imp.backup_view.connect_activate(clone!(@weak imp => move |_, _| {
-            imp.backup_open_button.emit_clicked();
-        }));
+        imp.backup_view.connect_activate(clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.backup_open_button.emit_clicked();
+            }
+        ));
     }
 
     //-----------------------------------

@@ -139,22 +139,25 @@ impl PreferencesDialog {
         // Add AUR helper command action with parameter
         let aur_action = gio::ActionEntry::builder("aur-cmd", )
             .parameter_type(Some(&String::static_variant_type()))
-            .activate(clone!(@weak self as dialog => move |_, _, param| {
-                let param = param
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
+            .activate(clone!(
+                #[weak(rename_to = dialog)] self,
+                move |_, _, param| {
+                    let param = param
+                        .expect("Could not retrieve Variant")
+                        .get::<String>()
+                        .expect("Could not retrieve String from variant");
 
-                let cmd = match param.as_str() {
-                    "paru" => "/usr/bin/paru -Qu --mode=ap",
-                    "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
-                    "trizen" => "/usr/bin/trizen -Qua --devel",
-                    "yay" => "/usr/bin/yay -Qua",
-                    _ => unreachable!()
-                };
+                    let cmd = match param.as_str() {
+                        "paru" => "/usr/bin/paru -Qu --mode=ap",
+                        "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
+                        "trizen" => "/usr/bin/trizen -Qua --devel",
+                        "yay" => "/usr/bin/yay -Qua",
+                        _ => unreachable!()
+                    };
 
-                dialog.set_aur_command(cmd);
-            }))
+                    dialog.set_aur_command(cmd);
+                }
+            ))
             .build();
 
         // Add action to prefs group
@@ -172,30 +175,36 @@ impl PreferencesDialog {
         let imp = self.imp();
 
         // Preferences reset button clicked signal
-        imp.reset_button.connect_clicked(clone!(@weak self as dialog => move |_| {
-            let reset_dialog = adw::AlertDialog::builder()
-                .heading("Reset Preferences?")
-                .body("Reset all preferences to their default values.")
-                .default_response("reset")
-                .build();
+        imp.reset_button.connect_clicked(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |_| {
+                let reset_dialog = adw::AlertDialog::builder()
+                    .heading("Reset Preferences?")
+                    .body("Reset all preferences to their default values.")
+                    .default_response("reset")
+                    .build();
 
-            reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
-            reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
+                reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+                reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
-            reset_dialog.choose(
-                &dialog,
-                None::<&gio::Cancellable>,
-                clone!(@weak dialog => move |response| {
-                    if response == "reset" {
-                        dialog.set_auto_refresh(true);
-                        dialog.set_aur_command("");
-                        dialog.set_search_delay(150.0);
-                        dialog.set_remember_columns(true);
-                        dialog.set_remember_sort(false);
-                    }
-                })
-            );
-        }));
+                reset_dialog.choose(
+                    &dialog,
+                    None::<&gio::Cancellable>,
+                    clone!(
+                        #[weak] dialog,
+                        move |response| {
+                            if response == "reset" {
+                                dialog.set_auto_refresh(true);
+                                dialog.set_aur_command("");
+                                dialog.set_search_delay(150.0);
+                                dialog.set_remember_columns(true);
+                                dialog.set_remember_sort(false);
+                            }
+                        }
+                    )
+                );
+            }
+        ));
     }
 }
 

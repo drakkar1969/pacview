@@ -154,47 +154,57 @@ impl LogWindow {
         });
 
         // Search entry search changed signal
-        imp.search_entry.connect_search_changed(clone!(@weak imp => move |entry| {
-            imp.search_filter.set_search(Some(&entry.text()));
-        }));
+        imp.search_entry.connect_search_changed(clone!(
+            #[weak] imp,
+            move |entry| {
+                imp.search_filter.set_search(Some(&entry.text()));
+            }
+        ));
 
         // Package button toggled signal
-        imp.package_button.connect_toggled(clone!(@weak imp => move |package_button| {
-            static EXPR: OnceLock<Regex> = OnceLock::new();
+        imp.package_button.connect_toggled(clone!(
+            #[weak] imp,
+            move |package_button| {
+                static EXPR: OnceLock<Regex> = OnceLock::new();
 
-            let expr = EXPR.get_or_init(|| {
-                Regex::new(r"\[ALPM\] installed|removed|upgraded|downgraded .+")
-                    .expect("Regex error")
-            });
-
-            if package_button.is_active() {
-                imp.package_filter.set_filter_func(move |item| {
-                    let msg = item
-                        .downcast_ref::<LogObject>()
-                        .expect("Could not downcast to 'LogObject'");
-
-                    expr.is_match(&msg.message())
+                let expr = EXPR.get_or_init(|| {
+                    Regex::new(r"\[ALPM\] installed|removed|upgraded|downgraded .+")
+                        .expect("Regex error")
                 });
-            } else {
-                imp.package_filter.unset_filter_func();
+
+                if package_button.is_active() {
+                    imp.package_filter.set_filter_func(move |item| {
+                        let msg = item
+                            .downcast_ref::<LogObject>()
+                            .expect("Could not downcast to 'LogObject'");
+
+                        expr.is_match(&msg.message())
+                    });
+                } else {
+                    imp.package_filter.unset_filter_func();
+                }
             }
-        }));
+        ));
 
         // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(@weak self as window, @weak imp => move |_| {
-            let copy_text = imp.selection.iter::<glib::Object>().flatten()
-                .map(|item| {
-                    let log = item
-                        .downcast::<LogObject>()
-                        .expect("Could not downcast to 'LogObject'");
+        imp.copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        let log = item
+                            .downcast::<LogObject>()
+                            .expect("Could not downcast to 'LogObject'");
 
-                    format!("[{date} {time}] {message}", date=log.date(), time=log.time(), message=log.message())
-                })
-                .collect::<Vec<String>>()
-                .join("\n");
+                        format!("[{date} {time}] {message}", date=log.date(), time=log.time(), message=log.message())
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
 
-            window.clipboard().set_text(&copy_text);
-        }));
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
     }
 
     //-----------------------------------
@@ -208,38 +218,41 @@ impl LogWindow {
         let log_file = log_file.to_string();
 
         // Spawn thread to populate column view
-        glib::spawn_future_local(clone!(@weak self as window, @weak imp => async move {
-            if let Ok(log) = fs::read_to_string(log_file) {
-                // Strip ANSI control sequences from log
-                static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            async move {
+                if let Ok(log) = fs::read_to_string(log_file) {
+                    // Strip ANSI control sequences from log
+                    static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
-                let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
-                        .expect("Regex error")
-                });
+                    let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                        Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
+                            .expect("Regex error")
+                    });
 
-                let log = ansi_expr.replace_all(&log, "");
+                    let log = ansi_expr.replace_all(&log, "");
 
-                // Populate column view
-                static EXPR: OnceLock<Regex> = OnceLock::new();
+                    // Populate column view
+                    static EXPR: OnceLock<Regex> = OnceLock::new();
 
-                let expr = EXPR.get_or_init(|| {
-                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
-                        .expect("Regex error")
-                });
+                    let expr = EXPR.get_or_init(|| {
+                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
+                            .expect("Regex error")
+                    });
 
-                let log_lines: Vec<LogObject> = log.lines().rev()
-                    .filter_map(|s| {
-                        expr.captures(s)
-                            .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3]))
-                    })
-                    .collect();
+                    let log_lines: Vec<LogObject> = log.lines().rev()
+                        .filter_map(|s| {
+                            expr.captures(s)
+                                .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3]))
+                        })
+                        .collect();
 
-                imp.model.extend_from_slice(&log_lines);
-            } else {
-                // Show overlay error label
-                imp.overlay_label.set_visible(true);
+                    imp.model.extend_from_slice(&log_lines);
+                } else {
+                    // Show overlay error label
+                    imp.overlay_label.set_visible(true);
+                }
             }
-        }));
+        ));
     }
 }

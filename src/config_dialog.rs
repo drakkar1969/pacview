@@ -148,38 +148,56 @@ impl ConfigDialog {
         let imp = self.imp();
 
         // RootDir open button clicked signal
-        imp.rootdir_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            open_file_manager(&imp.rootdir_row.subtitle().unwrap_or_default());
-        }));
+        imp.rootdir_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                open_file_manager(&imp.rootdir_row.subtitle().unwrap_or_default());
+            }
+        ));
 
         // DBPath open button clicked signal
-        imp.dbpath_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            open_file_manager(&imp.dbpath_row.subtitle().unwrap_or_default());
-        }));
+        imp.dbpath_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                open_file_manager(&imp.dbpath_row.subtitle().unwrap_or_default());
+            }
+        ));
 
         // CacheDir open button clicked signal
-        imp.cachedir_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            for item in imp.cachedir_row.subtitle().unwrap_or_default().split('\n') {
-                open_file_manager(item);
+        imp.cachedir_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                for item in imp.cachedir_row.subtitle().unwrap_or_default().split('\n') {
+                    open_file_manager(item);
+                }
             }
-        }));
+        ));
 
         // LogFile open button clicked signal
-        imp.logfile_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            open_file_manager(&imp.logfile_row.subtitle().unwrap_or_default());
-        }));
+        imp.logfile_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                open_file_manager(&imp.logfile_row.subtitle().unwrap_or_default());
+            }
+        ));
 
         // GPGDir open button clicked signal
-        imp.gpgdir_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            open_file_manager(&imp.gpgdir_row.subtitle().unwrap_or_default());
-        }));
+        imp.gpgdir_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                open_file_manager(&imp.gpgdir_row.subtitle().unwrap_or_default());
+            }
+        ));
 
         // HookDir open button clicked signal
-        imp.hookdir_open_button.connect_clicked(clone!(@weak imp => move |_| {
-            for item in imp.hookdir_row.subtitle().unwrap_or_default().split('\n') {
-                open_file_manager(item);
+        imp.hookdir_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                for item in imp.hookdir_row.subtitle().unwrap_or_default().split('\n') {
+                    open_file_manager(item);
+                }
             }
-        }));
+        ));
     }
 
     //-----------------------------------
