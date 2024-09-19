@@ -39,10 +39,10 @@ fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
 //------------------------------------------------------------------------------
 // GLOBAL: Pango color Variables
 //------------------------------------------------------------------------------
-const LINK_CSS: &str = "@accent_color";
-const COMMENT_CSS: &str = "@success_color";
-const SELECTED_CSS: &str = "alpha(@view_fg_color, 0.1)";
-const SELECTED_CSS_FOCUS: &str = "alpha(@accent_bg_color, 0.3)";
+const LINK_CSS: &str = "var(--accent-color)";
+const COMMENT_CSS: &str = "var(--success-color)";
+const SELECTED_CSS: &str = "alpha(var(--view-fg-color), 0.1)";
+const SELECTED_CSS_FOCUS: &str = "alpha(var(--accent-bg-color), 0.3)";
 
 thread_local! {
     static LINK_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(LINK_CSS));
