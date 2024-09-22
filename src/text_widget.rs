@@ -672,6 +672,21 @@ impl TextWidget {
                 imp.do_format();
             }
         ));
+
+        style_manager.connect_accent_color_notify(clone!(
+            #[weak] imp,
+            move |_| {
+                // Update pango color variables that depend on accent color
+                LINK_RGBA.set(pango_color_from_css(LINK_CSS));
+                SELECTED_RGBA_FOCUS.set(pango_color_from_css(SELECTED_CSS_FOCUS));
+
+                // Format pango layout text
+                imp.do_format();
+
+                // Redraw widget
+                imp.draw_area.queue_draw();
+            }
+        ));
     }
 
     //-----------------------------------
