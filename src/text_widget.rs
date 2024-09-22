@@ -41,8 +41,8 @@ fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
 //------------------------------------------------------------------------------
 const LINK_CSS: &str = "var(--accent-color)";
 const COMMENT_CSS: &str = "var(--success-color)";
-const SELECTED_CSS: &str = "alpha(var(--view-fg-color), 0.1)";
-const SELECTED_CSS_FOCUS: &str = "alpha(var(--accent-bg-color), 0.3)";
+const SELECTED_CSS: &str = "color-mix(in srgb, var(--view-fg-color) 10%, transparent)";
+const SELECTED_CSS_FOCUS: &str = "color-mix(in srgb, var(--accent-bg-color) 30%, transparent)";
 
 thread_local! {
     static LINK_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(LINK_CSS));
