@@ -670,6 +670,9 @@ impl TextWidget {
 
                 // Format pango layout text
                 imp.do_format();
+
+                // Redraw widget
+                imp.draw_area.queue_draw();
             }
         ));
 
