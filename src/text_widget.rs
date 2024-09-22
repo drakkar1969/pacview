@@ -39,19 +39,19 @@ fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
 //------------------------------------------------------------------------------
 // GLOBAL: Pango color Variables
 //------------------------------------------------------------------------------
-const LINK_CSS: &str = "var(--accent-color)";
-const COMMENT_CSS: &str = "var(--success-color)";
-const SELECTED_CSS: &str = "color-mix(in srgb, var(--view-fg-color) 10%, transparent)";
-const SELECTED_CSS_FOCUS: &str = "color-mix(in srgb, var(--accent-bg-color) 30%, transparent)";
+const LINK_FG_CSS: &str = "var(--accent-color)";
+const COMMENT_FG_CSS: &str = "var(--success-color)";
+const SEL_BG_CSS: &str = "color-mix(in srgb, var(--view-fg-color) 10%, transparent)";
+const SEL_FOCUS_BG_CSS: &str = "color-mix(in srgb, var(--accent-bg-color) 30%, transparent)";
 
 thread_local! {
-    static LINK_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(LINK_CSS));
+    static LINK_FG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(LINK_FG_CSS));
 
-    static COMMENT_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(COMMENT_CSS));
+    static COMMENT_FG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(COMMENT_FG_CSS));
 
-    static SELECTED_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SELECTED_CSS));
+    static SEL_BG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SEL_BG_CSS));
 
-    static SELECTED_RGBA_FOCUS: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SELECTED_CSS_FOCUS));
+    static SEL_FOCUS_BG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SEL_FOCUS_BG_CSS));
 }
 
 //------------------------------------------------------------------------------
@@ -237,7 +237,7 @@ mod imp {
         fn format_links(&self, attr_list: &pango::AttrList) {
             let link_list = &*self.link_list.borrow();
 
-            let (red, green, blue, alpha) = LINK_RGBA.get();
+            let (red, green, blue, alpha) = LINK_FG_RGBA.get();
 
             for link in link_list {
                 let start = link.start as u32;
@@ -266,7 +266,7 @@ mod imp {
         fn format_comments(&self, attr_list: &pango::AttrList) {
             let comment_list = &*self.comment_list.borrow();
 
-            let (red, green, blue, alpha) = COMMENT_RGBA.get();
+            let (red, green, blue, alpha) = COMMENT_FG_RGBA.get();
 
             for comment in comment_list {
                 let start = comment.start as u32;
@@ -300,9 +300,9 @@ mod imp {
 
         pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             let (red, green, blue, alpha) = if self.obj().has_focus() {
-                SELECTED_RGBA_FOCUS.get()
+                SEL_FOCUS_BG_RGBA.get()
             } else {
-                SELECTED_RGBA.get()
+                SEL_BG_RGBA.get()
             };
 
             let mut attr = pango::AttrColor::new_background(red, green, blue);
@@ -530,7 +530,7 @@ impl TextWidget {
                             context.line_to(pango::units_to_double(end_x), end_y);
                         }
 
-                        let (red, green, blue, alpha) = LINK_RGBA.get();
+                        let (red, green, blue, alpha) = LINK_FG_RGBA.get();
 
                         context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, alpha as f64 / 65535.0);
 
@@ -663,10 +663,10 @@ impl TextWidget {
             #[weak] imp,
             move |_| {
                 // Update pango color variables
-                LINK_RGBA.set(pango_color_from_css(LINK_CSS));
-                COMMENT_RGBA.set(pango_color_from_css(COMMENT_CSS));
-                SELECTED_RGBA.set(pango_color_from_css(SELECTED_CSS));
-                SELECTED_RGBA_FOCUS.set(pango_color_from_css(SELECTED_CSS_FOCUS));
+                LINK_FG_RGBA.set(pango_color_from_css(LINK_FG_CSS));
+                COMMENT_FG_RGBA.set(pango_color_from_css(COMMENT_FG_CSS));
+                SEL_BG_RGBA.set(pango_color_from_css(SEL_BG_CSS));
+                SEL_FOCUS_BG_RGBA.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
 
                 // Format pango layout text
                 imp.do_format();
@@ -680,8 +680,8 @@ impl TextWidget {
             #[weak] imp,
             move |_| {
                 // Update pango color variables that depend on accent color
-                LINK_RGBA.set(pango_color_from_css(LINK_CSS));
-                SELECTED_RGBA_FOCUS.set(pango_color_from_css(SELECTED_CSS_FOCUS));
+                LINK_FG_RGBA.set(pango_color_from_css(LINK_FG_CSS));
+                SEL_FOCUS_BG_RGBA.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
 
                 // Format pango layout text
                 imp.do_format();
