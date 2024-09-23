@@ -22,7 +22,7 @@ search-header image:not(:hover):not(:checked) {
 
 /* Header search tags */
 searchtag {
-	background: alpha(currentColor, 0.12);
+	background: color-mix(in srgb, currentColor 12%, transparent);
 	border-radius: 9999px;
 }
 
@@ -68,14 +68,14 @@ property-label {
 }
 
 property-value:focus-within {
-	outline: 2px solid alpha(var(--accent-color), 0.5);
+	outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
 	outline-offset: -2px;
 }
 
 /* Dialog images */
 image.bubble {
 	border-radius: 50%;
-	background: alpha(currentColor, 0.15);
+	background: color-mix(in srgb, currentColor 15%, transparent);
 	min-width: 36px;
 	min-height: 36px;
 }
