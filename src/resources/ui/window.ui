@@ -130,7 +130,7 @@
             </child>
             <property name="content">
               <object class="GtkPaned" id="pane">
-                <property name="orientation">vertical</property>
+                <property name="orientation">horizontal</property>
                 <property name="position">375</property>
                 <property name="shrink-start-child">False</property>
                 <property name="shrink-end-child">False</property>

@@ -1,24 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PropertyValue template //-->
-  <template class="PropertyValue" parent="GtkWidget">
+  <template class="PropertyValue" parent="GtkListBoxRow">
     <property name="hexpand">true</property>
-    <child>
+    <property name="child">
       <object class="GtkBox">
-        <property name="margin-start">10</property>
-        <property name="margin-end">16</property>
-        <property name="spacing">6</property>
+        <property name="orientation">vertical</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">8</property>
+        <property name="margin-bottom">8</property>
+        <property name="spacing">4</property>
         <child>
-          <object class="GtkImage" id="image">
-            <property name="height-request">16</property>
+          <object class="GtkLabel" id="prop_label">
+            <property name="xalign">0</property>
+            <style>
+              <class name="caption"/>
+              <class name="dim-label"/>
+            </style>
           </object>
         </child>
         <child>
-          <object class="TextWidget" id="text_widget">
-            <property name="hexpand">true</property>
+          <object class="GtkBox">
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkImage" id="image">
+                <property name="height-request">16</property>
+              </object>
+            </child>
+            <child>
+              <object class="TextWidget" id="text_widget">
+                <property name="hexpand">true</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
-    </child>
+    </property>
   </template>
 </interface>

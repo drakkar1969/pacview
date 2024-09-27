@@ -57,21 +57,6 @@ box.rounded {
 	border-radius: 9999px;
 }
 
-/* Info pane property rows */
-property-label:not(:nth-last-child(-n+2)),
-property-value:not(:nth-last-child(-n+2)) {
-	border-bottom: 1px solid var(--border-color);
-}
-
-property-label {
-	border-right: 1px solid var(--border-color);
-}
-
-property-value:focus-within {
-	outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
-	outline-offset: -2px;
-}
-
 /* Dialog images */
 image.bubble {
 	border-radius: 50%;

@@ -21,6 +21,8 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/property_value.ui")]
     pub struct PropertyValue {
         #[template_child]
+        pub(super) prop_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) text_widget: TemplateChild<TextWidget>,
@@ -29,6 +31,8 @@ mod imp {
         ptype: Cell<PropType>,
         #[property(get, set, nullable)]
         icon: RefCell<Option<String>>,
+        #[property(get, set)]
+        label: RefCell<String>,
         #[property(get, set)]
         text: RefCell<String>,
     }
@@ -40,12 +44,10 @@ mod imp {
     impl ObjectSubclass for PropertyValue {
         const NAME: &'static str = "PropertyValue";
         type Type = super::PropertyValue;
-        type ParentType = gtk::Widget;
+        type ParentType = gtk::ListBoxRow;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.set_layout_manager_type::<gtk::BoxLayout>();
-            klass.set_css_name("property-value");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -75,6 +77,7 @@ mod imp {
     }
 
     impl WidgetImpl for PropertyValue {}
+    impl ListBoxRowImpl for PropertyValue {}
 }
 
 //------------------------------------------------------------------------------
@@ -82,8 +85,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PropertyValue(ObjectSubclass<imp::PropertyValue>)
-        @extends gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+    @extends gtk::ListBoxRow, gtk::Widget,
+    @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl PropertyValue {
@@ -109,11 +112,7 @@ impl PropertyValue {
         let imp = self.imp();
 
         // Bind properties to widgets
-        self.bind_property("ptype", &imp.text_widget.get(), "ptype")
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        self.bind_property("text", &imp.text_widget.get(), "text")
+        self.bind_property("label", &imp.prop_label.get(), "label")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
@@ -123,6 +122,14 @@ impl PropertyValue {
             .build();
 
         self.bind_property("icon", &imp.image.get(), "icon-name")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        self.bind_property("ptype", &imp.text_widget.get(), "ptype")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        self.bind_property("text", &imp.text_widget.get(), "text")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
     }

@@ -12,11 +12,6 @@ use regex::Regex;
 use url::Url;
 
 //------------------------------------------------------------------------------
-// CONST: Layout padding
-//------------------------------------------------------------------------------
-const PADDING: i32 = 4;
-
-//------------------------------------------------------------------------------
 // GLOBAL: Pango color from CSS function
 //------------------------------------------------------------------------------
 fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
@@ -135,7 +130,6 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.set_css_name("text-widget");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -201,7 +195,7 @@ mod imp {
                     measure_layout.set_width(for_size * pango::SCALE);
                 }
 
-                (measure_layout.pixel_size().1 + 4 * PADDING, measure_layout.pixel_size().1 + 4 * PADDING, -1, -1)
+                (measure_layout.pixel_size().1, measure_layout.pixel_size().1, -1, -1)
             }
         }
 
@@ -461,10 +455,6 @@ impl TextWidget {
 
         imp.pango_layout.set(layout).unwrap();
 
-        // Set drawing margins
-        imp.draw_area.set_margin_top(PADDING);
-        imp.draw_area.set_margin_bottom(PADDING);
-
         // Connect drawing area draw function
         imp.draw_area.set_draw_func(clone!(
             #[weak(rename_to = widget)] self,
@@ -490,7 +480,7 @@ impl TextWidget {
                 let text_color = widget.color();
 
                 context.set_source_rgba(text_color.red() as f64, text_color.green() as f64, text_color.blue() as f64, text_color.alpha() as f64);
-                context.move_to(0.0, PADDING as f64);
+                context.move_to(0.0, 0.0);
 
                 pangocairo::functions::show_layout(context, layout);
 
@@ -508,7 +498,7 @@ impl TextWidget {
                             // Link is all on one line
                             let start_char_rect = layout.index_to_pos(link.start as i32);
 
-                            let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) + PADDING as f64;
+                            let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
 
                             context.move_to(pango::units_to_double(start_x), y);
                             context.line_to(pango::units_to_double(end_x), y);
@@ -519,12 +509,12 @@ impl TextWidget {
 
                             let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
 
-                            let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) + PADDING as f64;
+                            let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
 
                             context.move_to(pango::units_to_double(start_x), start_y);
                             context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
 
-                            let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height()) + PADDING as f64;
+                            let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height());
 
                             context.move_to(0.0, end_y);
                             context.line_to(pango::units_to_double(end_x), end_y);

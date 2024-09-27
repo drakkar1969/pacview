@@ -8,7 +8,6 @@ use glib::closure_local;
 
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PKG_SNAPSHOT};
 use crate::text_widget::{TextWidget, PropType};
-use crate::property_label::PropertyLabel;
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::traits::EnumValueExt;
@@ -91,7 +90,7 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) grid: TemplateChild<gtk::Grid>,
+        pub(super) listbox: TemplateChild<gtk::ListBox>,
 
         #[template_child]
         pub(super) overlay_box: TemplateChild<gtk::Box>,
@@ -102,7 +101,7 @@ mod imp {
         #[template_child]
         pub(super) overlay_next_button: TemplateChild<gtk::Button>,
 
-        pub(super) property_map: RefCell<HashMap<PropID, (PropertyLabel, PropertyValue)>>,
+        pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
         pub(super) history_selection: RefCell<gtk::SingleSelection>,
     }
@@ -215,12 +214,6 @@ impl InfoPane {
     fn add_property(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let id_value = id.enum_value();
-
-        let property_label = PropertyLabel::new(id_value.name());
-
-        imp.grid.attach(&property_label, 0, id_value.value(), 1, 1);
-
         let property_value = PropertyValue::new(
             ptype,
             closure_local!(
@@ -232,20 +225,20 @@ impl InfoPane {
             )
         );
 
-        imp.grid.attach(&property_value, 1, id_value.value(), 1, 1);
+        imp.listbox.append(&property_value);
 
-        imp.property_map.borrow_mut().insert(id, (property_label, property_value));
+        imp.property_map.borrow_mut().insert(id, property_value);
     }
 
     //-----------------------------------
     // Set property functions
     //-----------------------------------
     fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
-        if let Some((property_label, property_value)) = self.imp().property_map.borrow().get(&id) {
-            property_label.set_visible(visible);
+        if let Some(property_value) = self.imp().property_map.borrow().get(&id) {
             property_value.set_visible(visible);
 
             if visible {
+                property_value.set_label(id.enum_value().name());
                 property_value.set_icon(icon);
                 property_value.set_text(value);
             }

@@ -4,9 +4,6 @@
   <template class="InfoPane" parent="AdwBin">
     <property name="child">
       <object class="GtkStack" id="stack">
-        <style>
-          <class name="view"/>
-        </style>
         <child>
           <object class="GtkStackPage">
             <property name="name">empty</property>
@@ -33,7 +30,15 @@
                     <property name="hexpand">True</property>
                     <property name="vexpand">True</property>
                     <property name="child">
-                      <object class="GtkGrid" id="grid">
+                      <object class="GtkListBox" id="listbox">
+                        <property name="margin-start">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="margin-top">16</property>
+                        <property name="margin-bottom">16</property>
+                        <property name="selection-mode">none</property>
+                        <style>
+                          <class name="boxed-list"/>
+                        </style>
                       </object>
                     </property>
                   </object>
