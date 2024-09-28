@@ -223,6 +223,8 @@ impl InfoPane {
             )
         );
 
+        property_value.add_css_class("property-value");
+
         imp.listbox.append(&property_value);
 
         imp.property_map.borrow_mut().insert(id, property_value);

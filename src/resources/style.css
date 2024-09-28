@@ -57,6 +57,22 @@ box.rounded {
 	border-radius: 9999px;
 }
 
+/* Info pane property rows */
+.property-value:focus-within {
+	outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
+	outline-offset: -2px;
+}
+
+.property-value:focus-within:first-child {
+	border-top-left-radius: var(--window-radius);
+	border-top-right-radius: var(--window-radius);
+}
+
+.property-value:focus-within:last-child {
+	border-bottom-left-radius: var(--window-radius);
+	border-bottom-right-radius: var(--window-radius);
+}
+
 /* Dialog images */
 image.bubble {
 	border-radius: 50%;

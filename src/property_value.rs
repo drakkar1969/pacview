@@ -1,8 +1,9 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::glib;
+use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
+use glib::clone;
 use glib::RustClosure;
 
 use crate::text_widget::{TextWidget, PropType};
@@ -66,6 +67,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_controllers();
         }
 
         //-----------------------------------
@@ -132,5 +134,26 @@ impl PropertyValue {
         self.bind_property("text", &imp.text_widget.get(), "text")
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+    }
+
+    //-----------------------------------
+    // Setup controllers
+    //-----------------------------------
+    fn setup_controllers(&self) {
+        let imp = self.imp();
+
+        // Add mouse click controller
+        let click_gesture = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_PRIMARY)
+            .build();
+
+        click_gesture.connect_pressed(clone!(
+            #[weak] imp,
+            move |_, _, _, _| {
+                imp.text_widget.grab_focus();
+            }
+        ));
+
+        self.add_controller(click_gesture);
     }
 }
