@@ -89,9 +89,13 @@
                                     </property>
                                   </object>
                                 </property>
-                                <!-- <binding name="sorter">
-                                  <lookup name="sorter">view</lookup>
-                                </binding> -->
+                                <property name="sorter">
+                                  <object class="GtkStringSorter">
+                                    <property name="expression">
+                                      <lookup name="name" type="PkgObject"/>
+                                    </property>
+                                  </object>
+                                </property>
                               </object>
                             </property>
                           </object>
