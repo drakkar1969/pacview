@@ -49,12 +49,6 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/date_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/message_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/package_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/package_view/version_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/package_view/repository_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/package_view/status_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/package_view/date_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/package_view/size_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/package_view/groups_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/repository_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/packages_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>

@@ -54,13 +54,6 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Package List</property>
             <child>
-              <object class="AdwSwitchRow" id="column_switchrow">
-                <property name="title">Remember _Columns</property>
-                <property name="subtitle">Save package list column order</property>
-                <property name="use-underline">True</property>
-              </object>
-            </child>
-            <child>
               <object class="AdwSwitchRow" id="sort_switchrow">
                 <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package list sort order</property>

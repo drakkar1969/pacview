@@ -43,7 +43,7 @@
                     <property name="hexpand">True</property>
                     <property name="vexpand">True</property>
                     <child>
-                      <object class="GtkColumnView" id="view">
+                      <object class="GtkListView" id="view">
                         <property name="tab-behavior">item</property>
                         <property name="model">
                           <object class="GtkSingleSelection" id="selection">
@@ -89,154 +89,18 @@
                                     </property>
                                   </object>
                                 </property>
-                                <binding name="sorter">
+                                <!-- <binding name="sorter">
                                   <lookup name="sorter">view</lookup>
-                                </binding>
+                                </binding> -->
                               </object>
                             </property>
                           </object>
                         </property>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="package_column">
-                            <property name="id">package</property>
-                            <property name="title">Package</property>
-                            <property name="resizable">True</property>
-                            <property name="expand">True</property>
-                            <property name="header-menu">header_menu</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/package_view/package_item.ui</property>
-                              </object>
-                            </property>
-                            <property name="sorter">
-                              <object class="GtkStringSorter">
-                                <property name="expression">
-                                  <lookup name="name" type="PkgObject"/>
-                                </property>
-                              </object>
-                            </property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/package_view/package_item.ui</property>
                           </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="version_column">
-                            <property name="id">version</property>
-                            <property name="title">Version</property>
-                            <property name="resizable">True</property>
-                            <property name="header-menu">header_menu</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/package_view/version_item.ui</property>
-                              </object>
-                            </property>
-                            <property name="sorter">
-                              <object class="GtkStringSorter">
-                                <property name="expression">
-                                  <lookup name="version" type="PkgObject"/>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="repository_column">
-                            <property name="id">repository</property>
-                            <property name="title">Repository</property>
-                            <property name="resizable">True</property>
-                            <property name="header-menu">header_menu</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/package_view/repository_item.ui</property>
-                              </object>
-                            </property>
-                            <property name="sorter">
-                              <object class="GtkStringSorter">
-                                <property name="expression">
-                                  <lookup name="repository" type="PkgObject"/>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="status_column">
-                            <property name="id">status</property>
-                            <property name="title">Status</property>
-                            <property name="resizable">True</property>
-                            <property name="header-menu">header_menu</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/package_view/status_item.ui</property>
-                              </object>
-                            </property>
-                            <property name="sorter">
-                              <object class="GtkStringSorter">
-                                <property name="expression">
-                                  <lookup name="status" type="PkgObject"/>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="date_column">
-                            <property name="id">date</property>
-                            <property name="title">Date</property>
-                            <property name="resizable">True</property>
-                            <property name="header-menu">header_menu</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/package_view/date_item.ui</property>
-                              </object>
-                            </property>
-                            <property name="sorter">
-                              <object class="GtkNumericSorter">
-                                <property name="expression">
-                                  <lookup name="install-date" type="PkgObject"/>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="size_column">
-                            <property name="id">size</property>
-                            <property name="title">Size</property>
-                            <property name="resizable">True</property>
-                            <property name="header-menu">header_menu</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/package_view/size_item.ui</property>
-                              </object>
-                            </property>
-                            <property name="sorter">
-                              <object class="GtkNumericSorter">
-                                <property name="expression">
-                                  <lookup name="install-size" type="PkgObject"/>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="groups_column">
-                            <property name="id">groups</property>
-                            <property name="title">Groups</property>
-                            <property name="resizable">True</property>
-                            <property name="header-menu">header_menu</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/package_view/groups_item.ui</property>
-                              </object>
-                            </property>
-                            <property name="sorter">
-                              <object class="GtkStringSorter">
-                                <property name="expression">
-                                  <lookup name="groups" type="PkgObject"/>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
+                        </property>
                       </object>
                     </child>
                   </object>
@@ -259,40 +123,4 @@
       </object>
     </child>
   </template>
-
-  <!--// Package view header menu //-->
-  <menu id="header_menu">
-    <section>
-      <item>
-        <attribute name="label">Version</attribute>
-        <attribute name="action">view.show-column-version</attribute>
-      </item>
-      <item>
-        <attribute name="label">Repository</attribute>
-        <attribute name="action">view.show-column-repository</attribute>
-      </item>
-      <item>
-        <attribute name="label">Status</attribute>
-        <attribute name="action">view.show-column-status</attribute>
-      </item>
-      <item>
-        <attribute name="label">Date</attribute>
-        <attribute name="action">view.show-column-date</attribute>
-      </item>
-      <item>
-        <attribute name="label">Size</attribute>
-        <attribute name="action">view.show-column-size</attribute>
-      </item>
-      <item>
-        <attribute name="label">Groups</attribute>
-        <attribute name="action">view.show-column-groups</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Reset Columns</attribute>
-        <attribute name="action">view.reset-columns</attribute>
-      </item>
-    </section>
-  </menu>
 </interface>

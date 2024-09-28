@@ -27,8 +27,6 @@ mod imp {
         #[template_child]
         pub(super) aur_menubutton: TemplateChild<gtk::MenuButton>,
         #[template_child]
-        pub(super) column_switchrow: TemplateChild<adw::SwitchRow>,
-        #[template_child]
         pub(super) sort_switchrow: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) reset_button2: TemplateChild<adw::ButtonRow>,
@@ -118,9 +116,6 @@ impl PreferencesDialog {
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
-        self.bind_property("remember-columns", &imp.column_switchrow.get(), "active")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
-            .build();
         self.bind_property("remember-sort", &imp.sort_switchrow.get(), "active")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();

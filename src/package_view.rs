@@ -17,9 +17,6 @@ use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 
-pub const DEFAULT_COLS: [&str; 6] = ["package", "version", "repository", "status", "date", "size"];
-pub const DEFAULT_SORT_COL: &str = "package";
-
 //------------------------------------------------------------------------------
 // MODULE: PackageView
 //------------------------------------------------------------------------------
@@ -36,7 +33,7 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) view: TemplateChild<gtk::ColumnView>,
+        pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
@@ -111,7 +108,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_actions();
             obj.setup_signals();
         }
 
@@ -165,37 +161,6 @@ impl PackageView {
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
-    }
-
-    //-----------------------------------
-    // Setup actions
-    //-----------------------------------
-    fn setup_actions(&self) {
-        // Add reset columns action
-        let columns_action = gio::ActionEntry::builder("reset-columns")
-            .activate(clone!(
-                #[weak(rename_to = view)] self,
-                move |_, _, _| {
-                    view.set_columns(&DEFAULT_COLS);
-                }
-            ))
-            .build();
-
-        // Add actions to view action group
-        let view_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("view", Some(&view_group));
-
-        view_group.add_action_entries([columns_action]);
-
-        // Add package view header menu property actions
-        let columns = self.imp().view.columns();
-
-        for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
-            let col_action = gio::PropertyAction::new(&format!("show-column-{}", col.id().unwrap()), &col, "visible");
-
-            view_group.add_action(&col_action);
-        }
     }
 
     //-----------------------------------
@@ -389,68 +354,9 @@ impl PackageView {
     }
 
     //-----------------------------------
-    // Public column functions
-    //-----------------------------------
-    pub fn set_columns(&self, column_ids: &[&str]) {
-        let columns = self.imp().view.columns();
-
-        // Iterate through column IDs
-        for (i, id) in column_ids.iter().enumerate() {
-            // If column exists with given ID, insert it at position
-            if let Some(col) = columns.iter::<gtk::ColumnViewColumn>().flatten()
-                .find(|col| col.id().unwrap() == *id)
-            {
-                self.imp().view.insert_column(i as u32, &col);
-            }
-        }
-
-        // Show/hide columns
-        for col in columns.iter::<gtk::ColumnViewColumn>().flatten() {
-            col.set_visible(column_ids.contains(&col.id().unwrap().as_str()));
-        }
-    }
-
-    pub fn columns(&self) -> Vec<String> {
-        // Get visible column IDs
-        self.imp().view.columns()
-            .iter::<gtk::ColumnViewColumn>()
-            .flatten()
-            .filter_map(|col| if col.is_visible() {col.id().map(|s| s.to_string())} else {None})
-            .collect()
-    }
-
-    pub fn set_sorting(&self, id: &str, ascending: bool) {
-        // Find sort column by ID
-        let col = self.imp().view.columns().iter::<gtk::ColumnViewColumn>()
-            .flatten()
-            .find(|col| col.id().unwrap() == *id);
-
-        // Set sort column/order
-        self.imp().view.sort_by_column(col.as_ref(), if ascending {gtk::SortType::Ascending} else {gtk::SortType::Descending});
-    }
-
-    pub fn sorting(&self) -> (String, bool) {
-        // Get view sorter
-        let sorter = self.imp().view.sorter()
-            .and_downcast::<gtk::ColumnViewSorter>()
-            .expect("Could not downcast to 'ColumnViewSorter'");
-
-        // Get sort column ID
-        let sort_col = sorter.primary_sort_column().map_or(
-            String::from(DEFAULT_SORT_COL),
-            |col| col.id().unwrap().to_string()
-        );
-
-        // Get sort order
-        let sort_asc = sorter.primary_sort_order() == gtk::SortType::Ascending;
-
-        (sort_col, sort_asc)
-    }
-
-    //-----------------------------------
     // Public view function
     //-----------------------------------
-    pub fn view(&self) -> gtk::ColumnView {
+    pub fn view(&self) -> gtk::ListView {
         self.imp().view.get()
     }
 

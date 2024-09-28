@@ -27,7 +27,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
-use crate::package_view::{PackageView, DEFAULT_COLS, DEFAULT_SORT_COL};
+use crate::package_view::PackageView;
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
@@ -214,11 +214,8 @@ impl PacViewWindow {
         imp.prefs_dialog.set_remember_columns(gsettings.boolean("remember-columns"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
 
-        // Load package view columns
-        imp.package_view.set_columns(&gsettings.strv("view-columns").iter().map(|s| s.as_str()).collect::<Vec<&str>>());
-
-        // Load package view sort column/sort order
-        imp.package_view.set_sorting(&gsettings.string("sort-column"), gsettings.boolean("sort-ascending"));
+        // // Load package view sort column/sort order
+        // imp.package_view.set_sorting(&gsettings.string("sort-column"), gsettings.boolean("sort-ascending"));
     }
 
     //-----------------------------------
@@ -261,23 +258,16 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "remember-columns", imp.prefs_dialog.remember_columns());
         self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
 
-        // Save package view columns
-        if imp.prefs_dialog.remember_columns() {
-            self.set_gsetting(gsettings, "view-columns", imp.package_view.columns());
-        } else {
-            self.set_gsetting(gsettings, "view-columns", DEFAULT_COLS.map(String::from).to_vec());
-        }
+        // // Save package view sort column/sort order
+        // if imp.prefs_dialog.remember_sort() {
+        //     let (sort_col, sort_asc) = imp.package_view.sorting();
 
-        // Save package view sort column/sort order
-        if imp.prefs_dialog.remember_sort() {
-            let (sort_col, sort_asc) = imp.package_view.sorting();
-
-            self.set_gsetting(gsettings, "sort-column", sort_col);
-            self.set_gsetting(gsettings, "sort-ascending", sort_asc);
-        } else {
-            self.set_gsetting(gsettings, "sort-column", DEFAULT_SORT_COL.to_string());
-            self.set_gsetting(gsettings, "sort-ascending", true);
-        }
+        //     self.set_gsetting(gsettings, "sort-column", sort_col);
+        //     self.set_gsetting(gsettings, "sort-ascending", sort_asc);
+        // } else {
+        //     self.set_gsetting(gsettings, "sort-column", DEFAULT_SORT_COL.to_string());
+        //     self.set_gsetting(gsettings, "sort-ascending", true);
+        // }
     }
 
     //-----------------------------------
