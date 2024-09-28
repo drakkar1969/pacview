@@ -109,10 +109,10 @@
             <property name="shrink-start-child">False</property>
             <property name="shrink-end-child">False</property>
             <property name="start-child">
-              <object class="AdwToolbarView" id="content_toolbar_view">
+              <object class="AdwToolbarView" id="package_toolbar_view">
                 <property name="top-bar-style">raised-border</property>
                 <child type="top">
-                  <object class="AdwHeaderBar" id="content_header_bar">
+                  <object class="AdwHeaderBar" id="package_header_bar">
                     <property name="title-widget">
                       <object class="SearchHeader" id="search_header">
                         <property name="title"></property>

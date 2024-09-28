@@ -75,6 +75,8 @@ mod imp {
 
         #[template_child]
         pub(super) pane: TemplateChild<gtk::Paned>,
+        #[template_child]
+        pub(super) package_header_bar: TemplateChild<adw::HeaderBar>,
 
         #[template_child]
         pub(super) package_view: TemplateChild<PackageView>,
@@ -328,6 +330,11 @@ impl PacViewWindow {
         // Bind view infopane button state to infopane visibility
         imp.infopane_button.bind_property("active", &imp.info_pane.get(), "visible")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .build();
+
+        imp.infopane_button.bind_property("active", &imp.package_header_bar.get(), "show-end-title-buttons")
+            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .invert_boolean()
             .build();
 
         // Bind package view item count to status label text
