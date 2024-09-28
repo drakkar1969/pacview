@@ -96,6 +96,8 @@ mod imp {
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) next_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) details_button: TemplateChild<gtk::Button>,
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
@@ -316,11 +318,18 @@ impl InfoPane {
         // Set stack visible page
         imp.stack.set_visible_child_name(if self.pkg().is_some() {"properties"} else {"empty"});
 
+        // Set header details button state
+        let details_sensitive = self.pkg().is_some();
+
+        if imp.details_button.is_sensitive() != details_sensitive {
+            imp.details_button.set_sensitive(details_sensitive);
+        }
+
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
             let hist_sel = imp.history_selection.borrow();
 
-            // Set infopane toolbar prev/next button states
+            // Set header prev/next button states
             let prev_sensitive = hist_sel.selected() > 0;
 
             if imp.prev_button.is_sensitive() != prev_sensitive {
