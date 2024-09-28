@@ -93,13 +93,9 @@ mod imp {
         pub(super) listbox: TemplateChild<gtk::ListBox>,
 
         #[template_child]
-        pub(super) overlay_box: TemplateChild<gtk::Box>,
+        pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) overlay_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) overlay_prev_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) overlay_next_button: TemplateChild<gtk::Button>,
+        pub(super) next_button: TemplateChild<gtk::Button>,
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
@@ -324,29 +320,17 @@ impl InfoPane {
         if let Some(pkg) = self.pkg() {
             let hist_sel = imp.history_selection.borrow();
 
-            let overlay_visible = hist_sel.n_items() > 1;
-
-            // Set infopane toolbar previous/next box visibility
-            if imp.overlay_box.is_visible() != overlay_visible {
-                imp.overlay_box.set_visible(overlay_visible);
-            }
-
-            // Set infopane toolbar label
-            if overlay_visible {
-                imp.overlay_label.set_label(&format!("{}/{}", hist_sel.selected() + 1, hist_sel.n_items()));
-            }
-
             // Set infopane toolbar prev/next button states
             let prev_sensitive = hist_sel.selected() > 0;
 
-            if imp.overlay_prev_button.is_sensitive() != prev_sensitive {
-                imp.overlay_prev_button.set_sensitive(prev_sensitive);
+            if imp.prev_button.is_sensitive() != prev_sensitive {
+                imp.prev_button.set_sensitive(prev_sensitive);
             }
 
             let next_sensitive = hist_sel.selected() + 1 < hist_sel.n_items();
 
-            if imp.overlay_next_button.is_sensitive() != next_sensitive {
-                imp.overlay_next_button.set_sensitive(next_sensitive);
+            if imp.next_button.is_sensitive() != next_sensitive {
+                imp.next_button.set_sensitive(next_sensitive);
             }
 
             // Name
