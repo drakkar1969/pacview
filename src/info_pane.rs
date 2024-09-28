@@ -212,18 +212,16 @@ impl InfoPane {
     fn add_property(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let property_value = PropertyValue::new(
-            ptype,
-            closure_local!(
-                #[watch(rename_to = infopane)]
-                self,
-                move |_: TextWidget, pkg_name: &str| {
-                    infopane.pkg_link_handler(pkg_name)
-                }
-            )
-        );
-
+        let property_value = PropertyValue::new(ptype);
         property_value.add_css_class("property-value");
+
+        property_value.set_pkg_link_handler(closure_local!(
+            #[watch(rename_to = infopane)]
+            self,
+            move |_: TextWidget, pkg_name: &str| {
+                infopane.pkg_link_handler(pkg_name)
+            }
+        ));
 
         imp.listbox.append(&property_value);
 

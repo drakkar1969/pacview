@@ -95,16 +95,19 @@ impl PropertyValue {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(ptype: PropType, link_handler: RustClosure) -> Self {
-        let widget: Self = glib::Object::builder()
+    pub fn new(ptype: PropType) -> Self {
+        glib::Object::builder()
             .property("ptype", ptype)
-            .build();
+            .build()
+    }
 
-        let imp = widget.imp();
+    //-----------------------------------
+    // Set package link handler function
+    //-----------------------------------
+    pub fn set_pkg_link_handler(&self, handler: RustClosure) {
+        let imp = self.imp();
 
-        imp.text_widget.connect_closure("package-link", false, link_handler);
-
-        widget
+        imp.text_widget.connect_closure("package-link", false, handler);
     }
 
     //-----------------------------------
