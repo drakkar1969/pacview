@@ -136,14 +136,12 @@
                 </child>
                 <property name="content">
                   <object class="PackageView" id="package_view">
-                    <!-- <property name="height-request">160</property> -->
                   </object>
                 </property>
               </object>
             </property>
             <property name="end-child">
               <object class="InfoPane" id="info_pane">
-                <!-- <property name="height-request">150</property> -->
               </object>
             </property>
           </object>

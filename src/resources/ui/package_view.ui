@@ -37,7 +37,6 @@
             <property name="name">view</property>
             <property name="child">
               <object class="GtkOverlay">
-                <property name="height-request">160</property>
                 <child>
                   <object class="GtkScrolledWindow">
                     <property name="hexpand">True</property>
