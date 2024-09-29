@@ -34,12 +34,11 @@ mod imp {
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
+
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
-        pub(super) flatten_model: TemplateChild<gtk::FlattenListModel>,
         #[template_child]
         pub(super) pkg_model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -169,7 +168,7 @@ impl PackageView {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Column view selected item property notify signal
+        // List view selected item property notify signal
         imp.selection.connect_selected_item_notify(clone!(
             #[weak(rename_to = view)] self,
             move |selection| {
@@ -180,7 +179,7 @@ impl PackageView {
             }
         ));
 
-        // Column view activate signal
+        // List view activate signal
         imp.view.connect_activate(clone!(
             #[weak(rename_to = view)] self,
             move |_, index| {
