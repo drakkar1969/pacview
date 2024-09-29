@@ -418,8 +418,6 @@ impl PackageView {
                 pkg.set_version(update_map[&pkg.name()].to_string());
 
                 pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
-
-                pkg.set_has_update(true);
             });
     }
 

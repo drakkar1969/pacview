@@ -345,7 +345,7 @@ impl InfoPane {
             // Name
             self.set_string_property(PropID::Name, true, &pkg.name(), None);
             // Version
-            self.set_string_property(PropID::Version, true, &pkg.version(), if pkg.has_update() {Some("pkg-update")} else {None});
+            self.set_string_property(PropID::Version, true, &pkg.version(), if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None});
             // Description
             self.set_string_property(PropID::Description, true, &pkg.description(), None);
             // Package URL

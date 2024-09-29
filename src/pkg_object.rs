@@ -61,7 +61,6 @@ pub struct PkgData {
     has_script: bool,
     sha256sum: String,
     md5sum: String,
-    has_update: bool,
 }
 
 impl PkgData {
@@ -129,7 +128,6 @@ impl PkgData {
             has_script: syncpkg.has_scriptlet(),
             sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
             md5sum: syncpkg.md5sum().unwrap_or_default().to_string(),
-            has_update: false,
         }
     }
 
@@ -161,7 +159,6 @@ impl PkgData {
             has_script: false,
             sha256sum: "".to_string(),
             md5sum: "".to_string(),
-            has_update: false,
         }
     }
 
@@ -215,7 +212,6 @@ mod imp {
         // Read-write properties
         #[property(name = "flags",        get, set, type = PkgFlags,   member = flags)]
         #[property(name = "version",      get, set, type = String,     member = version)]
-        #[property(name = "has-update",   get, set, type = bool,       member = has_update)]
         #[property(name = "repository",   get, set, type = String,     member = repository)]
 
         // Read-only properties
