@@ -50,6 +50,9 @@ mod imp {
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
+        pub(super) factory: TemplateChild<gtk::BuilderListItemFactory>,
+
+        #[template_child]
         pub(super) empty_label: TemplateChild<gtk::Label>,
 
         #[property(get, set, default = true, construct)]
@@ -72,6 +75,7 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
             klass.set_layout_manager_type::<gtk::BoxLayout>();
+            klass.rust_template_scope();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -107,6 +111,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_factory();
             obj.setup_signals();
         }
 
@@ -160,6 +165,43 @@ impl PackageView {
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+    }
+
+    //-----------------------------------
+    // Setup factory
+    //-----------------------------------
+    fn setup_factory(&self) {
+        let imp = self.imp();
+
+        // Get list view factory scope
+        let scope = imp.factory.scope()
+            .and_downcast::<gtk::BuilderRustScope>()
+            .unwrap();
+
+        // Add version image callback
+        scope.add_callback("version_callback", |values| {
+            let flags = values[1].get::<PkgFlags>()
+                .expect("Could not get value in scope callback");
+
+            Some(flags.intersects(PkgFlags::UPDATES).to_value())
+        });
+
+        // Add subtitle callbak
+        scope.add_callback("subtitle_callback", |values| {
+            let repository = values[1].get::<String>()
+                .expect("Could not get value in scope callback");
+
+            let status = values[2].get::<String>()
+                .expect("Could not get value in scope callback");
+
+            let subtitle = if status.is_empty() {
+                repository
+            } else {
+                format!("{}  |  {}", repository, status)
+            };
+
+            Some(subtitle.to_value())
+        });
     }
 
     //-----------------------------------

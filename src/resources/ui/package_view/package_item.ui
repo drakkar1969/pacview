@@ -38,9 +38,11 @@
                       <object class="GtkImage">
                         <property name="icon-name">pkg-update</property>
                         <binding name="visible">
-                          <lookup name="has-update" type="PkgObject">
-                            <lookup name="item">GtkListItem</lookup>
-                          </lookup>
+                          <closure type="gboolean" function="version_callback">
+                            <lookup name="flags" type="PkgObject">
+                              <lookup name="item">GtkListItem</lookup>
+                            </lookup>
+                          </closure>
                         </binding>
                       </object>
                     </child>
@@ -63,28 +65,20 @@
             </child>
             <child>
               <object class="GtkBox">
-                <property name="spacing">12</property>
+                <property name="spacing">36</property>
                 <child>
                   <object class="GtkLabel">
                     <binding name="label">
-                      <lookup name="repository" type="PkgObject">
-                        <lookup name="item">GtkListItem</lookup>
-                      </lookup>
+                      <closure type="gchararray" function="subtitle_callback">
+                        <lookup name="repository" type="PkgObject">
+                          <lookup name="item">GtkListItem</lookup>
+                        </lookup>
+                        <lookup name="status" type="PkgObject">
+                          <lookup name="item">GtkListItem</lookup>
+                        </lookup>
+                      </closure>
                     </binding>
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="dim-label"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel">
-                    <binding name="label">
-                      <lookup name="status" type="PkgObject">
-                        <lookup name="item">GtkListItem</lookup>
-                      </lookup>
-                    </binding>
+                    <property name="hexpand">true</property>
                     <property name="xalign">0</property>
                     <style>
                       <class name="caption"/>

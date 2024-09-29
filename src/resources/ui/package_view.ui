@@ -100,7 +100,7 @@
                           </object>
                         </property>
                         <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
+                          <object class="GtkBuilderListItemFactory" id="factory">
                             <property name="resource">/com/github/PacView/ui/package_view/package_item.ui</property>
                           </object>
                         </property>
