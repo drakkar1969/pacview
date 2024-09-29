@@ -186,7 +186,7 @@ impl PackageView {
             Some(flags.intersects(PkgFlags::UPDATES).to_value())
         });
 
-        // Add subtitle callbak
+        // Add subtitle callback
         scope.add_callback("subtitle_callback", |values| {
             let repository = values[1].get::<String>()
                 .expect("Could not get value in scope callback");
