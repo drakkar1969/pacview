@@ -7,6 +7,7 @@ use std::time::Duration;
 use std::env;
 use std::io;
 use std::io::Read;
+use std::str::FromStr;
 
 use gtk::{gio, glib};
 use adw::subclass::prelude::*;
@@ -27,7 +28,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
-use crate::package_view::PackageView;
+use crate::package_view::{PackageView, PackageSort};
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
@@ -35,6 +36,7 @@ use crate::backup_window::BackupWindow;
 use crate::log_window::LogWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::PreferencesDialog;
+use crate::traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -212,11 +214,16 @@ impl PacViewWindow {
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
-        imp.prefs_dialog.set_remember_columns(gsettings.boolean("remember-columns"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
 
-        // // Load package view sort column/sort order
-        // imp.package_view.set_sorting(&gsettings.string("sort-column"), gsettings.boolean("sort-ascending"));
+        // Load package view sort field/order
+        if imp.prefs_dialog.remember_sort() {
+            if let Ok(sort_field) = PackageSort::from_str(&gsettings.string("sort-field")) {
+                imp.package_view.set_sort_field(sort_field);
+            }
+
+            imp.package_view.set_sort_ascending(gsettings.boolean("sort-ascending"));
+        }
     }
 
     //-----------------------------------
@@ -256,19 +263,16 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "auto-refresh", imp.prefs_dialog.auto_refresh());
         self.set_gsetting(gsettings, "aur-update-command", imp.prefs_dialog.aur_command());
         self.set_gsetting(gsettings, "search-delay", imp.prefs_dialog.search_delay());
-        self.set_gsetting(gsettings, "remember-columns", imp.prefs_dialog.remember_columns());
         self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
 
-        // // Save package view sort column/sort order
-        // if imp.prefs_dialog.remember_sort() {
-        //     let (sort_col, sort_asc) = imp.package_view.sorting();
-
-        //     self.set_gsetting(gsettings, "sort-column", sort_col);
-        //     self.set_gsetting(gsettings, "sort-ascending", sort_asc);
-        // } else {
-        //     self.set_gsetting(gsettings, "sort-column", DEFAULT_SORT_COL.to_string());
-        //     self.set_gsetting(gsettings, "sort-ascending", true);
-        // }
+        // Save package view sort field/order
+        if imp.prefs_dialog.remember_sort() {
+            self.set_gsetting(gsettings, "sort-field", imp.package_view.sort_field().nick());
+            self.set_gsetting(gsettings, "sort-ascending", imp.package_view.sort_ascending());
+        } else {
+            self.set_gsetting(gsettings, "sort-field", PackageSort::default().nick());
+            self.set_gsetting(gsettings, "sort-ascending", true);
+        }
     }
 
     //-----------------------------------

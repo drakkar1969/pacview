@@ -11,16 +11,19 @@ use glib::clone;
 use raur::Raur;
 use raur::ArcPackage;
 use futures::future;
+use strum::EnumString;
 
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
+use crate::traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: PackageSort
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString)]
+#[strum(serialize_all = "kebab-case")]
 #[repr(u32)]
 #[enum_type(name = "PackageSort")]
 pub enum PackageSort {
@@ -33,6 +36,8 @@ pub enum PackageSort {
     InstalledSize,
     Groups,
 }
+
+impl EnumValueExt for PackageSort {}
 
 //------------------------------------------------------------------------------
 // MODULE: PackageView

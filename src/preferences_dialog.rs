@@ -38,8 +38,6 @@ mod imp {
         #[property(get, set)]
         search_delay: Cell<f64>,
         #[property(get, set)]
-        remember_columns: Cell<bool>,
-        #[property(get, set)]
         remember_sort: Cell<bool>,
     }
 
@@ -192,7 +190,6 @@ impl PreferencesDialog {
                                 dialog.set_auto_refresh(true);
                                 dialog.set_aur_command("");
                                 dialog.set_search_delay(150.0);
-                                dialog.set_remember_columns(true);
                                 dialog.set_remember_sort(false);
                             }
                         }
