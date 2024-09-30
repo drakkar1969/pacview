@@ -125,6 +125,13 @@
                         <property name="tooltip-text">Toggle Info Pane</property>
                       </object>
                     </child>
+                    <child>
+                      <object class="AdwSplitButton" id="sort_button">
+                        <property name="icon-name">view-sort-ascending-symbolic</property>
+                        <property name="menu-model">sort_menu</property>
+                        <property name="tooltip-text">Change Sort Order</property>
+                      </object>
+                    </child>
                     <child type="end">
                       <object class="GtkToggleButton" id="search_button">
                         <property name="active">False</property>
@@ -207,6 +214,47 @@
       <item>
         <attribute name="label">About PacView</attribute>
         <attribute name="action">app.show-about</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!--// Package sort menu //-->
+  <menu id="sort_menu">
+    <section>
+      <item>
+        <attribute name="label">Name</attribute>
+        <attribute name="action">win.set-sort-field</attribute>
+        <attribute name="target">name</attribute>
+      </item>
+      <item>
+        <attribute name="label">Version</attribute>
+        <attribute name="action">win.set-sort-field</attribute>
+        <attribute name="target">version</attribute>
+      </item>
+      <item>
+        <attribute name="label">Repository</attribute>
+        <attribute name="action">win.set-sort-field</attribute>
+        <attribute name="target">repository</attribute>
+      </item>
+      <item>
+        <attribute name="label">Status</attribute>
+        <attribute name="action">win.set-sort-field</attribute>
+        <attribute name="target">status</attribute>
+      </item>
+      <item>
+        <attribute name="label">Install Date</attribute>
+        <attribute name="action">win.set-sort-field</attribute>
+        <attribute name="target">install-date</attribute>
+      </item>
+      <item>
+        <attribute name="label">Installed Size</attribute>
+        <attribute name="action">win.set-sort-field</attribute>
+        <attribute name="target">installed-size</attribute>
+      </item>
+      <item>
+        <attribute name="label">Groups</attribute>
+        <attribute name="action">win.set-sort-field</attribute>
+        <attribute name="target">groups</attribute>
       </item>
     </section>
   </menu>

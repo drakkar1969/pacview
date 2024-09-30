@@ -89,10 +89,7 @@
                                   </object>
                                 </property>
                                 <property name="sorter">
-                                  <object class="GtkStringSorter">
-                                    <property name="expression">
-                                      <lookup name="name" type="PkgObject"/>
-                                    </property>
+                                  <object class="GtkCustomSorter" id="sorter">
                                   </object>
                                 </property>
                               </object>

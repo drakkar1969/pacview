@@ -63,6 +63,8 @@ mod imp {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
+        pub(super) sort_button: TemplateChild<adw::SplitButton>,
+        #[template_child]
         pub(super) infopane_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
@@ -316,6 +318,12 @@ impl PacViewWindow {
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
             .build();
 
+        // Bind package view sort order to sort button icon
+        imp.package_view.bind_property("sort-ascending", &imp.sort_button.get(), "icon-name")
+            .transform_to(|_, sort_asc: bool| Some(if sort_asc { "view-sort-ascending-symbolic" } else { "view-sort-descending-symbolic" }))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
         // Bind view infopane button state to infopane visibility
         imp.infopane_button.bind_property("active", &imp.info_pane.get(), "visible")
             .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
@@ -398,7 +406,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add spackage view how all packages action
+        // Add package view all packages action
         let all_pkgs_action = gio::ActionEntry::builder("show-all-packages")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
@@ -408,8 +416,12 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add package view sort field property action
+        let sort_field_action = gio::PropertyAction::new("set-sort-field", &imp.package_view.get(), "sort-field");
+
         // Add package view actions to window
         self.add_action_entries([refresh_action, copy_action, all_pkgs_action]);
+        self.add_action(&sort_field_action);
 
         // Bind package view item count to copy list action enabled state
         let copy_action = self.lookup_action("copy-package-list").unwrap();
@@ -608,6 +620,14 @@ impl PacViewWindow {
             #[watch(rename_to = window)] self,
             move |search_header: SearchHeader, search_term: &str, prop: SearchProp| {
                 window.imp().package_view.search_in_aur(search_header, search_term, prop);
+            }
+        ));
+
+        // Header sort button clicked signal
+        imp.sort_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.package_view.set_sort_ascending(!imp.package_view.sort_ascending());
             }
         ));
 

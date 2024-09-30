@@ -18,6 +18,23 @@ use crate::search_header::{SearchHeader, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 
 //------------------------------------------------------------------------------
+// ENUM: PackageSort
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "PackageSort")]
+pub enum PackageSort {
+    #[default]
+    Name,
+    Version,
+    Repository,
+    Status,
+    InstallDate,
+    InstalledSize,
+    Groups,
+}
+
+//------------------------------------------------------------------------------
 // MODULE: PackageView
 //------------------------------------------------------------------------------
 mod imp {
@@ -51,6 +68,8 @@ mod imp {
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) factory: TemplateChild<gtk::BuilderListItemFactory>,
+        #[template_child]
+        pub(super) sorter: TemplateChild<gtk::CustomSorter>,
 
         #[template_child]
         pub(super) empty_label: TemplateChild<gtk::Label>,
@@ -59,6 +78,10 @@ mod imp {
         loading: Cell<bool>,
         #[property(get, set)]
         n_items: Cell<u32>,
+        #[property(get, set, builder(PackageSort::default()))]
+        sort_field: Cell<PackageSort>,
+        #[property(get, set, default = true, construct)]
+        sort_ascending: Cell<bool>,
 
         pub(super) aur_cache: RefCell<HashSet<ArcPackage>>
     }
@@ -165,6 +188,37 @@ impl PackageView {
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
+
+        // Set list view sorter function
+        imp.sorter.set_sort_func(clone!(
+            #[weak(rename_to = view)] self,
+            #[upgrade_or] gtk::Ordering::Smaller,
+            move |item_a, item_b| {
+                let pkg_a: &PkgObject = item_a
+                    .downcast_ref::<PkgObject>()
+                    .expect("Could not downcast to 'PkgObject'");
+
+                let pkg_b: &PkgObject = item_b
+                    .downcast_ref::<PkgObject>()
+                    .expect("Could not downcast to 'PkgObject'");
+
+                let sort = match view.sort_field() {
+                    PackageSort::Name => { pkg_a.name().cmp(&pkg_b.name()) },
+                    PackageSort::Version => { pkg_a.version().cmp(&pkg_b.version()) },
+                    PackageSort::Repository => { pkg_a.repository().cmp(&pkg_b.repository()) },
+                    PackageSort::Status => { pkg_a.status().cmp(&pkg_b.status()) },
+                    PackageSort::InstallDate => { pkg_a.install_date().cmp(&pkg_b.install_date()) },
+                    PackageSort::InstalledSize => { pkg_a.install_size().cmp(&pkg_b.install_size()) },
+                    PackageSort::Groups => { pkg_a.groups().cmp(&pkg_b.groups()) },
+                };
+
+                if view.sort_ascending() {
+                    sort.into()
+                } else {
+                    Into::<gtk::Ordering>::into(sort.reverse())
+                }
+            }
+        ));
     }
 
     //-----------------------------------
@@ -229,6 +283,22 @@ impl PackageView {
                     .and_downcast::<PkgObject>();
 
                 view.emit_by_name::<()>("activated", &[&item]);
+            }
+        ));
+
+        // Sort field property notify signal
+        self.connect_sort_field_notify(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.sorter.changed(gtk::SorterChange::Different);
+            }
+        ));
+
+        // Sort ascending property notify signal
+        self.connect_sort_ascending_notify(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.sorter.changed(gtk::SorterChange::Inverted);
             }
         ));
     }
