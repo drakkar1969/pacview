@@ -61,7 +61,7 @@
                 <child>
                   <object class="GtkText" id="search_text">
                     <property name="hexpand">true</property>
-                    <property name="placeholder-text">Press Enter to search in AUR</property>
+                    <property name="placeholder-text">Press Enter to search AUR</property>
                   </object>
                 </child>
                 <child>
