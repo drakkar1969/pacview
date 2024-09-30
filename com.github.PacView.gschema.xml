@@ -1,35 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="com.github.PacView" path="/com/github/PacView/">
-    <key name="window-width" type="i">
-      <default>1350</default>
-    </key>
-    <key name="window-height" type="i">
-      <default>800</default>
-    </key>
-    <key name="window-maximized" type="b">
-      <default>false</default>
-    </key>
-    <key name="show-infopane" type="b">
-      <default>true</default>
-    </key>
-    <key name="infopane-position" type="i">
-      <default>370</default>
-    </key>
-    <key name="view-columns" type="as">
-      <default>['package', 'version', 'repository', 'status', 'date', 'size']</default>
-    </key>
-    <key name="sort-column" type="s">
-      <default>'package'</default>
-    </key>
-    <key name="sort-ascending" type="b">
-      <default>true</default>
-    </key>
     <key name="aur-update-command" type="s">
       <default>''</default>
     </key>
     <key name="auto-refresh" type="b">
       <default>true</default>
+    </key>
+    <key name="infopane-position" type="i">
+      <default>370</default>
     </key>
     <key name="remember-columns" type="b">
       <default>true</default>
@@ -40,6 +19,27 @@
     <key name="search-delay" type="d">
       <range min="0" max="2000"/>
       <default>150</default>
+    </key>
+    <key name="show-infopane" type="b">
+      <default>true</default>
+    </key>
+    <key name="sort-ascending" type="b">
+      <default>true</default>
+    </key>
+    <key name="sort-column" type="s">
+      <default>'package'</default>
+    </key>
+    <key name="view-columns" type="as">
+      <default>['package', 'version', 'repository', 'status', 'date', 'size']</default>
+    </key>
+    <key name="window-height" type="i">
+      <default>800</default>
+    </key>
+    <key name="window-maximized" type="b">
+      <default>false</default>
+    </key>
+    <key name="window-width" type="i">
+      <default>1350</default>
     </key>
   </schema>
 </schemalist>
