@@ -1,16 +1,23 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fs;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::closure_local;
+use glib::clone;
 
-use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PKG_SNAPSHOT};
+use regex::Regex;
+use glob::glob;
+
+use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PACMAN_CONFIG};
 use crate::text_widget::{TextWidget, PropType};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::backup_object::BackupObject;
 use crate::traits::EnumValueExt;
+use crate::utils::open_file_manager;
 
 //------------------------------------------------------------------------------
 // ENUM: PropID
@@ -39,7 +46,7 @@ enum PropID {
     Groups,
     #[enum_value(name = "Provides")]
     Provides,
-    #[enum_value(name = "Dependencies ")]
+    #[enum_value(name = "Dependencies")]
     Dependencies,
     #[enum_value(name = "Optional")]
     Optional,
@@ -88,16 +95,77 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
-        pub(super) stack: TemplateChild<gtk::Stack>,
-        #[template_child]
-        pub(super) listbox: TemplateChild<gtk::ListBox>,
-
+        pub(super) title_widget: TemplateChild<adw::WindowTitle>,
         #[template_child]
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) next_button: TemplateChild<gtk::Button>,
+
         #[template_child]
-        pub(super) details_button: TemplateChild<gtk::Button>,
+        pub(super) info_stack: TemplateChild<gtk::Stack>,
+        #[template_child]
+        pub(super) tab_switcher: TemplateChild<adw::ViewSwitcher>,
+        #[template_child]
+        pub(super) tab_stack: TemplateChild<adw::ViewStack>,
+
+        #[template_child]
+        pub(super) info_listbox: TemplateChild<gtk::ListBox>,
+
+        #[template_child]
+        pub(super) files_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) files_search_entry: TemplateChild<gtk::SearchEntry>,
+        #[template_child]
+        pub(super) files_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) files_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) files_view: TemplateChild<gtk::ListView>,
+        #[template_child]
+        pub(super) files_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) files_filter_model: TemplateChild<gtk::FilterListModel>,
+        #[template_child]
+        pub(super) files_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub(super) files_filter: TemplateChild<gtk::StringFilter>,
+
+        #[template_child]
+        pub(super) log_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) log_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) log_selection: TemplateChild<gtk::NoSelection>,
+        #[template_child]
+        pub(super) log_overlay_label: TemplateChild<gtk::Label>,
+
+        #[template_child]
+        pub(super) cache_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) cache_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) cache_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) cache_view: TemplateChild<gtk::ListView>,
+        #[template_child]
+        pub(super) cache_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub(super) cache_overlay_label: TemplateChild<gtk::Label>,
+
+        #[template_child]
+        pub(super) backup_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) backup_open_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) backup_copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) backup_view: TemplateChild<gtk::ListView>,
+        #[template_child]
+        pub(super) backup_model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
@@ -114,6 +182,7 @@ mod imp {
         type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
+            BackupObject::ensure_type();
             klass.bind_template();
         }
 
@@ -132,6 +201,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_signals();
         }
     }
 
@@ -223,7 +293,7 @@ impl InfoPane {
             }
         ));
 
-        imp.listbox.append(&property_value);
+        imp.info_listbox.append(&property_value);
 
         imp.property_map.borrow_mut().insert(id, property_value);
     }
@@ -307,6 +377,217 @@ impl InfoPane {
         self.add_property(PropID::InstallScript, PropType::Text);
         self.add_property(PropID::SHA256Sum, PropType::Text);
         self.add_property(PropID::MD5Sum, PropType::Text);
+
+        // Set files search entry key capture widget
+        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
+
+        // Bind files count to files header label
+        imp.files_filter_model.bind_property("n-items", &imp.files_header_label.get(), "label")
+            .transform_to(move |_, n_items: u32| 
+                Some(format!("Files ({n_items})"))
+            )
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind files count to files open/copy button states
+        imp.files_filter_model.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.files_filter_model.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind log count to log copy button state
+        imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind cache count to cache header label
+        imp.cache_selection.bind_property("n-items", &imp.cache_header_label.get(), "label")
+            .transform_to(move |_, n_items: u32|
+                Some(format!("Cache Files ({n_items})"))
+            )
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind cache count to cache open/copy button states
+        imp.cache_selection.bind_property("n-items", &imp.cache_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.cache_selection.bind_property("n-items", &imp.cache_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind backup count to backup header label
+        imp.backup_selection.bind_property("n-items", &imp.backup_header_label.get(), "label")
+            .transform_to(move |_, n_items: u32|
+                Some(format!("Backup Files ({n_items})"))
+            )
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind backup count to backup open/copy button states
+        imp.backup_selection.bind_property("n-items", &imp.backup_open_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        imp.backup_selection.bind_property("n-items", &imp.backup_copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Files search entry search started signal
+        imp.files_search_entry.connect_search_started(|entry| {
+            if !entry.has_focus() {
+                entry.grab_focus();
+            }
+        });
+
+        // Files search entry search changed signal
+        imp.files_search_entry.connect_search_changed(clone!(
+            #[weak] imp,
+            move |entry| {
+                imp.files_filter.set_search(Some(&entry.text()));
+            }
+        ));
+
+        // Files open button clicked signal
+        imp.files_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.files_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .expect("Could not downcast to 'StringObject'");
+
+                open_file_manager(&item.string());
+            }
+        ));
+
+        // Files copy button clicked signal
+        imp.files_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.files_selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<gtk::StringObject>()
+                            .expect("Could not downcast to 'StringObject'")
+                            .string()
+                    })
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
+
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
+
+        // Files listview activate signal
+        imp.files_view.connect_activate(clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.files_open_button.emit_clicked();
+            }
+        ));
+
+        // Log copy button clicked signal
+        imp.log_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.log_model.iter::<gtk::StringObject>().flatten()
+                    .map(|item| item.string())
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
+
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
+
+        // Cache open button clicked signal
+        imp.cache_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.cache_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>()
+                    .expect("Could not downcast to 'StringObject'");
+
+                open_file_manager(&item.string());
+            }
+        ));
+
+        // Cache copy button clicked signal
+        imp.cache_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.cache_model.iter::<gtk::StringObject>().flatten()
+                    .map(|item| item.string())
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
+
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
+
+        // Cache listview activate signal
+        imp.cache_view.connect_activate(clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.cache_open_button.emit_clicked();
+            }
+        ));
+
+        // Backup open button clicked signal
+        imp.backup_open_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.backup_selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .expect("Could not downcast to 'BackupObject'");
+
+                open_file_manager(&item.filename());
+            }
+        ));
+
+        // Backup copy button clicked signal
+        imp.backup_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let copy_text = imp.backup_model.iter::<BackupObject>().flatten()
+                    .map(|item| {
+                        format!("{filename} ({status})", filename=item.filename(), status=item.status_text())
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
+
+        // Backup listview activate signal
+        imp.backup_view.connect_activate(clone!(
+            #[weak] imp,
+            move |_, _| {
+                imp.backup_open_button.emit_clicked();
+            }
+        ));
     }
 
     //-----------------------------------
@@ -315,33 +596,36 @@ impl InfoPane {
     pub fn update_display(&self) {
         let imp = self.imp();
 
-        // Set stack visible page
-        imp.stack.set_visible_child_name(if self.pkg().is_some() {"properties"} else {"empty"});
+        // Clear header bar title
+        imp.title_widget.set_title("");
 
-        // Set header details button state
-        let details_sensitive = self.pkg().is_some();
+        // Set info stack visible page
+        imp.info_stack.set_visible_child_name(if self.pkg().is_some() {"properties"} else {"empty"});
 
-        if imp.details_button.is_sensitive() != details_sensitive {
-            imp.details_button.set_sensitive(details_sensitive);
+        // Set tab switcher sensitivity
+        imp.tab_switcher.set_sensitive(self.pkg().is_some());
+
+        // Set header prev/next button states
+        let hist_sel = imp.history_selection.borrow();
+
+        let prev_sensitive = hist_sel.selected() != gtk::INVALID_LIST_POSITION && hist_sel.selected() > 0;
+
+        if imp.prev_button.is_sensitive() != prev_sensitive {
+            imp.prev_button.set_sensitive(prev_sensitive);
+        }
+
+        let next_sensitive = hist_sel.selected() != gtk::INVALID_LIST_POSITION && (hist_sel.selected() + 1 < hist_sel.n_items());
+
+        if imp.next_button.is_sensitive() != next_sensitive {
+            imp.next_button.set_sensitive(next_sensitive);
         }
 
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
-            let hist_sel = imp.history_selection.borrow();
+            // Set header bar title
+            imp.title_widget.set_title(&pkg.name());
 
-            // Set header prev/next button states
-            let prev_sensitive = hist_sel.selected() > 0;
-
-            if imp.prev_button.is_sensitive() != prev_sensitive {
-                imp.prev_button.set_sensitive(prev_sensitive);
-            }
-
-            let next_sensitive = hist_sel.selected() + 1 < hist_sel.n_items();
-
-            if imp.next_button.is_sensitive() != next_sensitive {
-                imp.next_button.set_sensitive(next_sensitive);
-            }
-
+            // Populate info listbox with values
             // Name
             self.set_string_property(PropID::Name, true, &pkg.name(), None);
             // Version
@@ -403,13 +687,88 @@ impl InfoPane {
             self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
             // MD5 sum
             self.set_string_property(PropID::MD5Sum, !pkg.md5sum().is_empty(), &pkg.md5sum(), None);
+
+            let pkg_name = pkg.name();
+
+            // Populate files view
+            let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+                .map(|s| gtk::StringObject::new(s))
+                .collect();
+
+            imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
+
+            // Populate log view
+            PACMAN_CONFIG.with_borrow(|pacman_config| {
+                if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
+                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg_name))
+                        .expect("Regex error");
+    
+                    let log_lines: Vec<gtk::StringObject> = log.lines().rev()
+                        .filter_map(|s| {
+                            if expr.is_match(s) {
+                                Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+
+                    imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
+                } else {
+                    // Show overlay error label
+                    imp.log_overlay_label.set_visible(true);
+                }
+                });
+
+            // Get cache blacklist package names
+            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+                let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
+                    .filter(|&name| {
+                        name.starts_with(&pkg_name) && name != &pkg_name
+                    })
+                    .collect();
+
+                // Populate cache view
+                PACMAN_CONFIG.with_borrow(|pacman_config| {
+                    for dir in &pacman_config.cache_dir {
+                        if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
+                            // Find cache files that include package name
+                            let cache_list: Vec<gtk::StringObject> = paths
+                                .flatten()
+                                .filter_map(|path| {
+                                    let cache_file = path.display().to_string();
+    
+                                    // Exclude cache files that include blacklist package names
+                                    if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
+                                        None
+                                    } else {
+                                        Some(gtk::StringObject::new(&cache_file))
+                                    }
+                                })
+                                .collect();
+    
+                            imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+                        } else {
+                            // Show overlay error label
+                            imp.cache_overlay_label.set_visible(true);
+                        }
+                    }
+                });
+            });
+
+            // Populate backup view
+            let backup_list: Vec<BackupObject> = pkg.backup().iter()
+                .map(|(filename, hash)| BackupObject::new(filename, hash, None, alpm::compute_md5sum(filename.as_str()).as_deref()))
+                .collect();
+
+            imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
         }
     }
 
     pub fn display_prev(&self) {
         let hist_sel = self.imp().history_selection.borrow();
 
-        if hist_sel.selected() > 0 {
+        if hist_sel.selected() != gtk::INVALID_LIST_POSITION && hist_sel.selected() > 0 {
             hist_sel.set_selected(hist_sel.selected() - 1);
 
             if hist_sel.selected_item().is_some() {
@@ -421,7 +780,7 @@ impl InfoPane {
     pub fn display_next(&self) {
         let hist_sel = self.imp().history_selection.borrow();
 
-        if hist_sel.selected() + 1 < hist_sel.n_items() {
+        if hist_sel.selected() != gtk::INVALID_LIST_POSITION && (hist_sel.selected() + 1 < hist_sel.n_items()) {
             hist_sel.set_selected(hist_sel.selected() + 1);
 
             if hist_sel.selected_item().is_some() {

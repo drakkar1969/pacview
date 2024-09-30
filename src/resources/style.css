@@ -52,9 +52,9 @@ image.spinner.dim-spinner {
 	opacity: var(--dim-opacity);
 }
 
-/* Info pane overlay toolbar */
-box.rounded {
-	border-radius: 9999px;
+/* Info pane tab header box */
+box.info-header {
+	min-height: 34px;
 }
 
 /* Info pane property rows */

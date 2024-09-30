@@ -10,7 +10,7 @@
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">
-            <property name="icon-name">details-item-symbolic</property>
+            <property name="icon-name">info-item-symbolic</property>
           </object>
         </child>
         <child>

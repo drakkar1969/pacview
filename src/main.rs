@@ -11,7 +11,6 @@ mod preferences_dialog;
 mod stats_window;
 mod backup_window;
 mod log_window;
-mod details_window;
 mod config_dialog;
 mod pkg_object;
 mod stats_object;

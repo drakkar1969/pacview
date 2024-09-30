@@ -4,11 +4,11 @@
     <file alias="backup-error-symbolic.svg">icons/backup-error-symbolic.svg</file>
     <file alias="backup-modified-symbolic.svg">icons/backup-modified-symbolic.svg</file>
     <file alias="backup-unmodified-symbolic.svg">icons/backup-unmodified-symbolic.svg</file>
-    <file alias="details-item-symbolic.svg">icons/details-item-symbolic.svg</file>
-    <file alias="details-files-symbolic.svg">icons/details-files-symbolic.svg</file>
-    <file alias="details-log-symbolic.svg">icons/details-log-symbolic.svg</file>
-    <file alias="details-cache-symbolic.svg">icons/details-cache-symbolic.svg</file>
-    <file alias="details-backup-symbolic.svg">icons/details-backup-symbolic.svg</file>
+    <file alias="info-item-symbolic.svg">icons/info-item-symbolic.svg</file>
+    <file alias="info-files-symbolic.svg">icons/info-files-symbolic.svg</file>
+    <file alias="info-log-symbolic.svg">icons/info-log-symbolic.svg</file>
+    <file alias="info-cache-symbolic.svg">icons/info-cache-symbolic.svg</file>
+    <file alias="info-backup-symbolic.svg">icons/info-backup-symbolic.svg</file>
     <file alias="filter-symbolic.svg">icons/filter-symbolic.svg</file>
     <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
     <file alias="stats-symbolic.svg">icons/stats-symbolic.svg</file>
@@ -41,10 +41,10 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/filename_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/section_header.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/file_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/log_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/cache_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window/backup_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/file_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/log_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/cache_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/backup_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/time_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/date_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/message_item.ui</file>
@@ -55,7 +55,6 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/config_dialog.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/details_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window.ui</file>

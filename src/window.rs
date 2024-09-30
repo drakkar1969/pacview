@@ -35,7 +35,6 @@ use crate::backup_window::BackupWindow;
 use crate::log_window::LogWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::PreferencesDialog;
-use crate::details_window::DetailsWindow;
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -44,6 +43,7 @@ thread_local! {
     pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+    pub static PACMAN_CONFIG: RefCell<pacmanconf::Config> = RefCell::new(pacmanconf::Config::default());
 }
 
 //------------------------------------------------------------------------------
@@ -92,7 +92,6 @@ mod imp {
 
         pub(super) aur_file: RefCell<Option<gio::File>>,
 
-        pub(super) pacman_config: RefCell<pacmanconf::Config>,
         pub(super) pacman_repos: RefCell<Vec<String>>,
 
         pub(super) saved_repo_id: RefCell<Option<String>>,
@@ -433,30 +432,8 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add info pane show details action
-        let details_action = gio::ActionEntry::builder("infopane-show-details")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                if let Some(pkg) = imp.info_pane.pkg() {
-                    INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-                        let pacman_config = imp.pacman_config.borrow();
-
-                        let details_window = DetailsWindow::new(window);
-    
-                        details_window.show(
-                            &pkg,
-                            &pacman_config.log_file,
-                            &pacman_config.cache_dir,
-                            installed_pkg_names
-                        );
-                    });
-                }
-            })
-            .build();
-
         // Add info pane actions to window
-        self.add_action_entries([prev_action, next_action, details_action]);
+        self.add_action_entries([prev_action, next_action]);
 
         // Add show stats window action
         let stats_action = gio::ActionEntry::builder("show-stats")
@@ -483,9 +460,11 @@ impl PacViewWindow {
         // Add show pacman log window action
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
-                let log_window = LogWindow::new(window);
+                PACMAN_CONFIG.with_borrow(|pacman_config| {
+                    let log_window = LogWindow::new(window);
 
-                log_window.show(&window.imp().pacman_config.borrow().log_file);
+                    log_window.show(&pacman_config.log_file);
+                });
             })
             .build();
 
@@ -593,12 +572,6 @@ impl PacViewWindow {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>Right"),
             Some(gtk::NamedAction::new("win.infopane-next"))
-        ));
-
-        // Add infopane show details shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>Return|<alt>KP_Enter"),
-            Some(gtk::NamedAction::new("win.infopane-show-details"))
         ));
 
         // Add shortcut controller to window
@@ -721,8 +694,10 @@ impl PacViewWindow {
         // Init config dialog
         imp.config_dialog.init(&pacman_config);
 
-        // Store pacman config/repos
-        imp.pacman_config.replace(pacman_config);
+        // Store pacman config
+        PACMAN_CONFIG.replace(pacman_config);
+
+        // Store pacman repos
         imp.pacman_repos.replace(pacman_repos);
     }
 
@@ -863,95 +838,95 @@ impl PacViewWindow {
 
         let aur_file = imp.aur_file.borrow();
 
-        let pacman_config = imp.pacman_config.borrow();
-
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(clone!(
-            #[strong] aur_file,
-            #[strong] pacman_config,
-            move || {
-                let mut aur_names: HashSet<String> = HashSet::new();
-
-                // Load AUR package names from file
-                if let Some(aur_file) = aur_file {
-                    if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
-                        aur_names = String::from_utf8_lossy(&bytes).lines()
-                            .map(|line| line.to_string())
-                            .collect();
-                    };
-                }
-
-                // Load pacman database packages
-                let mut data_list: Vec<PkgData> = vec![];
-
-                if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
-                    let localdb = handle.localdb();
-
-                    // Load sync packages
-                    data_list.extend(handle.syncdbs().iter()
-                        .flat_map(|db| db.pkgs().iter()
-                            .map(|syncpkg| {
-                                let localpkg = localdb.pkg(syncpkg.name());
-
-                                PkgData::from_pkg(syncpkg, localpkg, None)
-                            })
-                        )
-                    );
-
-                    // Load local packages not in sync databases
-                    data_list.extend(localdb.pkgs().iter()
-                        .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
-                        .map(|pkg| {
-                            if aur_names.contains(pkg.name()) {
-                                PkgData::from_pkg(pkg, Ok(pkg), Some("aur"))
-                            } else {
-                                PkgData::from_pkg(pkg, Ok(pkg), None)
-                            }
-                        })
-                    );
-                }
-
-                sender.send_blocking(data_list).expect("Could not send through channel");
-            }
-        ));
-
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
-            #[weak] imp,
-            #[strong] pacman_config,
-            async move {
-                while let Ok(data_list) = receiver.recv().await {
+        PACMAN_CONFIG.with_borrow(|pacman_config| {
+            gio::spawn_blocking(clone!(
+                #[strong] aur_file,
+                #[strong] pacman_config,
+                move || {
+                    let mut aur_names: HashSet<String> = HashSet::new();
+    
+                    // Load AUR package names from file
+                    if let Some(aur_file) = aur_file {
+                        if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
+                            aur_names = String::from_utf8_lossy(&bytes).lines()
+                                .map(|line| line.to_string())
+                                .collect();
+                        };
+                    }
+    
+                    // Load pacman database packages
+                    let mut data_list: Vec<PkgData> = vec![];
+    
                     if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
-                        let handle_ref = Rc::new(handle);
-
-                        let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                            .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
-                            .collect();
-
-                        imp.package_view.splice_packages(&pkg_list);
-
-                        let installed_pkg_names: HashSet<String> = pkg_list.iter()
-                            .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
-                            .map(|pkg| pkg.name())
-                            .collect();
-
-                        PKG_SNAPSHOT.replace(pkg_list);
-                        INSTALLED_PKG_NAMES.replace(installed_pkg_names);
-
-                        imp.package_view.set_loading(false);
-
-                        window.get_package_updates();
-
-                        if update_aur_file {
-                            window.update_aur_file();
+                        let localdb = handle.localdb();
+    
+                        // Load sync packages
+                        data_list.extend(handle.syncdbs().iter()
+                            .flat_map(|db| db.pkgs().iter()
+                                .map(|syncpkg| {
+                                    let localpkg = localdb.pkg(syncpkg.name());
+    
+                                    PkgData::from_pkg(syncpkg, localpkg, None)
+                                })
+                            )
+                        );
+    
+                        // Load local packages not in sync databases
+                        data_list.extend(localdb.pkgs().iter()
+                            .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
+                            .map(|pkg| {
+                                if aur_names.contains(pkg.name()) {
+                                    PkgData::from_pkg(pkg, Ok(pkg), Some("aur"))
+                                } else {
+                                    PkgData::from_pkg(pkg, Ok(pkg), None)
+                                }
+                            })
+                        );
+                    }
+    
+                    sender.send_blocking(data_list).expect("Could not send through channel");
+                }
+            ));
+    
+            // Attach thread receiver
+            glib::spawn_future_local(clone!(
+                #[weak(rename_to = window)] self,
+                #[weak] imp,
+                #[strong] pacman_config,
+                async move {
+                    while let Ok(data_list) = receiver.recv().await {
+                        if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
+                            let handle_ref = Rc::new(handle);
+    
+                            let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                                .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
+                                .collect();
+    
+                            imp.package_view.splice_packages(&pkg_list);
+    
+                            let installed_pkg_names: HashSet<String> = pkg_list.iter()
+                                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                                .map(|pkg| pkg.name())
+                                .collect();
+    
+                            PKG_SNAPSHOT.replace(pkg_list);
+                            INSTALLED_PKG_NAMES.replace(installed_pkg_names);
+    
+                            imp.package_view.set_loading(false);
+    
+                            window.get_package_updates();
+    
+                            if update_aur_file {
+                                window.update_aur_file();
+                            }
                         }
                     }
                 }
-            }
-        ));
+            ));
+        });
     }
 
     //-----------------------------------
@@ -1119,27 +1094,27 @@ impl PacViewWindow {
         }).unwrap();
 
         // Watch pacman local db path
-        let pacman_config = imp.pacman_config.borrow();
+        PACMAN_CONFIG.with_borrow(|pacman_config| {
+            let watch_path = Path::new(&pacman_config.db_path).join("local");
 
-        let watch_path = Path::new(&pacman_config.db_path).join("local");
-
-        watcher.watcher().watch(&watch_path, RecursiveMode::Recursive).unwrap();
-        watcher.cache().add_root(&watch_path, RecursiveMode::Recursive);
-
-        // Store watcher
-        imp.notify_watcher.set(watcher).unwrap();
-
-        // Attach receiver for async channel
-        glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
-            #[weak] imp,
-            async move {
-                while let Ok(()) = receiver.recv().await {
-                    if imp.prefs_dialog.auto_refresh() {
-                        ActionGroupExt::activate_action(&window, "refresh", None);
+            watcher.watcher().watch(&watch_path, RecursiveMode::Recursive).unwrap();
+            watcher.cache().add_root(&watch_path, RecursiveMode::Recursive);
+    
+            // Store watcher
+            imp.notify_watcher.set(watcher).unwrap();
+    
+            // Attach receiver for async channel
+            glib::spawn_future_local(clone!(
+                #[weak(rename_to = window)] self,
+                #[weak] imp,
+                async move {
+                    while let Ok(()) = receiver.recv().await {
+                        if imp.prefs_dialog.auto_refresh() {
+                            ActionGroupExt::activate_action(&window, "refresh", None);
+                        }
                     }
                 }
-            }
-        ));
+            ));
+        });
     }
 }

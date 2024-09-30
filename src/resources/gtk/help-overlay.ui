@@ -68,12 +68,6 @@
             <property name="title">Info Pane</property>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;Return</property>
-                <property name="title">Show Package Details</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;alt&gt;Left</property>
                 <property name="title">Previous Package</property>
               </object>
