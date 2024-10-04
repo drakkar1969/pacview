@@ -218,10 +218,11 @@ impl PackageView {
                 };
 
                 if view.sort_ascending() {
-                    sort.into()
+                    sort
                 } else {
-                    Into::<gtk::Ordering>::into(sort.reverse())
+                    sort.reverse()
                 }
+                .into()
             }
         ));
     }
