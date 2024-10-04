@@ -10,8 +10,8 @@
             <property name="css-name">entry</property>
             <property name="margin-start">6</property>
             <property name="margin-end">6</property>
-            <property name="margin-top">6</property>
-            <property name="margin-bottom">6</property>
+            <property name="margin-top">8</property>
+            <property name="margin-bottom">8</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkStack" id="icon_stack">
