@@ -69,13 +69,13 @@ pub enum PropType {
 // STRUCT: Marker
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
-struct Marker {
+struct Tag {
     text: String,
     start: u32,
     end: u32,
 }
 
-impl Marker {
+impl Tag {
     fn text(&self) -> String {
         self.text.to_owned()
     }
@@ -106,8 +106,8 @@ mod imp {
 
         pub(super) pango_layout: OnceCell<pango::Layout>,
 
-        pub(super) link_list: RefCell<Vec<Marker>>,
-        pub(super) comment_list: RefCell<Vec<Marker>>,
+        pub(super) link_list: RefCell<Vec<Tag>>,
+        pub(super) comment_list: RefCell<Vec<Tag>>,
 
         pub(super) cursor: RefCell<String>,
         pub(super) pressed_link_url: RefCell<Option<String>>,
@@ -335,8 +335,8 @@ mod imp {
             let obj = self.obj();
 
             // Create link/comment lists
-            let mut link_list: Vec<Marker> = vec![];
-            let mut comment_list: Vec<Marker> = vec![];
+            let mut link_list: Vec<Tag> = vec![];
+            let mut comment_list: Vec<Tag> = vec![];
 
             // Set pango layout text and store links in link map
             let layout = self.pango_layout.get().unwrap();
@@ -346,7 +346,7 @@ mod imp {
             match obj.ptype() {
                 PropType::Link => {
                     if let Some(len) = text.len().to_u32() {
-                        link_list.push(Marker {
+                        link_list.push(Tag {
                             text: text.to_string(),
                             start: 0,
                             end: len
@@ -364,7 +364,7 @@ mod imp {
                     if let Some(m) = expr.find(text) {
                         if let Some(start) = m.start().to_u32() {
                             if let Some(end) = m.end().to_u32() {
-                                link_list.push(Marker {
+                                link_list.push(Tag {
                                     text: format!("mailto:{}", m.as_str()),
                                     start,
                                     end
@@ -387,7 +387,7 @@ mod imp {
                         for m in expr.find_iter(text).flatten() {
                             if let Some(start) = m.start().to_u32() {
                                 if let Some(end) = m.end().to_u32() {
-                                    link_list.push(Marker {
+                                    link_list.push(Tag {
                                         text: format!("pkg://{}", m.as_str()),
                                         start,
                                         end
@@ -401,7 +401,7 @@ mod imp {
                         for (i, s) in indices {
                             if let Some(start) = i.to_u32() {
                                 if let Some(end) = (start as usize + s.len()).to_u32() {
-                                    comment_list.push(Marker {
+                                    comment_list.push(Tag {
                                         text: s.to_string(),
                                         start,
                                         end
