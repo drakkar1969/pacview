@@ -420,11 +420,21 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add package view reset sort action
+        let reset_sort_action = gio::ActionEntry::builder("reset-package-sort")
+            .activate(|window: &Self, _, _| {
+                let imp = window.imp();
+
+                imp.package_view.set_sort_field(PackageSort::default());
+                imp.package_view.set_sort_ascending(true);
+            })
+            .build();
+
         // Add package view sort field property action
-        let sort_field_action = gio::PropertyAction::new("set-sort-field", &imp.package_view.get(), "sort-field");
+        let sort_field_action = gio::PropertyAction::new("set-package-sort-field", &imp.package_view.get(), "sort-field");
 
         // Add package view actions to window
-        self.add_action_entries([refresh_action, copy_action, all_pkgs_action]);
+        self.add_action_entries([refresh_action, copy_action, all_pkgs_action, reset_sort_action]);
         self.add_action(&sort_field_action);
 
         // Bind package view item count to copy list action enabled state
