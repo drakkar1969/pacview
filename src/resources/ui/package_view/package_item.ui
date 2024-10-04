@@ -103,6 +103,9 @@
                             <lookup name="status" type="PkgObject">
                               <lookup name="item">GtkListItem</lookup>
                             </lookup>
+                            <lookup name="install-size-string" type="PkgObject">
+                              <lookup name="item">GtkListItem</lookup>
+                            </lookup>
                           </closure>
                         </binding>
                         <property name="xalign">0</property>
