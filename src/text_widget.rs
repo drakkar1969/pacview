@@ -8,6 +8,7 @@ use glib::clone;
 use glib::subclass::Signal;
 
 use fancy_regex::Regex as FancyRegex;
+use num::ToPrimitive;
 use regex::Regex;
 use url::Url;
 
@@ -70,8 +71,8 @@ pub enum PropType {
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct Marker {
     text: String,
-    start: usize,
-    end: usize,
+    start: u32,
+    end: u32,
 }
 
 impl Marker {
@@ -113,8 +114,8 @@ mod imp {
 
         pub(super) is_selecting: Cell<bool>,
         pub(super) is_clicked: Cell<bool>,
-        pub(super) selection_start: Cell<i32>,
-        pub(super) selection_end: Cell<i32>,
+        pub(super) selection_start: Cell<Option<u32>>,
+        pub(super) selection_end: Cell<Option<u32>>,
 
         pub(super) focus_link_index: Cell<Option<usize>>,
     }
@@ -234,24 +235,21 @@ mod imp {
             let (red, green, blue, alpha) = LINK_FG_RGBA.get();
 
             for link in link_list {
-                let start = link.start as u32;
-                let end = link.end as u32;
-
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+                attr.set_start_index(link.start);
+                attr.set_end_index(link.end);
 
                 attr_list.insert(attr);
 
                 let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+                attr.set_start_index(link.start);
+                attr.set_end_index(link.end);
 
                 attr_list.insert(attr);
 
                 let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+                attr.set_start_index(link.start);
+                attr.set_end_index(link.end);
 
                 attr_list.insert(attr);
             }
@@ -263,30 +261,27 @@ mod imp {
             let (red, green, blue, alpha) = COMMENT_FG_RGBA.get();
 
             for comment in comment_list {
-                let start = comment.start as u32;
-                let end = comment.end as u32;
-
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
 
                 attr_list.insert(attr);
 
                 let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
 
                 attr_list.insert(attr);
 
                 let mut attr = pango::AttrInt::new_weight(pango::Weight::Medium);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
 
                 attr_list.insert(attr);
 
                 let mut attr = pango::AttrFloat::new_scale(0.9);
-                attr.set_start_index(start);
-                attr.set_end_index(end);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
 
                 attr_list.insert(attr);
             }
@@ -350,11 +345,13 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(Marker {
-                        text: text.to_string(),
-                        start: 0,
-                        end: text.len()
-                    });
+                    if let Some(len) = text.len().to_u32() {
+                        link_list.push(Marker {
+                            text: text.to_string(),
+                            start: 0,
+                            end: len
+                        });
+                    }
                 },
                 PropType::Packager => {
                     static EXPR: OnceLock<Regex> = OnceLock::new();
@@ -365,11 +362,15 @@ mod imp {
                     });
 
                     if let Some(m) = expr.find(text) {
-                        link_list.push(Marker {
-                            text: format!("mailto:{}", m.as_str()),
-                            start: m.start(),
-                            end: m.end()
-                        });
+                        if let Some(start) = m.start().to_u32() {
+                            if let Some(end) = m.end().to_u32() {
+                                link_list.push(Marker {
+                                    text: format!("mailto:{}", m.as_str()),
+                                    start,
+                                    end
+                                });
+                            }
+                        }
                     }
                 },
                 PropType::LinkList => {
@@ -384,21 +385,29 @@ mod imp {
                         });
 
                         for m in expr.find_iter(text).flatten() {
-                            link_list.push(Marker {
-                                text: format!("pkg://{}", m.as_str()),
-                                start: m.start(),
-                                end: m.end()
-                            });
+                            if let Some(start) = m.start().to_u32() {
+                                if let Some(end) = m.end().to_u32() {
+                                    link_list.push(Marker {
+                                        text: format!("pkg://{}", m.as_str()),
+                                        start,
+                                        end
+                                    });
+                                }
+                            }
                         }
 
                         let indices = text.match_indices(" [INSTALLED]");
 
                         for (i, s) in indices {
-                            comment_list.push(Marker {
-                                text: s.to_string(),
-                                start: i,
-                                end: i + s.len()
-                            });
+                            if let Some(start) = i.to_u32() {
+                                if let Some(end) = (start as usize + s.len()).to_u32() {
+                                    comment_list.push(Marker {
+                                        text: s.to_string(),
+                                        start,
+                                        end
+                                    });
+                                }
+                            }
                         }
                     }
                 },
@@ -417,8 +426,8 @@ mod imp {
             // Format pango layout text
             self.do_format();
 
-            self.selection_start.set(-1);
-            self.selection_end.set(-1);
+            self.selection_start.set(None);
+            self.selection_end.set(None);
 
             self.draw_area.queue_resize();
         }
@@ -448,6 +457,9 @@ impl TextWidget {
     fn setup_layout(&self) {
         let imp = self.imp();
 
+        imp.selection_start.set(None);
+        imp.selection_end.set(None);
+
         // Create pango layout
         let layout = imp.draw_area.create_pango_layout(None);
         layout.set_wrap(pango::WrapMode::Word);
@@ -466,11 +478,12 @@ impl TextWidget {
                 if let Some(attr_list) = layout.attributes()
                     .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background && attr.type_() != pango::AttrType::BackgroundAlpha))
                 {
-                    let start = imp.selection_start.get();
-                    let end = imp.selection_end.get();
-
-                    if start != -1 && end != -1 && start != end {
-                        imp.format_selection(&attr_list, start.min(end) as u32, start.max(end) as u32);
+                    if let Some(start) = imp.selection_start.get().and_then(|s| s.to_u32()) {
+                        if let Some(end) = imp.selection_end.get().and_then(|s| s.to_u32()) {
+                            if start != end {
+                                imp.format_selection(&attr_list, start.min(end), start.max(end));
+                            }
+                        }
                     }
 
                     layout.set_attributes(Some(&attr_list));
@@ -491,41 +504,45 @@ impl TextWidget {
 
                 if widget.has_focus() {
                     if let Some(link) = index.and_then(|i| link_list.get(i)) {
-                        let (start_n, start_x) = layout.index_to_line_x(link.start as i32, false);
-                        let (end_n, end_x) = layout.index_to_line_x(link.end as i32, false);
+                        if let Some(link_start) = link.start.to_i32() {
+                            if let Some(link_end) = link.end.to_i32() {
+                                let (start_n, start_x) = layout.index_to_line_x(link_start, false);
+                                let (end_n, end_x) = layout.index_to_line_x(link_end, false);
 
-                        if start_n == end_n {
-                            // Link is all on one line
-                            let start_char_rect = layout.index_to_pos(link.start as i32);
+                                if start_n == end_n {
+                                    // Link is all on one line
+                                    let start_char_rect = layout.index_to_pos(link_start);
 
-                            let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
+                                    let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
 
-                            context.move_to(pango::units_to_double(start_x), y);
-                            context.line_to(pango::units_to_double(end_x), y);
-                        } else {
-                            // Link is split across lines
-                            let start_char_rect = layout.index_to_pos(link.start as i32);
-                            let end_char_rect = layout.index_to_pos(link.end as i32);
+                                    context.move_to(pango::units_to_double(start_x), y);
+                                    context.line_to(pango::units_to_double(end_x), y);
+                                } else {
+                                    // Link is split across lines
+                                    let start_char_rect = layout.index_to_pos(link_start);
+                                    let end_char_rect = layout.index_to_pos(link_end);
 
-                            let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
+                                    let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
 
-                            let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
+                                    let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
 
-                            context.move_to(pango::units_to_double(start_x), start_y);
-                            context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
+                                    context.move_to(pango::units_to_double(start_x), start_y);
+                                    context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
 
-                            let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height());
+                                    let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height());
 
-                            context.move_to(0.0, end_y);
-                            context.line_to(pango::units_to_double(end_x), end_y);
+                                    context.move_to(0.0, end_y);
+                                    context.line_to(pango::units_to_double(end_x), end_y);
+                                }
+
+                                let (red, green, blue, alpha) = LINK_FG_RGBA.get();
+
+                                context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, alpha as f64 / 65535.0);
+
+                                context.set_line_width(2.0);
+                                context.stroke().unwrap();
+                            }
                         }
-
-                        let (red, green, blue, alpha) = LINK_FG_RGBA.get();
-
-                        context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, alpha as f64 / 65535.0);
-
-                        context.set_line_width(2.0);
-                        context.stroke().unwrap();
                     }
                 }
             }
@@ -538,11 +555,14 @@ impl TextWidget {
     fn selected_text(&self) -> Option<String> {
         let imp = self.imp();
 
-        let start = imp.selection_start.get() as usize;
-        let end = imp.selection_end.get() as usize;
-
-        self.text().get(start.min(end)..start.max(end))
-            .map(|s| s.to_string())
+        imp.selection_start.get()
+            .and_then(|start| {
+                imp.selection_end.get()
+                    .and_then(|end| {
+                        self.text().get(start.min(end) as usize..start.max(end) as usize)
+                            .map(|s| s.to_string())
+                    })
+            })
     }
 
     //-----------------------------------
@@ -557,8 +577,8 @@ impl TextWidget {
                 #[weak(rename_to = widget)] self,
                 #[weak] imp,
                 move |_, _, _| {
-                    imp.selection_start.set(0);
-                    imp.selection_end.set(widget.text().len() as i32);
+                    imp.selection_start.set(Some(0));
+                    imp.selection_end.set(widget.text().len().to_u32());
 
                     imp.draw_area.queue_draw();
                 }
@@ -569,8 +589,8 @@ impl TextWidget {
             .activate(clone!(
                 #[weak] imp,
                 move |_, _, _| {
-                    imp.selection_start.set(-1);
-                    imp.selection_end.set(-1);
+                    imp.selection_start.set(None);
+                    imp.selection_end.set(None);
 
                     imp.draw_area.queue_draw();
                 }
@@ -706,9 +726,9 @@ impl TextWidget {
     fn link_url_at_xy(&self, x: f64, y: f64) -> Option<String> {
         let (inside, index) = self._inside_index_at_xy(x, y);
 
-        if inside {
+        if inside && index >= 0 {
             return self.imp().link_list.borrow().iter()
-                .find(|link| link.start <= index as usize && link.end > index as usize)
+                .find(|link| link.start <= index as u32 && link.end > index as u32)
                 .map(|link| link.text())
         }
 
@@ -785,8 +805,8 @@ impl TextWidget {
                     if !imp.is_clicked.get() {
                         let index = widget.index_at_xy(x, y);
 
-                        imp.selection_start.set(index);
-                        imp.selection_end.set(-1);
+                        imp.selection_start.set(index.to_u32());
+                        imp.selection_end.set(None);
                     }
 
                     imp.is_selecting.set(true);
@@ -803,7 +823,7 @@ impl TextWidget {
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let index = widget.index_at_xy(start_x + x, start_y + y);
 
-                    imp.selection_end.set(index);
+                    imp.selection_end.set(index.to_u32());
 
                     imp.draw_area.queue_draw();
                 }
@@ -817,9 +837,9 @@ impl TextWidget {
                 let start = imp.selection_start.get();
                 let end = imp.selection_end.get();
 
-                if end == -1 || start == end {
-                    imp.selection_start.set(-1);
-                    imp.selection_end.set(-1);
+                if end.is_none() || start == end {
+                    imp.selection_start.set(None);
+                    imp.selection_end.set(None);
 
                     imp.draw_area.queue_draw();
                 }
@@ -846,36 +866,36 @@ impl TextWidget {
                         // Double click: select word under cursor and redraw widget
                         imp.is_clicked.set(true);
 
-                        let index = widget.index_at_xy(x, y) as usize;
+                        if let Some(index) = widget.index_at_xy(x, y).to_usize() {
+                            let text = widget.text();
 
-                        let text = widget.text();
-
-                        let start = text.get(..index)
-                            .and_then(|s| {
-                                s.bytes()
-                                    .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                    .map(|start| start + 1)
-                            })
-                            .unwrap_or(0);
-
-                        let end = text.get(index..)
-                            .and_then(|s| {
-                                s.bytes()
-                                    .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                    .map(|end| end + index)
-                            })
-                            .unwrap_or(text.len());
-
-                        imp.selection_start.set(start as i32);
-                        imp.selection_end.set(end as i32);
-
-                        imp.draw_area.queue_draw();
+                            let start = text.get(..index)
+                                .and_then(|s| {
+                                    s.bytes()
+                                        .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                        .map(|start| start + 1)
+                                })
+                                .unwrap_or(0);
+    
+                            let end = text.get(index..)
+                                .and_then(|s| {
+                                    s.bytes()
+                                        .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                        .map(|end| end + index)
+                                })
+                                .unwrap_or(text.len());
+    
+                            imp.selection_start.set(start.to_u32());
+                            imp.selection_end.set(end.to_u32());
+    
+                            imp.draw_area.queue_draw();
+                        }
                     } else if n == 3 {
                         // Triple click: select all text and redraw widget
                         imp.is_clicked.set(true);
 
-                        imp.selection_start.set(0);
-                        imp.selection_end.set(widget.text().len() as i32);
+                        imp.selection_start.set(Some(0));
+                        imp.selection_end.set(widget.text().len().to_u32());
 
                         imp.draw_area.queue_draw();
                     }
@@ -915,10 +935,14 @@ impl TextWidget {
                 widget.action_set_enabled("text.copy", widget.selected_text().is_some());
 
                 // Show popover menu
-                let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
+                if let Some(x) = x.to_i32() {
+                    if let Some(y) = y.to_i32() {
+                        let rect = gdk::Rectangle::new(x, y, 0, 0);
 
-                imp.popover_menu.set_pointing_to(Some(&rect));
-                imp.popover_menu.popup();
+                        imp.popover_menu.set_pointing_to(Some(&rect));
+                        imp.popover_menu.popup();
+                    }
+                }
             }
         ));
 

@@ -18,6 +18,7 @@ glib = "0.20"
 glob = "0.3"
 gtk = { version = "0.9", package = "gtk4", features = ["v4_16"] }
 notify-debouncer-full = "0.3"
+num = "0.4"
 pacmanconf = "3"
 pangocairo = "0.20"
 raur = "7"
