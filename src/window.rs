@@ -27,7 +27,7 @@ use crate::utils::tokio_runtime;
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
-use crate::search_header::{SearchHeader, SearchMode, SearchProp};
+use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, PackageSort};
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
@@ -61,7 +61,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
-        pub(super) search_header: TemplateChild<SearchHeader>,
+        pub(super) search_bar: TemplateChild<SearchBar>,
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
@@ -309,16 +309,16 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind search header delay preference
-        imp.prefs_dialog.bind_property("search-delay", &imp.search_header.get(), "delay")
+        // Bind search bar delay preference
+        imp.prefs_dialog.bind_property("search-delay", &imp.search_bar.get(), "delay")
             .sync_create()
             .build();
 
-        // Set search header key capture widget
-        imp.search_header.set_key_capture_widget(imp.package_view.view().upcast());
+        // Set search bar key capture widget
+        imp.search_bar.set_key_capture_widget(imp.package_view.view().upcast());
 
-        // Bind search button state to search header enabled state
-        imp.search_button.bind_property("active", &imp.search_header.get(), "enabled")
+        // Bind search button state to search bar enabled state
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
             .sync_create()
             .bidirectional()
             .build();
@@ -362,13 +362,13 @@ impl PacViewWindow {
         // Add start/stop search actions
         let start_action = gio::ActionEntry::builder("start-search")
             .activate(|window: &Self, _, _| {
-                window.imp().search_header.set_enabled(true);
+                window.imp().search_bar.set_enabled(true);
             })
             .build();
 
         let stop_action = gio::ActionEntry::builder("stop-search")
             .activate(|window: &Self, _, _| {
-                window.imp().search_header.set_enabled(false);
+                window.imp().search_bar.set_enabled(false);
             })
             .build();
 
@@ -613,30 +613,30 @@ impl PacViewWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Search header enabled signal
-        imp.search_header.connect_closure("enabled", false, closure_local!(
+        // Search bar enabled signal
+        imp.search_bar.connect_closure("enabled", false, closure_local!(
             #[watch(rename_to = window)] self,
-            move |_: SearchHeader, enabled: bool| {
+            move |_: SearchBar, enabled: bool| {
                 if !enabled {
                     window.imp().package_view.view().grab_focus();
                 }
             }
         ));
 
-        // Search header changed signal
-        imp.search_header.connect_closure("changed", false, closure_local!(
+        // Search bar changed signal
+        imp.search_bar.connect_closure("changed", false, closure_local!(
             #[watch(rename_to = window)] self,
             
-            move |_: SearchHeader, search_term: &str, mode: SearchMode, prop: SearchProp| {
+            move |_: SearchBar, search_term: &str, mode: SearchMode, prop: SearchProp| {
                 window.imp().package_view.set_search_filter(search_term, mode, prop);
             }
         ));
 
-        // Search header AUR Search signal
-        imp.search_header.connect_closure("aur-search", false, closure_local!(
+        // Search bar AUR Search signal
+        imp.search_bar.connect_closure("aur-search", false, closure_local!(
             #[watch(rename_to = window)] self,
-            move |search_header: SearchHeader, search_term: &str, prop: SearchProp| {
-                window.imp().package_view.search_in_aur(search_header, search_term, prop);
+            move |search_bar: SearchBar, search_term: &str, prop: SearchProp| {
+                window.imp().package_view.search_in_aur(search_bar, search_term, prop);
             }
         ));
 

@@ -141,7 +141,7 @@
                   <object class="GtkBox">
                     <property name="orientation">vertical</property>
                     <child>
-                      <object class="SearchHeader" id="search_header">
+                      <object class="SearchBar" id="search_bar">
                       </object>
                     </child>
                     <child>

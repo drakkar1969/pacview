@@ -15,7 +15,7 @@ use strum::EnumString;
 
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
-use crate::search_header::{SearchHeader, SearchMode, SearchProp};
+use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 use crate::traits::EnumValueExt;
 
@@ -403,12 +403,12 @@ impl PackageView {
     //-----------------------------------
     // Public search in AUR function
     //-----------------------------------
-    pub fn search_in_aur(&self, search_header: SearchHeader, search_term: &str, prop: SearchProp) {
+    pub fn search_in_aur(&self, search_bar: SearchBar, search_term: &str, prop: SearchProp) {
         let imp = self.imp();
 
         let term = search_term.to_lowercase();
 
-        search_header.set_searching(true);
+        search_bar.set_searching(true);
 
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
             // Get AUR cache (need to clone for mutable reference)
@@ -476,7 +476,7 @@ impl PackageView {
                     // Process thread result
                     match result {
                         Ok((aur_cache, data_list)) => {
-                            if search_header.enabled() {
+                            if search_bar.enabled() {
                                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
                                     .map(|data| PkgObject::new(None, data))
                                     .collect();
@@ -488,16 +488,16 @@ impl PackageView {
 
                             imp.aur_cache.replace(aur_cache);
 
-                            search_header.set_aur_error(false);
-                            search_header.set_tooltip_text(None);
+                            search_bar.set_aur_error(false);
+                            search_bar.set_tooltip_text(None);
                         },
                         Err(error) => {
-                            search_header.set_aur_error(true);
-                            search_header.set_tooltip_text(Some(&format!("AUR Search Error ({})", error)));
+                            search_bar.set_aur_error(true);
+                            search_bar.set_tooltip_text(Some(&format!("AUR Search Error ({})", error)));
                         }
                     }
 
-                    search_header.set_searching(false);
+                    search_bar.set_searching(false);
                 }
             ));
         });

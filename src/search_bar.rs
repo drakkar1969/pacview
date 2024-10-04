@@ -48,7 +48,7 @@ impl EnumValueExt for SearchProp {}
 impl EnumClassExt for SearchProp {}
 
 //------------------------------------------------------------------------------
-// MODULE: SearchHeader
+// MODULE: SearchBar
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -57,9 +57,9 @@ mod imp {
     // Private structure
     //-----------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::SearchHeader)]
-    #[template(resource = "/com/github/PacView/ui/search_header.ui")]
-    pub struct SearchHeader {
+    #[properties(wrapper_type = super::SearchBar)]
+    #[template(resource = "/com/github/PacView/ui/search_bar.ui")]
+    pub struct SearchBar {
         #[template_child]
         pub(super) revealer: TemplateChild<gtk::Revealer>,
 
@@ -105,15 +105,15 @@ mod imp {
     // Subclass
     //-----------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for SearchHeader {
-        const NAME: &'static str = "SearchHeader";
-        type Type = super::SearchHeader;
+    impl ObjectSubclass for SearchBar {
+        const NAME: &'static str = "SearchBar";
+        type Type = super::SearchBar;
         type ParentType = gtk::Widget;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
             klass.set_layout_manager_type::<gtk::BoxLayout>();
-            klass.set_css_name("search-header");
+            klass.set_css_name("search-bar");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -122,7 +122,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for SearchHeader {
+    impl ObjectImpl for SearchBar {
         //-----------------------------------
         // Custom signals
         //-----------------------------------
@@ -172,9 +172,9 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SearchHeader {}
+    impl WidgetImpl for SearchBar {}
 
-    impl SearchHeader {
+    impl SearchBar {
         //-----------------------------------
         // Custom AUR error property setter
         //-----------------------------------
@@ -193,15 +193,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: SearchHeader
+// IMPLEMENTATION: SearchBar
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct SearchHeader(ObjectSubclass<imp::SearchHeader>)
+    pub struct SearchBar(ObjectSubclass<imp::SearchBar>)
         @extends gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl SearchHeader {
+impl SearchBar {
     //-----------------------------------
     // New function
     //-----------------------------------
@@ -240,35 +240,35 @@ impl SearchHeader {
         let imp = self.imp();
 
         // Search enabled property notify signal
-        self.connect_enabled_notify(|header| {
-            let imp = header.imp();
+        self.connect_enabled_notify(|bar| {
+            let imp = bar.imp();
 
-            if header.enabled() {
+            if bar.enabled() {
                 imp.search_text.grab_focus_without_selecting();
             } else {
                 imp.search_text.set_text("");
             }
 
-            header.emit_by_name::<()>("enabled", &[&header.enabled()]);
+            bar.emit_by_name::<()>("enabled", &[&bar.enabled()]);
         });
 
         // Search mode property notify signal
-        self.connect_mode_notify(|header| {
-            header.imp().tag_mode.set_text(Some(header.mode().nick()));
+        self.connect_mode_notify(|bar| {
+            bar.imp().tag_mode.set_text(Some(bar.mode().nick()));
 
-            header.emit_changed_signal();
+            bar.emit_changed_signal();
         });
 
         // Search prop property notify signal
-        self.connect_prop_notify(|header| {
-            header.imp().tag_prop.set_text(Some(header.prop().nick()));
+        self.connect_prop_notify(|bar| {
+            bar.imp().tag_prop.set_text(Some(bar.prop().nick()));
 
-            header.emit_changed_signal();
+            bar.emit_changed_signal();
         });
 
         // Search text changed signal
         imp.search_text.connect_changed(clone!(
-            #[weak(rename_to = header)]
+            #[weak(rename_to = bar)]
             self,
             #[weak]
             imp,
@@ -279,19 +279,19 @@ impl SearchHeader {
                 }
 
                 if search_text.text().is_empty() {
-                    header.set_aur_error(false);
+                    bar.set_aur_error(false);
 
-                    header.emit_changed_signal();
-                    header.emit_aur_search_signal();
+                    bar.emit_changed_signal();
+                    bar.emit_aur_search_signal();
                 } else {
                     // Start delay timer
                     let delay_id = glib::timeout_add_local_once(
-                        Duration::from_millis(header.delay()),
+                        Duration::from_millis(bar.delay()),
                         clone!(
                             #[weak]
                             imp,
                             move || {
-                                header.emit_changed_signal();
+                                bar.emit_changed_signal();
 
                                 imp.delay_source_id.take();
                             }
@@ -305,11 +305,11 @@ impl SearchHeader {
 
         // Search text activate signal
         imp.search_text.connect_activate(clone!(
-            #[weak(rename_to = header)]
+            #[weak(rename_to = bar)]
             self,
             move |search_text| {
                 if !search_text.text().is_empty() {
-                    header.emit_aur_search_signal();
+                    bar.emit_aur_search_signal();
                 }
             }
         ));
@@ -391,11 +391,11 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>M"),
             Some(gtk::CallbackAction::new(|widget, _| {
-                let header = widget
-                    .downcast_ref::<SearchHeader>()
-                    .expect("Could not downcast to 'SearchHeader'");
+                let bar = widget
+                    .downcast_ref::<SearchBar>()
+                    .expect("Could not downcast to 'SearchBar'");
 
-                let action_group = header.imp().action_group.borrow();
+                let action_group = bar.imp().action_group.borrow();
 
                 let state = action_group.action_state("set-mode")
                     .expect("Could not retrieve Variant")
@@ -414,11 +414,11 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>M"),
             Some(gtk::CallbackAction::new(|widget, _| {
-                let header = widget
-                    .downcast_ref::<SearchHeader>()
-                    .expect("Could not downcast to 'SearchHeader'");
+                let bar = widget
+                    .downcast_ref::<SearchBar>()
+                    .expect("Could not downcast to 'SearchBar'");
 
-                let action_group = header.imp().action_group.borrow();
+                let action_group = bar.imp().action_group.borrow();
 
                 let state = action_group.action_state("set-mode")
                     .expect("Could not retrieve Variant")
@@ -456,11 +456,11 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>T"),
             Some(gtk::CallbackAction::new(|widget, _| {
-                let header = widget
-                    .downcast_ref::<SearchHeader>()
-                    .expect("Could not downcast to 'SearchHeader'");
+                let bar = widget
+                    .downcast_ref::<SearchBar>()
+                    .expect("Could not downcast to 'SearchBar'");
 
-                let action_group = header.imp().action_group.borrow();
+                let action_group = bar.imp().action_group.borrow();
 
                 let state = action_group.action_state("set-prop")
                     .expect("Could not retrieve Variant")
@@ -479,11 +479,11 @@ impl SearchHeader {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>T"),
             Some(gtk::CallbackAction::new(|widget, _| {
-                let header = widget
-                    .downcast_ref::<SearchHeader>()
-                    .expect("Could not downcast to 'SearchHeader'");
+                let bar = widget
+                    .downcast_ref::<SearchBar>()
+                    .expect("Could not downcast to 'SearchBar'");
 
-                let action_group = header.imp().action_group.borrow();
+                let action_group = bar.imp().action_group.borrow();
 
                 let state = action_group.action_state("set-prop")
                     .expect("Could not retrieve Variant")
@@ -515,7 +515,7 @@ impl SearchHeader {
             Some(gtk::NamedAction::new("search.reset-params"))
         ));
 
-        // Add shortcut controller to search header
+        // Add shortcut controller to search bar
         self.add_controller(controller);
     }
 
@@ -529,15 +529,15 @@ impl SearchHeader {
             let controller = gtk::EventControllerKey::new();
 
             controller.connect_key_pressed(clone!(
-                #[weak(rename_to = header)] self,
+                #[weak(rename_to = bar)] self,
                 #[upgrade_or] glib::Propagation::Proceed,
                 move |controller, _, _, state| {
                     if !(state.contains(gdk::ModifierType::ALT_MASK) ||
                         state.contains(gdk::ModifierType::CONTROL_MASK)) &&
-                        controller.forward(&header.imp().search_text.get())
+                        controller.forward(&bar.imp().search_text.get())
                     {
-                        if !header.enabled() {
-                            header.set_enabled(true);
+                        if !bar.enabled() {
+                            bar.set_enabled(true);
                         }
                     }
 
@@ -552,7 +552,7 @@ impl SearchHeader {
     }
 }
 
-impl Default for SearchHeader {
+impl Default for SearchBar {
     //-----------------------------------
     // Default constructor
     //-----------------------------------

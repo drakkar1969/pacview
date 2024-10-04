@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// SearchHeader template //-->
-  <template class="SearchHeader" parent="GtkWidget">
+  <!--// SearchBar template //-->
+  <template class="SearchBar" parent="GtkWidget">
     <property name="width-request">400</property>
     <child>
       <object class="GtkRevealer" id="revealer">
