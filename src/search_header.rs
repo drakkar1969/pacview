@@ -61,9 +61,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/search_header.ui")]
     pub struct SearchHeader {
         #[template_child]
-        pub(super) stack: TemplateChild<gtk::Stack>,
-        #[template_child]
-        pub(super) title_widget: TemplateChild<adw::WindowTitle>,
+        pub(super) revealer: TemplateChild<gtk::Revealer>,
 
         #[template_child]
         pub(super) icon_stack: TemplateChild<gtk::Stack>,
@@ -80,9 +78,6 @@ mod imp {
         pub(super) clear_button: TemplateChild<gtk::Button>,
 
         pub(super) has_capture_widget: Cell<bool>,
-
-        #[property(get, set, nullable)]
-        title: RefCell<Option<String>>,
 
         #[property(get, set)]
         enabled: Cell<bool>,
@@ -220,20 +215,20 @@ impl SearchHeader {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind title property to title widget
-        self.bind_property("title", &imp.title_widget.get(), "title")
+        // Bind enabled property to revealer
+        self.bind_property("enabled", &imp.revealer.get(), "reveal-child")
+            .flags(glib::BindingFlags::SYNC_CREATE)
+            .build();
+
+        // Bind searching property to icon stack
+        self.bind_property("searching", &imp.icon_stack.get(), "visible-child-name")
+            .transform_to(|_, searching: bool| if searching { Some("spinner") } else { Some("icon") })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
 
         // Bind search text to clear button visibility
         imp.search_text.bind_property("text", &imp.clear_button.get(), "visible")
             .transform_to(|_, text: &str| Some(!text.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
-            .build();
-
-        // Bind searching property to widgets
-        self.bind_property("searching", &imp.icon_stack.get(), "visible-child-name")
-            .transform_to(|_, searching: bool| if searching { Some("spinner") } else { Some("icon") })
             .flags(glib::BindingFlags::SYNC_CREATE)
             .build();
     }
@@ -249,13 +244,9 @@ impl SearchHeader {
             let imp = header.imp();
 
             if header.enabled() {
-                imp.stack.set_visible_child_name("search");
-
                 imp.search_text.grab_focus_without_selecting();
             } else {
                 imp.search_text.set_text("");
-
-                imp.stack.set_visible_child_name("title");
             }
 
             header.emit_by_name::<()>("enabled", &[&header.enabled()]);
@@ -545,7 +536,9 @@ impl SearchHeader {
                         state.contains(gdk::ModifierType::CONTROL_MASK)) &&
                         controller.forward(&header.imp().search_text.get())
                     {
-                        header.set_enabled(true);
+                        if !header.enabled() {
+                            header.set_enabled(true);
+                        }
                     }
 
                     glib::Propagation::Proceed

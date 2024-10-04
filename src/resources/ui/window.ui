@@ -113,11 +113,7 @@
                 <property name="top-bar-style">raised-border</property>
                 <child type="top">
                   <object class="AdwHeaderBar" id="package_header_bar">
-                    <property name="title-widget">
-                      <object class="SearchHeader" id="search_header">
-                        <property name="title"></property>
-                      </object>
-                    </property>
+                    <property name="show-title">False</property>
                     <child type="end">
                       <object class="GtkToggleButton" id="infopane_button">
                         <property name="active">True</property>
@@ -142,7 +138,17 @@
                   </object>
                 </child>
                 <property name="content">
-                  <object class="PackageView" id="package_view">
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="SearchHeader" id="search_header">
+                      </object>
+                    </child>
+                    <child>
+                      <object class="PackageView" id="package_view">
+                        <property name="vexpand">True</property>
+                      </object>
+                    </child>
                   </object>
                 </property>
               </object>
