@@ -237,16 +237,16 @@ impl PackageView {
             .and_downcast::<gtk::BuilderRustScope>()
             .unwrap();
 
-        // Add version image callback
-        scope.add_callback("version_callback", |values| {
+        // Add version image visibility callback
+        scope.add_callback("version_image_visible", |values| {
             let flags = values[1].get::<PkgFlags>()
                 .expect("Could not get value in scope callback");
 
             Some(flags.intersects(PkgFlags::UPDATES).to_value())
         });
 
-        // Add subtitle callback
-        scope.add_callback("subtitle_callback", |values| {
+        // Add subtitle text callback
+        scope.add_callback("subtitle_text", |values| {
             let repository = values[1].get::<String>()
                 .expect("Could not get value in scope callback");
 
@@ -256,10 +256,40 @@ impl PackageView {
             let subtitle = if status.is_empty() {
                 repository
             } else {
-                format!("{}  |  {}", repository, status)
+                format!("{}  |  {}", status, repository)
             };
 
             Some(subtitle.to_value())
+        });
+
+        // Add status image icon name/visibility callbacks
+        scope.add_callback("status_image_icon_name", |values| {
+            let status = values[1].get::<String>()
+                .expect("Could not get value in scope callback");
+
+            Some(
+                if status.is_empty() {
+                    "".to_string()
+                } else {
+                    format!("status-{}-symbolic", status)
+                }
+                .to_value()
+            )
+        });
+
+        scope.add_callback("status_image_visible", |values| {
+            let flags = values[1].get::<PkgFlags>()
+                .expect("Could not get value in scope callback");
+
+            Some(flags.intersects(PkgFlags::INSTALLED).to_value())
+        });
+
+        // Add groups image visibility callback
+        scope.add_callback("groups_image_visible", |values| {
+            let groups = values[1].get::<String>()
+                .expect("Could not get value in scope callback");
+
+            Some((!groups.is_empty()).to_value())
         });
     }
 

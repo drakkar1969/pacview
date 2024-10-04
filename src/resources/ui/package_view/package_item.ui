@@ -10,7 +10,7 @@
         <property name="spacing">12</property>
         <child>
           <object class="GtkImage">
-            <property name="icon_name">package-x-generic-symbolic</property>
+            <property name="icon-name">package-x-generic-symbolic</property>
           </object>
         </child>
         <child>
@@ -38,7 +38,7 @@
                       <object class="GtkImage">
                         <property name="icon-name">pkg-update</property>
                         <binding name="visible">
-                          <closure type="gboolean" function="version_callback">
+                          <closure type="gboolean" function="version_image_visible">
                             <lookup name="flags" type="PkgObject">
                               <lookup name="item">GtkListItem</lookup>
                             </lookup>
@@ -67,37 +67,86 @@
               <object class="GtkBox">
                 <property name="spacing">24</property>
                 <child>
-                  <object class="GtkLabel">
-                    <binding name="label">
-                      <closure type="gchararray" function="subtitle_callback">
-                        <lookup name="repository" type="PkgObject">
-                          <lookup name="item">GtkListItem</lookup>
-                        </lookup>
-                        <lookup name="status" type="PkgObject">
-                          <lookup name="item">GtkListItem</lookup>
-                        </lookup>
-                      </closure>
-                    </binding>
-                    <property name="hexpand">true</property>
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="dim-label"/>
-                    </style>
+                  <object class="GtkBox">
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="margin-top">1</property>
+                        <binding name="icon-name">
+                          <closure type="gchararray" function="status_image_icon_name">
+                            <lookup name="status" type="PkgObject">
+                              <lookup name="item">GtkListItem</lookup>
+                            </lookup>
+                          </closure>
+                        </binding>
+                        <binding name="visible">
+                          <closure type="gboolean" function="status_image_visible">
+                            <lookup name="flags" type="PkgObject">
+                              <lookup name="item">GtkListItem</lookup>
+                            </lookup>
+                          </closure>
+                        </binding>
+                        <property name="halign">start</property>
+                        <style>
+                          <class name="dim-image"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="hexpand">true</property>
+                        <binding name="label">
+                          <closure type="gchararray" function="subtitle_text">
+                            <lookup name="repository" type="PkgObject">
+                              <lookup name="item">GtkListItem</lookup>
+                            </lookup>
+                            <lookup name="status" type="PkgObject">
+                              <lookup name="item">GtkListItem</lookup>
+                            </lookup>
+                          </closure>
+                        </binding>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="caption"/>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel">
-                    <binding name="label">
-                      <lookup name="groups" type="PkgObject">
-                        <lookup name="item">GtkListItem</lookup>
-                      </lookup>
-                    </binding>
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="caption"/>
-                      <class name="dim-label"/>
-                    </style>
+                  <object class="GtkBox">
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="margin-top">1</property>
+                        <property name="icon-name">groups-symbolic</property>
+                        <binding name="visible">
+                          <closure type="gboolean" function="groups_image_visible">
+                            <lookup name="groups" type="PkgObject">
+                              <lookup name="item">GtkListItem</lookup>
+                            </lookup>
+                          </closure>
+                        </binding>
+                        <style>
+                          <class name="dim-image"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <binding name="label">
+                          <lookup name="groups" type="PkgObject">
+                            <lookup name="item">GtkListItem</lookup>
+                          </lookup>
+                        </binding>
+                        <property name="xalign">0</property>
+                        <style>
+                          <class name="caption"/>
+                          <class name="dim-label"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>

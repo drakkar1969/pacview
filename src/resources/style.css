@@ -52,6 +52,11 @@ image.spinner.dim-spinner {
 	opacity: var(--dim-opacity);
 }
 
+/* Package view dim images */
+image.dim-image {
+	opacity: var(--disabled-opacity);
+}
+
 /* Info pane tab header box */
 box.info-header {
 	min-height: 34px;
