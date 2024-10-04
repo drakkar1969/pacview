@@ -133,7 +133,7 @@ impl LogWindow {
             .transform_to(|_, n_items: u32| {
                 Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
             })
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Set initial focus on view

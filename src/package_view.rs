@@ -180,18 +180,18 @@ impl PackageView {
         // Bind loading property to stack page
         self.bind_property("loading", &imp.stack.get(), "visible-child-name")
             .transform_to(|_, loading: bool| Some(if loading { "empty" } else { "view" }))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind item count to n_items property
         imp.filter_model.bind_property("n-items", self, "n-items")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind item count to empty label visibility
         imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
             .transform_to(|_, n_items: u32| Some(n_items == 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Set list view sorter function

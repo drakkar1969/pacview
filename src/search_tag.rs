@@ -86,7 +86,7 @@ impl SearchTag {
 
         // Bind properties to widgets
         self.bind_property("text", &imp.label.get(), "label")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
     }
 }

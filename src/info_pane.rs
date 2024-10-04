@@ -386,24 +386,24 @@ impl InfoPane {
             .transform_to(move |_, n_items: u32| 
                 Some(format!("Files ({n_items})"))
             )
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind files count to files open/copy button states
         imp.files_filter_model.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         imp.files_filter_model.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind log count to log copy button state
         imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind cache count to cache header label
@@ -411,18 +411,18 @@ impl InfoPane {
             .transform_to(move |_, n_items: u32|
                 Some(format!("Cache Files ({n_items})"))
             )
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind cache count to cache open/copy button states
         imp.cache_selection.bind_property("n-items", &imp.cache_open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         imp.cache_selection.bind_property("n-items", &imp.cache_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind backup count to backup header label
@@ -430,18 +430,18 @@ impl InfoPane {
             .transform_to(move |_, n_items: u32|
                 Some(format!("Backup Files ({n_items})"))
             )
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind backup count to backup open/copy button states
         imp.backup_selection.bind_property("n-items", &imp.backup_open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         imp.backup_selection.bind_property("n-items", &imp.backup_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
     }
 

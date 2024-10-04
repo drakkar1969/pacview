@@ -105,17 +105,21 @@ impl PreferencesDialog {
 
         // Bind properties to widgets
         self.bind_property("auto-refresh", &imp.refresh_switchrow.get(), "active")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .sync_create()
+            .bidirectional()
             .build();
         self.bind_property("aur-command", &imp.aur_row.get(), "text")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .sync_create()
+            .bidirectional()
             .build();
         self.bind_property("search-delay", &imp.delay_spinrow.get(), "value")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .sync_create()
+            .bidirectional()
             .build();
 
         self.bind_property("remember-sort", &imp.sort_switchrow.get(), "active")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .sync_create()
+            .bidirectional()
             .build();
 
         // Set AUR row tooltip

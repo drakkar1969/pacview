@@ -155,18 +155,18 @@ impl BackupWindow {
 
                 Some(format!("{n_items} files in {section_len} package{}", if section_len != 1 {"s"} else {""}))
             })
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind backup files count to open/copy button states
         imp.filter_model.bind_property("n-items", &imp.open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         imp.filter_model.bind_property("n-items", &imp.copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Set initial focus on view

@@ -311,7 +311,7 @@ impl PacViewWindow {
 
         // Bind search header delay preference
         imp.prefs_dialog.bind_property("search-delay", &imp.search_header.get(), "delay")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Set search header key capture widget
@@ -319,22 +319,25 @@ impl PacViewWindow {
 
         // Bind search button state to search header enabled state
         imp.search_button.bind_property("active", &imp.search_header.get(), "enabled")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .sync_create()
+            .bidirectional()
             .build();
 
         // Bind package view sort order to sort button icon
         imp.package_view.bind_property("sort-ascending", &imp.sort_button.get(), "icon-name")
             .transform_to(|_, sort_asc: bool| Some(if sort_asc { "view-sort-ascending-symbolic" } else { "view-sort-descending-symbolic" }))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind view infopane button state to infopane visibility
         imp.infopane_button.bind_property("active", &imp.info_pane.get(), "visible")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .sync_create()
+            .bidirectional()
             .build();
 
         imp.infopane_button.bind_property("active", &imp.package_header_bar.get(), "show-end-title-buttons")
-            .flags(glib::BindingFlags::SYNC_CREATE | glib::BindingFlags::BIDIRECTIONAL)
+            .sync_create()
+            .bidirectional()
             .invert_boolean()
             .build();
 
@@ -343,7 +346,7 @@ impl PacViewWindow {
             .transform_to(|_, n_items: u32| {
                 Some(format!("{n_items} matching package{}", if n_items != 1 {"s"} else {""}))
             })
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Set initial focus on package view
@@ -442,7 +445,7 @@ impl PacViewWindow {
 
         imp.package_view.bind_property("n-items", &copy_action, "enabled")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Add info pane prev/next actions

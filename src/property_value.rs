@@ -118,24 +118,24 @@ impl PropertyValue {
 
         // Bind properties to widgets
         self.bind_property("label", &imp.prop_label.get(), "label")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         self.bind_property("icon", &imp.image.get(), "visible")
             .transform_to(|_, icon: Option<String>| Some(icon.is_some()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         self.bind_property("icon", &imp.image.get(), "icon-name")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         self.bind_property("ptype", &imp.text_widget.get(), "ptype")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         self.bind_property("text", &imp.text_widget.get(), "text")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
     }
 

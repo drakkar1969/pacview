@@ -217,19 +217,19 @@ impl SearchHeader {
 
         // Bind enabled property to revealer
         self.bind_property("enabled", &imp.revealer.get(), "reveal-child")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind searching property to icon stack
         self.bind_property("searching", &imp.icon_stack.get(), "visible-child-name")
             .transform_to(|_, searching: bool| if searching { Some("spinner") } else { Some("icon") })
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
 
         // Bind search text to clear button visibility
         imp.search_text.bind_property("text", &imp.clear_button.get(), "visible")
             .transform_to(|_, text: &str| Some(!text.is_empty()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
     }
 

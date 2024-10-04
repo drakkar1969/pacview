@@ -110,21 +110,21 @@ impl FilterRow {
         // Bind properties to widgets
         self.bind_property("updating", &imp.stack.get(), "visible_child_name")
             .transform_to(|_, updating: bool| Some(if updating {"spinner"} else {"icon"}))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
         self.bind_property("icon", &imp.image.get(), "icon-name")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
         self.bind_property("text", &imp.text_label.get(), "label")
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
         self.bind_property("count", &imp.count_label.get(), "label")
             .transform_to(|_, count: u32| Some(count.to_string()))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
         self.bind_property("count", &imp.count_box.get(), "visible")
             .transform_to(|_, count: u32| Some(count > 0))
-            .flags(glib::BindingFlags::SYNC_CREATE)
+            .sync_create()
             .build();
     }
 }
