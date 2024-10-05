@@ -218,14 +218,10 @@ mod imp {
         #[property(name = "name",           get, type = String,   member = name)]
         #[property(name = "status",         get, type = String,   member = status)]
         #[property(name = "status-icon",    get, type = String,   member = status_icon)]
-        #[property(name = "install-date",   get, type = i64,      member = install_date)]
-        #[property(name = "install-size",   get, type = i64,      member = install_size)]
         #[property(name = "groups",         get, type = String,   member = groups)]
         pub(super) data: RefCell<PkgData>,
 
         // Read-only properties with custom getter
-        #[property(name = "install-date-short", get = Self::install_date_short)]
-        _install_date_short: RefCell<String>,
         #[property(name = "install-size-string", get = Self::install_size_string)]
         _install_size_string: RefCell<String>,
     }
@@ -246,10 +242,6 @@ mod imp {
         //-----------------------------------
         // Read-only property getters
         //-----------------------------------
-        fn install_date_short(&self) -> String {
-            date_to_string(self.data.borrow().install_date, "%Y/%m/%d %H:%M")
-        }
-
         fn install_size_string(&self) -> String {
             size_to_string(self.data.borrow().install_size, 1)
         }
@@ -332,8 +324,16 @@ impl PkgObject {
         self.imp().data.borrow().build_date
     }
 
+    pub fn install_date(&self) -> i64 {
+        self.imp().data.borrow().install_date
+    }
+
     pub fn download_size(&self) -> i64 {
         self.imp().data.borrow().download_size
+    }
+
+    pub fn install_size(&self) -> i64 {
+        self.imp().data.borrow().install_size
     }
 
     pub fn has_script(&self) -> bool {
@@ -351,6 +351,10 @@ impl PkgObject {
     //-----------------------------------
     // Public string property getters
     //-----------------------------------
+    pub fn install_date_short(&self) -> String {
+        date_to_string(self.install_date(), "%Y/%m/%d %H:%M")
+    }
+
     pub fn install_date_long(&self) -> String {
         date_to_string(self.install_date(), "%d %B %Y %H:%M")
     }
