@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::pkg_object::PkgObject;
+use crate::window::PKG_SNAPSHOT;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::traits::EnumClassExt;
 use crate::utils::open_with_default_app;
@@ -250,24 +250,24 @@ impl BackupWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self, pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self) {
         let imp = self.imp();
 
         self.present();
-
-        let pkg_snapshot = pkg_snapshot.to_vec();
 
         // Spawn thread to populate column view
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {
-                let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
-                    .flat_map(|pkg| { pkg.backup().into_iter()
-                        .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name())))
-                    })
-                    .collect();
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
+                        .flat_map(|pkg| { pkg.backup().into_iter()
+                            .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name())))
+                        })
+                        .collect();
 
-                imp.model.extend_from_slice(&backup_list);
+                    imp.model.extend_from_slice(&backup_list);
+                });
             }
         ));
     }

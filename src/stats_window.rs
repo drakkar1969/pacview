@@ -4,7 +4,8 @@ use gtk::prelude::*;
 
 use titlecase::titlecase;
 
-use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::window::PKG_SNAPSHOT;
+use crate::pkg_object::PkgFlags;
 use crate::stats_object::StatsObject;
 use crate::utils::size_to_string;
 
@@ -85,46 +86,48 @@ impl StatsWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, repo_names: &[String]) {
         let imp = self.imp();
 
-        // Iterate repos
-        let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
-            .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
-                // Iterate packages per repo
-                let (pcount, icount, isize) = pkg_snapshot.iter()
-                    .filter(|pkg| pkg.repository() == *repo)
-                    .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
-                        pcount += 1;
+        PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+            // Iterate repos
+            let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
+                .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
+                    // Iterate packages per repo
+                    let (pcount, icount, isize) = pkg_snapshot.iter()
+                        .filter(|pkg| pkg.repository() == *repo)
+                        .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
+                            pcount += 1;
 
-                        if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                            icount += 1;
-                            isize += pkg.install_size()
-                        }
+                            if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                                icount += 1;
+                                isize += pkg.install_size()
+                            }
 
-                        (pcount, icount, isize)
-                    });
+                            (pcount, icount, isize)
+                        });
 
-                // Add repo item to stats column view
-                let repo = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+                    // Add repo item to stats column view
+                    let repo = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
 
-                imp.model.append(&StatsObject::new(
-                    &repo,
-                    &pcount.to_string(),
-                    &icount.to_string(),
-                    &size_to_string(isize, 2)
-                ));
+                    imp.model.append(&StatsObject::new(
+                        &repo,
+                        &pcount.to_string(),
+                        &icount.to_string(),
+                        &size_to_string(isize, 2)
+                    ));
 
-                (tot_pcount + pcount, tot_icount + icount, tot_isize + isize)
-            });
+                    (tot_pcount + pcount, tot_icount + icount, tot_isize + isize)
+                });
 
-        // Add item with totals to stats column view
-        imp.model.append(&StatsObject::new(
-            "<b>Total</b>",
-            &format!("<b>{}</b>", tot_pcount),
-            &format!("<b>{}</b>", tot_icount),
-            &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
-        ));
+            // Add item with totals to stats column view
+            imp.model.append(&StatsObject::new(
+                "<b>Total</b>",
+                &format!("<b>{}</b>", tot_pcount),
+                &format!("<b>{}</b>", tot_icount),
+                &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
+            ));
+        });
 
         self.present();
     }

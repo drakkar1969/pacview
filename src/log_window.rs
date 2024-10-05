@@ -8,6 +8,7 @@ use glib::clone;
 
 use regex::Regex;
 
+use crate::window::PACMAN_CONFIG;
 use crate::log_object::LogObject;
 
 //------------------------------------------------------------------------------
@@ -210,48 +211,48 @@ impl LogWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self, log_file: &str) {
+    pub fn show(&self) {
         let imp = self.imp();
 
         self.present();
-
-        let log_file = log_file.to_string();
 
         // Spawn thread to populate column view
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {
-                if let Ok(log) = fs::read_to_string(log_file) {
-                    // Strip ANSI control sequences from log
-                    static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+                PACMAN_CONFIG.with_borrow(|pacman_config| {
+                    if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
+                        // Strip ANSI control sequences from log
+                        static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
-                    let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                        Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
-                            .expect("Regex error")
-                    });
+                        let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
+                                .expect("Regex error")
+                        });
 
-                    let log = ansi_expr.replace_all(&log, "");
+                        let log = ansi_expr.replace_all(&log, "");
 
-                    // Populate column view
-                    static EXPR: OnceLock<Regex> = OnceLock::new();
+                        // Populate column view
+                        static EXPR: OnceLock<Regex> = OnceLock::new();
 
-                    let expr = EXPR.get_or_init(|| {
-                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
-                            .expect("Regex error")
-                    });
+                        let expr = EXPR.get_or_init(|| {
+                            Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
+                                .expect("Regex error")
+                        });
 
-                    let log_lines: Vec<LogObject> = log.lines().rev()
-                        .filter_map(|s| {
-                            expr.captures(s)
-                                .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3]))
-                        })
-                        .collect();
+                        let log_lines: Vec<LogObject> = log.lines().rev()
+                            .filter_map(|s| {
+                                expr.captures(s)
+                                    .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3]))
+                            })
+                            .collect();
 
-                    imp.model.extend_from_slice(&log_lines);
-                } else {
-                    // Show overlay error label
-                    imp.overlay_label.set_visible(true);
-                }
+                        imp.model.extend_from_slice(&log_lines);
+                    } else {
+                        // Show overlay error label
+                        imp.overlay_label.set_visible(true);
+                    }
+                })
             }
         ));
     }
