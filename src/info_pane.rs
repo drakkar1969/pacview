@@ -15,9 +15,9 @@ use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PACMAN_CONF
 use crate::text_widget::{TextWidget, PropType};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
-use crate::backup_object::BackupObject;
+use crate::backup_object::{BackupObject, BackupStatus};
 use crate::traits::EnumValueExt;
-use crate::utils::open_file_manager;
+use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------
 // ENUM: PropID
@@ -433,11 +433,19 @@ impl InfoPane {
             .sync_create()
             .build();
 
-        // Bind backup count to backup open/copy button states
-        imp.backup_selection.bind_property("n-items", &imp.backup_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
+        // Bind selected backup item to backup open button state
+        imp.backup_selection.bind_property("selected-item", &imp.backup_open_button.get(), "sensitive")
+            .transform_to(|_, item: Option<glib::Object>| {
+                if let Some(object) = item.and_downcast::<BackupObject>() {
+                    Some(object.status() != BackupStatus::Error)
+                } else {
+                    Some(false)
+                }
+            })
             .sync_create()
             .build();
+
+        // Bind backup count to backup copy button state
 
         imp.backup_selection.bind_property("n-items", &imp.backup_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
@@ -474,7 +482,7 @@ impl InfoPane {
                     .and_downcast::<gtk::StringObject>()
                     .expect("Could not downcast to 'StringObject'");
 
-                open_file_manager(&item.string());
+                open_with_default_app(&item.string());
             }
         ));
 
@@ -527,7 +535,7 @@ impl InfoPane {
                     .and_downcast::<gtk::StringObject>()
                     .expect("Could not downcast to 'StringObject'");
 
-                open_file_manager(&item.string());
+                open_with_default_app(&item.string());
             }
         ));
 
@@ -561,7 +569,7 @@ impl InfoPane {
                     .and_downcast::<BackupObject>()
                     .expect("Could not downcast to 'BackupObject'");
 
-                open_file_manager(&item.filename());
+                open_with_default_app(&item.filename());
             }
         ));
 
@@ -585,7 +593,9 @@ impl InfoPane {
         imp.backup_view.connect_activate(clone!(
             #[weak] imp,
             move |_, _| {
-                imp.backup_open_button.emit_clicked();
+                if imp.backup_open_button.is_sensitive() {
+                    imp.backup_open_button.emit_clicked();
+                }
             }
         ));
     }

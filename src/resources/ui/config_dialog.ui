@@ -21,7 +21,7 @@
                   <object class="GtkButton" id="rootdir_open_button">
                     <property name="valign">center</property>
                     <property name="icon-name">go-next-symbolic</property>
-                    <property name="tooltip-text">Show in File Manager</property>
+                    <property name="tooltip-text">Open</property>
                     <style>
                       <class name="flat"/>
                       <class name="circular"/>
@@ -41,7 +41,7 @@
                   <object class="GtkButton" id="dbpath_open_button">
                     <property name="valign">center</property>
                     <property name="icon-name">go-next-symbolic</property>
-                    <property name="tooltip-text">Show in File Manager</property>
+                    <property name="tooltip-text">Open</property>
                     <style>
                       <class name="flat"/>
                       <class name="circular"/>
@@ -61,7 +61,7 @@
                   <object class="GtkButton" id="cachedir_open_button">
                     <property name="valign">center</property>
                     <property name="icon-name">go-next-symbolic</property>
-                    <property name="tooltip-text">Show in File Manager</property>
+                    <property name="tooltip-text">Open</property>
                     <style>
                       <class name="flat"/>
                       <class name="circular"/>
@@ -81,7 +81,7 @@
                   <object class="GtkButton" id="logfile_open_button">
                     <property name="valign">center</property>
                     <property name="icon-name">go-next-symbolic</property>
-                    <property name="tooltip-text">Show in File Manager</property>
+                    <property name="tooltip-text">Open</property>
                     <style>
                       <class name="flat"/>
                       <class name="circular"/>
@@ -101,7 +101,7 @@
                   <object class="GtkButton" id="gpgdir_open_button">
                     <property name="valign">center</property>
                     <property name="icon-name">go-next-symbolic</property>
-                    <property name="tooltip-text">Show in File Manager</property>
+                    <property name="tooltip-text">Open</property>
                     <style>
                       <class name="flat"/>
                       <class name="circular"/>
@@ -121,7 +121,7 @@
                   <object class="GtkButton" id="hookdir_open_button">
                     <property name="valign">center</property>
                     <property name="icon-name">go-next-symbolic</property>
-                    <property name="tooltip-text">Show in File Manager</property>
+                    <property name="tooltip-text">Open</property>
                     <style>
                       <class name="flat"/>
                       <class name="circular"/>

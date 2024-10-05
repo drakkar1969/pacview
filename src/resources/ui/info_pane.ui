@@ -148,7 +148,7 @@
                                     <child>
                                       <object class="GtkButton" id="files_open_button">
                                         <property name="icon-name">folder-open-symbolic</property>
-                                        <property name="tooltip-text">Show Selected in File Manager</property>
+                                        <property name="tooltip-text">Open</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>
@@ -363,7 +363,7 @@
                                   <child>
                                     <object class="GtkButton" id="cache_open_button">
                                       <property name="icon-name">folder-open-symbolic</property>
-                                      <property name="tooltip-text">Show Selected in File Manager</property>
+                                      <property name="tooltip-text">Open</property>
                                       <style>
                                         <class name="flat"/>
                                         <class name="circular"/>
@@ -478,7 +478,7 @@
                                     <child>
                                       <object class="GtkButton" id="backup_open_button">
                                         <property name="icon-name">folder-open-symbolic</property>
-                                        <property name="tooltip-text">Show Selected in File Manager</property>
+                                        <property name="tooltip-text">Open</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>

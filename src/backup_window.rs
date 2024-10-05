@@ -8,7 +8,7 @@ use glib::clone;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::traits::EnumClassExt;
-use crate::utils::open_file_manager;
+use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------
 // MODULE: BackupWindow
@@ -158,12 +158,19 @@ impl BackupWindow {
             .sync_create()
             .build();
 
-        // Bind backup files count to open/copy button states
-        imp.filter_model.bind_property("n-items", &imp.open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
+        // Bind selected item to open button state
+        imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
+            .transform_to(|_, item: Option<glib::Object>| {
+                if let Some(object) = item.and_downcast::<BackupObject>() {
+                    Some(object.status() != BackupStatus::Error)
+                } else {
+                    Some(false)
+                }
+            })
             .sync_create()
             .build();
 
+        // Bind backup files count to copy button state
         imp.filter_model.bind_property("n-items", &imp.copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .sync_create()
@@ -205,7 +212,7 @@ impl BackupWindow {
                     .and_downcast::<BackupObject>()
                     .expect("Could not downcast to 'BackupObject'");
 
-                open_file_manager(&item.filename());
+                open_with_default_app(&item.filename());
             }
         ));
 
@@ -233,7 +240,9 @@ impl BackupWindow {
         imp.view.connect_activate(clone!(
             #[weak] imp,
             move |_, _| {
-                imp.open_button.emit_clicked();
+                if imp.open_button.is_sensitive() {
+                    imp.open_button.emit_clicked();
+                }
             }
         ));
     }

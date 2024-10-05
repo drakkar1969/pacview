@@ -59,12 +59,16 @@ pub fn date_to_string(date: i64, format: &str) -> String {
 }
 
 //-----------------------------------
-// Open file manager function
+// Open with default app function
 //-----------------------------------
-pub fn open_file_manager(path: &str) {
-    if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-        let path = format!("file://{path}");
+pub fn open_with_default_app(path: &str) {
+    let uri = format!("file://{path}");
 
-        let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
+    if gio::AppInfo::launch_default_for_uri(&uri, None::<&gio::AppLaunchContext>).is_err() {
+        if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
+            let path = format!("file://{path}");
+    
+            let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
+        }
     }
 }
