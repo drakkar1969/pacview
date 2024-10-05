@@ -21,6 +21,8 @@ mod imp {
         #[property(get, set)]
         time: RefCell<String>,
         #[property(get, set)]
+        category: RefCell<String>,
+        #[property(get, set)]
         message: RefCell<String>,
     }
 
@@ -48,11 +50,12 @@ impl LogObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(date: &str, time: &str, message: &str) -> Self {
+    pub fn new(date: &str, time: &str, category: &str, message: &str) -> Self {
         // Build LogObject
         glib::Object::builder()
             .property("date", date)
             .property("time", time)
+            .property("category", category)
             .property("message", message)
             .build()
     }

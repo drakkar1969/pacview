@@ -236,14 +236,14 @@ impl LogWindow {
                         static EXPR: OnceLock<Regex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
-                            Regex::new(r"\[(.+?)T(.+?)\+.+?\] (.+)")
+                            Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
                                 .expect("Regex error")
                         });
 
                         let log_lines: Vec<LogObject> = log.lines().rev()
                             .filter_map(|s| {
                                 expr.captures(s)
-                                    .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3]))
+                                    .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3], &caps[4]))
                             })
                             .collect();
 

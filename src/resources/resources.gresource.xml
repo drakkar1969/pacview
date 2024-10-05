@@ -48,6 +48,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/backup_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/time_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/date_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/log_window/category_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/message_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/package_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/repository_item.ui</file>
