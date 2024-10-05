@@ -324,7 +324,7 @@ impl InfoPane {
         optdepends.iter()
             .map(|dep| {
                 let mut dep = dep.to_string();
-                
+
                 INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
                     if dep.split_once(['<', '>', '=', ':'])
                         .filter(|&(name, _)| installed_pkg_names.contains(name))
@@ -383,7 +383,7 @@ impl InfoPane {
 
         // Bind files count to files header label
         imp.files_filter_model.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| 
+            .transform_to(move |_, n_items: u32|
                 Some(format!("Files ({n_items})"))
             )
             .sync_create()
@@ -702,7 +702,7 @@ impl InfoPane {
                 if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
                     let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg_name))
                         .expect("Regex error");
-    
+
                     let log_lines: Vec<gtk::StringObject> = log.lines().rev()
                         .filter_map(|s| {
                             if expr.is_match(s) {
@@ -737,7 +737,7 @@ impl InfoPane {
                                 .flatten()
                                 .filter_map(|path| {
                                     let cache_file = path.display().to_string();
-    
+
                                     // Exclude cache files that include blacklist package names
                                     if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
                                         None
@@ -746,7 +746,7 @@ impl InfoPane {
                                     }
                                 })
                                 .collect();
-    
+
                             imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
                         } else {
                             // Show overlay error label

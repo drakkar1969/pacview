@@ -131,7 +131,7 @@ impl PacViewApplication {
         let quit_action = gio::ActionEntry::builder("quit-app")
             .activate(move |app: &Self, _, _| app.quit())
             .build();
-        
+
         let about_action = gio::ActionEntry::builder("show-about")
             .activate(move |app: &Self, _, _| app.show_about())
             .build();

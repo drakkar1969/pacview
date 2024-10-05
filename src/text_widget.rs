@@ -876,7 +876,7 @@ impl TextWidget {
                                         .map(|start| start + 1)
                                 })
                                 .unwrap_or(0);
-    
+
                             let end = text.get(index..)
                                 .and_then(|s| {
                                     s.bytes()
@@ -884,10 +884,10 @@ impl TextWidget {
                                         .map(|end| end + index)
                                 })
                                 .unwrap_or(text.len());
-    
+
                             imp.selection_start.set(start.to_u32());
                             imp.selection_end.set(end.to_u32());
-    
+
                             imp.draw_area.queue_draw();
                         }
                     } else if n == 3 {

@@ -626,7 +626,6 @@ impl PacViewWindow {
         // Search bar changed signal
         imp.search_bar.connect_closure("changed", false, closure_local!(
             #[watch(rename_to = window)] self,
-            
             move |_: SearchBar, search_term: &str, mode: SearchMode, prop: SearchProp| {
                 window.imp().package_view.set_search_filter(search_term, mode, prop);
             }
@@ -884,7 +883,7 @@ impl PacViewWindow {
                 #[strong] pacman_config,
                 move || {
                     let mut aur_names: HashSet<String> = HashSet::new();
-    
+
                     // Load AUR package names from file
                     if let Some(aur_file) = aur_file {
                         if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
@@ -893,24 +892,24 @@ impl PacViewWindow {
                                 .collect();
                         };
                     }
-    
+
                     // Load pacman database packages
                     let mut data_list: Vec<PkgData> = vec![];
-    
+
                     if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                         let localdb = handle.localdb();
-    
+
                         // Load sync packages
                         data_list.extend(handle.syncdbs().iter()
                             .flat_map(|db| db.pkgs().iter()
                                 .map(|syncpkg| {
                                     let localpkg = localdb.pkg(syncpkg.name());
-    
+
                                     PkgData::from_pkg(syncpkg, localpkg, None)
                                 })
                             )
                         );
-    
+
                         // Load local packages not in sync databases
                         data_list.extend(localdb.pkgs().iter()
                             .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
@@ -923,11 +922,11 @@ impl PacViewWindow {
                             })
                         );
                     }
-    
+
                     sender.send_blocking(data_list).expect("Could not send through channel");
                 }
             ));
-    
+
             // Attach thread receiver
             glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,
@@ -937,25 +936,25 @@ impl PacViewWindow {
                     while let Ok(data_list) = receiver.recv().await {
                         if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                             let handle_ref = Rc::new(handle);
-    
+
                             let pkg_list: Vec<PkgObject> = data_list.into_iter()
                                 .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
                                 .collect();
-    
+
                             imp.package_view.splice_packages(&pkg_list);
-    
+
                             let installed_pkg_names: HashSet<String> = pkg_list.iter()
                                 .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                                 .map(|pkg| pkg.name())
                                 .collect();
-    
+
                             PKG_SNAPSHOT.replace(pkg_list);
                             INSTALLED_PKG_NAMES.replace(installed_pkg_names);
-    
+
                             imp.package_view.set_loading(false);
-    
+
                             window.get_package_updates();
-    
+
                             if update_aur_file {
                                 window.update_aur_file();
                             }
@@ -1136,10 +1135,10 @@ impl PacViewWindow {
 
             watcher.watcher().watch(&watch_path, RecursiveMode::Recursive).unwrap();
             watcher.cache().add_root(&watch_path, RecursiveMode::Recursive);
-    
+
             // Store watcher
             imp.notify_watcher.set(watcher).unwrap();
-    
+
             // Attach receiver for async channel
             glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,

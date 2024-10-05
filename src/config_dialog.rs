@@ -255,4 +255,3 @@ impl Default for ConfigDialog {
         Self::new()
     }
 }
-    
