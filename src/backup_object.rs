@@ -87,7 +87,9 @@ impl BackupObject {
     //-----------------------------------
     // New function
     //-----------------------------------
-    pub fn new(filename: &str, hash: &str, package: Option<&str>, file_hash: Result<&str, &alpm::ChecksumError>) -> Self {
+    pub fn new(filename: &str, hash: &str, package: Option<&str>) -> Self {
+        let file_hash = alpm::compute_md5sum(filename);
+
         let status = if let Ok(file_hash) = file_hash {
             if file_hash == hash {
                 BackupStatus::Unmodified

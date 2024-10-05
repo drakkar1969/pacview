@@ -263,7 +263,7 @@ impl BackupWindow {
             async move {
                 let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
                     .flat_map(|pkg| { pkg.backup().into_iter()
-                        .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name()), alpm::compute_md5sum(filename.as_str()).as_deref()))
+                        .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name())))
                     })
                     .collect();
 

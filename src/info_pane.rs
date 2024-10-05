@@ -768,7 +768,7 @@ impl InfoPane {
 
             // Populate backup view
             let backup_list: Vec<BackupObject> = pkg.backup().iter()
-                .map(|(filename, hash)| BackupObject::new(filename, hash, None, alpm::compute_md5sum(filename.as_str()).as_deref()))
+                .map(|(filename, hash)| BackupObject::new(filename, hash, None))
                 .collect();
 
             imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
