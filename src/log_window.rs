@@ -216,11 +216,19 @@ impl LogWindow {
 
         self.present();
 
+        // Define local enum
+        enum LogResult {
+            Line(String, String, String, String),
+            Error
+        }
+
         // Spawn thread to populate column view
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            async move {
-                PACMAN_CONFIG.with_borrow(|pacman_config| {
+        let (sender, receiver) = async_channel::bounded(1);
+
+        PACMAN_CONFIG.with_borrow(|pacman_config| {
+            gio::spawn_blocking(clone!(
+                #[strong] pacman_config,
+                move || {
                     if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
                         // Strip ANSI control sequences from log
                         static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
@@ -232,7 +240,7 @@ impl LogWindow {
 
                         let log = ansi_expr.replace_all(&log, "");
 
-                        // Populate column view
+                        // Read log lines and send one by one
                         static EXPR: OnceLock<Regex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
@@ -240,19 +248,37 @@ impl LogWindow {
                                 .expect("Regex error")
                         });
 
-                        let log_lines: Vec<LogObject> = log.lines().rev()
-                            .filter_map(|s| {
-                                expr.captures(s)
-                                    .map(|caps| LogObject::new(&caps[1], &caps[2], &caps[3], &caps[4]))
-                            })
-                            .collect();
+                        for line in log.lines().rev() {
+                            if let Some(line) = expr.captures(line)
+                                .map(|caps| LogResult::Line(caps[1].to_string(), caps[2].to_string(), caps[3].to_string(), caps[4].to_string()))
+                            {
+                                sender.send_blocking(line).expect("Could not send through channel");
+                            }
 
-                        imp.model.extend_from_slice(&log_lines);
+                        }
                     } else {
-                        // Show overlay error label
-                        imp.overlay_label.set_visible(true);
+                        sender.send_blocking(LogResult::Error).expect("Could not send through channel");
                     }
-                })
+                }
+            ));
+        });
+
+        // Attach thread receiver
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            async move {
+                while let Ok(result) = receiver.recv().await {
+                    match result {
+                        // Append log line to column view
+                        LogResult::Line(date, time, category, message) => {
+                            imp.model.append(&LogObject::new(&date, &time, &category, &message));
+                        },
+                        // Show overlay error label
+                        LogResult::Error => {
+                            imp.overlay_label.set_visible(true);
+                        }
+                    };
+                }
             }
         ));
     }
