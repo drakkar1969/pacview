@@ -532,7 +532,7 @@ impl SearchBar {
                 #[weak(rename_to = bar)] self,
                 #[upgrade_or] glib::Propagation::Proceed,
                 move |controller, _, _, state| {
-                    if !bar.enabled() && !(state.contains(gdk::ModifierType::ALT_MASK) ||
+                    if !(bar.enabled() || state.contains(gdk::ModifierType::ALT_MASK) ||
                         state.contains(gdk::ModifierType::CONTROL_MASK)) &&
                         controller.forward(&bar.imp().search_text.get())
                     {
