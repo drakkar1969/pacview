@@ -310,7 +310,7 @@ impl BackupWindow {
                             imp.filter_model.set_filter(Some(&imp.status_filter.get()));
 
                             imp.selection.set_selected(0);
-                            imp.view.scroll_to(0, None, gtk::ListScrollFlags::NONE, None);
+                            imp.view.scroll_to(0, None, gtk::ListScrollFlags::FOCUS, None);
                         }
                     };
                 }
