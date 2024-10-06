@@ -16,6 +16,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;B</property>
+                <property name="title">Show/Hide Sidebar</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;I</property>
                 <property name="title">Show/Hide Info Pane</property>
               </object>

@@ -61,11 +61,20 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
-        pub(super) search_bar: TemplateChild<SearchBar>,
+        pub(super) sidebar_breakpoint: TemplateChild<adw::Breakpoint>,
         #[template_child]
-        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) main_breakpoint: TemplateChild<adw::Breakpoint>,
+        #[template_child]
+        pub(super) sidebar_split_view: TemplateChild<adw::OverlaySplitView>,
+        #[template_child]
+        pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
+
+        #[template_child]
+        pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) sort_button: TemplateChild<adw::SplitButton>,
+        #[template_child]
+        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) infopane_button: TemplateChild<gtk::ToggleButton>,
 
@@ -73,17 +82,16 @@ mod imp {
         pub(super) repo_listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub(super) status_listbox: TemplateChild<gtk::ListBox>,
-
         #[template_child]
         pub(super) status_label: TemplateChild<gtk::Label>,
 
         #[template_child]
-        pub(super) pane: TemplateChild<gtk::Paned>,
-        #[template_child]
         pub(super) package_header_bar: TemplateChild<adw::HeaderBar>,
-
+        #[template_child]
+        pub(super) search_bar: TemplateChild<SearchBar>,
         #[template_child]
         pub(super) package_view: TemplateChild<PackageView>,
+
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
 
@@ -206,10 +214,6 @@ impl PacViewWindow {
         self.set_default_height(gsettings.int("window-height"));
         self.set_maximized(gsettings.boolean("window-maximized"));
 
-        // Load info pane settings
-        imp.info_pane.set_visible(gsettings.boolean("show-infopane"));
-        imp.pane.set_position(gsettings.int("infopane-position"));
-
         // Load preferences
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
@@ -254,10 +258,6 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "window-width", width);
         self.set_gsetting(gsettings, "window-height", height);
         self.set_gsetting(gsettings, "window-maximized", self.is_maximized());
-
-        // Save info pane settings
-        self.set_gsetting(gsettings, "show-infopane", imp.info_pane.is_visible());
-        self.set_gsetting(gsettings, "infopane-position", imp.pane.position());
 
         // Save preferences
         self.set_gsetting(gsettings, "auto-refresh", imp.prefs_dialog.auto_refresh());
@@ -309,16 +309,8 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind search bar delay preference
-        imp.prefs_dialog.bind_property("search-delay", &imp.search_bar.get(), "delay")
-            .sync_create()
-            .build();
-
-        // Set search bar key capture widget
-        imp.search_bar.set_key_capture_widget(imp.package_view.view().upcast());
-
-        // Bind search button state to search bar enabled state
-        imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
+        // Bind sidebar button state to sidebar visibility
+        imp.sidebar_button.bind_property("active", &imp.sidebar_split_view.get(), "show-sidebar")
             .sync_create()
             .bidirectional()
             .build();
@@ -329,17 +321,25 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
-        // Bind view infopane button state to infopane visibility
-        imp.infopane_button.bind_property("active", &imp.info_pane.get(), "visible")
+        // Bind search button state to search bar enabled state
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
             .sync_create()
             .bidirectional()
             .build();
 
-        imp.infopane_button.bind_property("active", &imp.package_header_bar.get(), "show-end-title-buttons")
+        // Bind infopane button state to infopane visibility
+        imp.infopane_button.bind_property("active", &imp.main_split_view.get(), "show-sidebar")
             .sync_create()
             .bidirectional()
-            .invert_boolean()
             .build();
+
+        // Bind search bar delay preference
+        imp.prefs_dialog.bind_property("search-delay", &imp.search_bar.get(), "delay")
+            .sync_create()
+            .build();
+
+        // Set search bar key capture widget
+        imp.search_bar.set_key_capture_widget(imp.package_view.view().upcast());
 
         // Bind package view item count to status label text
         imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
@@ -375,9 +375,13 @@ impl PacViewWindow {
         // Add search actions to window
         self.add_action_entries([start_action, stop_action]);
 
-        // Add infopane visibility property action
-        let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.info_pane.get(), "visible");
+        // Add pane visibility property actions
+        let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.sidebar_split_view.get(), "show-sidebar");
 
+        let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.main_split_view.get(), "show-sidebar");
+
+        // Add pane visibility actions to window
+        self.add_action(&show_sidebar_action);
         self.add_action(&show_infopane_action);
 
         // Add package view refresh action
@@ -537,6 +541,12 @@ impl PacViewWindow {
             Some(gtk::NamedAction::new("win.stop-search"))
         ));
 
+        // Add show sidebar shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>B"),
+            Some(gtk::NamedAction::new("win.show-sidebar"))
+        ));
+
         // Add show infopane shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>I"),
@@ -613,6 +623,52 @@ impl PacViewWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Header sort button clicked signal
+        imp.sort_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.package_view.set_sort_ascending(!imp.package_view.sort_ascending());
+            }
+        ));
+
+        // Repo listbox row activated signal
+        imp.repo_listbox.connect_row_activated(clone!(
+            #[weak] imp,
+            move |_, row| {
+                let repo_id = row
+                    .downcast_ref::<FilterRow>()
+                    .expect("Could not downcast to 'FilterRow'")
+                    .repo_id();
+
+                imp.package_view.set_repo_filter(repo_id.as_deref());
+
+                if imp.sidebar_split_view.is_collapsed() {
+                    imp.sidebar_split_view.set_show_sidebar(false);
+                }
+
+                imp.package_view.view().grab_focus();
+            }
+        ));
+
+        // Status listbox row activated signal
+        imp.status_listbox.connect_row_activated(clone!(
+            #[weak] imp,
+            move |_, row| {
+                let status_id = row
+                    .downcast_ref::<FilterRow>()
+                    .expect("Could not downcast to 'FilterRow'")
+                    .status_id();
+
+                imp.package_view.set_status_filter(status_id);
+
+                if imp.sidebar_split_view.is_collapsed() {
+                    imp.sidebar_split_view.set_show_sidebar(false);
+                }
+
+                imp.package_view.view().grab_focus();
+            }
+        ));
+
         // Search bar enabled signal
         imp.search_bar.connect_closure("enabled", false, closure_local!(
             #[watch(rename_to = window)] self,
@@ -636,44 +692,6 @@ impl PacViewWindow {
             #[watch(rename_to = window)] self,
             move |search_bar: SearchBar, search_term: &str, prop: SearchProp| {
                 window.imp().package_view.search_in_aur(search_bar, search_term, prop);
-            }
-        ));
-
-        // Header sort button clicked signal
-        imp.sort_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.package_view.set_sort_ascending(!imp.package_view.sort_ascending());
-            }
-        ));
-
-        // Repo listbox row activated signal
-        imp.repo_listbox.connect_row_activated(clone!(
-            #[weak] imp,
-            move |_, row| {
-                let repo_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Could not downcast to 'FilterRow'")
-                    .repo_id();
-
-                imp.package_view.set_repo_filter(repo_id.as_deref());
-
-                imp.package_view.view().grab_focus();
-            }
-        ));
-
-        // Status listbox row activated signal
-        imp.status_listbox.connect_row_activated(clone!(
-            #[weak] imp,
-            move |_, row| {
-                let status_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Could not downcast to 'FilterRow'")
-                    .status_id();
-
-                imp.package_view.set_status_filter(status_id);
-
-                imp.package_view.view().grab_focus();
             }
         ));
 

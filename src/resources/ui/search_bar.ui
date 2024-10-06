@@ -5,9 +5,6 @@
     <property name="width-request">400</property>
     <child>
       <object class="GtkRevealer" id="revealer">
-        <style>
-          <class name="view"/>
-        </style>
         <property name="child">
           <object class="GtkBox" id="search_box">
             <property name="css-name">entry</property>

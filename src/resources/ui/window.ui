@@ -2,13 +2,27 @@
 <interface>
   <!--// PacViewWindow template //-->
   <template class="PacViewWindow" parent="AdwApplicationWindow">
-    <property name="default-width">1350</property>
-    <property name="default-height">800</property>
+    <property name="default-width">1400</property>
+    <property name="default-height">840</property>
+    <property name="width-request">600</property>
     <property name="title">PacView</property>
+    <child>
+      <object class="AdwBreakpoint" id="main_breakpoint">
+        <condition>max-width: 1350sp</condition>
+        <setter object="main_split_view" property="collapsed">True</setter>
+      </object>
+    </child>
+    <child>
+      <object class="AdwBreakpoint" id="sidebar_breakpoint">
+        <condition>max-width: 840sp</condition>
+        <setter object="main_split_view" property="collapsed">True</setter>
+        <setter object="sidebar_split_view" property="collapsed">True</setter>
+      </object>
+    </child>
     <property name="content">
-      <object class="AdwOverlaySplitView" id="split_view">
-        <property name="min-sidebar-width">190</property>
-        <property name="max-sidebar-width">250</property>
+      <object class="AdwOverlaySplitView" id="sidebar_split_view">
+        <property name="min-sidebar-width">240</property>
+        <property name="max-sidebar-width">240</property>
         <property name="sidebar">
           <object class="AdwToolbarView" id="sidebar_toolbar_view">
             <child type="top">
@@ -103,22 +117,23 @@
           </object>
         </property>
         <property name="content">
-          <object class="GtkPaned" id="pane">
-            <property name="orientation">horizontal</property>
-            <property name="position">375</property>
-            <property name="shrink-start-child">False</property>
-            <property name="shrink-end-child">False</property>
-            <property name="start-child">
+          <object class="AdwOverlaySplitView" id="main_split_view">
+            <property name="sidebar-position">end</property>
+            <property name="min-sidebar-width">600</property>
+            <property name="sidebar">
+              <object class="InfoPane" id="info_pane">
+              </object>
+            </property>
+            <property name="content">
               <object class="AdwToolbarView" id="package_toolbar_view">
-                <property name="top-bar-style">raised-border</property>
                 <child type="top">
                   <object class="AdwHeaderBar" id="package_header_bar">
                     <property name="show-title">False</property>
-                    <child type="end">
-                      <object class="GtkToggleButton" id="infopane_button">
+                    <child>
+                      <object class="GtkToggleButton" id="sidebar_button">
                         <property name="active">True</property>
-                        <property name="icon-name">view-infopane-symbolic</property>
-                        <property name="tooltip-text">Toggle Info Pane</property>
+                        <property name="icon-name">view-sidebar-symbolic</property>
+                        <property name="tooltip-text">Toggle Sidebar</property>
                       </object>
                     </child>
                     <child>
@@ -126,6 +141,13 @@
                         <property name="icon-name">view-sort-ascending-symbolic</property>
                         <property name="menu-model">sort_menu</property>
                         <property name="tooltip-text">Change Sort Order</property>
+                      </object>
+                    </child>
+                    <child type="end">
+                      <object class="GtkToggleButton" id="infopane_button">
+                        <property name="active">True</property>
+                        <property name="icon-name">view-infopane-symbolic</property>
+                        <property name="tooltip-text">Toggle Info Pane</property>
                       </object>
                     </child>
                     <child type="end">
@@ -146,15 +168,12 @@
                     </child>
                     <child>
                       <object class="PackageView" id="package_view">
+                        <property name="css-name">packageview</property>
                         <property name="vexpand">True</property>
                       </object>
                     </child>
                   </object>
                 </property>
-              </object>
-            </property>
-            <property name="end-child">
-              <object class="InfoPane" id="info_pane">
               </object>
             </property>
           </object>
