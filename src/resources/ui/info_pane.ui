@@ -62,9 +62,6 @@
                             <property name="spacing">10</property>
                             <child>
                               <object class="GtkBox" id="info_header_box">
-                                <style>
-                                  <class name="info-header"/>
-                                </style>
                                 <property name="margin-start">20</property>
                                 <property name="margin-end">20</property>
                                 <property name="spacing">12</property>
@@ -76,6 +73,24 @@
                                     <style>
                                       <class name="title-4"/>
                                     </style>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkBox">
+                                    <property name="hexpand">True</property>
+                                    <property name="halign">end</property>
+                                    <property name="valign">center</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="GtkButton" id="info_copy_button">
+                                        <property name="icon-name">edit-copy-symbolic</property>
+                                        <property name="tooltip-text">Copy Package Information</property>
+                                        <style>
+                                          <class name="flat"/>
+                                          <class name="circular"/>
+                                        </style>
+                                      </object>
+                                    </child>
                                   </object>
                                 </child>
                               </object>
@@ -113,9 +128,6 @@
                             <property name="spacing">16</property>
                             <child>
                               <object class="GtkBox" id="files_header_box">
-                                <style>
-                                  <class name="info-header"/>
-                                </style>
                                 <property name="margin-start">20</property>
                                 <property name="margin-end">20</property>
                                 <property name="spacing">12</property>
@@ -233,9 +245,6 @@
                             <property name="spacing">16</property>
                             <child>
                               <object class="GtkBox" id="log_header_box">
-                                <style>
-                                  <class name="info-header"/>
-                                </style>
                                 <property name="margin-start">20</property>
                                 <property name="margin-end">20</property>
                                 <property name="spacing">12</property>
@@ -338,9 +347,6 @@
                             <property name="spacing">16</property>
                             <child>
                             <object class="GtkBox" id="cache_header_box">
-                                <style>
-                                  <class name="info-header"/>
-                                </style>
                               <property name="margin-start">20</property>
                               <property name="margin-end">20</property>
                               <property name="spacing">12</property>
@@ -453,9 +459,6 @@
                             <property name="spacing">16</property>
                             <child>
                               <object class="GtkBox" id="backup_header_box">
-                                <style>
-                                  <class name="info-header"/>
-                                </style>
                                 <property name="margin-start">20</property>
                                 <property name="margin-end">20</property>
                                 <property name="spacing">12</property>

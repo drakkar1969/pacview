@@ -111,6 +111,8 @@ mod imp {
 
         #[template_child]
         pub(super) info_listbox: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub(super) info_copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
         pub(super) files_header_label: TemplateChild<gtk::Label>,
@@ -168,6 +170,8 @@ mod imp {
         #[template_child]
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
 
+        #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
+        _pkg: RefCell<Option<PkgObject>>,
         #[property(get, set, default = "info", construct)]
         visible_tab: RefCell<String>,
 
@@ -212,6 +216,30 @@ mod imp {
 
     impl WidgetImpl for InfoPane {}
     impl BinImpl for InfoPane {}
+    impl InfoPane {
+        //-----------------------------------
+        // Custom property getters/setters
+        //-----------------------------------
+        pub fn pkg(&self) -> Option<PkgObject> {
+            self.history_selection.borrow().selected_item()
+                .and_downcast::<PkgObject>()
+        }
+
+        pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
+            let hist_model = self.history_selection.borrow().model()
+                .and_downcast::<gio::ListStore>()
+                .expect("Could not downcast to 'ListStore'");
+
+            hist_model.remove_all();
+
+            if let Some(pkg) = pkg {
+                hist_model.append(pkg);
+            }
+
+            self.obj().update_display();
+        }
+
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -465,6 +493,29 @@ impl InfoPane {
     //-----------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Info copy button clicked signal
+        imp.info_copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let mut properties: Vec<String> = vec![];
+
+                let mut child = imp.info_listbox.first_child();
+
+                while let Some(row) = child.and_downcast::<PropertyValue>() {
+                    if !(row.label().is_empty() || row.text().is_empty()) {
+                        properties.push(format!("- **{}** : {}", row.label(), row.text()));
+                    }
+
+                    child = row.next_sibling();
+                }
+
+                let copy_text = properties.join("\n");
+
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
 
         // Files search entry search started signal
         imp.files_search_entry.connect_search_started(|entry| {
@@ -847,28 +898,6 @@ impl InfoPane {
                 self.update_display();
             }
         }
-    }
-
-    //-----------------------------------
-    // Public get/set pkg functions
-    //-----------------------------------
-    pub fn pkg(&self) -> Option<PkgObject> {
-        self.imp().history_selection.borrow().selected_item()
-            .and_downcast::<PkgObject>()
-    }
-
-    pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
-        let hist_model = self.imp().history_selection.borrow().model()
-            .and_downcast::<gio::ListStore>()
-            .expect("Could not downcast to 'ListStore'");
-
-        hist_model.remove_all();
-
-        if let Some(pkg) = pkg {
-            hist_model.append(pkg);
-        }
-
-        self.update_display();
     }
 }
 

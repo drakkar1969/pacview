@@ -57,11 +57,6 @@ image.dim-image {
 	opacity: var(--disabled-opacity);
 }
 
-/* Info pane tab header box */
-box.info-header {
-	min-height: 34px;
-}
-
 /* Info pane property rows */
 .property-value:focus-within {
 	outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
