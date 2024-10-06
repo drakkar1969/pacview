@@ -168,7 +168,7 @@ impl LogWindow {
                 static EXPR: OnceLock<Regex> = OnceLock::new();
 
                 let expr = EXPR.get_or_init(|| {
-                    Regex::new(r"\[ALPM\] installed|removed|upgraded|downgraded .+")
+                    Regex::new(r"^installed|removed|upgraded|downgraded .+")
                         .expect("Regex error")
                 });
 
