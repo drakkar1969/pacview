@@ -488,12 +488,10 @@ impl PackageView {
 
                             imp.aur_cache.replace(aur_cache);
 
-                            search_bar.set_aur_error(false);
-                            search_bar.set_tooltip_text(None);
+                            search_bar.set_aur_error(None);
                         },
                         Err(error) => {
-                            search_bar.set_aur_error(true);
-                            search_bar.set_tooltip_text(Some(&format!("AUR Search Error ({})", error)));
+                            search_bar.set_aur_error(Some(error.to_string()));
                         }
                     }
 

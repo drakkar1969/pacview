@@ -87,9 +87,6 @@ mod imp {
         #[property(get, set, builder(SearchProp::default()))]
         prop: Cell<SearchProp>,
 
-        #[property(get, set = Self::set_aur_error)]
-        aur_error: Cell<bool>,
-
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
 
@@ -173,23 +170,6 @@ mod imp {
     }
 
     impl WidgetImpl for SearchBar {}
-
-    impl SearchBar {
-        //-----------------------------------
-        // Custom AUR error property setter
-        //-----------------------------------
-        fn set_aur_error(&self, aur_error: bool) {
-            let obj = self.obj();
-
-            if aur_error {
-                obj.add_css_class("error");
-            } else {
-                obj.remove_css_class("error");
-            }
-
-            self.aur_error.set(aur_error);
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -207,6 +187,19 @@ impl SearchBar {
     //-----------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //-----------------------------------
+    // Public set AUR error function
+    //-----------------------------------
+    pub fn set_aur_error(&self, aur_error: Option<String>) {
+        if let Some(error_msg) = aur_error {
+            self.add_css_class("error");
+            self.set_tooltip_text(Some(&format!("Error: {}", error_msg)));
+        } else {
+            self.remove_css_class("error");
+            self.set_tooltip_text(None);
+        }
     }
 
     //-----------------------------------
@@ -279,7 +272,7 @@ impl SearchBar {
                 }
 
                 if search_text.text().is_empty() {
-                    bar.set_aur_error(false);
+                    bar.set_aur_error(None::<String>);
 
                     bar.emit_changed_signal();
                     bar.emit_aur_search_signal();
