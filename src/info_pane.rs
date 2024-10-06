@@ -91,7 +91,8 @@ mod imp {
     //-----------------------------------
     // Private structure
     //-----------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::InfoPane)]
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
@@ -167,6 +168,9 @@ mod imp {
         #[template_child]
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
 
+        #[property(get, set, default = "info", construct)]
+        visible_tab: RefCell<String>,
+
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
         pub(super) history_selection: RefCell<gtk::SingleSelection>,
@@ -191,6 +195,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for InfoPane {
         //-----------------------------------
         // Constructor
@@ -379,6 +384,12 @@ impl InfoPane {
         self.add_property(PropID::InstallScript, PropType::Text);
         self.add_property(PropID::SHA256Sum, PropType::Text);
         self.add_property(PropID::MD5Sum, PropType::Text);
+
+        // Bind visible tab property to tab stack
+        self.bind_property("visible-tab", &imp.tab_stack.get(), "visible-child-name")
+            .sync_create()
+            .bidirectional()
+            .build();
 
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));

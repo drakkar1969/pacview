@@ -452,6 +452,9 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
+        // Add info pane set tab action
+        let visible_tab_action = gio::PropertyAction::new("infopane-set-tab", &imp.info_pane.get(), "visible-tab");
+
         // Add info pane prev/next actions
         let prev_action = gio::ActionEntry::builder("infopane-previous")
             .activate(|window: &Self, _, _| {
@@ -466,6 +469,7 @@ impl PacViewWindow {
             .build();
 
         // Add info pane actions to window
+        self.add_action(&visible_tab_action);
         self.add_action_entries([prev_action, next_action]);
 
         // Add show stats window action
@@ -599,6 +603,37 @@ impl PacViewWindow {
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<alt>C"),
             Some(gtk::NamedAction::new("win.copy-package-list"))
+        ));
+
+        // Add infopane set tab shortcuts
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>I"),
+            Some(gtk::NamedAction::new("win.infopane-set-tab")),
+            &"info".to_variant()
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>F"),
+            Some(gtk::NamedAction::new("win.infopane-set-tab")),
+            &"files".to_variant()
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>L"),
+            Some(gtk::NamedAction::new("win.infopane-set-tab")),
+            &"log".to_variant()
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>C"),
+            Some(gtk::NamedAction::new("win.infopane-set-tab")),
+            &"cache".to_variant()
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::with_arguments(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>B"),
+            Some(gtk::NamedAction::new("win.infopane-set-tab")),
+            &"backup".to_variant()
         ));
 
         // Add infopane previous shortcut
