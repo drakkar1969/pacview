@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::window::PKG_SNAPSHOT;
+use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::traits::EnumClassExt;
 use crate::utils::open_with_default_app;
@@ -40,9 +40,13 @@ mod imp {
         #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
+        pub(super) section_sort_model: TemplateChild<gtk::SortListModel>,
+        #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
         #[template_child]
         pub(super) section_factory: TemplateChild<gtk::BuilderListItemFactory>,
     }
@@ -119,7 +123,7 @@ impl BackupWindow {
     }
 
     //-----------------------------------
-    // Setup signals
+    // Setup widgets
     //-----------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
@@ -250,24 +254,66 @@ impl BackupWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self) {
+    pub fn show(&self, pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         self.present();
 
+        // Define local enum
+        enum BackupResult {
+            Backup(String, String, Option<String>, String),
+            End
+        }
+
+        // Disable sorting/filtering
+        imp.section_sort_model.set_section_sorter(None::<&gtk::Sorter>);
+        imp.filter_model.set_filter(None::<&gtk::Filter>);
+
         // Spawn thread to populate column view
+        let pkg_snapshot = pkg_snapshot.to_vec();
+
+        let backup_list: Vec<(String, String, Option<String>)> = pkg_snapshot.iter()
+            .flat_map(|pkg| { pkg.backup().into_iter()
+                .map(|(filename, hash)| (filename, hash, Some(pkg.name())))
+            })
+            .collect();
+
+        let (sender, receiver) = async_channel::bounded(1);
+
+        gio::spawn_blocking(clone!(
+            move || {
+                backup_list.into_iter()
+                    .for_each(|(filename, hash, package)| {
+                        let file_hash = alpm::compute_md5sum(filename.as_str())
+                            .unwrap_or("".to_string());
+
+                        sender.send_blocking(BackupResult::Backup(filename, hash, package, file_hash)).expect("Could not send through channel");
+                    });
+
+                sender.send_blocking(BackupResult::End).expect("Could not send through channel");
+            }
+        ));
+
+        // Attach thread receiver
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {
-                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    let backup_list: Vec<BackupObject> = pkg_snapshot.iter()
-                        .flat_map(|pkg| { pkg.backup().into_iter()
-                            .map(|(filename, hash)| BackupObject::new(&filename, &hash, Some(&pkg.name())))
-                        })
-                        .collect();
+                while let Ok(result) = receiver.recv().await {
+                    match result {
+                        // Append backup to column view
+                        BackupResult::Backup(filename, hash, package, file_hash) => {
+                            imp.model.append(&BackupObject::new(&filename, &hash, package.as_deref(), &file_hash));
+                        },
+                        // Enable sorting/filtering and select first item in column view
+                        BackupResult::End => {
+                            imp.section_sort_model.set_section_sorter(Some(&imp.section_sorter.get()));
+                            imp.filter_model.set_filter(Some(&imp.status_filter.get()));
 
-                    imp.model.extend_from_slice(&backup_list);
-                });
+                            imp.selection.set_selected(0);
+                            imp.view.scroll_to(0, None, gtk::ListScrollFlags::NONE, None);
+                        }
+                    };
+                }
             }
         ));
     }

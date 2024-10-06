@@ -8,7 +8,6 @@ use glib::clone;
 
 use regex::Regex;
 
-use crate::window::PACMAN_CONFIG;
 use crate::log_object::LogObject;
 
 //------------------------------------------------------------------------------
@@ -211,7 +210,7 @@ impl LogWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self) {
+    pub fn show(&self, log_file: &str) {
         let imp = self.imp();
 
         self.present();
@@ -225,43 +224,42 @@ impl LogWindow {
         // Spawn thread to populate column view
         let (sender, receiver) = async_channel::bounded(1);
 
-        PACMAN_CONFIG.with_borrow(|pacman_config| {
-            gio::spawn_blocking(clone!(
-                #[strong] pacman_config,
-                move || {
-                    if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
-                        // Strip ANSI control sequences from log
-                        static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+        let log_file = log_file.to_string();
 
-                        let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
-                                .expect("Regex error")
-                        });
+        gio::spawn_blocking(clone!(
+            move || {
+                if let Ok(log) = fs::read_to_string(log_file) {
+                    // Strip ANSI control sequences from log
+                    static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
-                        let log = ansi_expr.replace_all(&log, "");
+                    let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                        Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
+                            .expect("Regex error")
+                    });
 
-                        // Read log lines and send one by one
-                        static EXPR: OnceLock<Regex> = OnceLock::new();
+                    let log = ansi_expr.replace_all(&log, "");
 
-                        let expr = EXPR.get_or_init(|| {
-                            Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
-                                .expect("Regex error")
-                        });
+                    // Read log lines and send one by one
+                    static EXPR: OnceLock<Regex> = OnceLock::new();
 
-                        for line in log.lines().rev() {
-                            if let Some(line) = expr.captures(line)
-                                .map(|caps| LogResult::Line(caps[1].to_string(), caps[2].to_string(), caps[3].to_string(), caps[4].to_string()))
-                            {
-                                sender.send_blocking(line).expect("Could not send through channel");
-                            }
+                    let expr = EXPR.get_or_init(|| {
+                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
+                            .expect("Regex error")
+                    });
 
+                    for line in log.lines().rev() {
+                        if let Some(line) = expr.captures(line)
+                            .map(|caps| LogResult::Line(caps[1].to_string(), caps[2].to_string(), caps[3].to_string(), caps[4].to_string()))
+                        {
+                            sender.send_blocking(line).expect("Could not send through channel");
                         }
-                    } else {
-                        sender.send_blocking(LogResult::Error).expect("Could not send through channel");
+
                     }
+                } else {
+                    sender.send_blocking(LogResult::Error).expect("Could not send through channel");
                 }
-            ));
-        });
+            }
+        ));
 
         // Attach thread receiver
         glib::spawn_future_local(clone!(
