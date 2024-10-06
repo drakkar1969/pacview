@@ -638,13 +638,13 @@ impl PacViewWindow {
 
         // Add infopane previous shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>Left"),
+            gtk::ShortcutTrigger::parse_string("<ctrl>Left"),
             Some(gtk::NamedAction::new("win.infopane-previous"))
         ));
 
         // Add infopane next shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>Right"),
+            gtk::ShortcutTrigger::parse_string("<ctrl>Right"),
             Some(gtk::NamedAction::new("win.infopane-next"))
         ));
 
