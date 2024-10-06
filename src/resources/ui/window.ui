@@ -126,52 +126,52 @@
             </property>
             <property name="content">
               <object class="AdwToolbarView" id="package_toolbar_view">
+                <property name="top-bar-style">raised</property>
                 <child type="top">
-                  <object class="AdwHeaderBar" id="package_header_bar">
-                    <property name="show-title">False</property>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkToggleButton" id="sidebar_button">
-                        <property name="active">True</property>
-                        <property name="icon-name">view-sidebar-symbolic</property>
-                        <property name="tooltip-text">Toggle Sidebar</property>
+                      <object class="AdwHeaderBar" id="package_header_bar">
+                        <property name="show-title">False</property>
+                        <child>
+                          <object class="GtkToggleButton" id="sidebar_button">
+                            <property name="active">True</property>
+                            <property name="icon-name">view-sidebar-symbolic</property>
+                            <property name="tooltip-text">Toggle Sidebar</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="AdwSplitButton" id="sort_button">
+                            <property name="icon-name">view-sort-ascending-symbolic</property>
+                            <property name="menu-model">sort_menu</property>
+                            <property name="tooltip-text">Change Sort Order</property>
+                          </object>
+                        </child>
+                        <child type="end">
+                          <object class="GtkToggleButton" id="infopane_button">
+                            <property name="active">True</property>
+                            <property name="icon-name">view-infopane-symbolic</property>
+                            <property name="tooltip-text">Toggle Info Pane</property>
+                          </object>
+                        </child>
+                        <child type="end">
+                          <object class="GtkToggleButton" id="search_button">
+                            <property name="active">False</property>
+                            <property name="icon-name">edit-find-symbolic</property>
+                            <property name="tooltip-text">Toggle Search</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
-                      <object class="AdwSplitButton" id="sort_button">
-                        <property name="icon-name">view-sort-ascending-symbolic</property>
-                        <property name="menu-model">sort_menu</property>
-                        <property name="tooltip-text">Change Sort Order</property>
-                      </object>
-                    </child>
-                    <child type="end">
-                      <object class="GtkToggleButton" id="infopane_button">
-                        <property name="active">True</property>
-                        <property name="icon-name">view-infopane-symbolic</property>
-                        <property name="tooltip-text">Toggle Info Pane</property>
-                      </object>
-                    </child>
-                    <child type="end">
-                      <object class="GtkToggleButton" id="search_button">
-                        <property name="active">False</property>
-                        <property name="icon-name">edit-find-symbolic</property>
-                        <property name="tooltip-text">Toggle Search</property>
+                      <object class="SearchBar" id="search_bar">
                       </object>
                     </child>
                   </object>
                 </child>
                 <property name="content">
-                  <object class="GtkBox">
-                    <property name="orientation">vertical</property>
-                    <child>
-                      <object class="SearchBar" id="search_bar">
-                      </object>
-                    </child>
-                    <child>
-                      <object class="PackageView" id="package_view">
-                        <property name="css-name">packageview</property>
-                        <property name="vexpand">True</property>
-                      </object>
-                    </child>
+                  <object class="PackageView" id="package_view">
+                    <property name="vexpand">True</property>
                   </object>
                 </property>
               </object>

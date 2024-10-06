@@ -47,11 +47,6 @@ box.count-indicator label {
 	padding: 0;
 }
 
-/* Package view */
-packageview {
-	border-top: 1px solid var(--border-color);
-}
-
 /* Package view spinner */
 image.spinner.dim-spinner {
 	opacity: var(--dim-opacity);
