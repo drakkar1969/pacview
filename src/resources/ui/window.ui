@@ -141,10 +141,10 @@
                           </object>
                         </child>
                         <child>
-                          <object class="AdwSplitButton" id="sort_button">
-                            <property name="icon-name">view-sort-ascending-symbolic</property>
-                            <property name="menu-model">sort_menu</property>
-                            <property name="tooltip-text">Change Sort Order</property>
+                          <object class="GtkToggleButton" id="search_button">
+                            <property name="active">False</property>
+                            <property name="icon-name">edit-find-symbolic</property>
+                            <property name="tooltip-text">Toggle Search</property>
                           </object>
                         </child>
                         <child type="end">
@@ -155,10 +155,10 @@
                           </object>
                         </child>
                         <child type="end">
-                          <object class="GtkToggleButton" id="search_button">
-                            <property name="active">False</property>
-                            <property name="icon-name">edit-find-symbolic</property>
-                            <property name="tooltip-text">Toggle Search</property>
+                          <object class="AdwSplitButton" id="sort_button">
+                            <property name="icon-name">view-sort-ascending-symbolic</property>
+                            <property name="menu-model">sort_menu</property>
+                            <property name="tooltip-text">Change Sort Order</property>
                           </object>
                         </child>
                       </object>
