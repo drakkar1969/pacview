@@ -197,7 +197,11 @@ impl LogWindow {
                             .downcast::<LogObject>()
                             .expect("Could not downcast to 'LogObject'");
 
-                        format!("[{date} {time}] {message}", date=log.date(), time=log.time(), message=log.message())
+                        format!("[{date} {time}] [{category}] {message}",
+                            date=log.date(),
+                            time=log.time(),
+                            category=log.category(),
+                            message=log.message())
                     })
                     .collect::<Vec<String>>()
                     .join("\n");
