@@ -383,9 +383,7 @@ impl InfoPane {
 
         // Bind files count to files header label
         imp.files_filter_model.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32|
-                Some(format!("Files ({n_items})"))
-            )
+            .transform_to(move |_, n_items: u32| Some(format!("Files ({n_items})")))
             .sync_create()
             .build();
 
@@ -408,9 +406,7 @@ impl InfoPane {
 
         // Bind cache count to cache header label
         imp.cache_selection.bind_property("n-items", &imp.cache_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32|
-                Some(format!("Cache Files ({n_items})"))
-            )
+            .transform_to(move |_, n_items: u32| Some(format!("Cache Files ({n_items})")))
             .sync_create()
             .build();
 
@@ -427,9 +423,7 @@ impl InfoPane {
 
         // Bind backup count to backup header label
         imp.backup_selection.bind_property("n-items", &imp.backup_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32|
-                Some(format!("Backup Files ({n_items})"))
-            )
+            .transform_to(move |_, n_items: u32| Some(format!("Backup Files ({n_items})")))
             .sync_create()
             .build();
 
@@ -711,9 +705,7 @@ impl InfoPane {
         // Get cache blacklist package names
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
             let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
-                .filter(|&name| {
-                    name.starts_with(&pkg_name) && name != &pkg_name
-                })
+                .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
                 .collect();
 
             // Populate cache view
