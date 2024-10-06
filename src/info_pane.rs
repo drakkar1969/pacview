@@ -601,6 +601,166 @@ impl InfoPane {
     }
 
     //-----------------------------------
+    // Display helper functions
+    //-----------------------------------
+    fn update_info_listbox(&self, pkg: &PkgObject) {
+        // Name
+        self.set_string_property(PropID::Name, true, &pkg.name(), None);
+        // Version
+        self.set_string_property(PropID::Version, true, &pkg.version(), if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None});
+        // Description
+        self.set_string_property(PropID::Description, true, &pkg.description(), None);
+        // Package URL
+        let package_url = pkg.package_url();
+        self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
+        // URL
+        self.set_string_property(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
+        // Licenses
+        self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
+        // Status
+        let status = pkg.status();
+        let status_icon = pkg.status_icon();
+        self.set_string_property(PropID::Status, true, if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
+        // Repository
+        self.set_string_property(PropID::Repository, true, &pkg.repository(), None);
+        // Groups
+        self.set_string_property(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
+        // Provides
+        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides(), None);
+        // Depends
+        self.set_vec_property(PropID::Dependencies, true, &pkg.depends(), None);
+        // Optdepends
+        let optdepends = if pkg.flags().intersects(PkgFlags::INSTALLED) {
+            self.installed_optdeps(&pkg.optdepends())
+        } else {
+            pkg.optdepends()
+        };
+        self.set_vec_property(PropID::Optional, !optdepends.is_empty(), &optdepends, None);
+        // Makedepends
+        self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends(), None);
+        // Required by
+        self.set_vec_property(PropID::RequiredBy, true, &pkg.required_by(), None);
+        // Optional for
+        let optional_for = pkg.optional_for();
+        self.set_vec_property(PropID::OptionalFor, !optional_for.is_empty(), &optional_for, None);
+        // Conflicts
+        self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts(), None);
+        // Replaces
+        self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces(), None);
+        // Architecture
+        self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
+        // Packager
+        self.set_string_property(PropID::Packager, true, &pkg.packager(), None);
+        // Build date
+        self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_long(), None);
+        // Install date
+        self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
+        // Download size
+        self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
+        // Installed size
+        self.set_string_property(PropID::InstalledSize, true, &pkg.install_size_string(), None);
+        // Has script
+        self.set_string_property(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
+        // SHA256 sum
+        self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
+        // MD5 sum
+        self.set_string_property(PropID::MD5Sum, !pkg.md5sum().is_empty(), &pkg.md5sum(), None);
+    }
+
+    fn update_files_view(&self, pkg: &PkgObject) {
+        let imp = self.imp();
+
+        let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+            .map(|s| gtk::StringObject::new(s))
+            .collect();
+
+        imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
+    }
+
+    fn update_log_view(&self, pkg: &PkgObject) {
+        let imp = self.imp();
+
+        PACMAN_CONFIG.with_borrow(|pacman_config| {
+            if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
+                let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
+                    .expect("Regex error");
+
+                let log_lines: Vec<gtk::StringObject> = log.lines().rev()
+                    .filter_map(|s| {
+                        if expr.is_match(s) {
+                            Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
+
+                imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
+            } else {
+                // Show overlay error label
+                imp.log_overlay_label.set_visible(true);
+            }
+        });
+    }
+
+    fn update_cache_view(&self, pkg: &PkgObject) {
+        let imp = self.imp();
+
+        let pkg_name = pkg.name();
+
+        // Get cache blacklist package names
+        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+            let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
+                .filter(|&name| {
+                    name.starts_with(&pkg_name) && name != &pkg_name
+                })
+                .collect();
+
+            // Populate cache view
+            PACMAN_CONFIG.with_borrow(|pacman_config| {
+                for dir in &pacman_config.cache_dir {
+                    if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
+                        // Find cache files that include package name
+                        let cache_list: Vec<gtk::StringObject> = paths
+                            .flatten()
+                            .filter_map(|path| {
+                                let cache_file = path.display().to_string();
+
+                                // Exclude cache files that include blacklist package names
+                                if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
+                                    None
+                                } else {
+                                    Some(gtk::StringObject::new(&cache_file))
+                                }
+                            })
+                            .collect();
+
+                        imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+                    } else {
+                        // Show overlay error label
+                        imp.cache_overlay_label.set_visible(true);
+                    }
+                }
+            });
+        });
+    }
+
+    fn update_backup_view(&self, pkg: &PkgObject) {
+        let imp = self.imp();
+
+        let backup_list: Vec<BackupObject> = pkg.backup().iter()
+            .map(|(filename, hash)| {
+                let file_hash = alpm::compute_md5sum(filename.as_str())
+                    .unwrap_or("".to_string());
+
+                BackupObject::new(filename, hash, None, &file_hash)
+            })
+            .collect();
+
+        imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
+    }
+
+    //-----------------------------------
     // Public display functions
     //-----------------------------------
     pub fn update_display(&self) {
@@ -635,148 +795,20 @@ impl InfoPane {
             // Set header bar title
             imp.title_widget.set_title(&pkg.name());
 
-            // Populate info listbox with values
-            // Name
-            self.set_string_property(PropID::Name, true, &pkg.name(), None);
-            // Version
-            self.set_string_property(PropID::Version, true, &pkg.version(), if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None});
-            // Description
-            self.set_string_property(PropID::Description, true, &pkg.description(), None);
-            // Package URL
-            let package_url = pkg.package_url();
-            self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
-            // URL
-            self.set_string_property(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
-            // Licenses
-            self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
-            // Status
-            let status = pkg.status();
-            let status_icon = pkg.status_icon();
-            self.set_string_property(PropID::Status, true, if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
-            // Repository
-            self.set_string_property(PropID::Repository, true, &pkg.repository(), None);
-            // Groups
-            self.set_string_property(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
-            // Provides
-            self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides(), None);
-            // Depends
-            self.set_vec_property(PropID::Dependencies, true, &pkg.depends(), None);
-            // Optdepends
-            let optdepends = if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                self.installed_optdeps(&pkg.optdepends())
-            } else {
-                pkg.optdepends()
-            };
-            self.set_vec_property(PropID::Optional, !optdepends.is_empty(), &optdepends, None);
-            // Makedepends
-            self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends(), None);
-            // Required by
-            self.set_vec_property(PropID::RequiredBy, true, &pkg.required_by(), None);
-            // Optional for
-            let optional_for = pkg.optional_for();
-            self.set_vec_property(PropID::OptionalFor, !optional_for.is_empty(), &optional_for, None);
-            // Conflicts
-            self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts(), None);
-            // Replaces
-            self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces(), None);
-            // Architecture
-            self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
-            // Packager
-            self.set_string_property(PropID::Packager, true, &pkg.packager(), None);
-            // Build date
-            self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_long(), None);
-            // Install date
-            self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
-            // Download size
-            self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
-            // Installed size
-            self.set_string_property(PropID::InstalledSize, true, &pkg.install_size_string(), None);
-            // Has script
-            self.set_string_property(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
-            // SHA256 sum
-            self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
-            // MD5 sum
-            self.set_string_property(PropID::MD5Sum, !pkg.md5sum().is_empty(), &pkg.md5sum(), None);
-
-            let pkg_name = pkg.name();
+            // Populate info listbox
+            self.update_info_listbox(&pkg);
 
             // Populate files view
-            let files_list: Vec<gtk::StringObject> = pkg.files().iter()
-                .map(|s| gtk::StringObject::new(s))
-                .collect();
-
-            imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
+            self.update_files_view(&pkg);
 
             // Populate log view
-            PACMAN_CONFIG.with_borrow(|pacman_config| {
-                if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
-                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg_name))
-                        .expect("Regex error");
+            self.update_log_view(&pkg);
 
-                    let log_lines: Vec<gtk::StringObject> = log.lines().rev()
-                        .filter_map(|s| {
-                            if expr.is_match(s) {
-                                Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect();
-
-                    imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-                } else {
-                    // Show overlay error label
-                    imp.log_overlay_label.set_visible(true);
-                }
-                });
-
-            // Get cache blacklist package names
-            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-                let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
-                    .filter(|&name| {
-                        name.starts_with(&pkg_name) && name != &pkg_name
-                    })
-                    .collect();
-
-                // Populate cache view
-                PACMAN_CONFIG.with_borrow(|pacman_config| {
-                    for dir in &pacman_config.cache_dir {
-                        if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
-                            // Find cache files that include package name
-                            let cache_list: Vec<gtk::StringObject> = paths
-                                .flatten()
-                                .filter_map(|path| {
-                                    let cache_file = path.display().to_string();
-
-                                    // Exclude cache files that include blacklist package names
-                                    if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
-                                        None
-                                    } else {
-                                        Some(gtk::StringObject::new(&cache_file))
-                                    }
-                                })
-                                .collect();
-
-                            imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
-                        } else {
-                            // Show overlay error label
-                            imp.cache_overlay_label.set_visible(true);
-                        }
-                    }
-                });
-            });
+            // Populate cache view
+            self.update_cache_view(&pkg);
 
             // Populate backup view
-            let backup_list: Vec<BackupObject> = pkg.backup().iter()
-                .map(|(filename, hash)| {
-                    let file_hash = alpm::compute_md5sum(filename.as_str())
-                        .unwrap_or("".to_string());
-
-                    BackupObject::new(filename, hash, None, &file_hash)
-                })
-                .collect();
-
-            imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
+            self.update_backup_view(&pkg);
         }
     }
 
