@@ -170,7 +170,7 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
-            <property name="title">Search</property>
+            <property name="title">Package Search</property>
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;F</property>
