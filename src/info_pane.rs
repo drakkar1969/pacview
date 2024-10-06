@@ -303,7 +303,9 @@ impl InfoPane {
     //-----------------------------------
     fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
         if let Some(property_value) = self.imp().property_map.borrow().get(&id) {
-            property_value.set_visible(visible);
+            if property_value.is_visible() != visible {
+                property_value.set_visible(visible);
+            }
 
             if visible {
                 property_value.set_label(id.enum_value().name());
@@ -762,10 +764,18 @@ impl InfoPane {
         imp.title_widget.set_title("");
 
         // Set info stack visible page
-        imp.info_stack.set_visible_child_name(if self.pkg().is_some() {"properties"} else {"empty"});
+        let visible_stack_page = glib::GString::from(if self.pkg().is_some() {"properties"} else {"empty"});
+
+        if imp.info_stack.visible_child_name() != Some(visible_stack_page.clone()) {
+            imp.info_stack.set_visible_child_name(&visible_stack_page);
+        }
 
         // Set tab switcher sensitivity
-        imp.tab_switcher.set_sensitive(self.pkg().is_some());
+        let switcher_sensitive = self.pkg().is_some();
+
+        if imp.tab_switcher.is_sensitive() != switcher_sensitive {
+            imp.tab_switcher.set_sensitive(switcher_sensitive);
+        }
 
         // Set header prev/next button states
         let hist_sel = imp.history_selection.borrow();
