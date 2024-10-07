@@ -3,7 +3,7 @@
   <!--// LogWindow template //-->
   <template class="LogWindow" parent="AdwWindow">
     <property name="default-width">850</property>
-    <property name="default-height">650</property>
+    <property name="default-height">640</property>
     <property name="modal">True</property>
     <property name="title"></property>
     <property name="content">
@@ -20,7 +20,7 @@
             <property name="orientation">vertical</property>
             <property name="margin-start">24</property>
             <property name="margin-end">24</property>
-            <property name="margin-top">12</property>
+            <property name="margin-top">6</property>
             <property name="margin-bottom">24</property>
             <property name="spacing">16</property>
             <child>
