@@ -499,7 +499,7 @@ impl InfoPane {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut properties: Vec<String> = vec![];
+                let mut properties: Vec<String> = vec!["### Package Information\n".to_string()];
 
                 let mut child = imp.info_listbox.first_child();
 
