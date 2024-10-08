@@ -394,7 +394,8 @@ impl PkgObject {
             format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
                 repo=self.repository(),
                 arch=self.architecture(),
-                name=self.name())
+                name=self.name()
+            )
         } else if &self.repository() == "aur" {
             format!("https://aur.archlinux.org/packages/{name}", name=self.name())
         } else {
@@ -428,7 +429,9 @@ impl PkgObject {
         let mut files: Vec<String> = vec![];
 
         if let Ok(pkg) = self.pkg_from_handle() {
-            files.extend(pkg.files().files().iter().map(|file| format!("/{}", file.name())));
+            files.extend(pkg.files().files().iter()
+                .map(|file| format!("/{}", file.name())));
+
             files.sort_unstable();
         }
 
@@ -441,6 +444,7 @@ impl PkgObject {
         if let Ok(pkg) = self.pkg_from_handle() {
             backups.extend(pkg.backup().iter()
                 .map(|bck| (format!("/{}", bck.name()), bck.hash().to_string())));
+
             backups.sort_unstable_by(|(a_file, _), (b_file, _)| a_file.partial_cmp(b_file).unwrap());
         }
 

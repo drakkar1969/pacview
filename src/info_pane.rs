@@ -654,7 +654,10 @@ impl InfoPane {
 
                 copy_text.push_str(&imp.backup_model.iter::<BackupObject>().flatten()
                     .map(|item| {
-                        format!("{filename}|{status}", filename=item.filename(), status=item.status_text())
+                        format!("{filename}|{status}",
+                            filename=item.filename(),
+                            status=item.status_text()
+                        )
                     })
                     .collect::<Vec<String>>()
                     .join("\n"));

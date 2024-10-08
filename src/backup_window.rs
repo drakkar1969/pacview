@@ -157,7 +157,9 @@ impl BackupWindow {
 
                 let section_len = section_map.len();
 
-                Some(format!("{n_items} files in {section_len} package{}", if section_len != 1 {"s"} else {""}))
+                Some(format!("{n_items} files in {section_len} package{}",
+                    if section_len != 1 {"s"} else {""}
+                ))
             })
             .sync_create()
             .build();
@@ -240,11 +242,17 @@ impl BackupWindow {
                         let backup_package = backup.package().unwrap_or("None".to_string());
 
                         if backup_package != package {
-                            line.push_str(&format!("|**{package}**||\n", package=backup_package));
+                            line.push_str(&format!("|**{package}**||\n",
+                                package=backup_package
+                            ));
+
                             package = backup_package;
                         }
 
-                        line.push_str(&format!("|{filename}|{status}|", filename=backup.filename(), status=backup.status_text()));
+                        line.push_str(&format!("|{filename}|{status}|",
+                            filename=backup.filename(),
+                            status=backup.status_text()
+                        ));
 
                         line
                     })

@@ -833,7 +833,12 @@ impl PacViewWindow {
         for f in flags.values() {
             let flag = PkgFlags::from_bits_truncate(f.value());
 
-            let row = FilterRow::new(&format!("status-{}-symbolic", f.nick()), f.name(), None, flag);
+            let row = FilterRow::new(
+                &format!("status-{}-symbolic", f.nick()),
+                f.name(),
+                None,
+                flag
+            );
 
             imp.status_listbox.append(&row);
 

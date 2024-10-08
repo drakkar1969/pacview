@@ -539,7 +539,11 @@ impl PackageView {
                     .downcast::<PkgObject>()
                     .expect("Could not downcast to 'PkgObject'");
 
-                format!("{repo}/{name}-{version}", repo=pkg.repository(), name=pkg.name(), version=pkg.version())
+                format!("{repo}/{name}-{version}",
+                    repo=pkg.repository(),
+                    name=pkg.name(),
+                    version=pkg.version()
+                )
             })
             .collect::<Vec<String>>()
             .join("\n")
