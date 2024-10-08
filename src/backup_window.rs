@@ -225,16 +225,31 @@ impl BackupWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = imp.selection.iter::<glib::Object>().flatten()
+                let mut copy_text = "## Backup Files\n|Filename|Status|\n|---|---|\n".to_string();
+
+                let mut package = "".to_string();
+
+                copy_text.push_str(&imp.selection.iter::<glib::Object>().flatten()
                     .map(|item| {
                         let backup = item
                             .downcast::<BackupObject>()
                             .expect("Could not downcast to 'BackupObject'");
 
-                        format!("{package} => {filename} ({status})", package=backup.package().unwrap_or("None".to_string()), filename=backup.filename(), status=backup.status_text())
+                        let mut line = "".to_string();
+
+                        let backup_package = backup.package().unwrap_or("None".to_string());
+
+                        if backup_package != package {
+                            line.push_str(&format!("|**{package}**||\n", package=backup_package));
+                            package = backup_package;
+                        }
+
+                        line.push_str(&format!("|{filename}|{status}|", filename=backup.filename(), status=backup.status_text()));
+
+                        line
                     })
                     .collect::<Vec<String>>()
-                    .join("\n");
+                    .join("\n"));
 
                 window.clipboard().set_text(&copy_text);
             }
