@@ -1,6 +1,7 @@
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
+use glib::clone;
 
 use titlecase::titlecase;
 
@@ -21,7 +22,14 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/stats_window.ui")]
     pub struct StatsWindow {
         #[template_child]
+        pub(super) copy_button: TemplateChild<gtk::Button>,
+
+        #[template_child]
+        pub(super) view: TemplateChild<gtk::ColumnView>,
+        #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
+        #[template_child]
+        pub(super) selection: TemplateChild<gtk::NoSelection>,
     }
 
     //-----------------------------------
@@ -57,7 +65,19 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for StatsWindow {}
+    impl ObjectImpl for StatsWindow {
+        //-----------------------------------
+        // Constructor
+        //-----------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_widgets();
+            obj.setup_signals();
+        }
+    }
     impl WidgetImpl for StatsWindow {}
     impl WindowImpl for StatsWindow {}
     impl AdwWindowImpl for StatsWindow {}
@@ -80,6 +100,47 @@ impl StatsWindow {
         glib::Object::builder()
             .property("transient-for", parent)
             .build()
+    }
+
+    //-----------------------------------
+    // Setup widgets
+    //-----------------------------------
+    fn setup_widgets(&self) {
+        // Set initial focus on view
+        self.imp().view.grab_focus();
+    }
+
+    //-----------------------------------
+    // Setup signals
+    //-----------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Copy button clicked signal
+        imp.copy_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            move |_| {
+                let mut copy_text = format!("## Package Statistics\n|Repository|Packages|Installed|Installed Size|\n|---|---|---|---|\n").to_string();
+
+                copy_text.push_str(&imp.selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        let stat = item
+                            .downcast::<StatsObject>()
+                            .expect("Could not downcast to 'StatsObject'");
+
+                        format!("|{repository}|{packages}|{installed}|{size}|",
+                            repository=stat.repository(),
+                            packages=stat.packages(),
+                            installed=stat.installed(),
+                            size=stat.size())
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n"));
+
+                window.clipboard().set_text(&copy_text);
+            }
+        ));
     }
 
     //-----------------------------------

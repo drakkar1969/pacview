@@ -47,6 +47,24 @@
                     </style>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="hexpand">True</property>
+                    <property name="halign">end</property>
+                    <property name="valign">center</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkButton" id="copy_button">
+                        <property name="icon-name">edit-copy-symbolic</property>
+                        <property name="tooltip-text">Copy Package Statistics</property>
+                        <style>
+                          <class name="flat"/>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
