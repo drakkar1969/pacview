@@ -343,7 +343,7 @@ impl InfoPane {
             if visible {
                 property_value.set_label(id.enum_value().name());
                 property_value.set_icon(icon);
-                property_value.set_text(value);
+                property_value.set_value(value);
             }
         }
     }
@@ -504,8 +504,8 @@ impl InfoPane {
                 let mut child = imp.info_listbox.first_child();
 
                 while let Some(row) = child.and_downcast::<PropertyValue>() {
-                    if !(row.label().is_empty() || row.text().is_empty()) {
-                        properties.push(format!("- **{}** : {}", row.label(), row.text()));
+                    if !(row.label().is_empty() || row.value().is_empty()) {
+                        properties.push(format!("- **{}** : {}", row.label(), row.value()));
                     }
 
                     child = row.next_sibling();

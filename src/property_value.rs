@@ -30,12 +30,12 @@ mod imp {
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
+        #[property(get, set)]
+        label: RefCell<String>,
         #[property(get, set, nullable)]
         icon: RefCell<Option<String>>,
         #[property(get, set)]
-        label: RefCell<String>,
-        #[property(get, set)]
-        text: RefCell<String>,
+        value: RefCell<String>,
     }
 
     //-----------------------------------
@@ -134,7 +134,7 @@ impl PropertyValue {
             .sync_create()
             .build();
 
-        self.bind_property("text", &imp.text_widget.get(), "text")
+        self.bind_property("value", &imp.text_widget.get(), "text")
             .sync_create()
             .build();
 
