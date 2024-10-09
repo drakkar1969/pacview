@@ -895,32 +895,26 @@ impl TextWidget {
         ));
 
         imp.draw_area.add_controller(click_gesture);
+    }
 
-        // Add popup menu controller
-        let popup_gesture = gtk::GestureClick::builder()
-            .button(gdk::BUTTON_SECONDARY)
-            .build();
+    //-----------------------------------
+    // Public popup menu function
+    //-----------------------------------
+    pub fn popup_menu(&self, x: f64, y: f64) {
+        let imp = self.imp();
 
-        popup_gesture.connect_pressed(clone!(
-            #[weak(rename_to = widget)] self,
-            #[weak] imp,
-            move |_, _, x, y| {
-                // Enable/disable copy action
-                widget.action_set_enabled("text.copy", widget.selected_text().is_some());
+        // Enable/disable copy action
+        self.action_set_enabled("text.copy", self.selected_text().is_some());
 
-                // Show popover menu
-                if let Some(x) = x.to_i32() {
-                    if let Some(y) = y.to_i32() {
-                        let rect = gdk::Rectangle::new(x, y, 0, 0);
+        // Show popover menu
+        if let Some(x) = x.to_i32() {
+            if let Some(y) = y.to_i32() {
+                let rect = gdk::Rectangle::new(x, y, 0, 0);
 
-                        imp.popover_menu.set_pointing_to(Some(&rect));
-                        imp.popover_menu.popup();
-                    }
-                }
+                imp.popover_menu.set_pointing_to(Some(&rect));
+                imp.popover_menu.popup();
             }
-        ));
-
-        imp.draw_area.add_controller(popup_gesture);
+        }
     }
 
     //-----------------------------------

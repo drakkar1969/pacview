@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::{glib, gdk};
+use gtk::{glib, gdk, graphene};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
@@ -216,6 +216,23 @@ impl PropertyValue {
         ));
 
         self.add_controller(click_gesture);
+
+        // Add popup menu controller
+        let popup_gesture = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_SECONDARY)
+            .build();
+
+        popup_gesture.connect_pressed(clone!(
+            #[weak(rename_to = property)] self,
+            #[weak] imp,
+            move |_, _, x, y| {
+                if let Some(point) = property.compute_point(&imp.text_widget.get(), &graphene::Point::new(x as f32, y as f32)) {
+                    imp.text_widget.popup_menu(point.x() as f64, point.y() as f64);
+                }
+            }
+        ));
+
+        self.add_controller(popup_gesture);
 
         // Add key press controller
         let key_controller = gtk::EventControllerKey::new();
