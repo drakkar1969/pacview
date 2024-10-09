@@ -1129,7 +1129,7 @@ impl PacViewWindow {
                 // Show update status/count in sidebar
                 update_row.set_updating(false);
                 update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
-                update_row.set_count(update_map.len() as u32);
+                update_row.set_count(update_map.len() as u64);
                 update_row.set_tooltip_text(error_msg.as_deref());
 
                 // If update row is selected, refresh package status filter

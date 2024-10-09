@@ -35,7 +35,7 @@ mod imp {
         #[property(get, set)]
         text: RefCell<String>,
         #[property(get, set)]
-        count: Cell<u32>,
+        count: Cell<u64>,
         #[property(get, set)]
         updating: Cell<bool>,
 
@@ -119,11 +119,11 @@ impl FilterRow {
             .sync_create()
             .build();
         self.bind_property("count", &imp.count_label.get(), "label")
-            .transform_to(|_, count: u32| Some(count.to_string()))
+            .transform_to(|_, count: u64| Some(count.to_string()))
             .sync_create()
             .build();
         self.bind_property("count", &imp.count_box.get(), "visible")
-            .transform_to(|_, count: u32| Some(count > 0))
+            .transform_to(|_, count: u64| Some(count > 0))
             .sync_create()
             .build();
     }
