@@ -94,6 +94,9 @@ mod imp {
         #[property(get = Self::text, set = Self::set_text)]
         _text: RefCell<String>,
 
+        #[property(get, set)]
+        is_focused: Cell<bool>,
+
         pub(super) pango_layout: OnceCell<pango::Layout>,
 
         pub(super) link_fg_color: Cell<(u16, u16, u16, u16)>,
@@ -283,7 +286,7 @@ mod imp {
         }
 
         pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            let (red, green, blue, alpha) = if self.obj().has_focus() {
+            let (red, green, blue, alpha) = if self.obj().is_focused() {
                 self.sel_focus_bg_color.get()
             } else {
                 self.sel_bg_color.get()
@@ -504,7 +507,7 @@ impl TextWidget {
 
                 let index = imp.focus_link_index.get();
 
-                if widget.has_focus() {
+                if widget.is_focused() {
                     if let Some(link) = index.and_then(|i| link_list.get(i)) {
                         if let Some(link_start) = link.start.to_i32() {
                             if let Some(link_end) = link.end.to_i32() {
@@ -653,11 +656,11 @@ impl TextWidget {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Has focus property notify signal
-        self.connect_has_focus_notify(|widget| {
+        // Is focused property notify signal
+        self.connect_is_focused_notify(|widget| {
             let imp = widget.imp();
 
-            if !widget.has_focus() {
+            if !widget.is_focused() {
                 if !imp.link_list.borrow().is_empty() {
                     imp.focus_link_index.set(Some(0));
                 } else {
@@ -947,66 +950,65 @@ impl TextWidget {
         ));
 
         imp.draw_area.add_controller(popup_gesture);
+    }
 
-        // Add key press controller
-        let key_controller = gtk::EventControllerKey::new();
+    //-----------------------------------
+    // Public key functions
+    //-----------------------------------
+    pub fn key_left(&self) {
+        let imp = self.imp();
 
-        key_controller.connect_key_pressed(clone!(
-            #[weak(rename_to = widget)] self,
-            #[weak] imp,
-            #[upgrade_or] glib::Propagation::Proceed,
-            move |_, key, _, state| {
-                if state == gdk::ModifierType::empty() && (key == gdk::Key::Left || key == gdk::Key::Right || key == gdk::Key::Return || key == gdk::Key::KP_Enter) {
-                    let link_list = imp.link_list.borrow();
+        let link_list = imp.link_list.borrow();
 
-                    let index = imp.focus_link_index.get();
+        let index = imp.focus_link_index.get();
 
-                    if key == gdk::Key::Left {
-                        let new_index = index
-                            .and_then(|i| i.checked_sub(1))
-                            .or_else(|| link_list.len().checked_sub(1));
+        let new_index = index
+            .and_then(|i| i.checked_sub(1))
+            .or_else(|| link_list.len().checked_sub(1));
 
-                        if new_index.is_some()
-                        {
-                            imp.focus_link_index.set(new_index);
+        if new_index.is_some()
+        {
+            imp.focus_link_index.set(new_index);
 
-                            imp.draw_area.queue_draw();
-                        }
-                    }
+            imp.draw_area.queue_draw();
+        }
+    }
 
-                    if key == gdk::Key::Right {
-                        let new_index = index
-                            .and_then(|i| i.checked_add(1))
-                            .filter(|&i| i < link_list.len())
-                            .or_else(|| if link_list.is_empty() { None } else { Some(0) });
+    pub fn key_right(&self) {
+        let imp = self.imp();
 
-                        if new_index.is_some()
-                        {
-                            imp.focus_link_index.set(new_index);
+        let link_list = imp.link_list.borrow();
 
-                            imp.draw_area.queue_draw();
-                        }
-                    }
+        let index = imp.focus_link_index.get();
 
-                    if key == gdk::Key::Return || key == gdk::Key::KP_Enter {
-                        if let Some(focus_link) = index.and_then(|i| link_list.get(i)) {
-                            let link_url = focus_link.text();
+        let new_index = index
+            .and_then(|i| i.checked_add(1))
+            .filter(|&i| i < link_list.len())
+            .or_else(|| if link_list.is_empty() { None } else { Some(0) });
 
-                            // Need to drop to avoid panic
-                            drop(link_list);
+        if new_index.is_some()
+        {
+            imp.focus_link_index.set(new_index);
 
-                            widget.handle_link(&link_url);
-                        }
-                    }
+            imp.draw_area.queue_draw();
+        }
+    }
 
-                    return glib::Propagation::Stop
-                }
+    pub fn key_return(&self) {
+        let imp = self.imp();
 
-                glib::Propagation::Proceed
-            }
-        ));
+        let link_list = imp.link_list.borrow();
 
-        self.add_controller(key_controller);
+        let index = imp.focus_link_index.get();
+
+        if let Some(focus_link) = index.and_then(|i| link_list.get(i)) {
+            let link_url = focus_link.text();
+
+            // Need to drop to avoid panic
+            drop(link_list);
+
+            self.handle_link(&link_url);
+        }
     }
 }
 

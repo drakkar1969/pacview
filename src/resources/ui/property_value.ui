@@ -2,7 +2,6 @@
 <interface>
   <!--// PropertyValue template //-->
   <template class="PropertyValue" parent="GtkListBoxRow">
-    <property name="focusable">false</property>
     <property name="hexpand">true</property>
     <property name="child">
       <object class="GtkBox">

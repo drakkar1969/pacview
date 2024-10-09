@@ -137,6 +137,10 @@ impl PropertyValue {
         self.bind_property("text", &imp.text_widget.get(), "text")
             .sync_create()
             .build();
+
+        self.bind_property("has-focus", &imp.text_widget.get(), "is-focused")
+            .sync_create()
+            .build();
     }
 
     //-----------------------------------
@@ -151,12 +155,42 @@ impl PropertyValue {
             .build();
 
         click_gesture.connect_pressed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = widget)] self,
             move |_, _, _, _| {
-                imp.text_widget.grab_focus();
+                widget.grab_focus();
             }
         ));
 
         self.add_controller(click_gesture);
+
+        // Add key press controller
+        let key_controller = gtk::EventControllerKey::new();
+
+        key_controller.connect_key_pressed(clone!(
+            #[weak] imp,
+            #[upgrade_or] glib::Propagation::Proceed,
+            move |_, key, _, state| {
+                if state == gdk::ModifierType::empty() && (key == gdk::Key::Left || key == gdk::Key::Right || key == gdk::Key::Return || key == gdk::Key::KP_Enter)
+                {
+                    if key == gdk::Key::Left {
+                        imp.text_widget.key_left();
+                    }
+
+                    if key == gdk::Key::Right {
+                        imp.text_widget.key_right();
+                    }
+
+                    if key == gdk::Key::Return || key == gdk::Key::KP_Enter {
+                        imp.text_widget.key_return();
+                    }
+
+                    return glib::Propagation::Stop
+                }
+
+                glib::Propagation::Proceed
+            }
+        ));
+
+        self.add_controller(key_controller);
     }
 }
