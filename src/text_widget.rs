@@ -518,7 +518,7 @@ impl TextWidget {
                                     // Link is all on one line
                                     let start_char_rect = layout.index_to_pos(link_start);
 
-                                    let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
+                                    let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
 
                                     context.move_to(pango::units_to_double(start_x), y);
                                     context.line_to(pango::units_to_double(end_x), y);
@@ -529,12 +529,12 @@ impl TextWidget {
 
                                     let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
 
-                                    let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height());
+                                    let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
 
                                     context.move_to(pango::units_to_double(start_x), start_y);
                                     context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
 
-                                    let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height());
+                                    let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height()) - 1.0;
 
                                     context.move_to(0.0, end_y);
                                     context.line_to(pango::units_to_double(end_x), end_y);
@@ -542,7 +542,7 @@ impl TextWidget {
 
                                 let (red, green, blue, alpha) = imp.link_fg_color.get();
 
-                                context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, alpha as f64 / 65535.0);
+                                context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, (alpha as f64)/2.0 / 65535.0);
 
                                 context.set_line_width(2.0);
                                 context.stroke().unwrap();
