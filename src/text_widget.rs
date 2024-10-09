@@ -162,7 +162,6 @@ mod imp {
 
             obj.setup_layout();
             obj.setup_actions();
-            obj.setup_shortcuts();
             obj.setup_signals();
             obj.setup_controllers();
         }
@@ -620,34 +619,6 @@ impl TextWidget {
         self.insert_action_group("text", Some(&text_group));
 
         text_group.add_action_entries([select_all_action, select_none_action, copy_action]);
-    }
-
-    //-----------------------------------
-    // Setup shortcuts
-    //-----------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-
-        // Add selection shortcuts
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>A"),
-            Some(gtk::NamedAction::new("text.select-all"))
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>A"),
-            Some(gtk::NamedAction::new("text.select-none"))
-        ));
-
-        // Add copy shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>C"),
-            Some(gtk::NamedAction::new("text.copy"))
-        ));
-
-        // Add shortcut controller to window
-        self.add_controller(controller);
     }
 
     //-----------------------------------

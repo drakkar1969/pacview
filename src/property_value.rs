@@ -67,6 +67,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_shortcuts();
             obj.setup_controllers();
         }
 
@@ -144,6 +145,59 @@ impl PropertyValue {
     }
 
     //-----------------------------------
+    // Setup shortcuts
+    //-----------------------------------
+    fn setup_shortcuts(&self) {
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
+
+        // Add select all shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>A"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                let _ = property.imp().text_widget.activate_action("text.select-all", None);
+
+                glib::Propagation::Proceed
+            }))
+        ));
+
+        // Add select none shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>A"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                let _ = property.imp().text_widget.activate_action("text.select-none", None);
+
+                glib::Propagation::Proceed
+            }))
+        ));
+
+        // Add copy shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>C"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                let _ = property.imp().text_widget.activate_action("text.copy", None);
+
+                glib::Propagation::Proceed
+            }))
+        ));
+
+        // Add shortcut controller to property
+        self.add_controller(controller);
+    }
+
+    //-----------------------------------
     // Setup controllers
     //-----------------------------------
     fn setup_controllers(&self) {
@@ -155,9 +209,9 @@ impl PropertyValue {
             .build();
 
         click_gesture.connect_pressed(clone!(
-            #[weak(rename_to = widget)] self,
+            #[weak(rename_to = property)] self,
             move |_, _, _, _| {
-                widget.grab_focus();
+                property.grab_focus();
             }
         ));
 
