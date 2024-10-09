@@ -33,22 +33,12 @@ fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
 }
 
 //------------------------------------------------------------------------------
-// GLOBAL: Pango color Variables
+// GLOBAL: CSS Variables
 //------------------------------------------------------------------------------
 const LINK_FG_CSS: &str = "var(--accent-color)";
 const COMMENT_FG_CSS: &str = "var(--success-color)";
 const SEL_BG_CSS: &str = "color-mix(in srgb, var(--view-fg-color) 10%, transparent)";
 const SEL_FOCUS_BG_CSS: &str = "color-mix(in srgb, var(--accent-bg-color) 30%, transparent)";
-
-thread_local! {
-    static LINK_FG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(LINK_FG_CSS));
-
-    static COMMENT_FG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(COMMENT_FG_CSS));
-
-    static SEL_BG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SEL_BG_CSS));
-
-    static SEL_FOCUS_BG_RGBA: Cell<(u16, u16, u16, u16)> = Cell::new(pango_color_from_css(SEL_FOCUS_BG_CSS));
-}
 
 //------------------------------------------------------------------------------
 // ENUM: PropType
@@ -105,6 +95,11 @@ mod imp {
         _text: RefCell<String>,
 
         pub(super) pango_layout: OnceCell<pango::Layout>,
+
+        pub(super) link_fg_color: Cell<(u16, u16, u16, u16)>,
+        pub(super) comment_fg_color: Cell<(u16, u16, u16, u16)>,
+        pub(super) sel_bg_color: Cell<(u16, u16, u16, u16)>,
+        pub(super) sel_focus_bg_color: Cell<(u16, u16, u16, u16)>,
 
         pub(super) link_list: RefCell<Vec<Tag>>,
         pub(super) comment_list: RefCell<Vec<Tag>>,
@@ -232,7 +227,7 @@ mod imp {
         fn format_links(&self, attr_list: &pango::AttrList) {
             let link_list = &*self.link_list.borrow();
 
-            let (red, green, blue, alpha) = LINK_FG_RGBA.get();
+            let (red, green, blue, alpha) = self.link_fg_color.get();
 
             for link in link_list {
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
@@ -258,7 +253,7 @@ mod imp {
         fn format_comments(&self, attr_list: &pango::AttrList) {
             let comment_list = &*self.comment_list.borrow();
 
-            let (red, green, blue, alpha) = COMMENT_FG_RGBA.get();
+            let (red, green, blue, alpha) = self.comment_fg_color.get();
 
             for comment in comment_list {
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
@@ -289,9 +284,9 @@ mod imp {
 
         pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             let (red, green, blue, alpha) = if self.obj().has_focus() {
-                SEL_FOCUS_BG_RGBA.get()
+                self.sel_focus_bg_color.get()
             } else {
-                SEL_BG_RGBA.get()
+                self.sel_bg_color.get()
             };
 
             let mut attr = pango::AttrColor::new_background(red, green, blue);
@@ -457,8 +452,15 @@ impl TextWidget {
     fn setup_layout(&self) {
         let imp = self.imp();
 
+        // Reset selection
         imp.selection_start.set(None);
         imp.selection_end.set(None);
+
+        // Initialize CSS colors
+        imp.link_fg_color.set(pango_color_from_css(LINK_FG_CSS));
+        imp.comment_fg_color.set(pango_color_from_css(COMMENT_FG_CSS));
+        imp.sel_bg_color.set(pango_color_from_css(SEL_BG_CSS));
+        imp.sel_focus_bg_color.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
 
         // Create pango layout
         let layout = imp.draw_area.create_pango_layout(None);
@@ -478,8 +480,8 @@ impl TextWidget {
                 if let Some(attr_list) = layout.attributes()
                     .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background && attr.type_() != pango::AttrType::BackgroundAlpha))
                 {
-                    if let Some(start) = imp.selection_start.get().and_then(|s| s.to_u32()) {
-                        if let Some(end) = imp.selection_end.get().and_then(|s| s.to_u32()) {
+                    if let Some(start) = imp.selection_start.get() {
+                        if let Some(end) = imp.selection_end.get() {
                             if start != end {
                                 imp.format_selection(&attr_list, start.min(end), start.max(end));
                             }
@@ -535,7 +537,7 @@ impl TextWidget {
                                     context.line_to(pango::units_to_double(end_x), end_y);
                                 }
 
-                                let (red, green, blue, alpha) = LINK_FG_RGBA.get();
+                                let (red, green, blue, alpha) = imp.link_fg_color.get();
 
                                 context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, alpha as f64 / 65535.0);
 
@@ -673,10 +675,10 @@ impl TextWidget {
             #[weak] imp,
             move |_| {
                 // Update pango color variables
-                LINK_FG_RGBA.set(pango_color_from_css(LINK_FG_CSS));
-                COMMENT_FG_RGBA.set(pango_color_from_css(COMMENT_FG_CSS));
-                SEL_BG_RGBA.set(pango_color_from_css(SEL_BG_CSS));
-                SEL_FOCUS_BG_RGBA.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
+                imp.link_fg_color.set(pango_color_from_css(LINK_FG_CSS));
+                imp.comment_fg_color.set(pango_color_from_css(COMMENT_FG_CSS));
+                imp.sel_bg_color.set(pango_color_from_css(SEL_BG_CSS));
+                imp.sel_focus_bg_color.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
 
                 // Format pango layout text
                 imp.do_format();
@@ -690,8 +692,8 @@ impl TextWidget {
             #[weak] imp,
             move |_| {
                 // Update pango color variables that depend on accent color
-                LINK_FG_RGBA.set(pango_color_from_css(LINK_FG_CSS));
-                SEL_FOCUS_BG_RGBA.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
+                imp.link_fg_color.set(pango_color_from_css(LINK_FG_CSS));
+                imp.sel_focus_bg_color.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
 
                 // Format pango layout text
                 imp.do_format();
@@ -810,8 +812,6 @@ impl TextWidget {
                     }
 
                     imp.is_selecting.set(true);
-
-                    widget.grab_focus();
                 }
             }
         ));
