@@ -292,7 +292,7 @@ impl BackupWindow {
         imp.section_sort_model.set_section_sorter(None::<&gtk::Sorter>);
         imp.filter_model.set_filter(None::<&gtk::Filter>);
 
-        // Spawn thread to populate column view
+        // Get backup list
         let pkg_snapshot = pkg_snapshot.to_vec();
 
         let backup_list: Vec<(String, String, Option<String>)> = pkg_snapshot.iter()
@@ -301,17 +301,17 @@ impl BackupWindow {
             })
             .collect();
 
+        // Spawn thread to populate column view
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(clone!(
             move || {
-                backup_list.into_iter()
-                    .for_each(|(filename, hash, package)| {
-                        let file_hash = alpm::compute_md5sum(filename.as_str())
-                            .unwrap_or("".to_string());
+                for (filename, hash, package) in backup_list {
+                    let file_hash = alpm::compute_md5sum(filename.as_str())
+                        .unwrap_or("".to_string());
 
-                        sender.send_blocking(BackupResult::Backup(filename, hash, package, file_hash)).expect("Could not send through channel");
-                    });
+                    sender.send_blocking(BackupResult::Backup(filename, hash, package, file_hash)).expect("Could not send through channel");
+                }
 
                 sender.send_blocking(BackupResult::End).expect("Could not send through channel");
             }
