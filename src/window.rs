@@ -1001,13 +1001,13 @@ impl PacViewWindow {
 
                             imp.package_view.splice_packages(&pkg_list);
 
-                            let installed_pkg_names: HashSet<String> = pkg_list.iter()
+                            INSTALLED_PKG_NAMES.replace(pkg_list.iter()
                                 .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                                 .map(|pkg| pkg.name())
-                                .collect();
+                                .collect()
+                            );
 
                             PKG_SNAPSHOT.replace(pkg_list);
-                            INSTALLED_PKG_NAMES.replace(installed_pkg_names);
 
                             imp.package_view.set_loading(false);
 
