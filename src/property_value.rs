@@ -170,21 +170,24 @@ impl PropertyValue {
             #[weak] imp,
             #[upgrade_or] glib::Propagation::Proceed,
             move |_, key, _, state| {
-                if state == gdk::ModifierType::empty() && (key == gdk::Key::Left || key == gdk::Key::Right || key == gdk::Key::Return || key == gdk::Key::KP_Enter)
-                {
+                if state == gdk::ModifierType::empty() {
                     if key == gdk::Key::Left {
                         imp.text_widget.key_left();
+
+                        return glib::Propagation::Stop
                     }
 
                     if key == gdk::Key::Right {
                         imp.text_widget.key_right();
+
+                        return glib::Propagation::Stop
                     }
 
                     if key == gdk::Key::Return || key == gdk::Key::KP_Enter {
                         imp.text_widget.key_return();
-                    }
 
-                    return glib::Propagation::Stop
+                        return glib::Propagation::Stop
+                    }
                 }
 
                 glib::Propagation::Proceed
