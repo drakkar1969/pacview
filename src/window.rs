@@ -752,6 +752,71 @@ impl PacViewWindow {
     }
 
     //-----------------------------------
+    // Download AUR names helper function
+    //-----------------------------------
+    fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
+        tokio_runtime().spawn(clone!(
+            #[strong] file,
+            async move {
+                let url = "https://aur.archlinux.org/packages.gz";
+
+                if let Ok(response) = reqwest::get(url).await {
+                    if let Ok(bytes) = response.bytes().await {
+                        let mut decoder = GzDecoder::new(&bytes[..]);
+
+                        let mut gz_string = String::new();
+
+                        if decoder.read_to_string(&mut gz_string).is_ok() {
+                            file.replace_contents(
+                                gz_string.as_bytes(),
+                                None,
+                                false,
+                                gio::FileCreateFlags::REPLACE_DESTINATION,
+                                None::<&gio::Cancellable>
+                            ).unwrap_or_default();
+                        }
+                    }
+                }
+
+                if let Some(sender) = sender {
+                    sender.send(()).await.expect("Could not send through channel");
+                }
+            }
+        ));
+    }
+
+    //-----------------------------------
+    // Check AUR file helper function
+    //-----------------------------------
+    fn check_aur_file(&self) {
+        let imp = self.imp();
+
+        let aur_file = &*imp.aur_file.borrow();
+
+        // If AUR package names file does not exist, download it
+        if let Some(aur_file) = aur_file {
+            if !aur_file.query_exists(None::<&gio::Cancellable>) {
+                let (sender, receiver) = async_channel::bounded(1);
+
+                self.download_aur_names(aur_file, Some(sender));
+
+                glib::spawn_future_local(clone!(
+                    #[weak(rename_to = window)] self,
+                    async move {
+                        while let Ok(()) = receiver.recv().await {
+                            window.load_packages(false);
+                        }
+                    }
+                ));
+            } else {
+                self.load_packages(true);
+            }
+        } else {
+            self.load_packages(true);
+        }
+    }
+
+    //-----------------------------------
     // Setup alpm
     //-----------------------------------
     fn setup_alpm(&self, is_init: bool) {
@@ -856,71 +921,6 @@ impl PacViewWindow {
             else if flag == PkgFlags::UPDATES {
                 imp.update_row.replace(row);
             }
-        }
-    }
-
-    //-----------------------------------
-    // Download AUR names helper function
-    //-----------------------------------
-    fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
-        tokio_runtime().spawn(clone!(
-            #[strong] file,
-            async move {
-                let url = "https://aur.archlinux.org/packages.gz";
-
-                if let Ok(response) = reqwest::get(url).await {
-                    if let Ok(bytes) = response.bytes().await {
-                        let mut decoder = GzDecoder::new(&bytes[..]);
-
-                        let mut gz_string = String::new();
-
-                        if decoder.read_to_string(&mut gz_string).is_ok() {
-                            file.replace_contents(
-                                gz_string.as_bytes(),
-                                None,
-                                false,
-                                gio::FileCreateFlags::REPLACE_DESTINATION,
-                                None::<&gio::Cancellable>
-                            ).unwrap_or_default();
-                        }
-                    }
-                }
-
-                if let Some(sender) = sender {
-                    sender.send(()).await.expect("Could not send through channel");
-                }
-            }
-        ));
-    }
-
-    //-----------------------------------
-    // Setup alpm: check AUR file
-    //-----------------------------------
-    fn check_aur_file(&self) {
-        let imp = self.imp();
-
-        let aur_file = &*imp.aur_file.borrow();
-
-        // If AUR package names file does not exist, download it
-        if let Some(aur_file) = aur_file {
-            if !aur_file.query_exists(None::<&gio::Cancellable>) {
-                let (sender, receiver) = async_channel::bounded(1);
-
-                self.download_aur_names(aur_file, Some(sender));
-
-                glib::spawn_future_local(clone!(
-                    #[weak(rename_to = window)] self,
-                    async move {
-                        while let Ok(()) = receiver.recv().await {
-                            window.load_packages(false);
-                        }
-                    }
-                ));
-            } else {
-                self.load_packages(true);
-            }
-        } else {
-            self.load_packages(true);
         }
     }
 
