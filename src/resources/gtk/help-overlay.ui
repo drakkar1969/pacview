@@ -145,6 +145,24 @@
             <property name="title">Info Pane Property</property>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;A</property>
+                <property name="title">Select All</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;A</property>
+                <property name="title">Select None</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;C</property>
+                <property name="title">Copy Value</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">Left</property>
                 <property name="title">Previous Link</property>
               </object>
