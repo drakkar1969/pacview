@@ -342,13 +342,11 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    if let Some(len) = text.len().to_u32() {
-                        link_list.push(Tag {
-                            text: text.to_string(),
-                            start: 0,
-                            end: len
-                        });
-                    }
+                    link_list.push(Tag {
+                        text: text.to_string(),
+                        start: 0,
+                        end: text.len().to_u32().unwrap()
+                    });
                 },
                 PropType::Packager => {
                     static EXPR: OnceLock<Regex> = OnceLock::new();
@@ -359,15 +357,11 @@ mod imp {
                     });
 
                     if let Some(m) = expr.find(text) {
-                        if let Some(start) = m.start().to_u32() {
-                            if let Some(end) = m.end().to_u32() {
-                                link_list.push(Tag {
-                                    text: format!("mailto:{}", m.as_str()),
-                                    start,
-                                    end
-                                });
-                            }
-                        }
+                        link_list.push(Tag {
+                            text: format!("mailto:{}", m.as_str()),
+                            start: m.start().to_u32().unwrap(),
+                            end: m.end().to_u32().unwrap()
+                        });
                     }
                 },
                 PropType::LinkList => {
@@ -382,29 +376,21 @@ mod imp {
                         });
 
                         for m in expr.find_iter(text).flatten() {
-                            if let Some(start) = m.start().to_u32() {
-                                if let Some(end) = m.end().to_u32() {
-                                    link_list.push(Tag {
-                                        text: format!("pkg://{}", m.as_str()),
-                                        start,
-                                        end
-                                    });
-                                }
-                            }
+                            link_list.push(Tag {
+                                text: format!("pkg://{}", m.as_str()),
+                                start: m.start().to_u32().unwrap(),
+                                end: m.end().to_u32().unwrap()
+                            });
                         }
 
                         let indices = text.match_indices(" [INSTALLED]");
 
                         for (i, s) in indices {
-                            if let Some(start) = i.to_u32() {
-                                if let Some(end) = (start as usize + s.len()).to_u32() {
-                                    comment_list.push(Tag {
-                                        text: s.to_string(),
-                                        start,
-                                        end
-                                    });
-                                }
-                            }
+                            comment_list.push(Tag {
+                                text: s.to_string(),
+                                start: i.to_u32().unwrap(),
+                                end: (i.to_usize().unwrap() + s.len()).to_u32().unwrap()
+                            });
                         }
                     }
                 },
@@ -482,11 +468,10 @@ impl TextWidget {
                 if let Some(attr_list) = layout.attributes()
                     .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background && attr.type_() != pango::AttrType::BackgroundAlpha))
                 {
-                    if let Some(start) = imp.selection_start.get() {
-                        if let Some(end) = imp.selection_end.get() {
-                            if start != end {
-                                imp.format_selection(&attr_list, start.min(end), start.max(end));
-                            }
+                    if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get())
+                    {
+                        if start != end {
+                            imp.format_selection(&attr_list, start.min(end), start.max(end));
                         }
                     }
 
@@ -508,45 +493,44 @@ impl TextWidget {
 
                 if widget.is_focused() {
                     if let Some(link) = index.and_then(|i| link_list.get(i)) {
-                        if let Some(link_start) = link.start.to_i32() {
-                            if let Some(link_end) = link.end.to_i32() {
-                                let (start_n, start_x) = layout.index_to_line_x(link_start, false);
-                                let (end_n, end_x) = layout.index_to_line_x(link_end, false);
+                        let link_start = link.start.to_i32().unwrap();
+                        let link_end = link.end.to_i32().unwrap();
 
-                                if start_n == end_n {
-                                    // Link is all on one line
-                                    let start_char_rect = layout.index_to_pos(link_start);
+                        let (start_n, start_x) = layout.index_to_line_x(link_start, false);
+                        let (end_n, end_x) = layout.index_to_line_x(link_end, false);
 
-                                    let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
+                        if start_n == end_n {
+                            // Link is all on one line
+                            let start_char_rect = layout.index_to_pos(link_start);
 
-                                    context.move_to(pango::units_to_double(start_x), y);
-                                    context.line_to(pango::units_to_double(end_x), y);
-                                } else {
-                                    // Link is split across lines
-                                    let start_char_rect = layout.index_to_pos(link_start);
-                                    let end_char_rect = layout.index_to_pos(link_end);
+                            let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
 
-                                    let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
+                            context.move_to(pango::units_to_double(start_x), y);
+                            context.line_to(pango::units_to_double(end_x), y);
+                        } else {
+                            // Link is split across lines
+                            let start_char_rect = layout.index_to_pos(link_start);
+                            let end_char_rect = layout.index_to_pos(link_end);
 
-                                    let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
+                            let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
 
-                                    context.move_to(pango::units_to_double(start_x), start_y);
-                                    context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
+                            let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
 
-                                    let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height()) - 1.0;
+                            context.move_to(pango::units_to_double(start_x), start_y);
+                            context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
 
-                                    context.move_to(0.0, end_y);
-                                    context.line_to(pango::units_to_double(end_x), end_y);
-                                }
+                            let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height()) - 1.0;
 
-                                let (red, green, blue, alpha) = imp.link_fg_color.get();
-
-                                context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, (alpha as f64)/2.0 / 65535.0);
-
-                                context.set_line_width(2.0);
-                                context.stroke().unwrap();
-                            }
+                            context.move_to(0.0, end_y);
+                            context.line_to(pango::units_to_double(end_x), end_y);
                         }
+
+                        let (red, green, blue, alpha) = imp.link_fg_color.get();
+
+                        context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, (alpha as f64)/2.0 / 65535.0);
+
+                        context.set_line_width(2.0);
+                        context.stroke().unwrap();
                     }
                 }
             }
@@ -559,14 +543,12 @@ impl TextWidget {
     fn selected_text(&self) -> Option<String> {
         let imp = self.imp();
 
-        imp.selection_start.get()
-            .and_then(|start| {
-                imp.selection_end.get()
-                    .and_then(|end| {
-                        self.text().get(start.min(end) as usize..start.max(end) as usize)
-                            .map(|s| s.to_string())
-                    })
-            })
+        if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get()) {
+            self.text().get(start.min(end) as usize..start.max(end) as usize)
+                .map(|s| s.to_string())
+        } else {
+            None
+        }
     }
 
     //-----------------------------------
@@ -840,30 +822,30 @@ impl TextWidget {
                         // Double click: select word under cursor and redraw widget
                         imp.is_clicked.set(true);
 
-                        if let Some(index) = widget.index_at_xy(x, y).to_usize() {
-                            let text = widget.text();
+                        let index = widget.index_at_xy(x, y).to_usize().unwrap();
 
-                            let start = text.get(..index)
-                                .and_then(|s| {
-                                    s.bytes()
-                                        .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                        .map(|start| start + 1)
-                                })
-                                .unwrap_or(0);
+                        let text = widget.text();
 
-                            let end = text.get(index..)
-                                .and_then(|s| {
-                                    s.bytes()
-                                        .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                        .map(|end| end + index)
-                                })
-                                .unwrap_or(text.len());
+                        let start = text.get(..index)
+                            .and_then(|s| {
+                                s.bytes()
+                                    .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                    .map(|start| start + 1)
+                            })
+                            .unwrap_or(0);
 
-                            imp.selection_start.set(start.to_u32());
-                            imp.selection_end.set(end.to_u32());
+                        let end = text.get(index..)
+                            .and_then(|s| {
+                                s.bytes()
+                                    .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                    .map(|end| end + index)
+                            })
+                            .unwrap_or(text.len());
 
-                            imp.draw_area.queue_draw();
-                        }
+                        imp.selection_start.set(start.to_u32());
+                        imp.selection_end.set(end.to_u32());
+
+                        imp.draw_area.queue_draw();
                     } else if n == 3 {
                         // Triple click: select all text and redraw widget
                         imp.is_clicked.set(true);
@@ -907,14 +889,10 @@ impl TextWidget {
         self.action_set_enabled("text.copy", self.selected_text().is_some());
 
         // Show popover menu
-        if let Some(x) = x.to_i32() {
-            if let Some(y) = y.to_i32() {
-                let rect = gdk::Rectangle::new(x, y, 0, 0);
+        let rect = gdk::Rectangle::new(x.to_i32().unwrap(), y.to_i32().unwrap(), 0, 0);
 
-                imp.popover_menu.set_pointing_to(Some(&rect));
-                imp.popover_menu.popup();
-            }
-        }
+        imp.popover_menu.set_pointing_to(Some(&rect));
+        imp.popover_menu.popup();
     }
 
     //-----------------------------------
@@ -925,15 +903,11 @@ impl TextWidget {
 
         let link_list = imp.link_list.borrow();
 
-        let index = imp.focus_link_index.get();
-
-        let new_index = index
+        if let Some(new_index) = imp.focus_link_index.get()
             .and_then(|i| i.checked_sub(1))
-            .or_else(|| link_list.len().checked_sub(1));
-
-        if new_index.is_some()
+            .or_else(|| link_list.len().checked_sub(1))
         {
-            imp.focus_link_index.set(new_index);
+            imp.focus_link_index.set(Some(new_index));
 
             imp.draw_area.queue_draw();
         }
@@ -944,16 +918,12 @@ impl TextWidget {
 
         let link_list = imp.link_list.borrow();
 
-        let index = imp.focus_link_index.get();
-
-        let new_index = index
+        if let Some(new_index) = imp.focus_link_index.get()
             .and_then(|i| i.checked_add(1))
             .filter(|&i| i < link_list.len())
-            .or_else(|| if link_list.is_empty() { None } else { Some(0) });
-
-        if new_index.is_some()
+            .or_else(|| if link_list.is_empty() { None } else { Some(0) })
         {
-            imp.focus_link_index.set(new_index);
+            imp.focus_link_index.set(Some(new_index));
 
             imp.draw_area.queue_draw();
         }
@@ -964,9 +934,9 @@ impl TextWidget {
 
         let link_list = imp.link_list.borrow();
 
-        let index = imp.focus_link_index.get();
-
-        if let Some(focus_link) = index.and_then(|i| link_list.get(i)) {
+        if let Some(focus_link) = imp.focus_link_index.get()
+            .and_then(|i| link_list.get(i))
+        {
             let link_url = focus_link.text();
 
             // Need to drop to avoid panic
