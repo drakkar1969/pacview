@@ -121,7 +121,7 @@ impl StatsWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut copy_text = format!("## Package Statistics\n|Repository|Packages|Installed|Installed Size|\n|---|---|---|---|\n").to_string();
+                let mut copy_text = "## Package Statistics\n|Repository|Packages|Installed|Installed Size|\n|---|---|---|---|\n".to_string();
 
                 copy_text.push_str(&imp.selection.iter::<glib::Object>().flatten()
                     .map(|item| {
