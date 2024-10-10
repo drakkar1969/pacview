@@ -5,6 +5,11 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
+use num::ToPrimitive;
+
+use crate::search_bar::{SearchMode, SearchProp};
+use crate::traits::EnumValueExt;
+
 //------------------------------------------------------------------------------
 // MODULE: PreferencesDialog
 //------------------------------------------------------------------------------
@@ -23,6 +28,10 @@ mod imp {
         #[template_child]
         pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
+        pub(super) search_mode_row: TemplateChild<adw::ComboRow>,
+        #[template_child]
+        pub(super) search_prop_row: TemplateChild<adw::ComboRow>,
+        #[template_child]
         pub(super) search_delay_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) aur_menubutton: TemplateChild<gtk::MenuButton>,
@@ -35,6 +44,10 @@ mod imp {
         auto_refresh: Cell<bool>,
         #[property(get, set)]
         aur_command: RefCell<String>,
+        #[property(get, set, builder(SearchMode::default()))]
+        search_mode: Cell<SearchMode>,
+        #[property(get, set, builder(SearchProp::default()))]
+        search_prop: Cell<SearchProp>,
         #[property(get, set)]
         search_delay: Cell<f64>,
         #[property(get, set)]
@@ -112,6 +125,29 @@ impl PreferencesDialog {
             .sync_create()
             .bidirectional()
             .build();
+
+        self.bind_property("search-mode", &imp.search_mode_row.get(), "selected")
+            .transform_to(|_, mode: SearchMode| {
+                Some(mode.enum_value().value().to_u32().unwrap_or(0))
+            })
+            .transform_from(|_, index: u32| {
+                Some(SearchMode::from_repr(index).unwrap_or(SearchMode::default()))
+            })
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("search-prop", &imp.search_prop_row.get(), "selected")
+            .transform_to(|_, prop: SearchProp| {
+                Some(prop.enum_value().value().to_u32().unwrap_or(0))
+            })
+            .transform_from(|_, index: u32| {
+                Some(SearchProp::from_repr(index).unwrap_or(SearchProp::default()))
+            })
+            .sync_create()
+            .bidirectional()
+            .build();
+
         self.bind_property("search-delay", &imp.search_delay_row.get(), "value")
             .sync_create()
             .bidirectional()
@@ -193,6 +229,8 @@ impl PreferencesDialog {
                             if response == "reset" {
                                 dialog.set_auto_refresh(true);
                                 dialog.set_aur_command("");
+                                dialog.set_search_mode(SearchMode::default());
+                                dialog.set_search_prop(SearchProp::default());
                                 dialog.set_search_delay(150.0);
                                 dialog.set_remember_sort(false);
                             }

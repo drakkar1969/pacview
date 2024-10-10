@@ -8,19 +8,25 @@ use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
 
+use strum::{EnumString, FromRepr};
+
 use crate::search_tag::SearchTag;
 use crate::traits::{EnumValueExt, EnumClassExt};
 
 //------------------------------------------------------------------------------
 // ENUM: SearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr)]
+#[strum(serialize_all = "kebab-case")]
 #[repr(u32)]
 #[enum_type(name = "SearchMode")]
 pub enum SearchMode {
     #[default]
+    #[enum_value(name = "Match all terms")]
     All,
+    #[enum_value(name = "Match any term")]
     Any,
+    #[enum_value(name = "Exact match")]
     Exact,
 }
 
@@ -30,17 +36,25 @@ impl EnumClassExt for SearchMode {}
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr)]
+#[strum(serialize_all = "kebab-case")]
 #[repr(u32)]
 #[enum_type(name = "SearchProp")]
 pub enum SearchProp {
     #[default]
+    #[enum_value(name = "Name")]
     Name,
+    #[enum_value(name = "Name or Description")]
     NameDesc,
+    #[enum_value(name = "Group")]
     Group,
+    #[enum_value(name = "Dependencies")]
     Deps,
+    #[enum_value(name = "Optional Dependencies")]
     Optdeps,
+    #[enum_value(name = "Provides")]
     Provides,
+    #[enum_value(name = "Files")]
     Files,
 }
 
@@ -86,6 +100,10 @@ mod imp {
         mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
         prop: Cell<SearchProp>,
+        #[property(get, set, builder(SearchMode::default()))]
+        default_mode: Cell<SearchMode>,
+        #[property(get, set, builder(SearchProp::default()))]
+        default_prop: Cell<SearchProp>,
 
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
@@ -353,10 +371,13 @@ impl SearchBar {
 
         // Add reset search params action
         let reset_params_action = gio::ActionEntry::builder("reset-params")
-            .activate(|group: &gio::SimpleActionGroup, _, _| {
-                group.activate_action("set-mode", Some(&SearchMode::All.to_variant()));
-                group.activate_action("set-prop", Some(&SearchProp::Name.to_variant()));
-            })
+            .activate(clone!(
+                #[weak(rename_to = bar)] self,
+                move |group: &gio::SimpleActionGroup, _, _| {
+                    group.activate_action("set-mode", Some(&bar.default_mode().to_variant()));
+                    group.activate_action("set-prop", Some(&bar.default_prop().to_variant()));
+                }
+            ))
             .build();
 
         // Add actions to search action group

@@ -217,6 +217,14 @@ impl PacViewWindow {
         // Load preferences
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
+        if let Ok(search_mode) = SearchMode::from_str(&gsettings.string("search-mode")) {
+            imp.prefs_dialog.set_search_mode(search_mode);
+            imp.search_bar.set_mode(search_mode);
+        }
+        if let Ok(search_prop) = SearchProp::from_str(&gsettings.string("search-prop")) {
+            imp.prefs_dialog.set_search_prop(search_prop);
+            imp.search_bar.set_prop(search_prop);
+        }
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
 
@@ -262,6 +270,8 @@ impl PacViewWindow {
         // Save preferences
         self.set_gsetting(gsettings, "auto-refresh", imp.prefs_dialog.auto_refresh());
         self.set_gsetting(gsettings, "aur-update-command", imp.prefs_dialog.aur_command());
+        self.set_gsetting(gsettings, "search-mode", imp.prefs_dialog.search_mode().nick());
+        self.set_gsetting(gsettings, "search-prop", imp.prefs_dialog.search_prop().nick());
         self.set_gsetting(gsettings, "search-delay", imp.prefs_dialog.search_delay());
         self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
 
@@ -331,6 +341,16 @@ impl PacViewWindow {
         imp.infopane_button.bind_property("active", &imp.main_split_view.get(), "show-sidebar")
             .sync_create()
             .bidirectional()
+            .build();
+
+        // Bind search bar default search mode preference
+        imp.prefs_dialog.bind_property("search-mode", &imp.search_bar.get(), "default-mode")
+            .sync_create()
+            .build();
+
+        // Bind search bar default search prop preference
+        imp.prefs_dialog.bind_property("search-prop", &imp.search_bar.get(), "default-prop")
+            .sync_create()
             .build();
 
         // Bind search bar delay preference

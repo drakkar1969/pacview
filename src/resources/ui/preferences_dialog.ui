@@ -30,6 +30,41 @@
                 </child>
               </object>
             </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Search</property>
+            <child>
+              <object class="AdwComboRow" id="search_mode_row">
+                <property name="title">Default Search _Mode</property>
+                <property name="subtitle">Default mode for package search</property>
+                <property name="use-underline">True</property>
+                <property name="model">
+                  <object class="AdwEnumListModel">
+                    <property name="enum-type">SearchMode</property>
+                  </object>
+                </property>
+                <property name="expression">
+                  <lookup type="AdwEnumListItem" name="name"/>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwComboRow" id="search_prop_row">
+                <property name="title">Default Search Propert_y</property>
+                <property name="subtitle">Default property for package search</property>
+                <property name="use-underline">True</property>
+                <property name="model">
+                  <object class="AdwEnumListModel">
+                    <property name="enum-type">SearchProp</property>
+                  </object>
+                </property>
+                <property name="expression">
+                  <lookup type="AdwEnumListItem" name="name"/>
+                </property>
+              </object>
+            </child>
             <child>
               <object class="AdwSpinRow" id="search_delay_row">
                 <property name="title">Search _Delay</property>
