@@ -8,14 +8,14 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Application</property>
             <child>
-              <object class="AdwSwitchRow" id="refresh_switchrow">
+              <object class="AdwSwitchRow" id="auto_refresh_row">
                 <property name="title">Auto _Refresh</property>
                 <property name="subtitle">Refresh window when local pacman database changes</property>
                 <property name="use-underline">True</property>
               </object>
             </child>
             <child>
-              <object class="AdwEntryRow" id="aur_row">
+              <object class="AdwEntryRow" id="aur_command_row">
                 <property name="title">Command to check for _AUR updates (optional)</property>
                 <property name="use-underline">True</property>
                 <child type="suffix">
@@ -31,7 +31,7 @@
               </object>
             </child>
             <child>
-              <object class="AdwSpinRow" id="delay_spinrow">
+              <object class="AdwSpinRow" id="search_delay_row">
                 <property name="title">Search _Delay</property>
                 <property name="subtitle">Delay before search results are displayed (milliseconds)</property>
                 <property name="use-underline">True</property>
@@ -54,7 +54,7 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Package List</property>
             <child>
-              <object class="AdwSwitchRow" id="sort_switchrow">
+              <object class="AdwSwitchRow" id="remember_sort_row">
                 <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package list sort order</property>
                 <property name="use-underline">True</property>
@@ -66,7 +66,7 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Preferences</property>
             <child>
-              <object class="AdwButtonRow" id="reset_button2">
+              <object class="AdwButtonRow" id="reset_button">
                 <property name="title">Reset _Preferences</property>
                 <property name="use-underline">True</property>
                 <style>

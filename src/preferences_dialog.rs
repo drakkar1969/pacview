@@ -19,17 +19,17 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/preferences_dialog.ui")]
     pub struct PreferencesDialog {
         #[template_child]
-        pub(super) refresh_switchrow: TemplateChild<adw::SwitchRow>,
+        pub(super) auto_refresh_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub(super) aur_row: TemplateChild<adw::EntryRow>,
+        pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
-        pub(super) delay_spinrow: TemplateChild<adw::SpinRow>,
+        pub(super) search_delay_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) aur_menubutton: TemplateChild<gtk::MenuButton>,
         #[template_child]
-        pub(super) sort_switchrow: TemplateChild<adw::SwitchRow>,
+        pub(super) remember_sort_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub(super) reset_button2: TemplateChild<adw::ButtonRow>,
+        pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
         #[property(get, set)]
         auto_refresh: Cell<bool>,
@@ -104,26 +104,26 @@ impl PreferencesDialog {
         let imp = self.imp();
 
         // Bind properties to widgets
-        self.bind_property("auto-refresh", &imp.refresh_switchrow.get(), "active")
+        self.bind_property("auto-refresh", &imp.auto_refresh_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();
-        self.bind_property("aur-command", &imp.aur_row.get(), "text")
+        self.bind_property("aur-command", &imp.aur_command_row.get(), "text")
             .sync_create()
             .bidirectional()
             .build();
-        self.bind_property("search-delay", &imp.delay_spinrow.get(), "value")
+        self.bind_property("search-delay", &imp.search_delay_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();
 
-        self.bind_property("remember-sort", &imp.sort_switchrow.get(), "active")
+        self.bind_property("remember-sort", &imp.remember_sort_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();
 
         // Set AUR row tooltip
-        imp.aur_row.set_tooltip_markup(Some(
+        imp.aur_command_row.set_tooltip_markup(Some(
             "The command must return a list of AUR updates in the format:\n\n\
             <tt>package_name current_version -> new_version</tt>"
         ));
@@ -172,7 +172,7 @@ impl PreferencesDialog {
         let imp = self.imp();
 
         // Preferences reset button clicked signal
-        imp.reset_button2.connect_activated(clone!(
+        imp.reset_button.connect_activated(clone!(
             #[weak(rename_to = dialog)] self,
             move |_| {
                 let reset_dialog = adw::AlertDialog::builder()
