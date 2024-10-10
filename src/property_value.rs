@@ -159,7 +159,7 @@ impl PropertyValue {
                     .downcast_ref::<PropertyValue>()
                     .expect("Could not downcast to 'PropertyValue'");
 
-                let _ = property.imp().text_widget.activate_action("text.select-all", None);
+                property.imp().text_widget.activate_action("text.select-all", None).unwrap();
 
                 glib::Propagation::Proceed
             }))
@@ -173,7 +173,7 @@ impl PropertyValue {
                     .downcast_ref::<PropertyValue>()
                     .expect("Could not downcast to 'PropertyValue'");
 
-                let _ = property.imp().text_widget.activate_action("text.select-none", None);
+                property.imp().text_widget.activate_action("text.select-none", None).unwrap();
 
                 glib::Propagation::Proceed
             }))
@@ -187,7 +187,7 @@ impl PropertyValue {
                     .downcast_ref::<PropertyValue>()
                     .expect("Could not downcast to 'PropertyValue'");
 
-                let _ = property.imp().text_widget.activate_action("text.copy", None);
+                property.imp().text_widget.activate_action("text.copy", None).unwrap();
 
                 glib::Propagation::Proceed
             }))
