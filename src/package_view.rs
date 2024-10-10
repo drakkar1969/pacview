@@ -532,7 +532,9 @@ impl PackageView {
     // Public copy list function
     //-----------------------------------
     pub fn copy_list(&self) -> String {
-        self.imp().selection.iter::<glib::Object>()
+        let mut copy_text = "## Package List\n|Package|\n|---|\n".to_string();
+
+        copy_text.push_str(&self.imp().selection.iter::<glib::Object>()
             .flatten()
             .map(|item| {
                 let pkg = item
@@ -546,7 +548,9 @@ impl PackageView {
                 )
             })
             .collect::<Vec<String>>()
-            .join("\n")
+            .join("\n"));
+
+        copy_text
     }
 }
 
