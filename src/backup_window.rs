@@ -308,7 +308,7 @@ impl BackupWindow {
             move || {
                 for (filename, hash, package) in backup_list {
                     let file_hash = alpm::compute_md5sum(filename.as_str())
-                        .unwrap_or("".to_string());
+                        .unwrap_or_default();
 
                     sender.send_blocking(BackupResult::Backup(filename, hash, package, file_hash)).expect("Could not send through channel");
                 }

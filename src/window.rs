@@ -418,7 +418,7 @@ impl PacViewWindow {
                 let status_id = imp.status_listbox.selected_row()
                     .and_downcast::<FilterRow>()
                     .map(|row| row.status_id())
-                    .unwrap_or(PkgFlags::empty());
+                    .unwrap_or_default();
 
                 imp.saved_status_id.set(status_id);
 

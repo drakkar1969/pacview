@@ -86,7 +86,7 @@ impl PkgData {
             };
 
             // Get installed date
-            idate = pkg.install_date().unwrap_or(0);
+            idate = pkg.install_date().unwrap_or_default();
         }
 
         // Build PkgData

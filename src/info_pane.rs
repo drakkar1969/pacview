@@ -826,7 +826,7 @@ impl InfoPane {
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
             .map(|(filename, hash)| {
                 let file_hash = alpm::compute_md5sum(filename.as_str())
-                    .unwrap_or("".to_string());
+                    .unwrap_or_default();
 
                 BackupObject::new(filename, hash, None, &file_hash)
             })
