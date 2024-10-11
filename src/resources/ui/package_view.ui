@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// PackageView template //-->
-  <template class="PackageView" parent="GtkWidget">
+  <template class="PackageView" parent="AdwBin">
     <child>
       <object class="GtkStack" id="stack">
         <child>

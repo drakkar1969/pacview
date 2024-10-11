@@ -98,11 +98,10 @@ mod imp {
     impl ObjectSubclass for PackageView {
         const NAME: &'static str = "PackageView";
         type Type = super::PackageView;
-        type ParentType = gtk::Widget;
+        type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.set_layout_manager_type::<gtk::BoxLayout>();
             klass.rust_template_scope();
         }
 
@@ -142,16 +141,10 @@ mod imp {
             obj.setup_factory();
             obj.setup_signals();
         }
-
-        //-----------------------------------
-        // Destructor
-        //-----------------------------------
-        fn dispose(&self) {
-            self.dispose_template();
-        }
     }
 
     impl WidgetImpl for PackageView {}
+    impl BinImpl for PackageView {}
 }
 
 //------------------------------------------------------------------------------
@@ -159,8 +152,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct PackageView(ObjectSubclass<imp::PackageView>)
-        @extends gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl PackageView {
