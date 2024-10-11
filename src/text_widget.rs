@@ -862,7 +862,7 @@ impl TextWidget {
 
                 // Launch link if any
                 if let Some(link_url) = imp.pressed_link_url.take()
-                    .and_then(|pressed| widget.link_url_at_xy(x, y).filter(|link| link == &pressed))
+                    .filter(|pressed| { widget.link_url_at_xy(x, y).as_ref() == Some(pressed)})
                 {
                     widget.handle_link(&link_url);
                 }
