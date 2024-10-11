@@ -46,25 +46,25 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;S</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;S</property>
                 <property name="title">Show Statistics</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;B</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;B</property>
                 <property name="title">Show Backup Files</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;L</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;L</property>
                 <property name="title">Show Pacman Log</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;P</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;P</property>
                 <property name="title">Show Pacman Config</property>
               </object>
             </child>
@@ -81,13 +81,13 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;C</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
                 <property name="title">Copy List</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;A</property>
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;W</property>
                 <property name="title">Show All Packages</property>
               </object>
             </child>
@@ -98,43 +98,43 @@
             <property name="title">Info Pane</property>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;Left</property>
+                <property name="accelerator">&lt;alt&gt;Left</property>
                 <property name="title">Previous Package</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;Right</property>
+                <property name="accelerator">&lt;alt&gt;Right</property>
                 <property name="title">Next Package</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;I</property>
+                <property name="accelerator">&lt;alt&gt;I</property>
                 <property name="title">View Info Tab</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;F</property>
+                <property name="accelerator">&lt;alt&gt;F</property>
                 <property name="title">View Files Tab</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;L</property>
+                <property name="accelerator">&lt;alt&gt;L</property>
                 <property name="title">View Log Tab</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
+                <property name="accelerator">&lt;alt&gt;C</property>
                 <property name="title">View Cache Tab</property>
               </object>
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;B</property>
+                <property name="accelerator">&lt;alt&gt;B</property>
                 <property name="title">View Backup Tab</property>
               </object>
             </child>

@@ -589,82 +589,82 @@ impl PacViewWindow {
             Some(gtk::NamedAction::new("win.refresh"))
         ));
 
+        // Add view copy list shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>C"),
+            Some(gtk::NamedAction::new("win.copy-package-list"))
+        ));
+
         // Add view show all packages shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>A"),
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>W"),
             Some(gtk::NamedAction::new("win.show-all-packages"))
         ));
 
         // Add view show stats shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>S"),
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>S"),
             Some(gtk::NamedAction::new("win.show-stats"))
         ));
 
         // Add view show backup files shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>B"),
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>B"),
             Some(gtk::NamedAction::new("win.show-backup-files"))
         ));
 
         // Add view show pacman log shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>L"),
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>L"),
             Some(gtk::NamedAction::new("win.show-pacman-log"))
         ));
 
         // Add view show pacman config shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>P"),
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>P"),
             Some(gtk::NamedAction::new("win.show-pacman-config"))
-        ));
-
-        // Add view copy list shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>C"),
-            Some(gtk::NamedAction::new("win.copy-package-list"))
         ));
 
         // Add infopane set tab shortcuts
         controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>I"),
+            gtk::ShortcutTrigger::parse_string("<alt>I"),
             Some(gtk::NamedAction::new("win.infopane-set-tab")),
             &"info".to_variant()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>F"),
+            gtk::ShortcutTrigger::parse_string("<alt>F"),
             Some(gtk::NamedAction::new("win.infopane-set-tab")),
             &"files".to_variant()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>L"),
+            gtk::ShortcutTrigger::parse_string("<alt>L"),
             Some(gtk::NamedAction::new("win.infopane-set-tab")),
             &"log".to_variant()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>C"),
+            gtk::ShortcutTrigger::parse_string("<alt>C"),
             Some(gtk::NamedAction::new("win.infopane-set-tab")),
             &"cache".to_variant()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>B"),
+            gtk::ShortcutTrigger::parse_string("<alt>B"),
             Some(gtk::NamedAction::new("win.infopane-set-tab")),
             &"backup".to_variant()
         ));
 
         // Add infopane previous shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>Left"),
+            gtk::ShortcutTrigger::parse_string("<alt>Left"),
             Some(gtk::NamedAction::new("win.infopane-previous"))
         ));
 
         // Add infopane next shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>Right"),
+            gtk::ShortcutTrigger::parse_string("<alt>Right"),
             Some(gtk::NamedAction::new("win.infopane-next"))
         ));
 
