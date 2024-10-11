@@ -160,6 +160,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_widget();
             obj.setup_layout();
             obj.setup_actions();
             obj.setup_signals();
@@ -435,11 +436,10 @@ impl TextWidget {
     }
 
     //-----------------------------------
-    // Setup layout
+    // Setup widget
     //-----------------------------------
-    fn setup_layout(&self) {
+    fn setup_widget(&self) {
         let imp = self.imp();
-
         // Reset selection
         imp.selection_start.set(None);
         imp.selection_end.set(None);
@@ -449,6 +449,13 @@ impl TextWidget {
         imp.comment_fg_color.set(pango_color_from_css(COMMENT_FG_CSS));
         imp.sel_bg_color.set(pango_color_from_css(SEL_BG_CSS));
         imp.sel_focus_bg_color.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
+    }
+
+    //-----------------------------------
+    // Setup layout
+    //-----------------------------------
+    fn setup_layout(&self) {
+        let imp = self.imp();
 
         // Create pango layout
         let layout = imp.draw_area.create_pango_layout(None);
