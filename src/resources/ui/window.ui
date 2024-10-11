@@ -197,32 +197,36 @@
     </section>
     <section>
       <item>
-        <attribute name="label">Copy List</attribute>
+        <attribute name="label">Copy Package List</attribute>
         <attribute name="action">win.copy-package-list</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="label">Show Statistics</attribute>
-        <attribute name="action">win.show-stats</attribute>
+        <attribute name="label">Show Sidebar</attribute>
+        <attribute name="action">win.show-sidebar</attribute>
       </item>
       <item>
-        <attribute name="label">Show Backup Files</attribute>
-        <attribute name="action">win.show-backup-files</attribute>
-      </item>
-      <item>
-        <attribute name="label">Show Pacman Log</attribute>
-        <attribute name="action">win.show-pacman-log</attribute>
-      </item>
-      <item>
-        <attribute name="label">Show Pacman Config</attribute>
-        <attribute name="action">win.show-pacman-config</attribute>
+        <attribute name="label">Show Info Pane</attribute>
+        <attribute name="action">win.show-infopane</attribute>
       </item>
     </section>
     <section>
       <item>
-        <attribute name="label">View Info Pane</attribute>
-        <attribute name="action">win.show-infopane</attribute>
+        <attribute name="label">View Statistics</attribute>
+        <attribute name="action">win.show-stats</attribute>
+      </item>
+      <item>
+        <attribute name="label">View Backup Files</attribute>
+        <attribute name="action">win.show-backup-files</attribute>
+      </item>
+      <item>
+        <attribute name="label">View Pacman Log</attribute>
+        <attribute name="action">win.show-pacman-log</attribute>
+      </item>
+      <item>
+        <attribute name="label">View Pacman Config</attribute>
+        <attribute name="action">win.show-pacman-config</attribute>
       </item>
     </section>
     <section>
