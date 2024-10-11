@@ -3,7 +3,7 @@ use std::sync::OnceLock;
 use core::time::Duration;
 
 use gtk::{glib, gio, gdk};
-use gtk::subclass::prelude::*;
+use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
@@ -123,11 +123,10 @@ mod imp {
     impl ObjectSubclass for SearchBar {
         const NAME: &'static str = "SearchBar";
         type Type = super::SearchBar;
-        type ParentType = gtk::Widget;
+        type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.set_layout_manager_type::<gtk::BoxLayout>();
             klass.set_css_name("search-bar");
         }
 
@@ -178,16 +177,10 @@ mod imp {
             obj.setup_actions();
             obj.setup_shortcuts();
         }
-
-        //-----------------------------------
-        // Dispose function
-        //-----------------------------------
-        fn dispose(&self) {
-            self.dispose_template();
-        }
     }
 
     impl WidgetImpl for SearchBar {}
+    impl BinImpl for SearchBar {}
 }
 
 //------------------------------------------------------------------------------
@@ -195,8 +188,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SearchBar(ObjectSubclass<imp::SearchBar>)
-        @extends gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl SearchBar {
