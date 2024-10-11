@@ -13,34 +13,6 @@ use regex::Regex;
 use url::Url;
 
 //------------------------------------------------------------------------------
-// GLOBAL: Pango color from CSS function
-//------------------------------------------------------------------------------
-fn pango_color_from_css(css: &str) -> (u16, u16, u16, u16) {
-    let label = gtk::Label::builder()
-        .css_classes(["css-label"])
-        .build();
-
-    let css_provider = gtk::CssProvider::new();
-    css_provider.load_from_string(&format!("label.css-label {{ color: {css}; }}"));
-
-    gtk::style_context_add_provider_for_display(&label.display(), &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-    let color = label.color();
-
-    gtk::style_context_remove_provider_for_display(&label.display(), &css_provider);
-
-    ((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16, (color.alpha() * 65535.0) as u16)
-}
-
-//------------------------------------------------------------------------------
-// GLOBAL: CSS Variables
-//------------------------------------------------------------------------------
-const LINK_FG_CSS: &str = "var(--accent-color)";
-const COMMENT_FG_CSS: &str = "var(--success-color)";
-const SEL_BG_CSS: &str = "color-mix(in srgb, var(--view-fg-color) 10%, transparent)";
-const SEL_FOCUS_BG_CSS: &str = "color-mix(in srgb, var(--accent-bg-color) 30%, transparent)";
-
-//------------------------------------------------------------------------------
 // ENUM: PropType
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
@@ -58,7 +30,6 @@ pub enum PropType {
 //------------------------------------------------------------------------------
 // STRUCT: Marker
 //------------------------------------------------------------------------------
-#[derive(Debug, Eq, PartialEq, Clone)]
 struct Tag {
     text: String,
     start: u32,
@@ -436,19 +407,34 @@ impl TextWidget {
     }
 
     //-----------------------------------
+    // Pango color helper function
+    //-----------------------------------
+    fn pango_color_from_style(&self, style: &str) -> (u16, u16, u16, u16) {
+        let label = gtk::Label::builder()
+            .css_name("tag")
+            .css_classes([style])
+            .build();
+
+        let color = label.color();
+
+        ((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16, (color.alpha() * 65535.0) as u16)
+    }
+
+    //-----------------------------------
     // Setup widget
     //-----------------------------------
     fn setup_widget(&self) {
         let imp = self.imp();
+
         // Reset selection
         imp.selection_start.set(None);
         imp.selection_end.set(None);
 
-        // Initialize CSS colors
-        imp.link_fg_color.set(pango_color_from_css(LINK_FG_CSS));
-        imp.comment_fg_color.set(pango_color_from_css(COMMENT_FG_CSS));
-        imp.sel_bg_color.set(pango_color_from_css(SEL_BG_CSS));
-        imp.sel_focus_bg_color.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
+        // Initialize pango colors
+        imp.link_fg_color.set(self.pango_color_from_style("link"));
+        imp.comment_fg_color.set(self.pango_color_from_style("comment"));
+        imp.sel_bg_color.set(self.pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(self.pango_color_from_style("selection-focus"));
     }
 
     //-----------------------------------
@@ -611,11 +597,28 @@ impl TextWidget {
     }
 
     //-----------------------------------
+    // Update pango colors helper function
+    //-----------------------------------
+    fn update_pango_colors(&self) {
+        let imp = self.imp();
+
+        // Update pango color variables
+        imp.link_fg_color.set(self.pango_color_from_style("link"));
+        imp.comment_fg_color.set(self.pango_color_from_style("comment"));
+        imp.sel_bg_color.set(self.pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(self.pango_color_from_style("selection-focus"));
+
+        // Format pango layout text
+        imp.do_format();
+
+        // Redraw widget
+        imp.draw_area.queue_draw();
+    }
+
+    //-----------------------------------
     // Setup signals
     //-----------------------------------
     fn setup_signals(&self) {
-        let imp = self.imp();
-
         // Is focused property notify signal
         self.connect_is_focused_notify(|widget| {
             let imp = widget.imp();
@@ -631,38 +634,21 @@ impl TextWidget {
             imp.draw_area.queue_draw();
         });
 
-        // Color scheme changed signal
+        // System color scheme signal
         let style_manager = adw::StyleManager::for_display(&self.display());
 
         style_manager.connect_dark_notify(clone!(
-            #[weak] imp,
+            #[weak(rename_to = widget)] self,
             move |_| {
-                // Update pango color variables
-                imp.link_fg_color.set(pango_color_from_css(LINK_FG_CSS));
-                imp.comment_fg_color.set(pango_color_from_css(COMMENT_FG_CSS));
-                imp.sel_bg_color.set(pango_color_from_css(SEL_BG_CSS));
-                imp.sel_focus_bg_color.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
-
-                // Format pango layout text
-                imp.do_format();
-
-                // Redraw widget
-                imp.draw_area.queue_draw();
+                widget.update_pango_colors();
             }
         ));
 
+        // System accent color signal
         style_manager.connect_accent_color_notify(clone!(
-            #[weak] imp,
+            #[weak(rename_to = widget)] self,
             move |_| {
-                // Update pango color variables that depend on accent color
-                imp.link_fg_color.set(pango_color_from_css(LINK_FG_CSS));
-                imp.sel_focus_bg_color.set(pango_color_from_css(SEL_FOCUS_BG_CSS));
-
-                // Format pango layout text
-                imp.do_format();
-
-                // Redraw widget
-                imp.draw_area.queue_draw();
+                widget.update_pango_colors();
             }
         ));
     }

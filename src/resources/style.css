@@ -73,6 +73,23 @@ image.dim-image {
 	border-bottom-right-radius: var(--window-radius);
 }
 
+/* Text widget colors */
+tag.link {
+	color: var(--accent-color);
+}
+
+tag.comment {
+	color: var(--success-color);
+}
+
+tag.selection {
+	color: color-mix(in srgb, var(--view-fg-color) 10%, transparent);
+}
+
+tag.selection-focus {
+	color: color-mix(in srgb, var(--accent-bg-color) 30%, transparent);
+}
+
 /* Dialog images */
 image.bubble {
 	border-radius: 50%;
