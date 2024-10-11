@@ -82,7 +82,7 @@
   <!--// Search menu //-->
   <menu id="search_menu">
     <section>
-      <attribute name="label">Search Type</attribute>
+      <attribute name="label">Search Property</attribute>
       <item>
         <attribute name="label">Name</attribute>
         <attribute name="action">search.set-prop</attribute>

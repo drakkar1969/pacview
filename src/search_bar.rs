@@ -468,7 +468,7 @@ impl SearchBar {
 
         // Add cycle search prop shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>T"),
+            gtk::ShortcutTrigger::parse_string("<ctrl>P"),
             Some(gtk::CallbackAction::new(|widget, _| {
                 let bar = widget
                     .downcast_ref::<SearchBar>()
@@ -491,7 +491,7 @@ impl SearchBar {
 
         // Add reverse cycle search prop shortcut
         controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>T"),
+            gtk::ShortcutTrigger::parse_string("<ctrl><shift>P"),
             Some(gtk::CallbackAction::new(|widget, _| {
                 let bar = widget
                     .downcast_ref::<SearchBar>()
