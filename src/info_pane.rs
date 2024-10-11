@@ -341,7 +341,7 @@ impl InfoPane {
             }
 
             if visible {
-                property_value.set_label(id.enum_value().name());
+                property_value.set_label(id.name());
                 property_value.set_icon(icon);
                 property_value.set_value(value);
             }

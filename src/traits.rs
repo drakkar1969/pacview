@@ -8,28 +8,28 @@ use glib::{EnumClass, EnumValue, HasParamSpec, ParamSpecEnum, Variant};
 //------------------------------------------------------------------------------
 pub trait EnumValueExt
 where Self: ToValue + StaticType + HasParamSpec<ParamSpec = ParamSpecEnum> + Sized {
-    fn enum_value(&self) -> EnumValue {
+    fn name(&self) -> String {
         EnumValue::from_value(&self.to_value())
-            .map(|(_, enum_value)| *enum_value)
+            .map(|(_, enum_value)| enum_value.name().to_string())
             .expect("Could not get 'EnumValue'")
     }
 
-    fn name(&self) -> String {
-        self.enum_value()
-            .name()
-            .to_string()
-    }
-
     fn nick(&self) -> String {
-        self.enum_value()
-            .nick()
-            .to_string()
+        EnumValue::from_value(&self.to_value())
+            .map(|(_, enum_value)| enum_value.nick().to_string())
+            .expect("Could not get 'EnumValue'")
     }
 
-    fn to_variant(&self) -> Variant {
-        self.enum_value()
-            .nick()
-            .to_variant()
+    fn value(&self) -> i32 {
+        EnumValue::from_value(&self.to_value())
+            .map(|(_, enum_value)| enum_value.value())
+            .expect("Could not get 'EnumValue'")
+    }
+
+    fn variant_nick(&self) -> Variant {
+        EnumValue::from_value(&self.to_value())
+            .map(|(_, enum_value)| enum_value.nick().to_variant())
+            .expect("Could not get 'EnumValue'")
     }
 }
 

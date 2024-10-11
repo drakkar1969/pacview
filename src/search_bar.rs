@@ -374,8 +374,8 @@ impl SearchBar {
             .activate(clone!(
                 #[weak(rename_to = bar)] self,
                 move |group: &gio::SimpleActionGroup, _, _| {
-                    group.activate_action("set-mode", Some(&bar.default_mode().to_variant()));
-                    group.activate_action("set-prop", Some(&bar.default_prop().to_variant()));
+                    group.activate_action("set-mode", Some(&bar.default_mode().variant_nick()));
+                    group.activate_action("set-prop", Some(&bar.default_prop().variant_nick()));
                 }
             ))
             .build();
@@ -451,19 +451,19 @@ impl SearchBar {
         controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>L"),
             Some(gtk::NamedAction::new("search.set-mode")),
-            &SearchMode::All.to_variant()
+            &SearchMode::All.variant_nick()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>N"),
             Some(gtk::NamedAction::new("search.set-mode")),
-            &SearchMode::Any.to_variant()
+            &SearchMode::Any.variant_nick()
         ));
 
         controller.add_shortcut(gtk::Shortcut::with_arguments(
             gtk::ShortcutTrigger::parse_string("<ctrl>E"),
             Some(gtk::NamedAction::new("search.set-mode")),
-            &SearchMode::Exact.to_variant()
+            &SearchMode::Exact.variant_nick()
         ));
 
         // Add cycle search prop shortcut
