@@ -481,7 +481,6 @@ impl InfoPane {
             .build();
 
         // Bind backup count to backup copy button state
-
         imp.backup_selection.bind_property("n-items", &imp.backup_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .sync_create()
