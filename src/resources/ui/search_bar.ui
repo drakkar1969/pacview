@@ -69,6 +69,9 @@
                   <object class="GtkMenuButton" id="filter_button">
                     <property name="icon-name">filter-symbolic</property>
                     <property name="menu-model">search_menu</property>
+                    <style>
+                      <class name="circular"/>
+                    </style>
                   </object>
                 </child>
               </object>
