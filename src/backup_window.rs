@@ -329,6 +329,8 @@ impl BackupWindow {
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {
+                            imp.status_dropdown.set_selected(1);
+
                             imp.section_sort_model.set_section_sorter(Some(&imp.section_sorter.get()));
                             imp.filter_model.set_filter(Some(&imp.status_filter.get()));
 
