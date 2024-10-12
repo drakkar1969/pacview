@@ -5,8 +5,6 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
-use num::ToPrimitive;
-
 use crate::search_bar::{SearchMode, SearchProp};
 use crate::traits::EnumValueExt;
 
@@ -127,9 +125,7 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("search-mode", &imp.search_mode_row.get(), "selected")
-            .transform_to(|_, mode: SearchMode| {
-                Some(mode.value().to_u32().unwrap_or_default())
-            })
+            .transform_to(|_, mode: SearchMode| Some(mode.value()))
             .transform_from(|_, index: u32| {
                 Some(SearchMode::from_repr(index).unwrap_or_default())
             })
@@ -138,9 +134,7 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("search-prop", &imp.search_prop_row.get(), "selected")
-            .transform_to(|_, prop: SearchProp| {
-                Some(prop.value().to_u32().unwrap_or_default())
-            })
+            .transform_to(|_, prop: SearchProp| Some(prop.value()))
             .transform_from(|_, index: u32| {
                 Some(SearchProp::from_repr(index).unwrap_or_default())
             })

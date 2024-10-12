@@ -3,6 +3,8 @@ use glib::value::ToValue;
 use glib::variant::ToVariant;
 use glib::{EnumClass, EnumValue, HasParamSpec, ParamSpecEnum, Variant};
 
+use num::ToPrimitive;
+
 //------------------------------------------------------------------------------
 // TRAIT: EnumValueExt
 //------------------------------------------------------------------------------
@@ -20,9 +22,9 @@ where Self: ToValue + StaticType + HasParamSpec<ParamSpec = ParamSpecEnum> + Siz
             .expect("Could not get 'EnumValue'")
     }
 
-    fn value(&self) -> i32 {
+    fn value(&self) -> u32 {
         EnumValue::from_value(&self.to_value())
-            .map(|(_, enum_value)| enum_value.value())
+            .and_then(|(_, enum_value)| enum_value.value().to_u32())
             .expect("Could not get 'EnumValue'")
     }
 
