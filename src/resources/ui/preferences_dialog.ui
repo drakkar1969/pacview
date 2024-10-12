@@ -21,10 +21,11 @@
                 <child type="suffix">
                   <object class="GtkMenuButton" id="aur_menubutton">
                     <property name="valign">center</property>
-                    <property name="icon-name">pan-down-symbolic</property>
+                    <property name="icon-name">view-more-symbolic</property>
                     <property name="menu-model">aur_helper_menu</property>
                     <style>
                       <class name="flat"/>
+                      <class name="circular"/>
                     </style>
                   </object>
                 </child>
