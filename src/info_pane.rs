@@ -746,6 +746,7 @@ impl InfoPane {
     fn update_files_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
+        // Populate files view
         let files_list: Vec<gtk::StringObject> = pkg.files().iter()
             .map(|s| gtk::StringObject::new(s))
             .collect();
@@ -756,6 +757,7 @@ impl InfoPane {
     fn update_log_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
+        // Populate log view
         PACMAN_CONFIG.with_borrow(|pacman_config| {
             if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
                 let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
@@ -792,10 +794,13 @@ impl InfoPane {
 
             // Populate cache view
             PACMAN_CONFIG.with_borrow(|pacman_config| {
+                let mut cache_list: Vec<gtk::StringObject> = vec![];
+                let mut cache_error = false;
+
                 for dir in &pacman_config.cache_dir {
                     if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
                         // Find cache files that include package name
-                        let cache_list: Vec<gtk::StringObject> = paths
+                        cache_list.extend(paths
                             .flatten()
                             .filter_map(|path| {
                                 let cache_file = path.display().to_string();
@@ -807,13 +812,19 @@ impl InfoPane {
                                     Some(gtk::StringObject::new(&cache_file))
                                 }
                             })
-                            .collect();
-
-                        imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+                        );
                     } else {
-                        // Show overlay error label
-                        imp.cache_overlay_label.set_visible(true);
+                        cache_error = true;
+                        break;
                     }
+                }
+
+                if cache_error {
+                    // Show overlay error label
+                    imp.cache_overlay_label.set_visible(true);
+                } else {
+                    // Populate cache view
+                    imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
                 }
             });
         });
@@ -822,6 +833,7 @@ impl InfoPane {
     fn update_backup_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
+        // Populate backup view
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
             .map(|(filename, hash)| {
                 let file_hash = alpm::compute_md5sum(filename.as_str())
