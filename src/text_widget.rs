@@ -347,23 +347,26 @@ mod imp {
                                 .expect("Regex error")
                         });
 
-                        for m in expr.find_iter(text).flatten() {
-                            link_list.push(Tag {
-                                text: format!("pkg://{}", m.as_str()),
-                                start: m.start().to_u32().unwrap(),
-                                end: m.end().to_u32().unwrap()
-                            });
-                        }
+                        link_list.extend(expr.find_iter(text)
+                            .flatten()
+                            .map(|m| {
+                                Tag {
+                                    text: format!("pkg://{}", m.as_str()),
+                                    start: m.start().to_u32().unwrap(),
+                                    end: m.end().to_u32().unwrap()
+                                }
+                            })
+                        );
 
-                        let indices = text.match_indices(" [INSTALLED]");
-
-                        for (i, s) in indices {
-                            comment_list.push(Tag {
-                                text: s.to_string(),
-                                start: i.to_u32().unwrap(),
-                                end: (i.to_usize().unwrap() + s.len()).to_u32().unwrap()
-                            });
-                        }
+                        comment_list.extend(text.match_indices(" [INSTALLED]")
+                            .map(|(i, s)| {
+                                Tag {
+                                    text: s.to_string(),
+                                    start: i.to_u32().unwrap(),
+                                    end: (i.to_usize().unwrap() + s.len()).to_u32().unwrap()
+                                }
+                            })
+                        );
                     }
                 },
                 _ => {}
