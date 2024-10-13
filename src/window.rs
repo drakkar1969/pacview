@@ -1016,6 +1016,7 @@ impl PacViewWindow {
                         if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                             let handle_ref = Rc::new(handle);
 
+                            // Get package lists (installed and non)
                             let (install_list, mut pkg_list): (Vec<_>, Vec<_>) = data_list
                                 .into_iter()
                                 .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
@@ -1025,8 +1026,10 @@ impl PacViewWindow {
 
                             pkg_list.extend_from_slice(&install_list);
 
+                            // Add packages to package view
                             imp.package_view.splice_packages(&pkg_list);
 
+                            // Store package lists in global variables
                             INSTALLED_PKG_NAMES.replace(install_list.iter()
                                 .map(|pkg| pkg.name())
                                 .collect()
@@ -1035,10 +1038,13 @@ impl PacViewWindow {
                             PKG_SNAPSHOT.replace(pkg_list);
                             INSTALLED_SNAPSHOT.replace(install_list);
 
+                            // Show package list
                             imp.package_view.set_loading(false);
 
+                            // Get package updates
                             window.get_package_updates();
 
+                            // Update AUR package names file
                             if update_aur_file {
                                 window.update_aur_file();
                             }
