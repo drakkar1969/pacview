@@ -5,34 +5,51 @@
     <property name="hexpand">true</property>
     <property name="child">
       <object class="GtkBox">
-        <property name="orientation">vertical</property>
         <property name="margin-start">12</property>
         <property name="margin-end">12</property>
         <property name="margin-top">8</property>
         <property name="margin-bottom">8</property>
-        <property name="spacing">4</property>
+        <property name="spacing">16</property>
         <child>
-          <object class="GtkLabel" id="prop_label">
-            <property name="xalign">0</property>
-            <style>
-              <class name="caption"/>
-              <class name="dim-label"/>
-            </style>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="spacing">4</property>
+            <child>
+              <object class="GtkLabel" id="prop_label">
+                <property name="xalign">0</property>
+                <style>
+                  <class name="caption"/>
+                  <class name="dim-label"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkImage" id="image">
+                    <property name="height-request">16</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="TextWidget" id="text_widget">
+                    <property name="hexpand">true</property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
         <child>
-          <object class="GtkBox">
-            <property name="spacing">6</property>
-            <child>
-              <object class="GtkImage" id="image">
-                <property name="height-request">16</property>
-              </object>
-            </child>
-            <child>
-              <object class="TextWidget" id="text_widget">
-                <property name="hexpand">true</property>
-              </object>
-            </child>
+          <object class="GtkButton" id="expand_button">
+            <property name="valign">start</property>
+            <property name="margin-top">4</property>
+            <property name="icon-name">expander-symbolic</property>
+            <style>
+              <class name="flat"/>
+              <class name="circular"/>
+              <class name="expander"/>
+            </style>
           </object>
         </child>
       </object>

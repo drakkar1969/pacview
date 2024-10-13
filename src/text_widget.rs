@@ -12,6 +12,8 @@ use num::ToPrimitive;
 use regex::Regex;
 use url::Url;
 
+const LINES: i32 = 3;
+
 //------------------------------------------------------------------------------
 // ENUM: PropType
 //------------------------------------------------------------------------------
@@ -64,6 +66,11 @@ mod imp {
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
         _text: RefCell<String>,
+
+        #[property(get, set)]
+        can_expand: Cell<bool>,
+        #[property(get, set)]
+        expanded: Cell<bool>,
 
         #[property(get, set)]
         is_focused: Cell<bool>,
@@ -387,6 +394,9 @@ mod imp {
             self.selection_start.set(None);
             self.selection_end.set(None);
 
+            obj.set_expanded(false);
+            obj.set_can_expand(layout.is_ellipsized());
+
             self.draw_area.queue_resize();
         }
     }
@@ -450,6 +460,8 @@ impl TextWidget {
         let layout = imp.draw_area.create_pango_layout(None);
         layout.set_wrap(pango::WrapMode::Word);
         layout.set_line_spacing(1.15);
+        layout.set_height(-LINES);
+        layout.set_ellipsize(pango::EllipsizeMode::End);
 
         imp.pango_layout.set(layout).unwrap();
 
@@ -622,6 +634,23 @@ impl TextWidget {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
+        // Expanded property notify signal
+        self.connect_expanded_notify(|widget| {
+            let imp = widget.imp();
+
+            let layout = imp.pango_layout.get().unwrap();
+
+            if widget.expanded() {
+                layout.set_height(-1);
+                layout.set_ellipsize(pango::EllipsizeMode::None);
+            } else {
+                layout.set_height(-LINES);
+                layout.set_ellipsize(pango::EllipsizeMode::End);
+            }
+
+            imp.draw_area.queue_resize();
+        });
+
         // Is focused property notify signal
         self.connect_is_focused_notify(|widget| {
             let imp = widget.imp();

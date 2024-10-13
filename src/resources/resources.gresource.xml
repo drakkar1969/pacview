@@ -5,6 +5,7 @@
     <file alias="backup-modified-symbolic.svg">icons/backup-modified-symbolic.svg</file>
     <file alias="backup-unmodified-symbolic.svg">icons/backup-unmodified-symbolic.svg</file>
     <file alias="groups-symbolic.svg">icons/groups-symbolic.svg</file>
+    <file alias="expander-symbolic.svg">icons/expander-symbolic.svg</file>
     <file alias="info-item-symbolic.svg">icons/info-item-symbolic.svg</file>
     <file alias="info-files-symbolic.svg">icons/info-files-symbolic.svg</file>
     <file alias="info-log-symbolic.svg">icons/info-log-symbolic.svg</file>

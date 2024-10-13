@@ -27,6 +27,8 @@ mod imp {
         pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) text_widget: TemplateChild<TextWidget>,
+        #[template_child]
+        pub(super) expand_button: TemplateChild<gtk::Button>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
@@ -67,6 +69,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_signals();
             obj.setup_shortcuts();
             obj.setup_controllers();
         }
@@ -135,6 +138,38 @@ impl PropertyValue {
         self.bind_property("has-focus", &imp.text_widget.get(), "is-focused")
             .sync_create()
             .build();
+
+        // Bind text widget can expand property to expand button visibility
+        imp.text_widget.bind_property("can-expand", &imp.expand_button.get(), "visible")
+            .sync_create()
+            .build();
+    }
+
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Expand button clicked signal
+        imp.expand_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.text_widget.set_expanded(!imp.text_widget.expanded());
+            }
+        ));
+
+        // Text widget expanded property notify signal
+        imp.text_widget.connect_expanded_notify(clone!(
+            #[weak] imp,
+            move |widget| {
+                if widget.expanded(){
+                    imp.expand_button.add_css_class("active");
+                } else {
+                    imp.expand_button.remove_css_class("active");
+                }
+            }
+        ));
     }
 
     //---------------------------------------
@@ -197,18 +232,19 @@ impl PropertyValue {
         let imp = self.imp();
 
         // Add mouse click controller
-        let click_gesture = gtk::GestureClick::builder()
-            .button(gdk::BUTTON_PRIMARY)
-            .build();
+        let drag_controller = gtk::GestureDrag::new();
 
-        click_gesture.connect_pressed(clone!(
+        drag_controller.connect_drag_begin(clone!(
             #[weak(rename_to = property)] self,
-            move |_, _, _, _| {
-                property.grab_focus();
+            #[weak] imp,
+            move |_, _, _| {
+                if !(property.has_focus() || imp.expand_button.has_focus()) {
+                    property.grab_focus();
+                }
             }
         ));
 
-        self.add_controller(click_gesture);
+        self.add_controller(drag_controller);
 
         // Add popup menu controller
         let popup_gesture = gtk::GestureClick::builder()
