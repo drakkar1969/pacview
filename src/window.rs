@@ -1039,7 +1039,7 @@ impl PacViewWindow {
                             INSTALLED_SNAPSHOT.replace(install_list);
 
                             // Show package list
-                            imp.package_view.set_loading(false);
+                            imp.package_view.hide_loading_spinner();
 
                             // Get package updates
                             window.get_package_updates();

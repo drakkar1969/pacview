@@ -79,8 +79,6 @@ mod imp {
         #[template_child]
         pub(super) empty_label: TemplateChild<gtk::Label>,
 
-        #[property(get, set, default = true, construct)]
-        loading: Cell<bool>,
         #[property(get, set)]
         n_items: Cell<u32>,
         #[property(get, set, builder(PackageSort::default()))]
@@ -169,12 +167,6 @@ impl PackageView {
     //-----------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
-
-        // Bind loading property to stack page
-        self.bind_property("loading", &imp.stack.get(), "visible-child-name")
-            .transform_to(|_, loading: bool| Some(if loading { "empty" } else { "view" }))
-            .sync_create()
-            .build();
 
         // Bind item count to n_items property
         imp.filter_model.bind_property("n-items", self, "n-items")
@@ -499,6 +491,13 @@ impl PackageView {
     //-----------------------------------
     pub fn view(&self) -> gtk::ListView {
         self.imp().view.get()
+    }
+
+    //-----------------------------------
+    // Public hide loading spinner function
+    //-----------------------------------
+    pub fn hide_loading_spinner(&self) {
+        self.imp().stack.set_visible_child_name("view");
     }
 
     //-----------------------------------
