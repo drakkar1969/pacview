@@ -1203,44 +1203,46 @@ impl PacViewWindow {
     fn setup_inotify(&self) {
         let imp = self.imp();
 
-        // Create async channel
-        let (sender, receiver) = async_channel::bounded(1);
-
-        // Create new watcher
-        let mut watcher = new_debouncer(Duration::from_secs(1), None, move |result: DebounceEventResult| {
-            if let Ok(events) = result {
-                for event in events {
-                    if event.kind.is_create() || event.kind.is_modify() || event.kind.is_remove() {
-                        sender.send_blocking(()).expect("Could not send through channel");
-
-                        break;
-                    }
-                }
-            }
-        }).unwrap();
-
-        // Watch pacman local db path
         PACMAN_CONFIG.with_borrow(|pacman_config| {
-            let watch_path = Path::new(&pacman_config.db_path).join("local");
+            // Create async channel
+            let (sender, receiver) = async_channel::bounded(1);
 
-            watcher.watcher().watch(&watch_path, RecursiveMode::Recursive).unwrap();
-            watcher.cache().add_root(&watch_path, RecursiveMode::Recursive);
+            // Create new watcher
+            let mut watcher = new_debouncer(Duration::from_secs(1), None, move |result: DebounceEventResult| {
+                if let Ok(events) = result {
+                    for event in events {
+                        if event.kind.is_create() || event.kind.is_modify() || event.kind.is_remove() {
+                            sender.send_blocking(())
+                                .expect("Could not send through channel");
 
-            // Store watcher
-            imp.notify_watcher.set(watcher).unwrap();
-
-            // Attach receiver for async channel
-            glib::spawn_future_local(clone!(
-                #[weak(rename_to = window)] self,
-                #[weak] imp,
-                async move {
-                    while let Ok(()) = receiver.recv().await {
-                        if imp.prefs_dialog.auto_refresh() {
-                            ActionGroupExt::activate_action(&window, "refresh", None);
+                            break;
                         }
                     }
                 }
-            ));
+            }).unwrap();
+
+            // Watch pacman local db path
+            let path = Path::new(&pacman_config.db_path).join("local");
+
+            if watcher.watcher().watch(&path, RecursiveMode::Recursive).is_ok() {
+                watcher.cache().add_root(&path, RecursiveMode::Recursive);
+
+                // Store watcher
+                imp.notify_watcher.set(watcher).unwrap();
+
+                // Attach receiver for async channel
+                glib::spawn_future_local(clone!(
+                    #[weak(rename_to = window)] self,
+                    #[weak] imp,
+                    async move {
+                        while let Ok(()) = receiver.recv().await {
+                            if imp.prefs_dialog.auto_refresh() {
+                                ActionGroupExt::activate_action(&window, "refresh", None);
+                            }
+                        }
+                    }
+                ));
+            }
         });
     }
 }
