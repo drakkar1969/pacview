@@ -221,6 +221,41 @@ impl PropertyValue {
             }))
         ));
 
+        // Add expand shortcuts
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>plus|<ctrl>KP_Add"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                let imp = property.imp();
+
+                if !imp.text_widget.expanded() {
+                    imp.text_widget.set_expanded(true);
+                }
+
+                glib::Propagation::Proceed
+            }))
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("<ctrl>minus|<ctrl>KP_Subtract"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                let imp = property.imp();
+
+                if imp.text_widget.expanded() {
+                    imp.text_widget.set_expanded(false);
+                }
+    
+                glib::Propagation::Proceed
+            }))
+        ));
+
         // Add shortcut controller to property
         self.add_controller(controller);
     }

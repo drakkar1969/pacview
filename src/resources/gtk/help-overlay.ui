@@ -98,14 +98,8 @@
             <property name="title">Info Pane</property>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;Left</property>
-                <property name="title">Previous Package</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;Right</property>
-                <property name="title">Next Package</property>
+                <property name="accelerator">&lt;alt&gt;Left &lt;alt&gt;Right</property>
+                <property name="title">Previous/Next Package</property>
               </object>
             </child>
             <child>
@@ -145,6 +139,12 @@
             <property name="title">Info Pane Property</property>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;plus &lt;ctrl&gt;minus</property>
+                <property name="title">Expand/Contract</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;A</property>
                 <property name="title">Select All</property>
               </object>
@@ -163,14 +163,8 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
-                <property name="accelerator">Left</property>
-                <property name="title">Previous Link</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">Right</property>
-                <property name="title">Next Link</property>
+                <property name="accelerator">Left Right</property>
+                <property name="title">Previous/Next Link</property>
               </object>
             </child>
             <child>
