@@ -44,6 +44,7 @@ use crate::traits::EnumValueExt;
 thread_local! {
     pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static INSTALLED_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
     pub static PACMAN_CONFIG: RefCell<pacmanconf::Config> = RefCell::new(pacmanconf::Config::default());
 }
@@ -506,10 +507,10 @@ impl PacViewWindow {
         // Add show backup files window action
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
-                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                INSTALLED_SNAPSHOT.with_borrow(|installed_snapshot| {
                     let backup_window = BackupWindow::new(window);
 
-                    backup_window.show(pkg_snapshot);
+                    backup_window.show(installed_snapshot);
                 });
             })
             .build();
@@ -1015,19 +1016,24 @@ impl PacViewWindow {
                         if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                             let handle_ref = Rc::new(handle);
 
-                            let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                            let (install_list, mut pkg_list): (Vec<_>, Vec<_>) = data_list
+                                .into_iter()
                                 .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
-                                .collect();
+                                .partition(|pkg| {
+                                    pkg.flags().intersects(PkgFlags::INSTALLED)
+                                });
+
+                            pkg_list.extend_from_slice(&install_list);
 
                             imp.package_view.splice_packages(&pkg_list);
 
-                            INSTALLED_PKG_NAMES.replace(pkg_list.iter()
-                                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                            INSTALLED_PKG_NAMES.replace(install_list.iter()
                                 .map(|pkg| pkg.name())
                                 .collect()
                             );
 
                             PKG_SNAPSHOT.replace(pkg_list);
+                            INSTALLED_SNAPSHOT.replace(install_list);
 
                             imp.package_view.set_loading(false);
 

@@ -277,7 +277,7 @@ impl BackupWindow {
     //-----------------------------------
     // Show window
     //-----------------------------------
-    pub fn show(&self, pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, installed_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
         self.present();
@@ -293,9 +293,7 @@ impl BackupWindow {
         imp.filter_model.set_filter(None::<&gtk::Filter>);
 
         // Get backup list
-        let pkg_snapshot = pkg_snapshot.to_vec();
-
-        let backup_list: Vec<(String, String, Option<String>)> = pkg_snapshot.iter()
+        let backup_list: Vec<(String, String, Option<String>)> = installed_snapshot.iter()
             .flat_map(|pkg| { pkg.backup().into_iter()
                 .map(|(filename, hash)| (filename, hash, Some(pkg.name())))
             })
