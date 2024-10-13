@@ -88,9 +88,9 @@ impl EnumValueExt for PropID {}
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::InfoPane)]
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
@@ -180,9 +180,9 @@ mod imp {
         pub(super) history_selection: RefCell<gtk::SingleSelection>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for InfoPane {
         const NAME: &'static str = "InfoPane";
@@ -201,9 +201,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for InfoPane {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -217,9 +217,9 @@ mod imp {
     impl WidgetImpl for InfoPane {}
     impl BinImpl for InfoPane {}
     impl InfoPane {
-        //-----------------------------------
+        //---------------------------------------
         // Custom property getters/setters
-        //-----------------------------------
+        //---------------------------------------
         pub fn pkg(&self) -> Option<PkgObject> {
             self.history_selection.borrow().selected_item()
                 .and_downcast::<PkgObject>()
@@ -252,16 +252,16 @@ glib::wrapper! {
 }
 
 impl InfoPane {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // PropertyValue pkg link handler
-    //-----------------------------------
+    //---------------------------------------
     fn pkg_link_handler(&self, pkg_name: &str) {
         PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
             AUR_SNAPSHOT.with_borrow(|aur_snapshot| {
@@ -309,9 +309,9 @@ impl InfoPane {
         });
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Add property function
-    //-----------------------------------
+    //---------------------------------------
     fn add_property(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
@@ -331,9 +331,9 @@ impl InfoPane {
         imp.property_map.borrow_mut().insert(id, property_value);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Set property functions
-    //-----------------------------------
+    //---------------------------------------
     fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
         if let Some(property_value) = self.imp().property_map.borrow().get(&id) {
             if property_value.is_visible() != visible {
@@ -352,9 +352,9 @@ impl InfoPane {
         self.set_string_property(id, visible, &value.join("     "), icon);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Get installed optdeps function
-    //-----------------------------------
+    //---------------------------------------
     fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
         optdepends.iter()
             .map(|dep| {
@@ -374,9 +374,9 @@ impl InfoPane {
             .collect::<Vec<String>>()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -487,9 +487,9 @@ impl InfoPane {
             .build();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -676,9 +676,9 @@ impl InfoPane {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Display helper functions
-    //-----------------------------------
+    //---------------------------------------
     fn update_info_listbox(&self, pkg: &PkgObject) {
         // Name
         self.set_string_property(PropID::Name, true, &pkg.name(), None);
@@ -834,9 +834,9 @@ impl InfoPane {
         imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public display functions
-    //-----------------------------------
+    //---------------------------------------
     pub fn update_display(&self) {
         let imp = self.imp();
 
@@ -920,9 +920,9 @@ impl InfoPane {
 }
 
 impl Default for InfoPane {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new()
     }

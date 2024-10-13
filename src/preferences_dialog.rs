@@ -14,9 +14,9 @@ use crate::traits::EnumValueExt;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::PreferencesDialog)]
     #[template(resource = "/com/github/PacView/ui/preferences_dialog.ui")]
@@ -52,9 +52,9 @@ mod imp {
         remember_sort: Cell<bool>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PreferencesDialog {
         const NAME: &'static str = "PreferencesDialog";
@@ -72,9 +72,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for PreferencesDialog {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -101,16 +101,16 @@ glib::wrapper! {
 }
 
 impl PreferencesDialog {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -159,9 +159,9 @@ impl PreferencesDialog {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup actions
-    //-----------------------------------
+    //---------------------------------------
     fn setup_actions(&self) {
         // Add AUR helper command action with parameter
         let aur_action = gio::ActionEntry::builder("aur-cmd", )
@@ -195,9 +195,9 @@ impl PreferencesDialog {
         prefs_group.add_action_entries([aur_action]);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -237,9 +237,9 @@ impl PreferencesDialog {
 }
 
 impl Default for PreferencesDialog {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new()
     }

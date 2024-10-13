@@ -14,9 +14,9 @@ use crate::text_widget::{TextWidget, PropType};
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::PropertyValue)]
     #[template(resource = "/com/github/PacView/ui/property_value.ui")]
@@ -38,9 +38,9 @@ mod imp {
         value: RefCell<String>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PropertyValue {
         const NAME: &'static str = "PropertyValue";
@@ -58,9 +58,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for PropertyValue {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -86,27 +86,27 @@ glib::wrapper! {
 }
 
 impl PropertyValue {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(ptype: PropType) -> Self {
         glib::Object::builder()
             .property("ptype", ptype)
             .build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Set package link handler function
-    //-----------------------------------
+    //---------------------------------------
     pub fn set_pkg_link_handler(&self, handler: RustClosure) {
         let imp = self.imp();
 
         imp.text_widget.connect_closure("package-link", false, handler);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -137,9 +137,9 @@ impl PropertyValue {
             .build();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup shortcuts
-    //-----------------------------------
+    //---------------------------------------
     fn setup_shortcuts(&self) {
         // Create shortcut controller
         let controller = gtk::ShortcutController::new();
@@ -190,9 +190,9 @@ impl PropertyValue {
         self.add_controller(controller);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup controllers
-    //-----------------------------------
+    //---------------------------------------
     fn setup_controllers(&self) {
         let imp = self.imp();
 

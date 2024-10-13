@@ -12,9 +12,9 @@ use crate::pkg_object::PkgFlags;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::FilterRow)]
     #[template(resource = "/com/github/PacView/ui/filter_row.ui")]
@@ -45,9 +45,9 @@ mod imp {
         status_id: Cell<PkgFlags>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for FilterRow {
         const NAME: &'static str = "FilterRow";
@@ -65,9 +65,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for FilterRow {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -89,9 +89,9 @@ glib::wrapper! {
 }
 
 impl FilterRow {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(icon: &str, text: &str, repo_id: Option<&str>, status_id: PkgFlags) -> Self {
         glib::Object::builder()
             .property("icon", icon)
@@ -101,9 +101,9 @@ impl FilterRow {
             .build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -130,9 +130,9 @@ impl FilterRow {
 }
 
 impl Default for FilterRow {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new("", "", None, PkgFlags::empty())
     }

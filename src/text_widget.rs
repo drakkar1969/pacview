@@ -48,9 +48,9 @@ impl Tag {
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::TextWidget)]
     #[template(resource = "/com/github/PacView/ui/text_widget.ui")]
@@ -89,9 +89,9 @@ mod imp {
         pub(super) focus_link_index: Cell<Option<usize>>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for TextWidget {
         const NAME: &'static str = "TextWidget";
@@ -109,9 +109,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for TextWidget {
-        //-----------------------------------
+        //---------------------------------------
         // Custom signals
-        //-----------------------------------
+        //---------------------------------------
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
@@ -123,9 +123,9 @@ mod imp {
             })
         }
 
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -138,9 +138,9 @@ mod imp {
             obj.setup_controllers();
         }
 
-        //-----------------------------------
+        //---------------------------------------
         // Dispose function
-        //-----------------------------------
+        //---------------------------------------
         fn dispose(&self) {
             self.dispose_template();
         }
@@ -179,9 +179,9 @@ mod imp {
     }
 
     impl TextWidget {
-        //-----------------------------------
+        //---------------------------------------
         // Layout format helper functions
-        //-----------------------------------
+        //---------------------------------------
         fn format_weight(&self, attr_list: &pango::AttrList) {
             let obj = self.obj();
 
@@ -293,9 +293,9 @@ mod imp {
             layout.set_attributes(Some(&attr_list));
         }
 
-        //-----------------------------------
+        //---------------------------------------
         // Text property custom getter/setter
-        //-----------------------------------
+        //---------------------------------------
         fn text(&self) -> String {
             self.pango_layout.get().unwrap().text().to_string()
         }
@@ -399,16 +399,16 @@ glib::wrapper! {
 }
 
 impl TextWidget {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Pango color helper function
-    //-----------------------------------
+    //---------------------------------------
     fn pango_color_from_style(&self, style: &str) -> (u16, u16, u16, u16) {
         let label = gtk::Label::builder()
             .css_name("tag")
@@ -420,9 +420,9 @@ impl TextWidget {
         ((color.red() * 65535.0) as u16, (color.green() * 65535.0) as u16, (color.blue() * 65535.0) as u16, (color.alpha() * 65535.0) as u16)
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widget
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widget(&self) {
         let imp = self.imp();
 
@@ -437,9 +437,9 @@ impl TextWidget {
         imp.sel_focus_bg_color.set(self.pango_color_from_style("selection-focus"));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup layout
-    //-----------------------------------
+    //---------------------------------------
     fn setup_layout(&self) {
         let imp = self.imp();
 
@@ -530,9 +530,9 @@ impl TextWidget {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Action helper functions
-    //-----------------------------------
+    //---------------------------------------
     fn selected_text(&self) -> Option<String> {
         let imp = self.imp();
 
@@ -544,9 +544,9 @@ impl TextWidget {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup actions
-    //-----------------------------------
+    //---------------------------------------
     fn setup_actions(&self) {
         let imp = self.imp();
 
@@ -596,9 +596,9 @@ impl TextWidget {
         text_group.add_action_entries([select_all_action, select_none_action, copy_action]);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Update pango colors helper function
-    //-----------------------------------
+    //---------------------------------------
     fn update_pango_colors(&self) {
         let imp = self.imp();
 
@@ -615,9 +615,9 @@ impl TextWidget {
         imp.draw_area.queue_draw();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         // Is focused property notify signal
         self.connect_is_focused_notify(|widget| {
@@ -653,9 +653,9 @@ impl TextWidget {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Controller helper functions
-    //-----------------------------------
+    //---------------------------------------
     fn _inside_index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
         let layout = self.imp().pango_layout.get().unwrap();
 
@@ -720,9 +720,9 @@ impl TextWidget {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup controllers
-    //-----------------------------------
+    //---------------------------------------
     fn setup_controllers(&self) {
         let imp = self.imp();
 
@@ -872,9 +872,9 @@ impl TextWidget {
         imp.draw_area.add_controller(click_gesture);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public popup menu function
-    //-----------------------------------
+    //---------------------------------------
     pub fn popup_menu(&self, x: f64, y: f64) {
         let imp = self.imp();
 
@@ -888,9 +888,9 @@ impl TextWidget {
         imp.popover_menu.popup();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public key functions
-    //-----------------------------------
+    //---------------------------------------
     pub fn key_left(&self) {
         let imp = self.imp();
 
@@ -941,9 +941,9 @@ impl TextWidget {
 }
 
 impl Default for TextWidget {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new()
     }

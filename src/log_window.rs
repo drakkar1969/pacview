@@ -16,9 +16,9 @@ use crate::log_object::LogObject;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/log_window.ui")]
     pub struct LogWindow {
@@ -48,9 +48,9 @@ mod imp {
         pub(super) overlay_label: TemplateChild<gtk::Label>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for LogWindow {
         const NAME: &'static str = "LogWindow";
@@ -82,9 +82,9 @@ mod imp {
     }
 
     impl ObjectImpl for LogWindow {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -110,18 +110,18 @@ glib::wrapper! {
 }
 
 impl LogWindow {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
         glib::Object::builder()
             .property("transient-for", parent)
             .build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -142,9 +142,9 @@ impl LogWindow {
         imp.view.grab_focus();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -215,9 +215,9 @@ impl LogWindow {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Show window
-    //-----------------------------------
+    //---------------------------------------
     pub fn show(&self, log_file: &str) {
         let imp = self.imp();
 

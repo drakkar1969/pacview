@@ -11,15 +11,15 @@ use crate::window::PacViewWindow;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default)]
     pub struct PacViewApplication {}
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PacViewApplication {
         const NAME: &'static str = "PacViewApplication";
@@ -28,9 +28,9 @@ mod imp {
     }
 
     impl ObjectImpl for PacViewApplication {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -39,9 +39,9 @@ mod imp {
     }
 
     impl ApplicationImpl for PacViewApplication {
-        //-----------------------------------
+        //---------------------------------------
         // Activate handler
-        //-----------------------------------
+        //---------------------------------------
         fn activate(&self) {
             let application = self.obj();
 
@@ -63,9 +63,9 @@ mod imp {
     impl AdwApplicationImpl for PacViewApplication {}
 
     impl PacViewApplication {
-        //-----------------------------------
+        //---------------------------------------
         // Setup styles
-        //-----------------------------------
+        //---------------------------------------
         fn setup_styles(&self) {
             // Get style manager
             let style_manager = adw::StyleManager::default();
@@ -114,9 +114,9 @@ glib::wrapper! {
 }
 
 impl PacViewApplication {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(application_id: &str, flags: &gio::ApplicationFlags) -> Self {
         glib::Object::builder()
             .property("application-id", application_id)
@@ -124,9 +124,9 @@ impl PacViewApplication {
             .build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup actions
-    //-----------------------------------
+    //---------------------------------------
     fn setup_actions(&self) {
         let quit_action = gio::ActionEntry::builder("quit-app")
             .activate(move |app: &Self, _, _| app.quit())
@@ -141,9 +141,9 @@ impl PacViewApplication {
         self.set_accels_for_action("app.quit-app", &["<ctrl>Q"]);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Show about dialog
-    //-----------------------------------
+    //---------------------------------------
     fn show_about(&self) {
         let window = self.active_window().expect("Could not retrieve active window");
 

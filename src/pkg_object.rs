@@ -64,9 +64,9 @@ pub struct PkgData {
 }
 
 impl PkgData {
-    //-----------------------------------
+    //---------------------------------------
     // New functions
-    //-----------------------------------
+    //---------------------------------------
     pub fn from_pkg(syncpkg: &alpm::Package, localpkg: Result<&alpm::Package, alpm::Error>, repository: Option<&str>) -> Self {
         // Defaults for package status flags and install date (non-installed)
         let mut flags = PkgFlags::NONE;
@@ -162,9 +162,9 @@ impl PkgData {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Helper functions
-    //-----------------------------------
+    //---------------------------------------
     fn alpm_list_to_string(list: &alpm::AlpmList<&str>) -> String {
         let mut list_vec: Vec<&str> = list.iter().collect();
         list_vec.sort_unstable();
@@ -200,9 +200,9 @@ impl PkgData {
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
@@ -226,9 +226,9 @@ mod imp {
         _install_size_string: RefCell<String>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PkgObject {
         const NAME: &'static str = "PkgObject";
@@ -239,9 +239,9 @@ mod imp {
     impl ObjectImpl for PkgObject {}
 
     impl PkgObject {
-        //-----------------------------------
+        //---------------------------------------
         // Read-only property getters
-        //-----------------------------------
+        //---------------------------------------
         fn install_size_string(&self) -> String {
             size_to_string(self.data.borrow().install_size, 1)
         }
@@ -256,9 +256,9 @@ glib::wrapper! {
 }
 
 impl PkgObject {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(handle: Option<Rc<alpm::Alpm>>, data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
 
@@ -273,9 +273,9 @@ impl PkgObject {
         pkg
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public data field getters
-    //-----------------------------------
+    //---------------------------------------
     pub fn description(&self) -> String {
         self.imp().data.borrow().description.to_owned()
     }
@@ -348,9 +348,9 @@ impl PkgObject {
         self.imp().data.borrow().md5sum.to_owned()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public string property getters
-    //-----------------------------------
+    //---------------------------------------
     pub fn install_date_short(&self) -> String {
         date_to_string(self.install_date(), "%Y/%m/%d %H:%M")
     }
@@ -367,9 +367,9 @@ impl PkgObject {
         size_to_string(self.download_size(), 1)
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Pkg from handle helper function
-    //-----------------------------------
+    //---------------------------------------
     fn pkg_from_handle(&self) -> Result<&alpm::Package, alpm::Error> {
         if let Some(handle) = self.imp().handle.get() {
             let pkg = if self.flags().intersects(PkgFlags::INSTALLED) {
@@ -384,9 +384,9 @@ impl PkgObject {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Other public property getters
-    //-----------------------------------
+    //---------------------------------------
     pub fn package_url(&self) -> String {
         let default_repos = ["core", "extra", "multilib"];
 

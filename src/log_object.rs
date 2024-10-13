@@ -10,9 +10,9 @@ use gtk::prelude::ObjectExt;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::LogObject)]
     pub struct LogObject {
@@ -26,9 +26,9 @@ mod imp {
         message: RefCell<String>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for LogObject {
         const NAME: &'static str = "LogObject";
@@ -47,9 +47,9 @@ glib::wrapper! {
 }
 
 impl LogObject {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(date: &str, time: &str, category: &str, message: &str) -> Self {
         // Build LogObject
         glib::Object::builder()

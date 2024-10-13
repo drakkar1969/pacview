@@ -55,9 +55,9 @@ thread_local! {
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
@@ -117,9 +117,9 @@ mod imp {
         pub(super) notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PacViewWindow {
         const NAME: &'static str = "PacViewWindow";
@@ -136,9 +136,9 @@ mod imp {
     }
 
     impl ObjectImpl for PacViewWindow {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -162,9 +162,9 @@ mod imp {
 
     impl WidgetImpl for PacViewWindow {}
     impl WindowImpl for PacViewWindow {
-        //-----------------------------------
+        //---------------------------------------
         // Window close handler
-        //-----------------------------------
+        //---------------------------------------
         fn close_request(&self) -> glib::Propagation {
             self.obj().save_gsettings();
 
@@ -186,25 +186,25 @@ glib::wrapper! {
 }
 
 impl PacViewWindow {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Init gsettings
-    //-----------------------------------
+    //---------------------------------------
     fn init_gsettings(&self) {
         let gsettings = gio::Settings::new(APP_ID);
 
         self.imp().gsettings.set(gsettings).unwrap();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Load gsettings
-    //-----------------------------------
+    //---------------------------------------
     fn load_gsettings(&self) {
         let imp = self.imp();
 
@@ -239,9 +239,9 @@ impl PacViewWindow {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Set gsetting helper function
-    //-----------------------------------
+    //---------------------------------------
     fn set_gsetting<T: FromVariant + ToVariant + PartialEq>(&self, gsettings: &gio::Settings, key: &str, value: T) {
         let default: T = gsettings.default_value(key)
             .expect("Could not get gsettings default value")
@@ -253,9 +253,9 @@ impl PacViewWindow {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Save gsettings
-    //-----------------------------------
+    //---------------------------------------
     fn save_gsettings(&self) {
         let imp = self.imp();
 
@@ -286,9 +286,9 @@ impl PacViewWindow {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Init cache dir
-    //-----------------------------------
+    //---------------------------------------
     fn init_cache_dir(&self) {
         // Create cache dir
         let cache_dir = env::var("XDG_CACHE_HOME")
@@ -314,9 +314,9 @@ impl PacViewWindow {
         self.imp().aur_file.replace(aur_file);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -374,9 +374,9 @@ impl PacViewWindow {
         imp.package_view.view().grab_focus();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup actions
-    //-----------------------------------
+    //---------------------------------------
     fn setup_actions(&self) {
         let imp = self.imp();
 
@@ -547,9 +547,9 @@ impl PacViewWindow {
         self.add_action_entries([prefs_action]);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup shortcuts
-    //-----------------------------------
+    //---------------------------------------
     fn setup_shortcuts(&self) {
         // Create shortcut controller
         let controller = gtk::ShortcutController::new();
@@ -673,9 +673,9 @@ impl PacViewWindow {
         self.add_controller(controller);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -772,9 +772,9 @@ impl PacViewWindow {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Download AUR names helper function
-    //-----------------------------------
+    //---------------------------------------
     fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
         tokio_runtime().spawn(clone!(
             #[strong] file,
@@ -806,9 +806,9 @@ impl PacViewWindow {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Check AUR file helper function
-    //-----------------------------------
+    //---------------------------------------
     fn check_aur_file(&self) {
         let imp = self.imp();
 
@@ -837,9 +837,9 @@ impl PacViewWindow {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup alpm
-    //-----------------------------------
+    //---------------------------------------
     fn setup_alpm(&self, is_init: bool) {
         self.get_pacman_config();
         self.populate_sidebar();
@@ -851,9 +851,9 @@ impl PacViewWindow {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup alpm: get pacman config
-    //-----------------------------------
+    //---------------------------------------
     fn get_pacman_config(&self) {
         let imp = self.imp();
 
@@ -876,9 +876,9 @@ impl PacViewWindow {
         imp.pacman_repos.replace(pacman_repos);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup alpm: populate sidebar
-    //-----------------------------------
+    //---------------------------------------
     fn populate_sidebar(&self) {
         let imp = self.imp();
 
@@ -945,9 +945,9 @@ impl PacViewWindow {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup alpm: load alpm packages
-    //-----------------------------------
+    //---------------------------------------
     fn load_packages(&self, update_aur_file: bool) {
         let imp = self.imp();
 
@@ -1055,9 +1055,9 @@ impl PacViewWindow {
         });
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Update helper function
-    //-----------------------------------
+    //---------------------------------------
     async fn run_update_command(&self, cmd: &str) -> io::Result<(Option<i32>, String)> {
         // Run external command
         let params = shlex::split(cmd)
@@ -1074,9 +1074,9 @@ impl PacViewWindow {
         Ok((code, stdout))
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup alpm: get package updates
-    //-----------------------------------
+    //---------------------------------------
     fn get_package_updates(&self) {
         let imp = self.imp();
 
@@ -1172,9 +1172,9 @@ impl PacViewWindow {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup alpm: update AUR file
-    //-----------------------------------
+    //---------------------------------------
     fn update_aur_file(&self) {
         let imp = self.imp();
 
@@ -1197,9 +1197,9 @@ impl PacViewWindow {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup INotify
-    //-----------------------------------
+    //---------------------------------------
     fn setup_inotify(&self) {
         let imp = self.imp();
 

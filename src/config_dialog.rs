@@ -11,9 +11,9 @@ use crate::utils::open_with_default_app;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/config_dialog.ui")]
     pub struct ConfigDialog {
@@ -87,9 +87,9 @@ mod imp {
         pub(super) remotefilesiglevel_row: TemplateChild<adw::ActionRow>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for ConfigDialog {
         const NAME: &'static str = "ConfigDialog";
@@ -106,9 +106,9 @@ mod imp {
     }
 
     impl ObjectImpl for ConfigDialog {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -133,17 +133,17 @@ glib::wrapper! {
 }
 
 impl ConfigDialog {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder()
             .build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -200,9 +200,9 @@ impl ConfigDialog {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Init dialog
-    //-----------------------------------
+    //---------------------------------------
     pub fn init(&self, config: &pacmanconf::Config) {
         let imp = self.imp();
 
@@ -248,9 +248,9 @@ impl ConfigDialog {
 }
 
 impl Default for ConfigDialog {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new()
     }

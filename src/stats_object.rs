@@ -10,9 +10,9 @@ use gtk::prelude::ObjectExt;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::StatsObject)]
     pub struct StatsObject {
@@ -26,9 +26,9 @@ mod imp {
         size: RefCell<String>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for StatsObject {
         const NAME: &'static str = "StatsObject";
@@ -47,9 +47,9 @@ glib::wrapper! {
 }
 
 impl StatsObject {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(repository: &str, packages: &str, installed: &str, size: &str) -> Self {
         // Build StatsObject
         glib::Object::builder()

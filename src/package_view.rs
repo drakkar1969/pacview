@@ -45,9 +45,9 @@ impl EnumValueExt for PackageSort {}
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::PackageView)]
     #[template(resource = "/com/github/PacView/ui/package_view.ui")]
@@ -89,9 +89,9 @@ mod imp {
         pub(super) aur_cache: RefCell<HashSet<ArcPackage>>
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for PackageView {
         const NAME: &'static str = "PackageView";
@@ -110,9 +110,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for PackageView {
-        //-----------------------------------
+        //---------------------------------------
         // Custom signals
-        //-----------------------------------
+        //---------------------------------------
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
@@ -127,9 +127,9 @@ mod imp {
             })
         }
 
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -155,16 +155,16 @@ glib::wrapper! {
 }
 
 impl PackageView {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -212,9 +212,9 @@ impl PackageView {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup factory
-    //-----------------------------------
+    //---------------------------------------
     fn setup_factory(&self) {
         let imp = self.imp();
 
@@ -282,9 +282,9 @@ impl PackageView {
         });
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -327,9 +327,9 @@ impl PackageView {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public filter functions
-    //-----------------------------------
+    //---------------------------------------
     pub fn set_repo_filter(&self, repo_id: Option<&str>) {
         self.imp().repo_filter.set_search(repo_id);
     }
@@ -385,9 +385,9 @@ impl PackageView {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public search in AUR function
-    //-----------------------------------
+    //---------------------------------------
     pub fn search_in_aur(&self, search_bar: SearchBar, search_term: &str, prop: SearchProp) {
         let imp = self.imp();
 
@@ -486,23 +486,23 @@ impl PackageView {
         });
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public view function
-    //-----------------------------------
+    //---------------------------------------
     pub fn view(&self) -> gtk::ListView {
         self.imp().view.get()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public hide loading spinner function
-    //-----------------------------------
+    //---------------------------------------
     pub fn hide_loading_spinner(&self) {
         self.imp().stack.set_visible_child_name("view");
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public package functions
-    //-----------------------------------
+    //---------------------------------------
     pub fn splice_packages(&self, pkg_slice: &[PkgObject]) {
         let imp = self.imp();
 
@@ -520,9 +520,9 @@ impl PackageView {
             });
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public copy list function
-    //-----------------------------------
+    //---------------------------------------
     pub fn copy_list(&self) -> String {
         let mut copy_text = "## Package List\n|Package|\n|---|\n".to_string();
 
@@ -547,9 +547,9 @@ impl PackageView {
 }
 
 impl Default for PackageView {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new()
     }

@@ -16,9 +16,9 @@ use crate::utils::open_with_default_app;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
     pub struct BackupWindow {
@@ -51,9 +51,9 @@ mod imp {
         pub(super) section_factory: TemplateChild<gtk::BuilderListItemFactory>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for BackupWindow {
         const NAME: &'static str = "BackupWindow";
@@ -85,9 +85,9 @@ mod imp {
     }
 
     impl ObjectImpl for BackupWindow {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -113,18 +113,18 @@ glib::wrapper! {
 }
 
 impl BackupWindow {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
         glib::Object::builder()
             .property("transient-for", parent)
             .build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -186,9 +186,9 @@ impl BackupWindow {
         imp.view.grab_focus();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -274,9 +274,9 @@ impl BackupWindow {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Show window
-    //-----------------------------------
+    //---------------------------------------
     pub fn show(&self, installed_snapshot: &[PkgObject]) {
         let imp = self.imp();
 

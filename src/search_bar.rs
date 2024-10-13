@@ -67,9 +67,9 @@ impl EnumClassExt for SearchProp {}
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::SearchBar)]
     #[template(resource = "/com/github/PacView/ui/search_bar.ui")]
@@ -116,9 +116,9 @@ mod imp {
         pub(super) action_group: RefCell<gio::SimpleActionGroup>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for SearchBar {
         const NAME: &'static str = "SearchBar";
@@ -137,9 +137,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for SearchBar {
-        //-----------------------------------
+        //---------------------------------------
         // Custom signals
-        //-----------------------------------
+        //---------------------------------------
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
@@ -164,9 +164,9 @@ mod imp {
             })
         }
 
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -193,16 +193,16 @@ glib::wrapper! {
 }
 
 impl SearchBar {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public set AUR error function
-    //-----------------------------------
+    //---------------------------------------
     pub fn set_aur_error(&self, aur_error: Option<String>) {
         if let Some(error_msg) = aur_error {
             self.add_css_class("error");
@@ -213,9 +213,9 @@ impl SearchBar {
         }
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -237,9 +237,9 @@ impl SearchBar {
             .build();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -328,9 +328,9 @@ impl SearchBar {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Signal emit helper functions
-    //-----------------------------------
+    //---------------------------------------
     fn emit_changed_signal(&self) {
         let imp = self.imp();
 
@@ -352,9 +352,9 @@ impl SearchBar {
             ]);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup actions
-    //-----------------------------------
+    //---------------------------------------
     fn setup_actions(&self) {
         // Add search mode property action
         let mode_action = gio::PropertyAction::new("set-mode", self, "mode");
@@ -387,9 +387,9 @@ impl SearchBar {
         self.imp().action_group.replace(search_group);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup shortcuts
-    //-----------------------------------
+    //---------------------------------------
     fn setup_shortcuts(&self) {
         // Create shortcut controller
         let controller = gtk::ShortcutController::new();
@@ -526,9 +526,9 @@ impl SearchBar {
         self.add_controller(controller);
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Public set capture widget function
-    //-----------------------------------
+    //---------------------------------------
     pub fn set_key_capture_widget(&self, widget: gtk::Widget) {
         let imp = self.imp();
 
@@ -558,9 +558,9 @@ impl SearchBar {
 }
 
 impl Default for SearchBar {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new()
     }

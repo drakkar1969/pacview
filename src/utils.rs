@@ -8,9 +8,9 @@ use tokio::runtime::Runtime;
 //------------------------------------------------------------------------------
 // GLOBAL: Functions
 //------------------------------------------------------------------------------
-//-----------------------------------
+//---------------------------------------
 // Tokio runtime function
-//-----------------------------------
+//---------------------------------------
 pub fn tokio_runtime() -> &'static Runtime {
     static RUNTIME: OnceLock<Runtime> = OnceLock::new();
 
@@ -19,9 +19,9 @@ pub fn tokio_runtime() -> &'static Runtime {
     })
 }
 
-//-----------------------------------
+//---------------------------------------
 // Size to string function
-//-----------------------------------
+//---------------------------------------
 pub fn size_to_string(size: i64, decimals: usize) -> String {
     let mut size = size as f64;
 
@@ -44,9 +44,9 @@ pub fn size_to_string(size: i64, decimals: usize) -> String {
     }
 }
 
-//-----------------------------------
+//---------------------------------------
 // Date to string function
-//-----------------------------------
+//---------------------------------------
 pub fn date_to_string(date: i64, format: &str) -> String {
     if date == 0 {
         String::from("")
@@ -58,9 +58,9 @@ pub fn date_to_string(date: i64, format: &str) -> String {
     }
 }
 
-//-----------------------------------
+//---------------------------------------
 // Open with default app function
-//-----------------------------------
+//---------------------------------------
 pub fn open_with_default_app(path: &str) {
     let uri = format!("file://{path}");
 

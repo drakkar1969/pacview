@@ -10,9 +10,9 @@ use gtk::prelude::*;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
     #[properties(wrapper_type = super::SearchTag)]
     #[template(resource = "/com/github/PacView/ui/search_tag.ui")]
@@ -24,9 +24,9 @@ mod imp {
         text: RefCell<String>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for SearchTag {
         const NAME: &'static str = "SearchTag";
@@ -45,9 +45,9 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for SearchTag {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -71,16 +71,16 @@ glib::wrapper! {
 }
 
 impl SearchTag {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
@@ -92,9 +92,9 @@ impl SearchTag {
 }
 
 impl Default for SearchTag {
-    //-----------------------------------
+    //---------------------------------------
     // Default constructor
-    //-----------------------------------
+    //---------------------------------------
     fn default() -> Self {
         Self::new()
     }

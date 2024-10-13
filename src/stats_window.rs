@@ -15,9 +15,9 @@ use crate::utils::size_to_string;
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/stats_window.ui")]
     pub struct StatsWindow {
@@ -32,9 +32,9 @@ mod imp {
         pub(super) selection: TemplateChild<gtk::NoSelection>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for StatsWindow {
         const NAME: &'static str = "StatsWindow";
@@ -66,9 +66,9 @@ mod imp {
     }
 
     impl ObjectImpl for StatsWindow {
-        //-----------------------------------
+        //---------------------------------------
         // Constructor
-        //-----------------------------------
+        //---------------------------------------
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -93,26 +93,26 @@ glib::wrapper! {
 }
 
 impl StatsWindow {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
         glib::Object::builder()
             .property("transient-for", parent)
             .build()
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup widgets
-    //-----------------------------------
+    //---------------------------------------
     fn setup_widgets(&self) {
         // Set initial focus on view
         self.imp().view.grab_focus();
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Setup signals
-    //-----------------------------------
+    //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
 
@@ -143,9 +143,9 @@ impl StatsWindow {
         ));
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Show window
-    //-----------------------------------
+    //---------------------------------------
     pub fn show(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 

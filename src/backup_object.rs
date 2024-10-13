@@ -29,9 +29,9 @@ impl EnumClassExt for BackupStatus {}
 mod imp {
     use super::*;
 
-    //-----------------------------------
+    //---------------------------------------
     // Private structure
-    //-----------------------------------
+    //---------------------------------------
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::BackupObject)]
     pub struct BackupObject {
@@ -50,9 +50,9 @@ mod imp {
         _status_text: RefCell<String>,
     }
 
-    //-----------------------------------
+    //---------------------------------------
     // Subclass
-    //-----------------------------------
+    //---------------------------------------
     #[glib::object_subclass]
     impl ObjectSubclass for BackupObject {
         const NAME: &'static str = "BackupObject";
@@ -63,9 +63,9 @@ mod imp {
     impl ObjectImpl for BackupObject {}
 
     impl BackupObject {
-        //-----------------------------------
+        //---------------------------------------
         // Custom property getters
-        //-----------------------------------
+        //---------------------------------------
         fn status_icon(&self) -> String {
             format!("backup-{}-symbolic", self.obj().status().nick())
         }
@@ -84,9 +84,9 @@ glib::wrapper! {
 }
 
 impl BackupObject {
-    //-----------------------------------
+    //---------------------------------------
     // New function
-    //-----------------------------------
+    //---------------------------------------
     pub fn new(filename: &str, hash: &str, package: Option<&str>, file_hash: &str) -> Self {
         let status = if !file_hash.is_empty() {
             if file_hash == hash {
