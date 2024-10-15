@@ -92,9 +92,10 @@ impl PropertyValue {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(ptype: PropType) -> Self {
+    pub fn new(ptype: PropType, label: &str) -> Self {
         glib::Object::builder()
             .property("ptype", ptype)
+            .property("label", label)
             .build()
     }
 

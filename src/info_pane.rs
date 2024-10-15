@@ -315,7 +315,7 @@ impl InfoPane {
     fn add_property(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let property_value = PropertyValue::new(ptype);
+        let property_value = PropertyValue::new(ptype, &id.name());
         property_value.add_css_class("property-value");
 
         property_value.set_pkg_link_handler(closure_local!(
@@ -340,7 +340,6 @@ impl InfoPane {
             }
 
             if visible {
-                property_value.set_label(id.name());
                 property_value.set_icon(icon);
                 property_value.set_value(value);
             }
