@@ -319,8 +319,7 @@ impl InfoPane {
         property_value.add_css_class("property-value");
 
         property_value.set_pkg_link_handler(closure_local!(
-            #[watch(rename_to = infopane)]
-            self,
+            #[watch(rename_to = infopane)] self,
             move |_: TextWidget, pkg_name: &str| {
                 infopane.pkg_link_handler(pkg_name)
             }
@@ -495,7 +494,7 @@ impl InfoPane {
 
         // Info copy button clicked signal
         imp.info_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
                 let mut properties: Vec<String> = vec!["## Package Information\n".to_string()];
@@ -512,7 +511,7 @@ impl InfoPane {
 
                 let copy_text = properties.join("\n");
 
-                window.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(&copy_text);
             }
         ));
 
@@ -545,11 +544,11 @@ impl InfoPane {
 
         // Files copy button clicked signal
         imp.files_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
                 let mut copy_text = format!("## {}\n|Files|\n|---|\n",
-                    window.pkg().unwrap().name()
+                    infopane.pkg().unwrap().name()
                 );
 
                 copy_text.push_str(&imp.files_selection.iter::<glib::Object>().flatten()
@@ -562,7 +561,7 @@ impl InfoPane {
                     .collect::<Vec<glib::GString>>()
                     .join("\n"));
 
-                window.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(&copy_text);
             }
         ));
 
@@ -576,11 +575,11 @@ impl InfoPane {
 
         // Log copy button clicked signal
         imp.log_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
                 let mut copy_text = format!("## {}\n|Log Messages|\n|---|\n",
-                    window.pkg().unwrap().name()
+                    infopane.pkg().unwrap().name()
                 );
 
                 copy_text.push_str(&imp.log_model.iter::<gtk::StringObject>().flatten()
@@ -588,7 +587,7 @@ impl InfoPane {
                     .collect::<Vec<glib::GString>>()
                     .join("\n"));
 
-                window.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(&copy_text);
             }
         ));
 
@@ -606,11 +605,11 @@ impl InfoPane {
 
         // Cache copy button clicked signal
         imp.cache_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
                 let mut copy_text = format!("## {}\n|Cache Files|\n|---|\n",
-                    window.pkg().unwrap().name()
+                    infopane.pkg().unwrap().name()
                 );
 
                 copy_text.push_str(&imp.cache_model.iter::<gtk::StringObject>().flatten()
@@ -618,7 +617,7 @@ impl InfoPane {
                     .collect::<Vec<glib::GString>>()
                     .join("\n"));
 
-                window.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(&copy_text);
             }
         ));
 
@@ -644,11 +643,11 @@ impl InfoPane {
 
         // Backup copy button clicked signal
         imp.backup_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
                 let mut copy_text = format!("## {}\n|Backup Files|Status|\n|---|---|\n",
-                    window.pkg().unwrap().name()
+                    infopane.pkg().unwrap().name()
                 );
 
                 copy_text.push_str(&imp.backup_model.iter::<BackupObject>().flatten()
@@ -661,7 +660,7 @@ impl InfoPane {
                     .collect::<Vec<String>>()
                     .join("\n"));
 
-                window.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(&copy_text);
             }
         ));
 
