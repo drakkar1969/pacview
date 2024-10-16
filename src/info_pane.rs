@@ -138,7 +138,7 @@ mod imp {
         #[template_child]
         pub(super) log_selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
-        pub(super) log_overlay_label: TemplateChild<gtk::Label>,
+        pub(super) log_error_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) cache_header_label: TemplateChild<gtk::Label>,
@@ -153,7 +153,7 @@ mod imp {
         #[template_child]
         pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) cache_overlay_label: TemplateChild<gtk::Label>,
+        pub(super) cache_error_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) backup_header_label: TemplateChild<gtk::Label>,
@@ -769,7 +769,7 @@ impl InfoPane {
                 imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
             } else {
                 // Show overlay error label
-                imp.log_overlay_label.set_visible(true);
+                imp.log_error_label.set_visible(true);
             }
         });
     }
@@ -814,7 +814,7 @@ impl InfoPane {
 
                 if cache_error {
                     // Show overlay error label
-                    imp.cache_overlay_label.set_visible(true);
+                    imp.cache_error_label.set_visible(true);
                 } else {
                     // Populate cache view
                     imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);

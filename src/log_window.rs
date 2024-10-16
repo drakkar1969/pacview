@@ -45,7 +45,7 @@ mod imp {
         pub(super) package_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
-        pub(super) overlay_label: TemplateChild<gtk::Label>,
+        pub(super) error_label: TemplateChild<gtk::Label>,
     }
 
     //---------------------------------------
@@ -281,7 +281,7 @@ impl LogWindow {
                         },
                         // Show overlay error label
                         LogResult::Error => {
-                            imp.overlay_label.set_visible(true);
+                            imp.error_label.set_visible(true);
                         }
                     };
                 }

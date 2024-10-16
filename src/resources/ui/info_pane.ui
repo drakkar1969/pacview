@@ -321,14 +321,14 @@
                                   </object>
                                 </child>
                                 <child type="overlay">
-                                  <object class="GtkLabel" id="log_overlay_label">
+                                  <object class="GtkLabel" id="log_error_label">
                                     <property name="visible">false</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
                                     <property name="label">Error retrieving logs</property>
                                     <style>
                                       <class name="title-4"/>
-                                      <class name="dim-label"/>
+                                      <class name="error"/>
                                     </style>
                                   </object>
                                 </child>
@@ -434,14 +434,14 @@
                                   </object>
                                 </child>
                                 <child type="overlay">
-                                  <object class="GtkLabel" id="cache_overlay_label">
+                                  <object class="GtkLabel" id="cache_error_label">
                                     <property name="visible">false</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
-                                    <property name="label">Error retrieving logs</property>
+                                    <property name="label">Error retrieving cache</property>
                                     <style>
                                       <class name="title-4"/>
-                                      <class name="dim-label"/>
+                                      <class name="error"/>
                                     </style>
                                   </object>
                                 </child>
