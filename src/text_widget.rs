@@ -491,11 +491,15 @@ impl TextWidget {
                 context.set_source_rgba(text_color.red() as f64, text_color.green() as f64, text_color.blue() as f64, text_color.alpha() as f64);
                 context.move_to(0.0, 0.0);
 
-                widget.set_can_expand(if widget.expanded() {
+                let can_expand = if widget.expanded() {
                     layout.line_count() > LINES
                 } else {
                     layout.is_ellipsized()
-                });
+                };
+
+                if widget.can_expand() != can_expand {
+                    widget.set_can_expand(can_expand);
+                }
 
                 pangocairo::functions::show_layout(context, layout);
 
