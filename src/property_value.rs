@@ -136,7 +136,7 @@ impl PropertyValue {
             .sync_create()
             .build();
 
-        self.bind_property("has-focus", &imp.text_widget.get(), "is-focused")
+        self.bind_property("has-focus", &imp.text_widget.get(), "focused")
             .sync_create()
             .build();
 
@@ -156,15 +156,15 @@ impl PropertyValue {
         imp.expand_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                imp.text_widget.set_is_expanded(!imp.text_widget.is_expanded());
+                imp.text_widget.set_expanded(!imp.text_widget.expanded());
             }
         ));
 
-        // Text widget is expanded property notify signal
-        imp.text_widget.connect_is_expanded_notify(clone!(
+        // Text widget expanded property notify signal
+        imp.text_widget.connect_expanded_notify(clone!(
             #[weak] imp,
             move |widget| {
-                if widget.is_expanded(){
+                if widget.expanded(){
                     imp.expand_button.add_css_class("active");
                 } else {
                     imp.expand_button.remove_css_class("active");
@@ -232,8 +232,8 @@ impl PropertyValue {
 
                 let imp = property.imp();
 
-                if !imp.text_widget.is_expanded() {
-                    imp.text_widget.set_is_expanded(true);
+                if !imp.text_widget.expanded() {
+                    imp.text_widget.set_expanded(true);
                 }
 
                 glib::Propagation::Proceed
@@ -249,8 +249,8 @@ impl PropertyValue {
 
                 let imp = property.imp();
 
-                if imp.text_widget.is_expanded() {
-                    imp.text_widget.set_is_expanded(false);
+                if imp.text_widget.expanded() {
+                    imp.text_widget.set_expanded(false);
                 }
     
                 glib::Propagation::Proceed

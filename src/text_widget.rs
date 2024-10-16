@@ -70,10 +70,10 @@ mod imp {
         #[property(get, set)]
         can_expand: Cell<bool>,
         #[property(get, set)]
-        is_expanded: Cell<bool>,
+        expanded: Cell<bool>,
 
         #[property(get, set)]
-        is_focused: Cell<bool>,
+        focused: Cell<bool>,
 
         pub(super) pango_layout: OnceCell<pango::Layout>,
 
@@ -264,7 +264,7 @@ mod imp {
         }
 
         pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            let (red, green, blue, alpha) = if self.obj().is_focused() {
+            let (red, green, blue, alpha) = if self.obj().focused() {
                 self.sel_focus_bg_color.get()
             } else {
                 self.sel_bg_color.get()
@@ -394,7 +394,7 @@ mod imp {
             self.selection_start.set(None);
             self.selection_end.set(None);
 
-            obj.set_is_expanded(false);
+            obj.set_expanded(false);
 
             self.draw_area.queue_resize();
         }
@@ -491,7 +491,7 @@ impl TextWidget {
                 context.set_source_rgba(text_color.red() as f64, text_color.green() as f64, text_color.blue() as f64, text_color.alpha() as f64);
                 context.move_to(0.0, 0.0);
 
-                widget.set_can_expand(if widget.is_expanded() {
+                widget.set_can_expand(if widget.expanded() {
                     layout.line_count() > LINES
                 } else {
                     layout.is_ellipsized()
@@ -504,7 +504,7 @@ impl TextWidget {
 
                 let index = imp.focus_link_index.get();
 
-                if widget.is_focused() {
+                if widget.focused() {
                     if let Some(link) = index.and_then(|i| link_list.get(i)) {
                         let link_start = link.start.to_i32().unwrap();
                         let link_end = link.end.to_i32().unwrap();
@@ -639,13 +639,13 @@ impl TextWidget {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        // Is expanded property notify signal
-        self.connect_is_expanded_notify(|widget| {
+        // Expanded property notify signal
+        self.connect_expanded_notify(|widget| {
             let imp = widget.imp();
 
             let layout = imp.pango_layout.get().unwrap();
 
-            if widget.is_expanded() {
+            if widget.expanded() {
                 layout.set_height(-1);
                 layout.set_ellipsize(pango::EllipsizeMode::None);
             } else {
@@ -656,11 +656,11 @@ impl TextWidget {
             imp.draw_area.queue_resize();
         });
 
-        // Is focused property notify signal
-        self.connect_is_focused_notify(|widget| {
+        // Focused property notify signal
+        self.connect_focused_notify(|widget| {
             let imp = widget.imp();
 
-            if !widget.is_focused() {
+            if !widget.focused() {
                 if !imp.link_list.borrow().is_empty() {
                     imp.focus_link_index.set(Some(0));
                 } else {
