@@ -20,13 +20,13 @@ use crate::utils::tokio_runtime;
 use crate::traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
-// ENUM: PackageSort
+// ENUM: SortProp
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString)]
 #[strum(serialize_all = "kebab-case")]
 #[repr(u32)]
-#[enum_type(name = "PackageSort")]
-pub enum PackageSort {
+#[enum_type(name = "SortProp")]
+pub enum SortProp {
     #[default]
     Name,
     Version,
@@ -37,7 +37,7 @@ pub enum PackageSort {
     Groups,
 }
 
-impl EnumValueExt for PackageSort {}
+impl EnumValueExt for SortProp {}
 
 //------------------------------------------------------------------------------
 // MODULE: PackageView
@@ -81,8 +81,8 @@ mod imp {
 
         #[property(get, set)]
         n_items: Cell<u32>,
-        #[property(get, set, builder(PackageSort::default()))]
-        sort_field: Cell<PackageSort>,
+        #[property(get, set, builder(SortProp::default()))]
+        sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
 
@@ -192,14 +192,14 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Could not downcast to 'PkgObject'");
 
-                let sort = match view.sort_field() {
-                    PackageSort::Name => { pkg_a.name().cmp(&pkg_b.name()) },
-                    PackageSort::Version => { pkg_a.version().cmp(&pkg_b.version()) },
-                    PackageSort::Repository => { pkg_a.repository().cmp(&pkg_b.repository()) },
-                    PackageSort::Status => { pkg_a.status().cmp(&pkg_b.status()) },
-                    PackageSort::InstallDate => { pkg_a.install_date().cmp(&pkg_b.install_date()) },
-                    PackageSort::InstalledSize => { pkg_a.install_size().cmp(&pkg_b.install_size()) },
-                    PackageSort::Groups => { pkg_a.groups().cmp(&pkg_b.groups()) },
+                let sort = match view.sort_prop() {
+                    SortProp::Name => { pkg_a.name().cmp(&pkg_b.name()) },
+                    SortProp::Version => { pkg_a.version().cmp(&pkg_b.version()) },
+                    SortProp::Repository => { pkg_a.repository().cmp(&pkg_b.repository()) },
+                    SortProp::Status => { pkg_a.status().cmp(&pkg_b.status()) },
+                    SortProp::InstallDate => { pkg_a.install_date().cmp(&pkg_b.install_date()) },
+                    SortProp::InstalledSize => { pkg_a.install_size().cmp(&pkg_b.install_size()) },
+                    SortProp::Groups => { pkg_a.groups().cmp(&pkg_b.groups()) },
                 };
 
                 if view.sort_ascending() {
@@ -310,8 +310,8 @@ impl PackageView {
             }
         ));
 
-        // Sort field property notify signal
-        self.connect_sort_field_notify(clone!(
+        // Sort prop property notify signal
+        self.connect_sort_prop_notify(clone!(
             #[weak] imp,
             move |_| {
                 imp.sorter.changed(gtk::SorterChange::Different);
@@ -357,7 +357,7 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Could not downcast to 'PkgObject'");
 
-                let search_fields = match prop {
+                let search_props = match prop {
                     SearchProp::Name => { vec![pkg.name()] },
                     SearchProp::NameDesc => { vec![pkg.name(), pkg.description()] },
                     SearchProp::Group => { vec![pkg.groups()] },
@@ -368,11 +368,11 @@ impl PackageView {
                 };
 
                 if mode == SearchMode::Exact {
-                    search_fields.iter().any(|s| s.eq(&term))
+                    search_props.iter().any(|s| s.eq(&term))
                 } else {
                     let mut results = term.split_whitespace()
                         .map(|t| {
-                            search_fields.iter().any(|s| s.to_lowercase().contains(t))
+                            search_props.iter().any(|s| s.to_lowercase().contains(t))
                         });
 
                     if mode == SearchMode::All {

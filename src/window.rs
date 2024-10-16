@@ -28,7 +28,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
-use crate::package_view::{PackageView, PackageSort};
+use crate::package_view::{PackageView, SortProp};
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
@@ -229,10 +229,10 @@ impl PacViewWindow {
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
 
-        // Load package view sort field/order
+        // Load package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
-            if let Ok(sort_field) = PackageSort::from_str(&gsettings.string("sort-field")) {
-                imp.package_view.set_sort_field(sort_field);
+            if let Ok(sort_prop) = SortProp::from_str(&gsettings.string("sort-prop")) {
+                imp.package_view.set_sort_prop(sort_prop);
             }
 
             imp.package_view.set_sort_ascending(gsettings.boolean("sort-ascending"));
@@ -276,12 +276,12 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "search-delay", imp.prefs_dialog.search_delay());
         self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
 
-        // Save package view sort field/order
+        // Save package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
-            self.set_gsetting(gsettings, "sort-field", imp.package_view.sort_field().nick());
+            self.set_gsetting(gsettings, "sort-prop", imp.package_view.sort_prop().nick());
             self.set_gsetting(gsettings, "sort-ascending", imp.package_view.sort_ascending());
         } else {
-            self.set_gsetting(gsettings, "sort-field", PackageSort::default().nick());
+            self.set_gsetting(gsettings, "sort-prop", SortProp::default().nick());
             self.set_gsetting(gsettings, "sort-ascending", true);
         }
     }
@@ -453,17 +453,17 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
-                imp.package_view.set_sort_field(PackageSort::default());
+                imp.package_view.set_sort_prop(SortProp::default());
                 imp.package_view.set_sort_ascending(true);
             })
             .build();
 
-        // Add package view sort field property action
-        let sort_field_action = gio::PropertyAction::new("set-package-sort-field", &imp.package_view.get(), "sort-field");
+        // Add package view sort prop property action
+        let sort_prop_action = gio::PropertyAction::new("set-sort-prop", &imp.package_view.get(), "sort-prop");
 
         // Add package view actions to window
         self.add_action_entries([refresh_action, copy_action, all_pkgs_action, reset_sort_action]);
-        self.add_action(&sort_field_action);
+        self.add_action(&sort_prop_action);
 
         // Bind package view item count to copy list action enabled state
         let copy_action = self.lookup_action("copy-package-list").unwrap();

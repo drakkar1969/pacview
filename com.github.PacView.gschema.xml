@@ -16,7 +16,7 @@
     <value nick="files" value="6"/>
   </enum>
 
-  <enum id="com.github.PacView.PackageSort">
+  <enum id="com.github.PacView.SortProp">
     <value nick="name" value="0"/>
     <value nick="version" value="1"/>
     <value nick="repository" value="2"/>
@@ -49,7 +49,7 @@
     <key name="sort-ascending" type="b">
       <default>true</default>
     </key>
-    <key name="sort-field" enum='com.github.PacView.PackageSort'>
+    <key name="sort-prop" enum='com.github.PacView.SortProp'>
       <default>'name'</default>
     </key>
     <key name="window-height" type="i">
