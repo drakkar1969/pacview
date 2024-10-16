@@ -60,7 +60,6 @@ pub struct PkgData {
     download_size: i64,
     has_script: bool,
     sha256sum: String,
-    md5sum: String,
 }
 
 impl PkgData {
@@ -127,7 +126,6 @@ impl PkgData {
             download_size: syncpkg.download_size(),
             has_script: syncpkg.has_scriptlet(),
             sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
-            md5sum: syncpkg.md5sum().unwrap_or_default().to_string(),
         }
     }
 
@@ -158,7 +156,6 @@ impl PkgData {
             download_size: 0,
             has_script: false,
             sha256sum: "".to_string(),
-            md5sum: "".to_string(),
         }
     }
 
@@ -342,10 +339,6 @@ impl PkgObject {
 
     pub fn sha256sum(&self) -> String {
         self.imp().data.borrow().sha256sum.to_owned()
-    }
-
-    pub fn md5sum(&self) -> String {
-        self.imp().data.borrow().md5sum.to_owned()
     }
 
     //---------------------------------------

@@ -76,8 +76,6 @@ enum PropID {
     InstallScript,
     #[enum_value(name = "SHA256 Sum")]
     SHA256Sum,
-    #[enum_value(name = "MD5 Sum")]
-    MD5Sum,
 }
 
 impl EnumValueExt for PropID {}
@@ -409,7 +407,6 @@ impl InfoPane {
         self.add_property(PropID::InstalledSize, PropType::Text);
         self.add_property(PropID::InstallScript, PropType::Text);
         self.add_property(PropID::SHA256Sum, PropType::Text);
-        self.add_property(PropID::MD5Sum, PropType::Text);
 
         // Bind visible tab property to tab stack
         self.bind_property("visible-tab", &imp.tab_stack.get(), "visible-child-name")
@@ -737,8 +734,6 @@ impl InfoPane {
         self.set_string_property(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
         // SHA256 sum
         self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
-        // MD5 sum
-        self.set_string_property(PropID::MD5Sum, !pkg.md5sum().is_empty(), &pkg.md5sum(), None);
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {
