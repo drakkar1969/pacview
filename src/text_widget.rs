@@ -70,7 +70,7 @@ mod imp {
         #[property(get, set)]
         can_expand: Cell<bool>,
         #[property(get, set)]
-        expanded: Cell<bool>,
+        is_expanded: Cell<bool>,
 
         #[property(get, set)]
         is_focused: Cell<bool>,
@@ -394,8 +394,7 @@ mod imp {
             self.selection_start.set(None);
             self.selection_end.set(None);
 
-            obj.set_expanded(false);
-            obj.set_can_expand(layout.is_ellipsized());
+            obj.set_is_expanded(false);
 
             self.draw_area.queue_resize();
         }
@@ -491,6 +490,12 @@ impl TextWidget {
 
                 context.set_source_rgba(text_color.red() as f64, text_color.green() as f64, text_color.blue() as f64, text_color.alpha() as f64);
                 context.move_to(0.0, 0.0);
+
+                widget.set_can_expand(if widget.is_expanded() {
+                    layout.line_count() > LINES
+                } else {
+                    layout.is_ellipsized()
+                });
 
                 pangocairo::functions::show_layout(context, layout);
 
@@ -634,13 +639,13 @@ impl TextWidget {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        // Expanded property notify signal
-        self.connect_expanded_notify(|widget| {
+        // Is expanded property notify signal
+        self.connect_is_expanded_notify(|widget| {
             let imp = widget.imp();
 
             let layout = imp.pango_layout.get().unwrap();
 
-            if widget.expanded() {
+            if widget.is_expanded() {
                 layout.set_height(-1);
                 layout.set_ellipsize(pango::EllipsizeMode::None);
             } else {
