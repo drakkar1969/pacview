@@ -115,6 +115,8 @@ mod imp {
         #[template_child]
         pub(super) files_header_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) files_count_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) files_search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
         pub(super) files_open_button: TemplateChild<gtk::Button>,
@@ -130,7 +132,11 @@ mod imp {
         pub(super) files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) files_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) files_none_label: TemplateChild<gtk::Label>,
 
+        #[template_child]
+        pub(super) log_header_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) log_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -138,10 +144,14 @@ mod imp {
         #[template_child]
         pub(super) log_selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
+        pub(super) log_none_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) log_error_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) cache_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) cache_count_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) cache_open_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -153,10 +163,14 @@ mod imp {
         #[template_child]
         pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
+        pub(super) cache_none_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) cache_error_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) backup_header_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) backup_count_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) backup_open_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -167,6 +181,8 @@ mod imp {
         pub(super) backup_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub(super) backup_none_label: TemplateChild<gtk::Label>,
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         _pkg: RefCell<Option<PkgObject>>,
@@ -417,9 +433,15 @@ impl InfoPane {
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
-        // Bind files count to files header label
-        imp.files_filter_model.bind_property("n-items", &imp.files_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(format!("Files ({n_items})")))
+        // Bind files count to files count label
+        imp.files_filter_model.bind_property("n-items", &imp.files_count_label.get(), "label")
+            .transform_to(move |_, n_items: u32| Some(n_items.to_string()))
+            .sync_create()
+            .build();
+
+        // Bind files count to files search entry state
+        imp.files_filter_model.bind_property("n-items", &imp.files_search_entry.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
             .sync_create()
             .build();
 
@@ -441,8 +463,8 @@ impl InfoPane {
             .build();
 
         // Bind cache count to cache header label
-        imp.cache_selection.bind_property("n-items", &imp.cache_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(format!("Cache Files ({n_items})")))
+        imp.cache_selection.bind_property("n-items", &imp.cache_count_label.get(), "label")
+            .transform_to(move |_, n_items: u32| Some(n_items.to_string()))
             .sync_create()
             .build();
 
@@ -458,8 +480,8 @@ impl InfoPane {
             .build();
 
         // Bind backup count to backup header label
-        imp.backup_selection.bind_property("n-items", &imp.backup_header_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(format!("Backup Files ({n_items})")))
+        imp.backup_selection.bind_property("n-items", &imp.backup_count_label.get(), "label")
+            .transform_to(move |_, n_items: u32| Some(n_items.to_string()))
             .sync_create()
             .build();
 
@@ -736,107 +758,143 @@ impl InfoPane {
         self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
     }
 
-    fn update_files_view(&self, pkg: &PkgObject) {
+    fn update_files_view(&self, pkg: &PkgObject, installed: bool) {
         let imp = self.imp();
 
-        // Populate files view
-        let files_list: Vec<gtk::StringObject> = pkg.files().iter()
-            .map(|s| gtk::StringObject::new(s))
-            .collect();
+        imp.files_header_label.set_sensitive(installed);
+        imp.files_count_label.set_visible(installed);
 
-        imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
-    }
-
-    fn update_log_view(&self, pkg: &PkgObject) {
-        let imp = self.imp();
-
-        // Populate log view
-        PACMAN_CONFIG.with_borrow(|pacman_config| {
-            if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
-                let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
-                    .expect("Regex error");
-
-                let log_lines: Vec<gtk::StringObject> = log.lines().rev()
-                    .filter_map(|s| {
-                        if expr.is_match(s) {
-                            Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-
-                imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-            } else {
-                // Show overlay error label
-                imp.log_error_label.set_visible(true);
-            }
-        });
-    }
-
-    fn update_cache_view(&self, pkg: &PkgObject) {
-        let imp = self.imp();
-
-        let pkg_name = pkg.name();
-
-        // Get cache blacklist package names
-        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-            let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
-                .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
+        if installed {
+            // Populate files view
+            let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+                .map(|s| gtk::StringObject::new(s))
                 .collect();
 
-            // Populate cache view
-            PACMAN_CONFIG.with_borrow(|pacman_config| {
-                let mut cache_list: Vec<gtk::StringObject> = vec![];
-                let mut cache_error = false;
+            imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
+        } else {
+            imp.files_model.remove_all();
+        }
 
-                for dir in &pacman_config.cache_dir {
-                    if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
-                        // Find cache files that include package name
-                        cache_list.extend(paths
-                            .flatten()
-                            .filter_map(|path| {
-                                let cache_file = path.display().to_string();
-
-                                // Exclude cache files that include blacklist package names
-                                if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
-                                    None
-                                } else {
-                                    Some(gtk::StringObject::new(&cache_file))
-                                }
-                            })
-                        );
-                    } else {
-                        cache_error = true;
-                        break;
-                    }
-                }
-
-                if cache_error {
-                    // Show overlay error label
-                    imp.cache_error_label.set_visible(true);
-                } else {
-                    // Populate cache view
-                    imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
-                }
-            });
-        });
+        imp.files_none_label.set_visible(!installed);
     }
 
-    fn update_backup_view(&self, pkg: &PkgObject) {
+    fn update_log_view(&self, pkg: &PkgObject, installed: bool) {
         let imp = self.imp();
 
-        // Populate backup view
-        let backup_list: Vec<BackupObject> = pkg.backup().iter()
-            .map(|(filename, hash)| {
-                let file_hash = alpm::compute_md5sum(filename.as_str())
-                    .unwrap_or_default();
+        imp.log_header_label.set_sensitive(installed);
 
-                BackupObject::new(filename, hash, None, &file_hash)
-            })
-            .collect();
+        if installed {
+            // Populate log view
+            PACMAN_CONFIG.with_borrow(|pacman_config| {
+                if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
+                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
+                        .expect("Regex error");
 
-        imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
+                    let log_lines: Vec<gtk::StringObject> = log.lines().rev()
+                        .filter_map(|s| {
+                            if expr.is_match(s) {
+                                Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
+
+                    imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
+                } else {
+                    // Show overlay error label
+                    imp.log_error_label.set_visible(true);
+                }
+            });
+
+        } else {
+            imp.log_model.remove_all();
+        }
+
+        imp.log_none_label.set_visible(!installed);
+    }
+
+    fn update_cache_view(&self, pkg: &PkgObject, installed: bool) {
+        let imp = self.imp();
+
+        imp.cache_header_label.set_sensitive(installed);
+        imp.cache_count_label.set_visible(installed);
+
+        if installed {
+            let pkg_name = pkg.name();
+
+            // Get cache blacklist package names
+            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+                let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
+                    .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
+                    .collect();
+
+                // Populate cache view
+                PACMAN_CONFIG.with_borrow(|pacman_config| {
+                    let mut cache_list: Vec<gtk::StringObject> = vec![];
+                    let mut cache_error = false;
+
+                    for dir in &pacman_config.cache_dir {
+                        if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
+                            // Find cache files that include package name
+                            cache_list.extend(paths
+                                .flatten()
+                                .filter_map(|path| {
+                                    let cache_file = path.display().to_string();
+
+                                    // Exclude cache files that include blacklist package names
+                                    if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
+                                        None
+                                    } else {
+                                        Some(gtk::StringObject::new(&cache_file))
+                                    }
+                                })
+                            );
+                        } else {
+                            cache_error = true;
+                            break;
+                        }
+                    }
+
+                    if cache_error {
+                        // Show overlay error label
+                        imp.cache_error_label.set_visible(true);
+                    } else {
+                        // Populate cache view
+                        imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+                    }
+                });
+            });
+        } else {
+            imp.cache_model.remove_all();
+        }
+
+        imp.cache_none_label.set_visible(!installed);
+    }
+
+    fn update_backup_view(&self, pkg: &PkgObject, installed: bool) {
+        let imp = self.imp();
+
+        imp.backup_header_label.set_sensitive(installed);
+        imp.backup_count_label.set_visible(installed);
+
+        if installed {
+            // Populate backup view
+            let backup_list: Vec<BackupObject> = pkg.backup().iter()
+                .map(|(filename, hash)| {
+                    let file_hash = alpm::compute_md5sum(filename.as_str())
+                        .unwrap_or_default();
+
+                    BackupObject::new(filename, hash, None, &file_hash)
+                })
+                .collect();
+
+            imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
+        } else {
+            imp.backup_model.remove_all();
+        }
+
+        imp.backup_none_label.set_visible(!installed);
     }
 
     //---------------------------------------
@@ -885,17 +943,16 @@ impl InfoPane {
             // Populate info listbox
             self.update_info_listbox(&pkg);
 
-            // Populate files view
-            self.update_files_view(&pkg);
+            // Populate files/log/cache/backup views
+            let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
 
-            // Populate log view
-            self.update_log_view(&pkg);
+            self.update_files_view(&pkg, installed);
 
-            // Populate cache view
-            self.update_cache_view(&pkg);
+            self.update_log_view(&pkg, installed);
 
-            // Populate backup view
-            self.update_backup_view(&pkg);
+            self.update_cache_view(&pkg, installed);
+
+            self.update_backup_view(&pkg, installed);
         }
     }
 
