@@ -1,31 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
-  <enum id="com.github.PacView.SearchMode">
-    <value nick="all" value="0"/>
-    <value nick="any" value="1"/>
-    <value nick="exact" value="2"/>
-  </enum>
-
-  <enum id="com.github.PacView.SearchProp">
-    <value nick="name" value="0"/>
-    <value nick="name-desc" value="1"/>
-    <value nick="group" value="2"/>
-    <value nick="deps" value="3"/>
-    <value nick="optdeps" value="4"/>
-    <value nick="provides" value="5"/>
-    <value nick="files" value="6"/>
-  </enum>
-
-  <enum id="com.github.PacView.SortProp">
-    <value nick="name" value="0"/>
-    <value nick="version" value="1"/>
-    <value nick="repository" value="2"/>
-    <value nick="status" value="3"/>
-    <value nick="install-date" value="4"/>
-    <value nick="installed-size" value="5"/>
-    <value nick="groups" value="6"/>
-  </enum>
-
   <schema id="com.github.PacView" path="/com/github/PacView/">
     <key name="aur-update-command" type="s">
       <default>''</default>
@@ -40,16 +14,39 @@
       <range min="0" max="2000"/>
       <default>150</default>
     </key>
-    <key name="search-mode" enum='com.github.PacView.SearchMode'>
+    <key name="search-mode" type="s">
+      <choices>
+        <choice value='all'/>
+        <choice value='any'/>
+        <choice value='exact'/>
+      </choices>
       <default>'all'</default>
     </key>
-    <key name="search-prop" enum='com.github.PacView.SearchProp'>
+    <key name="search-prop" type="s">
+      <choices>
+        <choice value='name'/>
+        <choice value='name-desc'/>
+        <choice value='group'/>
+        <choice value='deps'/>
+        <choice value='optdeps'/>
+        <choice value='provides'/>
+        <choice value='files'/>
+      </choices>
       <default>'name'</default>
     </key>
     <key name="sort-ascending" type="b">
       <default>true</default>
     </key>
-    <key name="sort-prop" enum='com.github.PacView.SortProp'>
+    <key name="sort-prop" type="s">
+      <choices>
+        <choice value="name"/>
+        <choice value="version"/>
+        <choice value="repository"/>
+        <choice value="status"/>
+        <choice value="install-date"/>
+        <choice value="installed-size"/>
+        <choice value="groups"/>
+      </choices>
       <default>'name'</default>
     </key>
     <key name="window-height" type="i">
