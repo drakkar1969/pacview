@@ -332,7 +332,6 @@ impl InfoPane {
         let imp = self.imp();
 
         let property_value = PropertyValue::new(ptype, &id.name());
-        property_value.add_css_class("property-value");
 
         property_value.set_pkg_link_handler(closure_local!(
             #[watch(rename_to = infopane)] self,

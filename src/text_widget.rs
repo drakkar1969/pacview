@@ -423,7 +423,7 @@ impl TextWidget {
     //---------------------------------------
     fn pango_color_from_style(&self, style: &str) -> (u16, u16, u16, u16) {
         let label = gtk::Label::builder()
-            .css_name("tag")
+            .css_name("texttag")
             .css_classes([style])
             .build();
 
