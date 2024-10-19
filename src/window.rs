@@ -1126,10 +1126,10 @@ impl PacViewWindow {
                         if code == Some(0) {
                             update_str += &stdout;
                         } else if code == Some(1) {
-                            error_msg = Some("Error Retrieving Pacman Updates (checkupdates error)".to_string())
+                            error_msg = Some("Could not retrieve pacman updates: checkupdates error".to_string())
                         }
                     },
-                    Err(error) => error_msg = Some(format!("Error Retrieving Pacman Updates ({})", error))
+                    Err(error) => error_msg = Some(format!("Could not retrieve pacman updates: {}", error))
                 }
 
                 // Get AUR update results
@@ -1141,7 +1141,7 @@ impl PacViewWindow {
                     },
                     Err(error) => {
                         if error_msg.is_none() {
-                            error_msg = Some(format!("Error Retrieving AUR Updates ({})", error));
+                            error_msg = Some(format!("Could not retrieve AUR updates: {}", error));
                         }
                     }
                 }
@@ -1174,10 +1174,7 @@ impl PacViewWindow {
                 }
 
                 // Show update status/count in sidebar
-                update_row.set_updating(false);
-                update_row.set_icon(if error_msg.is_some() {"status-updates-error-symbolic"} else {"status-updates-symbolic"});
-                update_row.set_count(update_map.len() as u64);
-                update_row.set_tooltip_text(error_msg.as_deref());
+                update_row.set_update_status(error_msg.as_deref(), update_map.len() as u64);
 
                 // If update row is selected, refresh package status filter
                 if update_row.is_selected() {

@@ -33,6 +33,22 @@ searchtag label {
 	padding: 0;
 }
 
+/* Sidebar error button */
+row.filter-row menubutton {
+	margin: 0;
+}
+
+row.filter-row button {
+	margin: 0;
+}
+
+row.filter-row menubutton > button {
+	min-height: 28px;
+	min-width: 28px;
+	margin: 3px 0;
+	padding: 0;
+}
+
 /* Sidebar list count indicator */
 box.count-indicator {
 	min-width: 20px;

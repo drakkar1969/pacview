@@ -26,9 +26,14 @@ mod imp {
         #[template_child]
         pub(super) text_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) error_button: TemplateChild<gtk::MenuButton>,
+        #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) count_box: TemplateChild<gtk::Box>,
+
+        #[template_child]
+        pub(super) error_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
         icon: RefCell<String>,
@@ -126,6 +131,28 @@ impl FilterRow {
             .transform_to(|_, count: u64| Some(count > 0))
             .sync_create()
             .build();
+    }
+
+    //---------------------------------------
+    // Public set update status function
+    //---------------------------------------
+    pub fn set_update_status(&self, error_msg: Option<&str>, n_updates: u64) {
+        let imp = self.imp();
+
+        self.set_updating(false);
+        self.set_count(n_updates);
+
+        if let Some(error_msg) = error_msg {
+            self.add_css_class("error");
+
+            imp.error_label.set_label(error_msg);
+            imp.error_button.set_visible(true);
+        } else {
+            self.remove_css_class("error");
+
+            imp.error_label.set_label("");
+            imp.error_button.set_visible(false);
+        }
     }
 }
 

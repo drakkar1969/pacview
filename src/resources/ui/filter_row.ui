@@ -2,6 +2,9 @@
 <interface>
   <!--// FilterRow template //-->
   <template class="FilterRow" parent="GtkListBoxRow">
+    <style>
+      <class name="filter-row"/>
+    </style>
     <property name="child">
       <object class="GtkBox">
         <property name="hexpand">True</property>
@@ -36,19 +39,36 @@
           </object>
         </child>
         <child>
-          <object class="GtkBox" id="count_box">
-            <property name="visible">False</property>
-            <property name="hexpand">False</property>
-            <style>
-              <class name="count-indicator"/>
-            </style>
+          <object class="GtkBox">
+            <property name="spacing">6</property>
             <child>
-              <object class="GtkLabel" id="count_label">
-                <property name="hexpand">True</property>
-                <property name="xalign">0.5</property>
+              <object class="GtkMenuButton" id="error_button">
+                <property name="visible">false</property>
+                <property name="icon-name">info-outline-symbolic</property>
+                <property name="popover">error_popover</property>
                 <style>
-                  <class name="caption-heading"/>
+                  <class name="circular"/>
+                  <class name="flat"/>
                 </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="count_box">
+                <property name="visible">False</property>
+                <property name="hexpand">False</property>
+                <property name="valign">center</property>
+                <style>
+                  <class name="count-indicator"/>
+                </style>
+                <child>
+                  <object class="GtkLabel" id="count_label">
+                    <property name="hexpand">True</property>
+                    <property name="xalign">0.5</property>
+                    <style>
+                      <class name="caption-heading"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -56,4 +76,32 @@
       </object>
     </property>
   </template>
+
+  <!--// Error popover //-->
+  <object class="GtkPopover" id="error_popover">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">8</property>
+        <property name="spacing">4</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Update Error</property>
+            <property name="xalign">0</property>
+            <style>
+              <class name="title-4"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="error_label">
+            <property name="xalign">0</property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
 </interface>
