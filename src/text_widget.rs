@@ -619,6 +619,25 @@ impl TextWidget {
     }
 
     //---------------------------------------
+    // Resize layout helper function
+    //---------------------------------------
+    fn resize_layout(&self) {
+        let imp = self.imp();
+
+        let layout = imp.pango_layout.get().unwrap();
+
+        if self.expanded() {
+            layout.set_height(-1);
+            layout.set_ellipsize(pango::EllipsizeMode::None);
+        } else {
+            layout.set_height(-self.collapse_lines());
+            layout.set_ellipsize(pango::EllipsizeMode::End);
+        }
+
+        imp.draw_area.queue_resize();
+    }
+
+    //---------------------------------------
     // Update pango colors helper function
     //---------------------------------------
     fn update_pango_colors(&self) {
@@ -643,36 +662,12 @@ impl TextWidget {
     fn setup_signals(&self) {
         // Expanded property notify signal
         self.connect_expanded_notify(|widget| {
-            let imp = widget.imp();
-
-            let layout = imp.pango_layout.get().unwrap();
-
-            if widget.expanded() {
-                layout.set_height(-1);
-                layout.set_ellipsize(pango::EllipsizeMode::None);
-            } else {
-                layout.set_height(-widget.collapse_lines());
-                layout.set_ellipsize(pango::EllipsizeMode::End);
-            }
-
-            imp.draw_area.queue_resize();
+            widget.resize_layout();
         });
 
         // Collapsed lines property notify signal
         self.connect_collapse_lines_notify(|widget| {
-            let imp = widget.imp();
-
-            let layout = imp.pango_layout.get().unwrap();
-
-            if widget.expanded() {
-                layout.set_height(-1);
-                layout.set_ellipsize(pango::EllipsizeMode::None);
-            } else {
-                layout.set_height(-widget.collapse_lines());
-                layout.set_ellipsize(pango::EllipsizeMode::End);
-            }
-
-            widget.imp().draw_area.queue_resize();
+            widget.resize_layout();
         });
 
         // Focused property notify signal
