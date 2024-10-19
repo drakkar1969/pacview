@@ -36,7 +36,7 @@ use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
 use crate::log_window::LogWindow;
 use crate::config_dialog::ConfigDialog;
-use crate::preferences_dialog::PreferencesDialog;
+use crate::preferences_dialog::{PreferencesDialog, ColorScheme};
 use crate::traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
@@ -217,6 +217,9 @@ impl PacViewWindow {
         self.set_maximized(gsettings.boolean("window-maximized"));
 
         // Load preferences
+        if let Ok(color_scheme) = ColorScheme::from_str(&gsettings.string("color-scheme")) {
+            imp.prefs_dialog.set_color_scheme(color_scheme);
+        }
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
         if let Ok(search_mode) = SearchMode::from_str(&gsettings.string("search-mode")) {
@@ -271,6 +274,7 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "window-maximized", self.is_maximized());
 
         // Save preferences
+        self.set_gsetting(gsettings, "color-scheme", imp.prefs_dialog.color_scheme().nick());
         self.set_gsetting(gsettings, "auto-refresh", imp.prefs_dialog.auto_refresh());
         self.set_gsetting(gsettings, "aur-update-command", imp.prefs_dialog.aur_command());
         self.set_gsetting(gsettings, "search-mode", imp.prefs_dialog.search_mode().nick());

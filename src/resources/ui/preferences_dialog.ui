@@ -8,6 +8,21 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Application</property>
             <child>
+              <object class="AdwComboRow" id="color_scheme_row">
+                <property name="title">_Color Scheme</property>
+                <property name="subtitle">Set app color scheme</property>
+                <property name="use-underline">True</property>
+                <property name="model">
+                  <object class="AdwEnumListModel">
+                    <property name="enum-type">ColorScheme</property>
+                  </object>
+                </property>
+                <property name="expression">
+                  <lookup type="AdwEnumListItem" name="name"/>
+                </property>
+              </object>
+            </child>
+            <child>
               <object class="AdwSwitchRow" id="auto_refresh_row">
                 <property name="title">Auto _Refresh</property>
                 <property name="subtitle">Refresh window when local pacman database changes</property>
@@ -103,7 +118,7 @@
             <property name="title">Info Pane</property>
             <child>
               <object class="AdwSpinRow" id="property_collapse_lines_row">
-                <property name="title">_Collapsed Property Lines</property>
+                <property name="title">Collapsed Property _Lines</property>
                 <property name="subtitle">Maximum number of text lines before properties are collapsed (set to 0 to never collapse)</property>
                 <property name="use-underline">True</property>
                 <property name="numeric">true</property>

@@ -7,6 +7,14 @@
     <key name="auto-refresh" type="b">
       <default>true</default>
     </key>
+    <key name="color-scheme" type="s">
+      <choices>
+        <choice value='default'/>
+        <choice value='light'/>
+        <choice value='dark'/>
+      </choices>
+      <default>'default'</default>
+    </key>
     <key name="property-collapse-lines" type="d">
       <range min="0" max="10"/>
       <default>3</default>

@@ -5,8 +5,27 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
+use strum::{EnumString, FromRepr};
+
 use crate::search_bar::{SearchMode, SearchProp};
 use crate::traits::EnumValueExt;
+
+//------------------------------------------------------------------------------
+// ENUM: ColorScheme
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr)]
+#[strum(serialize_all = "kebab-case")]
+#[repr(u32)]
+#[enum_type(name = "ColorScheme")]
+pub enum ColorScheme {
+    #[default]
+    Default,
+    Light,
+    Dark,
+}
+
+impl EnumValueExt for ColorScheme {
+}
 
 //------------------------------------------------------------------------------
 // MODULE: PreferencesDialog
@@ -21,6 +40,8 @@ mod imp {
     #[properties(wrapper_type = super::PreferencesDialog)]
     #[template(resource = "/com/github/PacView/ui/preferences_dialog.ui")]
     pub struct PreferencesDialog {
+        #[template_child]
+        pub(super) color_scheme_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) auto_refresh_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
@@ -40,6 +61,8 @@ mod imp {
         #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
+        #[property(get, set, builder(ColorScheme::default()))]
+        color_scheme: Cell<ColorScheme>,
         #[property(get, set)]
         auto_refresh: Cell<bool>,
         #[property(get, set)]
@@ -66,6 +89,7 @@ mod imp {
         type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
+            ColorScheme::ensure_type();
             klass.bind_template();
         }
 
@@ -119,6 +143,14 @@ impl PreferencesDialog {
         let imp = self.imp();
 
         // Bind properties to widgets
+        self.bind_property("color-scheme", &imp.color_scheme_row.get(), "selected")
+            .transform_to(|_, scheme: ColorScheme| Some(scheme.value()))
+            .transform_from(|_, index: u32| {
+                Some(ColorScheme::from_repr(index).unwrap_or_default())
+            })
+            .sync_create()
+            .bidirectional()
+            .build();
         self.bind_property("auto-refresh", &imp.auto_refresh_row.get(), "active")
             .sync_create()
             .bidirectional()
@@ -210,6 +242,24 @@ impl PreferencesDialog {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Color scheme row selected property notify signal
+        imp.color_scheme_row.connect_selected_notify(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |row| {
+                let color_scheme = match ColorScheme::from_repr(row.selected())
+                    .unwrap_or_default()
+                {
+                    ColorScheme::Default => adw::ColorScheme::PreferLight,
+                    ColorScheme::Light => adw::ColorScheme::ForceLight,
+                    ColorScheme::Dark => adw::ColorScheme::ForceDark,
+                };
+
+                let style_manager = adw::StyleManager::for_display(&dialog.display());
+
+                style_manager.set_color_scheme(color_scheme);
+            }
+        ));
+
         // Preferences reset button clicked signal
         imp.reset_button.connect_activated(clone!(
             #[weak(rename_to = dialog)] self,
@@ -230,6 +280,7 @@ impl PreferencesDialog {
                         #[weak] dialog,
                         move |response| {
                             if response == "reset" {
+                                dialog.set_color_scheme(ColorScheme::default());
                                 dialog.set_auto_refresh(true);
                                 dialog.set_aur_command("");
                                 dialog.set_search_mode(SearchMode::default());
