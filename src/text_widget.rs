@@ -30,13 +30,13 @@ pub enum PropType {
 //------------------------------------------------------------------------------
 // STRUCT: Marker
 //------------------------------------------------------------------------------
-struct Tag {
+struct TextTag {
     text: String,
     start: u32,
     end: u32,
 }
 
-impl Tag {
+impl TextTag {
     fn text(&self) -> String {
         self.text.to_owned()
     }
@@ -82,8 +82,8 @@ mod imp {
         pub(super) sel_bg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) sel_focus_bg_color: Cell<(u16, u16, u16, u16)>,
 
-        pub(super) link_list: RefCell<Vec<Tag>>,
-        pub(super) comment_list: RefCell<Vec<Tag>>,
+        pub(super) link_list: RefCell<Vec<TextTag>>,
+        pub(super) comment_list: RefCell<Vec<TextTag>>,
 
         pub(super) cursor: RefCell<String>,
         pub(super) pressed_link_url: RefCell<Option<String>>,
@@ -311,8 +311,8 @@ mod imp {
             let obj = self.obj();
 
             // Create link/comment lists
-            let mut link_list: Vec<Tag> = vec![];
-            let mut comment_list: Vec<Tag> = vec![];
+            let mut link_list: Vec<TextTag> = vec![];
+            let mut comment_list: Vec<TextTag> = vec![];
 
             // Set pango layout text and store links in link map
             let layout = self.pango_layout.get().unwrap();
@@ -321,7 +321,7 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(Tag {
+                    link_list.push(TextTag {
                         text: text.to_string(),
                         start: 0,
                         end: text.len().to_u32().unwrap()
@@ -336,7 +336,7 @@ mod imp {
                     });
 
                     if let Some(m) = expr.find(text) {
-                        link_list.push(Tag {
+                        link_list.push(TextTag {
                             text: format!("mailto:{}", m.as_str()),
                             start: m.start().to_u32().unwrap(),
                             end: m.end().to_u32().unwrap()
@@ -357,7 +357,7 @@ mod imp {
                         link_list.extend(expr.find_iter(text)
                             .flatten()
                             .map(|m| {
-                                Tag {
+                                TextTag {
                                     text: format!("pkg://{}", m.as_str()),
                                     start: m.start().to_u32().unwrap(),
                                     end: m.end().to_u32().unwrap()
@@ -367,7 +367,7 @@ mod imp {
 
                         comment_list.extend(text.match_indices(" [INSTALLED]")
                             .map(|(i, s)| {
-                                Tag {
+                                TextTag {
                                     text: s.to_string(),
                                     start: i.to_u32().unwrap(),
                                     end: (i.to_usize().unwrap() + s.len()).to_u32().unwrap()
