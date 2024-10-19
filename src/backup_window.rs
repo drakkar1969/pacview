@@ -25,7 +25,7 @@ mod imp {
         #[template_child]
         pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) status_dropdown2: TemplateChild<gtk::DropDown>,
+        pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -183,7 +183,7 @@ impl BackupWindow {
         let imp = self.imp();
 
         // Status dropdown selected property notify signal
-        imp.status_dropdown2.connect_selected_item_notify(clone!(
+        imp.status_dropdown.connect_selected_item_notify(clone!(
             #[weak] imp,
             move |dropdown| {
                 let status = BackupStatus::from_repr(dropdown.selected()).unwrap_or_default();
@@ -315,7 +315,7 @@ impl BackupWindow {
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {
-                            imp.status_dropdown2.set_selected(1);
+                            imp.status_dropdown.set_selected(1);
 
                             imp.section_sort_model.set_section_sorter(Some(&imp.section_sorter.get()));
                             imp.filter_model.set_filter(Some(&imp.status_filter.get()));
