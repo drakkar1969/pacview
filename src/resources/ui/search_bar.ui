@@ -74,6 +74,17 @@
                     </style>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkMenuButton" id="error_button">
+                    <property name="visible">false</property>
+                    <property name="margin-start">6</property>
+                    <property name="icon-name">info-outline-symbolic</property>
+                    <property name="popover">error_popover</property>
+                    <style>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -147,4 +158,32 @@
       </item>
     </section>
   </menu>
+
+  <!--// Error popover //-->
+  <object class="GtkPopover" id="error_popover">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">8</property>
+        <property name="spacing">4</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">AUR Error</property>
+            <property name="xalign">0</property>
+            <style>
+              <class name="title-4"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="error_label">
+            <property name="xalign">0</property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
 </interface>

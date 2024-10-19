@@ -91,6 +91,11 @@ mod imp {
         #[template_child]
         pub(super) clear_button: TemplateChild<gtk::Button>,
 
+        #[template_child]
+        pub(super) error_button: TemplateChild<gtk::MenuButton>,
+        #[template_child]
+        pub(super) error_label: TemplateChild<gtk::Label>,
+
         pub(super) has_capture_widget: Cell<bool>,
 
         #[property(get, set)]
@@ -204,12 +209,20 @@ impl SearchBar {
     // Public set AUR error function
     //---------------------------------------
     pub fn set_aur_error(&self, aur_error: Option<String>) {
-        if let Some(error_msg) = aur_error {
+        let imp = self.imp();
+
+        if let Some(mut error_msg) = aur_error {
             self.add_css_class("error");
-            self.set_tooltip_text(Some(&format!("Error: {}", error_msg)));
+
+            error_msg.pop();
+
+            imp.error_label.set_label(&error_msg);
+            imp.error_button.set_visible(true);
         } else {
             self.remove_css_class("error");
-            self.set_tooltip_text(None);
+
+            imp.error_label.set_label("");
+            imp.error_button.set_visible(false);
         }
     }
 
@@ -324,6 +337,10 @@ impl SearchBar {
             imp,
             move |_| {
                 imp.search_text.set_text("");
+
+                if !imp.search_text.has_focus() {
+                    imp.search_text.grab_focus_without_selecting();
+                }
             }
         ));
     }
