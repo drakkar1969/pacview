@@ -2,7 +2,6 @@
 <interface>
   <!--// PropertyValue template //-->
   <template class="PropertyValue" parent="GtkListBoxRow">
-    <property name="css-name">propertyvalue</property>
     <property name="hexpand">true</property>
     <property name="child">
       <object class="GtkBox">
