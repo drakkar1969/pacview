@@ -72,24 +72,17 @@
                     <property name="valign">center</property>
                     <property name="spacing">6</property>
                     <child>
-                      <object class="GtkDropDown" id="status_dropdown">
+                      <object class="GtkDropDown" id="status_dropdown2">
                         <property name="width-request">160</property>
                         <property name="margin-start">20</property>
                         <property name="margin-end">14</property>
                         <property name="model">
-                          <object class="GListStore" id="status_model">
-                            <property name="item-type">GtkStringObject</property>
+                          <object class="AdwEnumListModel">
+                            <property name="enum-type">BackupStatus</property>
                           </object>
                         </property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_window/dropdown_item.ui</property>
-                          </object>
-                        </property>
-                        <property name="list-factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_window/dropdown_list_item.ui</property>
-                          </object>
+                        <property name="expression">
+                          <lookup type="AdwEnumListItem" name="name"/>
                         </property>
                         <style>
                           <class name="rounded"/>

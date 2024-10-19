@@ -495,7 +495,9 @@ impl InfoPane {
         imp.backup_selection.bind_property("selected-item", &imp.backup_open_button.get(), "sensitive")
             .transform_to(|_, item: Option<glib::Object>| {
                 if let Some(object) = item.and_downcast::<BackupObject>() {
-                    Some(object.status() != BackupStatus::Error)
+                    let status = object.status();
+
+                    Some(status != BackupStatus::Error && status != BackupStatus::All)
                 } else {
                     Some(false)
                 }

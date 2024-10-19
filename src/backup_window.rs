@@ -7,7 +7,7 @@ use glib::clone;
 
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
-use crate::traits::EnumClassExt;
+use crate::traits::EnumValueExt;
 use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------
@@ -25,9 +25,7 @@ mod imp {
         #[template_child]
         pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
-        #[template_child]
-        pub(super) status_model: TemplateChild<gio::ListStore>,
+        pub(super) status_dropdown2: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -128,16 +126,6 @@ impl BackupWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Populate status dropdown
-        imp.status_model.append(&gtk::StringObject::new("All"));
-
-        let enum_class = BackupStatus::enum_class();
-
-        imp.status_model.extend_from_slice(&enum_class.values().iter()
-            .map(|value| gtk::StringObject::new(value.name()))
-            .collect::<Vec<gtk::StringObject>>()
-        );
-
         // Bind backup files count to header sub label
         imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
             .transform_to(move |binding, n_items: u32| {
@@ -168,7 +156,9 @@ impl BackupWindow {
         imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
             .transform_to(|_, item: Option<glib::Object>| {
                 if let Some(object) = item.and_downcast::<BackupObject>() {
-                    Some(object.status() != BackupStatus::Error)
+                    let status = object.status();
+
+                    Some(status != BackupStatus::Error && status != BackupStatus::All)
                 } else {
                     Some(false)
                 }
@@ -193,17 +183,15 @@ impl BackupWindow {
         let imp = self.imp();
 
         // Status dropdown selected property notify signal
-        imp.status_dropdown.connect_selected_item_notify(clone!(
+        imp.status_dropdown2.connect_selected_item_notify(clone!(
             #[weak] imp,
             move |dropdown| {
-                if dropdown.selected() == 0 {
+                let status = BackupStatus::from_repr(dropdown.selected()).unwrap_or_default();
+
+                if status == BackupStatus::All {
                     imp.status_filter.set_search(None);
                 } else {
-                    let sel_text = dropdown.selected_item()
-                        .and_downcast::<gtk::StringObject>()
-                        .map(|obj| obj.string());
-
-                    imp.status_filter.set_search(sel_text.as_deref());
+                    imp.status_filter.set_search(Some(&status.name()));
                 }
 
                 imp.view.grab_focus();
@@ -327,7 +315,7 @@ impl BackupWindow {
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {
-                            imp.status_dropdown.set_selected(1);
+                            imp.status_dropdown2.set_selected(1);
 
                             imp.section_sort_model.set_section_sorter(Some(&imp.section_sorter.get()));
                             imp.filter_model.set_filter(Some(&imp.status_filter.get()));

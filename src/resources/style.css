@@ -137,9 +137,13 @@ entry.rounded {
 	padding-right: 12px;
 }
 
-dropdown.rounded,
+dropdown.rounded {
+	border-radius: 9999px;
+}
+
 dropdown.rounded > button.toggle {
 	border-radius: 9999px;
+	padding-left: 20px;
 }
 
 /* Dialog lists */

@@ -4,15 +4,18 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
-use crate::traits::{EnumValueExt, EnumClassExt};
+use strum::FromRepr;
+
+use crate::traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr)]
 #[repr(u32)]
 #[enum_type(name = "BackupStatus")]
 pub enum BackupStatus {
+    All,
     Modified,
     Unmodified,
     #[default]
@@ -21,7 +24,6 @@ pub enum BackupStatus {
 }
 
 impl EnumValueExt for BackupStatus {}
-impl EnumClassExt for BackupStatus {}
 
 //------------------------------------------------------------------------------
 // MODULE: BackupObject
