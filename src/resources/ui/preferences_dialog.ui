@@ -47,6 +47,17 @@
                     </style>
                   </object>
                 </child>
+                <child type="suffix">
+                  <object class="GtkMenuButton" id="aur_infobutton">
+                    <property name="valign">center</property>
+                    <property name="icon-name">info-outline-symbolic</property>
+                    <property name="popover">aur_info_popover</property>
+                    <style>
+                      <class name="flat"/>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -183,4 +194,31 @@
       </item>
     </section>
   </menu>
+
+  <!--// AUR info popover //-->
+  <object class="GtkPopover" id="aur_info_popover">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="margin-start">16</property>
+        <property name="margin-end">16</property>
+        <property name="margin-top">16</property>
+        <property name="margin-bottom">16</property>
+        <property name="spacing">16</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">The command must return a list of AUR updates in the format:</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="aur_info_label">
+            <property name="label">package_name current_version -> new_version</property>
+            <style>
+              <class name="monospace"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
 </interface>

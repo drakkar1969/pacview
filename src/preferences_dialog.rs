@@ -192,12 +192,6 @@ impl PreferencesDialog {
             .sync_create()
             .bidirectional()
             .build();
-
-        // Set AUR row tooltip
-        imp.aur_command_row.set_tooltip_markup(Some(
-            "The command must return a list of AUR updates in the format:\n\n\
-            <tt>package_name current_version -> new_version</tt>"
-        ));
     }
 
     //---------------------------------------

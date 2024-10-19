@@ -11,6 +11,7 @@
     <file alias="info-log-symbolic.svg">icons/info-log-symbolic.svg</file>
     <file alias="info-cache-symbolic.svg">icons/info-cache-symbolic.svg</file>
     <file alias="info-backup-symbolic.svg">icons/info-backup-symbolic.svg</file>
+    <file alias="info-outline-symbolic.svg">icons/info-outline-symbolic.svg</file>
     <file alias="filter-symbolic.svg">icons/filter-symbolic.svg</file>
     <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
     <file alias="stats-symbolic.svg">icons/stats-symbolic.svg</file>
