@@ -26,15 +26,17 @@ mod imp {
         #[template_child]
         pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
+        pub(super) aur_menubutton: TemplateChild<gtk::MenuButton>,
+        #[template_child]
         pub(super) search_mode_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) search_prop_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) search_delay_row: TemplateChild<adw::SpinRow>,
         #[template_child]
-        pub(super) aur_menubutton: TemplateChild<gtk::MenuButton>,
-        #[template_child]
         pub(super) remember_sort_row: TemplateChild<adw::SwitchRow>,
+        #[template_child]
+        pub(super) property_collapse_lines_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
@@ -50,6 +52,8 @@ mod imp {
         search_delay: Cell<f64>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
+        #[property(get, set)]
+        property_collapse_lines: Cell<f64>,
     }
 
     //---------------------------------------
@@ -152,6 +156,11 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
+        self.bind_property("property-collapse-lines", &imp.property_collapse_lines_row.get(), "value")
+            .sync_create()
+            .bidirectional()
+            .build();
+
         // Set AUR row tooltip
         imp.aur_command_row.set_tooltip_markup(Some(
             "The command must return a list of AUR updates in the format:\n\n\
@@ -227,6 +236,7 @@ impl PreferencesDialog {
                                 dialog.set_search_prop(SearchProp::default());
                                 dialog.set_search_delay(150.0);
                                 dialog.set_remember_sort(false);
+                                dialog.set_property_collapse_lines(3.0);
                             }
                         }
                     )

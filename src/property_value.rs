@@ -38,6 +38,8 @@ mod imp {
         icon: RefCell<Option<String>>,
         #[property(get, set)]
         value: RefCell<String>,
+        #[property(get, set)]
+        collapse_lines: Cell<i32>,
     }
 
     //---------------------------------------
@@ -137,6 +139,10 @@ impl PropertyValue {
             .build();
 
         self.bind_property("has-focus", &imp.text_widget.get(), "focused")
+            .sync_create()
+            .build();
+
+        self.bind_property("collapse-lines", &imp.text_widget.get(), "collapse-lines")
             .sync_create()
             .build();
 

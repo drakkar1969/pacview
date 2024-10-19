@@ -16,6 +16,7 @@ use gtk::prelude::*;
 use glib::{clone, closure_local};
 
 use alpm_utils::DbListExt;
+use num::ToPrimitive;
 use titlecase::titlecase;
 use regex::Regex;
 use async_process::Command;
@@ -228,6 +229,7 @@ impl PacViewWindow {
         }
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
+        imp.prefs_dialog.set_property_collapse_lines(gsettings.double("property-collapse-lines"));
 
         // Load package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -275,6 +277,7 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "search-prop", imp.prefs_dialog.search_prop().nick());
         self.set_gsetting(gsettings, "search-delay", imp.prefs_dialog.search_delay());
         self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
+        self.set_gsetting(gsettings, "property-collapse-lines", imp.prefs_dialog.property_collapse_lines());
 
         // Save package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -366,6 +369,14 @@ impl PacViewWindow {
         imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
             .transform_to(|_, n_items: u32| {
                 Some(format!("{n_items} matching package{}", if n_items != 1 {"s"} else {""}))
+            })
+            .sync_create()
+            .build();
+
+        // Bind info pane property collapse lines preference
+        imp.prefs_dialog.bind_property("property-collapse-lines", &imp.info_pane.get(), "property-collapse-lines")
+            .transform_to(|_, lines: f64| {
+                Some(if lines == 0.0 { i32::MAX } else { lines.to_i32().unwrap_or(0) })
             })
             .sync_create()
             .build();

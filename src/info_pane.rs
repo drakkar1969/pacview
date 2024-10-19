@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::fs;
 
@@ -188,6 +188,8 @@ mod imp {
         _pkg: RefCell<Option<PkgObject>>,
         #[property(get, set, default = "info", construct)]
         visible_tab: RefCell<String>,
+        #[property(get, set)]
+        property_collapse_lines: Cell<i32>,
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
@@ -338,6 +340,10 @@ impl InfoPane {
                 infopane.pkg_link_handler(pkg_name)
             }
         ));
+
+        self.bind_property("property-collapse-lines", &property_value, "collapse-lines")
+            .sync_create()
+            .build();
 
         imp.info_listbox.append(&property_value);
 

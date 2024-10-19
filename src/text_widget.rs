@@ -12,8 +12,6 @@ use num::ToPrimitive;
 use regex::Regex;
 use url::Url;
 
-const LINES: i32 = 3;
-
 //------------------------------------------------------------------------------
 // ENUM: PropType
 //------------------------------------------------------------------------------
@@ -71,6 +69,8 @@ mod imp {
         can_expand: Cell<bool>,
         #[property(get, set)]
         expanded: Cell<bool>,
+        #[property(get, set)]
+        collapse_lines: Cell<i32>,
 
         #[property(get, set)]
         focused: Cell<bool>,
@@ -459,7 +459,7 @@ impl TextWidget {
         let layout = imp.draw_area.create_pango_layout(None);
         layout.set_wrap(pango::WrapMode::Word);
         layout.set_line_spacing(1.15);
-        layout.set_height(-LINES);
+        layout.set_height(-self.collapse_lines());
         layout.set_ellipsize(pango::EllipsizeMode::End);
 
         imp.pango_layout.set(layout).unwrap();
@@ -492,7 +492,7 @@ impl TextWidget {
                 context.move_to(0.0, 0.0);
 
                 let can_expand = if widget.expanded() {
-                    layout.line_count() > LINES
+                    layout.line_count() > widget.collapse_lines()
                 } else {
                     layout.is_ellipsized()
                 };
@@ -653,11 +653,28 @@ impl TextWidget {
                 layout.set_height(-1);
                 layout.set_ellipsize(pango::EllipsizeMode::None);
             } else {
-                layout.set_height(-LINES);
+                layout.set_height(-widget.collapse_lines());
                 layout.set_ellipsize(pango::EllipsizeMode::End);
             }
 
             imp.draw_area.queue_resize();
+        });
+
+        // Collapsed lines property notify signal
+        self.connect_collapse_lines_notify(|widget| {
+            let imp = widget.imp();
+
+            let layout = imp.pango_layout.get().unwrap();
+
+            if widget.expanded() {
+                layout.set_height(-1);
+                layout.set_ellipsize(pango::EllipsizeMode::None);
+            } else {
+                layout.set_height(-widget.collapse_lines());
+                layout.set_ellipsize(pango::EllipsizeMode::End);
+            }
+
+            widget.imp().draw_area.queue_resize();
         });
 
         // Focused property notify signal
