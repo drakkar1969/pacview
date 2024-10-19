@@ -36,16 +36,12 @@ enum PropID {
     PackageUrl,
     #[enum_value(name = "URL")]
     Url,
-    #[enum_value(name = "Licenses")]
-    Licenses,
     #[enum_value(name = "Status")]
     Status,
     #[enum_value(name = "Repository")]
     Repository,
     #[enum_value(name = "Groups")]
     Groups,
-    #[enum_value(name = "Provides")]
-    Provides,
     #[enum_value(name = "Dependencies")]
     Dependencies,
     #[enum_value(name = "Optional")]
@@ -56,10 +52,14 @@ enum PropID {
     RequiredBy,
     #[enum_value(name = "Optional For")]
     OptionalFor,
+    #[enum_value(name = "Provides")]
+    Provides,
     #[enum_value(name = "Conflicts With")]
     ConflictsWith,
     #[enum_value(name = "Replaces")]
     Replaces,
+    #[enum_value(name = "Licenses")]
+    Licenses,
     #[enum_value(name = "Architecture")]
     Architecture,
     #[enum_value(name = "Packager")]
@@ -408,18 +408,18 @@ impl InfoPane {
         self.add_property(PropID::Description, PropType::Text);
         self.add_property(PropID::PackageUrl, PropType::Link);
         self.add_property(PropID::Url, PropType::Link);
-        self.add_property(PropID::Licenses, PropType::Text);
         self.add_property(PropID::Status, PropType::Text);
         self.add_property(PropID::Repository, PropType::Text);
         self.add_property(PropID::Groups, PropType::Text);
-        self.add_property(PropID::Provides, PropType::Text);
         self.add_property(PropID::Dependencies, PropType::LinkList);
         self.add_property(PropID::Optional, PropType::LinkList);
         self.add_property(PropID::Make, PropType::LinkList);
         self.add_property(PropID::RequiredBy, PropType::LinkList);
         self.add_property(PropID::OptionalFor, PropType::LinkList);
+        self.add_property(PropID::Provides, PropType::Text);
         self.add_property(PropID::ConflictsWith, PropType::LinkList);
         self.add_property(PropID::Replaces, PropType::LinkList);
+        self.add_property(PropID::Licenses, PropType::Text);
         self.add_property(PropID::Architecture, PropType::Text);
         self.add_property(PropID::Packager, PropType::Packager);
         self.add_property(PropID::BuildDate, PropType::Text);
