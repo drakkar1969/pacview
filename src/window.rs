@@ -617,25 +617,25 @@ impl PacViewWindow {
             Some(gtk::NamedAction::new("win.show-all-packages"))
         ));
 
-        // Add view show stats shortcut
+        // Add view stats window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>S"),
             Some(gtk::NamedAction::new("win.show-stats"))
         ));
 
-        // Add view show backup files shortcut
+        // Add view backup files window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>B"),
             Some(gtk::NamedAction::new("win.show-backup-files"))
         ));
 
-        // Add view show pacman log shortcut
+        // Add view pacman log window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>L"),
             Some(gtk::NamedAction::new("win.show-pacman-log"))
         ));
 
-        // Add view show pacman config shortcut
+        // Add view pacman config dialog shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl><shift>P"),
             Some(gtk::NamedAction::new("win.show-pacman-config"))
