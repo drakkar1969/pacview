@@ -459,8 +459,6 @@ impl TextWidget {
         let layout = imp.draw_area.create_pango_layout(None);
         layout.set_wrap(pango::WrapMode::Word);
         layout.set_line_spacing(1.15);
-        layout.set_height(-self.collapse_lines());
-        layout.set_ellipsize(pango::EllipsizeMode::End);
 
         imp.pango_layout.set(layout).unwrap();
 
