@@ -10,7 +10,6 @@
             <child>
               <object class="AdwComboRow" id="color_scheme_row">
                 <property name="title">_Color Scheme</property>
-                <property name="subtitle">Set app color scheme</property>
                 <property name="use-underline">True</property>
                 <property name="model">
                   <object class="AdwEnumListModel">
@@ -22,6 +21,10 @@
                 </property>
               </object>
             </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
             <child>
               <object class="AdwSwitchRow" id="auto_refresh_row">
                 <property name="title">Auto _Refresh</property>
