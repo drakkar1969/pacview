@@ -38,7 +38,6 @@
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkImage">
-                        <property name="icon-name">pkg-update</property>
                         <binding name="visible">
                           <closure type="gboolean" function="version_image_visible">
                             <lookup name="flags" type="PkgObject">
@@ -46,6 +45,12 @@
                             </lookup>
                           </closure>
                         </binding>
+                        <property name="icon-name">pkg-update</property>
+                        <property name="valign">center</property>
+                        <style>
+                          <class name="status-image"/>
+                          <class name="success"/>
+                        </style>
                       </object>
                     </child>
                     <child>

@@ -1,4 +1,4 @@
-use gtk::{gio, glib, gdk};
+use gtk::{gio, glib};
 use gtk::prelude::*;
 use adw::subclass::prelude::*;
 use adw::prelude::AdwDialogExt;
@@ -45,8 +45,6 @@ mod imp {
         fn activate(&self) {
             let application = self.obj();
 
-            self.setup_styles();
-
             // Show main window
             let window = if let Some(window) = application.active_window() {
                 window
@@ -61,47 +59,6 @@ mod imp {
 
     impl GtkApplicationImpl for PacViewApplication {}
     impl AdwApplicationImpl for PacViewApplication {}
-
-    impl PacViewApplication {
-        //---------------------------------------
-        // Setup styles
-        //---------------------------------------
-        fn setup_styles(&self) {
-            // Get style manager
-            let style_manager = adw::StyleManager::default();
-
-            // Get icon theme for default display
-            let display = gdk::Display::default().expect("Could not retrieve default display");
-
-            let icon_theme = gtk::IconTheme::for_display(&display);
-
-            // Set icon resource paths
-            let icons_light_path = "/com/github/PacView/icons-light/";
-            let icons_dark_path = "/com/github/PacView/icons-dark/";
-
-            if style_manager.is_dark() {
-                icon_theme.add_resource_path(icons_dark_path);
-            } else {
-                icon_theme.add_resource_path(icons_light_path);
-            }
-
-            // Connect style manager dark property notify signal
-            style_manager.connect_dark_notify(move |style_manager| {
-                // Update icon resource paths when color scheme changes
-                let mut resource_paths = icon_theme.resource_path();
-
-                resource_paths.retain(|s| !(s.contains(icons_light_path) || s.contains(icons_dark_path)));
-
-                if style_manager.is_dark() {
-                    resource_paths.push(glib::GString::from(icons_dark_path));
-                } else {
-                    resource_paths.push(glib::GString::from(icons_light_path));
-                }
-
-                icon_theme.set_resource_path(&resource_paths.iter().map(|s| s.as_str()).collect::<Vec<&str>>());
-            });
-        }
-    }
 }
 
 //------------------------------------------------------------------------------

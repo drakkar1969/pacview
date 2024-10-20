@@ -331,37 +331,45 @@ impl InfoPane {
     fn add_property(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let property_value = PropertyValue::new(ptype, &id.name());
-        property_value.add_css_class("property-value");
+        let property = PropertyValue::new(ptype, &id.name());
+        property.add_css_class("property-value");
 
-        property_value.set_pkg_link_handler(closure_local!(
+        if id == PropID::Version {
+            property.set_icon_css_class("success", true);
+        }
+
+        property.set_pkg_link_handler(closure_local!(
             #[watch(rename_to = infopane)] self,
             move |_: TextWidget, pkg_name: &str| {
                 infopane.pkg_link_handler(pkg_name)
             }
         ));
 
-        self.bind_property("property-collapse-lines", &property_value, "collapse-lines")
+        self.bind_property("property-collapse-lines", &property, "collapse-lines")
             .sync_create()
             .build();
 
-        imp.info_listbox.append(&property_value);
+        imp.info_listbox.append(&property);
 
-        imp.property_map.borrow_mut().insert(id, property_value);
+        imp.property_map.borrow_mut().insert(id, property);
     }
 
     //---------------------------------------
     // Set property functions
     //---------------------------------------
     fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
-        if let Some(property_value) = self.imp().property_map.borrow().get(&id) {
-            if property_value.is_visible() != visible {
-                property_value.set_visible(visible);
+        if let Some(property) = self.imp().property_map.borrow().get(&id) {
+            if property.is_visible() != visible {
+                property.set_visible(visible);
             }
 
             if visible {
-                property_value.set_icon(icon);
-                property_value.set_value(value);
+                property.set_icon(icon);
+                property.set_value(value);
+            }
+
+            if id == PropID::Status {
+                property.set_icon_css_class("error", property.icon().unwrap_or_default() == "pkg-orphan");
             }
         }
     }

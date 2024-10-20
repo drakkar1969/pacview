@@ -28,7 +28,10 @@
                 <property name="spacing">6</property>
                 <child>
                   <object class="GtkImage" id="image">
-                    <property name="height-request">16</property>
+                    <property name="valign">center</property>
+                    <style>
+                      <class name="status-image"/>
+                    </style>
                   </object>
                 </child>
                 <child>

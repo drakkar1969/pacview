@@ -337,4 +337,17 @@ impl PropertyValue {
 
         self.add_controller(key_controller);
     }
+
+    //---------------------------------------
+    // Public set icon css class
+    //---------------------------------------
+    pub fn set_icon_css_class(&self, class: &str, add: bool) {
+        let imp = self.imp();
+
+        if add {
+            imp.image.add_css_class(class);
+        } else {
+            imp.image.remove_css_class(class);
+        }
+    }
 }
