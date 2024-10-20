@@ -273,7 +273,7 @@ impl PropertyValue {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
-        // Add mouse click controller
+        // Add mouse drag controller
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(

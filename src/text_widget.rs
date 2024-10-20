@@ -796,7 +796,7 @@ impl TextWidget {
 
         imp.draw_area.add_controller(motion_controller);
 
-        // Add mouse drag gesture controller
+        // Add mouse drag controller
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(
