@@ -10,7 +10,7 @@
             <child>
               <object class="AdwComboRow" id="color_scheme_row">
                 <property name="title">_Color Scheme</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <property name="model">
                   <object class="AdwEnumListModel">
                     <property name="enum-type">ColorScheme</property>
@@ -29,13 +29,13 @@
               <object class="AdwSwitchRow" id="auto_refresh_row">
                 <property name="title">Auto _Refresh</property>
                 <property name="subtitle">Refresh window when local pacman database changes</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
               </object>
             </child>
             <child>
               <object class="AdwEntryRow" id="aur_command_row">
                 <property name="title">Command to check for _AUR updates (optional)</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <child type="suffix">
                   <object class="GtkMenuButton" id="aur_menubutton">
                     <property name="valign">center</property>
@@ -69,7 +69,7 @@
               <object class="AdwComboRow" id="search_mode_row">
                 <property name="title">Default Search _Mode</property>
                 <property name="subtitle">Default mode for package search</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <property name="model">
                   <object class="AdwEnumListModel">
                     <property name="enum-type">SearchMode</property>
@@ -84,7 +84,7 @@
               <object class="AdwComboRow" id="search_prop_row">
                 <property name="title">Default Search Propert_y</property>
                 <property name="subtitle">Default property for package search</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <property name="model">
                   <object class="AdwEnumListModel">
                     <property name="enum-type">SearchProp</property>
@@ -99,7 +99,7 @@
               <object class="AdwSpinRow" id="search_delay_row">
                 <property name="title">Search _Delay</property>
                 <property name="subtitle">Delay before search results are displayed (milliseconds)</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <property name="numeric">true</property>
                 <property name="snap-to-ticks">true</property>
                 <property name="adjustment">
@@ -122,7 +122,7 @@
               <object class="AdwSwitchRow" id="remember_sort_row">
                 <property name="title">Remember _Sorting</property>
                 <property name="subtitle">Save package list sort order</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
               </object>
             </child>
           </object>
@@ -134,7 +134,7 @@
               <object class="AdwSpinRow" id="property_collapse_lines_row">
                 <property name="title">Collapsed Property _Lines</property>
                 <property name="subtitle">Maximum number of text lines before properties are collapsed (set to 0 to never collapse)</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <property name="numeric">true</property>
                 <property name="snap-to-ticks">true</property>
                 <property name="adjustment">
@@ -156,7 +156,7 @@
             <child>
               <object class="AdwButtonRow" id="reset_button">
                 <property name="title">Reset _Preferences</property>
-                <property name="use-underline">True</property>
+                <property name="use-underline">true</property>
                 <style>
                   <class name="destructive-action"/>
                 </style>

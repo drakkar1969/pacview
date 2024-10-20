@@ -3,7 +3,7 @@
   <!--// StatsWindow template //-->
   <template class="StatsWindow" parent="AdwWindow">
     <property name="default-width">520</property>
-    <property name="modal">True</property>
+    <property name="modal">true</property>
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
@@ -49,7 +49,7 @@
                 </child>
                 <child>
                   <object class="GtkBox">
-                    <property name="hexpand">True</property>
+                    <property name="hexpand">true</property>
                     <property name="halign">end</property>
                     <property name="valign">center</property>
                     <property name="spacing">6</property>
@@ -72,11 +72,11 @@
                 <style>
                   <class name="card-list"/>
                 </style>
-                <property name="hexpand">True</property>
+                <property name="hexpand">true</property>
                 <property name="margin-start">16</property>
                 <property name="margin-end">16</property>
                 <property name="margin-bottom">16</property>
-                <property name="reorderable">False</property>
+                <property name="reorderable">false</property>
                 <property name="model">
                   <object class="GtkNoSelection" id="selection">
                     <property name="model">
@@ -89,7 +89,7 @@
                 <child>
                   <object class="GtkColumnViewColumn" id="repository_column">
                     <property name="title">Repository</property>
-                    <property name="expand">True</property>
+                    <property name="expand">true</property>
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
                         <property name="resource">/com/github/PacView/ui/stats_window/repository_item.ui</property>

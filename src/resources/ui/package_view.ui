@@ -39,8 +39,8 @@
               <object class="GtkOverlay">
                 <child>
                   <object class="GtkScrolledWindow">
-                    <property name="hexpand">True</property>
-                    <property name="vexpand">True</property>
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
                     <child>
                       <object class="GtkListView" id="view">
                         <property name="tab-behavior">item</property>

@@ -13,7 +13,7 @@
             <child>
               <object class="AdwActionRow" id="rootdir_row">
                 <property name="title">RootDir</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -33,7 +33,7 @@
             <child>
               <object class="AdwActionRow" id="dbpath_row">
                 <property name="title">DBPath</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -53,7 +53,7 @@
             <child>
               <object class="AdwActionRow" id="cachedir_row">
                 <property name="title">CacheDir</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -73,7 +73,7 @@
             <child>
               <object class="AdwActionRow" id="logfile_row">
                 <property name="title">LogFile</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -93,7 +93,7 @@
             <child>
               <object class="AdwActionRow" id="gpgdir_row">
                 <property name="title">GPGDir</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -113,7 +113,7 @@
             <child>
               <object class="AdwActionRow" id="hookdir_row">
                 <property name="title">HookDir</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -138,7 +138,7 @@
             <child>
               <object class="AdwActionRow" id="xfercommand_row">
                 <property name="title">XferCommand</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -147,7 +147,7 @@
             <child>
               <object class="AdwActionRow" id="paralleldownloads_row">
                 <property name="title">ParallelDownloads</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -156,7 +156,7 @@
             <child>
               <object class="AdwActionRow" id="disabledownloadtimeout_row">
                 <property name="title">DisableDownloadTimeout</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -165,7 +165,7 @@
             <child>
               <object class="AdwActionRow" id="downloaduser_row">
                 <property name="title">DownloadUser</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -174,7 +174,7 @@
             <child>
               <object class="AdwActionRow" id="disablesandbox_row">
                 <property name="title">DisableSandBox</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -183,7 +183,7 @@
             <child>
               <object class="AdwActionRow" id="architecture_row">
                 <property name="title">Architecture</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -197,7 +197,7 @@
             <child>
               <object class="AdwActionRow" id="holdpkg_row">
                 <property name="title">HoldPkg</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -206,7 +206,7 @@
             <child>
               <object class="AdwActionRow" id="ignorepkg_row">
                 <property name="title">IgnorePkg</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -215,7 +215,7 @@
             <child>
               <object class="AdwActionRow" id="ignoregroup_row">
                 <property name="title">IgnoreGroup</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -224,7 +224,7 @@
             <child>
               <object class="AdwActionRow" id="noupgrade_row">
                 <property name="title">NoUpgrade</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -233,7 +233,7 @@
             <child>
               <object class="AdwActionRow" id="noextract_row">
                 <property name="title">NoExtract</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -247,7 +247,7 @@
             <child>
               <object class="AdwActionRow" id="usesyslog_row">
                 <property name="title">UseSyslog</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -256,7 +256,7 @@
             <child>
               <object class="AdwActionRow" id="color_row">
                 <property name="title">Color</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -265,7 +265,7 @@
             <child>
               <object class="AdwActionRow" id="checkspace_row">
                 <property name="title">CheckSpace</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -274,7 +274,7 @@
             <child>
               <object class="AdwActionRow" id="cleanmethod_row">
                 <property name="title">CleanMethod</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -283,7 +283,7 @@
             <child>
               <object class="AdwActionRow" id="verbosepkglists_row">
                 <property name="title">VerbosePkgLists</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -292,7 +292,7 @@
             <child>
               <object class="AdwActionRow" id="ilovecandy_row">
                 <property name="title">ILoveCandy</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -306,7 +306,7 @@
             <child>
               <object class="AdwActionRow" id="siglevel_row">
                 <property name="title">SigLevel</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -315,7 +315,7 @@
             <child>
               <object class="AdwActionRow" id="localfilesiglevel_row">
                 <property name="title">LocalFileSigLevel</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -324,7 +324,7 @@
             <child>
               <object class="AdwActionRow" id="remotefilesiglevel_row">
                 <property name="title">RemoteFileSigLevel</property>
-                <property name="subtitle-selectable">True</property>
+                <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
                 </style>

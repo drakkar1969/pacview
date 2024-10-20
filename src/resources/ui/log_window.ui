@@ -4,7 +4,7 @@
   <template class="LogWindow" parent="AdwWindow">
     <property name="default-width">850</property>
     <property name="default-height">640</property>
-    <property name="modal">True</property>
+    <property name="modal">true</property>
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
@@ -67,7 +67,7 @@
                 </child>
                 <child>
                   <object class="GtkBox">
-                    <property name="hexpand">True</property>
+                    <property name="hexpand">true</property>
                     <property name="halign">end</property>
                     <property name="valign">center</property>
                     <property name="spacing">6</property>
@@ -109,8 +109,8 @@
               <object class="GtkOverlay">
                 <child>
                   <object class="GtkScrolledWindow">
-                    <property name="hexpand">True</property>
-                    <property name="vexpand">True</property>
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
                     <property name="margin-bottom">16</property>
                     <property name="child">
                       <object class="GtkColumnView" id="view">
@@ -150,7 +150,7 @@
                         <child>
                           <object class="GtkColumnViewColumn" id="date_column">
                             <property name="title">Date</property>
-                            <property name="resizable">True</property>
+                            <property name="resizable">true</property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
                                 <property name="resource">/com/github/PacView/ui/log_window/date_item.ui</property>
@@ -161,7 +161,7 @@
                         <child>
                           <object class="GtkColumnViewColumn" id="time_column">
                             <property name="title">Time</property>
-                            <property name="resizable">True</property>
+                            <property name="resizable">true</property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
                                 <property name="resource">/com/github/PacView/ui/log_window/time_item.ui</property>
@@ -172,7 +172,7 @@
                         <child>
                           <object class="GtkColumnViewColumn" id="category_column">
                             <property name="title">Category</property>
-                            <property name="resizable">True</property>
+                            <property name="resizable">true</property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
                                 <property name="resource">/com/github/PacView/ui/log_window/category_item.ui</property>
@@ -183,8 +183,8 @@
                         <child>
                           <object class="GtkColumnViewColumn" id="message_column">
                             <property name="title">Message</property>
-                            <property name="resizable">True</property>
-                            <property name="expand">True</property>
+                            <property name="resizable">true</property>
+                            <property name="expand">true</property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
                                 <property name="resource">/com/github/PacView/ui/log_window/message_item.ui</property>

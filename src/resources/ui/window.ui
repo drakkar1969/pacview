@@ -9,14 +9,14 @@
     <child>
       <object class="AdwBreakpoint" id="main_breakpoint">
         <condition>max-width: 1350sp</condition>
-        <setter object="main_split_view" property="collapsed">True</setter>
+        <setter object="main_split_view" property="collapsed">true</setter>
       </object>
     </child>
     <child>
       <object class="AdwBreakpoint" id="sidebar_breakpoint">
         <condition>max-width: 840sp</condition>
-        <setter object="main_split_view" property="collapsed">True</setter>
-        <setter object="sidebar_split_view" property="collapsed">True</setter>
+        <setter object="main_split_view" property="collapsed">true</setter>
+        <setter object="sidebar_split_view" property="collapsed">true</setter>
       </object>
     </child>
     <property name="content">
@@ -30,7 +30,7 @@
                 <child type="end">
                   <object class="GtkMenuButton" id="mainmenu_button">
                     <property name="icon-name">open-menu-symbolic</property>
-                    <property name="primary">True</property>
+                    <property name="primary">true</property>
                     <property name="tooltip-text">Main Menu</property>
                     <property name="menu-model">primary_menu</property>
                   </object>
@@ -44,7 +44,7 @@
                 <child>
                   <object class="GtkScrolledWindow">
                     <property name="hscrollbar-policy">never</property>
-                    <property name="vexpand">True</property>
+                    <property name="vexpand">true</property>
                     <property name="child">
                       <object class="GtkBox">
                         <property name="orientation">vertical</property>
@@ -132,24 +132,24 @@
                     <property name="orientation">vertical</property>
                     <child>
                       <object class="AdwHeaderBar" id="package_header_bar">
-                        <property name="show-title">False</property>
+                        <property name="show-title">false</property>
                         <child>
                           <object class="GtkToggleButton" id="sidebar_button">
-                            <property name="active">True</property>
+                            <property name="active">true</property>
                             <property name="icon-name">view-sidebar-symbolic</property>
                             <property name="tooltip-text">Toggle Sidebar</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkToggleButton" id="search_button">
-                            <property name="active">False</property>
+                            <property name="active">false</property>
                             <property name="icon-name">edit-find-symbolic</property>
                             <property name="tooltip-text">Toggle Search</property>
                           </object>
                         </child>
                         <child type="end">
                           <object class="GtkToggleButton" id="infopane_button">
-                            <property name="active">True</property>
+                            <property name="active">true</property>
                             <property name="icon-name">view-infopane-symbolic</property>
                             <property name="tooltip-text">Toggle Info Pane</property>
                           </object>
@@ -171,7 +171,7 @@
                 </child>
                 <property name="content">
                   <object class="PackageView" id="package_view">
-                    <property name="vexpand">True</property>
+                    <property name="vexpand">true</property>
                   </object>
                 </property>
               </object>
