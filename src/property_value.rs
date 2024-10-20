@@ -278,9 +278,8 @@ impl PropertyValue {
 
         drag_controller.connect_drag_begin(clone!(
             #[weak(rename_to = property)] self,
-            #[weak] imp,
             move |_, _, _| {
-                if !(property.has_focus() || imp.expand_button.has_focus()) {
+                if !property.has_focus() {
                     property.grab_focus();
                 }
             }

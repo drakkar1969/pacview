@@ -42,6 +42,7 @@
         </child>
         <child>
           <object class="GtkButton" id="expand_button">
+            <property name="can-focus">false</property>
             <property name="valign">start</property>
             <property name="margin-top">4</property>
             <property name="icon-name">expander-symbolic</property>
