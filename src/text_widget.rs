@@ -633,12 +633,94 @@ impl TextWidget {
             ))
             .build();
 
+        // Add expand/contract actions
+        let expand_action = gio::ActionEntry::builder("expand")
+            .activate(clone!(
+                #[weak(rename_to = widget)] self,
+                move |_, _, _| {
+                    if !widget.expanded() {
+                        widget.set_expanded(true);
+                    }
+                }
+            ))
+            .build();
+
+        let contract_action = gio::ActionEntry::builder("contract")
+            .activate(clone!(
+                #[weak(rename_to = widget)] self,
+                move |_, _, _| {
+                    if widget.expanded() {
+                        widget.set_expanded(false);
+                    }
+                }
+            ))
+            .build();
+
+        // Add link actions
+        let prev_link_action = gio::ActionEntry::builder("previous-link")
+            .activate(clone!(
+                #[weak] imp,
+                move |_, _, _| {
+                    let link_list = imp.link_list.borrow();
+
+                    if let Some(new_index) = imp.focus_link_index.get()
+                        .and_then(|i| i.checked_sub(1))
+                        .or_else(|| link_list.len().checked_sub(1))
+                    {
+                        imp.focus_link_index.set(Some(new_index));
+
+                        imp.draw_area.queue_draw();
+                    }
+                }
+            ))
+            .build();
+
+        let next_link_action = gio::ActionEntry::builder("next-link")
+            .activate(clone!(
+                #[weak] imp,
+                move |_, _, _| {
+                    let link_list = imp.link_list.borrow();
+
+                    if let Some(new_index) = imp.focus_link_index.get()
+                        .and_then(|i| i.checked_add(1))
+                        .filter(|&i| i < link_list.len())
+                        .or_else(|| if link_list.is_empty() { None } else { Some(0) })
+                    {
+                        imp.focus_link_index.set(Some(new_index));
+
+                        imp.draw_area.queue_draw();
+                    }
+                }
+            ))
+            .build();
+
+        let activate_link_action = gio::ActionEntry::builder("activate-link")
+            .activate(clone!(
+                #[weak(rename_to = widget)] self,
+                #[weak] imp,
+                move |_, _, _| {
+                    let link_list = imp.link_list.borrow();
+
+                    if let Some(focus_link) = imp.focus_link_index.get()
+                        .and_then(|i| link_list.get(i))
+                    {
+                        let link_url = focus_link.text();
+
+                        // Need to drop to avoid panic
+                        drop(link_list);
+
+                        widget.handle_link(&link_url);
+                    }
+                }
+            ))
+            .build();
+
         // Add actions to text action group
         let text_group = gio::SimpleActionGroup::new();
 
         self.insert_action_group("text", Some(&text_group));
 
-        text_group.add_action_entries([select_all_action, select_none_action, copy_action]);
+        text_group.add_action_entries([select_all_action, select_none_action, copy_action, expand_action, contract_action, prev_link_action, next_link_action, activate_link_action]);
     }
 
     //---------------------------------------
@@ -960,57 +1042,6 @@ impl TextWidget {
 
         imp.popover_menu.set_pointing_to(Some(&rect));
         imp.popover_menu.popup();
-    }
-
-    //---------------------------------------
-    // Public key functions
-    //---------------------------------------
-    pub fn key_left(&self) {
-        let imp = self.imp();
-
-        let link_list = imp.link_list.borrow();
-
-        if let Some(new_index) = imp.focus_link_index.get()
-            .and_then(|i| i.checked_sub(1))
-            .or_else(|| link_list.len().checked_sub(1))
-        {
-            imp.focus_link_index.set(Some(new_index));
-
-            imp.draw_area.queue_draw();
-        }
-    }
-
-    pub fn key_right(&self) {
-        let imp = self.imp();
-
-        let link_list = imp.link_list.borrow();
-
-        if let Some(new_index) = imp.focus_link_index.get()
-            .and_then(|i| i.checked_add(1))
-            .filter(|&i| i < link_list.len())
-            .or_else(|| if link_list.is_empty() { None } else { Some(0) })
-        {
-            imp.focus_link_index.set(Some(new_index));
-
-            imp.draw_area.queue_draw();
-        }
-    }
-
-    pub fn key_return(&self) {
-        let imp = self.imp();
-
-        let link_list = imp.link_list.borrow();
-
-        if let Some(focus_link) = imp.focus_link_index.get()
-            .and_then(|i| link_list.get(i))
-        {
-            let link_url = focus_link.text();
-
-            // Need to drop to avoid panic
-            drop(link_list);
-
-            self.handle_link(&link_url);
-        }
     }
 }
 

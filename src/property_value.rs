@@ -196,7 +196,7 @@ impl PropertyValue {
 
                 property.imp().text_widget.activate_action("text.select-all", None).unwrap();
 
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
@@ -210,7 +210,7 @@ impl PropertyValue {
 
                 property.imp().text_widget.activate_action("text.select-none", None).unwrap();
 
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
@@ -224,11 +224,11 @@ impl PropertyValue {
 
                 property.imp().text_widget.activate_action("text.copy", None).unwrap();
 
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
-        // Add expand shortcuts
+        // Add expand/contract shortcuts
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("<ctrl>plus|<ctrl>KP_Add"),
             Some(gtk::CallbackAction::new(|widget, _| {
@@ -236,13 +236,9 @@ impl PropertyValue {
                     .downcast_ref::<PropertyValue>()
                     .expect("Could not downcast to 'PropertyValue'");
 
-                let imp = property.imp();
+                    property.imp().text_widget.activate_action("text.expand", None).unwrap();
 
-                if !imp.text_widget.expanded() {
-                    imp.text_widget.set_expanded(true);
-                }
-
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
@@ -253,13 +249,50 @@ impl PropertyValue {
                     .downcast_ref::<PropertyValue>()
                     .expect("Could not downcast to 'PropertyValue'");
 
-                let imp = property.imp();
+                property.imp().text_widget.activate_action("text.contract", None).unwrap();
 
-                if imp.text_widget.expanded() {
-                    imp.text_widget.set_expanded(false);
-                }
-    
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
+            }))
+        ));
+
+        // Add previous/next link shortcuts
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Left|KP_Left"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                property.imp().text_widget.activate_action("text.previous-link", None).unwrap();
+
+                glib::Propagation::Stop
+            }))
+        ));
+
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Right|KP_Right"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                property.imp().text_widget.activate_action("text.next-link", None).unwrap();
+
+                glib::Propagation::Stop
+            }))
+        ));
+
+        // Add activate link shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Return|KP_Enter"),
+            Some(gtk::CallbackAction::new(|widget, _| {
+                let property = widget
+                    .downcast_ref::<PropertyValue>()
+                    .expect("Could not downcast to 'PropertyValue'");
+
+                property.imp().text_widget.activate_action("text.activate-link", None).unwrap();
+
+                glib::Propagation::Stop
             }))
         ));
 
@@ -303,39 +336,6 @@ impl PropertyValue {
         ));
 
         self.add_controller(popup_gesture);
-
-        // Add key press controller
-        let key_controller = gtk::EventControllerKey::new();
-
-        key_controller.connect_key_pressed(clone!(
-            #[weak] imp,
-            #[upgrade_or] glib::Propagation::Proceed,
-            move |_, key, _, state| {
-                if state == gdk::ModifierType::empty() {
-                    if key == gdk::Key::Left {
-                        imp.text_widget.key_left();
-
-                        return glib::Propagation::Stop
-                    }
-
-                    if key == gdk::Key::Right {
-                        imp.text_widget.key_right();
-
-                        return glib::Propagation::Stop
-                    }
-
-                    if key == gdk::Key::Return || key == gdk::Key::KP_Enter {
-                        imp.text_widget.key_return();
-
-                        return glib::Propagation::Stop
-                    }
-                }
-
-                glib::Propagation::Proceed
-            }
-        ));
-
-        self.add_controller(key_controller);
     }
 
     //---------------------------------------
