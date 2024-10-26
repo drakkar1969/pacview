@@ -4,12 +4,11 @@
   <template class="PropertyValue" parent="GtkListBoxRow">
     <property name="hexpand">true</property>
     <property name="child">
-      <object class="GtkBox">
+      <object class="GtkOverlay">
         <property name="margin-start">12</property>
         <property name="margin-end">12</property>
         <property name="margin-top">8</property>
         <property name="margin-bottom">8</property>
-        <property name="spacing">16</property>
         <child>
           <object class="GtkBox">
             <property name="orientation">vertical</property>
@@ -43,9 +42,10 @@
             </child>
           </object>
         </child>
-        <child>
+        <child type="overlay">
           <object class="GtkButton" id="expand_button">
             <property name="can-focus">false</property>
+            <property name="halign">end</property>
             <property name="valign">start</property>
             <property name="margin-top">4</property>
             <property name="icon-name">expander-symbolic</property>
