@@ -715,61 +715,104 @@ impl InfoPane {
     fn update_info_listbox(&self, pkg: &PkgObject) {
         // Name
         self.set_string_property(PropID::Name, true, &pkg.name(), None);
+
         // Version
-        self.set_string_property(PropID::Version, true, &pkg.version(), if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None});
+        self.set_string_property(
+            PropID::Version,
+            true,
+            &pkg.version(),
+            if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None}
+        );
+
         // Description
         self.set_string_property(PropID::Description, true, &pkg.description(), None);
+
         // Package URL
         let package_url = pkg.package_url();
+
         self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
+
         // URL
         self.set_string_property(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
+
         // Licenses
         self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
+
         // Status
         let status = pkg.status();
         let status_icon = pkg.status_icon();
-        self.set_string_property(PropID::Status, true, if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"}, if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None});
+
+        self.set_string_property(
+            PropID::Status,
+            true,
+            if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"},
+            if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
+        );
+
         // Repository
         self.set_string_property(PropID::Repository, true, &pkg.repository(), None);
+
         // Groups
         self.set_string_property(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
-        // Provides
-        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides(), None);
+
         // Depends
         self.set_vec_property(PropID::Dependencies, true, &pkg.depends(), None);
+
         // Optdepends
         let optdepends = if pkg.flags().intersects(PkgFlags::INSTALLED) {
             self.installed_optdeps(&pkg.optdepends())
         } else {
             pkg.optdepends()
         };
+
         self.set_vec_property(PropID::Optional, !optdepends.is_empty(), &optdepends, None);
+
         // Makedepends
         self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends(), None);
+
         // Required by
         self.set_vec_property(PropID::RequiredBy, true, &pkg.required_by(), None);
+
         // Optional for
         let optional_for = pkg.optional_for();
+
         self.set_vec_property(PropID::OptionalFor, !optional_for.is_empty(), &optional_for, None);
+
+        // Provides
+        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides(), None);
+
         // Conflicts
         self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts(), None);
+
         // Replaces
         self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces(), None);
+
         // Architecture
         self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
+
         // Packager
         self.set_string_property(PropID::Packager, true, &pkg.packager(), None);
+
         // Build date
         self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_long(), None);
+
         // Install date
         self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
+
         // Download size
         self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
+
         // Installed size
         self.set_string_property(PropID::InstalledSize, true, &pkg.install_size_string(), None);
+
         // Has script
-        self.set_string_property(PropID::InstallScript, true, if pkg.has_script() {"Yes"} else {"No"}, None);
+        self.set_string_property(
+            PropID::InstallScript,
+            true,
+            if pkg.has_script() {"Yes"} else {"No"},
+            None
+        );
+
         // SHA256 sum
         self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
     }
