@@ -430,7 +430,7 @@ impl SearchBar {
 
                 action_group.activate_action("set-mode", Some(&new_state.to_variant()));
 
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
@@ -453,7 +453,7 @@ impl SearchBar {
 
                 action_group.activate_action("set-mode", Some(&new_state.to_variant()));
 
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
@@ -495,7 +495,7 @@ impl SearchBar {
 
                 action_group.activate_action("set-prop", Some(&new_state.to_variant()));
 
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
@@ -518,7 +518,7 @@ impl SearchBar {
 
                 action_group.activate_action("set-prop", Some(&new_state.to_variant()));
 
-                glib::Propagation::Proceed
+                glib::Propagation::Stop
             }))
         ));
 
