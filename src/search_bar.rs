@@ -149,9 +149,6 @@ mod imp {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
             SIGNALS.get_or_init(|| {
                 vec![
-                    Signal::builder("enabled")
-                        .param_types([bool::static_type()])
-                        .build(),
                     Signal::builder("changed")
                         .param_types([
                             String::static_type(),
@@ -265,8 +262,6 @@ impl SearchBar {
             } else {
                 imp.search_text.set_text("");
             }
-
-            bar.emit_by_name::<()>("enabled", &[&bar.enabled()]);
         });
 
         // Search mode property notify signal

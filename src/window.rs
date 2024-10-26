@@ -740,11 +740,11 @@ impl PacViewWindow {
             }
         ));
 
-        // Search bar enabled signal
-        imp.search_bar.connect_closure("enabled", false, closure_local!(
-            #[watch(rename_to = window)] self,
-            move |_: SearchBar, enabled: bool| {
-                if !enabled {
+        // Search bar enabled property notify signal
+        imp.search_bar.connect_enabled_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |bar| {
+                if !bar.enabled() {
                     window.imp().package_view.view().grab_focus();
                 }
             }
