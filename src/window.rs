@@ -232,7 +232,7 @@ impl PacViewWindow {
         }
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
-        imp.prefs_dialog.set_property_collapse_lines(gsettings.double("property-collapse-lines"));
+        imp.prefs_dialog.set_property_max_lines(gsettings.double("property-max-lines"));
 
         // Load package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -281,7 +281,7 @@ impl PacViewWindow {
         self.set_gsetting(gsettings, "search-prop", imp.prefs_dialog.search_prop().nick());
         self.set_gsetting(gsettings, "search-delay", imp.prefs_dialog.search_delay());
         self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
-        self.set_gsetting(gsettings, "property-collapse-lines", imp.prefs_dialog.property_collapse_lines());
+        self.set_gsetting(gsettings, "property-max-lines", imp.prefs_dialog.property_max_lines());
 
         // Save package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -377,8 +377,8 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
-        // Bind info pane property collapse lines preference
-        imp.prefs_dialog.bind_property("property-collapse-lines", &imp.info_pane.get(), "property-collapse-lines")
+        // Bind info pane property max lines preference
+        imp.prefs_dialog.bind_property("property-max-lines", &imp.info_pane.get(), "property-max-lines")
             .transform_to(|_, lines: f64| {
                 Some(if lines == 0.0 { i32::MAX } else { lines.to_i32().unwrap_or(0) })
             })

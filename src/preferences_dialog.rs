@@ -57,7 +57,7 @@ mod imp {
         #[template_child]
         pub(super) remember_sort_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub(super) property_collapse_lines_row: TemplateChild<adw::SpinRow>,
+        pub(super) property_max_lines_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
@@ -76,7 +76,7 @@ mod imp {
         #[property(get, set)]
         remember_sort: Cell<bool>,
         #[property(get, set)]
-        property_collapse_lines: Cell<f64>,
+        property_max_lines: Cell<f64>,
     }
 
     //---------------------------------------
@@ -188,7 +188,7 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
-        self.bind_property("property-collapse-lines", &imp.property_collapse_lines_row.get(), "value")
+        self.bind_property("property-max-lines", &imp.property_max_lines_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();
@@ -281,7 +281,7 @@ impl PreferencesDialog {
                                 dialog.set_search_prop(SearchProp::default());
                                 dialog.set_search_delay(150.0);
                                 dialog.set_remember_sort(false);
-                                dialog.set_property_collapse_lines(3.0);
+                                dialog.set_property_max_lines(3.0);
                             }
                         }
                     )

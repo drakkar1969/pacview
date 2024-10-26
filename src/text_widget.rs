@@ -75,7 +75,7 @@ mod imp {
         #[property(get, set)]
         expanded: Cell<bool>,
         #[property(get, set)]
-        collapse_lines: Cell<i32>,
+        max_lines: Cell<i32>,
 
         #[property(get, set)]
         focused: Cell<bool>,
@@ -485,7 +485,7 @@ impl TextWidget {
                 measure_layout.set_width((imp.draw_area.width() - EXPAND_MARGIN) * pango::SCALE);
 
                 let can_expand = if widget.expanded() {
-                    measure_layout.line_count() > widget.collapse_lines()
+                    measure_layout.line_count() > widget.max_lines()
                 } else {
                     measure_layout.is_ellipsized()
                 };
@@ -653,7 +653,7 @@ impl TextWidget {
             layout.set_height(-1);
             layout.set_ellipsize(pango::EllipsizeMode::None);
         } else {
-            layout.set_height(-self.collapse_lines());
+            layout.set_height(-self.max_lines());
             layout.set_ellipsize(pango::EllipsizeMode::End);
         }
 
@@ -688,8 +688,8 @@ impl TextWidget {
             widget.resize_layout();
         });
 
-        // Collapsed lines property notify signal
-        self.connect_collapse_lines_notify(|widget| {
+        // Max lines property notify signal
+        self.connect_max_lines_notify(|widget| {
             widget.resize_layout();
         });
 

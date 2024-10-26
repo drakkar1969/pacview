@@ -131,8 +131,8 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Info Pane</property>
             <child>
-              <object class="AdwSpinRow" id="property_collapse_lines_row">
-                <property name="title">Collapsed Property _Lines</property>
+              <object class="AdwSpinRow" id="property_max_lines_row">
+                <property name="title">Maximum Property _Lines</property>
                 <property name="subtitle">Maximum number of text lines before properties are collapsed (set to 0 to never collapse)</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>

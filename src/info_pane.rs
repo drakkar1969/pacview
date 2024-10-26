@@ -189,7 +189,7 @@ mod imp {
         #[property(get, set, default = "info", construct)]
         visible_tab: RefCell<String>,
         #[property(get, set)]
-        property_collapse_lines: Cell<i32>,
+        property_max_lines: Cell<i32>,
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
@@ -345,7 +345,7 @@ impl InfoPane {
             }
         ));
 
-        self.bind_property("property-collapse-lines", &property, "collapse-lines")
+        self.bind_property("property-max-lines", &property, "max-lines")
             .sync_create()
             .build();
 

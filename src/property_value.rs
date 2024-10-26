@@ -39,7 +39,7 @@ mod imp {
         #[property(get, set)]
         value: RefCell<String>,
         #[property(get, set)]
-        collapse_lines: Cell<i32>,
+        max_lines: Cell<i32>,
     }
 
     //---------------------------------------
@@ -142,7 +142,7 @@ impl PropertyValue {
             .sync_create()
             .build();
 
-        self.bind_property("collapse-lines", &imp.text_widget.get(), "collapse-lines")
+        self.bind_property("max-lines", &imp.text_widget.get(), "max-lines")
             .sync_create()
             .build();
 
