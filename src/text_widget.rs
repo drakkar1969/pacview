@@ -13,6 +13,11 @@ use regex::Regex;
 use url::Url;
 
 //------------------------------------------------------------------------------
+// CONST variables
+//------------------------------------------------------------------------------
+const EXPAND_MARGIN: i32 = 50;
+
+//------------------------------------------------------------------------------
 // ENUM: PropType
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
@@ -168,8 +173,14 @@ mod imp {
 
                 (measure_layout.pixel_size().0, measure_layout.pixel_size().0, -1, -1)
             } else {
+                let obj = self.obj();
+
                 if for_size != -1 {
-                    measure_layout.set_width(for_size * pango::SCALE);
+                    if obj.can_expand() {
+                        measure_layout.set_width((for_size - EXPAND_MARGIN) * pango::SCALE);
+                    } else {
+                        measure_layout.set_width(for_size * pango::SCALE);
+                    }
                 }
 
                 (measure_layout.pixel_size().1, measure_layout.pixel_size().1, -1, -1)
@@ -469,6 +480,28 @@ impl TextWidget {
             move |_, context, _, _| {
                 let layout = imp.pango_layout.get().unwrap();
 
+                // Check if text widget can expand
+                let measure_layout = layout.copy();
+                measure_layout.set_width((imp.draw_area.width() - EXPAND_MARGIN) * pango::SCALE);
+
+                let can_expand = if widget.expanded() {
+                    measure_layout.line_count() > widget.collapse_lines()
+                } else {
+                    measure_layout.is_ellipsized()
+                };
+
+                // Adjust pango layout width if text widget can expand
+                if can_expand {
+                    layout.set_width((imp.draw_area.width() - EXPAND_MARGIN) * pango::SCALE);
+                } else {
+                    layout.set_width(imp.draw_area.width() * pango::SCALE);
+                }
+
+                // Set can expand property if changed
+                if widget.can_expand() != can_expand {
+                    widget.set_can_expand(can_expand);
+                }
+
                 // Format pango layout text selection
                 if let Some(attr_list) = layout.attributes()
                     .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background && attr.type_() != pango::AttrType::BackgroundAlpha))
@@ -488,16 +521,6 @@ impl TextWidget {
 
                 context.set_source_rgba(text_color.red() as f64, text_color.green() as f64, text_color.blue() as f64, text_color.alpha() as f64);
                 context.move_to(0.0, 0.0);
-
-                let can_expand = if widget.expanded() {
-                    layout.line_count() > widget.collapse_lines()
-                } else {
-                    layout.is_ellipsized()
-                };
-
-                if widget.can_expand() != can_expand {
-                    widget.set_can_expand(can_expand);
-                }
 
                 pangocairo::functions::show_layout(context, layout);
 
