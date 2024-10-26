@@ -55,7 +55,7 @@ mod imp {
 
                     window.close();
 
-                    glib::Propagation::Proceed
+                    glib::Propagation::Stop
                 }))
             ))
         }
