@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use gtk::{glib, gio};
+use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
@@ -63,18 +63,11 @@ mod imp {
 
             klass.bind_template();
 
-            klass.add_shortcut(&gtk::Shortcut::new(
-                gtk::ShortcutTrigger::parse_string("Escape"),
-                Some(gtk::CallbackAction::new(|widget, _| {
-                    let window = widget
-                        .downcast_ref::<crate::backup_window::BackupWindow>()
-                        .expect("Could not downcast to 'BackupWindow'");
+            klass.add_binding(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
+                window.close();
 
-                    window.close();
-
-                    glib::Propagation::Stop
-                }))
-            ))
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
