@@ -8,15 +8,15 @@ use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
 
-use strum::{EnumString, FromRepr};
+use strum::{EnumString, FromRepr, EnumIter, IntoEnumIterator};
 
 use crate::search_tag::SearchTag;
-use crate::traits::{EnumValueExt, EnumClassExt};
+use crate::traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: SearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr, EnumIter)]
 #[strum(serialize_all = "kebab-case")]
 #[repr(u32)]
 #[enum_type(name = "SearchMode")]
@@ -31,12 +31,11 @@ pub enum SearchMode {
 }
 
 impl EnumValueExt for SearchMode {}
-impl EnumClassExt for SearchMode {}
 
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr, EnumIter)]
 #[strum(serialize_all = "kebab-case")]
 #[repr(u32)]
 #[enum_type(name = "SearchProp")]
@@ -59,7 +58,6 @@ pub enum SearchProp {
 }
 
 impl EnumValueExt for SearchProp {}
-impl EnumClassExt for SearchProp {}
 
 //------------------------------------------------------------------------------
 // MODULE: SearchBar
@@ -117,8 +115,6 @@ mod imp {
         searching: Cell<bool>,
 
         pub(super) delay_source_id: RefCell<Option<glib::SourceId>>,
-
-        pub(super) action_group: RefCell<gio::SimpleActionGroup>,
     }
 
     //---------------------------------------
@@ -136,32 +132,26 @@ mod imp {
 
             // Add cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, |bar| {
-                let action_group = bar.imp().action_group.borrow();
+                let mut mode_iter = SearchMode::iter().cycle();
+                mode_iter.find(|&mode| mode == bar.mode());
 
-                let state = action_group.action_state("set-mode")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
+                let new_mode = mode_iter.next()
+                    .expect("Could not get 'SearchMode'");
 
-                let new_state = SearchMode::next_nick(&state);
-
-                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
+                bar.activate_action("search.set-mode", Some(&new_mode.variant_nick())).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Add reverse cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
-                let action_group = bar.imp().action_group.borrow();
+                let mut mode_iter = SearchMode::iter().rev().cycle();
+                mode_iter.find(|&mode| mode == bar.mode());
 
-                let state = action_group.action_state("set-mode")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
+                let new_mode = mode_iter.next()
+                    .expect("Could not get 'SearchMode'");
 
-                let new_state = SearchMode::previous_nick(&state);
-
-                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
+                bar.activate_action("search.set-mode", Some(&new_mode.variant_nick())).unwrap();
 
                 glib::Propagation::Stop
             });
@@ -187,44 +177,36 @@ mod imp {
 
             // Add cycle search prop key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |bar| {
-                let action_group = bar.imp().action_group.borrow();
+                let mut prop_iter = SearchProp::iter().cycle();
+                prop_iter.find(|&prop| prop == bar.prop());
 
-                let state = action_group.action_state("set-prop")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
+                let new_prop = prop_iter.next()
+                    .expect("Could not get 'SearchProp'");
 
-                let new_state = SearchProp::next_nick(&state);
-
-                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
+                bar.activate_action("search.set-prop", Some(&new_prop.variant_nick())).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Add reverse cycle search prop key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
-                let action_group = bar.imp().action_group.borrow();
+                let mut prop_iter = SearchProp::iter().rev().cycle();
+                prop_iter.find(|&prop| prop == bar.prop());
 
-                let state = action_group.action_state("set-prop")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
+                let new_prop = prop_iter.next()
+                    .expect("Could not get 'SearchProp'");
 
-                let new_state = SearchProp::previous_nick(&state);
-
-                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
+                bar.activate_action("search.set-prop", Some(&new_prop.variant_nick())).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Add search prop numbered shortcuts
-            let enum_class = SearchProp::enum_class();
-
-            for (i, value) in enum_class.values().iter().enumerate() {
+            for (i, value) in SearchProp::iter().enumerate() {
                 klass.add_shortcut(&gtk::Shortcut::with_arguments(
                     gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
                     Some(gtk::NamedAction::new("search.set-prop")),
-                    &value.nick().to_variant()
+                    &value.variant_nick()
                 ));
             }
 
@@ -490,9 +472,6 @@ impl SearchBar {
         search_group.add_action(&prop_action);
 
         search_group.add_action_entries([reset_params_action]);
-
-        // Store search action group
-        self.imp().action_group.replace(search_group);
     }
 
     //---------------------------------------
