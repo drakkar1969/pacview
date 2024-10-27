@@ -603,7 +603,9 @@ impl InfoPane {
         imp.files_view.connect_activate(clone!(
             #[weak] imp,
             move |_, _| {
-                imp.files_open_button.emit_clicked();
+                if imp.files_open_button.is_sensitive() {
+                    imp.files_open_button.emit_clicked();
+                }
             }
         ));
 
@@ -659,7 +661,9 @@ impl InfoPane {
         imp.cache_view.connect_activate(clone!(
             #[weak] imp,
             move |_, _| {
-                imp.cache_open_button.emit_clicked();
+                if imp.cache_open_button.is_sensitive() {
+                    imp.cache_open_button.emit_clicked();
+                }
             }
         ));
 
