@@ -772,7 +772,9 @@ impl TextWidget {
 
         // Max lines property notify signal
         self.connect_max_lines_notify(|widget| {
-            widget.resize_layout();
+            if !widget.expanded() {
+                widget.resize_layout();
+            }
         });
 
         // Focused property notify signal
