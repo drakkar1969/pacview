@@ -6,7 +6,7 @@ use gtk::prelude::ObjectExt;
 
 use strum::FromRepr;
 
-use crate::traits::EnumValueExt;
+use crate::enum_traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus

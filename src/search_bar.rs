@@ -11,7 +11,7 @@ use glib::clone;
 use strum::{EnumString, FromRepr, EnumIter, IntoEnumIterator};
 
 use crate::search_tag::SearchTag;
-use crate::traits::EnumValueExt;
+use crate::enum_traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: SearchMode

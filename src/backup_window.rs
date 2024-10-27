@@ -7,7 +7,7 @@ use glib::clone;
 
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
-use crate::traits::EnumValueExt;
+use crate::enum_traits::EnumValueExt;
 use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------

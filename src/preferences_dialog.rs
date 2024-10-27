@@ -8,7 +8,7 @@ use glib::clone;
 use strum::{EnumString, FromRepr};
 
 use crate::search_bar::{SearchMode, SearchProp};
-use crate::traits::EnumValueExt;
+use crate::enum_traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: ColorScheme

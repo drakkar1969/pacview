@@ -17,7 +17,7 @@ use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
-use crate::traits::EnumValueExt;
+use crate::enum_traits::EnumValueExt;
 
 //------------------------------------------------------------------------------
 // ENUM: SortProp

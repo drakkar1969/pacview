@@ -16,7 +16,7 @@ use crate::text_widget::{TextWidget, PropType};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::backup_object::{BackupObject, BackupStatus};
-use crate::traits::EnumValueExt;
+use crate::enum_traits::EnumValueExt;
 use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------

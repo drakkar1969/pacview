@@ -17,7 +17,7 @@ mod stats_object;
 mod backup_object;
 mod log_object;
 mod utils;
-mod traits;
+mod enum_traits;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;
