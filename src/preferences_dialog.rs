@@ -47,8 +47,6 @@ mod imp {
         #[template_child]
         pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
-        pub(super) aur_menubutton: TemplateChild<gtk::MenuButton>,
-        #[template_child]
         pub(super) search_mode_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) search_prop_row: TemplateChild<adw::ComboRow>,
