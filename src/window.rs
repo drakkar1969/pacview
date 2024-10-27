@@ -9,7 +9,7 @@ use std::io;
 use std::io::Read;
 use std::str::FromStr;
 
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::AdwDialogExt;
 use gtk::prelude::*;
@@ -129,6 +129,77 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Add search start/stop key bindings
+            klass.add_binding_action(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, "win.start-search");
+
+            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "win.stop-search");
+
+            // Add show sidebar key binding
+            klass.add_binding_action(gdk::Key::B, gdk::ModifierType::CONTROL_MASK, "win.show-sidebar");
+
+            // Add show infopane key binding
+            klass.add_binding_action(gdk::Key::I, gdk::ModifierType::CONTROL_MASK, "win.show-infopane");
+
+            // Add show preferences key binding
+            klass.add_binding_action(gdk::Key::comma, gdk::ModifierType::CONTROL_MASK, "win.show-preferences");
+
+            // Add view refresh key binding
+            klass.add_binding_action(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh");
+
+            // Add view copy list key binding
+            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.copy-package-list");
+
+            // Add view show all packages key binding
+            klass.add_binding_action(gdk::Key::W, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-all-packages");
+
+            // Add stats window key binding
+            klass.add_binding_action(gdk::Key::S, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-stats");
+
+            // Add backup files window key binding
+            klass.add_binding_action(gdk::Key::B, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-backup-files");
+
+            // Add pacman log window key binding
+            klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-log");
+
+            // Add pacman config dialog key binding
+            klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-config");
+
+            // Add infopane set tab shortcuts
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<alt>I"),
+                Some(gtk::NamedAction::new("win.infopane-set-tab")),
+                &"info".to_variant()
+            ));
+
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<alt>F"),
+                Some(gtk::NamedAction::new("win.infopane-set-tab")),
+                &"files".to_variant()
+            ));
+
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<alt>L"),
+                Some(gtk::NamedAction::new("win.infopane-set-tab")),
+                &"log".to_variant()
+            ));
+
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<alt>C"),
+                Some(gtk::NamedAction::new("win.infopane-set-tab")),
+                &"cache".to_variant()
+            ));
+
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<alt>B"),
+                Some(gtk::NamedAction::new("win.infopane-set-tab")),
+                &"backup".to_variant()
+            ));
+
+            // Add infopane previous/next key bindings
+            klass.add_binding_action(gdk::Key::Left, gdk::ModifierType::ALT_MASK, "win.infopane-previous");
+
+            klass.add_binding_action(gdk::Key::Right, gdk::ModifierType::ALT_MASK, "win.infopane-next");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -152,7 +223,6 @@ mod imp {
 
             obj.setup_widgets();
             obj.setup_actions();
-            obj.setup_shortcuts();
             obj.setup_signals();
 
             obj.setup_alpm(true);
@@ -560,132 +630,6 @@ impl PacViewWindow {
 
         // Add preference actions to window
         self.add_action_entries([prefs_action]);
-    }
-
-    //---------------------------------------
-    // Setup shortcuts
-    //---------------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-
-        // Add search start shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>F"),
-            Some(gtk::NamedAction::new("win.start-search"))
-        ));
-
-        // Add search stop shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::NamedAction::new("win.stop-search"))
-        ));
-
-        // Add show sidebar shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>B"),
-            Some(gtk::NamedAction::new("win.show-sidebar"))
-        ));
-
-        // Add show infopane shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>I"),
-            Some(gtk::NamedAction::new("win.show-infopane"))
-        ));
-
-        // Add show preferences shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>comma"),
-            Some(gtk::NamedAction::new("win.show-preferences"))
-        ));
-
-        // Add view refresh shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("F5"),
-            Some(gtk::NamedAction::new("win.refresh"))
-        ));
-
-        // Add view copy list shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>C"),
-            Some(gtk::NamedAction::new("win.copy-package-list"))
-        ));
-
-        // Add view show all packages shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>W"),
-            Some(gtk::NamedAction::new("win.show-all-packages"))
-        ));
-
-        // Add view stats window shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>S"),
-            Some(gtk::NamedAction::new("win.show-stats"))
-        ));
-
-        // Add view backup files window shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>B"),
-            Some(gtk::NamedAction::new("win.show-backup-files"))
-        ));
-
-        // Add view pacman log window shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>L"),
-            Some(gtk::NamedAction::new("win.show-pacman-log"))
-        ));
-
-        // Add view pacman config dialog shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>P"),
-            Some(gtk::NamedAction::new("win.show-pacman-config"))
-        ));
-
-        // Add infopane set tab shortcuts
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<alt>I"),
-            Some(gtk::NamedAction::new("win.infopane-set-tab")),
-            &"info".to_variant()
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<alt>F"),
-            Some(gtk::NamedAction::new("win.infopane-set-tab")),
-            &"files".to_variant()
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<alt>L"),
-            Some(gtk::NamedAction::new("win.infopane-set-tab")),
-            &"log".to_variant()
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<alt>C"),
-            Some(gtk::NamedAction::new("win.infopane-set-tab")),
-            &"cache".to_variant()
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<alt>B"),
-            Some(gtk::NamedAction::new("win.infopane-set-tab")),
-            &"backup".to_variant()
-        ));
-
-        // Add infopane previous shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>Left"),
-            Some(gtk::NamedAction::new("win.infopane-previous"))
-        ));
-
-        // Add infopane next shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<alt>Right"),
-            Some(gtk::NamedAction::new("win.infopane-next"))
-        ));
-
-        // Add shortcut controller to window
-        self.add_controller(controller);
     }
 
     //---------------------------------------

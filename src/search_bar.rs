@@ -133,6 +133,103 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
             klass.set_css_name("search-bar");
+
+            // Add cycle search mode key binding
+            klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, |bar| {
+                let action_group = bar.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-mode")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchMode::next_nick(&state);
+
+                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
+
+                glib::Propagation::Stop
+            });
+
+            // Add reverse cycle search mode key binding
+            klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
+                let action_group = bar.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-mode")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchMode::previous_nick(&state);
+
+                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
+
+                glib::Propagation::Stop
+            });
+
+            // Add search mode letter shortcuts
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<ctrl>L"),
+                Some(gtk::NamedAction::new("search.set-mode")),
+                &SearchMode::All.variant_nick()
+            ));
+
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<ctrl>N"),
+                Some(gtk::NamedAction::new("search.set-mode")),
+                &SearchMode::Any.variant_nick()
+            ));
+
+            klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                gtk::ShortcutTrigger::parse_string("<ctrl>E"),
+                Some(gtk::NamedAction::new("search.set-mode")),
+                &SearchMode::Exact.variant_nick()
+            ));
+
+            // Add cycle search prop key binding
+            klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |bar| {
+                let action_group = bar.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-prop")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchProp::next_nick(&state);
+
+                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
+
+                glib::Propagation::Stop
+            });
+
+            // Add reverse cycle search prop key binding
+            klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
+                let action_group = bar.imp().action_group.borrow();
+
+                let state = action_group.action_state("set-prop")
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                let new_state = SearchProp::previous_nick(&state);
+
+                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
+
+                glib::Propagation::Stop
+            });
+
+            // Add search prop numbered shortcuts
+            let enum_class = SearchProp::enum_class();
+
+            for (i, value) in enum_class.values().iter().enumerate() {
+                klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                    gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
+                    Some(gtk::NamedAction::new("search.set-prop")),
+                    &value.nick().to_variant()
+                ));
+            }
+
+            // Add reset search params key binding
+            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "search.reset-params");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -177,7 +274,6 @@ mod imp {
             obj.setup_widgets();
             obj.setup_signals();
             obj.setup_actions();
-            obj.setup_shortcuts();
         }
     }
 
@@ -397,145 +493,6 @@ impl SearchBar {
 
         // Store search action group
         self.imp().action_group.replace(search_group);
-    }
-
-    //---------------------------------------
-    // Setup shortcuts
-    //---------------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-
-        // Add cycle search mode shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>M"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let bar = widget
-                    .downcast_ref::<SearchBar>()
-                    .expect("Could not downcast to 'SearchBar'");
-
-                let action_group = bar.imp().action_group.borrow();
-
-                let state = action_group.action_state("set-mode")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchMode::next_nick(&state);
-
-                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add reverse cycle search mode shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>M"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let bar = widget
-                    .downcast_ref::<SearchBar>()
-                    .expect("Could not downcast to 'SearchBar'");
-
-                let action_group = bar.imp().action_group.borrow();
-
-                let state = action_group.action_state("set-mode")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchMode::previous_nick(&state);
-
-                action_group.activate_action("set-mode", Some(&new_state.to_variant()));
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add search mode letter shortcuts
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl>L"),
-            Some(gtk::NamedAction::new("search.set-mode")),
-            &SearchMode::All.variant_nick()
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl>N"),
-            Some(gtk::NamedAction::new("search.set-mode")),
-            &SearchMode::Any.variant_nick()
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::with_arguments(
-            gtk::ShortcutTrigger::parse_string("<ctrl>E"),
-            Some(gtk::NamedAction::new("search.set-mode")),
-            &SearchMode::Exact.variant_nick()
-        ));
-
-        // Add cycle search prop shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>P"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let bar = widget
-                    .downcast_ref::<SearchBar>()
-                    .expect("Could not downcast to 'SearchBar'");
-
-                let action_group = bar.imp().action_group.borrow();
-
-                let state = action_group.action_state("set-prop")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchProp::next_nick(&state);
-
-                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add reverse cycle search prop shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>P"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let bar = widget
-                    .downcast_ref::<SearchBar>()
-                    .expect("Could not downcast to 'SearchBar'");
-
-                let action_group = bar.imp().action_group.borrow();
-
-                let state = action_group.action_state("set-prop")
-                    .expect("Could not retrieve Variant")
-                    .get::<String>()
-                    .expect("Could not retrieve String from variant");
-
-                let new_state = SearchProp::previous_nick(&state);
-
-                action_group.activate_action("set-prop", Some(&new_state.to_variant()));
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add search prop numbered shortcuts
-        let enum_class = SearchProp::enum_class();
-
-        for (i, value) in enum_class.values().iter().enumerate() {
-            controller.add_shortcut(gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
-                Some(gtk::NamedAction::new("search.set-prop")),
-                &value.nick().to_variant()
-            ));
-        }
-
-        // Add reset search params shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>R"),
-            Some(gtk::NamedAction::new("search.reset-params"))
-        ));
-
-        // Add shortcut controller to search bar
-        self.add_controller(controller);
     }
 
     //---------------------------------------

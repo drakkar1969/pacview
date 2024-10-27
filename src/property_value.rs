@@ -53,6 +53,89 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Add select all/none key bindings
+            klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK, |property| {
+                property.imp().text_widget.activate_action("text.select-all", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |property| {
+                property.imp().text_widget.activate_action("text.select-none", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            // Add copy key binding
+            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |property| {
+                property.imp().text_widget.activate_action("text.copy", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            // Add expand/contract key bindings
+            klass.add_binding(gdk::Key::plus, gdk::ModifierType::CONTROL_MASK, |property| {
+                property.imp().text_widget.activate_action("text.expand", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::KP_Add, gdk::ModifierType::CONTROL_MASK, |property| {
+                property.imp().text_widget.activate_action("text.expand", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::minus, gdk::ModifierType::CONTROL_MASK, |property| {
+                property.imp().text_widget.activate_action("text.contract", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::KP_Subtract, gdk::ModifierType::CONTROL_MASK, |property| {
+                property.imp().text_widget.activate_action("text.contract", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            // Add previous/next link key bindings
+            klass.add_binding(gdk::Key::Left, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
+                property.imp().text_widget.activate_action("text.previous-link", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::KP_Left, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
+                property.imp().text_widget.activate_action("text.previous-link", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::Right, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
+                property.imp().text_widget.activate_action("text.next-link", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::KP_Right, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
+                property.imp().text_widget.activate_action("text.next-link", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            // Add activate link key bindings
+            klass.add_binding(gdk::Key::Return, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
+                property.imp().text_widget.activate_action("text.activate-link", None).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::KP_Enter, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
+                property.imp().text_widget.activate_action("text.activate-link", None).unwrap();
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -72,7 +155,6 @@ mod imp {
 
             obj.setup_widgets();
             obj.setup_signals();
-            obj.setup_shortcuts();
             obj.setup_controllers();
         }
     }
@@ -177,127 +259,6 @@ impl PropertyValue {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Setup shortcuts
-    //---------------------------------------
-    fn setup_shortcuts(&self) {
-        // Create shortcut controller
-        let controller = gtk::ShortcutController::new();
-
-        // Add select all shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>A"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                property.imp().text_widget.activate_action("text.select-all", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add select none shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl><shift>A"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                property.imp().text_widget.activate_action("text.select-none", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add copy shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>C"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                property.imp().text_widget.activate_action("text.copy", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add expand/contract shortcuts
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>plus|<ctrl>KP_Add"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                    property.imp().text_widget.activate_action("text.expand", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("<ctrl>minus|<ctrl>KP_Subtract"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                property.imp().text_widget.activate_action("text.contract", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add previous/next link shortcuts
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Left|KP_Left"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                property.imp().text_widget.activate_action("text.previous-link", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Right|KP_Right"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                property.imp().text_widget.activate_action("text.next-link", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add activate link shortcut
-        controller.add_shortcut(gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Return|KP_Enter"),
-            Some(gtk::CallbackAction::new(|widget, _| {
-                let property = widget
-                    .downcast_ref::<PropertyValue>()
-                    .expect("Could not downcast to 'PropertyValue'");
-
-                property.imp().text_widget.activate_action("text.activate-link", None).unwrap();
-
-                glib::Propagation::Stop
-            }))
-        ));
-
-        // Add shortcut controller to property
-        self.add_controller(controller);
     }
 
     //---------------------------------------
