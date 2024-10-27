@@ -56,6 +56,8 @@ mod imp {
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
+        #[template_child]
+        pub(super) loading_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
@@ -496,8 +498,22 @@ impl PackageView {
     //---------------------------------------
     // Public hide loading spinner function
     //---------------------------------------
-    pub fn hide_loading_spinner(&self) {
-        self.imp().stack.set_visible_child_name("view");
+    pub fn set_loading(&self, loading: bool, label: Option<&str>) {
+        let imp = self.imp();
+
+        let visible_page = if loading {
+            "empty"
+        } else {
+            "view"
+        };
+
+        if let Some(label) = label {
+            imp.loading_label.set_label(label);
+        } else {
+            imp.loading_label.set_label("Loading packages");
+        }
+
+        imp.stack.set_visible_child_name(visible_page);
     }
 
     //---------------------------------------

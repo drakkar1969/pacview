@@ -778,12 +778,17 @@ impl PacViewWindow {
             if !aur_file.query_exists(None::<&gio::Cancellable>) {
                 let (sender, receiver) = async_channel::bounded(1);
 
+                imp.package_view.set_loading(true, Some("Downloading AUR package list"));
+
                 self.download_aur_names(aur_file, Some(sender));
 
                 glib::spawn_future_local(clone!(
+                    #[weak] imp,
                     #[weak(rename_to = window)] self,
                     async move {
                         while let Ok(()) = receiver.recv().await {
+                            imp.package_view.set_loading(true, None);
+
                             window.load_packages(false);
                         }
                     }
@@ -1000,7 +1005,7 @@ impl PacViewWindow {
                             INSTALLED_SNAPSHOT.replace(install_list);
 
                             // Show package list
-                            imp.package_view.hide_loading_spinner();
+                            imp.package_view.set_loading(false, None);
 
                             // Get package updates
                             window.get_package_updates();
