@@ -801,7 +801,7 @@ impl PacViewWindow {
     //---------------------------------------
     fn setup_alpm(&self, is_init: bool) {
         self.get_pacman_config();
-        self.populate_sidebar();
+        self.populate_sidebar(is_init);
 
         if is_init {
             self.check_aur_file();
@@ -838,14 +838,12 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: populate sidebar
     //---------------------------------------
-    fn populate_sidebar(&self) {
+    fn populate_sidebar(&self, is_init: bool) {
         let imp = self.imp();
 
-        // Clear sidebar rows
-        imp.repo_listbox.remove_all();
-        imp.status_listbox.remove_all();
-
         // Add repository rows (enumerate pacman repositories)
+        imp.repo_listbox.remove_all();
+
         let saved_repo_id = imp.saved_repo_id.take();
 
         let row = FilterRow::new("repository-symbolic", "All", None, PkgFlags::empty());
@@ -871,35 +869,39 @@ impl PacViewWindow {
         }
 
         // Add package status rows (enumerate PkgStatusFlags)
-        let saved_status_id = imp.saved_status_id.replace(PkgFlags::empty());
+        if is_init {
+            imp.status_listbox.remove_all();
 
-        let flags = glib::FlagsClass::new::<PkgFlags>();
+            let saved_status_id = imp.saved_status_id.replace(PkgFlags::empty());
 
-        for f in flags.values() {
-            let flag = PkgFlags::from_bits_truncate(f.value());
+            let flags = glib::FlagsClass::new::<PkgFlags>();
 
-            let row = FilterRow::new(
-                &format!("status-{}-symbolic", f.nick()),
-                f.name(),
-                None,
-                flag
-            );
+            for f in flags.values() {
+                let flag = PkgFlags::from_bits_truncate(f.value());
 
-            imp.status_listbox.append(&row);
+                let row = FilterRow::new(
+                    &format!("status-{}-symbolic", f.nick()),
+                    f.name(),
+                    None,
+                    flag
+                );
 
-            if saved_status_id == PkgFlags::empty() {
-                if flag == PkgFlags::INSTALLED {
+                imp.status_listbox.append(&row);
+
+                if saved_status_id == PkgFlags::empty() {
+                    if flag == PkgFlags::INSTALLED {
+                        row.activate();
+                    }
+                } else if saved_status_id == flag {
                     row.activate();
                 }
-            } else if saved_status_id == flag {
-                row.activate();
-            }
 
-            if flag == PkgFlags::ALL {
-                imp.all_status_row.replace(row);
-            }
-            else if flag == PkgFlags::UPDATES {
-                imp.update_row.replace(row);
+                if flag == PkgFlags::ALL {
+                    imp.all_status_row.replace(row);
+                }
+                else if flag == PkgFlags::UPDATES {
+                    imp.update_row.replace(row);
+                }
             }
         }
     }
