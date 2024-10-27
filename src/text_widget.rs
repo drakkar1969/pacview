@@ -779,17 +779,7 @@ impl TextWidget {
 
         // Focused property notify signal
         self.connect_focused_notify(|widget| {
-            let imp = widget.imp();
-
-            if !widget.focused() {
-                if !imp.link_list.borrow().is_empty() {
-                    imp.focus_link_index.set(Some(0));
-                } else {
-                    imp.focus_link_index.set(None);
-                }
-            }
-
-            imp.draw_area.queue_draw();
+            widget.imp().draw_area.queue_draw();
         });
 
         // System color scheme signal
