@@ -39,8 +39,6 @@ mod imp {
     pub struct BackupObject {
         #[property(get, set)]
         filename: RefCell<String>,
-        #[property(get, set)]
-        hash: RefCell<String>,
         #[property(get, set, nullable)]
         package: RefCell<Option<String>>,
         #[property(get, set, builder(BackupStatus::default()))]
@@ -103,7 +101,6 @@ impl BackupObject {
         // Build BackupObject
         glib::Object::builder()
             .property("filename", filename)
-            .property("hash", hash)
             .property("package", package)
             .property("status", status)
             .build()
