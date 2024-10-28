@@ -766,51 +766,49 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Check AUR file helper function
-    //---------------------------------------
-    fn check_aur_file(&self) {
-        let imp = self.imp();
-
-        let aur_file = &*imp.aur_file.borrow();
-
-        // If AUR package names file does not exist, download it
-        if let Some(aur_file) = aur_file {
-            if !aur_file.query_exists(None::<&gio::Cancellable>) {
-                let (sender, receiver) = async_channel::bounded(1);
-
-                imp.package_view.set_loading(true, Some("Downloading AUR package list"));
-
-                self.download_aur_names(aur_file, Some(sender));
-
-                glib::spawn_future_local(clone!(
-                    #[weak] imp,
-                    #[weak(rename_to = window)] self,
-                    async move {
-                        while let Ok(()) = receiver.recv().await {
-                            imp.package_view.set_loading(true, None);
-
-                            window.load_packages(false);
-                        }
-                    }
-                ));
-            } else {
-                self.load_packages(true);
-            }
-        } else {
-            self.load_packages(true);
-        }
-    }
-
-    //---------------------------------------
     // Setup alpm
     //---------------------------------------
-    fn setup_alpm(&self, is_init: bool) {
-        self.get_pacman_config();
-        self.populate_sidebar(is_init);
+    fn setup_alpm(&self, first_load: bool) {
+        let imp = self.imp();
 
-        if is_init {
-            self.check_aur_file();
+        self.get_pacman_config();
+        self.populate_sidebar(first_load);
+
+        if first_load {
+            // If first load, check AUR package names file
+            let aur_file = &*imp.aur_file.borrow();
+
+            if let Some(aur_file) = aur_file {
+                if !aur_file.query_exists(None::<&gio::Cancellable>) {
+                    // If AUR package names file does not exist, download it
+                    let (sender, receiver) = async_channel::bounded(1);
+
+                    imp.package_view.set_loading(true, Some("Downloading AUR package list"));
+
+                    self.download_aur_names(aur_file, Some(sender));
+
+                    glib::spawn_future_local(clone!(
+                        #[weak] imp,
+                        #[weak(rename_to = window)] self,
+                        async move {
+                            while let Ok(()) = receiver.recv().await {
+                                imp.package_view.set_loading(true, None);
+
+                                // Load packages, no AUR file age check
+                                window.load_packages(false);
+                            }
+                        }
+                    ));
+                } else {
+                    // AUR package name file exists: load packages and check AUR file age
+                    self.load_packages(true);
+                }
+            } else {
+                // Path of AUR package names files is invalid: load packages, no AUR file age check
+                self.load_packages(false);
+            }
         } else {
+            // Not first load: load packages, no AUR file age check
             self.load_packages(false);
         }
     }
@@ -843,7 +841,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: populate sidebar
     //---------------------------------------
-    fn populate_sidebar(&self, is_init: bool) {
+    fn populate_sidebar(&self, first_load: bool) {
         let imp = self.imp();
 
         // Add repository rows (enumerate pacman repositories)
@@ -873,8 +871,8 @@ impl PacViewWindow {
             }
         }
 
-        // Add package status rows (enumerate PkgStatusFlags)
-        if is_init {
+        // If first load, add package status rows (enumerate PkgStatusFlags)
+        if first_load {
             imp.status_listbox.remove_all();
 
             let saved_status_id = imp.saved_status_id.replace(PkgFlags::empty());
@@ -912,9 +910,35 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Check AUR file age helper function
+    //---------------------------------------
+    fn check_aur_file_age(&self) {
+        let imp = self.imp();
+
+        let aur_file = &*imp.aur_file.borrow();
+
+        if let Some(aur_file) = aur_file {
+            // Get AUR package names file age
+            let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
+                .ok()
+                .and_then(|file_info| file_info.modification_date_time())
+                .and_then(|file_time| {
+                    glib::DateTime::now_local()
+                        .ok()
+                        .map(|current_time| current_time.difference(&file_time).as_days())
+                });
+
+            // Download AUR package names file if does not exist or older than 7 days
+            if file_days.is_none() || file_days.unwrap() >= 7 {
+                self.download_aur_names(aur_file, None);
+            }
+        }
+    }
+
+    //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn load_packages(&self, update_aur_file: bool) {
+    fn load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
 
         let aur_file = imp.aur_file.borrow();
@@ -979,6 +1003,7 @@ impl PacViewWindow {
                 #[strong] pacman_config,
                 async move {
                     while let Ok(data_list) = receiver.recv().await {
+                        // Populate package view
                         if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
                             let handle_ref = Rc::new(handle);
 
@@ -1010,9 +1035,9 @@ impl PacViewWindow {
                             // Get package updates
                             window.get_package_updates();
 
-                            // Update AUR package names file
-                            if update_aur_file {
-                                window.update_aur_file();
+                            // Check AUR package names file age
+                            if check_aur_file {
+                                window.check_aur_file_age();
                             }
                         }
                     }
@@ -1022,7 +1047,7 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Update helper function
+    // Run update command helper function
     //---------------------------------------
     async fn run_update_command(&self, cmd: &str) -> io::Result<(Option<i32>, String)> {
         // Run external command
@@ -1133,31 +1158,6 @@ impl PacViewWindow {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Setup alpm: update AUR file
-    //---------------------------------------
-    fn update_aur_file(&self) {
-        let imp = self.imp();
-
-        let aur_file = &*imp.aur_file.borrow();
-
-        if let Some(aur_file) = aur_file {
-            // Get AUR package names file age
-            let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
-                .ok()
-                .and_then(|file_info| file_info.modification_date_time())
-                .and_then(|file_time| {
-                    glib::DateTime::now_local().ok()
-                        .map(|current_time| current_time.difference(&file_time).as_days())
-                });
-
-            // Download AUR package names file if does not exist or older than 7 days
-            if file_days.is_none() || file_days.unwrap() >= 7 {
-                self.download_aur_names(aur_file, None);
-            }
-        }
     }
 
     //---------------------------------------
