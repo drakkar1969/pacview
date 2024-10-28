@@ -378,8 +378,7 @@ impl SearchBar {
                     let delay_id = glib::timeout_add_local_once(
                         Duration::from_millis(bar.delay()),
                         clone!(
-                            #[weak]
-                            imp,
+                            #[weak] imp,
                             move || {
                                 bar.emit_changed_signal();
 

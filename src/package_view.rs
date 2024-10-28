@@ -313,20 +313,14 @@ impl PackageView {
         ));
 
         // Sort prop property notify signal
-        self.connect_sort_prop_notify(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.sorter.changed(gtk::SorterChange::Different);
-            }
-        ));
+        self.connect_sort_prop_notify(|view| {
+            view.imp().sorter.changed(gtk::SorterChange::Different);
+        });
 
         // Sort ascending property notify signal
-        self.connect_sort_ascending_notify(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.sorter.changed(gtk::SorterChange::Inverted);
-            }
-        ));
+        self.connect_sort_ascending_notify(|view| {
+                view.imp().sorter.changed(gtk::SorterChange::Inverted);
+        });
     }
 
     //---------------------------------------
