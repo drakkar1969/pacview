@@ -63,10 +63,6 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
-        pub(super) sidebar_breakpoint: TemplateChild<adw::Breakpoint>,
-        #[template_child]
-        pub(super) main_breakpoint: TemplateChild<adw::Breakpoint>,
-        #[template_child]
         pub(super) sidebar_split_view: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
         pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
@@ -87,8 +83,6 @@ mod imp {
         #[template_child]
         pub(super) status_label: TemplateChild<gtk::Label>,
 
-        #[template_child]
-        pub(super) package_header_bar: TemplateChild<adw::HeaderBar>,
         #[template_child]
         pub(super) search_bar: TemplateChild<SearchBar>,
         #[template_child]

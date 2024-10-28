@@ -45,8 +45,6 @@ mod imp {
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
-        #[template_child]
-        pub(super) section_factory: TemplateChild<gtk::BuilderListItemFactory>,
     }
 
     //---------------------------------------
