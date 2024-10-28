@@ -558,8 +558,18 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
-        // Add info pane set tab action
-        let visible_tab_action = gio::PropertyAction::new("infopane-set-tab", &imp.info_pane.get(), "visible-tab");
+        // Add info pane set tab action with parameter
+        let visible_tab_action = gio::ActionEntry::builder("infopane-set-tab", )
+            .parameter_type(Some(&String::static_variant_type()))
+            .activate(|window: &Self, _, param| {
+                let tab = param
+                    .expect("Could not retrieve Variant")
+                    .get::<String>()
+                    .expect("Could not retrieve String from variant");
+
+                window.imp().info_pane.set_visible_tab(&tab);
+            })
+            .build();
 
         // Add info pane prev/next actions
         let prev_action = gio::ActionEntry::builder("infopane-previous")
@@ -575,8 +585,7 @@ impl PacViewWindow {
             .build();
 
         // Add info pane actions to window
-        self.add_action(&visible_tab_action);
-        self.add_action_entries([prev_action, next_action]);
+        self.add_action_entries([visible_tab_action, prev_action, next_action]);
 
         // Add show stats window action
         let stats_action = gio::ActionEntry::builder("show-stats")

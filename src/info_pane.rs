@@ -186,8 +186,6 @@ mod imp {
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         _pkg: RefCell<Option<PkgObject>>,
-        #[property(get, set, default = "info", construct)]
-        visible_tab: RefCell<String>,
         #[property(get, set)]
         property_max_lines: Cell<i32>,
 
@@ -437,12 +435,6 @@ impl InfoPane {
         self.add_property(PropID::InstalledSize, PropType::Text);
         self.add_property(PropID::InstallScript, PropType::Text);
         self.add_property(PropID::SHA256Sum, PropType::Text);
-
-        // Bind visible tab property to tab stack
-        self.bind_property("visible-tab", &imp.tab_stack.get(), "visible-child-name")
-            .sync_create()
-            .bidirectional()
-            .build();
 
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
@@ -1046,6 +1038,17 @@ impl InfoPane {
             if hist_sel.selected_item().is_some() {
                 self.update_display();
             }
+        }
+    }
+
+    //---------------------------------------
+    // Public display functions
+    //---------------------------------------
+    pub fn set_visible_tab(&self, tab: &str) {
+        let imp = self.imp();
+
+        if imp.tab_switcher.is_sensitive() {
+            imp.tab_stack.set_visible_child_name(tab);
         }
     }
 }
