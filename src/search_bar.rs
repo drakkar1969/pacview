@@ -369,7 +369,7 @@ impl SearchBar {
                 }
 
                 if search_text.text().is_empty() {
-                    bar.set_aur_error(None::<String>);
+                    bar.set_aur_error(None);
 
                     bar.emit_changed_signal();
                     bar.emit_aur_search_signal();
