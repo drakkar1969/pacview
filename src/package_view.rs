@@ -227,7 +227,7 @@ impl PackageView {
 
         // Add version image visibility callback
         scope.add_callback("version_image_visible", |values| {
-            let flags = values[1].get::<PkgFlags>()
+            let flags = values.get(1).and_then(|value| value.get::<PkgFlags>().ok())
                 .expect("Could not get value in scope callback");
 
             Some(flags.intersects(PkgFlags::UPDATES).to_value())
@@ -235,13 +235,13 @@ impl PackageView {
 
         // Add subtitle text callback
         scope.add_callback("subtitle_text", |values| {
-            let repository = values[1].get::<String>()
+            let repository = values.get(1).and_then(|value| value.get::<String>().ok())
                 .expect("Could not get value in scope callback");
 
-            let status = values[2].get::<String>()
+            let status = values.get(2).and_then(|value| value.get::<String>().ok())
                 .expect("Could not get value in scope callback");
 
-            let installed_size = values[3].get::<String>()
+            let installed_size = values.get(3).and_then(|value| value.get::<String>().ok())
                 .expect("Could not get value in scope callback");
 
             let subtitle = if status.is_empty() {
@@ -255,7 +255,7 @@ impl PackageView {
 
         // Add status image icon name/visibility callbacks
         scope.add_callback("status_image_icon_name", |values| {
-            let status = values[1].get::<String>()
+            let status = values.get(1).and_then(|value| value.get::<String>().ok())
                 .expect("Could not get value in scope callback");
 
             Some(
@@ -269,7 +269,7 @@ impl PackageView {
         });
 
         scope.add_callback("status_image_visible", |values| {
-            let flags = values[1].get::<PkgFlags>()
+            let flags = values.get(1).and_then(|value| value.get::<PkgFlags>().ok())
                 .expect("Could not get value in scope callback");
 
             Some(flags.intersects(PkgFlags::INSTALLED).to_value())
@@ -277,7 +277,7 @@ impl PackageView {
 
         // Add groups image visibility callback
         scope.add_callback("groups_image_visible", |values| {
-            let groups = values[1].get::<String>()
+            let groups = values.get(1).and_then(|value| value.get::<String>().ok())
                 .expect("Could not get value in scope callback");
 
             Some((!groups.is_empty()).to_value())
@@ -319,7 +319,7 @@ impl PackageView {
 
         // Sort ascending property notify signal
         self.connect_sort_ascending_notify(|view| {
-                view.imp().sorter.changed(gtk::SorterChange::Inverted);
+            view.imp().sorter.changed(gtk::SorterChange::Inverted);
         });
     }
 
