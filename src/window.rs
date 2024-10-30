@@ -788,8 +788,10 @@ impl PacViewWindow {
 
                     imp.package_view.set_loading(true, Some("Downloading AUR package list"));
 
+                    // Spawn thread to download AUR package names file
                     self.download_aur_names(aur_file, Some(sender));
 
+                    // Attach receiver
                     glib::spawn_future_local(clone!(
                         #[weak] imp,
                         #[weak(rename_to = window)] self,
