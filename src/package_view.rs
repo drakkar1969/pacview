@@ -387,17 +387,21 @@ impl PackageView {
     pub fn search_in_aur(&self, search_bar: SearchBar, search_term: &str, prop: SearchProp) {
         let imp = self.imp();
 
+        // Clear AUR search results
+        imp.aur_model.remove_all();
+
+        AUR_SNAPSHOT.replace(vec![]);
+
+        if search_term.is_empty() {
+            return
+        }
+
         let term = search_term.to_lowercase();
 
         search_bar.set_searching(true);
 
         // Get AUR cache (need to clone for mutable reference)
         let mut aur_cache = imp.aur_cache.borrow_mut().clone();
-
-        // Clear AUR search results
-        imp.aur_model.remove_all();
-
-        AUR_SNAPSHOT.replace(vec![]);
 
         // Spawn thread to search AUR
         let (sender, receiver) = async_channel::bounded(1);
