@@ -508,24 +508,22 @@ impl PackageView {
     }
 
     //---------------------------------------
-    // Public hide loading spinner function
+    // Public set loading function
     //---------------------------------------
     pub fn set_loading(&self, loading: bool, label: Option<&str>) {
         let imp = self.imp();
 
-        let visible_page = if loading {
-            "empty"
-        } else {
-            "view"
-        };
+        if loading {
+            if let Some(label) = label {
+                imp.loading_label.set_label(label);
+            } else {
+                imp.loading_label.set_label("Loading packages");
+            }
 
-        if let Some(label) = label {
-            imp.loading_label.set_label(label);
+            imp.stack.set_visible_child_name("empty");
         } else {
-            imp.loading_label.set_label("Loading packages");
+            imp.stack.set_visible_child_name("view");
         }
-
-        imp.stack.set_visible_child_name(visible_page);
     }
 
     //---------------------------------------
