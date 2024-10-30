@@ -391,70 +391,88 @@ impl PackageView {
 
         search_bar.set_searching(true);
 
+        // Get AUR cache (need to clone for mutable reference)
+        let mut aur_cache = imp.aur_cache.borrow_mut().clone();
+
+        // Clear AUR search results
+        imp.aur_model.remove_all();
+
+        AUR_SNAPSHOT.replace(vec![]);
+
+        // Spawn thread to search AUR
+        let (sender, receiver) = async_channel::bounded(1);
+
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-            // Get AUR cache (need to clone for mutable reference)
-            let mut aur_cache = imp.aur_cache.borrow_mut().clone();
-
-            // Clear AUR search results
-            imp.aur_model.remove_all();
-
-            AUR_SNAPSHOT.replace(vec![]);
-
-            glib::spawn_future_local(clone!(
-                #[weak] imp,
+            tokio_runtime().spawn(clone!(
                 #[strong] installed_pkg_names,
                 async move {
-                    // Spawn thread to search AUR
-                    let result = tokio_runtime().spawn(async move {
-                        let handle = raur::Handle::new();
+                    let handle = raur::Handle::new();
 
-                        // Set search mode
-                        if prop == SearchProp::Files {
-                            return Err(raur::Error::Aur("Cannot search by files.".to_string()))
+                    // Set search mode
+                    if prop == SearchProp::Files {
+                        sender.send(Err(raur::Error::Aur("Cannot search by files.".to_string())))
+                            .await
+                            .expect("Could not send through channel");
+
+                        return
+                    }
+
+                    let search_by = match prop {
+                        SearchProp::Name => { raur::SearchBy::Name },
+                        SearchProp::NameDesc => { raur::SearchBy::NameDesc },
+                        SearchProp::Group => { raur::SearchBy::Groups },
+                        SearchProp::Deps => { raur::SearchBy::Depends },
+                        SearchProp::Optdeps => { raur::SearchBy::OptDepends },
+                        SearchProp::Provides => { raur::SearchBy::Provides },
+                        SearchProp::Files => unreachable!(),
+                    };
+
+                    // Search for AUR packages
+                    let search_results = future::join_all(term.split_whitespace()
+                        .map(|t| handle.search_by(t, search_by))
+                    )
+                    .await;
+
+                    let mut aur_names: HashSet<String> = HashSet::new();
+
+                    for res in search_results {
+                        if let Ok(aur_list) = res {
+                            aur_names.extend(aur_list.iter().map(|pkg| pkg.name.to_string()))
+                        } else {
+                            sender.send(Err(res.unwrap_err()))
+                                .await
+                                .expect("Could not send through channel");
+
+                            return
                         }
+                    }
 
-                        let search_by = match prop {
-                            SearchProp::Name => { raur::SearchBy::Name },
-                            SearchProp::NameDesc => { raur::SearchBy::NameDesc },
-                            SearchProp::Group => { raur::SearchBy::Groups },
-                            SearchProp::Deps => { raur::SearchBy::Depends },
-                            SearchProp::Optdeps => { raur::SearchBy::OptDepends },
-                            SearchProp::Provides => { raur::SearchBy::Provides },
-                            SearchProp::Files => unreachable!(),
-                        };
+                    // Get AUR package info using cache
+                    let result = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())
+                        .await
+                        .map(|aur_list| {
+                            let data_list: Vec<PkgData> = aur_list.into_iter()
+                                .filter(|aurpkg| !installed_pkg_names.contains(&aurpkg.name))
+                                .map(|aurpkg| {
+                                    PkgData::from_aur(&aurpkg)
+                                })
+                                .collect();
 
-                        // Search for AUR packages
-                        let search_results = future::join_all(term.split_whitespace()
-                            .map(|t| handle.search_by(t, search_by))
-                        )
-                        .await;
+                            (aur_cache, data_list)
+                        });
 
-                        let mut aur_names: HashSet<String> = HashSet::new();
+                    sender.send(result)
+                        .await
+                        .expect("Could not send through channel");
+                }
+            ));
+        });
 
-                        for res in search_results {
-                            if let Ok(aur_list) = res {
-                                aur_names.extend(aur_list.iter().map(|pkg| pkg.name.to_string()))
-                            } else {
-                                return Err(res.unwrap_err())
-                            }
-                        }
-
-                        // Get AUR package info using cache
-                        let aur_list = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>()).await?;
-
-                        let data_list: Vec<PkgData> = aur_list.into_iter()
-                            .filter(|aurpkg| !installed_pkg_names.contains(&aurpkg.name))
-                            .map(|aurpkg| {
-                                PkgData::from_aur(&aurpkg)
-                            })
-                            .collect();
-
-                        Ok::<(HashSet<ArcPackage>, Vec<PkgData>), raur::Error>((aur_cache, data_list))
-                    })
-                    .await
-                    .expect("Could not complete async task");
-
-                    // Process thread result
+        // Attach thread receiver
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            async move {
+                while let Ok(result) = receiver.recv().await {
                     match result {
                         Ok((aur_cache, data_list)) => {
                             if search_bar.enabled() {
@@ -478,8 +496,8 @@ impl PackageView {
 
                     search_bar.set_searching(false);
                 }
-            ));
-        });
+            }
+        ));
     }
 
     //---------------------------------------
