@@ -443,9 +443,7 @@ impl PacViewWindow {
 
         // Bind info pane property max lines preference
         imp.prefs_dialog.bind_property("property-max-lines", &imp.info_pane.get(), "property-max-lines")
-            .transform_to(|_, lines: f64| {
-                Some(if lines == 0.0 { i32::MAX } else { lines.to_i32().unwrap_or(0) })
-            })
+            .transform_to(|_, lines: f64| Some(lines.to_i32().unwrap_or(0)))
             .sync_create()
             .build();
 
@@ -825,7 +823,8 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Get pacman config
-        let pacman_config = pacmanconf::Config::new().unwrap();
+        let pacman_config = pacmanconf::Config::new()
+            .expect("Could not get pacman config");
 
         // Get pacman repositories
         let pacman_repos: Vec<String> = pacman_config.repos.iter()
@@ -1187,7 +1186,8 @@ impl PacViewWindow {
                         }
                     }
                 }
-            }).unwrap();
+            })
+            .expect("Could not create debouncer");
 
             // Watch pacman local db path
             let path = Path::new(&pacman_config.db_path).join("local");

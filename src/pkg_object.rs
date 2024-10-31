@@ -1,5 +1,6 @@
 use std::cell::{RefCell, OnceCell};
 use std::rc::Rc;
+use std::cmp::Ordering;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -438,7 +439,8 @@ impl PkgObject {
             backups.extend(pkg.backup().iter()
                 .map(|bck| (format!("/{}", bck.name()), bck.hash().to_string())));
 
-            backups.sort_unstable_by(|(a_file, _), (b_file, _)| a_file.partial_cmp(b_file).unwrap());
+            backups.sort_unstable_by(|(a_file, _), (b_file, _)| a_file.partial_cmp(b_file)
+                .unwrap_or(Ordering::Equal));
         }
 
         backups

@@ -223,7 +223,7 @@ impl PackageView {
         // Get list view factory scope
         let scope = imp.factory.scope()
             .and_downcast::<gtk::BuilderRustScope>()
-            .unwrap();
+            .expect("Could not downcast to 'BuilderRustScope'");
 
         // Add version image visibility callback
         scope.add_callback("version_image_visible", |values| {

@@ -125,12 +125,11 @@ impl BackupWindow {
                     .expect("Could not downcast to 'FilterListModel'");
 
                 let section_map: HashSet<String> = filter_model.iter::<glib::Object>().flatten()
-                    .map(|item| {
+                    .filter_map(|item| {
                         item
                             .downcast::<BackupObject>()
                             .expect("Could not downcast to 'BackupObject'")
                             .package()
-                            .unwrap_or_default()
                     })
                     .collect();
 
