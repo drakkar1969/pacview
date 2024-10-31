@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::sync::OnceLock;
+use std::cmp::Ordering;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -184,7 +185,7 @@ impl PackageView {
         // Set list view sorter function
         imp.sorter.set_sort_func(clone!(
             #[weak(rename_to = view)] self,
-            #[upgrade_or] gtk::Ordering::Smaller,
+            #[upgrade_or] gtk::Ordering::Equal,
             move |item_a, item_b| {
                 let pkg_a: &PkgObject = item_a
                     .downcast_ref::<PkgObject>()
@@ -195,14 +196,15 @@ impl PackageView {
                     .expect("Could not downcast to 'PkgObject'");
 
                 let sort = match view.sort_prop() {
-                    SortProp::Name => { pkg_a.name().cmp(&pkg_b.name()) },
-                    SortProp::Version => { pkg_a.version().cmp(&pkg_b.version()) },
-                    SortProp::Repository => { pkg_a.repository().cmp(&pkg_b.repository()) },
-                    SortProp::Status => { pkg_a.status().cmp(&pkg_b.status()) },
-                    SortProp::InstallDate => { pkg_a.install_date().cmp(&pkg_b.install_date()) },
-                    SortProp::InstalledSize => { pkg_a.install_size().cmp(&pkg_b.install_size()) },
-                    SortProp::Groups => { pkg_a.groups().cmp(&pkg_b.groups()) },
-                };
+                    SortProp::Name => { pkg_a.name().partial_cmp(&pkg_b.name()) },
+                    SortProp::Version => { pkg_a.version().partial_cmp(&pkg_b.version()) },
+                    SortProp::Repository => { pkg_a.repository().partial_cmp(&pkg_b.repository()) },
+                    SortProp::Status => { pkg_a.status().partial_cmp(&pkg_b.status()) },
+                    SortProp::InstallDate => { pkg_a.install_date().partial_cmp(&pkg_b.install_date()) },
+                    SortProp::InstalledSize => { pkg_a.install_size().partial_cmp(&pkg_b.install_size()) },
+                    SortProp::Groups => { pkg_a.groups().partial_cmp(&pkg_b.groups()) },
+                }
+                .unwrap_or(Ordering::Equal);
 
                 if view.sort_ascending() {
                     sort
