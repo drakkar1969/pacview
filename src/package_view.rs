@@ -535,6 +535,16 @@ impl PackageView {
     //---------------------------------------
     // Public package functions
     //---------------------------------------
+    pub fn installed_snapshot(&self) -> Vec<PkgObject> {
+        self.imp().pkg_model.snapshot().into_iter()
+            .filter_map(|obj| {
+                obj.downcast::<PkgObject>()
+                    .ok()
+                    .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+            })
+            .collect()
+    }
+
     pub fn splice_packages(&self, pkg_slice: &[PkgObject]) {
         let imp = self.imp();
 
