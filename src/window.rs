@@ -577,7 +577,7 @@ impl PacViewWindow {
                 let stats_window = StatsWindow::new(window);
 
                 PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    stats_window.show(&window.imp().pacman_repos.get().unwrap(), pkg_snapshot);
+                    stats_window.show(window.imp().pacman_repos.get().unwrap(), pkg_snapshot);
                 });
             })
             .build();
@@ -962,7 +962,7 @@ impl PacViewWindow {
 
                 let mut data_list: Vec<PkgData> = vec![];
 
-                if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
+                if let Ok(handle) = alpm_utils::alpm_with_conf(pacman_config) {
                     let localdb = handle.localdb();
 
                     // Load sync packages
@@ -1002,7 +1002,7 @@ impl PacViewWindow {
                     // Populate package view
                     let pacman_config = PACMAN_CONFIG.get().unwrap();
 
-                    if let Ok(handle) = alpm_utils::alpm_with_conf(&pacman_config) {
+                    if let Ok(handle) = alpm_utils::alpm_with_conf(pacman_config) {
                         let handle_ref = Rc::new(handle);
 
                         // Get package lists (installed and non)
