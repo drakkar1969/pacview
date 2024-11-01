@@ -737,7 +737,7 @@ impl PacViewWindow {
     //---------------------------------------
     fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
         tokio_runtime().spawn(clone!(
-            #[strong] file,
+            #[weak] file,
             async move {
                 let url = "https://aur.archlinux.org/packages.gz";
 
@@ -1075,13 +1075,13 @@ impl PacViewWindow {
     fn get_package_updates(&self) {
         let imp = self.imp();
 
-        let update_row = imp.update_row.borrow();
+        let update_row = &*imp.update_row.borrow();
         update_row.set_updating(true);
 
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
-            #[strong] update_row,
+            #[weak] update_row,
             async move {
                 let mut update_str = String::from("");
                 let mut error_msg: Option<String> = None;
