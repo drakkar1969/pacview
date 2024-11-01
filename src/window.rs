@@ -582,9 +582,9 @@ impl PacViewWindow {
         // Add show stats window action
         let stats_action = gio::ActionEntry::builder("show-stats")
             .activate(|window: &Self, _, _| {
-                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    let stats_window = StatsWindow::new(window);
+                let stats_window = StatsWindow::new(window);
 
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
                     stats_window.show(&window.imp().pacman_repos.borrow(), pkg_snapshot);
                 });
             })
@@ -593,9 +593,9 @@ impl PacViewWindow {
         // Add show backup files window action
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
-                INSTALLED_SNAPSHOT.with_borrow(|installed_snapshot| {
-                    let backup_window = BackupWindow::new(window);
+                let backup_window = BackupWindow::new(window);
 
+                INSTALLED_SNAPSHOT.with_borrow(|installed_snapshot| {
                     backup_window.show(installed_snapshot);
                 });
             })
@@ -604,9 +604,9 @@ impl PacViewWindow {
         // Add show pacman lo&pacman_config.g window action
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
-                PACMAN_CONFIG.with_borrow(|pacman_config| {
-                    let log_window = LogWindow::new(window);
+                let log_window = LogWindow::new(window);
 
+                PACMAN_CONFIG.with_borrow(|pacman_config| {
                     log_window.show(&pacman_config.log_file);
                 });
             })

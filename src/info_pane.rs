@@ -380,22 +380,22 @@ impl InfoPane {
     // Get installed optdeps function
     //---------------------------------------
     fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
-        optdepends.iter()
-            .map(|dep| {
-                let mut dep = dep.to_string();
+        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+            optdepends.iter()
+                .map(|dep| {
+                    let mut dep = dep.to_string();
 
-                INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-                    if dep.split_once(['<', '>', '=', ':'])
-                        .filter(|&(name, _)| installed_pkg_names.contains(name))
-                        .is_some()
-                    {
-                        dep.push_str(" [INSTALLED]");
-                    }
-                });
+                        if dep.split_once(['<', '>', '=', ':'])
+                            .filter(|&(name, _)| installed_pkg_names.contains(name))
+                            .is_some()
+                        {
+                            dep.push_str(" [INSTALLED]");
+                        }
 
-                dep
-            })
-            .collect::<Vec<String>>()
+                    dep
+                })
+                .collect::<Vec<String>>()
+        })
     }
 
     //---------------------------------------
@@ -840,28 +840,28 @@ impl InfoPane {
 
         if installed {
             // Populate log view
-            PACMAN_CONFIG.with_borrow(|pacman_config| {
-                if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
-                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
-                        .expect("Regex error");
+            if let Ok(log) = PACMAN_CONFIG
+                .with_borrow(|pacman_config| fs::read_to_string(&pacman_config.log_file))
+            {
+                let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
+                    .expect("Regex error");
 
-                    let log_lines: Vec<gtk::StringObject> = log.lines().rev()
-                        .filter_map(|s| {
-                            if expr.is_match(s) {
-                                Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect();
+                let log_lines: Vec<gtk::StringObject> = log.lines().rev()
+                    .filter_map(|s| {
+                        if expr.is_match(s) {
+                            Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
+                        } else {
+                            None
+                        }
+                    })
+                    .collect();
 
-                    imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-                } else {
-                    // Show overlay error label
-                    imp.log_error_label.set_visible(true);
-                }
-            });
+                imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
 
+            } else {
+                // Show overlay error label
+                imp.log_error_label.set_visible(true);
+            };
         } else {
             imp.log_model.remove_all();
         }
@@ -885,40 +885,42 @@ impl InfoPane {
                     .collect();
 
                 // Populate cache view
-                PACMAN_CONFIG.with_borrow(|pacman_config| {
-                    let mut cache_list: Vec<gtk::StringObject> = vec![];
-                    let mut cache_error = false;
-
-                    for dir in &pacman_config.cache_dir {
-                        if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
-                            // Find cache files that include package name
-                            cache_list.extend(paths
-                                .flatten()
-                                .filter_map(|path| {
-                                    let cache_file = path.display().to_string();
-
-                                    // Exclude cache files that include blacklist package names
-                                    if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
-                                        None
-                                    } else {
-                                        Some(gtk::StringObject::new(&cache_file))
-                                    }
-                                })
-                            );
-                        } else {
-                            cache_error = true;
-                            break;
-                        }
-                    }
-
-                    if cache_error {
-                        // Show overlay error label
-                        imp.cache_error_label.set_visible(true);
-                    } else {
-                        // Populate cache view
-                        imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
-                    }
+                let cache_dirs = PACMAN_CONFIG.with_borrow(|pacman_config| {
+                    pacman_config.cache_dir.to_vec()
                 });
+
+                let mut cache_list: Vec<gtk::StringObject> = vec![];
+                let mut cache_error = false;
+
+                for dir in cache_dirs {
+                    if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
+                        // Find cache files that include package name
+                        cache_list.extend(paths
+                            .flatten()
+                            .filter_map(|path| {
+                                let cache_file = path.display().to_string();
+
+                                // Exclude cache files that include blacklist package names
+                                if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
+                                    None
+                                } else {
+                                    Some(gtk::StringObject::new(&cache_file))
+                                }
+                            })
+                        );
+                    } else {
+                        cache_error = true;
+                        break;
+                    }
+                }
+
+                if cache_error {
+                    // Show overlay error label
+                    imp.cache_error_label.set_visible(true);
+                } else {
+                    // Populate cache view
+                    imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+                }
             });
         } else {
             imp.cache_model.remove_all();
