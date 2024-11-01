@@ -289,28 +289,28 @@ impl PacViewWindow {
         self.set_maximized(gsettings.boolean("window-maximized"));
 
         // Load preferences
-        if let Ok(color_scheme) = ColorScheme::from_str(&gsettings.string("color-scheme")) {
-            imp.prefs_dialog.set_color_scheme(color_scheme);
-        }
+        let color_scheme = ColorScheme::from_str(&gsettings.string("color-scheme")).unwrap();
+        imp.prefs_dialog.set_color_scheme(color_scheme);
+
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
-        if let Ok(search_mode) = SearchMode::from_str(&gsettings.string("search-mode")) {
-            imp.prefs_dialog.set_search_mode(search_mode);
-            imp.search_bar.set_mode(search_mode);
-        }
-        if let Ok(search_prop) = SearchProp::from_str(&gsettings.string("search-prop")) {
-            imp.prefs_dialog.set_search_prop(search_prop);
-            imp.search_bar.set_prop(search_prop);
-        }
+        
+        let search_mode = SearchMode::from_str(&gsettings.string("search-mode")).unwrap();
+        imp.prefs_dialog.set_search_mode(search_mode);
+        imp.search_bar.set_mode(search_mode);
+
+        let search_prop = SearchProp::from_str(&gsettings.string("search-prop")).unwrap();
+        imp.prefs_dialog.set_search_prop(search_prop);
+        imp.search_bar.set_prop(search_prop);
+
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
         imp.prefs_dialog.set_property_max_lines(gsettings.double("property-max-lines"));
 
         // Load package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
-            if let Ok(sort_prop) = SortProp::from_str(&gsettings.string("sort-prop")) {
-                imp.package_view.set_sort_prop(sort_prop);
-            }
+            let sort_prop = SortProp::from_str(&gsettings.string("sort-prop")).unwrap();
+            imp.package_view.set_sort_prop(sort_prop);
 
             imp.package_view.set_sort_ascending(gsettings.boolean("sort-ascending"));
         }
