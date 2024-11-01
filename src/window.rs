@@ -98,9 +98,9 @@ mod imp {
 
         pub(super) gsettings: OnceCell<gio::Settings>,
 
-        pub(super) aur_file: RefCell<Option<gio::File>>,
+        pub(super) aur_file: OnceCell<Option<gio::File>>,
 
-        pub(super) pacman_repos: RefCell<Vec<String>>,
+        pub(super) pacman_repos: OnceCell<Vec<String>>,
 
         pub(super) saved_repo_id: RefCell<Option<String>>,
         pub(super) saved_status_id: Cell<PkgFlags>,
@@ -382,7 +382,7 @@ impl PacViewWindow {
         let aur_file = cache_dir
             .map(|cache_dir| gio::File::for_path(Path::new(&cache_dir).join("aur_packages")));
 
-        self.imp().aur_file.replace(aur_file);
+        self.imp().aur_file.set(aur_file).unwrap();
     }
 
     //---------------------------------------
@@ -585,7 +585,7 @@ impl PacViewWindow {
                 let stats_window = StatsWindow::new(window);
 
                 PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    stats_window.show(&window.imp().pacman_repos.borrow(), pkg_snapshot);
+                    stats_window.show(&window.imp().pacman_repos.get().unwrap(), pkg_snapshot);
                 });
             })
             .build();
@@ -778,7 +778,7 @@ impl PacViewWindow {
 
         if first_load {
             // If first load, check AUR package names file
-            let aur_file = &*imp.aur_file.borrow();
+            let aur_file = imp.aur_file.get().unwrap();
 
             if let Some(aur_file) = aur_file {
                 if !aur_file.query_exists(None::<&gio::Cancellable>) {
@@ -840,7 +840,7 @@ impl PacViewWindow {
         PACMAN_CONFIG.set(pacman_config).unwrap();
 
         // Store pacman repos
-        imp.pacman_repos.replace(pacman_repos);
+        imp.pacman_repos.set(pacman_repos).unwrap();
     }
 
     //---------------------------------------
@@ -864,7 +864,7 @@ impl PacViewWindow {
 
         imp.all_repo_row.replace(row);
 
-        for repo in &*imp.pacman_repos.borrow() {
+        for repo in imp.pacman_repos.get().unwrap() {
             let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
 
             let row = FilterRow::new("repository-symbolic", &display_label, Some(repo), PkgFlags::empty());
@@ -920,7 +920,7 @@ impl PacViewWindow {
     fn check_aur_file_age(&self) {
         let imp = self.imp();
 
-        let aur_file = &*imp.aur_file.borrow();
+        let aur_file = imp.aur_file.get().unwrap();
 
         if let Some(aur_file) = aur_file {
             // Get AUR package names file age
@@ -946,7 +946,7 @@ impl PacViewWindow {
     fn load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
 
-        let aur_file = imp.aur_file.borrow();
+        let aur_file = imp.aur_file.get().unwrap();
 
         // Spawn thread to load packages
         let (sender, receiver) = async_channel::bounded(1);
