@@ -125,9 +125,17 @@ mod imp {
             klass.bind_template();
 
             // Add search start/stop key bindings
-            klass.add_binding_action(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, "win.start-search");
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
+                window.imp().search_bar.set_enabled(true);
 
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "win.stop-search");
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
+                window.imp().search_bar.set_enabled(false);
+
+                glib::Propagation::Stop
+            });
 
             // Add show sidebar key binding
             klass.add_binding_action(gdk::Key::B, gdk::ModifierType::CONTROL_MASK, "win.show-sidebar");
@@ -456,22 +464,6 @@ impl PacViewWindow {
     //---------------------------------------
     fn setup_actions(&self) {
         let imp = self.imp();
-
-        // Add start/stop search actions
-        let start_action = gio::ActionEntry::builder("start-search")
-            .activate(|window: &Self, _, _| {
-                window.imp().search_bar.set_enabled(true);
-            })
-            .build();
-
-        let stop_action = gio::ActionEntry::builder("stop-search")
-            .activate(|window: &Self, _, _| {
-                window.imp().search_bar.set_enabled(false);
-            })
-            .build();
-
-        // Add search actions to window
-        self.add_action_entries([start_action, stop_action]);
 
         // Add pane visibility property actions
         let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.sidebar_split_view.get(), "show-sidebar");
