@@ -840,9 +840,9 @@ impl InfoPane {
 
         if installed {
             // Populate log view
-            if let Ok(log) = PACMAN_CONFIG
-                .with_borrow(|pacman_config| fs::read_to_string(&pacman_config.log_file))
-            {
+            let pacman_config = PACMAN_CONFIG.get().unwrap();
+
+            if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
                 let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
                     .expect("Regex error");
 
@@ -885,14 +885,12 @@ impl InfoPane {
                     .collect();
 
                 // Populate cache view
-                let cache_dirs = PACMAN_CONFIG.with_borrow(|pacman_config| {
-                    pacman_config.cache_dir.to_vec()
-                });
+                let pacman_config = PACMAN_CONFIG.get().unwrap();
 
                 let mut cache_list: Vec<gtk::StringObject> = vec![];
                 let mut cache_error = false;
 
-                for dir in cache_dirs {
+                for dir in &pacman_config.cache_dir {
                     if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
                         // Find cache files that include package name
                         cache_list.extend(paths
