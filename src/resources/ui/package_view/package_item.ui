@@ -81,11 +81,9 @@
                       <object class="GtkImage">
                         <property name="margin-top">1</property>
                         <binding name="icon-name">
-                          <closure type="gchararray" function="status_image_icon_name">
-                            <lookup name="status" type="PkgObject">
-                              <lookup name="item">GtkListItem</lookup>
-                            </lookup>
-                          </closure>
+                          <lookup name="status-icon-symbolic" type="PkgObject">
+                            <lookup name="item">GtkListItem</lookup>
+                          </lookup>
                         </binding>
                         <binding name="visible">
                           <closure type="gboolean" function="status_image_visible">

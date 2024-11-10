@@ -107,6 +107,8 @@ mod imp {
         _status: OnceCell<String>,
         #[property(get = Self::status_icon)]
         _status_icon: OnceCell<String>,
+        #[property(get = Self::status_icon_symbolic)]
+        _status_icon_symbolic: OnceCell<String>,
         #[property(get = Self::groups)]
         groups: OnceCell<String>,
         #[property(get = Self::install_size)]
@@ -260,6 +262,19 @@ mod imp {
                 PkgFlags::DEPENDENCY => "pkg-dependency",
                 PkgFlags::OPTIONAL => "pkg-optional",
                 PkgFlags::ORPHAN => "pkg-orphan",
+                _ => ""
+            }
+            .to_string()
+        }
+
+        fn status_icon_symbolic(&self) -> String {
+            let flags = self.flags() & !PkgFlags::UPDATES;
+
+            match flags {
+                PkgFlags::EXPLICIT => "status-explicit-symbolic",
+                PkgFlags::DEPENDENCY => "status-dependency-symbolic",
+                PkgFlags::OPTIONAL => "status-optional-symbolic",
+                PkgFlags::ORPHAN => "status-orphan-symbolic",
                 _ => ""
             }
             .to_string()

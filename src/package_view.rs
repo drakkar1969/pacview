@@ -251,21 +251,7 @@ impl PackageView {
             Some(subtitle.to_value())
         });
 
-        // Add status image icon name/visibility callbacks
-        scope.add_callback("status_image_icon_name", |values| {
-            let status = values.get(1).and_then(|value| value.get::<String>().ok())
-                .expect("Could not get value in scope callback");
-
-            Some(
-                if status.is_empty() {
-                    "".to_string()
-                } else {
-                    format!("status-{}-symbolic", status)
-                }
-                .to_value()
-            )
-        });
-
+        // Add status image icon visibility callback
         scope.add_callback("status_image_visible", |values| {
             let flags = values.get(1).and_then(|value| value.get::<PkgFlags>().ok())
                 .expect("Could not get value in scope callback");
