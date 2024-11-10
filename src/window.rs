@@ -44,6 +44,7 @@ use crate::enum_traits::EnumValueExt;
 //------------------------------------------------------------------------------
 thread_local! {
     pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static INSTALLED_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
@@ -587,7 +588,9 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let backup_window = BackupWindow::new(window);
 
-                backup_window.show(&window.imp().package_view.installed_snapshot());
+                INSTALLED_SNAPSHOT.with_borrow(|installed_snapshot| {
+                    backup_window.show(installed_snapshot);
+                });
             })
             .build();
 
@@ -999,6 +1002,8 @@ impl PacViewWindow {
                 .map(|pkg| pkg.name())
                 .collect()
             );
+
+            INSTALLED_SNAPSHOT.replace(installed_pkgs);
         }
 
         // Get package updates
