@@ -513,16 +513,10 @@ impl PackageView {
     //---------------------------------------
     // Public set loading function
     //---------------------------------------
-    pub fn set_loading(&self, loading: bool, label: Option<&str>) {
+    pub fn set_loading(&self, loading: bool) {
         let imp = self.imp();
 
         if loading {
-            if let Some(label) = label {
-                imp.loading_label.set_label(label);
-            } else {
-                imp.loading_label.set_label("Loading packages");
-            }
-
             imp.stack.set_visible_child_name("empty");
         } else {
             imp.stack.set_visible_child_name("view");

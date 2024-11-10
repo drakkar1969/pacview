@@ -777,7 +777,7 @@ impl PacViewWindow {
                     // If AUR package names file does not exist, download it
                     let (sender, receiver) = async_channel::bounded(1);
 
-                    imp.package_view.set_loading(true, Some("Downloading AUR package list"));
+                    imp.package_view.set_loading(true);
 
                     // Spawn thread to download AUR package names file
                     self.download_aur_names(aur_file, Some(sender));
@@ -788,7 +788,7 @@ impl PacViewWindow {
                         #[weak(rename_to = window)] self,
                         async move {
                             while let Ok(()) = receiver.recv().await {
-                                imp.package_view.set_loading(true, None);
+                                imp.package_view.set_loading(false);
 
                                 // Load packages, no AUR file age check
                                 window.load_packages(false);
@@ -1000,9 +1000,6 @@ impl PacViewWindow {
                 .collect()
             );
         }
-
-        // Show package list
-        imp.package_view.set_loading(false, None);
 
         // Get package updates
         self.get_package_updates();

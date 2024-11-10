@@ -6,34 +6,6 @@
       <object class="GtkStack" id="stack">
         <child>
           <object class="GtkStackPage">
-            <property name="name">empty</property>
-            <property name="child">
-              <object class="GtkBox" id="loading_box">
-                <property name="halign">center</property>
-                <property name="valign">center</property>
-                <property name="spacing">12</property>
-                <child>
-                  <object class="AdwSpinner" id="loading_spinner">
-                    <style>
-                      <class name="dim-spinner"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="loading_label">
-                    <property name="label">Loading packages</property>
-                    <style>
-                      <class name="title-4"/>
-                      <class name="dim-label"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkStackPage">
             <property name="name">view</property>
             <property name="child">
               <object class="GtkOverlay">
@@ -110,6 +82,34 @@
                     <property name="halign">center</property>
                     <property name="valign">center</property>
                     <property name="label">No packages found</property>
+                    <style>
+                      <class name="title-4"/>
+                      <class name="dim-label"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">empty</property>
+            <property name="child">
+              <object class="GtkBox" id="loading_box">
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="AdwSpinner" id="loading_spinner">
+                    <style>
+                      <class name="dim-spinner"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="loading_label">
+                    <property name="label">Downloading AUR package list</property>
                     <style>
                       <class name="title-4"/>
                       <class name="dim-label"/>
