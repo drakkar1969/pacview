@@ -246,11 +246,7 @@ impl PackageView {
             let installed_size = values.get(3).and_then(|value| value.get::<String>().ok())
                 .expect("Could not get value in scope callback");
 
-            let subtitle = if status.is_empty() {
-                format!("{}  |  {}", repository, installed_size)
-            } else {
-                format!("{}  |  {}  |  {}", status, repository, installed_size)
-            };
+            let subtitle = format!("{}  |  {}  |  {}", status, repository, installed_size);
 
             Some(subtitle.to_value())
         });

@@ -247,7 +247,7 @@ mod imp {
                 PkgFlags::DEPENDENCY => "dependency",
                 PkgFlags::OPTIONAL => "optional",
                 PkgFlags::ORPHAN => "orphan",
-                _ => ""
+                _ => "not installed"
             }
             .to_string()
         }

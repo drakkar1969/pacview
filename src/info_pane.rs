@@ -733,13 +733,12 @@ impl InfoPane {
         self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), pkg.licenses(), None);
 
         // Status
-        let status = pkg.status();
         let status_icon = pkg.status_icon();
 
         self.set_string_property(
             PropID::Status,
             true,
-            if pkg.flags().intersects(PkgFlags::INSTALLED) {&status} else {"not installed"},
+            &pkg.status(),
             if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
         );
 
