@@ -357,9 +357,7 @@ impl InfoPane {
     //---------------------------------------
     fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
         if let Some(property) = self.imp().property_map.borrow().get(&id) {
-            if property.is_visible() != visible {
-                property.set_visible(visible);
-            }
+            property.set_visible(visible);
 
             if visible {
                 property.set_icon(icon);
@@ -721,7 +719,7 @@ impl InfoPane {
         );
 
         // Description
-        self.set_string_property(PropID::Description, true, &pkg.description(), None);
+        self.set_string_property(PropID::Description, true, pkg.description(), None);
 
         // Package URL
         let package_url = pkg.package_url();
@@ -729,10 +727,10 @@ impl InfoPane {
         self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
 
         // URL
-        self.set_string_property(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
+        self.set_string_property(PropID::Url, !pkg.url().is_empty(), pkg.url(), None);
 
         // Licenses
-        self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
+        self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), pkg.licenses(), None);
 
         // Status
         let status = pkg.status();
@@ -752,48 +750,48 @@ impl InfoPane {
         self.set_string_property(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
 
         // Depends
-        self.set_vec_property(PropID::Dependencies, true, &pkg.depends(), None);
+        self.set_vec_property(PropID::Dependencies, true, pkg.depends(), None);
 
         // Optdepends
         let optdepends = if pkg.flags().intersects(PkgFlags::INSTALLED) {
-            self.installed_optdeps(&pkg.optdepends())
+            self.installed_optdeps(pkg.optdepends())
         } else {
-            pkg.optdepends()
+            pkg.optdepends().to_vec()
         };
 
         self.set_vec_property(PropID::Optional, !optdepends.is_empty(), &optdepends, None);
 
         // Makedepends
-        self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends(), None);
+        self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), pkg.makedepends(), None);
 
         // Required by
-        self.set_vec_property(PropID::RequiredBy, true, &pkg.required_by(), None);
+        self.set_vec_property(PropID::RequiredBy, true, pkg.required_by(), None);
 
         // Optional for
         let optional_for = pkg.optional_for();
 
-        self.set_vec_property(PropID::OptionalFor, !optional_for.is_empty(), &optional_for, None);
+        self.set_vec_property(PropID::OptionalFor, !optional_for.is_empty(), optional_for, None);
 
         // Provides
-        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides(), None);
+        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), pkg.provides(), None);
 
         // Conflicts
-        self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts(), None);
+        self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), pkg.conflicts(), None);
 
         // Replaces
-        self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces(), None);
+        self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), pkg.replaces(), None);
 
         // Architecture
-        self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
+        self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), pkg.architecture(), None);
 
         // Packager
-        self.set_string_property(PropID::Packager, true, &pkg.packager(), None);
+        self.set_string_property(PropID::Packager, true, pkg.packager(), None);
 
         // Build date
-        self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_long(), None);
+        self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_string(), None);
 
         // Install date
-        self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_long(), None);
+        self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_string(), None);
 
         // Download size
         self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
@@ -810,7 +808,7 @@ impl InfoPane {
         );
 
         // SHA256 sum
-        self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
+        self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), pkg.sha256sum(), None);
     }
 
     fn update_files_view(&self, pkg: &PkgObject, installed: bool) {

@@ -15,7 +15,7 @@ use futures::future;
 use strum::EnumString;
 
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
-use crate::pkg_object::{PkgData, PkgObject, PkgFlags};
+use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumValueExt;
@@ -357,12 +357,12 @@ impl PackageView {
 
                 let search_props = match prop {
                     SearchProp::Name => { vec![pkg.name()] },
-                    SearchProp::NameDesc => { vec![pkg.name(), pkg.description()] },
+                    SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_string()] },
                     SearchProp::Group => { vec![pkg.groups()] },
-                    SearchProp::Deps => { pkg.depends() },
-                    SearchProp::Optdeps => { pkg.optdepends() },
-                    SearchProp::Provides => { pkg.provides() },
-                    SearchProp::Files => { pkg.files() },
+                    SearchProp::Deps => { pkg.depends().to_vec() },
+                    SearchProp::Optdeps => { pkg.optdepends().to_vec() },
+                    SearchProp::Provides => { pkg.provides().to_vec() },
+                    SearchProp::Files => { pkg.files().to_vec() },
                 };
 
                 if mode == SearchMode::Exact {
@@ -457,14 +457,11 @@ impl PackageView {
                     let result = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())
                         .await
                         .map(|aur_list| {
-                            let data_list: Vec<PkgData> = aur_list.into_iter()
+                            let aur_list: Vec<raur::ArcPackage> = aur_list.into_iter()
                                 .filter(|aurpkg| !installed_pkg_names.contains(&aurpkg.name))
-                                .map(|aurpkg| {
-                                    PkgData::from_aur(&aurpkg)
-                                })
                                 .collect();
 
-                            (aur_cache, data_list)
+                            (aur_cache, aur_list)
                         });
 
                     sender.send(result)
@@ -480,10 +477,10 @@ impl PackageView {
             async move {
                 while let Ok(result) = receiver.recv().await {
                     match result {
-                        Ok((aur_cache, data_list)) => {
+                        Ok((aur_cache, aur_list)) => {
                             if search_bar.enabled() {
-                                let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                                    .map(|data| PkgObject::new(None, data))
+                                let pkg_list: Vec<PkgObject> = aur_list.into_iter()
+                                    .map(|pkg| PkgObject::new(&pkg.name, "aur", None, Some(pkg.clone())))
                                     .collect();
 
                                 imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
@@ -555,11 +552,9 @@ impl PackageView {
         self.imp().pkg_model.iter::<PkgObject>()
             .flatten()
             .filter(|pkg| update_map.contains_key(&pkg.name()))
-            .for_each(|pkg| {
-                pkg.set_version(update_map[&pkg.name()].to_string());
-
-                pkg.set_flags(pkg.flags() | PkgFlags::UPDATES);
-            });
+            .for_each(|pkg|
+                pkg.set_update_version(Some(update_map[&pkg.name()].to_string()))
+            );
     }
 
     //---------------------------------------

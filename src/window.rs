@@ -27,7 +27,7 @@ use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventRe
 use crate::utils::tokio_runtime;
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::pkg_object::{PkgObject, PkgData, PkgFlags};
+use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, SortProp};
 use crate::info_pane::InfoPane;
@@ -294,7 +294,7 @@ impl PacViewWindow {
 
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
-        
+
         let search_mode = SearchMode::from_str(&gsettings.string("search-mode")).unwrap();
         imp.prefs_dialog.set_search_mode(search_mode);
         imp.search_bar.set_mode(search_mode);
@@ -938,108 +938,79 @@ impl PacViewWindow {
     fn load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
 
-        let aur_file = imp.aur_file.get().unwrap();
+        // Populate package view
+        let pacman_config = PACMAN_CONFIG.get().unwrap();
 
-        // Spawn thread to load packages
-        let (sender, receiver) = async_channel::bounded(1);
+        if let Ok(handle) = alpm_utils::alpm_with_conf(pacman_config) {
+            let handle_ref = Rc::new(handle);
 
-        gio::spawn_blocking(clone!(
-            #[strong] aur_file,
-            move || {
-                let mut aur_names: HashSet<String> = HashSet::new();
+            // Load AUR package names from file
+            let aur_file = imp.aur_file.get().unwrap();
 
-                // Load AUR package names from file
-                if let Some(aur_file) = aur_file {
-                    if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
-                        aur_names = String::from_utf8_lossy(&bytes).lines()
-                            .map(|line| line.to_string())
-                            .collect();
+            let mut aur_names: HashSet<String> = HashSet::new();
+
+            if let Some(aur_file) = aur_file {
+                if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
+                    aur_names = String::from_utf8_lossy(&bytes).lines()
+                        .map(|line| line.to_string())
+                        .collect();
+                };
+            }
+
+            // Load pacman sync packages
+            let sync_pkgs: Vec<PkgObject> = handle_ref.syncdbs().iter()
+                .flat_map(|db| db.pkgs().iter()
+                    .map(|syncpkg| {
+                        let repo = syncpkg.db().map(|db| db.name()).unwrap_or_default();
+
+                        PkgObject::new(syncpkg.name(), repo, Some(handle_ref.clone()), None)
+                    })
+                )
+                .collect();
+
+            // Load pacman local packages not in sync databases
+            let local_pkgs: Vec<PkgObject> = handle_ref.localdb().pkgs().iter()
+                .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
+                .map(|pkg| {
+                    let repo = if aur_names.contains(pkg.name()) {
+                        "aur"
+                    } else {
+                        pkg.db().map(|db| db.name()).unwrap_or_default()
                     };
-                }
 
-                // Load pacman database packages
-                let pacman_config = PACMAN_CONFIG.get().unwrap();
+                    PkgObject::new(pkg.name(), repo, Some(handle_ref.clone()), None)
+                })
+                .collect();
 
-                let mut data_list: Vec<PkgData> = vec![];
+            // Get package lists
+            let (mut installed_pkgs, mut all_pkgs): (Vec<PkgObject>, Vec<PkgObject>) = sync_pkgs.into_iter()
+                .partition(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
 
-                if let Ok(handle) = alpm_utils::alpm_with_conf(pacman_config) {
-                    let localdb = handle.localdb();
+            installed_pkgs.extend_from_slice(&local_pkgs);
+            all_pkgs.extend_from_slice(&installed_pkgs);
 
-                    // Load sync packages
-                    data_list.extend(handle.syncdbs().iter()
-                        .flat_map(|db| db.pkgs().iter()
-                            .map(|syncpkg| {
-                                let localpkg = localdb.pkg(syncpkg.name());
+            // Add packages to package view
+            imp.package_view.splice_packages(&all_pkgs);
 
-                                PkgData::from_pkg(syncpkg, localpkg, None)
-                            })
-                        )
-                    );
+            // Store package lists in global variables
+            PKG_SNAPSHOT.replace(all_pkgs);
 
-                    // Load local packages not in sync databases
-                    data_list.extend(localdb.pkgs().iter()
-                        .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
-                        .map(|pkg| {
-                            if aur_names.contains(pkg.name()) {
-                                PkgData::from_pkg(pkg, Ok(pkg), Some("aur"))
-                            } else {
-                                PkgData::from_pkg(pkg, Ok(pkg), None)
-                            }
-                        })
-                    );
-                }
+            INSTALLED_PKG_NAMES.replace(installed_pkgs.iter()
+                .map(|pkg| pkg.name())
+                .collect()
+            );
+        }
 
-                sender.send_blocking(data_list).expect("Could not send through channel");
-            }
-        ));
+        // Show package list
+        imp.package_view.set_loading(false, None);
 
-        // Attach thread receiver
-        glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
-            #[weak] imp,
-            async move {
-                while let Ok(data_list) = receiver.recv().await {
-                    // Populate package view
-                    let pacman_config = PACMAN_CONFIG.get().unwrap();
+        // Get package updates
+        self.get_package_updates();
 
-                    if let Ok(handle) = alpm_utils::alpm_with_conf(pacman_config) {
-                        let handle_ref = Rc::new(handle);
-
-                        // Get package lists (installed and non)
-                        let (install_list, mut pkg_list): (Vec<_>, Vec<_>) = data_list
-                            .into_iter()
-                            .map(|data| PkgObject::new(Some(handle_ref.clone()), data))
-                            .partition(|pkg| {
-                                pkg.flags().intersects(PkgFlags::INSTALLED)
-                            });
-
-                        pkg_list.extend_from_slice(&install_list);
-
-                        // Add packages to package view
-                        imp.package_view.splice_packages(&pkg_list);
-
-                        // Store package lists in global variables
-                        PKG_SNAPSHOT.replace(pkg_list);
-
-                        INSTALLED_PKG_NAMES.replace(install_list.iter()
-                            .map(|pkg| pkg.name())
-                            .collect()
-                        );
-
-                        // Show package list
-                        imp.package_view.set_loading(false, None);
-
-                        // Get package updates
-                        window.get_package_updates();
-
-                        // Check AUR package names file age
-                        if check_aur_file {
-                            window.check_aur_file_age();
-                        }
-                    }
-                }
-            }
-        ));
+        // Check AUR package names file age
+        if check_aur_file {
+            self.check_aur_file_age();
+        }
     }
 
     //---------------------------------------
@@ -1122,16 +1093,14 @@ impl PacViewWindow {
                 static EXPR: OnceLock<Regex> = OnceLock::new();
 
                 let expr = EXPR.get_or_init(|| {
-                    Regex::new(r"([a-zA-Z0-9@._+-]+?)[ \t]+?([a-zA-Z0-9@._+-:]+?)[ \t]+?->[ \t]+?([a-zA-Z0-9@._+-:]+)")
+                    Regex::new(r"([a-zA-Z0-9@._+-]+?)[ \t]+?[a-zA-Z0-9@._+-:]+?[ \t]+?->[ \t]+?([a-zA-Z0-9@._+-:]+)")
                         .expect("Regex error")
                 });
 
                 let update_map: HashMap<String, String> = update_str.lines()
                     .filter_map(|s| {
                         expr.captures(s)
-                            .map(|caps| {
-                                (caps[1].to_string(), format!("{} \u{2192} {}", &caps[2], &caps[3]))
-                            })
+                            .map(|caps| (caps[1].to_string(), caps[2].to_string()))
                     })
                     .collect();
 

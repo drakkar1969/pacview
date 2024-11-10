@@ -7,8 +7,38 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
 use alpm_utils::DbListExt;
+use itertools::Itertools;
 
 use crate::utils::{date_to_string, size_to_string};
+
+//------------------------------------------------------------------------------
+// GLOBAL: Helper functions
+//------------------------------------------------------------------------------
+fn alpm_list_to_string(list: &alpm::AlpmList<&str>) -> String {
+    list.iter()
+        .sorted_unstable()
+        .join(" | ")
+}
+
+fn alpm_deplist_to_vec(list: &alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
+    list.iter()
+        .map(|dep| dep.to_string())
+        .sorted_unstable()
+        .collect()
+}
+
+fn aur_vec_to_string(vec: &[String]) -> String {
+    vec.iter()
+        .sorted_unstable()
+        .join(" | ")
+}
+
+fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
+    vec.iter()
+        .map(|s| s.to_string())
+        .sorted_unstable()
+        .collect()
+}
 
 //------------------------------------------------------------------------------
 // FLAGS: PkgFlags
@@ -32,164 +62,12 @@ impl Default for PkgFlags {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: PkgData
+// ENUM: InternalPkg
 //------------------------------------------------------------------------------
-#[derive(Default)]
-pub struct PkgData {
-    flags: PkgFlags,
-    name: String,
-    version: String,
-    repository: String,
-    status: String,
-    status_icon: String,
-    install_date: i64,
-    install_size: i64,
-    groups: String,
-
-    description: String,
-    url: String,
-    licenses: String,
-    provides: Vec<String>,
-    depends: Vec<String>,
-    optdepends: Vec<String>,
-    makedepends: Vec<String>,
-    conflicts: Vec<String>,
-    replaces: Vec<String>,
-    architecture: String,
-    packager: String,
-    build_date: i64,
-    download_size: i64,
-    has_script: bool,
-    sha256sum: String,
-}
-
-impl PkgData {
-    //---------------------------------------
-    // New functions
-    //---------------------------------------
-    pub fn from_pkg(syncpkg: &alpm::Package, localpkg: Result<&alpm::Package, alpm::Error>, repository: Option<&str>) -> Self {
-        // Defaults for package status flags and install date (non-installed)
-        let mut flags = PkgFlags::NONE;
-        let mut idate = 0;
-
-        // If package is installed, update properties from local package
-        if let Ok(pkg) = localpkg {
-            // Get status flags
-            flags = if pkg.reason() == alpm::PackageReason::Explicit {
-                PkgFlags::EXPLICIT
-            } else if !pkg.required_by().is_empty() {
-                PkgFlags::DEPENDENCY
-            } else if !pkg.optional_for().is_empty() {
-                PkgFlags::OPTIONAL
-            } else {
-                PkgFlags::ORPHAN
-            };
-
-            // Get installed date
-            idate = pkg.install_date().unwrap_or_default();
-        }
-
-        // Build PkgData
-        Self {
-            flags,
-            name: syncpkg.name().to_string(),
-            version: syncpkg.version().to_string(),
-            repository: repository.unwrap_or(syncpkg.db().unwrap().name()).to_string(),
-            status: match flags {
-                PkgFlags::EXPLICIT => "explicit",
-                PkgFlags::DEPENDENCY => "dependency",
-                PkgFlags::OPTIONAL => "optional",
-                PkgFlags::ORPHAN => "orphan",
-                _ => ""
-            }.to_string(),
-            status_icon: match flags {
-                PkgFlags::EXPLICIT => "pkg-explicit",
-                PkgFlags::DEPENDENCY => "pkg-dependency",
-                PkgFlags::OPTIONAL => "pkg-optional",
-                PkgFlags::ORPHAN => "pkg-orphan",
-                _ => ""
-            }.to_string(),
-            install_date: idate,
-            install_size: syncpkg.isize(),
-            groups: Self::alpm_list_to_string(&syncpkg.groups()),
-            description: syncpkg.desc().unwrap_or_default().to_string(),
-            url: syncpkg.url().unwrap_or_default().to_string(),
-            licenses: Self::alpm_list_to_string(&syncpkg.licenses()),
-            provides: Self::alpm_deplist_to_vec(&syncpkg.provides()),
-            depends: Self::alpm_deplist_to_vec(&syncpkg.depends()),
-            optdepends: Self::alpm_deplist_to_vec(&syncpkg.optdepends()),
-            makedepends: vec![],
-            conflicts: Self::alpm_deplist_to_vec(&syncpkg.conflicts()),
-            replaces: Self::alpm_deplist_to_vec(&syncpkg.replaces()),
-            architecture: syncpkg.arch().unwrap_or_default().to_string(),
-            packager: syncpkg.packager().unwrap_or_default().to_string(),
-            build_date: syncpkg.build_date(),
-            download_size: syncpkg.download_size(),
-            has_script: syncpkg.has_scriptlet(),
-            sha256sum: syncpkg.sha256sum().unwrap_or_default().to_string(),
-        }
-    }
-
-    pub fn from_aur(aurpkg: &raur::ArcPackage) -> Self {
-        // Build PkgData
-        Self {
-            flags: PkgFlags::NONE,
-            name: aurpkg.name.to_string(),
-            version: aurpkg.version.to_string(),
-            repository: "aur".to_string(),
-            status: "".to_string(),
-            status_icon: "".to_string(),
-            install_date: 0,
-            install_size: 0,
-            groups: Self::aur_vec_to_string(&aurpkg.groups),
-            description: aurpkg.description.to_owned().unwrap_or_default(),
-            url: aurpkg.url.to_owned().unwrap_or_default(),
-            licenses: Self::aur_vec_to_string(&aurpkg.license),
-            provides: Self::aur_sorted_vec(&aurpkg.provides),
-            depends: Self::aur_sorted_vec(&aurpkg.depends),
-            optdepends: Self::aur_sorted_vec(&aurpkg.opt_depends),
-            makedepends: Self::aur_sorted_vec(&aurpkg.make_depends),
-            conflicts: Self::aur_sorted_vec(&aurpkg.conflicts),
-            replaces: Self::aur_sorted_vec(&aurpkg.replaces),
-            architecture: "".to_string(),
-            packager: aurpkg.maintainer.to_owned().unwrap_or("Unknown Packager".to_string()),
-            build_date: 0,
-            download_size: 0,
-            has_script: false,
-            sha256sum: "".to_string(),
-        }
-    }
-
-    //---------------------------------------
-    // Helper functions
-    //---------------------------------------
-    fn alpm_list_to_string(list: &alpm::AlpmList<&str>) -> String {
-        let mut list_vec: Vec<&str> = list.iter().collect();
-        list_vec.sort_unstable();
-
-        list_vec.join(" | ")
-    }
-
-    fn alpm_deplist_to_vec(list: &alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
-        let mut dep_vec: Vec<String> = list.iter().map(|dep| dep.to_string()).collect();
-        dep_vec.sort_unstable();
-
-        dep_vec
-    }
-
-    fn aur_vec_to_string(vec: &[String]) -> String {
-        let mut list_vec = vec.to_vec();
-        list_vec.sort_unstable();
-
-        list_vec.join(" | ")
-    }
-
-    fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
-        let mut list_vec = vec.to_vec();
-        list_vec.sort_unstable();
-
-        list_vec
-    }
+enum InternalPkg<'a> {
+    Pacman(&'a alpm::Package),
+    Aur(&'a raur::ArcPackage),
+    None
 }
 
 //------------------------------------------------------------------------------
@@ -207,21 +85,56 @@ mod imp {
         // Alpm handle
         pub(super) handle: OnceCell<Rc<alpm::Alpm>>,
 
+        // AUR package
+        pub(super) aur_pkg: OnceCell<raur::ArcPackage>,
+
+        // Read-write properties, construct only
+        #[property(get, set, construct_only)]
+        name: RefCell<String>,
+        #[property(get, set, construct_only)]
+        repository: RefCell<String>,
+
         // Read-write properties
-        #[property(name = "flags",        get, set, type = PkgFlags,   member = flags)]
-        #[property(name = "version",      get, set, type = String,     member = version)]
-        #[property(name = "repository",   get, set, type = String,     member = repository)]
+        #[property(get, set, nullable)]
+        update_version: RefCell<Option<String>>,
 
-        // Read-only properties
-        #[property(name = "name",           get, type = String,   member = name)]
-        #[property(name = "status",         get, type = String,   member = status)]
-        #[property(name = "status-icon",    get, type = String,   member = status_icon)]
-        #[property(name = "groups",         get, type = String,   member = groups)]
-        pub(super) data: RefCell<PkgData>,
+        // Read only properties
+        #[property(get = Self::flags)]
+        flags: OnceCell<PkgFlags>,
+        #[property(get = Self::version)]
+        version: OnceCell<String>,
+        #[property(get = Self::status)]
+        _status: OnceCell<String>,
+        #[property(get = Self::status_icon)]
+        _status_icon: OnceCell<String>,
+        #[property(get = Self::groups)]
+        groups: OnceCell<String>,
+        #[property(get = Self::install_size)]
+        install_size: OnceCell<i64>,
+        #[property(get = Self::install_size_string)]
+        _install_size_string: OnceCell<String>,
 
-        // Read-only properties with custom getter
-        #[property(name = "install-size-string", get = Self::install_size_string)]
-        _install_size_string: RefCell<String>,
+        // Read only fields
+        pub(super) description: OnceCell<String>,
+        pub(super) url: OnceCell<String>,
+        pub(super) depends: OnceCell<Vec<String>>,
+        pub(super) optdepends: OnceCell<Vec<String>>,
+        pub(super) makedepends: OnceCell<Vec<String>>,
+        pub(super) required_by: OnceCell<Vec<String>>,
+        pub(super) optional_for: OnceCell<Vec<String>>,
+        pub(super) provides: OnceCell<Vec<String>>,
+        pub(super) conflicts: OnceCell<Vec<String>>,
+        pub(super) replaces: OnceCell<Vec<String>>,
+        pub(super) licenses: OnceCell<String>,
+        pub(super) architecture: OnceCell<String>,
+        pub(super) packager: OnceCell<String>,
+        pub(super) build_date: OnceCell<i64>,
+        pub(super) install_date: OnceCell<i64>,
+        pub(super) download_size: OnceCell<i64>,
+        pub(super) has_script: OnceCell<bool>,
+        pub(super) sha256sum: OnceCell<String>,
+        pub(super) files: OnceCell<Vec<String>>,
+        pub(super) backup: OnceCell<Vec<(String, String)>>,
     }
 
     //---------------------------------------
@@ -238,10 +151,142 @@ mod imp {
 
     impl PkgObject {
         //---------------------------------------
+        // Get alpm package helper functions
+        //---------------------------------------
+        pub(super) fn sync_pkg(&self) -> Result<&alpm::Package, alpm::Error> {
+            self.handle.get()
+                .ok_or(alpm::Error::HandleNull)
+                .and_then(|handle| handle.syncdbs().pkg(self.obj().name()))
+        }
+
+        pub(super) fn local_pkg(&self) -> Result<&alpm::Package, alpm::Error> {
+            self.handle.get()
+                .ok_or(alpm::Error::HandleNull)
+                .and_then(|handle| handle.localdb().pkg(self.obj().name()))
+        }
+
+        pub(super) fn pkg(&self) -> InternalPkg {
+            if self.flags().intersects(PkgFlags::INSTALLED) {
+                self.local_pkg()
+            } else {
+                self.sync_pkg()
+            }
+            .map(InternalPkg::Pacman)
+            .unwrap_or({
+                self.aur_pkg.get()
+                    .map(InternalPkg::Aur)
+                    .unwrap_or(InternalPkg::None)
+            })
+        }
+
+        //---------------------------------------
         // Read-only property getters
         //---------------------------------------
+        fn flags(&self) -> PkgFlags {
+            let flags = self.flags.get_or_init(|| {
+                self.local_pkg()
+                    .map(|pkg| {
+                        if pkg.reason() == alpm::PackageReason::Explicit {
+                            PkgFlags::EXPLICIT
+                        } else {
+                            self.required_by.set(pkg.required_by().into_iter()
+                                .sorted_unstable()
+                                .collect()
+                            )
+                            .unwrap();
+
+                            if !pkg.required_by().is_empty() {
+                                PkgFlags::DEPENDENCY
+                            } else {
+                                self.optional_for.set(pkg.optional_for().into_iter()
+                                    .sorted_unstable()
+                                    .collect()
+                                )
+                                .unwrap();
+
+                                if !pkg.optional_for().is_empty() {
+                                    PkgFlags::OPTIONAL
+                                } else {
+                                    PkgFlags::ORPHAN
+                                }
+                            }
+                        }
+                    })
+                    .unwrap_or(PkgFlags::NONE)
+            });
+
+            if self.obj().update_version().is_some() {
+                *flags | PkgFlags::UPDATES
+            } else {
+                *flags
+            }
+        }
+
+        fn version(&self) -> String {
+            let version = self.version.get_or_init(|| {
+                match self.pkg() {
+                    InternalPkg::Pacman(pkg) => { pkg.version().as_str() },
+                    InternalPkg::Aur(pkg) => { &pkg.version },
+                    InternalPkg::None => { "" }
+                }
+                .to_string()
+            });
+
+            if let Some(update_version) = self.obj().update_version() {
+                format!("{version} \u{2192} {update_version}")
+            } else {
+                version.to_string()
+            }
+        }
+
+        fn status(&self) -> String {
+            let flags = self.flags() & !PkgFlags::UPDATES;
+
+            match flags {
+                PkgFlags::EXPLICIT => "explicit",
+                PkgFlags::DEPENDENCY => "dependency",
+                PkgFlags::OPTIONAL => "optional",
+                PkgFlags::ORPHAN => "orphan",
+                _ => ""
+            }
+            .to_string()
+        }
+
+        fn status_icon(&self) -> String {
+            let flags = self.flags() & !PkgFlags::UPDATES;
+
+            match flags {
+                PkgFlags::EXPLICIT => "pkg-explicit",
+                PkgFlags::DEPENDENCY => "pkg-dependency",
+                PkgFlags::OPTIONAL => "pkg-optional",
+                PkgFlags::ORPHAN => "pkg-orphan",
+                _ => ""
+            }
+            .to_string()
+        }
+
+        fn groups(&self) -> String {
+            self.groups.get_or_init(|| {
+                match self.pkg() {
+                    InternalPkg::Pacman(pkg) => { alpm_list_to_string(&pkg.groups()) },
+                    InternalPkg::Aur(pkg) => { aur_vec_to_string(&pkg.groups) },
+                    InternalPkg::None => { String::from("") }
+                }
+            })
+            .to_string()
+        }
+
+        fn install_size(&self) -> i64 {
+            *self.install_size.get_or_init(|| {
+                match self.pkg() {
+                    InternalPkg::Pacman(pkg) => { pkg.isize() },
+                    _ => { 0 },
+                }
+            })
+        }
+
         fn install_size_string(&self) -> String {
-            size_to_string(self.data.borrow().install_size, 1)
+            size_to_string(self.install_size(), 1)
         }
     }
 }
@@ -257,8 +302,11 @@ impl PkgObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(handle: Option<Rc<alpm::Alpm>>, data: PkgData) -> Self {
-        let pkg: Self = glib::Object::builder().build();
+    pub fn new(name: &str, repo: &str, handle: Option<Rc<alpm::Alpm>>, aur_pkg: Option<raur::ArcPackage>) -> Self {
+        let pkg: Self = glib::Object::builder()
+            .property("name", name)
+            .property("repository", repo)
+            .build();
 
         let imp = pkg.imp();
 
@@ -266,183 +314,297 @@ impl PkgObject {
             imp.handle.set(handle).unwrap();
         }
 
-        imp.data.replace(data);
+        if let Some(aur_pkg) = aur_pkg {
+            imp.aur_pkg.set(aur_pkg).unwrap();
+        }
 
         pkg
     }
 
     //---------------------------------------
-    // Public data field getters
+    // Public internal field getters
     //---------------------------------------
-    pub fn description(&self) -> String {
-        self.imp().data.borrow().description.to_owned()
+    pub fn description(&self) -> &str {
+        let imp = self.imp();
+
+        imp.description.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { pkg.desc() },
+                InternalPkg::Aur(pkg) => { pkg.description.as_deref() },
+                InternalPkg::None => { None }
+            }
+            .unwrap_or_default()
+            .to_string()
+        })
     }
 
-    pub fn url(&self) -> String {
-        self.imp().data.borrow().url.to_owned()
+    pub fn url(&self) -> &str {
+        let imp = self.imp();
+
+        imp.url.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { pkg.url() },
+                InternalPkg::Aur(pkg) => { pkg.url.as_deref() },
+                InternalPkg::None => { None }
+            }
+            .unwrap_or_default()
+            .to_string()
+        })
     }
 
-    pub fn licenses(&self) -> String {
-        self.imp().data.borrow().licenses.to_owned()
+    pub fn depends(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.depends.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.depends()) },
+                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.depends) },
+                InternalPkg::None => { vec![] }
+            }
+        })
     }
 
-    pub fn provides(&self) -> Vec<String> {
-        self.imp().data.borrow().provides.to_owned()
+    pub fn optdepends(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.optdepends.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.optdepends()) },
+                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.opt_depends) },
+                InternalPkg::None => { vec![] }
+            }
+        })
     }
 
-    pub fn depends(&self) -> Vec<String> {
-        self.imp().data.borrow().depends.to_owned()
+    pub fn makedepends(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.makedepends.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.make_depends) },
+                _ => { vec![] }
+            }
+        })
     }
 
-    pub fn optdepends(&self) -> Vec<String> {
-        self.imp().data.borrow().optdepends.to_owned()
+    pub fn required_by(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.required_by.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { pkg.required_by().into_iter()
+                    .sorted_unstable()
+                    .collect()
+                },
+                _ => { vec![] }
+            }
+        })
     }
 
-    pub fn makedepends(&self) -> Vec<String> {
-        self.imp().data.borrow().makedepends.to_owned()
+    pub fn optional_for(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.optional_for.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { pkg.optional_for().into_iter()
+                    .sorted_unstable()
+                    .collect()
+                },
+                _ => { vec![] }
+            }
+        })
     }
 
-    pub fn conflicts(&self) -> Vec<String> {
-        self.imp().data.borrow().conflicts.to_owned()
+    pub fn provides(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.provides.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.provides()) },
+                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.provides) },
+                InternalPkg::None => { vec![] }
+            }
+        })
     }
 
-    pub fn replaces(&self) -> Vec<String> {
-        self.imp().data.borrow().replaces.to_owned()
+    pub fn conflicts(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.conflicts.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.conflicts()) },
+                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.conflicts) },
+                InternalPkg::None => { vec![] }
+            }
+        })
     }
 
-    pub fn architecture(&self) -> String {
-        self.imp().data.borrow().architecture.to_owned()
+    pub fn replaces(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.replaces.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.replaces()) },
+                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.replaces) },
+                InternalPkg::None => { vec![] }
+            }
+        })
     }
 
-    pub fn packager(&self) -> String {
-        self.imp().data.borrow().packager.to_owned()
+    pub fn licenses(&self) -> &str {
+        let imp = self.imp();
+
+        imp.licenses.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { alpm_list_to_string(&pkg.licenses()) },
+                InternalPkg::Aur(pkg) => { aur_vec_to_string(&pkg.license) },
+                InternalPkg::None => { String::from("") }
+            }
+        })
+    }
+
+    pub fn architecture(&self) -> &str {
+        let imp = self.imp();
+
+        imp.architecture.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { pkg.arch() },
+                _ => { None },
+            }
+            .unwrap_or_default()
+            .to_string()
+        })
+    }
+
+    pub fn packager(&self) -> &str {
+        let imp = self.imp();
+
+        imp.packager.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { pkg.packager() },
+                InternalPkg::Aur(pkg) => { pkg.maintainer.as_deref() },
+                InternalPkg::None => { None }
+            }
+            .unwrap_or("Unknown Packager")
+            .to_string()
+        })
     }
 
     pub fn build_date(&self) -> i64 {
-        self.imp().data.borrow().build_date
+        let imp = self.imp();
+
+        *imp.build_date.get_or_init(|| {
+            imp.sync_pkg()
+                .map(|pkg| pkg.build_date())
+                .unwrap_or_default()
+        })
     }
 
     pub fn install_date(&self) -> i64 {
-        self.imp().data.borrow().install_date
+        let imp = self.imp();
+
+        *imp.install_date.get_or_init(|| {
+            imp.local_pkg().ok()
+                .and_then(|pkg| pkg.install_date())
+                .unwrap_or_default()
+        })
     }
 
     pub fn download_size(&self) -> i64 {
-        self.imp().data.borrow().download_size
-    }
+        let imp = self.imp();
 
-    pub fn install_size(&self) -> i64 {
-        self.imp().data.borrow().install_size
+        *imp.download_size.get_or_init(|| {
+            imp.sync_pkg()
+                .map(|pkg| pkg.download_size())
+                .unwrap_or_default()
+        })
     }
 
     pub fn has_script(&self) -> bool {
-        self.imp().data.borrow().has_script
+        let imp = self.imp();
+
+        *imp.has_script.get_or_init(|| {
+            match imp.pkg() {
+                InternalPkg::Pacman(pkg) => { pkg.has_scriptlet() },
+                _ => { false },
+            }
+        })
     }
 
-    pub fn sha256sum(&self) -> String {
-        self.imp().data.borrow().sha256sum.to_owned()
+    pub fn sha256sum(&self) -> &str {
+        let imp = self.imp();
+
+        imp.sha256sum.get_or_init(|| {
+            imp.sync_pkg().ok()
+                .and_then(|pkg| pkg.sha256sum())
+                .unwrap_or_default()
+                .to_string()
+        })
+    }
+
+    pub fn files(&self) -> &[String] {
+        let imp = self.imp();
+
+        imp.files.get_or_init(|| {
+            imp.local_pkg()
+                .map(|pkg| {
+                    pkg.files().files().iter()
+                        .map(|file| format!("/{}", file.name()))
+                        .sorted_unstable()
+                        .collect()
+                })
+                .unwrap_or_default()
+        })
+    }
+
+    pub fn backup(&self) -> &[(String, String)] {
+        let imp = self.imp();
+
+        imp.backup.get_or_init(|| {
+            imp.local_pkg()
+                .map(|pkg| {
+                    pkg.backup().iter()
+                        .map(|backup| (format!("/{}", backup.name()), backup.hash().to_string()))
+                        .sorted_unstable_by(|(a_file, _), (b_file, _)|
+                            a_file.partial_cmp(b_file).unwrap_or(Ordering::Equal)
+                        )
+                        .collect()
+                })
+                .unwrap_or_default()
+        })
     }
 
     //---------------------------------------
-    // Public string property getters
-    //---------------------------------------
-    pub fn install_date_short(&self) -> String {
-        date_to_string(self.install_date(), "%Y/%m/%d %H:%M")
-    }
-
-    pub fn install_date_long(&self) -> String {
-        date_to_string(self.install_date(), "%d %B %Y %H:%M")
-    }
-
-    pub fn build_date_long(&self) -> String {
-        date_to_string(self.build_date(), "%d %B %Y %H:%M")
-    }
-
-    pub fn download_size_string(&self) -> String {
-        size_to_string(self.download_size(), 1)
-    }
-
-    //---------------------------------------
-    // Pkg from handle helper function
-    //---------------------------------------
-    fn pkg_from_handle(&self) -> Result<&alpm::Package, alpm::Error> {
-        if let Some(handle) = self.imp().handle.get() {
-            let pkg = if self.flags().intersects(PkgFlags::INSTALLED) {
-                handle.localdb().pkg(self.name())
-            } else {
-                handle.syncdbs().pkg(self.name())
-            };
-
-            pkg
-        } else {
-            Err(alpm::Error::HandleNull)
-        }
-    }
-
-    //---------------------------------------
-    // Other public property getters
+    // Other public functions
     //---------------------------------------
     pub fn package_url(&self) -> String {
         let default_repos = ["core", "extra", "multilib"];
 
-        if default_repos.contains(&self.repository().as_str()) {
+        let repo = self.repository();
+
+        if default_repos.contains(&repo.as_str()) {
             format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
-                repo=self.repository(),
                 arch=self.architecture(),
                 name=self.name()
             )
-        } else if &self.repository() == "aur" {
-            format!("https://aur.archlinux.org/packages/{name}", name=self.name())
+        } else if repo == "aur" {
+            format!("https://aur.archlinux.org/packages/{name}",
+                name=self.name()
+            )
         } else {
             String::from("")
         }
     }
 
-    pub fn required_by(&self) -> Vec<String> {
-        let mut required_by: Vec<String> = vec![];
-
-        if let Ok(pkg) = self.pkg_from_handle() {
-            required_by.extend(pkg.required_by());
-            required_by.sort_unstable();
-        }
-
-        required_by
+    pub fn build_date_string(&self) -> String {
+        date_to_string(self.build_date(), "%d %B %Y %H:%M")
     }
 
-    pub fn optional_for(&self) -> Vec<String> {
-        let mut optional_for: Vec<String> = vec![];
-
-        if let Ok(pkg) = self.pkg_from_handle() {
-            optional_for.extend(pkg.optional_for());
-            optional_for.sort_unstable();
-        }
-
-        optional_for
+    pub fn install_date_string(&self) -> String {
+        date_to_string(self.install_date(), "%d %B %Y %H:%M")
     }
 
-    pub fn files(&self) -> Vec<String> {
-        let mut files: Vec<String> = vec![];
-
-        if let Ok(pkg) = self.pkg_from_handle() {
-            files.extend(pkg.files().files().iter()
-                .map(|file| format!("/{}", file.name())));
-
-            files.sort_unstable();
-        }
-
-        files
-    }
-
-    pub fn backup(&self) -> Vec<(String, String)> {
-        let mut backups: Vec<(String, String)> = vec![];
-
-        if let Ok(pkg) = self.pkg_from_handle() {
-            backups.extend(pkg.backup().iter()
-                .map(|bck| (format!("/{}", bck.name()), bck.hash().to_string())));
-
-            backups.sort_unstable_by(|(a_file, _), (b_file, _)| a_file.partial_cmp(b_file)
-                .unwrap_or(Ordering::Equal));
-        }
-
-        backups
+    pub fn download_size_string(&self) -> String {
+        size_to_string(self.download_size(), 1)
     }
 }

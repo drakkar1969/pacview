@@ -272,8 +272,8 @@ impl BackupWindow {
 
         // Get backup list
         let backup_list: Vec<(String, String, Option<String>)> = installed_snapshot.iter()
-            .flat_map(|pkg| { pkg.backup().into_iter()
-                .map(|(filename, hash)| (filename, hash, Some(pkg.name())))
+            .flat_map(|pkg| { pkg.backup().iter()
+                .map(|(filename, hash)| (filename.to_string(), hash.to_string(), Some(pkg.name())))
             })
             .collect();
 
