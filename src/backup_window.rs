@@ -184,6 +184,8 @@ impl BackupWindow {
                     imp.status_filter.set_search(Some(&status.name()));
                 }
 
+                imp.view.scroll_to(imp.selection.selected(), None, gtk::ListScrollFlags::FOCUS, None);
+
                 imp.view.grab_focus();
             }
         ));
@@ -262,7 +264,7 @@ impl BackupWindow {
 
         // Define local enum
         enum BackupResult {
-            Backup(String, String, Option<String>, String),
+            Backup(String, String, Option<String>),
             End
         }
 
@@ -283,10 +285,8 @@ impl BackupWindow {
         gio::spawn_blocking(clone!(
             move || {
                 for (filename, hash, package) in backup_list {
-                    let file_hash = alpm::compute_md5sum(filename.as_str())
-                        .unwrap_or_default();
-
-                    sender.send_blocking(BackupResult::Backup(filename, hash, package, file_hash)).expect("Could not send through channel");
+                    sender.send_blocking(BackupResult::Backup(filename, hash, package))
+                        .expect("Could not send through channel");
                 }
 
                 sender.send_blocking(BackupResult::End).expect("Could not send through channel");
@@ -300,8 +300,8 @@ impl BackupWindow {
                 while let Ok(result) = receiver.recv().await {
                     match result {
                         // Append backup to column view
-                        BackupResult::Backup(filename, hash, package, file_hash) => {
-                            imp.model.append(&BackupObject::new(&filename, &hash, package.as_deref(), &file_hash));
+                        BackupResult::Backup(filename, hash, package) => {
+                            imp.model.append(&BackupObject::new(&filename, &hash, package.as_deref()));
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {

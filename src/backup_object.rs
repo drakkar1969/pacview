@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::{RefCell, OnceCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -37,13 +37,17 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::BackupObject)]
     pub struct BackupObject {
-        #[property(get, set)]
+        // Read-write properties, construct only
+        #[property(get, set, construct_only)]
         filename: RefCell<String>,
-        #[property(get, set, nullable)]
+        #[property(get, set, construct_only)]
+        hash: RefCell<String>,
+        #[property(get, set, nullable, construct_only)]
         package: RefCell<Option<String>>,
-        #[property(get, set, builder(BackupStatus::default()))]
-        status: Cell<BackupStatus>,
 
+        // Read only properties
+        #[property(get = Self::status, builder(BackupStatus::default()))]
+        status: OnceCell<BackupStatus>,
         #[property(get = Self::status_icon)]
         _status_icon: RefCell<String>,
         #[property(get = Self::status_text)]
@@ -66,12 +70,29 @@ mod imp {
         //---------------------------------------
         // Custom property getters
         //---------------------------------------
+        fn status(&self) -> BackupStatus {
+            *self.status.get_or_init(|| {
+                let file_hash = alpm::compute_md5sum(self.obj().filename())
+                    .unwrap_or_default();
+
+                if !file_hash.is_empty() {
+                    if file_hash == self.obj().hash() {
+                        BackupStatus::Unmodified
+                    } else {
+                        BackupStatus::Modified
+                    }
+                } else {
+                    BackupStatus::Error
+                }
+            })
+        }
+
         fn status_icon(&self) -> String {
-            format!("backup-{}-symbolic", self.obj().status().nick())
+            format!("backup-{}-symbolic", self.status().nick())
         }
 
         fn status_text(&self) -> String {
-            self.obj().status().name().to_ascii_lowercase()
+            self.status().name().to_ascii_lowercase()
         }
     }
 }
@@ -87,22 +108,11 @@ impl BackupObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(filename: &str, hash: &str, package: Option<&str>, file_hash: &str) -> Self {
-        let status = if !file_hash.is_empty() {
-            if file_hash == hash {
-                BackupStatus::Unmodified
-            } else {
-                BackupStatus::Modified
-            }
-        } else {
-            BackupStatus::Error
-        };
-
-        // Build BackupObject
+    pub fn new(filename: &str, hash: &str, package: Option<&str>) -> Self {
         glib::Object::builder()
             .property("filename", filename)
+            .property("hash", hash)
             .property("package", package)
-            .property("status", status)
             .build()
     }
 }
