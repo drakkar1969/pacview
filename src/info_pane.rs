@@ -982,6 +982,9 @@ impl InfoPane {
             imp.next_button.set_sensitive(next_sensitive);
         }
 
+        // Clear files search entry
+        imp.files_search_entry.set_text("");
+
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
             // Set header bar title
