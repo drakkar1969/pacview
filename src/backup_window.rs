@@ -209,7 +209,7 @@ impl BackupWindow {
             move |_| {
                 let mut copy_text = "## Backup Files\n|Filename|Status|\n|---|---|\n".to_string();
 
-                let mut package = "".to_string();
+                let mut package = String::from("");
 
                 copy_text.push_str(&imp.selection.iter::<glib::Object>().flatten()
                     .map(|item| {
@@ -217,7 +217,7 @@ impl BackupWindow {
                             .downcast::<BackupObject>()
                             .expect("Could not downcast to 'BackupObject'");
 
-                        let mut line = "".to_string();
+                        let mut line = String::from("");
 
                         let backup_package = backup.package().unwrap_or("None".to_string());
 

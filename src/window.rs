@@ -1062,7 +1062,7 @@ impl PacViewWindow {
 
                     join!(pacman_handle, aur_handle)
                 } else {
-                    (pacman_handle.await, Ok((None, "".to_string())))
+                    (pacman_handle.await, Ok((None, String::from(""))))
                 };
 
                 // Get pacman update results
