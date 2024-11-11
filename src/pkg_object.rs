@@ -63,9 +63,9 @@ impl Default for PkgFlags {
 }
 
 //------------------------------------------------------------------------------
-// ENUM: InternalPkg
+// ENUM: PkgInternal
 //------------------------------------------------------------------------------
-enum InternalPkg<'a> {
+enum PkgInternal<'a> {
     Pacman(&'a alpm::Package),
     Aur(&'a raur::ArcPackage),
     None
@@ -168,17 +168,17 @@ mod imp {
                 .and_then(|handle| handle.localdb().pkg(self.obj().name()))
         }
 
-        pub(super) fn pkg(&self) -> InternalPkg {
+        pub(super) fn pkg(&self) -> PkgInternal {
             if self.flags().intersects(PkgFlags::INSTALLED) {
                 self.local_pkg()
             } else {
                 self.sync_pkg()
             }
-            .map(InternalPkg::Pacman)
+            .map(PkgInternal::Pacman)
             .unwrap_or({
                 self.aur_pkg.get()
-                    .map(InternalPkg::Aur)
-                    .unwrap_or(InternalPkg::None)
+                    .map(PkgInternal::Aur)
+                    .unwrap_or(PkgInternal::None)
             })
         }
 
@@ -228,9 +228,9 @@ mod imp {
         fn version(&self) -> String {
             let version = self.version.get_or_init(|| {
                 match self.pkg() {
-                    InternalPkg::Pacman(pkg) => { pkg.version().as_str() },
-                    InternalPkg::Aur(pkg) => { &pkg.version },
-                    InternalPkg::None => { "" }
+                    PkgInternal::Pacman(pkg) => { pkg.version().as_str() },
+                    PkgInternal::Aur(pkg) => { &pkg.version },
+                    PkgInternal::None => { "" }
                 }
                 .to_string()
             });
@@ -284,9 +284,9 @@ mod imp {
         fn groups(&self) -> String {
             self.groups.get_or_init(|| {
                 match self.pkg() {
-                    InternalPkg::Pacman(pkg) => { alpm_list_to_string(&pkg.groups()) },
-                    InternalPkg::Aur(pkg) => { aur_vec_to_string(&pkg.groups) },
-                    InternalPkg::None => { String::from("") }
+                    PkgInternal::Pacman(pkg) => { alpm_list_to_string(&pkg.groups()) },
+                    PkgInternal::Aur(pkg) => { aur_vec_to_string(&pkg.groups) },
+                    PkgInternal::None => { String::from("") }
                 }
             })
             .to_string()
@@ -295,7 +295,7 @@ mod imp {
         fn install_size(&self) -> i64 {
             *self.install_size.get_or_init(|| {
                 match self.pkg() {
-                    InternalPkg::Pacman(pkg) => { pkg.isize() },
+                    PkgInternal::Pacman(pkg) => { pkg.isize() },
                     _ => { 0 },
                 }
             })
@@ -334,6 +334,11 @@ impl PkgObject {
             imp.aur_pkg.set(aur_pkg).unwrap();
         }
 
+        pkg.connect_update_version_notify(|pkg| {
+            pkg.notify_flags();
+            pkg.notify_version();
+        });
+
         pkg
     }
 
@@ -345,9 +350,9 @@ impl PkgObject {
 
         imp.description.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { pkg.desc() },
-                InternalPkg::Aur(pkg) => { pkg.description.as_deref() },
-                InternalPkg::None => { None }
+                PkgInternal::Pacman(pkg) => { pkg.desc() },
+                PkgInternal::Aur(pkg) => { pkg.description.as_deref() },
+                PkgInternal::None => { None }
             }
             .unwrap_or_default()
             .to_string()
@@ -359,9 +364,9 @@ impl PkgObject {
 
         imp.url.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { pkg.url() },
-                InternalPkg::Aur(pkg) => { pkg.url.as_deref() },
-                InternalPkg::None => { None }
+                PkgInternal::Pacman(pkg) => { pkg.url() },
+                PkgInternal::Aur(pkg) => { pkg.url.as_deref() },
+                PkgInternal::None => { None }
             }
             .unwrap_or_default()
             .to_string()
@@ -373,9 +378,9 @@ impl PkgObject {
 
         imp.depends.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.depends()) },
-                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.depends) },
-                InternalPkg::None => { vec![] }
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.depends()) },
+                PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.depends) },
+                PkgInternal::None => { vec![] }
             }
         })
     }
@@ -385,9 +390,9 @@ impl PkgObject {
 
         imp.optdepends.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.optdepends()) },
-                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.opt_depends) },
-                InternalPkg::None => { vec![] }
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.optdepends()) },
+                PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.opt_depends) },
+                PkgInternal::None => { vec![] }
             }
         })
     }
@@ -397,7 +402,7 @@ impl PkgObject {
 
         imp.makedepends.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.make_depends) },
+                PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.make_depends) },
                 _ => { vec![] }
             }
         })
@@ -408,7 +413,7 @@ impl PkgObject {
 
         imp.required_by.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { pkg.required_by().into_iter()
+                PkgInternal::Pacman(pkg) => { pkg.required_by().into_iter()
                     .sorted_unstable()
                     .collect()
                 },
@@ -422,7 +427,7 @@ impl PkgObject {
 
         imp.optional_for.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { pkg.optional_for().into_iter()
+                PkgInternal::Pacman(pkg) => { pkg.optional_for().into_iter()
                     .sorted_unstable()
                     .collect()
                 },
@@ -436,9 +441,9 @@ impl PkgObject {
 
         imp.provides.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.provides()) },
-                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.provides) },
-                InternalPkg::None => { vec![] }
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.provides()) },
+                PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.provides) },
+                PkgInternal::None => { vec![] }
             }
         })
     }
@@ -448,9 +453,9 @@ impl PkgObject {
 
         imp.conflicts.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.conflicts()) },
-                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.conflicts) },
-                InternalPkg::None => { vec![] }
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.conflicts()) },
+                PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.conflicts) },
+                PkgInternal::None => { vec![] }
             }
         })
     }
@@ -460,9 +465,9 @@ impl PkgObject {
 
         imp.replaces.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.replaces()) },
-                InternalPkg::Aur(pkg) => { aur_sorted_vec(&pkg.replaces) },
-                InternalPkg::None => { vec![] }
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.replaces()) },
+                PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.replaces) },
+                PkgInternal::None => { vec![] }
             }
         })
     }
@@ -472,9 +477,9 @@ impl PkgObject {
 
         imp.licenses.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { alpm_list_to_string(&pkg.licenses()) },
-                InternalPkg::Aur(pkg) => { aur_vec_to_string(&pkg.license) },
-                InternalPkg::None => { String::from("") }
+                PkgInternal::Pacman(pkg) => { alpm_list_to_string(&pkg.licenses()) },
+                PkgInternal::Aur(pkg) => { aur_vec_to_string(&pkg.license) },
+                PkgInternal::None => { String::from("") }
             }
         })
     }
@@ -484,7 +489,7 @@ impl PkgObject {
 
         imp.architecture.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { pkg.arch() },
+                PkgInternal::Pacman(pkg) => { pkg.arch() },
                 _ => { None },
             }
             .unwrap_or_default()
@@ -497,9 +502,9 @@ impl PkgObject {
 
         imp.packager.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { pkg.packager() },
-                InternalPkg::Aur(pkg) => { pkg.maintainer.as_deref() },
-                InternalPkg::None => { None }
+                PkgInternal::Pacman(pkg) => { pkg.packager() },
+                PkgInternal::Aur(pkg) => { pkg.maintainer.as_deref() },
+                PkgInternal::None => { None }
             }
             .unwrap_or("Unknown Packager")
             .to_string()
@@ -541,7 +546,7 @@ impl PkgObject {
 
         *imp.has_script.get_or_init(|| {
             match imp.pkg() {
-                InternalPkg::Pacman(pkg) => { pkg.has_scriptlet() },
+                PkgInternal::Pacman(pkg) => { pkg.has_scriptlet() },
                 _ => { false },
             }
         })
