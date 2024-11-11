@@ -132,7 +132,11 @@
                     <property name="orientation">vertical</property>
                     <child>
                       <object class="AdwHeaderBar" id="package_header_bar">
-                        <property name="show-title">false</property>
+                        <property name="title-widget">
+                          <object class="AdwWindowTitle">
+                            <property name="title">Packages</property>
+                          </object>
+                        </property>
                         <child>
                           <object class="GtkToggleButton" id="sidebar_button">
                             <property name="active">true</property>
