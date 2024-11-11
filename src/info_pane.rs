@@ -443,12 +443,6 @@ impl InfoPane {
             .sync_create()
             .build();
 
-        // Bind files count to files search entry state
-        imp.files_filter_model.bind_property("n-items", &imp.files_search_entry.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
         // Bind files count to files open/copy button states
         imp.files_filter_model.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
