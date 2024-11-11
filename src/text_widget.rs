@@ -42,6 +42,14 @@ struct TextTag {
 }
 
 impl TextTag {
+    fn new(text: &str, start: u32, end: u32) -> Self {
+        Self {
+            text: text.to_string(),
+            start,
+            end
+        }
+    }
+
     fn text(&self) -> String {
         self.text.to_owned()
     }
@@ -332,11 +340,7 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag {
-                        text: text.to_string(),
-                        start: 0,
-                        end: text.len().to_u32().unwrap()
-                    });
+                    link_list.push(TextTag::new(text, 0, text.len().to_u32().unwrap()));
                 },
                 PropType::Packager => {
                     static EXPR: OnceLock<Regex> = OnceLock::new();
@@ -347,11 +351,11 @@ mod imp {
                     });
 
                     if let Some(m) = expr.find(text) {
-                        link_list.push(TextTag {
-                            text: format!("mailto:{}", m.as_str()),
-                            start: m.start().to_u32().unwrap(),
-                            end: m.end().to_u32().unwrap()
-                        });
+                        link_list.push(TextTag::new(
+                            &format!("mailto:{}", m.as_str()),
+                            m.start().to_u32().unwrap(),
+                            m.end().to_u32().unwrap()
+                        ));
                     }
                 },
                 PropType::LinkList => {
@@ -368,21 +372,21 @@ mod imp {
                         link_list.extend(expr.find_iter(text)
                             .flatten()
                             .map(|m| {
-                                TextTag {
-                                    text: format!("pkg://{}", m.as_str()),
-                                    start: m.start().to_u32().unwrap(),
-                                    end: m.end().to_u32().unwrap()
-                                }
+                                TextTag::new(
+                                    &format!("pkg://{}", m.as_str()),
+                                    m.start().to_u32().unwrap(),
+                                    m.end().to_u32().unwrap()
+                                )
                             })
                         );
 
                         comment_list.extend(text.match_indices(" [INSTALLED]")
                             .map(|(i, s)| {
-                                TextTag {
-                                    text: s.to_string(),
-                                    start: i.to_u32().unwrap(),
-                                    end: (i.to_usize().unwrap() + s.len()).to_u32().unwrap()
-                                }
+                                TextTag::new(
+                                    s,
+                                    i.to_u32().unwrap(),
+                                    (i.to_usize().unwrap() + s.len()).to_u32().unwrap()
+                                )
                             })
                         );
                     }
