@@ -15,7 +15,7 @@ use futures::future;
 use strum::EnumString;
 
 use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
-use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumValueExt;
@@ -462,7 +462,7 @@ impl PackageView {
                         Ok((aur_cache, aur_list)) => {
                             if search_bar.enabled() {
                                 let pkg_list: Vec<PkgObject> = aur_list.into_iter()
-                                    .map(|pkg| PkgObject::new(&pkg.name, "aur", None, Some(pkg.clone())))
+                                    .map(|pkg| PkgObject::new(&pkg.name, "aur", PkgData::AurPkg(pkg.clone())))
                                     .collect();
 
                                 imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);

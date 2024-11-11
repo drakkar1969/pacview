@@ -63,6 +63,14 @@ impl Default for PkgFlags {
 }
 
 //------------------------------------------------------------------------------
+// ENUM: PkgData
+//------------------------------------------------------------------------------
+pub enum PkgData {
+    Handle(Rc<alpm::Alpm>),
+    AurPkg(raur::ArcPackage),
+}
+
+//------------------------------------------------------------------------------
 // ENUM: PkgInternal
 //------------------------------------------------------------------------------
 enum PkgInternal<'a> {
@@ -318,7 +326,7 @@ impl PkgObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(name: &str, repo: &str, handle: Option<Rc<alpm::Alpm>>, aur_pkg: Option<raur::ArcPackage>) -> Self {
+    pub fn new(name: &str, repo: &str, data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder()
             .property("name", name)
             .property("repository", repo)
@@ -326,18 +334,10 @@ impl PkgObject {
 
         let imp = pkg.imp();
 
-        if let Some(handle) = handle {
-            imp.handle.set(handle).unwrap();
+        match data {
+            PkgData::Handle(handle) => { imp.handle.set(handle).unwrap() },
+            PkgData::AurPkg(pkg) => { imp.aur_pkg.set(pkg).unwrap(); }
         }
-
-        if let Some(aur_pkg) = aur_pkg {
-            imp.aur_pkg.set(aur_pkg).unwrap();
-        }
-
-        pkg.connect_update_version_notify(|pkg| {
-            pkg.notify_flags();
-            pkg.notify_version();
-        });
 
         pkg
     }

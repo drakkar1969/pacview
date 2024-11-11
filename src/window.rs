@@ -27,7 +27,7 @@ use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventRe
 use crate::utils::tokio_runtime;
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, SortProp};
 use crate::info_pane::InfoPane;
@@ -966,7 +966,7 @@ impl PacViewWindow {
                     .map(|syncpkg| {
                         let repo = syncpkg.db().map(|db| db.name()).unwrap_or_default();
 
-                        PkgObject::new(syncpkg.name(), repo, Some(handle_ref.clone()), None)
+                        PkgObject::new(syncpkg.name(), repo, PkgData::Handle(handle_ref.clone()))
                     })
                 )
                 .collect();
@@ -981,7 +981,7 @@ impl PacViewWindow {
                         pkg.db().map(|db| db.name()).unwrap_or_default()
                     };
 
-                    PkgObject::new(pkg.name(), repo, Some(handle_ref.clone()), None)
+                    PkgObject::new(pkg.name(), repo, PkgData::Handle(handle_ref.clone()))
                 })
                 .collect();
 
