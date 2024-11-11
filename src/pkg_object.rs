@@ -9,6 +9,7 @@ use gtk::prelude::ObjectExt;
 use alpm_utils::DbListExt;
 use itertools::Itertools;
 
+use crate::window::PACMAN_CONFIG;
 use crate::utils::{date_to_string, size_to_string};
 
 //------------------------------------------------------------------------------
@@ -561,10 +562,12 @@ impl PkgObject {
         let imp = self.imp();
 
         imp.files.get_or_init(|| {
+            let pacman_config = PACMAN_CONFIG.get().unwrap();
+
             imp.local_pkg()
                 .map(|pkg| {
                     pkg.files().files().iter()
-                        .map(|file| format!("/{}", file.name()))
+                        .map(|file| format!("{}{}", pacman_config.root_dir, file.name()))
                         .sorted_unstable()
                         .collect()
                 })
@@ -576,11 +579,13 @@ impl PkgObject {
         let imp = self.imp();
 
         imp.backup.get_or_init(|| {
+            let pacman_config = PACMAN_CONFIG.get().unwrap();
+
             imp.local_pkg()
                 .map(|pkg| {
                     pkg.backup().iter()
                         .map(|backup| {
-                            let filename = format!("/{}", backup.name());
+                            let filename = format!("{}{}", pacman_config.root_dir, backup.name());
 
                             let file_hash = alpm::compute_md5sum(filename.as_str())
                                 .unwrap_or_default();
