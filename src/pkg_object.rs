@@ -339,6 +339,11 @@ impl PkgObject {
             PkgData::AurPkg(pkg) => { imp.aur_pkg.set(pkg).unwrap(); }
         }
 
+        pkg.connect_update_version_notify(|pkg| {
+            pkg.notify_flags();
+            pkg.notify_version();
+        });
+
         pkg
     }
 
