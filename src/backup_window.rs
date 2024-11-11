@@ -264,7 +264,7 @@ impl BackupWindow {
 
         // Define local enum
         enum BackupResult {
-            Backup(String, String, Option<String>),
+            Backup(String, String, String, Option<String>),
             End
         }
 
@@ -273,9 +273,9 @@ impl BackupWindow {
         imp.filter_model.set_filter(None::<&gtk::Filter>);
 
         // Get backup list
-        let backup_list: Vec<(String, String, Option<String>)> = installed_snapshot.iter()
+        let backup_list: Vec<(String, String, String, Option<String>)> = installed_snapshot.iter()
             .flat_map(|pkg| { pkg.backup().iter()
-                .map(|(filename, hash)| (filename.to_string(), hash.to_string(), Some(pkg.name())))
+                .map(|(filename, hash, file_hash)| (filename.to_string(), hash.to_string(), file_hash.to_string(), Some(pkg.name())))
             })
             .collect();
 
@@ -284,8 +284,8 @@ impl BackupWindow {
 
         gio::spawn_blocking(clone!(
             move || {
-                for (filename, hash, package) in backup_list {
-                    sender.send_blocking(BackupResult::Backup(filename, hash, package))
+                for (filename, hash, file_hash, package) in backup_list {
+                    sender.send_blocking(BackupResult::Backup(filename, hash, file_hash, package))
                         .expect("Could not send through channel");
                 }
 
@@ -300,8 +300,8 @@ impl BackupWindow {
                 while let Ok(result) = receiver.recv().await {
                     match result {
                         // Append backup to column view
-                        BackupResult::Backup(filename, hash, package) => {
-                            imp.model.append(&BackupObject::new(&filename, &hash, package.as_deref()));
+                        BackupResult::Backup(filename, hash, file_hash, package) => {
+                            imp.model.append(&BackupObject::new(&filename, &hash, &file_hash, package.as_deref()));
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {
