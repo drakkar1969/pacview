@@ -29,8 +29,6 @@ mod imp {
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) count_box: TemplateChild<gtk::Box>,
 
         #[template_child]
         pub(super) error_label: TemplateChild<gtk::Label>,
@@ -127,7 +125,7 @@ impl FilterRow {
             .transform_to(|_, count: u64| Some(count.to_string()))
             .sync_create()
             .build();
-        self.bind_property("count", &imp.count_box.get(), "visible")
+        self.bind_property("count", &imp.count_label.get(), "visible")
             .transform_to(|_, count: u64| Some(count > 0))
             .sync_create()
             .build();

@@ -49,17 +49,11 @@ row.filter-row menubutton > button {
 }
 
 /* Sidebar list count indicator */
-box.count-indicator {
-	min-width: 20px;
+label.count-indicator {
 	background: var(--accent-bg-color);
-	border-radius: 9999px;
-}
-
-box.count-indicator label {
-	line-height: 20px;
 	color: var(--accent-fg-color);
-	margin: 0 6px;
-	padding: 0;
+	border-radius: 9999px;
+	padding: 0 6px;
 }
 
 /* Package view spinner */
