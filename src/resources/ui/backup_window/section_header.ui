@@ -30,17 +30,16 @@
             </child>
             <child>
               <object class="GtkLabel">
+                <style>
+                  <class name="count-superscript"/>
+                </style>
                 <binding name="label">
                   <lookup name="n-items">GtkListHeader</lookup>
                 </binding>
-                <property name="xalign">0</property>
-                <property name="valign">baseline-fill</property>
+                <property name="valign">center</property>
               </object>
             </child>
           </object>
-        </child>
-        <child>
-          <object class="GtkSeparator"/>
         </child>
       </object>
     </property>
