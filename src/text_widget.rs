@@ -971,7 +971,7 @@ impl TextWidget {
                             .and_then(|s| {
                                 s.bytes()
                                     .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                    .map(|start| start + 1)
+                                    .and_then(|start| start.checked_add(1))
                             })
                             .unwrap_or(0);
 
@@ -979,7 +979,7 @@ impl TextWidget {
                             .and_then(|s| {
                                 s.bytes()
                                     .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
-                                    .map(|end| end + index)
+                                    .and_then(|end| end.checked_add(index))
                             })
                             .unwrap_or(text.len());
 
