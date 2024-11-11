@@ -53,7 +53,7 @@ label.count-indicator {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
 	border-radius: 9999px;
-	padding: 0 6px;
+	padding: 0 7px;
 }
 
 /* Package view spinner */
@@ -85,7 +85,7 @@ label.count-superscript {
 	font-weight: bold;
 	background: color-mix(in srgb, currentColor 15%, transparent);
 	border-radius: 9999px;
-	padding: 3px 6px;
+	padding: 3px 7px;
 }
 
 /* Info pane property rows */
