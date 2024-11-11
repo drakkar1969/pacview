@@ -1069,7 +1069,7 @@ impl PacViewWindow {
                 match pacman_res {
                     Ok((code, stdout)) => {
                         if code == Some(0) {
-                            update_str += &stdout;
+                            update_str.push_str(&stdout);
                         } else if code == Some(1) {
                             error_msg = Some("Could not retrieve pacman updates: checkupdates error".to_string())
                         }
@@ -1081,7 +1081,7 @@ impl PacViewWindow {
                 match aur_res {
                     Ok((code, stdout)) => {
                         if code == Some(0) {
-                            update_str += &stdout;
+                            update_str.push_str(&stdout);
                         }
                     },
                     Err(error) => {
