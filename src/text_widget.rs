@@ -385,7 +385,7 @@ mod imp {
                                 TextTag::new(
                                     s,
                                     i.to_u32().unwrap(),
-                                    (i.to_usize().unwrap() + s.len()).to_u32().unwrap()
+                                    i.checked_add(s.len()).and_then(|i| i.to_u32()).unwrap()
                                 )
                             })
                         );
