@@ -948,16 +948,14 @@ impl InfoPane {
         imp.title_widget.set_title("");
 
         // Set main stack visible page
-        let visible_stack_page = glib::GString::from(
-            if self.pkg().is_some() {
-                "properties"
-            } else {
-                "empty"
-            }
-        );
+        let visible_stack_page = if self.pkg().is_some() {
+            "properties"
+        } else {
+            "empty"
+        };
 
         if imp.main_stack.visible_child_name().unwrap_or_default() != visible_stack_page {
-            imp.main_stack.set_visible_child_name(&visible_stack_page);
+            imp.main_stack.set_visible_child_name(visible_stack_page);
         }
 
         // Set tab switcher sensitivity
