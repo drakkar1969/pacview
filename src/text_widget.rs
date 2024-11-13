@@ -35,23 +35,22 @@ pub enum PropType {
 //------------------------------------------------------------------------------
 // STRUCT: Marker
 //------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone)]
 struct TextTag {
     text: String,
+    version: String,
     start: u32,
     end: u32,
 }
 
 impl TextTag {
-    fn new(text: &str, start: u32, end: u32) -> Self {
+    fn new(text: &str, version: &str, start: u32, end: u32) -> Self {
         Self {
             text: text.to_string(),
+            version: version.to_string(),
             start,
             end
         }
-    }
-
-    fn text(&self) -> String {
-        self.text.to_owned()
     }
 }
 
@@ -99,7 +98,7 @@ mod imp {
         pub(super) comment_list: RefCell<Vec<TextTag>>,
 
         pub(super) cursor: RefCell<String>,
-        pub(super) pressed_link_url: RefCell<Option<String>>,
+        pub(super) pressed_link: RefCell<Option<TextTag>>,
 
         pub(super) is_selecting: Cell<bool>,
         pub(super) is_clicked: Cell<bool>,
@@ -137,7 +136,10 @@ mod imp {
             SIGNALS.get_or_init(|| {
                 vec![
                     Signal::builder("package-link")
-                        .param_types([String::static_type()])
+                        .param_types([
+                            String::static_type(),
+                            String::static_type()
+                        ])
                         .build(),
                 ]
             })
@@ -340,7 +342,7 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag::new(text, 0, text.len().to_u32().unwrap()));
+                    link_list.push(TextTag::new(text, "", 0, text.len().to_u32().unwrap()));
                 },
                 PropType::Packager => {
                     static EXPR: OnceLock<Regex> = OnceLock::new();
@@ -353,6 +355,7 @@ mod imp {
                     if let Some(m) = expr.find(text) {
                         link_list.push(TextTag::new(
                             &format!("mailto:{}", m.as_str()),
+                            "",
                             m.start().to_u32().unwrap(),
                             m.end().to_u32().unwrap()
                         ));
@@ -365,18 +368,23 @@ mod imp {
                         static EXPR: OnceLock<FancyRegex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
-                            FancyRegex::new(r"(?<=^|     )[a-zA-Z0-9@._+-]+(?=<|>|=|:|     |$)")
+                            FancyRegex::new(r"(?<=^|     )([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|     |$)")
                                 .expect("Regex error")
                         });
 
-                        link_list.extend(expr.find_iter(text)
+                        link_list.extend(expr.captures_iter(text)
                             .flatten()
-                            .map(|m| {
-                                TextTag::new(
-                                    &format!("pkg://{}", m.as_str()),
-                                    m.start().to_u32().unwrap(),
-                                    m.end().to_u32().unwrap()
-                                )
+                            .filter_map(|caps| {
+                                if let (Some(m1), Some(m2)) = (caps.get(1), caps.get(2)) {
+                                    Some(TextTag::new(
+                                        &format!("pkg://{}", m1.as_str()),
+                                        m2.as_str(),
+                                        m1.start().to_u32().unwrap(),
+                                        m1.end().to_u32().unwrap()
+                                    ))
+                                } else {
+                                    None
+                                }
                             })
                         );
 
@@ -384,6 +392,7 @@ mod imp {
                             .map(|(i, s)| {
                                 TextTag::new(
                                     s,
+                                    "",
                                     i.to_u32().unwrap(),
                                     i.checked_add(s.len()).and_then(|i| i.to_u32()).unwrap()
                                 )
@@ -708,7 +717,7 @@ impl TextWidget {
                     if let Some(focus_link) = imp.focus_link_index.get()
                         .and_then(|i| link_list.get(i))
                     {
-                        let link_url = focus_link.text();
+                        let link_url = focus_link.clone();
 
                         // Need to drop to avoid panic
                         drop(link_list);
@@ -826,13 +835,13 @@ impl TextWidget {
         index
     }
 
-    fn link_url_at_xy(&self, x: f64, y: f64) -> Option<String> {
+    fn link_at_xy(&self, x: f64, y: f64) -> Option<TextTag> {
         let (inside, index) = self._inside_index_at_xy(x, y);
 
         if inside && index >= 0 {
             return self.imp().link_list.borrow().iter()
                 .find(|link| link.start <= index as u32 && link.end > index as u32)
-                .map(|link| link.text())
+                .cloned()
         }
 
         None
@@ -843,7 +852,7 @@ impl TextWidget {
 
         if !imp.is_selecting.get() {
             // Get cursor
-            let cursor = if self.link_url_at_xy(x, y).is_some() {
+            let cursor = if self.link_at_xy(x, y).is_some() {
                 "pointer"
             } else {
                 "text"
@@ -858,14 +867,16 @@ impl TextWidget {
         }
     }
 
-    fn handle_link(&self, link_url: &str) {
+    fn handle_link(&self, link: &TextTag) {
+        let link_url = &link.text;
+
         if let Ok(url) = Url::parse(link_url) {
             let url_scheme = url.scheme();
 
             if url_scheme == "pkg" {
                 let pkg_name = url.domain().unwrap_or_default();
 
-                self.emit_by_name::<()>("package-link", &[&pkg_name]);
+                self.emit_by_name::<()>("package-link", &[&pkg_name, &link.version]);
             } else if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url_scheme) {
                 let _ = handler.launch_uris(&[link_url], None::<&gio::AppLaunchContext>);
             }
@@ -904,7 +915,7 @@ impl TextWidget {
             #[weak(rename_to = widget)] self,
             #[weak] imp,
             move |_, x, y| {
-                if widget.link_url_at_xy(x, y).is_none() {
+                if widget.link_at_xy(x, y).is_none() {
                     if !imp.is_clicked.get() {
                         let index = widget.index_at_xy(x, y);
 
@@ -960,9 +971,9 @@ impl TextWidget {
             #[weak(rename_to = widget)] self,
             #[weak] imp,
             move |_, n, x, y| {
-                let link_url = widget.link_url_at_xy(x, y);
+                let link = widget.link_at_xy(x, y);
 
-                if link_url.is_none() {
+                if link.is_none() {
                     if n == 2 {
                         // Double click: select word under cursor and redraw widget
                         imp.is_clicked.set(true);
@@ -1002,7 +1013,7 @@ impl TextWidget {
                     }
                 }
 
-                imp.pressed_link_url.replace(link_url);
+                imp.pressed_link.replace(link);
             }
         ));
 
@@ -1013,10 +1024,10 @@ impl TextWidget {
                 imp.is_clicked.set(false);
 
                 // Launch link if any
-                if let Some(link_url) = imp.pressed_link_url.take()
-                    .filter(|pressed| { widget.link_url_at_xy(x, y).as_ref() == Some(pressed)})
+                if let Some(link) = imp.pressed_link.take()
+                    .filter(|pressed| { widget.link_at_xy(x, y).as_ref() == Some(pressed)})
                 {
-                    widget.handle_link(&link_url);
+                    widget.handle_link(&link);
                 }
             }
         ));

@@ -276,7 +276,7 @@ impl InfoPane {
     //---------------------------------------
     // PropertyValue pkg link handler
     //---------------------------------------
-    fn pkg_link_handler(&self, pkg_name: &str) {
+    fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
         PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
             AUR_SNAPSHOT.with_borrow(|aur_snapshot| {
                 // Find link package by name
@@ -286,7 +286,8 @@ impl InfoPane {
                 // If link package is none, find by provides
                 if new_pkg.is_none() {
                     new_pkg = pkg_snapshot.iter().chain(aur_snapshot)
-                        .find(|&pkg| pkg.provides().iter().any(|s| s.contains(pkg_name)));
+                        .find(|&pkg| pkg.provides().iter()
+                            .any(|s| s == &format!("{pkg_name}{pkg_version}")));
                 }
 
                 // If link package found
@@ -338,8 +339,8 @@ impl InfoPane {
 
         property.set_pkg_link_handler(closure_local!(
             #[watch(rename_to = infopane)] self,
-            move |_: TextWidget, pkg_name: &str| {
-                infopane.pkg_link_handler(pkg_name)
+            move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
+                infopane.pkg_link_handler(pkg_name, pkg_version)
             }
         ));
 
