@@ -782,10 +782,10 @@ impl PacViewWindow {
 
                     imp.package_view.set_loading(true);
 
-                    // Spawn thread to download AUR package names file
+                    // Spawn tokio task to download AUR package names file
                     self.download_aur_names(aur_file, Some(sender));
 
-                    // Attach receiver
+                    // Attach channel receiver
                     glib::spawn_future_local(clone!(
                         #[weak] imp,
                         #[weak(rename_to = window)] self,

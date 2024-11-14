@@ -279,7 +279,7 @@ impl BackupWindow {
             })
             .collect();
 
-        // Spawn thread to populate column view
+        // Spawn task to populate column view
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(clone!(
@@ -293,7 +293,7 @@ impl BackupWindow {
             }
         ));
 
-        // Attach thread receiver
+        // Attach channel receiver
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {

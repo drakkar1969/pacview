@@ -387,7 +387,7 @@ impl PackageView {
         // Get AUR cache (need to clone for mutable reference)
         let mut aur_cache = imp.aur_cache.borrow_mut().clone();
 
-        // Spawn thread to search AUR
+        // Spawn tokio task to search AUR
         let (sender, receiver) = async_channel::bounded(1);
 
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
@@ -453,7 +453,7 @@ impl PackageView {
             ));
         });
 
-        // Attach thread receiver
+        // Attach channel receiver
         glib::spawn_future_local(clone!(
             #[weak] imp,
             async move {
