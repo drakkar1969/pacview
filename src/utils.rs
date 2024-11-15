@@ -66,9 +66,7 @@ pub fn open_with_default_app(path: &str) {
 
     if gio::AppInfo::launch_default_for_uri(&uri, None::<&gio::AppLaunchContext>).is_err() {
         if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-            let path = format!("file://{path}");
-    
-            let _res = desktop.launch_uris(&[&path], None::<&gio::AppLaunchContext>);
+            let _res = desktop.launch_uris(&[&uri], None::<&gio::AppLaunchContext>);
         }
     }
 }
