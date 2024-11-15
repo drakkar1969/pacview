@@ -53,7 +53,7 @@ label.count-indicator {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
 	border-radius: 9999px;
-	padding: 0 7px;
+	padding: 2px 7px;
 }
 
 /* Package view spinner */

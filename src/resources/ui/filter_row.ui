@@ -54,6 +54,7 @@
             </child>
             <child>
               <object class="GtkLabel" id="count_label">
+                <property name="valign">center</property>
                 <style>
                   <class name="caption-heading"/>
                   <class name="count-indicator"/>
