@@ -159,6 +159,6 @@ impl Default for FilterRow {
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        Self::new("", "", None, PkgFlags::empty())
+        Self::new("", "", None, PkgFlags::default())
     }
 }
