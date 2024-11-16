@@ -165,8 +165,6 @@ mod imp {
         pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) cache_none_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) cache_error_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) backup_header_label: TemplateChild<gtk::Label>,
@@ -846,7 +844,6 @@ impl InfoPane {
                     .collect();
 
                 imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-
             } else {
                 // Show overlay error label
                 imp.log_error_label.set_visible(true);
@@ -867,8 +864,8 @@ impl InfoPane {
         if installed {
             let pkg_name = pkg.name();
 
-            // Get cache blacklist package names
             INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+                // Get cache blacklist package names
                 let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
                     .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
                     .collect();
@@ -877,37 +874,29 @@ impl InfoPane {
                 let pacman_config = PACMAN_CONFIG.get().unwrap();
 
                 let mut cache_list: Vec<gtk::StringObject> = vec![];
-                let mut cache_error = false;
 
                 for dir in &pacman_config.cache_dir {
-                    if let Ok(paths) = glob(&format!("{dir}{pkg_name}*.zst")) {
-                        // Find cache files that include package name
-                        cache_list.extend(paths
-                            .flatten()
-                            .filter_map(|path| {
-                                let cache_file = path.display().to_string();
+                    // Find cache files that include package name
+                    let paths = glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
+                        .expect("Glob pattern error");
 
-                                // Exclude cache files that include blacklist package names
-                                if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
-                                    None
-                                } else {
-                                    Some(gtk::StringObject::new(&cache_file))
-                                }
-                            })
-                        );
-                    } else {
-                        cache_error = true;
-                        break;
-                    }
+                    cache_list.extend(paths
+                        .flatten()
+                        .filter_map(|path| {
+                            let cache_file = path.display().to_string();
+
+                            // Exclude cache files that include blacklist package names
+                            if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
+                                None
+                            } else {
+                                Some(gtk::StringObject::new(&cache_file))
+                            }
+                        })
+                    );
                 }
 
-                if cache_error {
-                    // Show overlay error label
-                    imp.cache_error_label.set_visible(true);
-                } else {
-                    // Populate cache view
-                    imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
-                }
+                // Populate cache view
+                imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
             });
         } else {
             imp.cache_model.remove_all();
