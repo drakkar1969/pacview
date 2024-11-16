@@ -6,6 +6,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
+use itertools::Itertools;
 use regex::Regex;
 
 use crate::log_object::LogObject;
@@ -200,7 +201,6 @@ impl LogWindow {
                             category=log.category(),
                             message=log.message())
                     })
-                    .collect::<Vec<String>>()
                     .join("\n"));
 
                 window.clipboard().set_text(&copy_text);

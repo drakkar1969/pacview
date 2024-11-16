@@ -9,6 +9,7 @@ use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
 
+use itertools::Itertools;
 use raur::Raur;
 use raur::ArcPackage;
 use futures::future;
@@ -542,7 +543,6 @@ impl PackageView {
                     version=pkg.version()
                 )
             })
-            .collect::<Vec<String>>()
             .join("\n"));
 
         copy_text

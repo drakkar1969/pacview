@@ -5,6 +5,8 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
+use itertools::Itertools;
+
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumValueExt;
@@ -236,7 +238,6 @@ impl BackupWindow {
 
                         line
                     })
-                    .collect::<Vec<String>>()
                     .join("\n"));
 
                 window.clipboard().set_text(&copy_text);

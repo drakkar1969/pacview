@@ -8,6 +8,7 @@ use gtk::prelude::*;
 use glib::closure_local;
 use glib::clone;
 
+use itertools::Itertools;
 use regex::Regex;
 use glob::glob;
 
@@ -577,7 +578,6 @@ impl InfoPane {
                             .expect("Could not downcast to 'StringObject'")
                             .string()
                     })
-                    .collect::<Vec<glib::GString>>()
                     .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);
@@ -605,7 +605,6 @@ impl InfoPane {
 
                 copy_text.push_str(&imp.log_model.iter::<gtk::StringObject>().flatten()
                     .map(|item| item.string())
-                    .collect::<Vec<glib::GString>>()
                     .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);
@@ -635,7 +634,6 @@ impl InfoPane {
 
                 copy_text.push_str(&imp.cache_model.iter::<gtk::StringObject>().flatten()
                     .map(|item| item.string())
-                    .collect::<Vec<glib::GString>>()
                     .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);
@@ -680,7 +678,6 @@ impl InfoPane {
                             status=item.status_text()
                         )
                     })
-                    .collect::<Vec<String>>()
                     .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);

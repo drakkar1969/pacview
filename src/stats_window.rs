@@ -3,6 +3,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
+use itertools::Itertools;
 use titlecase::titlecase;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -128,7 +129,6 @@ impl StatsWindow {
                             installed=stat.installed(),
                             size=stat.size())
                     })
-                    .collect::<Vec<String>>()
                     .join("\n"));
 
                 window.clipboard().set_text(&copy_text);
