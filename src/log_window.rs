@@ -161,20 +161,14 @@ impl LogWindow {
         imp.package_button.connect_toggled(clone!(
             #[weak] imp,
             move |package_button| {
-                static EXPR: OnceLock<Regex> = OnceLock::new();
-
-                let expr = EXPR.get_or_init(|| {
-                    Regex::new(r"^installed|removed|upgraded|downgraded .+")
-                        .expect("Regex error")
-                });
-
                 if package_button.is_active() {
                     imp.package_filter.set_filter_func(move |item| {
                         let msg = item
                             .downcast_ref::<LogObject>()
-                            .expect("Could not downcast to 'LogObject'");
+                            .expect("Could not downcast to 'LogObject'")
+                            .message();
 
-                        expr.is_match(&msg.message())
+                        msg.starts_with("installed ") || msg.starts_with("removed ") || msg.starts_with("upgraded ") || msg.starts_with("downgraded ")
                     });
                 } else {
                     imp.package_filter.unset_filter_func();
