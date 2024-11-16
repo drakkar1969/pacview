@@ -384,16 +384,16 @@ impl InfoPane {
                 .map(|dep| {
                     let mut dep = dep.to_string();
 
-                        if dep.split_once(['<', '>', '=', ':'])
-                            .filter(|&(name, _)| installed_pkg_names.contains(name))
-                            .is_some()
-                        {
-                            dep.push_str(" [INSTALLED]");
-                        }
+                    if dep.split_once(['<', '>', '=', ':'])
+                        .filter(|&(name, _)| installed_pkg_names.contains(name))
+                        .is_some()
+                    {
+                        dep.push_str(" [INSTALLED]");
+                    }
 
                     dep
                 })
-                .collect::<Vec<String>>()
+                .collect()
         })
     }
 
