@@ -7,6 +7,7 @@ use gtk::prelude::ObjectExt;
 use strum::FromRepr;
 
 use crate::enum_traits::EnumValueExt;
+use crate::pkg_object::PkgBackup;
 
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus
@@ -42,8 +43,8 @@ mod imp {
         filename: RefCell<String>,
         #[property(get, set, construct_only)]
         hash: RefCell<String>,
-        #[property(get, set, construct_only)]
-        file_hash: RefCell<String>,
+        #[property(get, set, nullable, construct_only)]
+        file_hash: RefCell<Option<String>>,
         #[property(get, set, construct_only)]
         package: RefCell<String>,
 
@@ -73,9 +74,7 @@ mod imp {
         // Custom property getters
         //---------------------------------------
         fn status(&self) -> BackupStatus {
-            let file_hash = self.obj().file_hash();
-
-            if !file_hash.is_empty() {
+            if let Some(file_hash) = self.obj().file_hash() {
                 if file_hash == self.obj().hash() {
                     BackupStatus::Unmodified
                 } else {
@@ -107,12 +106,12 @@ impl BackupObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(filename: &str, hash: &str, file_hash: &str, package: &str) -> Self {
+    pub fn new(backup: &PkgBackup) -> Self {
         glib::Object::builder()
-            .property("filename", filename)
-            .property("hash", hash)
-            .property("file-hash", file_hash)
-            .property("package", package)
+            .property("filename", backup.filename())
+            .property("hash", backup.hash())
+            .property("file-hash", backup.file_hash())
+            .property("package", backup.package())
             .build()
     }
 }

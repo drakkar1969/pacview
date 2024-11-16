@@ -925,7 +925,7 @@ impl InfoPane {
         if installed {
             // Populate backup view
             let backup_list: Vec<BackupObject> = pkg.backup().iter()
-                .map(|(filename, hash, file_hash, package)| BackupObject::new(filename, hash, file_hash, package))
+                .map(|backup| BackupObject::new(backup))
                 .collect();
 
             imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);

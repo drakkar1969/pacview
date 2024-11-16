@@ -42,6 +42,23 @@ fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
 }
 
 //------------------------------------------------------------------------------
+// ENUM: PkgData
+//------------------------------------------------------------------------------
+pub enum PkgData {
+    Handle(Rc<alpm::Alpm>),
+    AurPkg(raur::ArcPackage),
+}
+
+//------------------------------------------------------------------------------
+// ENUM: PkgInternal
+//------------------------------------------------------------------------------
+enum PkgInternal<'a> {
+    Pacman(&'a alpm::Package),
+    Aur(&'a raur::ArcPackage),
+    None
+}
+
+//------------------------------------------------------------------------------
 // FLAGS: PkgFlags
 //------------------------------------------------------------------------------
 #[glib::flags(name = "PkgFlags")]
@@ -63,20 +80,45 @@ impl Default for PkgFlags {
 }
 
 //------------------------------------------------------------------------------
-// ENUM: PkgData
+// STRUCT: PkgBackup
 //------------------------------------------------------------------------------
-pub enum PkgData {
-    Handle(Rc<alpm::Alpm>),
-    AurPkg(raur::ArcPackage),
+#[derive(Default, Debug, Clone)]
+pub struct PkgBackup {
+    filename: String,
+    hash: String,
+    file_hash: Option<String>,
+    package: String
 }
 
-//------------------------------------------------------------------------------
-// ENUM: PkgInternal
-//------------------------------------------------------------------------------
-enum PkgInternal<'a> {
-    Pacman(&'a alpm::Package),
-    Aur(&'a raur::ArcPackage),
-    None
+impl PkgBackup {
+    fn new(backup: &alpm::Backup, package: &str, root_dir: &str) -> Self {
+        let filename = format!("{}{}", root_dir, backup.name());
+
+        let file_hash = alpm::compute_md5sum(filename.as_str()).ok();
+
+        Self {
+            filename,
+            hash: backup.hash().to_string(),
+            file_hash,
+            package: package.to_string()
+        }
+    }
+
+    pub fn filename(&self) -> &str {
+        &self.filename
+    }
+
+    pub fn hash(&self) -> &str {
+        &self.hash
+    }
+
+    pub fn file_hash(&self) -> Option<&str> {
+        self.file_hash.as_deref()
+    }
+
+    pub fn package(&self) -> &str {
+        &self.package
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -145,7 +187,7 @@ mod imp {
         pub(super) has_script: OnceCell<bool>,
         pub(super) sha256sum: OnceCell<String>,
         pub(super) files: OnceCell<Vec<String>>,
-        pub(super) backup: OnceCell<Vec<(String, String, String, String)>>,
+        pub(super) backup: OnceCell<Vec<PkgBackup>>,
     }
 
     //---------------------------------------
@@ -585,7 +627,7 @@ impl PkgObject {
         })
     }
 
-    pub fn backup(&self) -> &[(String, String, String, String)] {
+    pub fn backup(&self) -> &[PkgBackup] {
         let imp = self.imp();
 
         imp.backup.get_or_init(|| {
@@ -594,16 +636,11 @@ impl PkgObject {
             imp.local_pkg()
                 .map(|pkg| {
                     pkg.backup().iter()
-                        .map(|backup| {
-                            let filename = format!("{}{}", pacman_config.root_dir, backup.name());
-
-                            let file_hash = alpm::compute_md5sum(filename.as_str())
-                                .unwrap_or_default();
-
-                            (filename, backup.hash().to_string(), file_hash, pkg.name().to_string())
-                        })
-                        .sorted_unstable_by(|(a_file, _, _, _), (b_file, _, _, _)|
-                            a_file.partial_cmp(b_file).unwrap_or(Ordering::Equal)
+                        .map(|backup|
+                            PkgBackup::new(backup, pkg.name(), &pacman_config.root_dir)
+                        )
+                        .sorted_unstable_by(|backup_a, backup_b|
+                            backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
                         )
                         .collect()
                 })

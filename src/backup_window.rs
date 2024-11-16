@@ -7,7 +7,7 @@ use glib::clone;
 
 use itertools::Itertools;
 
-use crate::pkg_object::PkgObject;
+use crate::pkg_object::{PkgBackup, PkgObject};
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumValueExt;
 use crate::utils::open_with_default_app;
@@ -265,7 +265,7 @@ impl BackupWindow {
 
         // Define local enum
         enum BackupResult {
-            Backup(String, String, String, String),
+            Backup(PkgBackup),
             End
         }
 
@@ -274,9 +274,9 @@ impl BackupWindow {
         imp.filter_model.set_filter(None::<&gtk::Filter>);
 
         // Get backup list
-        let backup_list: Vec<(String, String, String, String)> = installed_snapshot.iter()
+        let backup_list: Vec<PkgBackup> = installed_snapshot.iter()
             .flat_map(|pkg| { pkg.backup().iter()
-                .map(|(filename, hash, file_hash, package)| (filename.to_string(), hash.to_string(), file_hash.to_string(), package.to_string()))
+                .map(|backup| backup.clone())
             })
             .collect();
 
@@ -285,8 +285,8 @@ impl BackupWindow {
 
         gio::spawn_blocking(clone!(
             move || {
-                for (filename, hash, file_hash, package) in backup_list {
-                    sender.send_blocking(BackupResult::Backup(filename, hash, file_hash, package))
+                for backup in backup_list {
+                    sender.send_blocking(BackupResult::Backup(backup))
                         .expect("Could not send through channel");
                 }
 
@@ -301,8 +301,8 @@ impl BackupWindow {
                 while let Ok(result) = receiver.recv().await {
                     match result {
                         // Append backup to column view
-                        BackupResult::Backup(filename, hash, file_hash, package) => {
-                            imp.model.append(&BackupObject::new(&filename, &hash, &file_hash, &package));
+                        BackupResult::Backup(backup) => {
+                            imp.model.append(&BackupObject::new(&backup));
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {
