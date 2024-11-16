@@ -2,7 +2,7 @@
 <interface>
   <!--// BackupWindow template //-->
   <template class="BackupWindow" parent="AdwWindow">
-    <property name="default-width">750</property>
+    <property name="default-width">850</property>
     <property name="default-height">640</property>
     <property name="modal">true</property>
     <property name="title"></property>
@@ -72,9 +72,18 @@
                     <property name="valign">center</property>
                     <property name="spacing">6</property>
                     <child>
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <property name="margin-start">20</property>
+                        <property name="margin-end">14</property>
+                        <property name="tooltip-text">Search in Messages</property>
+                        <style>
+                          <class name="rounded"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkDropDown" id="status_dropdown">
                         <property name="width-request">160</property>
-                        <property name="margin-start">20</property>
                         <property name="margin-end">14</property>
                         <property name="model">
                           <object class="AdwEnumListModel">
@@ -141,11 +150,22 @@
                             <property name="model">
                               <object class="GtkFilterListModel" id="filter_model">
                                 <property name="filter">
-                                  <object class="GtkStringFilter" id="status_filter">
-                                    <property name="expression">
-                                      <lookup name="status-text" type="BackupObject"/>
-                                    </property>
-                                    <property name="match-mode">exact</property>
+                                  <object class="GtkEveryFilter" id="backup_filter">
+                                    <child>
+                                      <object class="GtkStringFilter" id="search_filter">
+                                        <property name="expression">
+                                          <lookup name="package" type="BackupObject"/>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkStringFilter" id="status_filter">
+                                        <property name="expression">
+                                          <lookup name="status-text" type="BackupObject"/>
+                                        </property>
+                                        <property name="match-mode">exact</property>
+                                      </object>
+                                    </child>
                                   </object>
                                 </property>
                                 <property name="model">

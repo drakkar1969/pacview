@@ -27,6 +27,8 @@ mod imp {
         #[template_child]
         pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+        #[template_child]
         pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub(super) open_button: TemplateChild<gtk::Button>,
@@ -43,6 +45,10 @@ mod imp {
         pub(super) section_sort_model: TemplateChild<gtk::SortListModel>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub(super) backup_filter: TemplateChild<gtk::EveryFilter>,
+        #[template_child]
+        pub(super) search_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
@@ -119,6 +125,9 @@ impl BackupWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
+        // Set search entry key capture widget
+        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+
         // Bind backup files count to header sub label
         imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
             .transform_to(move |binding, n_items: u32| {
@@ -173,6 +182,21 @@ impl BackupWindow {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Search entry search started signal
+        imp.search_entry.connect_search_started(|entry| {
+            if !entry.has_focus() {
+                entry.grab_focus();
+            }
+        });
+
+        // Search entry search changed signal
+        imp.search_entry.connect_search_changed(clone!(
+            #[weak] imp,
+            move |entry| {
+                imp.search_filter.set_search(Some(&entry.text()));
+            }
+        ));
 
         // Status dropdown selected property notify signal
         imp.status_dropdown.connect_selected_item_notify(clone!(
@@ -270,6 +294,9 @@ impl BackupWindow {
         }
 
         // Disable sorting/filtering
+        let section_sorter = imp.section_sort_model.section_sorter();
+        let filter = imp.filter_model.filter();
+
         imp.section_sort_model.set_section_sorter(None::<&gtk::Sorter>);
         imp.filter_model.set_filter(None::<&gtk::Filter>);
 
@@ -304,10 +331,10 @@ impl BackupWindow {
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {
-                            imp.status_dropdown.set_selected(1);
+                            imp.status_dropdown.set_selected(0);
 
-                            imp.section_sort_model.set_section_sorter(Some(&imp.section_sorter.get()));
-                            imp.filter_model.set_filter(Some(&imp.status_filter.get()));
+                            imp.section_sort_model.set_section_sorter(section_sorter.as_ref());
+                            imp.filter_model.set_filter(filter.as_ref());
 
                             imp.selection.set_selected(0);
                             imp.view.scroll_to(0, None, gtk::ListScrollFlags::FOCUS, None);
