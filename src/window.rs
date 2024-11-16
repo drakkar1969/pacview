@@ -8,6 +8,7 @@ use std::env;
 use std::io;
 use std::io::Read;
 use std::str::FromStr;
+use std::fs;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -47,6 +48,7 @@ thread_local! {
     pub static INSTALLED_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+    pub static PACMAN_LOG: RefCell<Option<String>> = const {RefCell::new(None)};
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
@@ -597,11 +599,11 @@ impl PacViewWindow {
         // Add show pacman log window action
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
-                let pacman_config = PACMAN_CONFIG.get().unwrap();
-
                 let log_window = LogWindow::new(window);
 
-                log_window.show(&pacman_config.log_file);
+                PACMAN_LOG.with_borrow(|pacman_log| {
+                    log_window.show(pacman_log);
+                });
             })
             .build();
 
@@ -941,9 +943,12 @@ impl PacViewWindow {
     fn load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
 
-        // Populate package view
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
+        // Load pacman log
+        PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok());
+
+        // Populate package view
         if let Ok(handle) = alpm_utils::alpm_with_conf(pacman_config) {
             let handle_ref = Rc::new(handle);
 

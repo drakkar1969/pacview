@@ -1,5 +1,4 @@
 use std::sync::OnceLock;
-use std::fs;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -205,7 +204,7 @@ impl LogWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, log_file: &str) {
+    pub fn show(&self, log: &Option<String>) {
         let imp = self.imp();
 
         self.present();
@@ -219,11 +218,10 @@ impl LogWindow {
         // Spawn task to populate column view
         let (sender, receiver) = async_channel::bounded(1);
 
-        let log_file = log_file.to_string();
-
         gio::spawn_blocking(clone!(
+            #[strong] log,
             move || {
-                if let Ok(log) = fs::read_to_string(log_file) {
+                if let Some(log) = log {
                     // Strip ANSI control sequences from log
                     static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 

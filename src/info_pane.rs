@@ -1,6 +1,5 @@
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
-use std::fs;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -12,7 +11,7 @@ use itertools::Itertools;
 use regex::Regex;
 use glob::glob;
 
-use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PACMAN_CONFIG};
+use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PACMAN_LOG, PACMAN_CONFIG};
 use crate::text_widget::{TextWidget, PropType};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -827,27 +826,27 @@ impl InfoPane {
 
         if installed {
             // Populate log view
-            let pacman_config = PACMAN_CONFIG.get().unwrap();
+            PACMAN_LOG.with_borrow(|pacman_log| {
+                if let Some(log) = pacman_log {
+                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
+                        .expect("Regex error");
 
-            if let Ok(log) = fs::read_to_string(&pacman_config.log_file) {
-                let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
-                    .expect("Regex error");
+                    let log_lines: Vec<gtk::StringObject> = log.lines().rev()
+                        .filter_map(|s| {
+                            if expr.is_match(s) {
+                                Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
+                            } else {
+                                None
+                            }
+                        })
+                        .collect();
 
-                let log_lines: Vec<gtk::StringObject> = log.lines().rev()
-                    .filter_map(|s| {
-                        if expr.is_match(s) {
-                            Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect();
-
-                imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-            } else {
-                // Show overlay error label
-                imp.log_error_label.set_visible(true);
-            };
+                    imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
+                } else {
+                    // Show overlay error label
+                    imp.log_error_label.set_visible(true);
+                };
+            });
         } else {
             imp.log_model.remove_all();
         }
