@@ -275,9 +275,7 @@ impl BackupWindow {
 
         // Get backup list
         let backup_list: Vec<PkgBackup> = installed_snapshot.iter()
-            .flat_map(|pkg| { pkg.backup().iter()
-                .map(|backup| backup.clone())
-            })
+            .flat_map(|pkg| pkg.backup().iter().cloned())
             .collect();
 
         // Spawn task to populate column view

@@ -36,7 +36,7 @@ fn aur_vec_to_string(vec: &[String]) -> String {
 
 fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
     vec.iter()
-        .map(|s| s.to_string())
+        .map(String::from)
         .sorted_unstable()
         .collect()
 }

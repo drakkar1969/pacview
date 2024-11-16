@@ -596,7 +596,7 @@ impl TextWidget {
 
         if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get()) {
             self.text().get(start.min(end) as usize..start.max(end) as usize)
-                .map(|s| s.to_string())
+                .map(String::from)
         } else {
             None
         }

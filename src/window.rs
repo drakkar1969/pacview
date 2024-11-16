@@ -955,7 +955,7 @@ impl PacViewWindow {
             if let Some(aur_file) = aur_file {
                 if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
                     aur_names = String::from_utf8_lossy(&bytes).lines()
-                        .map(|line| line.to_string())
+                        .map(String::from)
                         .collect();
                 };
             }
