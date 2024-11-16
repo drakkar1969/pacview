@@ -125,7 +125,7 @@ impl BackupWindow {
                     .expect("Could not downcast to 'FilterListModel'");
 
                 let section_map: HashSet<String> = filter_model.iter::<glib::Object>().flatten()
-                    .filter_map(|item| {
+                    .map(|item| {
                         item
                             .downcast::<BackupObject>()
                             .expect("Could not downcast to 'BackupObject'")
@@ -219,7 +219,7 @@ impl BackupWindow {
 
                         let mut line = String::from("");
 
-                        let backup_package = backup.package().unwrap_or("None".to_string());
+                        let backup_package = backup.package();
 
                         if backup_package != package {
                             line.push_str(&format!("|**{package}**||\n",
@@ -264,7 +264,7 @@ impl BackupWindow {
 
         // Define local enum
         enum BackupResult {
-            Backup(String, String, String, Option<String>),
+            Backup(String, String, String, String),
             End
         }
 
@@ -273,9 +273,9 @@ impl BackupWindow {
         imp.filter_model.set_filter(None::<&gtk::Filter>);
 
         // Get backup list
-        let backup_list: Vec<(String, String, String, Option<String>)> = installed_snapshot.iter()
+        let backup_list: Vec<(String, String, String, String)> = installed_snapshot.iter()
             .flat_map(|pkg| { pkg.backup().iter()
-                .map(|(filename, hash, file_hash)| (filename.to_string(), hash.to_string(), file_hash.to_string(), Some(pkg.name())))
+                .map(|(filename, hash, file_hash, package)| (filename.to_string(), hash.to_string(), file_hash.to_string(), package.to_string()))
             })
             .collect();
 
@@ -301,7 +301,7 @@ impl BackupWindow {
                     match result {
                         // Append backup to column view
                         BackupResult::Backup(filename, hash, file_hash, package) => {
-                            imp.model.append(&BackupObject::new(&filename, &hash, &file_hash, package.as_deref()));
+                            imp.model.append(&BackupObject::new(&filename, &hash, &file_hash, &package));
                         },
                         // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {

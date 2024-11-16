@@ -44,8 +44,8 @@ mod imp {
         hash: RefCell<String>,
         #[property(get, set, construct_only)]
         file_hash: RefCell<String>,
-        #[property(get, set, nullable, construct_only)]
-        package: RefCell<Option<String>>,
+        #[property(get, set, construct_only)]
+        package: RefCell<String>,
 
         // Read only properties
         #[property(get = Self::status, builder(BackupStatus::default()))]
@@ -107,7 +107,7 @@ impl BackupObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(filename: &str, hash: &str, file_hash: &str, package: Option<&str>) -> Self {
+    pub fn new(filename: &str, hash: &str, file_hash: &str, package: &str) -> Self {
         glib::Object::builder()
             .property("filename", filename)
             .property("hash", hash)

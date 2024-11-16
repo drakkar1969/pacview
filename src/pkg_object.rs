@@ -145,7 +145,7 @@ mod imp {
         pub(super) has_script: OnceCell<bool>,
         pub(super) sha256sum: OnceCell<String>,
         pub(super) files: OnceCell<Vec<String>>,
-        pub(super) backup: OnceCell<Vec<(String, String, String)>>,
+        pub(super) backup: OnceCell<Vec<(String, String, String, String)>>,
     }
 
     //---------------------------------------
@@ -585,7 +585,7 @@ impl PkgObject {
         })
     }
 
-    pub fn backup(&self) -> &[(String, String, String)] {
+    pub fn backup(&self) -> &[(String, String, String, String)] {
         let imp = self.imp();
 
         imp.backup.get_or_init(|| {
@@ -600,9 +600,9 @@ impl PkgObject {
                             let file_hash = alpm::compute_md5sum(filename.as_str())
                                 .unwrap_or_default();
 
-                            (filename, backup.hash().to_string(), file_hash)
+                            (filename, backup.hash().to_string(), file_hash, pkg.name().to_string())
                         })
-                        .sorted_unstable_by(|(a_file, _, _), (b_file, _, _)|
+                        .sorted_unstable_by(|(a_file, _, _, _), (b_file, _, _, _)|
                             a_file.partial_cmp(b_file).unwrap_or(Ordering::Equal)
                         )
                         .collect()
