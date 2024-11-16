@@ -962,23 +962,24 @@ impl PacViewWindow {
 
             // Load pacman sync packages
             let sync_pkgs: Vec<PkgObject> = handle_ref.syncdbs().iter()
-                .flat_map(|db| db.pkgs().iter()
-                    .map(|syncpkg| {
-                        let repo = syncpkg.db().map(|db| db.name()).unwrap_or_default();
-
-                        PkgObject::new(syncpkg.name(), repo, PkgData::Handle(handle_ref.clone()))
-                    })
-                )
+                .flat_map(|db| {
+                    db.pkgs().iter()
+                        .map(|syncpkg| {
+                            PkgObject::new(syncpkg.name(), db.name(), PkgData::Handle(handle_ref.clone()))
+                        })
+                })
                 .collect();
 
             // Load pacman local packages not in sync databases
+            let local_db_name = handle_ref.localdb().name();
+
             let local_pkgs: Vec<PkgObject> = handle_ref.localdb().pkgs().iter()
                 .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
                 .map(|pkg| {
                     let repo = if aur_names.contains(pkg.name()) {
                         "aur"
                     } else {
-                        pkg.db().map(|db| db.name()).unwrap_or_default()
+                        local_db_name
                     };
 
                     PkgObject::new(pkg.name(), repo, PkgData::Handle(handle_ref.clone()))
