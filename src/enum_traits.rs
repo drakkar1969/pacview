@@ -28,7 +28,7 @@ where Self: ToValue + StaticType + HasParamSpec<ParamSpec = ParamSpecEnum> + Siz
             .expect("Could not get 'EnumValue'")
     }
 
-    fn variant_nick(&self) -> Variant {
+    fn nick_variant(&self) -> Variant {
         EnumValue::from_value(&self.to_value())
             .map(|(_, enum_value)| enum_value.nick().to_variant())
             .expect("Could not get 'EnumValue'")

@@ -138,7 +138,7 @@ mod imp {
                 let new_mode = mode_iter.next()
                     .expect("Could not get 'SearchMode'");
 
-                bar.activate_action("search.set-mode", Some(&new_mode.variant_nick())).unwrap();
+                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
@@ -151,7 +151,7 @@ mod imp {
                 let new_mode = mode_iter.next()
                     .expect("Could not get 'SearchMode'");
 
-                bar.activate_action("search.set-mode", Some(&new_mode.variant_nick())).unwrap();
+                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
@@ -160,19 +160,19 @@ mod imp {
             klass.add_shortcut(&gtk::Shortcut::with_arguments(
                 gtk::ShortcutTrigger::parse_string("<ctrl>L"),
                 Some(gtk::NamedAction::new("search.set-mode")),
-                &SearchMode::All.variant_nick()
+                &SearchMode::All.nick_variant()
             ));
 
             klass.add_shortcut(&gtk::Shortcut::with_arguments(
                 gtk::ShortcutTrigger::parse_string("<ctrl>N"),
                 Some(gtk::NamedAction::new("search.set-mode")),
-                &SearchMode::Any.variant_nick()
+                &SearchMode::Any.nick_variant()
             ));
 
             klass.add_shortcut(&gtk::Shortcut::with_arguments(
                 gtk::ShortcutTrigger::parse_string("<ctrl>E"),
                 Some(gtk::NamedAction::new("search.set-mode")),
-                &SearchMode::Exact.variant_nick()
+                &SearchMode::Exact.nick_variant()
             ));
 
             // Add cycle search prop key binding
@@ -183,7 +183,7 @@ mod imp {
                 let new_prop = prop_iter.next()
                     .expect("Could not get 'SearchProp'");
 
-                bar.activate_action("search.set-prop", Some(&new_prop.variant_nick())).unwrap();
+                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
@@ -196,7 +196,7 @@ mod imp {
                 let new_prop = prop_iter.next()
                     .expect("Could not get 'SearchProp'");
 
-                bar.activate_action("search.set-prop", Some(&new_prop.variant_nick())).unwrap();
+                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
@@ -206,7 +206,7 @@ mod imp {
                 klass.add_shortcut(&gtk::Shortcut::with_arguments(
                     gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
                     Some(gtk::NamedAction::new("search.set-prop")),
-                    &value.variant_nick()
+                    &value.nick_variant()
                 ));
             }
 
@@ -456,8 +456,8 @@ impl SearchBar {
             .activate(clone!(
                 #[weak(rename_to = bar)] self,
                 move |group: &gio::SimpleActionGroup, _, _| {
-                    group.activate_action("set-mode", Some(&bar.default_mode().variant_nick()));
-                    group.activate_action("set-prop", Some(&bar.default_prop().variant_nick()));
+                    group.activate_action("set-mode", Some(&bar.default_mode().nick_variant()));
+                    group.activate_action("set-prop", Some(&bar.default_prop().nick_variant()));
                 }
             ))
             .build();
