@@ -20,8 +20,8 @@ pub enum BackupStatus {
     Modified,
     Unmodified,
     #[default]
-    #[enum_value(name = "Read Error")]
-    Error,
+    #[enum_value(name = "Access Denied")]
+    Locked,
 }
 
 impl EnumValueExt for BackupStatus {}
@@ -81,7 +81,7 @@ mod imp {
                     BackupStatus::Modified
                 }
             } else {
-                BackupStatus::Error
+                BackupStatus::Locked
             }
         }
 

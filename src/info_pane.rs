@@ -486,7 +486,7 @@ impl InfoPane {
                 if let Some(object) = item.and_downcast::<BackupObject>() {
                     let status = object.status();
 
-                    Some(status != BackupStatus::Error && status != BackupStatus::All)
+                    Some(status != BackupStatus::Locked && status != BackupStatus::All)
                 } else {
                     Some(false)
                 }
