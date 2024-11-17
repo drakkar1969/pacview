@@ -6,9 +6,9 @@ use glib::{EnumValue, HasParamSpec, ParamSpecEnum, Variant};
 use num::ToPrimitive;
 
 //------------------------------------------------------------------------------
-// TRAIT: EnumValueExt
+// TRAIT: EnumExt
 //------------------------------------------------------------------------------
-pub trait EnumValueExt
+pub trait EnumExt
 where Self: ToValue + StaticType + HasParamSpec<ParamSpec = ParamSpecEnum> + Sized {
     fn name(&self) -> String {
         EnumValue::from_value(&self.to_value())

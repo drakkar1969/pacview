@@ -14,7 +14,7 @@ use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::backup_object::{BackupObject, BackupStatus};
-use crate::enum_traits::EnumValueExt;
+use crate::enum_traits::EnumExt;
 use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ enum PropID {
     SHA256Sum,
 }
 
-impl EnumValueExt for PropID {}
+impl EnumExt for PropID {}
 
 //------------------------------------------------------------------------------
 // MODULE: InfoPane

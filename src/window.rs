@@ -37,7 +37,7 @@ use crate::backup_window::BackupWindow;
 use crate::log_window::LogWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::{PreferencesDialog, ColorScheme};
-use crate::enum_traits::EnumValueExt;
+use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES

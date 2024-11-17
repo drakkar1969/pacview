@@ -6,7 +6,7 @@ use gtk::prelude::ObjectExt;
 
 use strum::FromRepr;
 
-use crate::enum_traits::EnumValueExt;
+use crate::enum_traits::EnumExt;
 use crate::pkg_object::PkgBackup;
 
 //------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ pub enum BackupStatus {
     Locked,
 }
 
-impl EnumValueExt for BackupStatus {}
+impl EnumExt for BackupStatus {}
 
 //------------------------------------------------------------------------------
 // MODULE: BackupObject

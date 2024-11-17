@@ -9,7 +9,7 @@ use itertools::Itertools;
 
 use crate::pkg_object::{PkgBackup, PkgObject};
 use crate::backup_object::{BackupObject, BackupStatus};
-use crate::enum_traits::EnumValueExt;
+use crate::enum_traits::EnumExt;
 use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------

@@ -19,7 +19,7 @@ use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
-use crate::enum_traits::EnumValueExt;
+use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
 // ENUM: SortProp
@@ -39,7 +39,7 @@ pub enum SortProp {
     Groups,
 }
 
-impl EnumValueExt for SortProp {}
+impl EnumExt for SortProp {}
 
 //------------------------------------------------------------------------------
 // MODULE: PackageView

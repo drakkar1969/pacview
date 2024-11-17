@@ -11,7 +11,7 @@ use glib::clone;
 use strum::{EnumString, FromRepr, EnumIter, IntoEnumIterator};
 
 use crate::search_tag::SearchTag;
-use crate::enum_traits::EnumValueExt;
+use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
 // ENUM: SearchMode
@@ -30,7 +30,7 @@ pub enum SearchMode {
     Exact,
 }
 
-impl EnumValueExt for SearchMode {}
+impl EnumExt for SearchMode {}
 
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
@@ -57,7 +57,7 @@ pub enum SearchProp {
     Files,
 }
 
-impl EnumValueExt for SearchProp {}
+impl EnumExt for SearchProp {}
 
 //------------------------------------------------------------------------------
 // MODULE: SearchBar
