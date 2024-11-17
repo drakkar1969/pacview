@@ -435,18 +435,18 @@ impl InfoPane {
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
         // Bind files count to files count label
-        imp.files_filter_model.bind_property("n-items", &imp.files_count_label.get(), "label")
+        imp.files_selection.bind_property("n-items", &imp.files_count_label.get(), "label")
             .transform_to(move |_, n_items: u32| Some(n_items.to_string()))
             .sync_create()
             .build();
 
         // Bind files count to files open/copy button states
-        imp.files_filter_model.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
+        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .sync_create()
             .build();
 
-        imp.files_filter_model.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
+        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .sync_create()
             .build();

@@ -122,7 +122,7 @@ impl LogWindow {
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
         // Bind view count to header sub label
-        imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
+        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
             .transform_to(|_, n_items: u32| {
                 Some(format!("{n_items} line{}",
                     if n_items != 1 {"s"} else {""}

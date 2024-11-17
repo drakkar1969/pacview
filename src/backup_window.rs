@@ -129,13 +129,13 @@ impl BackupWindow {
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
         // Bind backup files count to header sub label
-        imp.filter_model.bind_property("n-items", &imp.header_sub_label.get(), "label")
+        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
             .transform_to(move |binding, n_items: u32| {
-                let filter_model = binding.source()
-                    .and_downcast::<gtk::FilterListModel>()
+                let selection = binding.source()
+                    .and_downcast::<gtk::SingleSelection>()
                     .expect("Could not downcast to 'FilterListModel'");
 
-                let section_map: HashSet<String> = filter_model.iter::<glib::Object>().flatten()
+                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
                     .map(|item| {
                         item
                             .downcast::<BackupObject>()
@@ -168,7 +168,7 @@ impl BackupWindow {
             .build();
 
         // Bind backup files count to copy button state
-        imp.filter_model.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
             .sync_create()
             .build();

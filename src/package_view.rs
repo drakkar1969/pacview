@@ -173,12 +173,12 @@ impl PackageView {
         let imp = self.imp();
 
         // Bind item count to n_items property
-        imp.filter_model.bind_property("n-items", self, "n-items")
+        imp.selection.bind_property("n-items", self, "n-items")
             .sync_create()
             .build();
 
         // Bind item count to empty label visibility
-        imp.filter_model.bind_property("n-items", &imp.empty_label.get(), "visible")
+        imp.selection.bind_property("n-items", &imp.empty_label.get(), "visible")
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .sync_create()
             .build();
