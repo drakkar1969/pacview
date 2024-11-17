@@ -10,7 +10,7 @@ use glib::clone;
 use itertools::Itertools;
 
 use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
-use crate::text_widget::{TextWidget, PropType};
+use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::backup_object::{BackupObject, BackupStatus};
@@ -368,7 +368,7 @@ impl InfoPane {
     }
 
     fn set_vec_property(&self, id: PropID, visible: bool, value: &[String], icon: Option<&str>) {
-        self.set_string_property(id, visible, &value.join("     "), icon);
+        self.set_string_property(id, visible, &value.join(LINK_SPACER), icon);
     }
 
     //---------------------------------------
@@ -384,7 +384,7 @@ impl InfoPane {
                         .filter(|&(name, _)| installed_pkg_names.contains(name))
                         .is_some()
                     {
-                        dep.push_str(" [INSTALLED]");
+                        dep.push_str(INSTALLED_LABEL);
                     }
 
                     dep

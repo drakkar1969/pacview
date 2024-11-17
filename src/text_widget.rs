@@ -16,6 +16,8 @@ use url::Url;
 // CONST variables
 //------------------------------------------------------------------------------
 const EXPAND_MARGIN: i32 = 50;
+pub const INSTALLED_LABEL: &str = " [INSTALLED]";
+pub const LINK_SPACER: &str = "     ";
 
 //------------------------------------------------------------------------------
 // ENUM: PropType
@@ -368,7 +370,7 @@ mod imp {
                         static EXPR: OnceLock<FancyRegex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
-                            FancyRegex::new(r"(?<=^|     )([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|     |$)")
+                            FancyRegex::new(&format!(r"(?<=^|{spacer})([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|{spacer}|$)", spacer=LINK_SPACER))
                                 .expect("Regex error")
                         });
 
@@ -388,7 +390,7 @@ mod imp {
                             })
                         );
 
-                        comment_list.extend(text.match_indices(" [INSTALLED]")
+                        comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .map(|(i, s)| {
                                 TextTag::new(
                                     s,
