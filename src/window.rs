@@ -453,7 +453,7 @@ impl PacViewWindow {
 
         // Bind info pane property max lines preference
         imp.prefs_dialog.bind_property("property-max-lines", &imp.info_pane.get(), "property-max-lines")
-            .transform_to(|_, lines: f64| Some(lines.to_i32().unwrap_or(0)))
+            .transform_to(|_, lines: f64| Some(lines.to_i32().unwrap()))
             .sync_create()
             .build();
 
