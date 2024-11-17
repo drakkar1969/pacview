@@ -925,7 +925,13 @@ impl InfoPane {
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
             // Set header bar title
-            imp.title_widget.set_title(&pkg.name());
+            let title = if hist_sel.n_items() > 1 {
+                format!("{}/{}  |  {}", hist_sel.selected() + 1, hist_sel.n_items(), pkg.name())
+            } else {
+                pkg.name()
+            };
+
+            imp.title_widget.set_title(&title);
 
             // Populate info listbox
             self.update_info_listbox(&pkg);
