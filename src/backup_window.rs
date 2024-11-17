@@ -65,8 +65,6 @@ mod imp {
         type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
-            BackupObject::ensure_type();
-
             klass.bind_template();
 
             klass.add_binding(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, |window| {

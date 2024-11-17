@@ -920,7 +920,8 @@ impl PacViewWindow {
 
         if let Some(aur_file) = aur_file {
             // Get AUR package names file age
-            let file_days = aur_file.query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
+            let file_days = aur_file
+                .query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
                 .ok()
                 .and_then(|file_info| file_info.modification_date_time())
                 .and_then(|file_time| {

@@ -87,7 +87,6 @@ mod imp {
         type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
-            ColorScheme::ensure_type();
             klass.bind_template();
         }
 
