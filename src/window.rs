@@ -22,7 +22,7 @@ use regex::Regex;
 use async_process::Command;
 use futures::join;
 use flate2::read::GzDecoder;
-use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, FileIdMap};
+use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 
 use crate::utils::tokio_runtime;
 use crate::APP_ID;
@@ -111,7 +111,7 @@ mod imp {
         pub(super) all_status_row: RefCell<FilterRow>,
         pub(super) update_row: RefCell<FilterRow>,
 
-        pub(super) notify_watcher: OnceCell<Debouncer<INotifyWatcher, FileIdMap>>,
+        pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
     }
 
     //---------------------------------------
@@ -1157,7 +1157,7 @@ impl PacViewWindow {
         let (sender, receiver) = async_channel::bounded(1);
 
         // Create new watcher
-        let mut watcher = new_debouncer(Duration::from_secs(1), None, move |result: DebounceEventResult| {
+        let mut debouncer = new_debouncer(Duration::from_secs(2), None, move |result: DebounceEventResult| {
             if let Ok(events) = result {
                 for event in events {
                     if event.kind.is_create() || event.kind.is_modify() || event.kind.is_remove() {
@@ -1176,11 +1176,9 @@ impl PacViewWindow {
 
         let path = Path::new(&pacman_config.db_path).join("local");
 
-        if watcher.watcher().watch(&path, RecursiveMode::Recursive).is_ok() {
-            watcher.cache().add_root(&path, RecursiveMode::Recursive);
-
+        if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
             // Store watcher
-            imp.notify_watcher.set(watcher).unwrap();
+            imp.notify_debouncer.set(debouncer).unwrap();
 
             // Attach receiver for async channel
             glib::spawn_future_local(clone!(
