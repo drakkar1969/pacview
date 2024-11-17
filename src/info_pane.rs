@@ -8,10 +8,8 @@ use glib::closure_local;
 use glib::clone;
 
 use itertools::Itertools;
-use regex::Regex;
-use glob::glob;
 
-use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES, PACMAN_LOG, PACMAN_CONFIG};
+use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
 use crate::text_widget::{TextWidget, PropType};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -804,54 +802,41 @@ impl InfoPane {
 
         imp.files_header_label.set_sensitive(installed);
         imp.files_count_label.set_visible(installed);
+        imp.files_none_label.set_visible(!installed);
+
+        // Populate files view
+        let mut files_list: Vec<gtk::StringObject> = vec![];
 
         if installed {
-            // Populate files view
-            let files_list: Vec<gtk::StringObject> = pkg.files().iter()
-                .map(|s| gtk::StringObject::new(s))
+            files_list = pkg.files().iter()
+                .map(|file| gtk::StringObject::new(file))
                 .collect();
-
-            imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
-        } else {
-            imp.files_model.remove_all();
         }
 
-        imp.files_none_label.set_visible(!installed);
+        imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
     }
 
     fn update_log_view(&self, pkg: &PkgObject, installed: bool) {
         let imp = self.imp();
 
         imp.log_header_label.set_sensitive(installed);
+        imp.log_none_label.set_visible(!installed);
+
+        // Populate log view
+        let mut log_lines: Vec<gtk::StringObject> = vec![];
 
         if installed {
-            // Populate log view
-            PACMAN_LOG.with_borrow(|pacman_log| {
-                if let Some(log) = pacman_log {
-                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", pkg.name()))
-                        .expect("Regex error");
-
-                    let log_lines: Vec<gtk::StringObject> = log.lines().rev()
-                        .filter_map(|s| {
-                            if expr.is_match(s) {
-                                Some(gtk::StringObject::new(&expr.replace(s, "[$1  $2] : $3 $4 $5")))
-                            } else {
-                                None
-                            }
-                        })
-                        .collect();
-
-                    imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-                } else {
-                    // Show overlay error label
-                    imp.log_error_label.set_visible(true);
-                };
-            });
-        } else {
-            imp.log_model.remove_all();
+            if let Some(log) = pkg.log() {
+                log_lines = log.iter()
+                    .map(|line| gtk::StringObject::new(line))
+                    .collect();
+            } else {
+                // Show overlay error label
+                imp.log_error_label.set_visible(true);
+            }
         }
 
-        imp.log_none_label.set_visible(!installed);
+        imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
     }
 
     fn update_cache_view(&self, pkg: &PkgObject, installed: bool) {
@@ -859,49 +844,18 @@ impl InfoPane {
 
         imp.cache_header_label.set_sensitive(installed);
         imp.cache_count_label.set_visible(installed);
+        imp.cache_none_label.set_visible(!installed);
+
+        // Populate cache view
+        let mut cache_list: Vec<gtk::StringObject> = vec![];
 
         if installed {
-            let pkg_name = pkg.name();
-
-            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-                // Get cache blacklist package names
-                let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
-                    .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
-                    .collect();
-
-                // Populate cache view
-                let pacman_config = PACMAN_CONFIG.get().unwrap();
-
-                let mut cache_list: Vec<gtk::StringObject> = vec![];
-
-                for dir in &pacman_config.cache_dir {
-                    // Find cache files that include package name
-                    let paths = glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
-                        .expect("Glob pattern error");
-
-                    cache_list.extend(paths
-                        .flatten()
-                        .filter_map(|path| {
-                            let cache_file = path.display().to_string();
-
-                            // Exclude cache files that include blacklist package names
-                            if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
-                                None
-                            } else {
-                                Some(gtk::StringObject::new(&cache_file))
-                            }
-                        })
-                    );
-                }
-
-                // Populate cache view
-                imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
-            });
-        } else {
-            imp.cache_model.remove_all();
+            cache_list = pkg.cache().iter()
+                .map(|cache_file| gtk::StringObject::new(cache_file))
+                .collect();
         }
 
-        imp.cache_none_label.set_visible(!installed);
+        imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
     }
 
     fn update_backup_view(&self, pkg: &PkgObject, installed: bool) {
@@ -909,19 +863,18 @@ impl InfoPane {
 
         imp.backup_header_label.set_sensitive(installed);
         imp.backup_count_label.set_visible(installed);
+        imp.backup_none_label.set_visible(!installed);
+
+        // Populate backup view
+        let mut backup_list: Vec<BackupObject> = vec![];
 
         if installed {
-            // Populate backup view
-            let backup_list: Vec<BackupObject> = pkg.backup().iter()
+            backup_list = pkg.backup().iter()
                 .map(BackupObject::new)
                 .collect();
-
-            imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
-        } else {
-            imp.backup_model.remove_all();
         }
 
-        imp.backup_none_label.set_visible(!installed);
+        imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
     }
 
     //---------------------------------------

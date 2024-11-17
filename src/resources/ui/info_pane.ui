@@ -376,7 +376,7 @@
                                     <property name="visible">false</property>
                                     <property name="halign">center</property>
                                     <property name="valign">center</property>
-                                    <property name="label">Error retrieving logs</property>
+                                    <property name="label">Error retrieving log</property>
                                     <style>
                                       <class name="title-4"/>
                                       <class name="error"/>

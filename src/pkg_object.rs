@@ -8,8 +8,10 @@ use gtk::prelude::ObjectExt;
 
 use alpm_utils::DbListExt;
 use itertools::Itertools;
+use regex::Regex;
+use glob::glob;
 
-use crate::window::PACMAN_CONFIG;
+use crate::window::{INSTALLED_PKG_NAMES, PACMAN_LOG, PACMAN_CONFIG};
 use crate::utils::{date_to_string, size_to_string};
 
 //------------------------------------------------------------------------------
@@ -186,7 +188,10 @@ mod imp {
         pub(super) download_size: OnceCell<i64>,
         pub(super) has_script: OnceCell<bool>,
         pub(super) sha256sum: OnceCell<String>,
+
         pub(super) files: OnceCell<Vec<String>>,
+        pub(super) log: OnceCell<Vec<String>>,
+        pub(super) cache: OnceCell<Vec<String>>,
         pub(super) backup: OnceCell<Vec<PkgBackup>>,
     }
 
@@ -624,6 +629,62 @@ impl PkgObject {
                         .collect()
                 })
                 .unwrap_or_default()
+        })
+    }
+
+    pub fn log(&self) -> Option<&[String]> {
+        PACMAN_LOG.with_borrow(|pacman_log| {
+            pacman_log.as_ref()
+                .map(|log| {
+                    self.imp().log.get_or_init(|| {
+                        let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.name()))
+                            .expect("Regex error");
+
+                        log.lines().rev()
+                            .filter_map(|s| {
+                                if expr.is_match(s) {
+                                    Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect::<Vec<String>>()
+                    })
+                })
+                .map(|log_lines| &**log_lines)
+        })
+    }
+
+    pub fn cache(&self) -> &[String] {
+        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+            self.imp().cache.get_or_init(|| {
+                let pkg_name = self.name();
+
+                // Get cache blacklist package names
+                let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
+                    .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
+                    .collect();
+
+                let pacman_config = PACMAN_CONFIG.get().unwrap();
+
+                pacman_config.cache_dir.iter()
+                    .flat_map(|dir| {
+                        glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
+                            .expect("Glob pattern error")
+                            .flatten()
+                            .filter_map(|path| {
+                                let cache_file = path.display().to_string();
+    
+                                // Exclude cache files that include blacklist package names
+                                if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
+                                    None
+                                } else {
+                                    Some(cache_file)
+                                }
+                            })
+                    })
+                    .collect::<Vec<String>>()
+            })
         })
     }
 
