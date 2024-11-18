@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="GtkListHeader">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">4</property>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkLabel">
+                <style>
+                  <class name="title-4"/>
+                </style>
+                <binding name="label">
+                  <lookup name="groups" type="GroupsObject">
+                    <lookup name="item">GtkListHeader</lookup>
+                  </lookup>
+                </binding>
+                <property name="xalign">0</property>
+                <property name="valign">baseline-fill</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator">
+                <style>
+                  <class name="spacer"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <style>
+                  <class name="count-superscript"/>
+                </style>
+                <binding name="label">
+                  <lookup name="n-items">GtkListHeader</lookup>
+                </binding>
+                <property name="valign">center</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

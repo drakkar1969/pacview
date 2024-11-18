@@ -37,6 +37,9 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/filename_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/section_header.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/package_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/status_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/section_header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/log_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/cache_item.ui</file>
@@ -53,6 +56,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/config_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view.ui</file>

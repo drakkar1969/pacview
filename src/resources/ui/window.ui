@@ -229,6 +229,10 @@
         <attribute name="action">win.show-pacman-log</attribute>
       </item>
       <item>
+        <attribute name="label">View Pacman Groups</attribute>
+        <attribute name="action">win.show-pacman-groups</attribute>
+      </item>
+      <item>
         <attribute name="label">View Pacman Config</attribute>
         <attribute name="action">win.show-pacman-config</attribute>
       </item>

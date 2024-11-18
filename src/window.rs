@@ -34,6 +34,7 @@ use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
+use crate::groups_window::GroupsWindow;
 use crate::log_window::LogWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::{PreferencesDialog, ColorScheme};
@@ -165,6 +166,9 @@ mod imp {
 
             // Add pacman log window key binding
             klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-log");
+
+            // Add pacman groups window key binding
+            klass.add_binding_action(gdk::Key::G, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-groups");
 
             // Add pacman config dialog key binding
             klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-config");
@@ -602,6 +606,17 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add show pacman groups window action
+        let groups_action = gio::ActionEntry::builder("show-pacman-groups")
+            .activate(|window: &Self, _, _| {
+                let groups_window = GroupsWindow::new(window);
+
+                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
+                    groups_window.show(pkg_snapshot);
+                });
+            })
+            .build();
+
         // Add show pacman config window action
         let config_action = gio::ActionEntry::builder("show-pacman-config")
             .activate(|window: &Self, _, _| {
@@ -610,7 +625,7 @@ impl PacViewWindow {
             .build();
 
         // Add window actions to window
-        self.add_action_entries([stats_action, backup_action, log_action, config_action]);
+        self.add_action_entries([stats_action, backup_action, log_action, groups_action, config_action]);
 
         // Add show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
