@@ -501,11 +501,7 @@ impl PacViewWindow {
         // Add package view copy list action
         let copy_action = gio::ActionEntry::builder("copy-package-list")
             .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                let copy_text = imp.package_view.copy_list();
-
-                window.clipboard().set_text(&copy_text);
+                window.clipboard().set_text(&window.imp().package_view.copy_list());
             })
             .build();
 

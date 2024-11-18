@@ -528,24 +528,25 @@ impl PackageView {
     // Public copy list function
     //---------------------------------------
     pub fn copy_list(&self) -> String {
-        let mut copy_text = "## Package List\n|Package|\n|---|\n".to_string();
-
-        copy_text.push_str(&self.imp().selection.iter::<glib::Object>()
+        format!("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n{body}",
+            body=self.imp().selection.iter::<glib::Object>()
             .flatten()
-            .map(|item| {
-                let pkg = item
-                    .downcast::<PkgObject>()
-                    .expect("Could not downcast to 'PkgObject'");
+                .map(|item| {
+                    let pkg = item
+                        .downcast::<PkgObject>()
+                        .expect("Could not downcast to 'PkgObject'");
 
-                format!("{repo}/{name}-{version}",
-                    repo=pkg.repository(),
-                    name=pkg.name(),
-                    version=pkg.version()
-                )
-            })
-            .join("\n"));
-
-        copy_text
+                    format!("|{name}|{version}|{repo}|{status}|{size}|{groups}|",
+                        name=pkg.name(),
+                        version=pkg.version(),
+                        repo=pkg.repository(),
+                        status=pkg.status(),
+                        size=pkg.install_size_string(),
+                        groups=pkg.groups()
+                    )
+                })
+                .join("\n")
+        )
     }
 }
 

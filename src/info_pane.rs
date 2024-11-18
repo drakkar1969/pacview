@@ -512,19 +512,24 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let mut properties: Vec<String> = vec!["## Package Information\n".to_string()];
+                let copy_text = format!("## Package Information\n{body}",
+                    body={
+                        let mut properties: Vec<String> = vec![];
 
-                let mut child = imp.info_listbox.first_child();
+                        let mut child = imp.info_listbox.first_child();
 
-                while let Some(row) = child.and_downcast::<PropertyValue>() {
-                    if !(row.label().is_empty() || row.value().is_empty()) {
-                        properties.push(format!("- **{}** : {}", row.label(), row.value()));
+                        while let Some(row) = child.and_downcast::<PropertyValue>() {
+                            if !(row.label().is_empty() || row.value().is_empty()) {
+                                properties.push(format!("- **{}** : {}", row.label(), row.value()));
+                            }
+
+                            child = row.next_sibling();
+                        }
+
+                        properties.join("\n")
                     }
+                );
 
-                    child = row.next_sibling();
-                }
-
-                let copy_text = properties.join("\n");
 
                 infopane.clipboard().set_text(&copy_text);
             }
@@ -562,18 +567,17 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let mut copy_text = format!("## {}\n|Files|\n|---|\n",
-                    infopane.pkg().unwrap().name()
+                let copy_text = format!("{header}\n{body}",
+                    header=format_args!("## {}\n|Files|\n|---|",infopane.pkg().unwrap().name()),
+                    body=imp.files_selection.iter::<glib::Object>().flatten()
+                        .map(|item| {
+                            item
+                                .downcast::<gtk::StringObject>()
+                                .expect("Could not downcast to 'StringObject'")
+                                .string()
+                        })
+                        .join("\n")
                 );
-
-                copy_text.push_str(&imp.files_selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        item
-                            .downcast::<gtk::StringObject>()
-                            .expect("Could not downcast to 'StringObject'")
-                            .string()
-                    })
-                    .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);
             }
@@ -594,13 +598,12 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let mut copy_text = format!("## {}\n|Log Messages|\n|---|\n",
-                    infopane.pkg().unwrap().name()
+                let copy_text = format!("{header}\n{body}",
+                    header=format_args!("## {}\n|Log Messages|\n|---|", infopane.pkg().unwrap().name()),
+                    body=imp.log_model.iter::<gtk::StringObject>().flatten()
+                        .map(|item| item.string())
+                        .join("\n")
                 );
-
-                copy_text.push_str(&imp.log_model.iter::<gtk::StringObject>().flatten()
-                    .map(|item| item.string())
-                    .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);
             }
@@ -623,13 +626,12 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let mut copy_text = format!("## {}\n|Cache Files|\n|---|\n",
-                    infopane.pkg().unwrap().name()
+                let copy_text = format!("{header}\n{body}",
+                    header=format_args!("## {}\n|Cache Files|\n|---|", infopane.pkg().unwrap().name()),
+                    body=imp.cache_model.iter::<gtk::StringObject>().flatten()
+                        .map(|item| item.string())
+                        .join("\n")
                 );
-
-                copy_text.push_str(&imp.cache_model.iter::<gtk::StringObject>().flatten()
-                    .map(|item| item.string())
-                    .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);
             }
@@ -662,18 +664,12 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let mut copy_text = format!("## {}\n|Backup Files|Status|\n|---|---|\n",
-                    infopane.pkg().unwrap().name()
+                let copy_text = format!("{header}\n{body}",
+                    header=format_args!("## {}\n|Backup Files|Status|\n|---|---|", infopane.pkg().unwrap().name()),
+                    body=imp.backup_model.iter::<BackupObject>().flatten()
+                        .map(|item| format!("{}|{}", item.filename(), item.status_text()))
+                        .join("\n")
                 );
-
-                copy_text.push_str(&imp.backup_model.iter::<BackupObject>().flatten()
-                    .map(|item| {
-                        format!("{filename}|{status}",
-                            filename=item.filename(),
-                            status=item.status_text()
-                        )
-                    })
-                    .join("\n"));
 
                 infopane.clipboard().set_text(&copy_text);
             }

@@ -178,21 +178,21 @@ impl LogWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut copy_text = "## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n".to_string();
+                let copy_text = format!("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n{body}",
+                    body=imp.selection.iter::<glib::Object>().flatten()
+                        .map(|item| {
+                            let log = item
+                                .downcast::<LogObject>()
+                                .expect("Could not downcast to 'LogObject'");
 
-                copy_text.push_str(&imp.selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        let log = item
-                            .downcast::<LogObject>()
-                            .expect("Could not downcast to 'LogObject'");
-
-                        format!("|{date}|{time}|{category}|{message}|",
-                            date=log.date(),
-                            time=log.time(),
-                            category=log.category(),
-                            message=log.message())
-                    })
-                    .join("\n"));
+                            format!("|{date}|{time}|{category}|{message}|",
+                                date=log.date(),
+                                time=log.time(),
+                                category=log.category(),
+                                message=log.message())
+                        })
+                        .join("\n")
+                );
 
                 window.clipboard().set_text(&copy_text);
             }

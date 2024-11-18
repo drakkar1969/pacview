@@ -231,36 +231,36 @@ impl BackupWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut copy_text = "## Backup Files\n|Filename|Status|\n|---|---|\n".to_string();
-
                 let mut package = String::from("");
 
-                copy_text.push_str(&imp.selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        let backup = item
-                            .downcast::<BackupObject>()
-                            .expect("Could not downcast to 'BackupObject'");
+                let copy_text = format!("## Backup Files\n|Filename|Status|\n|---|---|\n{body}",
+                    body=imp.selection.iter::<glib::Object>().flatten()
+                        .map(|item| {
+                            let backup = item
+                                .downcast::<BackupObject>()
+                                .expect("Could not downcast to 'BackupObject'");
 
-                        let mut line = String::from("");
+                            let mut line = String::from("");
 
-                        let backup_package = backup.package();
+                            let backup_package = backup.package();
 
-                        if backup_package != package {
-                            line.push_str(&format!("|**{package}**||\n",
-                                package=backup_package
+                            if backup_package != package {
+                                line.push_str(&format!("|**{package}**||\n",
+                                    package=backup_package
+                                ));
+
+                                package = backup_package;
+                            }
+
+                            line.push_str(&format!("|{filename}|{status}|",
+                                filename=backup.filename(),
+                                status=backup.status_text()
                             ));
 
-                            package = backup_package;
-                        }
-
-                        line.push_str(&format!("|{filename}|{status}|",
-                            filename=backup.filename(),
-                            status=backup.status_text()
-                        ));
-
-                        line
-                    })
-                    .join("\n"));
+                            line
+                        })
+                        .join("\n")
+                );
 
                 window.clipboard().set_text(&copy_text);
             }
