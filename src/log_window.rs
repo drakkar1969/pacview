@@ -67,6 +67,37 @@ mod imp {
 
                 glib::Propagation::Stop
             });
+
+            // Add find key binding
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if !imp.search_entry.has_focus() {
+                    imp.search_entry.grab_focus();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Add filter package events key binding
+            klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                imp.package_button.set_active(!imp.package_button.is_active());
+
+                glib::Propagation::Stop
+            });
+
+            // Add copy key binding
+            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.copy_button.is_sensitive() {
+                    imp.copy_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {

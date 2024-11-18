@@ -72,6 +72,64 @@ mod imp {
 
                 glib::Propagation::Stop
             });
+
+            // Add find key binding
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if !imp.search_entry.has_focus() {
+                    imp.search_entry.grab_focus();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Add opne key binding
+            klass.add_binding(gdk::Key::O, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.open_button.is_sensitive() {
+                    imp.open_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Add copy key binding
+            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.copy_button.is_sensitive() {
+                    imp.copy_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Add status key bindings
+            klass.add_binding(gdk::Key::A, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::All.value());
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::M, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::Modified.value());
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::U, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::Unmodified.value());
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::L, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::Locked.value());
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {

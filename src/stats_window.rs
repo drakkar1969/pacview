@@ -52,6 +52,17 @@ mod imp {
 
                 glib::Propagation::Stop
             });
+
+            // Add copy key binding
+            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.copy_button.is_sensitive() {
+                    imp.copy_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
