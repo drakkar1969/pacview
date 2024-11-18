@@ -155,7 +155,7 @@ mod imp {
             klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.copy-package-list");
 
             // Add view show all packages key binding
-            klass.add_binding_action(gdk::Key::W, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-all-packages");
+            klass.add_binding_action(gdk::Key::A, gdk::ModifierType::ALT_MASK, "win.show-all-packages");
 
             // Add stats window key binding
             klass.add_binding_action(gdk::Key::S, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-stats");
