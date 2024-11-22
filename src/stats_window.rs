@@ -47,11 +47,7 @@ mod imp {
 
             klass.bind_template();
 
-            klass.add_binding(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
-                window.close();
-
-                glib::Propagation::Stop
-            });
+            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
 
             // Add copy key binding
             klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
