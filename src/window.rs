@@ -966,9 +966,9 @@ impl PacViewWindow {
 
                 // Load AUR package names from file
                 let aur_file = imp.aur_file.get().unwrap();
-    
+
                 let mut aur_names: HashSet<String> = HashSet::new();
-    
+
                 if let Some(aur_file) = aur_file {
                     if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
                         aur_names = String::from_utf8_lossy(&bytes).lines()
@@ -976,7 +976,7 @@ impl PacViewWindow {
                             .collect();
                     };
                 }
-    
+
                 // Load pacman sync packages
                 let sync_pkgs: Vec<PkgObject> = handle_ref.syncdbs().iter()
                     .flat_map(|db| {
@@ -986,10 +986,10 @@ impl PacViewWindow {
                             })
                     })
                     .collect();
-    
+
                 // Load pacman local packages not in sync databases
                 let local_db_name = handle_ref.localdb().name();
-    
+
                 let local_pkgs: Vec<PkgObject> = handle_ref.localdb().pkgs().iter()
                     .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
                     .map(|pkg| {
@@ -998,30 +998,30 @@ impl PacViewWindow {
                         } else {
                             local_db_name
                         };
-    
+
                         PkgObject::new(pkg.name(), repo, PkgData::Handle(handle_ref.clone()))
                     })
                     .collect();
-    
+
                 // Get package lists
                 let (mut installed_pkgs, mut all_pkgs): (Vec<PkgObject>, Vec<PkgObject>) = sync_pkgs.into_iter()
                     .partition(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
-    
+
                 installed_pkgs.extend_from_slice(&local_pkgs);
                 all_pkgs.extend_from_slice(&installed_pkgs);
-    
+
                 // Add packages to package view
                 imp.package_view.splice_packages(&all_pkgs);
-    
+
                 // Store package lists in global variables
                 PKG_SNAPSHOT.replace(all_pkgs);
-    
+
                 INSTALLED_PKG_NAMES.replace(installed_pkgs.iter()
                     .map(|pkg| pkg.name())
                     .collect()
                 );
-    
-                INSTALLED_SNAPSHOT.replace(installed_pkgs);    
+
+                INSTALLED_SNAPSHOT.replace(installed_pkgs);
             },
             Err(error) => {
                 let mut error = error.to_string();
