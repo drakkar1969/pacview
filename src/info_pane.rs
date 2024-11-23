@@ -276,15 +276,21 @@ impl InfoPane {
         PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
             AUR_SNAPSHOT.with_borrow(|aur_snapshot| {
                 // Find link package by name
-                let mut new_pkg = pkg_snapshot.iter().chain(aur_snapshot)
-                    .find(|&pkg| pkg.name() == pkg_name);
+                let new_pkg = pkg_snapshot.iter().chain(aur_snapshot)
+                    .find(|&pkg| pkg.name() == pkg_name)
+                    .or_else(|| {
+                        let (installed_pkgs, none_pkgs): (Vec<&PkgObject>, Vec<&PkgObject>) = pkg_snapshot.iter().chain(aur_snapshot)
+                            .partition(|&pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
 
-                // If link package is none, find by provides
-                if new_pkg.is_none() {
-                    new_pkg = pkg_snapshot.iter().chain(aur_snapshot)
-                        .find(|&pkg| pkg.provides().iter()
-                            .any(|s| s == &format!("{pkg_name}{pkg_version}")));
-                }
+                        // Find link package by installed provides
+                        installed_pkgs.into_iter()
+                            .find(|&pkg| pkg.provides().iter().any(|s| s == &format!("{pkg_name}{pkg_version}")))
+                            .or_else(||
+                                // Find link package by non-installed provides
+                                none_pkgs.into_iter()
+                                    .find(|&pkg| pkg.provides().iter().any(|s| s == &format!("{pkg_name}{pkg_version}")))
+                            )
+                    });
 
                 // If link package found
                 if let Some(new_pkg) = new_pkg {
