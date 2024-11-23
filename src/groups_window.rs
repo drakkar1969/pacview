@@ -214,7 +214,7 @@ impl GroupsWindow {
             .flat_map(|pkg|
                 pkg.groups().split(" | ")
                     .map(|group|
-                        GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), &group.to_string())
+                        GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
                     )
                     .collect::<Vec<GroupsObject>>()
             )

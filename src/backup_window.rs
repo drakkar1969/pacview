@@ -296,9 +296,7 @@ impl BackupWindow {
         let backup_list: Vec<BackupObject> = installed_snapshot.iter()
             .flat_map(|pkg|
                 pkg.backup().iter()
-                    .map(|backup|
-                        BackupObject::new(backup)
-                    )
+                    .map(BackupObject::new)
                     .collect::<Vec<BackupObject>>()
             )
             .collect();
