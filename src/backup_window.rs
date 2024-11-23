@@ -7,7 +7,7 @@ use glib::clone;
 
 use itertools::Itertools;
 
-use crate::pkg_object::{PkgBackup, PkgObject};
+use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
 use crate::utils::open_with_default_app;
@@ -300,108 +300,66 @@ impl BackupWindow {
 
         self.present();
 
-        // Define local enum
-        enum BackupResult {
-            Backup(PkgBackup),
-            End
-        }
-
-        // Disable sorting/filtering
-        let section_sorter = imp.section_sort_model.section_sorter();
-        let filter = imp.filter_model.filter();
-
-        imp.section_sort_model.set_section_sorter(None::<&gtk::Sorter>);
-        imp.filter_model.set_filter(None::<&gtk::Filter>);
-
         // Get backup list
-        let backup_list: Vec<PkgBackup> = installed_snapshot.iter()
-            .flat_map(|pkg| pkg.backup().iter().cloned())
+        let backup_list: Vec<BackupObject> = installed_snapshot.iter()
+            .flat_map(|pkg|
+                pkg.backup().iter()
+                    .map(|backup|
+                        BackupObject::new(backup)
+                    )
+                    .collect::<Vec<BackupObject>>()
+            )
             .collect();
 
-        // Spawn task to populate column view
-        let (sender, receiver) = async_channel::bounded(1);
+        // Populate column view
+        imp.model.splice(0, 0, &backup_list);
 
-        gio::spawn_blocking(clone!(
-            move || {
-                for backup in backup_list {
-                    sender.send_blocking(BackupResult::Backup(backup))
-                        .expect("Could not send through channel");
+        // Set status dropdown selected item
+        imp.status_dropdown.set_selected(0);
+
+        // Bind backup files count to header sub label
+        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+            .transform_to(move |binding, n_items: u32| {
+                let selection = binding.source()
+                    .and_downcast::<gtk::SingleSelection>()
+                    .expect("Could not downcast to 'FilterListModel'");
+
+                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<BackupObject>()
+                            .expect("Could not downcast to 'BackupObject'")
+                            .package()
+                    })
+                    .collect();
+
+                let section_len = section_map.len();
+
+                Some(format!("{n_items} files in {section_len} package{}",
+                    if section_len != 1 {"s"} else {""}
+                ))
+            })
+            .sync_create()
+            .build();
+
+        // Bind selected item to open button state
+        imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
+            .transform_to(|_, item: Option<glib::Object>| {
+                if let Some(object) = item.and_downcast::<BackupObject>() {
+                    let status = object.status();
+
+                    Some(status != BackupStatus::Locked && status != BackupStatus::All)
+                } else {
+                    Some(false)
                 }
+            })
+            .sync_create()
+            .build();
 
-                sender.send_blocking(BackupResult::End).expect("Could not send through channel");
-            }
-        ));
-
-        // Attach channel receiver
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            async move {
-                while let Ok(result) = receiver.recv().await {
-                    match result {
-                        BackupResult::Backup(backup) => {
-                            // Append backup to column view
-                            imp.model.append(&BackupObject::new(&backup));
-                        },
-                        BackupResult::End => {
-                            // Set status dropdown selected item
-                            imp.status_dropdown.set_selected(0);
-
-                            // Enable sorting/filtering
-                            imp.section_sort_model.set_section_sorter(section_sorter.as_ref());
-                            imp.filter_model.set_filter(filter.as_ref());
-
-                            // Select first item in column view
-                            imp.selection.set_selected(0);
-                            imp.view.scroll_to(0, None, gtk::ListScrollFlags::FOCUS, None);
-
-                            // Bind backup files count to header sub label
-                            imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-                                .transform_to(move |binding, n_items: u32| {
-                                    let selection = binding.source()
-                                        .and_downcast::<gtk::SingleSelection>()
-                                        .expect("Could not downcast to 'FilterListModel'");
-
-                                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
-                                        .map(|item| {
-                                            item
-                                                .downcast::<BackupObject>()
-                                                .expect("Could not downcast to 'BackupObject'")
-                                                .package()
-                                        })
-                                        .collect();
-
-                                    let section_len = section_map.len();
-
-                                    Some(format!("{n_items} files in {section_len} package{}",
-                                        if section_len != 1 {"s"} else {""}
-                                    ))
-                                })
-                                .sync_create()
-                                .build();
-
-                            // Bind selected item to open button state
-                            imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
-                                .transform_to(|_, item: Option<glib::Object>| {
-                                    if let Some(object) = item.and_downcast::<BackupObject>() {
-                                        let status = object.status();
-
-                                        Some(status != BackupStatus::Locked && status != BackupStatus::All)
-                                    } else {
-                                        Some(false)
-                                    }
-                                })
-                                .sync_create()
-                                .build();
-
-                            // Bind backup files count to copy button state
-                            imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                                .transform_to(|_, n_items: u32| Some(n_items > 0))
-                                .sync_create()
-                                .build();
-                        }
-                    };
-                }
-            }
-        ));
+        // Bind backup files count to copy button state
+        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .sync_create()
+            .build();
     }
 }

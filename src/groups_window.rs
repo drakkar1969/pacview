@@ -208,101 +208,50 @@ impl GroupsWindow {
 
         self.present();
 
-        // Define local enum
-        enum GroupsResult {
-            Group(String, String, String, String),
-            End
-        }
-
-        // Disable sorting/filtering
-        let sorter = imp.section_sort_model.sorter();
-        let section_sorter = imp.section_sort_model.section_sorter();
-        let filter = imp.filter_model.filter();
-
-        imp.section_sort_model.set_sorter(None::<&gtk::Sorter>);
-        imp.section_sort_model.set_section_sorter(None::<&gtk::Sorter>);
-        imp.filter_model.set_filter(None::<&gtk::Filter>);
-
         // Get list of packages with groups
-        let pkg_list: Vec<GroupsResult> = pkg_snapshot.iter()
+        let pkg_list: Vec<GroupsObject> = pkg_snapshot.iter()
             .filter(|pkg| !pkg.groups().is_empty())
             .flat_map(|pkg|
                 pkg.groups().split(" | ")
                     .map(|group|
-                        GroupsResult::Group(pkg.name(), pkg.status(), pkg.status_icon_symbolic(), group.to_string())
+                        GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), &group.to_string())
                     )
-                    .collect::<Vec<GroupsResult>>()
+                    .collect::<Vec<GroupsObject>>()
             )
             .collect();
 
-        // Spawn task to populate column view
-        let (sender, receiver) = async_channel::bounded(1);
+        // Populate column view
+        imp.model.splice(0, 0, &pkg_list);
 
-        gio::spawn_blocking(clone!(
-            move || {
-                for pkg in pkg_list {
-                    sender.send_blocking(pkg)
-                        .expect("Could not send through channel");
-                }
+        // Bind view count to header sub label
+        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+            .transform_to(move |binding, n_items: u32| {
+                let selection = binding.source()
+                    .and_downcast::<gtk::SingleSelection>()
+                    .expect("Could not downcast to 'FilterListModel'");
 
-                sender.send_blocking(GroupsResult::End).expect("Could not send through channel");
-            }
-        ));
+                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<GroupsObject>()
+                            .expect("Could not downcast to 'GroupsObject'")
+                            .groups()
+                    })
+                    .collect();
 
-        // Attach channel receiver
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            async move {
-                while let Ok(result) = receiver.recv().await {
-                    match result {
-                        GroupsResult::Group(name, status, status_icon, groups) => {
-                            // Append package to column view
-                            imp.model.append(&GroupsObject::new(&name, &status, &status_icon, &groups));
-                        },
-                        GroupsResult::End => {
-                            // Enable sorting/filtering
-                            imp.section_sort_model.set_sorter(sorter.as_ref());
-                            imp.section_sort_model.set_section_sorter(section_sorter.as_ref());
-                            imp.filter_model.set_filter(filter.as_ref());
+                let section_len = section_map.len();
 
-                            // Select first item in column view
-                            imp.selection.set_selected(0);
-                            imp.view.scroll_to(0, None, gtk::ListScrollFlags::FOCUS, None);
+                Some(format!("{n_items} packages in {section_len} group{}",
+                    if section_len != 1 {"s"} else {""}
+                ))
+            })
+            .sync_create()
+            .build();
 
-                            // Bind view count to header sub label
-                            imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-                                .transform_to(move |binding, n_items: u32| {
-                                    let selection = binding.source()
-                                        .and_downcast::<gtk::SingleSelection>()
-                                        .expect("Could not downcast to 'FilterListModel'");
-
-                                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
-                                        .map(|item| {
-                                            item
-                                                .downcast::<GroupsObject>()
-                                                .expect("Could not downcast to 'GroupsObject'")
-                                                .groups()
-                                        })
-                                        .collect();
-
-                                    let section_len = section_map.len();
-
-                                    Some(format!("{n_items} packages in {section_len} group{}",
-                                        if section_len != 1 {"s"} else {""}
-                                    ))
-                                })
-                                .sync_create()
-                                .build();
-
-                            // Bind view count to copy button state
-                            imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                                .transform_to(|_, n_items: u32|Some(n_items > 0))
-                                .sync_create()
-                                .build();
-                        }
-                    };
-                }
-            }
-        ));
+        // Bind view count to copy button state
+        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+            .transform_to(|_, n_items: u32|Some(n_items > 0))
+            .sync_create()
+            .build();
     }
 }
