@@ -201,13 +201,7 @@ impl BackupWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |entry| {
-                let search_text = entry.text();
-
-                imp.search_filter.set_search(Some(&search_text));
-
-                if search_text.is_empty() {
-                    imp.view.scroll_to(imp.selection.selected(), None, gtk::ListScrollFlags::FOCUS, None);
-                }
+                imp.search_filter.set_search(Some(&entry.text()));
             }
         ));
 
@@ -222,8 +216,6 @@ impl BackupWindow {
                 } else {
                     imp.status_filter.set_search(Some(&status.name()));
                 }
-
-                imp.view.scroll_to(imp.selection.selected(), None, gtk::ListScrollFlags::FOCUS, None);
 
                 imp.view.grab_focus();
             }
