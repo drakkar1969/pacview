@@ -65,6 +65,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;G</property>
+                <property name="title">View Pacman Groups</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;P</property>
                 <property name="title">View Pacman Config</property>
               </object>
