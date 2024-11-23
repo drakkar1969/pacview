@@ -180,51 +180,6 @@ impl BackupWindow {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
-        // Bind backup files count to header sub label
-        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-            .transform_to(move |binding, n_items: u32| {
-                let selection = binding.source()
-                    .and_downcast::<gtk::SingleSelection>()
-                    .expect("Could not downcast to 'FilterListModel'");
-
-                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        item
-                            .downcast::<BackupObject>()
-                            .expect("Could not downcast to 'BackupObject'")
-                            .package()
-                    })
-                    .collect();
-
-                let section_len = section_map.len();
-
-                Some(format!("{n_items} files in {section_len} package{}",
-                    if section_len != 1 {"s"} else {""}
-                ))
-            })
-            .sync_create()
-            .build();
-
-        // Bind selected item to open button state
-        imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
-            .transform_to(|_, item: Option<glib::Object>| {
-                if let Some(object) = item.and_downcast::<BackupObject>() {
-                    let status = object.status();
-
-                    Some(status != BackupStatus::Locked && status != BackupStatus::All)
-                } else {
-                    Some(false)
-                }
-            })
-            .sync_create()
-            .build();
-
-        // Bind backup files count to copy button state
-        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
         // Set initial focus on view
         imp.view.grab_focus();
     }
@@ -246,7 +201,13 @@ impl BackupWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |entry| {
-                imp.search_filter.set_search(Some(&entry.text()));
+                let search_text = entry.text();
+
+                imp.search_filter.set_search(Some(&search_text));
+
+                if search_text.is_empty() {
+                    imp.view.scroll_to(imp.selection.selected(), None, gtk::ListScrollFlags::FOCUS, None);
+                }
             }
         ));
 
@@ -377,19 +338,66 @@ impl BackupWindow {
             async move {
                 while let Ok(result) = receiver.recv().await {
                     match result {
-                        // Append backup to column view
                         BackupResult::Backup(backup) => {
+                            // Append backup to column view
                             imp.model.append(&BackupObject::new(&backup));
                         },
-                        // Enable sorting/filtering and select first item in column view
                         BackupResult::End => {
+                            // Set status dropdown selected item
                             imp.status_dropdown.set_selected(0);
 
+                            // Enable sorting/filtering
                             imp.section_sort_model.set_section_sorter(section_sorter.as_ref());
                             imp.filter_model.set_filter(filter.as_ref());
 
+                            // Select first item in column view
                             imp.selection.set_selected(0);
                             imp.view.scroll_to(0, None, gtk::ListScrollFlags::FOCUS, None);
+
+                            // Bind backup files count to header sub label
+                            imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+                                .transform_to(move |binding, n_items: u32| {
+                                    let selection = binding.source()
+                                        .and_downcast::<gtk::SingleSelection>()
+                                        .expect("Could not downcast to 'FilterListModel'");
+
+                                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                                        .map(|item| {
+                                            item
+                                                .downcast::<BackupObject>()
+                                                .expect("Could not downcast to 'BackupObject'")
+                                                .package()
+                                        })
+                                        .collect();
+
+                                    let section_len = section_map.len();
+
+                                    Some(format!("{n_items} files in {section_len} package{}",
+                                        if section_len != 1 {"s"} else {""}
+                                    ))
+                                })
+                                .sync_create()
+                                .build();
+
+                            // Bind selected item to open button state
+                            imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
+                                .transform_to(|_, item: Option<glib::Object>| {
+                                    if let Some(object) = item.and_downcast::<BackupObject>() {
+                                        let status = object.status();
+
+                                        Some(status != BackupStatus::Locked && status != BackupStatus::All)
+                                    } else {
+                                        Some(false)
+                                    }
+                                })
+                                .sync_create()
+                                .build();
+
+                            // Bind backup files count to copy button state
+                            imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                                .transform_to(|_, n_items: u32| Some(n_items > 0))
+                                .sync_create()
+                                .build();
                         }
                     };
                 }

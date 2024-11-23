@@ -148,14 +148,6 @@ impl LogWindow {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
-        // Bind view count to header sub label
-        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-            .transform_to(|_, n_items: u32|
-                Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
-            )
-            .sync_create()
-            .build();
-
         // Set initial focus on view
         imp.view.grab_focus();
     }
@@ -237,7 +229,8 @@ impl LogWindow {
         // Define local enum
         enum LogResult {
             Line(String, String, String, String),
-            Error
+            Error,
+            End
         }
 
         // Spawn task to populate column view
@@ -273,6 +266,8 @@ impl LogWindow {
                         }
 
                     }
+
+                    sender.send_blocking(LogResult::End).expect("Could not send through channel");
                 } else {
                     sender.send_blocking(LogResult::Error).expect("Could not send through channel");
                 }
@@ -285,13 +280,28 @@ impl LogWindow {
             async move {
                 while let Ok(result) = receiver.recv().await {
                     match result {
-                        // Append log line to column view
                         LogResult::Line(date, time, category, message) => {
+                            // Append log line to column view
                             imp.model.append(&LogObject::new(&date, &time, &category, &message));
                         },
-                        // Show overlay error label
                         LogResult::Error => {
+                            // Show overlay error label
                             imp.error_label.set_visible(true);
+                        },
+                        LogResult::End => {
+                            // Bind view count to header sub label
+                            imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+                                .transform_to(|_, n_items: u32|
+                                    Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
+                                )
+                                .sync_create()
+                                .build();
+
+                            // Bind view count to copy button state
+                            imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                                .transform_to(|_, n_items: u32|Some(n_items > 0))
+                                .sync_create()
+                                .build();
                         }
                     };
                 }

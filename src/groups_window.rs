@@ -139,36 +139,6 @@ impl GroupsWindow {
     }
 
     //---------------------------------------
-    // Update header helper function
-    //---------------------------------------
-    fn update_header(&self) {
-        let imp = self.imp();
-
-        // Update header sub label
-        let sections: HashSet<String> = imp.selection.iter::<glib::Object>().flatten()
-            .map(|item| {
-                item
-                    .downcast::<GroupsObject>()
-                    .expect("Could not downcast to 'GroupsObject'")
-                    .groups()
-            })
-            .collect();
-
-        let sections_len = sections.len();
-        let n_items = imp.selection.n_items();
-
-        imp.header_sub_label.set_label(&format!("{n_items} packages in {sections_len} group{}",
-            if sections_len != 1 {"s"} else {""}));
-
-        // Update copy button sensitive state
-        let sensitive = imp.selection.n_items() > 0;
-
-        if imp.copy_button.is_sensitive() != sensitive {
-            imp.copy_button.set_sensitive(sensitive);
-        }
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -183,12 +153,9 @@ impl GroupsWindow {
 
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
-            #[weak(rename_to = window)] self,
             #[weak] imp,
             move |entry| {
                 imp.search_filter.set_search(Some(&entry.text()));
-
-                window.update_header();
             }
         ));
 
@@ -284,25 +251,54 @@ impl GroupsWindow {
 
         // Attach channel receiver
         glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
             #[weak] imp,
             async move {
                 while let Ok(result) = receiver.recv().await {
                     match result {
-                        // Append package to column view
                         GroupsResult::Group(name, status, status_icon, groups) => {
+                            // Append package to column view
                             imp.model.append(&GroupsObject::new(&name, &status, &status_icon, &groups));
                         },
-                        // Enable sorting/filtering and select first item in column view
                         GroupsResult::End => {
+                            // Enable sorting/filtering
                             imp.section_sort_model.set_sorter(sorter.as_ref());
                             imp.section_sort_model.set_section_sorter(section_sorter.as_ref());
                             imp.filter_model.set_filter(filter.as_ref());
 
+                            // Select first item in column view
                             imp.selection.set_selected(0);
                             imp.view.scroll_to(0, None, gtk::ListScrollFlags::FOCUS, None);
 
-                            window.update_header();
+                            // Bind view count to header sub label
+                            imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+                                .transform_to(move |binding, n_items: u32| {
+                                    let selection = binding.source()
+                                        .and_downcast::<gtk::SingleSelection>()
+                                        .expect("Could not downcast to 'FilterListModel'");
+
+                                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                                        .map(|item| {
+                                            item
+                                                .downcast::<GroupsObject>()
+                                                .expect("Could not downcast to 'GroupsObject'")
+                                                .groups()
+                                        })
+                                        .collect();
+
+                                    let section_len = section_map.len();
+
+                                    Some(format!("{n_items} packages in {section_len} group{}",
+                                        if section_len != 1 {"s"} else {""}
+                                    ))
+                                })
+                                .sync_create()
+                                .build();
+
+                            // Bind view count to copy button state
+                            imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                                .transform_to(|_, n_items: u32|Some(n_items > 0))
+                                .sync_create()
+                                .build();
                         }
                     };
                 }
