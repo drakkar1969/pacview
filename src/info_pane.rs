@@ -9,7 +9,7 @@ use glib::clone;
 
 use itertools::Itertools;
 
-use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
+use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_SNAPSHOT};
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -375,13 +375,18 @@ impl InfoPane {
     // Get installed optdeps function
     //---------------------------------------
     fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
-        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+        INSTALLED_SNAPSHOT.with_borrow(|installed_snapshot| {
             optdepends.iter()
                 .map(|dep| {
                     let mut dep = dep.to_string();
 
                     if dep.split_once(['<', '>', '=', ':'])
-                        .filter(|&(name, _)| installed_pkg_names.contains(name))
+                        .filter(|&(name, _)|
+                            installed_snapshot.iter()
+                                .find(|&pkg| pkg.name() == name)
+                                .or_else(|| installed_snapshot.iter().find(|&pkg| pkg.provides().iter().any(|s| s == name)))
+                                .is_some()
+                        )
                         .is_some()
                     {
                         dep.push_str(INSTALLED_LABEL);
