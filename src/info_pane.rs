@@ -280,7 +280,7 @@ impl InfoPane {
                     .find(|&pkg| pkg.name() == pkg_name)
                     .or_else(|| {
                         let (installed_pkgs, none_pkgs): (Vec<&PkgObject>, Vec<&PkgObject>) = pkg_snapshot.iter().chain(aur_snapshot)
-                            .partition(|&pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
+                            .partition(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
 
                         // Find link package by installed provides
                         installed_pkgs.into_iter()

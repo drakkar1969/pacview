@@ -842,7 +842,7 @@ impl TextWidget {
 
         if inside && index >= 0 {
             return self.imp().link_list.borrow().iter()
-                .find(|link| link.start <= index as u32 && link.end > index as u32)
+                .find(|&link| link.start <= index as u32 && link.end > index as u32)
                 .cloned()
         }
 
