@@ -387,13 +387,12 @@ impl InfoPane {
                     let mut dep = dep.to_string();
 
                     if dep.split_once(['<', '>', '=', ':'])
-                        .filter(|&(name, _)|
+                        .is_some_and(|(name, _)|
                             installed_snapshot.iter()
                                 .find(|&pkg| pkg.name() == name)
                                 .or_else(|| installed_snapshot.iter().find(|&pkg| pkg.provides().iter().any(|s| s == name)))
                                 .is_some()
                         )
-                        .is_some()
                     {
                         dep.push_str(INSTALLED_LABEL);
                     }
