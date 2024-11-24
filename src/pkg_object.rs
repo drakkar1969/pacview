@@ -1,4 +1,5 @@
 use std::cell::{RefCell, OnceCell};
+use std::collections::HashSet;
 use std::rc::Rc;
 use std::cmp::Ordering;
 
@@ -13,6 +14,11 @@ use glob::glob;
 
 use crate::window::{INSTALLED_PKG_NAMES, PACMAN_LOG, PACMAN_CONFIG};
 use crate::utils::{date_to_string, size_to_string};
+
+thread_local! {
+    pub static ALPM_HANDLE: RefCell<alpm::Result<Rc<alpm::Alpm>>> = const {RefCell::new(Err(alpm::Error::HandleNull))};
+    pub static AUR_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+}
 
 //------------------------------------------------------------------------------
 // GLOBAL: Helper functions
@@ -46,8 +52,8 @@ fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
 //------------------------------------------------------------------------------
 // ENUM: PkgData
 //------------------------------------------------------------------------------
-pub enum PkgData {
-    Handle(Rc<alpm::Alpm>),
+pub enum PkgData<'a> {
+    Handle(Rc<alpm::Alpm>, &'a alpm::Package),
     AurPkg(raur::ArcPackage),
 }
 
@@ -211,16 +217,14 @@ mod imp {
         //---------------------------------------
         // Get alpm package helper functions
         //---------------------------------------
-        pub(super) fn sync_pkg(&self) -> Result<&alpm::Package, alpm::Error> {
+        pub(super) fn sync_pkg(&self) -> Option<&alpm::Package> {
             self.handle.get()
-                .ok_or(alpm::Error::HandleNull)
-                .and_then(|handle| handle.syncdbs().pkg(self.obj().name()))
+                .and_then(|handle| handle.syncdbs().pkg(self.obj().name()).ok())
         }
 
-        pub(super) fn local_pkg(&self) -> Result<&alpm::Package, alpm::Error> {
+        pub(super) fn local_pkg(&self) -> Option<&alpm::Package> {
             self.handle.get()
-                .ok_or(alpm::Error::HandleNull)
-                .and_then(|handle| handle.localdb().pkg(self.obj().name()))
+                .and_then(|handle| handle.localdb().pkg(self.obj().name()).ok())
         }
 
         pub(super) fn pkg(&self) -> PkgInternal {
@@ -373,7 +377,26 @@ impl PkgObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(name: &str, repo: &str, data: PkgData) -> Self {
+    pub fn new(name: &str, data: PkgData) -> Self {
+        let repo = match data {
+            PkgData::Handle(_, pkg) => {
+                let mut repo = pkg.db().map(|db| db.name()).unwrap_or_default();
+
+                if repo == "local" {
+                    AUR_NAMES.with_borrow(|aur_names| {
+                        if aur_names.contains(pkg.name()) {
+                            repo = "aur"
+                        }
+                    });
+                }
+
+                repo
+            },
+            PkgData::AurPkg(_) => {
+                "aur"
+            }
+        };
+
         let pkg: Self = glib::Object::builder()
             .property("name", name)
             .property("repository", repo)
@@ -382,7 +405,7 @@ impl PkgObject {
         let imp = pkg.imp();
 
         match data {
-            PkgData::Handle(handle) => { imp.handle.set(handle).unwrap() },
+            PkgData::Handle(handle, _) => { imp.handle.set(handle).unwrap() },
             PkgData::AurPkg(pkg) => { imp.aur_pkg.set(pkg).unwrap(); }
         }
 
@@ -577,7 +600,7 @@ impl PkgObject {
         let imp = self.imp();
 
         *imp.install_date.get_or_init(|| {
-            imp.local_pkg().ok()
+            imp.local_pkg()
                 .and_then(|pkg| pkg.install_date())
                 .unwrap_or_default()
         })
@@ -608,7 +631,7 @@ impl PkgObject {
         let imp = self.imp();
 
         imp.sha256sum.get_or_init(|| {
-            imp.sync_pkg().ok()
+            imp.sync_pkg()
                 .and_then(|pkg| pkg.sha256sum())
                 .unwrap_or_default()
                 .to_string()
@@ -674,7 +697,7 @@ impl PkgObject {
                             .flatten()
                             .filter_map(|path| {
                                 let cache_file = path.display().to_string();
-    
+
                                 // Exclude cache files that include blacklist package names
                                 if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
                                     None
@@ -741,5 +764,27 @@ impl PkgObject {
 
     pub fn download_size_string(&self) -> String {
         size_to_string(self.download_size(), 1)
+    }
+
+    //---------------------------------------
+    // Public associated functions
+    //---------------------------------------
+    pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<PkgObject> {
+        ALPM_HANDLE.with_borrow(|alpm_handle| {
+            if let Ok(handle) = alpm_handle {
+                let pkg = handle.localdb().pkgs().find_satisfier(search_term)
+                    .or_else(||
+                        if include_sync {
+                            handle.syncdbs().find_satisfier(search_term)
+                        } else {
+                            None
+                        }
+                    );
+
+                pkg.map(|pkg| PkgObject::new(pkg.name(), PkgData::Handle(handle.clone(), pkg)))
+            } else {
+                None
+            }
+        })
     }
 }

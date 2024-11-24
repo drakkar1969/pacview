@@ -9,7 +9,7 @@ use glib::clone;
 
 use itertools::Itertools;
 
-use crate::window::{PKG_SNAPSHOT, AUR_SNAPSHOT, INSTALLED_SNAPSHOT};
+use crate::window::AUR_SNAPSHOT;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -273,56 +273,53 @@ impl InfoPane {
     // PropertyValue pkg link handler
     //---------------------------------------
     fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
-        PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-            AUR_SNAPSHOT.with_borrow(|aur_snapshot| {
-                // Find link package by name
-                let new_pkg = pkg_snapshot.iter().chain(aur_snapshot)
-                    .find(|&pkg| pkg.name() == pkg_name)
-                    .or_else(|| {
-                        let (installed_pkgs, none_pkgs): (Vec<&PkgObject>, Vec<&PkgObject>) = pkg_snapshot.iter().chain(aur_snapshot)
-                            .partition(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
+        AUR_SNAPSHOT.with_borrow(|aur_snapshot| {
+            // Find link package in pacman databases
+            let pkg_link = format!("{pkg_name}{pkg_version}");
 
-                        // Find link package by installed provides
-                        installed_pkgs.into_iter()
-                            .find(|&pkg| pkg.provides().iter().any(|s| s == &format!("{pkg_name}{pkg_version}")))
-                            .or_else(||
-                                // Find link package by non-installed provides
-                                none_pkgs.into_iter()
-                                    .find(|&pkg| pkg.provides().iter().any(|s| s == &format!("{pkg_name}{pkg_version}")))
-                            )
-                    });
+            let pkg = PkgObject::find_satisfier(&pkg_link, true);
 
-                // If link package found
-                if let Some(new_pkg) = new_pkg {
-                    let hist_sel = self.imp().history_selection.borrow();
+            // Find link package in AUR search results
+            let new_pkg = pkg.as_ref()
+                .or_else(|| {
+                    aur_snapshot.iter()
+                        .find(|&pkg| pkg.name() == pkg_name)
+                        .or_else(|| {
+                            aur_snapshot.iter()
+                                .find(|&pkg| pkg.provides().iter().any(|s| s == &pkg_link))
+                        })
+                });
 
-                    let hist_model = hist_sel.model()
-                        .and_downcast::<gio::ListStore>()
-                        .expect("Could not downcast to 'ListStore'");
+            // If link package found
+            if let Some(new_pkg) = new_pkg {
+                let hist_sel = self.imp().history_selection.borrow();
 
-                    // If link package is in infopane history, select it
-                    if let Some(i) = hist_model.find(new_pkg) {
-                        hist_sel.set_selected(i);
-                    } else {
-                        // If link package is not in history, get current history package
-                        let hist_index = hist_sel.selected();
+                let hist_model = hist_sel.model()
+                    .and_downcast::<gio::ListStore>()
+                    .expect("Could not downcast to 'ListStore'");
 
-                        // If history package is not the last one in history, truncate history list
-                        if hist_index < hist_model.n_items() - 1 {
-                            hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
-                        }
+                // If link package is in infopane history, select it
+                if let Some(i) = hist_model.find(new_pkg) {
+                    hist_sel.set_selected(i);
+                } else {
+                    // If link package is not in history, get current history package
+                    let hist_index = hist_sel.selected();
 
-                        // Add link package to history
-                        hist_model.append(new_pkg);
-
-                        // Update history selection to link package
-                        hist_sel.set_selected(hist_index + 1);
+                    // If history package is not the last one in history, truncate history list
+                    if hist_index < hist_model.n_items() - 1 {
+                        hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
                     }
 
-                    // Display link package
-                    self.update_display();
+                    // Add link package to history
+                    hist_model.append(new_pkg);
+
+                    // Update history selection to link package
+                    hist_sel.set_selected(hist_index + 1);
                 }
-            });
+
+                // Display link package
+                self.update_display();
+            }
         });
     }
 
@@ -381,26 +378,20 @@ impl InfoPane {
     // Get installed optdeps function
     //---------------------------------------
     fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
-        INSTALLED_SNAPSHOT.with_borrow(|installed_snapshot| {
-            optdepends.iter()
-                .map(|dep| {
-                    let mut dep = dep.to_string();
+        optdepends.iter()
+            .map(|dep| {
+                let mut dep = dep.to_string();
 
-                    if dep.split_once(['<', '>', '=', ':'])
-                        .is_some_and(|(name, _)|
-                            installed_snapshot.iter()
-                                .find(|&pkg| pkg.name() == name)
-                                .or_else(|| installed_snapshot.iter().find(|&pkg| pkg.provides().iter().any(|s| s == name)))
-                                .is_some()
-                        )
-                    {
-                        dep.push_str(INSTALLED_LABEL);
-                    }
+                if dep.split_once(['<', '>', '=', ':'])
+                    .and_then(|(name, _)| PkgObject::find_satisfier(name, false))
+                    .is_some()
+                {
+                    dep.push_str(INSTALLED_LABEL);
+                }
 
-                    dep
-                })
-                .collect()
-        })
+                dep
+            })
+            .collect()
     }
 
     //---------------------------------------

@@ -27,7 +27,7 @@ use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventRe
 use crate::utils::tokio_runtime;
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
+use crate::pkg_object::{ALPM_HANDLE, AUR_NAMES, PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, SortProp};
 use crate::info_pane::InfoPane;
@@ -977,31 +977,29 @@ impl PacViewWindow {
                     };
                 }
 
+                // Store AUR names in PkgObject global variable
+                AUR_NAMES.replace(aur_names);
+
                 // Load pacman sync packages
                 let sync_pkgs: Vec<PkgObject> = handle_ref.syncdbs().iter()
                     .flat_map(|db| {
                         db.pkgs().iter()
                             .map(|syncpkg| {
-                                PkgObject::new(syncpkg.name(), db.name(), PkgData::Handle(handle_ref.clone()))
+                                PkgObject::new(syncpkg.name(), PkgData::Handle(handle_ref.clone(), syncpkg))
                             })
                     })
                     .collect();
 
                 // Load pacman local packages not in sync databases
-                let local_db_name = handle_ref.localdb().name();
-
                 let local_pkgs: Vec<PkgObject> = handle_ref.localdb().pkgs().iter()
                     .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
                     .map(|pkg| {
-                        let repo = if aur_names.contains(pkg.name()) {
-                            "aur"
-                        } else {
-                            local_db_name
-                        };
-
-                        PkgObject::new(pkg.name(), repo, PkgData::Handle(handle_ref.clone()))
+                        PkgObject::new(pkg.name(), PkgData::Handle(handle_ref.clone(), pkg))
                     })
                     .collect();
+
+                // Store alpm handle in PkgObject global variable
+                let _ = ALPM_HANDLE.replace(Ok(handle_ref.clone()));
 
                 // Get package lists
                 let (mut installed_pkgs, mut all_pkgs): (Vec<PkgObject>, Vec<PkgObject>) = sync_pkgs.into_iter()
