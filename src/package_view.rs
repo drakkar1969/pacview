@@ -9,7 +9,8 @@ use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
 
-use tokio::sync::Mutex;
+use tokio::sync::Mutex as TokioMutex;
+use tokio_util::sync::CancellationToken;
 use itertools::Itertools;
 use raur::Raur;
 use raur::ArcPackage;
@@ -97,7 +98,8 @@ mod imp {
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
 
-        pub(super) aur_cache: Arc<Mutex<HashSet<ArcPackage>>>
+        pub(super) aur_cache: Arc<TokioMutex<HashSet<ArcPackage>>>,
+        pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
     }
 
     //---------------------------------------
@@ -374,6 +376,54 @@ impl PackageView {
     }
 
     //---------------------------------------
+    // Do search async helper function
+    //---------------------------------------
+    async fn do_search_async(term: &str, prop: SearchProp, installed_pkg_names: &HashSet<String>, aur_cache: &Arc<TokioMutex<HashSet<raur::ArcPackage>>>) -> Result<Vec<raur::ArcPackage>, raur::Error> {
+        let handle = raur::Handle::new();
+
+        // Set search mode
+        if prop == SearchProp::Files {
+            return Err(raur::Error::Aur("Cannot search by files.".to_string()))
+        }
+
+        let search_by = match prop {
+            SearchProp::Name => { raur::SearchBy::Name },
+            SearchProp::NameDesc => { raur::SearchBy::NameDesc },
+            SearchProp::Group => { raur::SearchBy::Groups },
+            SearchProp::Deps => { raur::SearchBy::Depends },
+            SearchProp::Optdeps => { raur::SearchBy::OptDepends },
+            SearchProp::Provides => { raur::SearchBy::Provides },
+            SearchProp::Files => unreachable!(),
+        };
+
+        // Search for AUR packages
+        let search_results = future::join_all(term.split_whitespace()
+            .map(|t| handle.search_by(t, search_by))
+        )
+        .await;
+
+        let mut aur_names: HashSet<String> = HashSet::new();
+
+        for res in search_results {
+            match res {
+                Ok(aur_list) => { aur_names.extend(aur_list.iter().map(|pkg| pkg.name.to_string())) },
+                Err(error) => { return Err(error) }
+            }
+        }
+
+        // Get AUR package info using cache
+        let mut cache = aur_cache.lock().await;
+
+        let aur_list = handle.cache_info(&mut cache, &aur_names.iter().collect::<Vec<&String>>())
+            .await?
+            .into_iter()
+            .filter(|aurpkg| !installed_pkg_names.contains(&aurpkg.name))
+            .collect::<Vec<raur::ArcPackage>>();
+
+        Ok(aur_list)
+    }
+
+    //---------------------------------------
     // Public search in AUR function
     //---------------------------------------
     pub fn search_in_aur(&self, search_bar: SearchBar, search_term: &str, prop: SearchProp) {
@@ -384,16 +434,25 @@ impl PackageView {
 
         AUR_SNAPSHOT.replace(vec![]);
 
+        // Return if search term is empty
         if search_term.is_empty() {
             return
         }
 
         let term = search_term.to_lowercase();
 
+        // Show search spinner
         search_bar.set_searching(true);
 
         // Get AUR cache (clone Arc)
         let aur_cache = Arc::clone(&imp.aur_cache);
+
+        // Create and store search cancel token
+        let cancel_token = CancellationToken::new();
+
+        let cancel_token_cloned = cancel_token.clone();
+
+        imp.search_cancel_token.replace(Some(cancel_token));
 
         // Spawn tokio task to search AUR
         let (sender, receiver) = async_channel::bounded(1);
@@ -402,59 +461,10 @@ impl PackageView {
             tokio_runtime().spawn(clone!(
                 #[strong] installed_pkg_names,
                 async move {
-                    let handle = raur::Handle::new();
-
-                    // Set search mode
-                    if prop == SearchProp::Files {
-                        sender.send(Err(raur::Error::Aur("Cannot search by files.".to_string())))
-                            .await
-                            .expect("Could not send through channel");
-
-                        return
-                    }
-
-                    let search_by = match prop {
-                        SearchProp::Name => { raur::SearchBy::Name },
-                        SearchProp::NameDesc => { raur::SearchBy::NameDesc },
-                        SearchProp::Group => { raur::SearchBy::Groups },
-                        SearchProp::Deps => { raur::SearchBy::Depends },
-                        SearchProp::Optdeps => { raur::SearchBy::OptDepends },
-                        SearchProp::Provides => { raur::SearchBy::Provides },
-                        SearchProp::Files => unreachable!(),
+                    let result = tokio::select! {
+                        _ = cancel_token_cloned.cancelled() => { Ok(vec![]) },
+                        res = PackageView::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => { res }
                     };
-
-                    // Search for AUR packages
-                    let search_results = future::join_all(term.split_whitespace()
-                        .map(|t| handle.search_by(t, search_by))
-                    )
-                    .await;
-
-                    let mut aur_names: HashSet<String> = HashSet::new();
-
-                    for res in search_results {
-                        if let Ok(aur_list) = res {
-                            aur_names.extend(aur_list.iter().map(|pkg| pkg.name.to_string()))
-                        } else {
-                            sender.send(Err(res.unwrap_err()))
-                                .await
-                                .expect("Could not send through channel");
-
-                            return
-                        }
-                    }
-
-                    // Get AUR package info using cache
-                    let mut cache = aur_cache.lock().await;
-
-                    let result = handle.cache_info(&mut cache, &aur_names.iter().collect::<Vec<&String>>())
-                        .await
-                        .map(|aur_list| {
-                            let aur_list: Vec<raur::ArcPackage> = aur_list.into_iter()
-                                .filter(|aurpkg| !installed_pkg_names.contains(&aurpkg.name))
-                                .collect();
-
-                            aur_list
-                        });
 
                     sender.send(result)
                         .await
@@ -469,6 +479,7 @@ impl PackageView {
             async move {
                 while let Ok(result) = receiver.recv().await {
                     match result {
+                        // Get AUR search results
                         Ok(aur_list) => {
                             if search_bar.enabled() {
                                 let pkg_list: Vec<PkgObject> = aur_list.into_iter()
@@ -487,10 +498,27 @@ impl PackageView {
                         }
                     }
 
+                    // Remove stored search cancel token
+                    imp.search_cancel_token.replace(None);
+
+                    // Hide search spinner
                     search_bar.set_searching(false);
                 }
             }
         ));
+    }
+
+    //---------------------------------------
+    // Public cancel AUR search function
+    //---------------------------------------
+    pub fn cancel_aur_search(&self) {
+        let imp = self.imp();
+
+        if let Some(token) = &*imp.search_cancel_token.borrow() {
+            token.cancel();
+        }
+
+        imp.search_cancel_token.replace(None);
     }
 
     //---------------------------------------

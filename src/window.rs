@@ -688,10 +688,12 @@ impl PacViewWindow {
 
         // Search bar enabled property notify signal
         imp.search_bar.connect_enabled_notify(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak] imp,
             move |bar| {
                 if !bar.enabled() {
-                    window.imp().package_view.view().grab_focus();
+                    imp.package_view.cancel_aur_search();
+
+                    imp.package_view.view().grab_focus();
                 }
             }
         ));
