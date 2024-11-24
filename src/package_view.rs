@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 use std::cmp::Ordering;
 
 use gtk::{glib, gio};
@@ -9,6 +9,7 @@ use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
 
+use tokio::sync::Mutex;
 use itertools::Itertools;
 use raur::Raur;
 use raur::ArcPackage;
@@ -96,7 +97,7 @@ mod imp {
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
 
-        pub(super) aur_cache: RefCell<HashSet<ArcPackage>>
+        pub(super) aur_cache: Arc<Mutex<HashSet<ArcPackage>>>
     }
 
     //---------------------------------------
@@ -391,8 +392,8 @@ impl PackageView {
 
         search_bar.set_searching(true);
 
-        // Get AUR cache (need to clone for mutable reference)
-        let mut aur_cache = imp.aur_cache.borrow_mut().clone();
+        // Get AUR cache (clone Arc)
+        let aur_cache = Arc::clone(&imp.aur_cache);
 
         // Spawn tokio task to search AUR
         let (sender, receiver) = async_channel::bounded(1);
@@ -443,14 +444,16 @@ impl PackageView {
                     }
 
                     // Get AUR package info using cache
-                    let result = handle.cache_info(&mut aur_cache, &aur_names.iter().collect::<Vec<&String>>())
+                    let mut cache = aur_cache.lock().await;
+
+                    let result = handle.cache_info(&mut cache, &aur_names.iter().collect::<Vec<&String>>())
                         .await
                         .map(|aur_list| {
                             let aur_list: Vec<raur::ArcPackage> = aur_list.into_iter()
                                 .filter(|aurpkg| !installed_pkg_names.contains(&aurpkg.name))
                                 .collect();
 
-                            (aur_cache, aur_list)
+                            aur_list
                         });
 
                     sender.send(result)
@@ -466,7 +469,7 @@ impl PackageView {
             async move {
                 while let Ok(result) = receiver.recv().await {
                     match result {
-                        Ok((aur_cache, aur_list)) => {
+                        Ok(aur_list) => {
                             if search_bar.enabled() {
                                 let pkg_list: Vec<PkgObject> = aur_list.into_iter()
                                     .map(|pkg| PkgObject::new(&pkg.name, PkgData::AurPkg(pkg.clone())))
@@ -476,8 +479,6 @@ impl PackageView {
 
                                 AUR_SNAPSHOT.replace(pkg_list);
                             }
-
-                            imp.aur_cache.replace(aur_cache);
 
                             search_bar.set_aur_error(None);
                         },
