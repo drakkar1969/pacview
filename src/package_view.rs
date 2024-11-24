@@ -15,11 +15,17 @@ use raur::ArcPackage;
 use futures::future;
 use strum::EnumString;
 
-use crate::window::{AUR_SNAPSHOT, INSTALLED_PKG_NAMES};
-use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
+use crate::pkg_object::{INSTALLED_PKG_NAMES, PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumExt;
+
+//------------------------------------------------------------------------------
+// GLOBAL VARIABLES
+//------------------------------------------------------------------------------
+thread_local! {
+    pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+}
 
 //------------------------------------------------------------------------------
 // ENUM: SortProp

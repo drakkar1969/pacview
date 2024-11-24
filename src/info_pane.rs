@@ -9,7 +9,7 @@ use glib::clone;
 
 use itertools::Itertools;
 
-use crate::window::AUR_SNAPSHOT;
+use crate::package_view::AUR_SNAPSHOT;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
 use crate::pkg_object::{PkgObject, PkgFlags};

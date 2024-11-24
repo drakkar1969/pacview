@@ -12,12 +12,18 @@ use itertools::Itertools;
 use regex::Regex;
 use glob::glob;
 
-use crate::window::{INSTALLED_PKG_NAMES, PACMAN_LOG, PACMAN_CONFIG};
+use crate::window::{PACMAN_LOG, PACMAN_CONFIG};
 use crate::utils::{date_to_string, size_to_string};
 
+//------------------------------------------------------------------------------
+// GLOBAL VARIABLES
+//------------------------------------------------------------------------------
 thread_local! {
     pub static ALPM_HANDLE: RefCell<alpm::Result<Rc<alpm::Alpm>>> = const {RefCell::new(Err(alpm::Error::HandleNull))};
     pub static AUR_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+    pub static PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
 
 //------------------------------------------------------------------------------

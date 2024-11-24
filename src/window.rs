@@ -27,7 +27,7 @@ use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventRe
 use crate::utils::tokio_runtime;
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::pkg_object::{ALPM_HANDLE, AUR_NAMES, PkgData, PkgFlags, PkgObject};
+use crate::pkg_object::{ALPM_HANDLE, AUR_NAMES, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES, PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, SortProp};
 use crate::info_pane::InfoPane;
@@ -44,10 +44,6 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static PKG_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
-    pub static INSTALLED_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
-    pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
-    pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
     pub static PACMAN_LOG: RefCell<Option<String>> = const {RefCell::new(None)};
 }
 
@@ -578,8 +574,8 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let stats_window = StatsWindow::new(window);
 
-                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    stats_window.show(window.imp().pacman_repos.get().unwrap(), pkg_snapshot);
+                PKGS.with_borrow(|pkgs| {
+                    stats_window.show(window.imp().pacman_repos.get().unwrap(), pkgs);
                 });
             })
             .build();
@@ -589,8 +585,8 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let backup_window = BackupWindow::new(window);
 
-                INSTALLED_SNAPSHOT.with_borrow(|installed_snapshot| {
-                    backup_window.show(installed_snapshot);
+                INSTALLED_PKGS.with_borrow(|installed_pkgs| {
+                    backup_window.show(installed_pkgs);
                 });
             })
             .build();
@@ -611,8 +607,8 @@ impl PacViewWindow {
             .activate(|window: &Self, _, _| {
                 let groups_window = GroupsWindow::new(window);
 
-                PKG_SNAPSHOT.with_borrow(|pkg_snapshot| {
-                    groups_window.show(pkg_snapshot);
+                PKGS.with_borrow(|pkgs| {
+                    groups_window.show(pkgs);
                 });
             })
             .build();
@@ -1012,14 +1008,14 @@ impl PacViewWindow {
                 imp.package_view.splice_packages(&all_pkgs);
 
                 // Store package lists in global variables
-                PKG_SNAPSHOT.replace(all_pkgs);
+                PKGS.replace(all_pkgs);
 
                 INSTALLED_PKG_NAMES.replace(installed_pkgs.iter()
                     .map(|pkg| pkg.name())
                     .collect()
                 );
 
-                INSTALLED_SNAPSHOT.replace(installed_pkgs);
+                INSTALLED_PKGS.replace(installed_pkgs);
             },
             Err(error) => {
                 let mut error = error.to_string();
