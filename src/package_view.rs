@@ -521,7 +521,7 @@ impl PackageView {
         imp.pkg_model.splice(0, imp.pkg_model.n_items(), pkg_slice);
     }
 
-    pub fn update_packages(&self, update_map: &HashMap<String, String>) {
+    pub fn show_updates(&self, update_map: &HashMap<String, String>) {
         self.imp().pkg_model.iter::<PkgObject>()
             .flatten()
             .filter(|pkg| update_map.contains_key(&pkg.name()))

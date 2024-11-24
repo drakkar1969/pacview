@@ -1134,7 +1134,7 @@ impl PacViewWindow {
 
                 // Update status of packages with updates
                 if !update_map.is_empty() {
-                    imp.package_view.update_packages(&update_map);
+                    imp.package_view.show_updates(&update_map);
                 }
 
                 // Update info pane package if it has update
