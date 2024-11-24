@@ -1071,6 +1071,7 @@ impl PacViewWindow {
         let update_row = &*imp.update_row.borrow();
         update_row.set_updating(true);
 
+        // Spawn async process to check for updates
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
