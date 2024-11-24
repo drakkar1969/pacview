@@ -778,16 +778,15 @@ impl PkgObject {
     pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<PkgObject> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
             if let Ok(handle) = alpm_handle {
-                let pkg = handle.localdb().pkgs().find_satisfier(search_term)
+                handle.localdb().pkgs().find_satisfier(search_term)
                     .or_else(||
                         if include_sync {
                             handle.syncdbs().find_satisfier(search_term)
                         } else {
                             None
                         }
-                    );
-
-                pkg.map(|pkg| PkgObject::new(pkg.name(), PkgData::Handle(handle.clone(), pkg)))
+                    )
+                    .map(|pkg| PkgObject::new(pkg.name(), PkgData::Handle(handle.clone(), pkg)))
             } else {
                 None
             }
