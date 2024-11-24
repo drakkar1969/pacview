@@ -939,7 +939,7 @@ impl PacViewWindow {
                         .map(|current_time| current_time.difference(&file_time).as_days())
                 });
 
-            // Download AUR package names file if does not exist or older than 7 days
+            // Spawn tokio task to download AUR package names file if does not exist or older than 7 days
             if file_days.is_none() || file_days.unwrap() >= 7 {
                 self.download_aur_names(aur_file, None);
             }
