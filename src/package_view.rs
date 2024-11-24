@@ -381,11 +381,17 @@ impl PackageView {
     async fn do_search_async(term: &str, prop: SearchProp, installed_pkg_names: &HashSet<String>, aur_cache: &Arc<TokioMutex<HashSet<raur::ArcPackage>>>) -> Result<Vec<raur::ArcPackage>, raur::Error> {
         let handle = raur::Handle::new();
 
-        // Set search mode
+        // Return if query arg too small
+        if term.len() < 2 {
+            return Err(raur::Error::Aur("Query arg too small.".to_string()))
+        }
+
+        // Return if attempting to search by files
         if prop == SearchProp::Files {
             return Err(raur::Error::Aur("Cannot search by files.".to_string()))
         }
 
+        // Set search mode
         let search_by = match prop {
             SearchProp::Name => { raur::SearchBy::Name },
             SearchProp::NameDesc => { raur::SearchBy::NameDesc },
