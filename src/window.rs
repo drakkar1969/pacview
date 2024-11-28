@@ -407,9 +407,14 @@ impl PacViewWindow {
             .bidirectional()
             .build();
 
-        // Bind package view sort order to sort button icon
+        // Bind package view sort order to sort button icon/tooltip
         imp.package_view.bind_property("sort-ascending", &imp.sort_button.get(), "icon-name")
             .transform_to(|_, sort_asc: bool| Some(if sort_asc { "view-sort-ascending-symbolic" } else { "view-sort-descending-symbolic" }))
+            .sync_create()
+            .build();
+
+        imp.package_view.bind_property("sort-ascending", &imp.sort_button.get(), "tooltip-text")
+            .transform_to(|_, sort_asc: bool| Some(if sort_asc { "Descending" } else { "Ascending" }))
             .sync_create()
             .build();
 

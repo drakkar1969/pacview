@@ -162,7 +162,8 @@
                           <object class="AdwSplitButton" id="sort_button">
                             <property name="icon-name">view-sort-ascending-symbolic</property>
                             <property name="menu-model">sort_menu</property>
-                            <property name="tooltip-text">Change Sort Order</property>
+                            <property name="tooltip-text">Descending</property>
+                            <property name="dropdown-tooltip">Sort Options</property>
                           </object>
                         </child>
                       </object>
