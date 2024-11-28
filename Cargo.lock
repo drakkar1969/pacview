@@ -1664,6 +1664,7 @@ dependencies = [
  "fancy-regex",
  "flate2",
  "futures",
+ "gio",
  "glib",
  "glib-build-tools",
  "glob",

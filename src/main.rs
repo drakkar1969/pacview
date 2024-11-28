@@ -5,6 +5,7 @@ mod search_tag;
 mod filter_row;
 mod package_view;
 mod info_pane;
+mod pkg_history;
 mod text_widget;
 mod property_value;
 mod preferences_dialog;

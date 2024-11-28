@@ -12,6 +12,7 @@ use itertools::Itertools;
 use crate::package_view::AUR_SNAPSHOT;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
+use crate::pkg_history::PkgHistory;
 use crate::pkg_object::{PkgObject, PkgFlags};
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
@@ -187,7 +188,7 @@ mod imp {
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
-        pub(super) history_selection: RefCell<gtk::SingleSelection>,
+        pub(super) pkg_history: RefCell<PkgHistory>,
     }
 
     //---------------------------------------
@@ -231,20 +232,11 @@ mod imp {
         // Custom property getters/setters
         //---------------------------------------
         pub fn pkg(&self) -> Option<PkgObject> {
-            self.history_selection.borrow().selected_item()
-                .and_downcast::<PkgObject>()
+            self.pkg_history.borrow().selected_item()
         }
 
         pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
-            let hist_model = self.history_selection.borrow().model()
-                .and_downcast::<gio::ListStore>()
-                .expect("Could not downcast to 'ListStore'");
-
-            hist_model.remove_all();
-
-            if let Some(pkg) = pkg {
-                hist_model.append(pkg);
-            }
+            self.pkg_history.borrow().init(pkg);
 
             self.obj().update_display();
         }
@@ -292,29 +284,12 @@ impl InfoPane {
 
             // If link package found
             if let Some(new_pkg) = new_pkg {
-                let hist_sel = self.imp().history_selection.borrow();
-
-                let hist_model = hist_sel.model()
-                    .and_downcast::<gio::ListStore>()
-                    .expect("Could not downcast to 'ListStore'");
+                let history = self.imp().pkg_history.borrow();
 
                 // If link package is in infopane history, select it
-                if let Some(i) = hist_model.find(new_pkg) {
-                    hist_sel.set_selected(i);
-                } else {
-                    // If link package is not in history, get current history package
-                    let hist_index = hist_sel.selected();
-
-                    // If history package is not the last one in history, truncate history list
-                    if hist_index < hist_model.n_items() - 1 {
-                        hist_model.splice(hist_index + 1, hist_model.n_items() - hist_index - 1, &Vec::<glib::Object>::new());
-                    }
-
-                    // Add link package to history
-                    hist_model.append(new_pkg);
-
-                    // Update history selection to link package
-                    hist_sel.set_selected(hist_index + 1);
+                if !history.set_selected_item(new_pkg) {
+                    // If history package is not the last one in history, truncate history list and append link package
+                    history.truncate_and_append(new_pkg);
                 }
 
                 // Display link package
@@ -399,11 +374,6 @@ impl InfoPane {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
-
-        // Initialize history selection
-        let history_model = gio::ListStore::new::<PkgObject>();
-
-        imp.history_selection.replace(gtk::SingleSelection::new(Some(history_model)));
 
         // Add property rows
         self.add_property(PropID::Name, PropType::Title);
@@ -901,16 +871,17 @@ impl InfoPane {
             imp.tab_switcher.set_sensitive(switcher_sensitive);
         }
 
-        // Set header prev/next button states
-        let hist_sel = imp.history_selection.borrow();
+        // Get package history
+        let history = imp.pkg_history.borrow();
 
-        let prev_sensitive = hist_sel.selected() != gtk::INVALID_LIST_POSITION && hist_sel.selected() > 0;
+        // Set header prev/next button states
+        let prev_sensitive = history.can_select_previous();
 
         if imp.prev_button.is_sensitive() != prev_sensitive {
             imp.prev_button.set_sensitive(prev_sensitive);
         }
 
-        let next_sensitive = hist_sel.selected() != gtk::INVALID_LIST_POSITION && (hist_sel.selected() + 1 < hist_sel.n_items());
+        let next_sensitive = history.can_select_next();
 
         if imp.next_button.is_sensitive() != next_sensitive {
             imp.next_button.set_sensitive(next_sensitive);
@@ -922,8 +893,8 @@ impl InfoPane {
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
             // Set header bar title
-            let title = if hist_sel.n_items() > 1 {
-                format!("{}/{}  |  {}", hist_sel.selected() + 1, hist_sel.n_items(), pkg.name())
+            let title = if history.len() > 1 {
+                format!("{}/{}  |  {}", history.selected().unwrap_or_default() + 1, history.len(), pkg.name())
             } else {
                 pkg.name()
             };
@@ -947,26 +918,14 @@ impl InfoPane {
     }
 
     pub fn display_prev(&self) {
-        let hist_sel = self.imp().history_selection.borrow();
-
-        if hist_sel.selected() != gtk::INVALID_LIST_POSITION && hist_sel.selected() > 0 {
-            hist_sel.set_selected(hist_sel.selected() - 1);
-
-            if hist_sel.selected_item().is_some() {
-                self.update_display();
-            }
+        if self.imp().pkg_history.borrow().select_previous() {
+            self.update_display();
         }
     }
 
     pub fn display_next(&self) {
-        let hist_sel = self.imp().history_selection.borrow();
-
-        if hist_sel.selected() != gtk::INVALID_LIST_POSITION && (hist_sel.selected() + 1 < hist_sel.n_items()) {
-            hist_sel.set_selected(hist_sel.selected() + 1);
-
-            if hist_sel.selected_item().is_some() {
-                self.update_display();
-            }
+        if self.imp().pkg_history.borrow().select_next() {
+            self.update_display();
         }
     }
 
