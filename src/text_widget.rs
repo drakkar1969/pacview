@@ -370,7 +370,7 @@ mod imp {
                         static EXPR: OnceLock<FancyRegex> = OnceLock::new();
 
                         let expr = EXPR.get_or_init(|| {
-                            FancyRegex::new(&format!(r"(?<=^|{spacer})([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|{spacer}|$)", spacer=LINK_SPACER))
+                            FancyRegex::new(&format!(r"(?<=^|{spacer})([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|{spacer}|$)", spacer=regex::escape(LINK_SPACER)))
                                 .expect("Regex error")
                         });
 

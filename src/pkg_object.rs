@@ -666,7 +666,7 @@ impl PkgObject {
             pacman_log.as_ref()
                 .map(|log| {
                     self.imp().log.get_or_init(|| {
-                        let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({}) (.+)", self.name()))
+                        let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&self.name())))
                             .expect("Regex error");
 
                         log.lines().rev()
