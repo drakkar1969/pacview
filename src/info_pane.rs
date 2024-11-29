@@ -131,8 +131,6 @@ mod imp {
         pub(super) files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) files_filter: TemplateChild<gtk::StringFilter>,
-        #[template_child]
-        pub(super) files_none_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) log_header_label: TemplateChild<gtk::Label>,
@@ -142,8 +140,6 @@ mod imp {
         pub(super) log_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) log_selection: TemplateChild<gtk::NoSelection>,
-        #[template_child]
-        pub(super) log_none_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) log_error_label: TemplateChild<gtk::Label>,
 
@@ -161,8 +157,6 @@ mod imp {
         pub(super) cache_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
-        #[template_child]
-        pub(super) cache_none_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) backup_header_label: TemplateChild<gtk::Label>,
@@ -178,8 +172,6 @@ mod imp {
         pub(super) backup_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
-        #[template_child]
-        pub(super) backup_none_label: TemplateChild<gtk::Label>,
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         _pkg: RefCell<Option<PkgObject>>,
@@ -764,82 +756,53 @@ impl InfoPane {
         self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), pkg.sha256sum(), None);
     }
 
-    fn update_files_view(&self, pkg: &PkgObject, installed: bool) {
+    fn update_files_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        imp.files_header_label.set_sensitive(installed);
-        imp.files_count_label.set_visible(installed);
-        imp.files_none_label.set_visible(!installed);
-
         // Populate files view
-        let mut files_list: Vec<gtk::StringObject> = vec![];
-
-        if installed {
-            files_list = pkg.files().iter()
-                .map(|file| gtk::StringObject::new(file))
-                .collect();
-        }
+        let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+            .map(|file| gtk::StringObject::new(file))
+            .collect();
 
         imp.files_model.splice(0, imp.files_model.n_items(), &files_list);
     }
 
-    fn update_log_view(&self, pkg: &PkgObject, installed: bool) {
+    fn update_log_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
-
-        imp.log_header_label.set_sensitive(installed);
-        imp.log_none_label.set_visible(!installed);
 
         // Populate log view
-        let mut log_lines: Vec<gtk::StringObject> = vec![];
+        if let Some(log) = pkg.log() {
+            let log_lines: Vec<gtk::StringObject> = log.iter()
+                .map(|line| gtk::StringObject::new(line))
+                .collect();
 
-        if installed {
-            if let Some(log) = pkg.log() {
-                log_lines = log.iter()
-                    .map(|line| gtk::StringObject::new(line))
-                    .collect();
-            } else {
-                // Show overlay error label
-                imp.log_error_label.set_visible(true);
-            }
+            imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
+        } else {
+            imp.log_model.remove_all();
+
+            // Show overlay error label
+            imp.log_error_label.set_visible(true);
         }
-
-        imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
     }
 
-    fn update_cache_view(&self, pkg: &PkgObject, installed: bool) {
+    fn update_cache_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        imp.cache_header_label.set_sensitive(installed);
-        imp.cache_count_label.set_visible(installed);
-        imp.cache_none_label.set_visible(!installed);
-
         // Populate cache view
-        let mut cache_list: Vec<gtk::StringObject> = vec![];
-
-        if installed {
-            cache_list = pkg.cache().iter()
-                .map(|cache_file| gtk::StringObject::new(cache_file))
-                .collect();
-        }
+        let cache_list: Vec<gtk::StringObject> = pkg.cache().iter()
+            .map(|cache_file| gtk::StringObject::new(cache_file))
+            .collect();
 
         imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
     }
 
-    fn update_backup_view(&self, pkg: &PkgObject, installed: bool) {
+    fn update_backup_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        imp.backup_header_label.set_sensitive(installed);
-        imp.backup_count_label.set_visible(installed);
-        imp.backup_none_label.set_visible(!installed);
-
         // Populate backup view
-        let mut backup_list: Vec<BackupObject> = vec![];
-
-        if installed {
-            backup_list = pkg.backup().iter()
-                .map(BackupObject::new)
-                .collect();
-        }
+        let backup_list: Vec<BackupObject> = pkg.backup().iter()
+            .map(BackupObject::new)
+            .collect();
 
         imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
     }
@@ -905,15 +868,13 @@ impl InfoPane {
             self.update_info_listbox(&pkg);
 
             // Populate files/log/cache/backup views
-            let installed = pkg.flags().intersects(PkgFlags::INSTALLED);
+            self.update_files_view(&pkg);
 
-            self.update_files_view(&pkg, installed);
+            self.update_log_view(&pkg);
 
-            self.update_log_view(&pkg, installed);
+            self.update_cache_view(&pkg);
 
-            self.update_cache_view(&pkg, installed);
-
-            self.update_backup_view(&pkg, installed);
+            self.update_backup_view(&pkg);
         }
     }
 
