@@ -1011,7 +1011,7 @@ impl PacViewWindow {
                     .collect();
 
                 // Store alpm handle in PkgObject global variable
-                let _ = ALPM_HANDLE.replace(Some(handle_ref.clone()));
+                ALPM_HANDLE.replace(Some(handle_ref));
 
                 // Get package lists
                 let (mut installed_pkgs, mut all_pkgs): (Vec<PkgObject>, Vec<PkgObject>) = sync_pkgs.into_iter()
