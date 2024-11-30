@@ -486,7 +486,11 @@ impl PackageView {
                         Ok(aur_list) => {
                             if search_bar.enabled() {
                                 let pkg_list: Vec<PkgObject> = aur_list.into_iter()
-                                    .map(|pkg| PkgObject::new(&pkg.name, PkgData::AurPkg(pkg.clone())))
+                                    .map(|pkg| {
+                                        let pkg_name = &pkg.name.to_string();
+
+                                        PkgObject::new(pkg_name, PkgData::AurPkg(pkg))
+                                    })
                                     .collect();
 
                                 imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
