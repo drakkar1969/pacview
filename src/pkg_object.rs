@@ -785,7 +785,7 @@ impl PkgObject {
                             None
                         }
                     )
-                    .map(|pkg| PkgObject::new(pkg.name(), PkgData::Handle(handle.clone(), pkg)))
+                    .map(|pkg| PkgObject::new(pkg.name(), PkgData::Handle(Rc::clone(handle), pkg)))
                 )
         })
     }

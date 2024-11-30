@@ -997,7 +997,7 @@ impl PacViewWindow {
                     .flat_map(|db| {
                         db.pkgs().iter()
                             .map(|syncpkg| {
-                                PkgObject::new(syncpkg.name(), PkgData::Handle(handle_ref.clone(), syncpkg))
+                                PkgObject::new(syncpkg.name(), PkgData::Handle(Rc::clone(&handle_ref), syncpkg))
                             })
                     })
                     .collect();
@@ -1006,7 +1006,7 @@ impl PacViewWindow {
                 let local_pkgs: Vec<PkgObject> = handle_ref.localdb().pkgs().iter()
                     .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
                     .map(|pkg| {
-                        PkgObject::new(pkg.name(), PkgData::Handle(handle_ref.clone(), pkg))
+                        PkgObject::new(pkg.name(), PkgData::Handle(Rc::clone(&handle_ref), pkg))
                     })
                     .collect();
 
