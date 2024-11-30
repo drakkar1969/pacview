@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::collections::HashSet;
 
 use gtk::{glib, gio, gdk};
@@ -41,6 +42,8 @@ mod imp {
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+
+        pub(super) bindings: RefCell<Vec<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -201,6 +204,17 @@ impl GroupsWindow {
     }
 
     //---------------------------------------
+    // Clear window
+    //---------------------------------------
+    pub fn clear(&self) {
+        for binding in self.imp().bindings.take() {
+            binding.unbind();
+        }
+
+        self.imp().model.remove_all();
+    }
+
+    //---------------------------------------
     // Show window
     //---------------------------------------
     pub fn show(&self, pkg_snapshot: &[PkgObject]) {
@@ -208,50 +222,55 @@ impl GroupsWindow {
 
         self.present();
 
-        // Get list of packages with groups
-        let pkg_list: Vec<GroupsObject> = pkg_snapshot.iter()
-            .filter(|pkg| !pkg.groups().is_empty())
-            .flat_map(|pkg|
-                pkg.groups().split(" | ")
-                    .map(|group|
-                        GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
-                    )
-                    .collect::<Vec<GroupsObject>>()
-            )
-            .collect();
+        // Populate if necessary
+        if imp.model.n_items() == 0 {
+            // Get list of packages with groups
+            let pkg_list: Vec<GroupsObject> = pkg_snapshot.iter()
+                .filter(|pkg| !pkg.groups().is_empty())
+                .flat_map(|pkg|
+                    pkg.groups().split(" | ")
+                        .map(|group|
+                            GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
+                        )
+                        .collect::<Vec<GroupsObject>>()
+                )
+                .collect();
 
-        // Populate column view
-        imp.model.splice(0, 0, &pkg_list);
+            // Populate column view
+            imp.model.splice(0, 0, &pkg_list);
 
-        // Bind view count to header sub label
-        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-            .transform_to(move |binding, n_items: u32| {
-                let selection = binding.source()
-                    .and_downcast::<gtk::SingleSelection>()
-                    .expect("Could not downcast to 'FilterListModel'");
+            // Bind view count to header sub label
+            let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+                .transform_to(move |binding, n_items: u32| {
+                    let selection = binding.source()
+                        .and_downcast::<gtk::SingleSelection>()
+                        .expect("Could not downcast to 'FilterListModel'");
 
-                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        item
-                            .downcast::<GroupsObject>()
-                            .expect("Could not downcast to 'GroupsObject'")
-                            .groups()
-                    })
-                    .collect();
+                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                        .map(|item| {
+                            item
+                                .downcast::<GroupsObject>()
+                                .expect("Could not downcast to 'GroupsObject'")
+                                .groups()
+                        })
+                        .collect();
 
-                let section_len = section_map.len();
+                    let section_len = section_map.len();
 
-                Some(format!("{n_items} packages in {section_len} group{}",
-                    if section_len != 1 {"s"} else {""}
-                ))
-            })
-            .sync_create()
-            .build();
+                    Some(format!("{n_items} packages in {section_len} group{}",
+                        if section_len != 1 {"s"} else {""}
+                    ))
+                })
+                .sync_create()
+                .build();
 
-        // Bind view count to copy button state
-        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32|Some(n_items > 0))
-            .sync_create()
-            .build();
+            // Bind view count to copy button state
+            let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                .transform_to(|_, n_items: u32|Some(n_items > 0))
+                .sync_create()
+                .build();
+
+            imp.bindings.replace(vec![label_binding, copy_binding]);
+        }
     }
 }

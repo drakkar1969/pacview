@@ -1,3 +1,4 @@
+use std::cell::RefCell;
 use std::sync::OnceLock;
 
 use gtk::{glib, gio, gdk};
@@ -46,6 +47,8 @@ mod imp {
 
         #[template_child]
         pub(super) error_label: TemplateChild<gtk::Label>,
+
+        pub(super) bindings: RefCell<Vec<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -219,6 +222,17 @@ impl LogWindow {
     }
 
     //---------------------------------------
+    // Clear window
+    //---------------------------------------
+    pub fn clear(&self) {
+        for binding in self.imp().bindings.take() {
+            binding.unbind();
+        }
+
+        self.imp().model.remove_all();
+    }
+
+    //---------------------------------------
     // Show window
     //---------------------------------------
     pub fn show(&self, log: &Option<String>) {
@@ -226,89 +240,94 @@ impl LogWindow {
 
         self.present();
 
-        // Define local struct
-        struct LogLine {
-            date: String,
-            time: String,
-            category: String,
-            message: String
-        }
-
-        // Spawn task to populate column view
-        let (sender, receiver) = async_channel::bounded(1);
-
-        gio::spawn_blocking(clone!(
-            #[strong] log,
-            move || {
-                if let Some(log) = log {
-                    // Strip ANSI control sequences from log
-                    static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
-
-                    let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                        Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
-                            .expect("Regex error")
-                    });
-
-                    let log = ansi_expr.replace_all(&log, "");
-
-                    // Read log lines
-                    static EXPR: OnceLock<Regex> = OnceLock::new();
-
-                    let expr = EXPR.get_or_init(|| {
-                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
-                            .expect("Regex error")
-                    });
-
-                    let log_lines: Vec<LogLine> = log.lines().rev()
-                        .filter_map(|line|
-                            expr.captures(line)
-                                .map(|caps| LogLine {
-                                    date: caps[1].to_string(),
-                                    time: caps[2].to_string(),
-                                    category: caps[3].to_string(),
-                                    message: caps[4].to_string()
-                                })
-                        )
-                        .collect();
-
-                    sender.send_blocking(Some(log_lines)).expect("Could not send through channel");
-                } else {
-                    sender.send_blocking(None).expect("Could not send through channel");
-                }
+        // Populate if necessary
+        if imp.model.n_items() == 0 {
+            // Define local struct
+            struct LogLine {
+                date: String,
+                time: String,
+                category: String,
+                message: String
             }
-        ));
 
-        // Attach channel receiver
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            async move {
-                while let Ok(result) = receiver.recv().await {
-                    if let Some(log_lines) = result {
-                        // Populate column view
-                        imp.model.splice(0, 0, &log_lines.iter()
-                            .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
-                            .collect::<Vec<LogObject>>()
-                        );
+            // Spawn task to populate column view
+            let (sender, receiver) = async_channel::bounded(1);
 
-                        // Bind view count to header sub label
-                        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-                        .transform_to(|_, n_items: u32|
-                            Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
-                        )
-                        .sync_create()
-                        .build();
+            gio::spawn_blocking(clone!(
+                #[strong] log,
+                move || {
+                    if let Some(log) = log {
+                        // Strip ANSI control sequences from log
+                        static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
-                        // Bind view count to copy button state
-                        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                            .transform_to(|_, n_items: u32|Some(n_items > 0))
-                            .sync_create()
-                            .build();
+                        let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
+                                .expect("Regex error")
+                        });
+
+                        let log = ansi_expr.replace_all(&log, "");
+
+                        // Read log lines
+                        static EXPR: OnceLock<Regex> = OnceLock::new();
+
+                        let expr = EXPR.get_or_init(|| {
+                            Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
+                                .expect("Regex error")
+                        });
+
+                        let log_lines: Vec<LogLine> = log.lines().rev()
+                            .filter_map(|line|
+                                expr.captures(line)
+                                    .map(|caps| LogLine {
+                                        date: caps[1].to_string(),
+                                        time: caps[2].to_string(),
+                                        category: caps[3].to_string(),
+                                        message: caps[4].to_string()
+                                    })
+                            )
+                            .collect();
+
+                        sender.send_blocking(Some(log_lines)).expect("Could not send through channel");
                     } else {
-                        // Show overlay error label
-                        imp.error_label.set_visible(true);
+                        sender.send_blocking(None).expect("Could not send through channel");
                     }
                 }
-            }
-        ));
+            ));
+
+            // Attach channel receiver
+            glib::spawn_future_local(clone!(
+                #[weak] imp,
+                async move {
+                    while let Ok(result) = receiver.recv().await {
+                        if let Some(log_lines) = result {
+                            // Populate column view
+                            imp.model.splice(0, 0, &log_lines.iter()
+                                .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
+                                .collect::<Vec<LogObject>>()
+                            );
+
+                            // Bind view count to header sub label
+                            let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+                            .transform_to(|_, n_items: u32|
+                                Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
+                            )
+                            .sync_create()
+                            .build();
+
+                            // Bind view count to copy button state
+                            let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                                .transform_to(|_, n_items: u32|Some(n_items > 0))
+                                .sync_create()
+                                .build();
+
+                            imp.bindings.replace(vec![label_binding, copy_binding]);
+                        } else {
+                            // Show overlay error label
+                            imp.error_label.set_visible(true);
+                        }
+                    }
+                }
+            ));
+        }
     }
 }

@@ -4,6 +4,7 @@
   <template class="StatsWindow" parent="AdwWindow">
     <property name="default-width">520</property>
     <property name="modal">true</property>
+    <property name="hide-on-close">true</property>
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">

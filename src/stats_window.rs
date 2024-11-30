@@ -144,49 +144,63 @@ impl StatsWindow {
     }
 
     //---------------------------------------
+    // Clear window
+    //---------------------------------------
+    pub fn clear(&self) {
+        self.imp().model.remove_all();
+    }
+
+    //---------------------------------------
     // Show window
     //---------------------------------------
     pub fn show(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
         let imp = self.imp();
 
-        // Iterate repos
-        let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
-            .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
-                // Iterate packages per repo
-                let (pcount, icount, isize) = pkg_snapshot.iter()
-                    .filter(|pkg| pkg.repository() == *repo)
-                    .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
-                        pcount += 1;
-
-                        if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                            icount += 1;
-                            isize += pkg.install_size()
-                        }
-
-                        (pcount, icount, isize)
-                    });
-
-                // Add repo item to stats column view
-                let repo = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
-
-                imp.model.append(&StatsObject::new(
-                    &repo,
-                    &pcount.to_string(),
-                    &icount.to_string(),
-                    &size_to_string(isize, 2)
-                ));
-
-                (tot_pcount + pcount, tot_icount + icount, tot_isize + isize)
-            });
-
-        // Add item with totals to stats column view
-        imp.model.append(&StatsObject::new(
-            "<b>Total</b>",
-            &format!("<b>{}</b>", tot_pcount),
-            &format!("<b>{}</b>", tot_icount),
-            &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
-        ));
-
         self.present();
+
+        // Populate if necessary
+        if imp.model.n_items() == 0 {
+            let mut stats_items: Vec<StatsObject> = vec![];
+
+            // Iterate repos
+            let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
+                .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
+                    // Iterate packages per repo
+                    let (pcount, icount, isize) = pkg_snapshot.iter()
+                        .filter(|pkg| pkg.repository() == *repo)
+                        .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
+                            pcount += 1;
+
+                            if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                                icount += 1;
+                                isize += pkg.install_size()
+                            }
+
+                            (pcount, icount, isize)
+                        });
+
+                    // Add repo item to stats column view
+                    let repo = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+
+                    stats_items.push(StatsObject::new(
+                        &repo,
+                        &pcount.to_string(),
+                        &icount.to_string(),
+                        &size_to_string(isize, 2)
+                    ));
+
+                    (tot_pcount + pcount, tot_icount + icount, tot_isize + isize)
+                });
+
+            // Add item with totals to stats column view
+            stats_items.push(StatsObject::new(
+                "<b>Total</b>",
+                &format!("<b>{}</b>", tot_pcount),
+                &format!("<b>{}</b>", tot_icount),
+                &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
+            ));
+
+            imp.model.splice(0, 0, &stats_items);
+        }
     }
 }

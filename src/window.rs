@@ -95,6 +95,15 @@ mod imp {
         #[template_child]
         pub(super) config_dialog: TemplateChild<ConfigDialog>,
 
+        #[template_child]
+        pub(super) backup_window: TemplateChild<BackupWindow>,
+        #[template_child]
+        pub(super) log_window: TemplateChild<LogWindow>,
+        #[template_child]
+        pub(super) groups_window: TemplateChild<GroupsWindow>,
+        #[template_child]
+        pub(super) stats_window: TemplateChild<StatsWindow>,
+
         pub(super) gsettings: OnceCell<gio::Settings>,
 
         pub(super) aur_file: OnceCell<Option<gio::File>>,
@@ -577,10 +586,10 @@ impl PacViewWindow {
         // Add show stats window action
         let stats_action = gio::ActionEntry::builder("show-stats")
             .activate(|window: &Self, _, _| {
-                let stats_window = StatsWindow::new(window);
-
                 PKGS.with_borrow(|pkgs| {
-                    stats_window.show(window.imp().pacman_repos.get().unwrap(), pkgs);
+                    let imp = window.imp();
+
+                    imp.stats_window.show(imp.pacman_repos.get().unwrap(), pkgs);
                 });
             })
             .build();
@@ -588,10 +597,8 @@ impl PacViewWindow {
         // Add show backup files window action
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
-                let backup_window = BackupWindow::new(window);
-
                 INSTALLED_PKGS.with_borrow(|installed_pkgs| {
-                    backup_window.show(installed_pkgs);
+                    window.imp().backup_window.show(installed_pkgs);
                 });
             })
             .build();
@@ -599,10 +606,8 @@ impl PacViewWindow {
         // Add show pacman log window action
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
-                let log_window = LogWindow::new(window);
-
                 PACMAN_LOG.with_borrow(|pacman_log| {
-                    log_window.show(pacman_log);
+                    window.imp().log_window.show(pacman_log);
                 });
             })
             .build();
@@ -610,10 +615,8 @@ impl PacViewWindow {
         // Add show pacman groups window action
         let groups_action = gio::ActionEntry::builder("show-pacman-groups")
             .activate(|window: &Self, _, _| {
-                let groups_window = GroupsWindow::new(window);
-
                 PKGS.with_borrow(|pkgs| {
-                    groups_window.show(pkgs);
+                    window.imp().groups_window.show(pkgs);
                 });
             })
             .build();
@@ -956,6 +959,12 @@ impl PacViewWindow {
     //---------------------------------------
     fn load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
+
+        // Clear windows
+        imp.backup_window.clear();
+        imp.log_window.clear();
+        imp.groups_window.clear();
+        imp.stats_window.clear();
 
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 

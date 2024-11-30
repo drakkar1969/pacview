@@ -190,6 +190,14 @@
     </object>
     <object class="ConfigDialog" id="config_dialog">
     </object>
+    <object class="BackupWindow" id="backup_window">
+    </object>
+    <object class="LogWindow" id="log_window">
+    </object>
+    <object class="GroupsWindow" id="groups_window">
+    </object>
+    <object class="StatsWindow" id="stats_window">
+    </object>
   </template>
 
   <!--// Primary menu //-->

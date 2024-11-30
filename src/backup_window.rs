@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use std::collections::HashSet;
 
 use gtk::{glib, gio, gdk};
@@ -53,6 +55,8 @@ mod imp {
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
+
+        pub(super) bindings: RefCell<Vec<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -285,6 +289,17 @@ impl BackupWindow {
     }
 
     //---------------------------------------
+    // Clear window
+    //---------------------------------------
+    pub fn clear(&self) {
+        for binding in self.imp().bindings.take() {
+            binding.unbind();
+        }
+
+        self.imp().model.remove_all();
+    }
+
+    //---------------------------------------
     // Show window
     //---------------------------------------
     pub fn show(&self, installed_snapshot: &[PkgObject]) {
@@ -292,64 +307,69 @@ impl BackupWindow {
 
         self.present();
 
-        // Get backup list
-        let backup_list: Vec<BackupObject> = installed_snapshot.iter()
-            .flat_map(|pkg|
-                pkg.backup().iter()
-                    .map(BackupObject::new)
-                    .collect::<Vec<BackupObject>>()
-            )
-            .collect();
+        // Populate if necessary
+        if imp.model.n_items() == 0 {
+            // Get backup list
+            let backup_list: Vec<BackupObject> = installed_snapshot.iter()
+                .flat_map(|pkg|
+                    pkg.backup().iter()
+                        .map(BackupObject::new)
+                        .collect::<Vec<BackupObject>>()
+                )
+                .collect();
 
-        // Populate column view
-        imp.model.splice(0, 0, &backup_list);
+            // Populate column view
+            imp.model.splice(0, 0, &backup_list);
 
-        // Set status dropdown selected item
-        imp.status_dropdown.set_selected(0);
+            // Set status dropdown selected item
+            imp.status_dropdown.set_selected(0);
 
-        // Bind backup files count to header sub label
-        imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-            .transform_to(move |binding, n_items: u32| {
-                let selection = binding.source()
-                    .and_downcast::<gtk::SingleSelection>()
-                    .expect("Could not downcast to 'FilterListModel'");
+            // Bind backup files count to header sub label
+            let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+                .transform_to(move |binding, n_items: u32| {
+                    let selection = binding.source()
+                        .and_downcast::<gtk::SingleSelection>()
+                        .expect("Could not downcast to 'FilterListModel'");
 
-                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        item
-                            .downcast::<BackupObject>()
-                            .expect("Could not downcast to 'BackupObject'")
-                            .package()
-                    })
-                    .collect();
+                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                        .map(|item| {
+                            item
+                                .downcast::<BackupObject>()
+                                .expect("Could not downcast to 'BackupObject'")
+                                .package()
+                        })
+                        .collect();
 
-                let section_len = section_map.len();
+                    let section_len = section_map.len();
 
-                Some(format!("{n_items} files in {section_len} package{}",
-                    if section_len != 1 {"s"} else {""}
-                ))
-            })
-            .sync_create()
-            .build();
+                    Some(format!("{n_items} files in {section_len} package{}",
+                        if section_len != 1 {"s"} else {""}
+                    ))
+                })
+                .sync_create()
+                .build();
 
-        // Bind selected item to open button state
-        imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
-            .transform_to(|_, item: Option<glib::Object>| {
-                if let Some(object) = item.and_downcast::<BackupObject>() {
-                    let status = object.status();
+            // Bind selected item to open button state
+            let open_binding = imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
+                .transform_to(|_, item: Option<glib::Object>| {
+                    if let Some(object) = item.and_downcast::<BackupObject>() {
+                        let status = object.status();
 
-                    Some(status != BackupStatus::Locked && status != BackupStatus::All)
-                } else {
-                    Some(false)
-                }
-            })
-            .sync_create()
-            .build();
+                        Some(status != BackupStatus::Locked && status != BackupStatus::All)
+                    } else {
+                        Some(false)
+                    }
+                })
+                .sync_create()
+                .build();
 
-        // Bind backup files count to copy button state
-        imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
+            // Bind backup files count to copy button state
+            let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                .transform_to(|_, n_items: u32| Some(n_items > 0))
+                .sync_create()
+                .build();
+
+            imp.bindings.replace(vec![label_binding, open_binding, copy_binding]);
+        }
     }
 }
