@@ -105,14 +105,12 @@ pub struct PkgBackup {
 }
 
 impl PkgBackup {
-    fn new(backup: &alpm::Backup, package: &str, root_dir: &str) -> Self {
-        let filename = format!("{}{}", root_dir, backup.name());
-
-        let file_hash = alpm::compute_md5sum(filename.as_str()).ok();
+    fn new(filename: &str, hash: &str, package: &str) -> Self {
+        let file_hash = alpm::compute_md5sum(filename).ok();
 
         Self {
-            filename,
-            hash: backup.hash().to_string(),
+            filename: filename.to_string(),
+            hash: hash.to_string(),
             file_hash,
             package: package.to_string()
         }
@@ -727,7 +725,7 @@ impl PkgObject {
                 .map(|pkg| {
                     pkg.backup().iter()
                         .map(|backup|
-                            PkgBackup::new(backup, pkg.name(), &pacman_config.root_dir)
+                            PkgBackup::new(&format!("{}{}", pacman_config.root_dir, backup.name()), backup.hash(), pkg.name())
                         )
                         .sorted_unstable_by(|backup_a, backup_b|
                             backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
