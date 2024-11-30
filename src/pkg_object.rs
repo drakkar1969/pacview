@@ -19,7 +19,7 @@ use crate::utils::{date_to_string, size_to_string};
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static ALPM_HANDLE: RefCell<alpm::Result<Rc<alpm::Alpm>>> = const {RefCell::new(Err(alpm::Error::HandleNull))};
+    pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const {RefCell::new(None)};
     pub static AUR_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
     pub static PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
@@ -777,8 +777,9 @@ impl PkgObject {
     //---------------------------------------
     pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<PkgObject> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
-            if let Ok(handle) = alpm_handle {
-                handle.localdb().pkgs().find_satisfier(search_term)
+            alpm_handle.as_ref()
+                .and_then(|handle|
+                    handle.localdb().pkgs().find_satisfier(search_term)
                     .or_else(||
                         if include_sync {
                             handle.syncdbs().find_satisfier(search_term)
@@ -787,9 +788,7 @@ impl PkgObject {
                         }
                     )
                     .map(|pkg| PkgObject::new(pkg.name(), PkgData::Handle(handle.clone(), pkg)))
-            } else {
-                None
-            }
+                )
         })
     }
 }
