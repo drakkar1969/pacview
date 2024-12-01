@@ -9,7 +9,7 @@ use glib::clone;
 
 use itertools::Itertools;
 
-use crate::package_view::AUR_SNAPSHOT;
+use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
 use crate::pkg_history::PkgHistory;
@@ -257,7 +257,7 @@ impl InfoPane {
     // PropertyValue pkg link handler
     //---------------------------------------
     fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
-        AUR_SNAPSHOT.with_borrow(|aur_snapshot| {
+        AUR_PKGS.with_borrow(|aur_pkgs| {
             // Find link package in pacman databases
             let pkg_link = format!("{pkg_name}{pkg_version}");
 
@@ -266,10 +266,10 @@ impl InfoPane {
             // Find link package in AUR search results
             let new_pkg = pkg.as_ref()
                 .or_else(|| {
-                    aur_snapshot.iter()
+                    aur_pkgs.iter()
                         .find(|&pkg| pkg.name() == pkg_name)
                         .or_else(|| {
-                            aur_snapshot.iter()
+                            aur_pkgs.iter()
                                 .find(|&pkg| pkg.provides().iter().any(|s| s == &pkg_link))
                         })
                 });

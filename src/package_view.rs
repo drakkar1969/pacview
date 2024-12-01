@@ -26,7 +26,7 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static AUR_SNAPSHOT: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static AUR_PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
 }
 
 //------------------------------------------------------------------------------
@@ -435,7 +435,7 @@ impl PackageView {
         // Clear AUR search results
         imp.aur_model.remove_all();
 
-        AUR_SNAPSHOT.replace(vec![]);
+        AUR_PKGS.replace(vec![]);
 
         // Return if search term is empty
         if search_term.is_empty() {
@@ -496,7 +496,7 @@ impl PackageView {
 
                                 imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
 
-                                AUR_SNAPSHOT.replace(pkg_list);
+                                AUR_PKGS.replace(pkg_list);
                             }
 
                             search_bar.set_aur_error(None);
