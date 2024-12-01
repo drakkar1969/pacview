@@ -432,6 +432,9 @@ impl PackageView {
     pub fn search_in_aur(&self, search_bar: SearchBar, search_term: &str, prop: SearchProp) {
         let imp = self.imp();
 
+        // Cancel ongoing AUR search if any
+        self.cancel_aur_search();
+
         // Clear AUR search results
         imp.aur_model.remove_all();
 
