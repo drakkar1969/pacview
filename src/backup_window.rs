@@ -350,13 +350,12 @@ impl BackupWindow {
             // Bind selected item to open button state
             let open_binding = imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
                 .transform_to(|_, item: Option<glib::Object>| {
-                    if let Some(object) = item.and_downcast::<BackupObject>() {
-                        let status = object.status();
+                    item.and_downcast::<BackupObject>()
+                        .map_or(Some(false), |object| {
+                            let status = object.status();
 
-                        Some(status != BackupStatus::Locked && status != BackupStatus::All)
-                    } else {
-                        Some(false)
-                    }
+                            Some(status != BackupStatus::Locked && status != BackupStatus::All)
+                        })
                 })
                 .sync_create()
                 .build();

@@ -297,11 +297,10 @@ mod imp {
                 .to_string()
             });
 
-            if let Some(update_version) = self.obj().update_version() {
-                format!("{version} \u{2192} {update_version}")
-            } else {
-                version.to_string()
-            }
+            self.obj().update_version()
+                .map_or_else(|| version.to_string(), |update_version| {
+                    format!("{version} \u{2192} {update_version}")
+                })
         }
 
         fn status(&self) -> String {

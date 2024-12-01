@@ -444,13 +444,12 @@ impl InfoPane {
         // Bind selected backup item to backup open button state
         imp.backup_selection.bind_property("selected-item", &imp.backup_open_button.get(), "sensitive")
             .transform_to(|_, item: Option<glib::Object>| {
-                if let Some(object) = item.and_downcast::<BackupObject>() {
-                    let status = object.status();
+                item.and_downcast::<BackupObject>()
+                    .map_or(Some(false), |object| {
+                        let status = object.status();
 
-                    Some(status != BackupStatus::Locked && status != BackupStatus::All)
-                } else {
-                    Some(false)
-                }
+                        Some(status != BackupStatus::Locked && status != BackupStatus::All)
+                    })
             })
             .sync_create()
             .build();

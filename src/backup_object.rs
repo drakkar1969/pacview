@@ -74,15 +74,14 @@ mod imp {
         // Custom property getters
         //---------------------------------------
         fn status(&self) -> BackupStatus {
-            if let Some(file_hash) = self.obj().file_hash() {
-                if file_hash == self.obj().hash() {
-                    BackupStatus::Unmodified
-                } else {
-                    BackupStatus::Modified
-                }
-            } else {
-                BackupStatus::Locked
-            }
+            self.obj().file_hash()
+                .map_or(BackupStatus::Locked, |file_hash| {
+                    if file_hash == self.obj().hash() {
+                        BackupStatus::Unmodified
+                    } else {
+                        BackupStatus::Modified
+                    }
+                })
         }
 
         fn status_icon(&self) -> String {
