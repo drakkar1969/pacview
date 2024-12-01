@@ -44,7 +44,7 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static PACMAN_LOG: RefCell<Option<String>> = const {RefCell::new(None)};
+    pub static PACMAN_LOG: RefCell<Option<Arc<String>>> = RefCell::new(None);
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
@@ -961,7 +961,7 @@ impl PacViewWindow {
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
         // Load pacman log
-        PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok());
+        PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok().map(|log| Arc::new(log)));
 
         // Populate package view
         match alpm_utils::alpm_with_conf(pacman_config) {

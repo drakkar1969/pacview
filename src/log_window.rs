@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::sync::Arc;
 use std::sync::OnceLock;
 
 use gtk::{glib, gio, gdk};
@@ -235,7 +236,7 @@ impl LogWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, log: &Option<String>) {
+    pub fn show(&self, log: &Option<Arc<String>>) {
         let imp = self.imp();
 
         self.present();
@@ -254,8 +255,9 @@ impl LogWindow {
                 // Spawn task to populate column view
                 let (sender, receiver) = async_channel::bounded(1);
 
+                let log = Arc::clone(log);
+
                 gio::spawn_blocking(clone!(
-                    #[strong] log,
                     move || {
                         // Strip ANSI control sequences from log
                         static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
