@@ -571,7 +571,7 @@ impl PackageView {
     pub fn copy_list(&self) -> String {
         format!("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n{body}",
             body=self.imp().selection.iter::<glib::Object>()
-            .flatten()
+                .flatten()
                 .map(|item| {
                     let pkg = item
                         .downcast::<PkgObject>()
