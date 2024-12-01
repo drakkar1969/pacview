@@ -217,7 +217,7 @@ impl GroupsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, pkgs: &[PkgObject]) {
         let imp = self.imp();
 
         self.present();
@@ -225,7 +225,7 @@ impl GroupsWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get list of packages with groups
-            let pkg_list: Vec<GroupsObject> = pkg_snapshot.iter()
+            let pkg_list: Vec<GroupsObject> = pkgs.iter()
                 .filter(|pkg| !pkg.groups().is_empty())
                 .flat_map(|pkg|
                     pkg.groups().split(" | ")

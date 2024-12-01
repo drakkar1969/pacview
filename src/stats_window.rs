@@ -153,7 +153,7 @@ impl StatsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, repo_names: &[String], pkg_snapshot: &[PkgObject]) {
+    pub fn show(&self, repo_names: &[String], pkgs: &[PkgObject]) {
         let imp = self.imp();
 
         self.present();
@@ -166,7 +166,7 @@ impl StatsWindow {
             let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
                 .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
                     // Iterate packages per repo
-                    let (pcount, icount, isize) = pkg_snapshot.iter()
+                    let (pcount, icount, isize) = pkgs.iter()
                         .filter(|pkg| pkg.repository() == *repo)
                         .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
                             pcount += 1;

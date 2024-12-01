@@ -302,7 +302,7 @@ impl BackupWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, installed_snapshot: &[PkgObject]) {
+    pub fn show(&self, installed_pkgs: &[PkgObject]) {
         let imp = self.imp();
 
         self.present();
@@ -310,7 +310,7 @@ impl BackupWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get backup list
-            let backup_list: Vec<BackupObject> = installed_snapshot.iter()
+            let backup_list: Vec<BackupObject> = installed_pkgs.iter()
                 .flat_map(|pkg|
                     pkg.backup().iter()
                         .map(BackupObject::new)
