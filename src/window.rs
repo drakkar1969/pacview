@@ -5,7 +5,6 @@ use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 use std::env;
-use std::io;
 use std::io::Read;
 use std::str::FromStr;
 use std::fs;
@@ -19,12 +18,11 @@ use alpm_utils::DbListExt;
 use num::ToPrimitive;
 use titlecase::titlecase;
 use regex::Regex;
-use async_process::Command;
 use futures::join;
 use flate2::read::GzDecoder;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 
-use crate::utils::tokio_runtime;
+use crate::utils::{tokio_runtime, run_command_async};
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{ALPM_HANDLE, AUR_NAMES, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES, PkgData, PkgFlags, PkgObject};
@@ -1046,25 +1044,6 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Run update command helper function
-    //---------------------------------------
-    async fn run_update_command(cmd: &str) -> io::Result<(Option<i32>, String)> {
-        // Run external command
-        let params = shlex::split(cmd)
-            .filter(|params| !params.is_empty())
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Error parsing parameters"))?;
-
-        let output = Command::new(&params[0]).args(&params[1..]).output().await?;
-
-        let stdout = String::from_utf8(output.stdout)
-            .map_err(|error| io::Error::new(io::ErrorKind::Other, error))?;
-
-        let code = output.status.code();
-
-        Ok((code, stdout))
-    }
-
-    //---------------------------------------
     // Setup alpm: get package updates
     //---------------------------------------
     fn get_package_updates(&self) {
@@ -1084,11 +1063,11 @@ impl PacViewWindow {
                 let aur_command = imp.prefs_dialog.aur_command();
 
                 // Check for pacman updates async
-                let pacman_handle = Self::run_update_command("/usr/bin/checkupdates");
+                let pacman_handle = run_command_async("/usr/bin/checkupdates");
 
                 let (pacman_res, aur_res) = if !aur_command.is_empty() {
                     // Check for AUR updates async
-                    let aur_handle = Self::run_update_command(&aur_command);
+                    let aur_handle = run_command_async(&aur_command);
 
                     join!(pacman_handle, aur_handle)
                 } else {

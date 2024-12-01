@@ -1,4 +1,5 @@
 use std::sync::OnceLock;
+use std::io;
 
 use gtk::{glib, gio};
 use gtk::prelude::AppInfoExt;
@@ -17,6 +18,25 @@ pub fn tokio_runtime() -> &'static Runtime {
     RUNTIME.get_or_init(|| {
         Runtime::new().expect("Setting up tokio runtime needs to succeed.")
     })
+}
+
+//---------------------------------------
+// Run command async function
+//---------------------------------------
+pub async fn run_command_async(cmd: &str) -> io::Result<(Option<i32>, String)> {
+    // Run external command
+    let params = shlex::split(cmd)
+        .filter(|params| !params.is_empty())
+        .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Error parsing parameters"))?;
+
+    let output = async_process::Command::new(&params[0]).args(&params[1..]).output().await?;
+
+    let stdout = String::from_utf8(output.stdout)
+        .map_err(|error| io::Error::new(io::ErrorKind::Other, error))?;
+
+    let code = output.status.code();
+
+    Ok((code, stdout))
 }
 
 //---------------------------------------
