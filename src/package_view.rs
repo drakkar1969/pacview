@@ -453,7 +453,7 @@ impl PackageView {
         // Create and store search cancel token
         let cancel_token = CancellationToken::new();
 
-        let cancel_token_cloned = cancel_token.clone();
+        let cancel_token_clone = cancel_token.clone();
 
         imp.search_cancel_token.replace(Some(cancel_token));
 
@@ -466,7 +466,7 @@ impl PackageView {
             tokio_runtime().spawn(clone!(
                 async move {
                     let result = tokio::select! {
-                        () = cancel_token_cloned.cancelled() => { Ok(vec![]) },
+                        () = cancel_token_clone.cancelled() => { Ok(vec![]) },
                         res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => { res }
                     };
 
