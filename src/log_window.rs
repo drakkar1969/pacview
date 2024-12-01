@@ -250,13 +250,13 @@ impl LogWindow {
                 message: String
             }
 
-            // Spawn task to populate column view
-            let (sender, receiver) = async_channel::bounded(1);
+            if let Some(log) = log {
+                // Spawn task to populate column view
+                let (sender, receiver) = async_channel::bounded(1);
 
-            gio::spawn_blocking(clone!(
-                #[strong] log,
-                move || {
-                    if let Some(log) = log {
+                gio::spawn_blocking(clone!(
+                    #[strong] log,
+                    move || {
                         // Strip ANSI control sequences from log
                         static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
@@ -287,19 +287,15 @@ impl LogWindow {
                             )
                             .collect();
 
-                        sender.send_blocking(Some(log_lines)).expect("Could not send through channel");
-                    } else {
-                        sender.send_blocking(None).expect("Could not send through channel");
+                        sender.send_blocking(log_lines).expect("Could not send through channel");
                     }
-                }
-            ));
+                ));
 
-            // Attach channel receiver
-            glib::spawn_future_local(clone!(
-                #[weak] imp,
-                async move {
-                    while let Ok(result) = receiver.recv().await {
-                        if let Some(log_lines) = result {
+                // Attach channel receiver
+                glib::spawn_future_local(clone!(
+                    #[weak] imp,
+                    async move {
+                        while let Ok(log_lines) = receiver.recv().await {
                             // Populate column view
                             imp.model.splice(0, 0, &log_lines.iter()
                                 .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
@@ -321,13 +317,13 @@ impl LogWindow {
                                 .build();
 
                             imp.bindings.replace(vec![label_binding, copy_binding]);
-                        } else {
-                            // Show overlay error label
-                            imp.error_label.set_visible(true);
                         }
                     }
-                }
-            ));
+                ));
+            } else {
+                // Show overlay error label
+                imp.error_label.set_visible(true);
+            }
         }
     }
 }
