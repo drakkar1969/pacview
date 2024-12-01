@@ -776,26 +776,25 @@ impl PkgObject {
     pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<Self> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
             alpm_handle.as_ref()
-                .and_then(|handle|
-                    handle.localdb().pkgs().find_satisfier(search_term)
+                .and_then(|handle| {
+                    let mut pkg = handle.localdb().pkgs().find_satisfier(search_term)
                         .and_then(|local_pkg|
                             INSTALLED_PKGS.with_borrow(|installed_pkgs| {
                                 installed_pkgs.iter().find(|&pkg| pkg.name() == local_pkg.name()).cloned()
                             })
-                        )
-                        .or_else(||
-                            if include_sync {
-                                handle.syncdbs().find_satisfier(search_term)
-                                    .and_then(|sync_pkg|
-                                        PKGS.with_borrow(|pkgs| {
-                                            pkgs.iter().find(|&pkg| pkg.name() == sync_pkg.name()).cloned()
-                                        })
-                                    )
-                            } else {
-                                None
-                            }
-                        )
-                )
+                        );
+
+                    if include_sync && pkg.is_none() {
+                        pkg = handle.syncdbs().find_satisfier(search_term)
+                            .and_then(|sync_pkg|
+                                PKGS.with_borrow(|pkgs| {
+                                    pkgs.iter().find(|&pkg| pkg.name() == sync_pkg.name()).cloned()
+                                })
+                            );
+                    }
+
+                    pkg
+                })
         })
     }
 }
