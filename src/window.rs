@@ -44,7 +44,7 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static PACMAN_LOG: RefCell<Option<Arc<String>>> = RefCell::new(None);
+    pub static PACMAN_LOG: RefCell<Arc<String>> = RefCell::new(Arc::new(String::default()));
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
@@ -608,7 +608,7 @@ impl PacViewWindow {
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
                 PACMAN_LOG.with_borrow(|pacman_log| {
-                    window.imp().log_window.show(pacman_log);
+                    window.imp().log_window.show(Arc::clone(pacman_log));
                 });
             })
             .build();
@@ -961,7 +961,7 @@ impl PacViewWindow {
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
         // Load pacman log
-        PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok().map(|log| Arc::new(log)));
+        PACMAN_LOG.replace(Arc::new(fs::read_to_string(&pacman_config.log_file).unwrap_or_default()));
 
         // Populate package view
         match alpm_utils::alpm_with_conf(pacman_config) {

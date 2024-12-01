@@ -660,26 +660,28 @@ impl PkgObject {
         })
     }
 
-    pub fn log(&self) -> Option<&[String]> {
+    pub fn log(&self) -> &[String] {
         PACMAN_LOG.with_borrow(|pacman_log| {
-            pacman_log.as_ref()
-                .map(|log| {
-                    self.imp().log.get_or_init(|| {
-                        let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&self.name())))
-                            .expect("Regex error");
+            self.imp().log.get_or_init(|| {
+                let mut log_lines: Vec<String> = vec![];
 
-                        log.lines().rev()
-                            .filter_map(|s| {
-                                if expr.is_match(s) {
-                                    Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
-                                } else {
-                                    None
-                                }
-                            })
-                            .collect::<Vec<String>>()
-                    })
-                })
-                .map(|log_lines| &**log_lines)
+                if !pacman_log.is_empty() {
+                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&self.name())))
+                        .expect("Regex error");
+
+                    log_lines.extend(pacman_log.lines().rev()
+                        .filter_map(|s| {
+                            if expr.is_match(s) {
+                                Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
+                            } else {
+                                None
+                            }
+                        })
+                    )
+                }
+
+                log_lines
+            })
         })
     }
 

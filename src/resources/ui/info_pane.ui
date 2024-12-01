@@ -303,58 +303,42 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkOverlay">
-                                <child>
-                                  <object class="GtkScrolledWindow">
+                              <object class="GtkScrolledWindow">
+                                <style>
+                                  <class name="card"/>
+                                  <class name="no-shadow"/>
+                                </style>
+                                <property name="hexpand">true</property>
+                                <property name="vexpand">true</property>
+                                <property name="margin-start">16</property>
+                                <property name="margin-end">16</property>
+                                <property name="margin-bottom">16</property>
+                                <property name="child">
+                                  <object class="GtkListView" id="log_view">
                                     <style>
-                                      <class name="card"/>
-                                      <class name="no-shadow"/>
+                                      <class name="card-list"/>
                                     </style>
-                                    <property name="hexpand">true</property>
-                                    <property name="vexpand">true</property>
-                                    <property name="margin-start">16</property>
-                                    <property name="margin-end">16</property>
+                                    <property name="margin-start">12</property>
+                                    <property name="margin-end">12</property>
+                                    <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
-                                    <property name="child">
-                                      <object class="GtkListView" id="log_view">
-                                        <style>
-                                          <class name="card-list"/>
-                                        </style>
-                                        <property name="margin-start">12</property>
-                                        <property name="margin-end">12</property>
-                                        <property name="margin-top">16</property>
-                                        <property name="margin-bottom">16</property>
-                                        <property name="tab-behavior">item</property>
+                                    <property name="tab-behavior">item</property>
+                                    <property name="model">
+                                      <object class="GtkNoSelection" id="log_selection">
                                         <property name="model">
-                                          <object class="GtkNoSelection" id="log_selection">
-                                            <property name="model">
-                                              <object class="GListStore" id="log_model">
-                                                <property name="item-type">GtkStringObject</property>
-                                              </object>
-                                            </property>
-                                          </object>
-                                        </property>
-                                        <property name="factory">
-                                          <object class="GtkBuilderListItemFactory">
-                                            <property name="resource">/com/github/PacView/ui/info_pane/log_item.ui</property>
+                                          <object class="GListStore" id="log_model">
+                                            <property name="item-type">GtkStringObject</property>
                                           </object>
                                         </property>
                                       </object>
                                     </property>
+                                    <property name="factory">
+                                      <object class="GtkBuilderListItemFactory">
+                                        <property name="resource">/com/github/PacView/ui/info_pane/log_item.ui</property>
+                                      </object>
+                                    </property>
                                   </object>
-                                </child>
-                                <child type="overlay">
-                                  <object class="GtkLabel" id="log_error_label">
-                                    <property name="visible">false</property>
-                                    <property name="halign">center</property>
-                                    <property name="valign">center</property>
-                                    <property name="label">Error retrieving log</property>
-                                    <style>
-                                      <class name="title-4"/>
-                                      <class name="error"/>
-                                    </style>
-                                  </object>
-                                </child>
+                                </property>
                               </object>
                             </child>
                           </object>

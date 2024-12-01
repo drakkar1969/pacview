@@ -140,8 +140,6 @@ mod imp {
         pub(super) log_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) log_selection: TemplateChild<gtk::NoSelection>,
-        #[template_child]
-        pub(super) log_error_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) cache_header_label: TemplateChild<gtk::Label>,
@@ -771,18 +769,11 @@ impl InfoPane {
         let imp = self.imp();
 
         // Populate log view
-        if let Some(log) = pkg.log() {
-            let log_lines: Vec<gtk::StringObject> = log.iter()
-                .map(|line| gtk::StringObject::new(line))
-                .collect();
+        let log_lines: Vec<gtk::StringObject> = pkg.log().iter()
+            .map(|line| gtk::StringObject::new(line))
+            .collect();
 
-            imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-        } else {
-            imp.log_model.remove_all();
-
-            // Show overlay error label
-            imp.log_error_label.set_visible(true);
-        }
+        imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
     }
 
     fn update_cache_view(&self, pkg: &PkgObject) {
