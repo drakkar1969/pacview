@@ -1048,7 +1048,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Run update command helper function
     //---------------------------------------
-    async fn run_update_command(&self, cmd: &str) -> io::Result<(Option<i32>, String)> {
+    async fn run_update_command(cmd: &str) -> io::Result<(Option<i32>, String)> {
         // Run external command
         let params = shlex::split(cmd)
             .filter(|params| !params.is_empty())
@@ -1075,7 +1075,6 @@ impl PacViewWindow {
 
         // Spawn async process to check for updates
         glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
             #[weak] imp,
             #[weak] update_row,
             async move {
@@ -1085,11 +1084,11 @@ impl PacViewWindow {
                 let aur_command = imp.prefs_dialog.aur_command();
 
                 // Check for pacman updates async
-                let pacman_handle = window.run_update_command("/usr/bin/checkupdates");
+                let pacman_handle = Self::run_update_command("/usr/bin/checkupdates");
 
                 let (pacman_res, aur_res) = if !aur_command.is_empty() {
                     // Check for AUR updates async
-                    let aur_handle = window.run_update_command(&aur_command);
+                    let aur_handle = Self::run_update_command(&aur_command);
 
                     join!(pacman_handle, aur_handle)
                 } else {
