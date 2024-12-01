@@ -983,35 +983,33 @@ impl PacViewWindow {
                 AUR_NAMES.replace(aur_names);
 
                 // Load pacman sync packages
-                let sync_pkgs: Vec<PkgObject> = handle_ref.syncdbs().iter()
+                let (mut installed_pkgs, mut all_pkgs): (Vec<PkgObject>, Vec<PkgObject>) = handle_ref
+                    .syncdbs().iter()
                     .flat_map(|db| {
                         db.pkgs().iter()
                             .map(|syncpkg| {
                                 PkgObject::new(syncpkg.name(), PkgData::Handle(Rc::clone(&handle_ref), syncpkg))
                             })
-                    })
-                    .collect();
+                        })
+                        .partition(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
 
                 // Load pacman local packages not in sync databases
-                let local_pkgs: Vec<PkgObject> = handle_ref.localdb().pkgs().iter()
+                installed_pkgs.extend_from_slice(&handle_ref
+                    .localdb().pkgs().iter()
                     .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
                     .map(|pkg| {
                         PkgObject::new(pkg.name(), PkgData::Handle(Rc::clone(&handle_ref), pkg))
                     })
-                    .collect();
+                    .collect::<Vec<PkgObject>>()
+                );
 
-                // Store alpm handle in PkgObject global variable
-                ALPM_HANDLE.replace(Some(handle_ref));
-
-                // Get package lists
-                let (mut installed_pkgs, mut all_pkgs): (Vec<PkgObject>, Vec<PkgObject>) = sync_pkgs.into_iter()
-                    .partition(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
-
-                installed_pkgs.extend_from_slice(&local_pkgs);
                 all_pkgs.extend_from_slice(&installed_pkgs);
 
                 // Add packages to package view
                 imp.package_view.splice_packages(&all_pkgs);
+
+                // Store alpm handle in PkgObject global variable
+                ALPM_HANDLE.replace(Some(handle_ref));
 
                 // Store package lists in global variables
                 PKGS.replace(all_pkgs);
