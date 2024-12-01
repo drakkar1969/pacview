@@ -163,20 +163,20 @@ impl StatsWindow {
             let mut stats_items: Vec<StatsObject> = vec![];
 
             // Iterate repos
-            let (tot_pcount, tot_icount, tot_isize) = repo_names.iter()
-                .fold((0, 0, 0), |(tot_pcount, tot_icount, tot_isize), repo| {
+            let (tot_pkg_count, tot_install_count, tot_install_size) = repo_names.iter()
+                .fold((0, 0, 0), |(tot_pkg_count, tot_install_count, tot_install_size), repo| {
                     // Iterate packages per repo
-                    let (pcount, icount, isize) = pkgs.iter()
+                    let (pkg_count, install_count, install_size) = pkgs.iter()
                         .filter(|pkg| pkg.repository() == *repo)
-                        .fold((0, 0, 0), |(mut pcount, mut icount, mut isize), pkg| {
-                            pcount += 1;
+                        .fold((0, 0, 0), |(mut pkg_count, mut install_count, mut install_size), pkg| {
+                            pkg_count += 1;
 
                             if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                                icount += 1;
-                                isize += pkg.install_size();
+                                install_count += 1;
+                                install_size += pkg.install_size();
                             }
 
-                            (pcount, icount, isize)
+                            (pkg_count, install_count, install_size)
                         });
 
                     // Add repo item to stats column view
@@ -184,20 +184,20 @@ impl StatsWindow {
 
                     stats_items.push(StatsObject::new(
                         &repo,
-                        &pcount.to_string(),
-                        &icount.to_string(),
-                        &size_to_string(isize, 2)
+                        &pkg_count.to_string(),
+                        &install_count.to_string(),
+                        &size_to_string(install_size, 2)
                     ));
 
-                    (tot_pcount + pcount, tot_icount + icount, tot_isize + isize)
+                    (tot_pkg_count + pkg_count, tot_install_count + install_count, tot_install_size + install_size)
                 });
 
             // Add item with totals to stats column view
             stats_items.push(StatsObject::new(
                 "<b>Total</b>",
-                &format!("<b>{tot_pcount}</b>"),
-                &format!("<b>{tot_icount}</b>"),
-                &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
+                &format!("<b>{tot_pkg_count}</b>"),
+                &format!("<b>{tot_install_count}</b>"),
+                &format!("<b>{}</b>", &size_to_string(tot_install_size, 2))
             ));
 
             imp.model.splice(0, 0, &stats_items);
