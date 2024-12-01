@@ -778,14 +778,23 @@ impl PkgObject {
             alpm_handle.as_ref()
                 .and_then(|handle|
                     handle.localdb().pkgs().find_satisfier(search_term)
-                    .or_else(||
-                        if include_sync {
-                            handle.syncdbs().find_satisfier(search_term)
-                        } else {
-                            None
-                        }
-                    )
-                    .map(|pkg| Self::new(pkg.name(), PkgData::Handle(Rc::clone(handle), pkg)))
+                        .and_then(|local_pkg|
+                            INSTALLED_PKGS.with_borrow(|installed_pkgs| {
+                                installed_pkgs.iter().find(|&pkg| pkg.name() == local_pkg.name()).cloned()
+                            })
+                        )
+                        .or_else(||
+                            if include_sync {
+                                handle.syncdbs().find_satisfier(search_term)
+                                    .and_then(|sync_pkg|
+                                        PKGS.with_borrow(|pkgs| {
+                                            pkgs.iter().find(|&pkg| pkg.name() == sync_pkg.name()).cloned()
+                                        })
+                                    )
+                            } else {
+                                None
+                            }
+                        )
                 )
         })
     }
