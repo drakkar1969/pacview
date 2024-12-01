@@ -223,7 +223,7 @@ impl ConfigDialog {
         imp.noupgrade_row.set_subtitle(&config.no_upgrade.join(" | "));
         imp.noextract_row.set_subtitle(&config.no_extract.join(" | "));
 
-        imp.downloaduser_row.set_subtitle(&config.download_user.to_owned().unwrap_or("None".to_string()));
+        imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or_else(|| "None".to_string()));
         imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
         imp.usesyslog_row.set_subtitle(&config.use_syslog.to_string());
         imp.color_row.set_subtitle(&config.color.to_string());

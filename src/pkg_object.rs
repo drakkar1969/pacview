@@ -30,13 +30,13 @@ thread_local! {
 //------------------------------------------------------------------------------
 // GLOBAL: Helper functions
 //------------------------------------------------------------------------------
-fn alpm_list_to_string(list: &alpm::AlpmList<&str>) -> String {
+fn alpm_list_to_string(list: alpm::AlpmList<&str>) -> String {
     list.iter()
         .sorted_unstable()
         .join(" | ")
 }
 
-fn alpm_deplist_to_vec(list: &alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
+fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
     list.iter()
         .map(|dep| dep.to_string())
         .sorted_unstable()
@@ -80,17 +80,17 @@ enum PkgInternal<'a> {
 pub enum PkgFlags {
     ALL        = Self::INSTALLED.bits() | Self::NONE.bits(),
     INSTALLED  = Self::EXPLICIT.bits() | Self::DEPENDENCY.bits() | Self::OPTIONAL.bits() | Self::ORPHAN.bits(),
-    EXPLICIT   = 0b00000001,
-    DEPENDENCY = 0b00000010,
-    OPTIONAL   = 0b00000100,
-    ORPHAN     = 0b00001000,
-    NONE       = 0b00010000,
-    UPDATES    = 0b00100000,
+    EXPLICIT   = 0b0000_0001,
+    DEPENDENCY = 0b0000_0010,
+    OPTIONAL   = 0b0000_0100,
+    ORPHAN     = 0b0000_1000,
+    NONE       = 0b0001_0000,
+    UPDATES    = 0b0010_0000,
 }
 
 impl Default for PkgFlags {
     fn default() -> Self {
-        PkgFlags::empty()
+        Self::empty()
     }
 }
 
@@ -239,10 +239,9 @@ mod imp {
                 self.sync_pkg()
             }
             .map(PkgInternal::Pacman)
-            .unwrap_or({
+            .unwrap_or_else(|| {
                 self.aur_pkg.get()
-                    .map(PkgInternal::Aur)
-                    .unwrap_or(PkgInternal::None)
+                    .map_or(PkgInternal::None, PkgInternal::Aur)
             })
         }
 
@@ -252,7 +251,7 @@ mod imp {
         fn flags(&self) -> PkgFlags {
             let flags = self.flags.get_or_init(|| {
                 self.local_pkg()
-                    .map(|pkg| {
+                    .map_or(PkgFlags::NONE, |pkg| {
                         if pkg.reason() == alpm::PackageReason::Explicit {
                             PkgFlags::EXPLICIT
                         } else {
@@ -279,7 +278,6 @@ mod imp {
                             }
                         }
                     })
-                    .unwrap_or(PkgFlags::NONE)
             });
 
             if self.obj().update_version().is_some() {
@@ -348,9 +346,9 @@ mod imp {
         fn groups(&self) -> String {
             self.groups.get_or_init(|| {
                 match self.pkg() {
-                    PkgInternal::Pacman(pkg) => { alpm_list_to_string(&pkg.groups()) },
+                    PkgInternal::Pacman(pkg) => { alpm_list_to_string(pkg.groups()) },
                     PkgInternal::Aur(pkg) => { aur_vec_to_string(&pkg.groups) },
-                    PkgInternal::None => { String::from("") }
+                    PkgInternal::None => { String::default() }
                 }
             })
             .to_string()
@@ -390,7 +388,7 @@ impl PkgObject {
                 if repo == "local" {
                     AUR_NAMES.with_borrow(|aur_names| {
                         if aur_names.contains(pkg.name()) {
-                            repo = "aur"
+                            repo = "aur";
                         }
                     });
                 }
@@ -458,7 +456,7 @@ impl PkgObject {
 
         imp.depends.get_or_init(|| {
             match imp.pkg() {
-                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.depends()) },
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(pkg.depends()) },
                 PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.depends) },
                 PkgInternal::None => { vec![] }
             }
@@ -470,7 +468,7 @@ impl PkgObject {
 
         imp.optdepends.get_or_init(|| {
             match imp.pkg() {
-                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.optdepends()) },
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(pkg.optdepends()) },
                 PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.opt_depends) },
                 PkgInternal::None => { vec![] }
             }
@@ -521,7 +519,7 @@ impl PkgObject {
 
         imp.provides.get_or_init(|| {
             match imp.pkg() {
-                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.provides()) },
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(pkg.provides()) },
                 PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.provides) },
                 PkgInternal::None => { vec![] }
             }
@@ -533,7 +531,7 @@ impl PkgObject {
 
         imp.conflicts.get_or_init(|| {
             match imp.pkg() {
-                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.conflicts()) },
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(pkg.conflicts()) },
                 PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.conflicts) },
                 PkgInternal::None => { vec![] }
             }
@@ -545,7 +543,7 @@ impl PkgObject {
 
         imp.replaces.get_or_init(|| {
             match imp.pkg() {
-                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(&pkg.replaces()) },
+                PkgInternal::Pacman(pkg) => { alpm_deplist_to_vec(pkg.replaces()) },
                 PkgInternal::Aur(pkg) => { aur_sorted_vec(&pkg.replaces) },
                 PkgInternal::None => { vec![] }
             }
@@ -557,9 +555,9 @@ impl PkgObject {
 
         imp.licenses.get_or_init(|| {
             match imp.pkg() {
-                PkgInternal::Pacman(pkg) => { alpm_list_to_string(&pkg.licenses()) },
+                PkgInternal::Pacman(pkg) => { alpm_list_to_string(pkg.licenses()) },
                 PkgInternal::Aur(pkg) => { aur_vec_to_string(&pkg.license) },
-                PkgInternal::None => { String::from("") }
+                PkgInternal::None => { String::default() }
             }
         })
     }
@@ -677,7 +675,7 @@ impl PkgObject {
                                 None
                             }
                         })
-                    )
+                    );
                 }
 
                 log_lines
@@ -757,7 +755,7 @@ impl PkgObject {
                 name=self.name()
             )
         } else {
-            String::from("")
+            String::default()
         }
     }
 
@@ -776,7 +774,7 @@ impl PkgObject {
     //---------------------------------------
     // Public associated functions
     //---------------------------------------
-    pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<PkgObject> {
+    pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<Self> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
             alpm_handle.as_ref()
                 .and_then(|handle|
@@ -788,7 +786,7 @@ impl PkgObject {
                             None
                         }
                     )
-                    .map(|pkg| PkgObject::new(pkg.name(), PkgData::Handle(Rc::clone(handle), pkg)))
+                    .map(|pkg| Self::new(pkg.name(), PkgData::Handle(Rc::clone(handle), pkg)))
                 )
         })
     }

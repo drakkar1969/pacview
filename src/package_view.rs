@@ -256,7 +256,7 @@ impl PackageView {
             let installed_size = values.get(3).and_then(|value| value.get::<String>().ok())
                 .expect("Could not get value in scope callback");
 
-            let subtitle = format!("{}  |  {}  |  {}", status, repository, installed_size);
+            let subtitle = format!("{status}  |  {repository}  |  {installed_size}");
 
             Some(subtitle.to_value())
         });
@@ -414,7 +414,7 @@ impl PackageView {
             aur_names.extend(result?.iter()
                 .filter(|&pkg| !installed_pkg_names.contains(&pkg.name))
                 .map(|pkg| pkg.name.to_string())
-            )
+            );
         }
 
         // Get AUR package info using cache
@@ -466,8 +466,8 @@ impl PackageView {
             tokio_runtime().spawn(clone!(
                 async move {
                     let result = tokio::select! {
-                        _ = cancel_token_cloned.cancelled() => { Ok(vec![]) },
-                        res = PackageView::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => { res }
+                        () = cancel_token_cloned.cancelled() => { Ok(vec![]) },
+                        res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => { res }
                     };
 
                     sender.send(result)

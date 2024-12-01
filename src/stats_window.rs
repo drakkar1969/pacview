@@ -173,7 +173,7 @@ impl StatsWindow {
 
                             if pkg.flags().intersects(PkgFlags::INSTALLED) {
                                 icount += 1;
-                                isize += pkg.install_size()
+                                isize += pkg.install_size();
                             }
 
                             (pcount, icount, isize)
@@ -195,8 +195,8 @@ impl StatsWindow {
             // Add item with totals to stats column view
             stats_items.push(StatsObject::new(
                 "<b>Total</b>",
-                &format!("<b>{}</b>", tot_pcount),
-                &format!("<b>{}</b>", tot_icount),
+                &format!("<b>{tot_pcount}</b>"),
+                &format!("<b>{tot_icount}</b>"),
                 &format!("<b>{}</b>", &size_to_string(tot_isize, 2))
             ));
 

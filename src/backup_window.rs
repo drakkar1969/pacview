@@ -242,7 +242,7 @@ impl BackupWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut package = String::from("");
+                let mut package = String::default();
 
                 let copy_text = format!("## Backup Files\n|Filename|Status|\n|---|---|\n{body}",
                     body=imp.selection.iter::<glib::Object>().flatten()
@@ -251,14 +251,12 @@ impl BackupWindow {
                                 .downcast::<BackupObject>()
                                 .expect("Could not downcast to 'BackupObject'");
 
-                            let mut line = String::from("");
+                            let mut line = String::default();
 
                             let backup_package = backup.package();
 
                             if backup_package != package {
-                                line.push_str(&format!("|**{package}**||\n",
-                                    package=backup_package
-                                ));
+                                line.push_str(&format!("|**{backup_package}**||\n"));
 
                                 package = backup_package;
                             }

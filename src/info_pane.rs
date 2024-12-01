@@ -304,7 +304,7 @@ impl InfoPane {
         property.set_pkg_link_handler(closure_local!(
             #[watch(rename_to = infopane)] self,
             move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
-                infopane.pkg_link_handler(pkg_name, pkg_version)
+                infopane.pkg_link_handler(pkg_name, pkg_version);
             }
         ));
 
@@ -342,7 +342,7 @@ impl InfoPane {
     //---------------------------------------
     // Get installed optdeps function
     //---------------------------------------
-    fn installed_optdeps(&self, optdepends: &[String]) -> Vec<String> {
+    fn installed_optdeps(optdepends: &[String]) -> Vec<String> {
         optdepends.iter()
             .map(|dep| {
                 let mut dep = dep.to_string();
@@ -697,7 +697,7 @@ impl InfoPane {
 
         // Optdepends
         let optdepends = if pkg.flags().intersects(PkgFlags::INSTALLED) {
-            self.installed_optdeps(pkg.optdepends())
+            Self::installed_optdeps(pkg.optdepends())
         } else {
             pkg.optdepends().to_vec()
         };

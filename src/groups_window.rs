@@ -167,7 +167,7 @@ impl GroupsWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut group = String::from("");
+                let mut group = String::default();
 
                 let copy_text = format!("## Pacman Groups\n|Package Name|Status|\n|---|---|\n{body}",
                     body=imp.selection.iter::<glib::Object>().flatten()
@@ -176,14 +176,12 @@ impl GroupsWindow {
                                 .downcast::<GroupsObject>()
                                 .expect("Could not downcast to 'GroupsObject'");
 
-                            let mut line = String::from("");
+                            let mut line = String::default();
 
                             let pkg_group = pkg.groups();
 
                             if pkg_group != group {
-                                line.push_str(&format!("|**{group}**||\n",
-                                    group=pkg_group
-                                ));
+                                line.push_str(&format!("|**{pkg_group}**||\n"));
 
                                 group = pkg_group;
                             }

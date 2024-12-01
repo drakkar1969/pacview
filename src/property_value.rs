@@ -291,7 +291,7 @@ impl PropertyValue {
             #[weak] imp,
             move |_, _, x, y| {
                 if let Some(point) = property.compute_point(&imp.text_widget.get(), &graphene::Point::new(x as f32, y as f32)) {
-                    imp.text_widget.popup_menu(point.x() as f64, point.y() as f64);
+                    imp.text_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
                 }
             }
         ));

@@ -447,7 +447,7 @@ impl TextWidget {
     //---------------------------------------
     // Pango color helper function
     //---------------------------------------
-    fn pango_color_from_style(&self, style: &str) -> (u16, u16, u16, u16) {
+    fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
         let label = gtk::Label::builder()
             .css_name("texttag")
             .css_classes([style])
@@ -469,10 +469,10 @@ impl TextWidget {
         imp.selection_end.set(None);
 
         // Initialize pango colors
-        imp.link_fg_color.set(self.pango_color_from_style("link"));
-        imp.comment_fg_color.set(self.pango_color_from_style("comment"));
-        imp.sel_bg_color.set(self.pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(self.pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(Self::pango_color_from_style("link"));
+        imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
+        imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
     }
 
     //---------------------------------------
@@ -534,7 +534,7 @@ impl TextWidget {
                 // Show pango layout
                 let text_color = widget.color();
 
-                context.set_source_rgba(text_color.red() as f64, text_color.green() as f64, text_color.blue() as f64, text_color.alpha() as f64);
+                context.set_source_rgba(f64::from(text_color.red()), f64::from(text_color.green()), f64::from(text_color.blue()), f64::from(text_color.alpha()));
                 context.move_to(0.0, 0.0);
 
                 pangocairo::functions::show_layout(context, layout);
@@ -552,17 +552,16 @@ impl TextWidget {
                         let (start_n, start_x) = layout.index_to_line_x(link_start, false);
                         let (end_n, end_x) = layout.index_to_line_x(link_end, false);
 
+                        let start_char_rect = layout.index_to_pos(link_start);
+
                         if start_n == end_n {
                             // Link is all on one line
-                            let start_char_rect = layout.index_to_pos(link_start);
-
                             let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
 
                             context.move_to(pango::units_to_double(start_x), y);
                             context.line_to(pango::units_to_double(end_x), y);
                         } else {
                             // Link is split across lines
-                            let start_char_rect = layout.index_to_pos(link_start);
                             let end_char_rect = layout.index_to_pos(link_end);
 
                             let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
@@ -580,7 +579,7 @@ impl TextWidget {
 
                         let (red, green, blue, alpha) = imp.link_fg_color.get();
 
-                        context.set_source_rgba(red as f64 / 65535.0, green as f64 / 65535.0, blue as f64 / 65535.0, (alpha as f64)/2.0 / 65535.0);
+                        context.set_source_rgba(f64::from(red) / 65535.0, f64::from(green) / 65535.0, f64::from(blue) / 65535.0, (f64::from(alpha))/2.0 / 65535.0);
 
                         context.set_line_width(2.0);
                         context.stroke().unwrap();
@@ -764,10 +763,10 @@ impl TextWidget {
         let imp = self.imp();
 
         // Update pango color variables
-        imp.link_fg_color.set(self.pango_color_from_style("link"));
-        imp.comment_fg_color.set(self.pango_color_from_style("comment"));
-        imp.sel_bg_color.set(self.pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(self.pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(Self::pango_color_from_style("link"));
+        imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
+        imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
 
         // Format pango layout text
         imp.do_format();

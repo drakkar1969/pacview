@@ -74,7 +74,7 @@ impl PacViewApplication {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(application_id: &str, flags: &gio::ApplicationFlags) -> Self {
+    pub fn new(application_id: &str, flags: gio::ApplicationFlags) -> Self {
         glib::Object::builder()
             .property("application-id", application_id)
             .property("flags", flags)

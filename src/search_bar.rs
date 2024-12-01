@@ -476,7 +476,7 @@ impl SearchBar {
     //---------------------------------------
     // Public set capture widget function
     //---------------------------------------
-    pub fn set_key_capture_widget(&self, widget: gtk::Widget) {
+    pub fn set_key_capture_widget(&self, widget: &gtk::Widget) {
         let imp = self.imp();
 
         if !imp.has_capture_widget.get() {

@@ -330,13 +330,13 @@ impl PacViewWindow {
     //---------------------------------------
     // Set gsetting helper function
     //---------------------------------------
-    fn set_gsetting<T: FromVariant + ToVariant + PartialEq>(&self, gsettings: &gio::Settings, key: &str, value: T) {
+    fn set_gsetting<T: FromVariant + ToVariant + PartialEq>(gsettings: &gio::Settings, key: &str, value: &T) {
         let default: T = gsettings.default_value(key)
             .expect("Could not get gsettings default value")
             .get::<T>()
             .expect("Could not retrieve value from variant");
 
-        if !(default == value && default == gsettings.get(key)) {
+        if !(default == *value && default == gsettings.get(key)) {
             gsettings.set(key, value.to_variant()).unwrap();
         }
     }
@@ -352,27 +352,27 @@ impl PacViewWindow {
         // Save window settings
         let (width, height) = self.default_size();
 
-        self.set_gsetting(gsettings, "window-width", width);
-        self.set_gsetting(gsettings, "window-height", height);
-        self.set_gsetting(gsettings, "window-maximized", self.is_maximized());
+        Self::set_gsetting(gsettings, "window-width", &width);
+        Self::set_gsetting(gsettings, "window-height", &height);
+        Self::set_gsetting(gsettings, "window-maximized", &self.is_maximized());
 
         // Save preferences
-        self.set_gsetting(gsettings, "color-scheme", imp.prefs_dialog.color_scheme().nick());
-        self.set_gsetting(gsettings, "auto-refresh", imp.prefs_dialog.auto_refresh());
-        self.set_gsetting(gsettings, "aur-update-command", imp.prefs_dialog.aur_command());
-        self.set_gsetting(gsettings, "search-mode", imp.prefs_dialog.search_mode().nick());
-        self.set_gsetting(gsettings, "search-prop", imp.prefs_dialog.search_prop().nick());
-        self.set_gsetting(gsettings, "search-delay", imp.prefs_dialog.search_delay());
-        self.set_gsetting(gsettings, "remember-sorting", imp.prefs_dialog.remember_sort());
-        self.set_gsetting(gsettings, "property-max-lines", imp.prefs_dialog.property_max_lines());
+        Self::set_gsetting(gsettings, "color-scheme", &imp.prefs_dialog.color_scheme().nick());
+        Self::set_gsetting(gsettings, "auto-refresh", &imp.prefs_dialog.auto_refresh());
+        Self::set_gsetting(gsettings, "aur-update-command", &imp.prefs_dialog.aur_command());
+        Self::set_gsetting(gsettings, "search-mode", &imp.prefs_dialog.search_mode().nick());
+        Self::set_gsetting(gsettings, "search-prop", &imp.prefs_dialog.search_prop().nick());
+        Self::set_gsetting(gsettings, "search-delay", &imp.prefs_dialog.search_delay());
+        Self::set_gsetting(gsettings, "remember-sorting", &imp.prefs_dialog.remember_sort());
+        Self::set_gsetting(gsettings, "property-max-lines", &imp.prefs_dialog.property_max_lines());
 
         // Save package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
-            self.set_gsetting(gsettings, "sort-prop", imp.package_view.sort_prop().nick());
-            self.set_gsetting(gsettings, "sort-ascending", imp.package_view.sort_ascending());
+            Self::set_gsetting(gsettings, "sort-prop", &imp.package_view.sort_prop().nick());
+            Self::set_gsetting(gsettings, "sort-ascending", &imp.package_view.sort_ascending());
         } else {
-            self.set_gsetting(gsettings, "sort-prop", SortProp::default().nick());
-            self.set_gsetting(gsettings, "sort-ascending", true);
+            Self::set_gsetting(gsettings, "sort-prop", &SortProp::default().nick());
+            Self::set_gsetting(gsettings, "sort-ascending", &true);
         }
     }
 
@@ -456,7 +456,7 @@ impl PacViewWindow {
             .build();
 
         // Set search bar key capture widget
-        imp.search_bar.set_key_capture_widget(imp.package_view.view().upcast());
+        imp.search_bar.set_key_capture_widget(imp.package_view.view().upcast_ref());
 
         // Bind package view item count to status label text
         imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
@@ -747,7 +747,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Download AUR names helper function
     //---------------------------------------
-    fn download_aur_names(&self, file: &gio::File, sender: Option<async_channel::Sender<()>>) {
+    fn download_aur_names(file: &gio::File, sender: Option<async_channel::Sender<()>>) {
         tokio_runtime().spawn(clone!(
             #[weak] file,
             async move {
@@ -799,14 +799,14 @@ impl PacViewWindow {
                 imp.package_view.set_loading(true);
 
                 // Spawn tokio task to download AUR package names file
-                self.download_aur_names(aur_file, Some(sender));
+                Self::download_aur_names(aur_file, Some(sender));
 
                 // Attach channel receiver
                 glib::spawn_future_local(clone!(
                     #[weak] imp,
                     #[weak(rename_to = window)] self,
                     async move {
-                        while let Ok(()) = receiver.recv().await {
+                        while receiver.recv().await == Ok(()) {
                             imp.package_view.set_loading(false);
 
                             // Load packages, no AUR file age check
@@ -941,7 +941,7 @@ impl PacViewWindow {
 
             // Spawn tokio task to download AUR package names file if does not exist or older than 7 days
             if file_days.is_none() || file_days.unwrap() >= 7 {
-                self.download_aur_names(aur_file, None);
+                Self::download_aur_names(aur_file, None);
             }
         }
     }
@@ -1054,7 +1054,7 @@ impl PacViewWindow {
         // Run external command
         let params = shlex::split(cmd)
             .filter(|params| !params.is_empty())
-            .ok_or(io::Error::new(io::ErrorKind::Other, "Error parsing parameters"))?;
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Error parsing parameters"))?;
 
         let output = Command::new(&params[0]).args(&params[1..]).output().await?;
 
@@ -1081,7 +1081,7 @@ impl PacViewWindow {
             #[weak] imp,
             #[weak] update_row,
             async move {
-                let mut update_str = String::from("");
+                let mut update_str = String::default();
                 let mut error_msg: Option<String> = None;
 
                 let aur_command = imp.prefs_dialog.aur_command();
@@ -1095,7 +1095,7 @@ impl PacViewWindow {
 
                     join!(pacman_handle, aur_handle)
                 } else {
-                    (pacman_handle.await, Ok((None, String::from(""))))
+                    (pacman_handle.await, Ok((None, String::default())))
                 };
 
                 // Get pacman update results
@@ -1104,10 +1104,10 @@ impl PacViewWindow {
                         if code == Some(0) {
                             update_str.push_str(&stdout);
                         } else if code == Some(1) {
-                            error_msg = Some("Could not retrieve pacman updates: checkupdates error".to_string())
+                            error_msg = Some("Could not retrieve pacman updates: checkupdates error".to_string());
                         }
                     },
-                    Err(error) => error_msg = Some(format!("Could not retrieve pacman updates: {}", error))
+                    Err(error) => error_msg = Some(format!("Could not retrieve pacman updates: {error}"))
                 }
 
                 // Get AUR update results
@@ -1119,7 +1119,7 @@ impl PacViewWindow {
                     },
                     Err(error) => {
                         if error_msg.is_none() {
-                            error_msg = Some(format!("Could not retrieve AUR updates: {}", error));
+                            error_msg = Some(format!("Could not retrieve AUR updates: {error}"));
                         }
                     }
                 }
@@ -1198,7 +1198,7 @@ impl PacViewWindow {
                 #[weak(rename_to = window)] self,
                 #[weak] imp,
                 async move {
-                    while let Ok(()) = receiver.recv().await {
+                    while receiver.recv().await == Ok(()) {
                         if imp.prefs_dialog.auto_refresh() {
                             ActionGroupExt::activate_action(&window, "refresh", None);
                         }
