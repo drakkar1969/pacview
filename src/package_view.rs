@@ -522,11 +522,9 @@ impl PackageView {
     pub fn cancel_aur_search(&self) {
         let imp = self.imp();
 
-        if let Some(token) = &*imp.search_cancel_token.borrow() {
+        if let Some(token) = imp.search_cancel_token.take() {
             token.cancel();
         }
-
-        imp.search_cancel_token.replace(None);
     }
 
     //---------------------------------------
