@@ -1,6 +1,7 @@
 use std::cell::{RefCell, OnceCell};
 use std::collections::HashSet;
 use std::rc::Rc;
+use std::sync::Arc;
 use std::cmp::Ordering;
 
 use gtk::glib;
@@ -23,7 +24,7 @@ thread_local! {
     pub static AUR_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
     pub static PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
-    pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+    pub static INSTALLED_PKG_NAMES: RefCell<Arc<HashSet<String>>> = RefCell::new(Arc::new(HashSet::new()));
 }
 
 //------------------------------------------------------------------------------

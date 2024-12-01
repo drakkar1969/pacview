@@ -461,8 +461,9 @@ impl PackageView {
         let (sender, receiver) = async_channel::bounded(1);
 
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+            let installed_pkg_names = Arc::clone(installed_pkg_names);
+
             tokio_runtime().spawn(clone!(
-                #[strong] installed_pkg_names,
                 async move {
                     let result = tokio::select! {
                         _ = cancel_token_cloned.cancelled() => { Ok(vec![]) },

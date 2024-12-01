@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 use std::path::Path;
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -1016,10 +1016,10 @@ impl PacViewWindow {
                 // Store package lists in global variables
                 PKGS.replace(all_pkgs);
 
-                INSTALLED_PKG_NAMES.replace(installed_pkgs.iter()
+                INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkgs.iter()
                     .map(|pkg| pkg.name())
                     .collect()
-                );
+                ));
 
                 INSTALLED_PKGS.replace(installed_pkgs);
             },
