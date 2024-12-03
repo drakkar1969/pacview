@@ -345,16 +345,14 @@ impl InfoPane {
     fn installed_optdeps(optdepends: &[String]) -> Vec<String> {
         optdepends.iter()
             .map(|dep| {
-                let mut dep = dep.to_string();
-
                 if dep.split_once(['<', '>', '=', ':'])
                     .and_then(|(name, _)| PkgObject::find_satisfier(name, false))
                     .is_some()
                 {
-                    dep.push_str(INSTALLED_LABEL);
+                    format!("{dep}{INSTALLED_LABEL}")
+                } else {
+                    dep.to_string()
                 }
-
-                dep
             })
             .collect()
     }

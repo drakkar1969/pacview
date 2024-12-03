@@ -967,15 +967,14 @@ impl PacViewWindow {
                 let handle_ref = Rc::new(handle);
 
                 // Load AUR package names from file
-                let mut aur_names: HashSet<String> = HashSet::new();
-
-                if let Some(aur_file) = imp.aur_file.get() {
-                    if let Ok((bytes, _)) = aur_file.load_contents(None::<&gio::Cancellable>) {
-                        aur_names = String::from_utf8_lossy(&bytes).lines()
+                let aur_names: HashSet<String> = imp.aur_file.get()
+                    .and_then(|aur_file| aur_file.load_contents(None::<&gio::Cancellable>).ok())
+                    .map(|(bytes, _)|
+                        String::from_utf8_lossy(&bytes).lines()
                             .map(String::from)
-                            .collect();
-                    };
-                }
+                            .collect()
+                    )
+                    .unwrap_or_default();
 
                 // Store AUR names in PkgObject global variable
                 AUR_NAMES.replace(aur_names);
