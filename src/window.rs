@@ -961,46 +961,56 @@ impl PacViewWindow {
         // Load pacman log
         PACMAN_LOG.replace(Arc::new(fs::read_to_string(&pacman_config.log_file).unwrap_or_default()));
 
+        // Load AUR package names from file
+        let aur_names: HashSet<String> = imp.aur_file.get()
+            .and_then(|aur_file| aur_file.load_contents(None::<&gio::Cancellable>).ok())
+            .map(|(bytes, _)|
+                String::from_utf8_lossy(&bytes).lines()
+                    .map(String::from)
+                    .collect()
+            )
+            .unwrap_or_default();
+
+        AUR_NAMES.replace(aur_names);
+
         // Populate package view
         match alpm_utils::alpm_with_conf(pacman_config) {
             Ok(handle) => {
                 let handle_ref = Rc::new(handle);
 
-                // Load AUR package names from file
-                let aur_names: HashSet<String> = imp.aur_file.get()
-                    .and_then(|aur_file| aur_file.load_contents(None::<&gio::Cancellable>).ok())
-                    .map(|(bytes, _)|
-                        String::from_utf8_lossy(&bytes).lines()
-                            .map(String::from)
-                            .collect()
-                    )
-                    .unwrap_or_default();
-
-                // Store AUR names in PkgObject global variable
-                AUR_NAMES.replace(aur_names);
+                let mut all_pkgs: Vec<PkgObject> = vec![];
+                let mut installed_pkgs: Vec<PkgObject> = vec![];
+                let mut installed_pkg_names: HashSet<String> = HashSet::new();
 
                 // Load pacman sync packages
-                let (mut installed_pkgs, mut all_pkgs): (Vec<PkgObject>, Vec<PkgObject>) = handle_ref
-                    .syncdbs().iter()
+                handle_ref.syncdbs().iter()
                     .flat_map(|db| {
                         db.pkgs().iter()
                             .map(|syncpkg| {
                                 PkgObject::new(syncpkg.name(), PkgData::Handle(Rc::clone(&handle_ref), syncpkg))
                             })
-                        })
-                        .partition(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED));
+                    })
+                    .for_each(|pkg| {
+                        if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                            installed_pkg_names.insert(pkg.name());
+                            installed_pkgs.push(pkg.clone());
+                        }
+
+                        all_pkgs.push(pkg);
+                    });
 
                 // Load pacman local packages not in sync databases
-                installed_pkgs.extend_from_slice(&handle_ref
+                handle_ref
                     .localdb().pkgs().iter()
                     .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
                     .map(|pkg| {
                         PkgObject::new(pkg.name(), PkgData::Handle(Rc::clone(&handle_ref), pkg))
                     })
-                    .collect::<Vec<PkgObject>>()
-                );
-
-                all_pkgs.extend_from_slice(&installed_pkgs);
+                    .for_each(|pkg| {
+                        installed_pkg_names.insert(pkg.name());
+                        installed_pkgs.push(pkg.clone());
+                        all_pkgs.push(pkg);
+                    });
 
                 // Add packages to package view
                 imp.package_view.splice_packages(&all_pkgs);
@@ -1010,13 +1020,8 @@ impl PacViewWindow {
 
                 // Store package lists in global variables
                 PKGS.replace(all_pkgs);
-
-                INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkgs.iter()
-                    .map(|pkg| pkg.name())
-                    .collect()
-                ));
-
                 INSTALLED_PKGS.replace(installed_pkgs);
+                INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkg_names));
             },
             Err(error) => {
                 let mut error = error.to_string();
