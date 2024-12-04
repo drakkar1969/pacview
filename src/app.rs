@@ -102,8 +102,8 @@ impl PacViewApplication {
                     .developer_name("draKKar1969")
                     .version(env!("CARGO_PKG_VERSION"))
                     .website("https://github.com/drakkar1969/pacview")
-                    .developers(vec!["draKKar1969"])
-                    .designers(vec!["draKKar1969"])
+                    .developers(["draKKar1969"])
+                    .designers(["draKKar1969"])
                     .copyright("© 2023 draKKar1969")
                     .license_type(gtk::License::Gpl30)
                     .build();
