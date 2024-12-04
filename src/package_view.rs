@@ -11,7 +11,6 @@ use glib::clone;
 
 use tokio::sync::Mutex as TokioMutex;
 use tokio_util::sync::CancellationToken;
-use itertools::Itertools;
 use raur::Raur;
 use raur::ArcPackage;
 use futures::future;
@@ -572,25 +571,26 @@ impl PackageView {
     // Public copy list function
     //---------------------------------------
     pub fn copy_list(&self) -> String {
-        format!("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n{body}",
-            body=self.imp().selection.iter::<glib::Object>()
-                .flatten()
-                .map(|item| {
-                    let pkg = item
-                        .downcast::<PkgObject>()
-                        .expect("Could not downcast to 'PkgObject'");
+        let body = self.imp().selection.iter::<glib::Object>()
+            .flatten()
+            .map(|item| {
+                let pkg = item
+                    .downcast::<PkgObject>()
+                    .expect("Could not downcast to 'PkgObject'");
 
-                    format!("|{name}|{version}|{repo}|{status}|{size}|{groups}|",
-                        name=pkg.name(),
-                        version=pkg.version(),
-                        repo=pkg.repository(),
-                        status=pkg.status(),
-                        size=pkg.install_size_string(),
-                        groups=pkg.groups()
-                    )
-                })
-                .join("\n")
-        )
+                format!("|{name}|{version}|{repo}|{status}|{size}|{groups}|",
+                    name=pkg.name(),
+                    version=pkg.version(),
+                    repo=pkg.repository(),
+                    status=pkg.status(),
+                    size=pkg.install_size_string(),
+                    groups=pkg.groups()
+                )
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
+
+        format!("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n{body}")
     }
 }
 

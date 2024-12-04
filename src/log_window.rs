@@ -7,7 +7,6 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use itertools::Itertools;
 use regex::Regex;
 
 use crate::log_object::LogObject;
@@ -201,23 +200,24 @@ impl LogWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = format!("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n{body}",
-                    body=imp.selection.iter::<glib::Object>().flatten()
-                        .map(|item| {
-                            let log = item
-                                .downcast::<LogObject>()
-                                .expect("Could not downcast to 'LogObject'");
+                let body = imp.selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        let log = item
+                            .downcast::<LogObject>()
+                            .expect("Could not downcast to 'LogObject'");
 
-                            format!("|{date}|{time}|{category}|{message}|",
-                                date=log.date(),
-                                time=log.time(),
-                                category=log.category(),
-                                message=log.message())
-                        })
-                        .join("\n")
+                        format!("|{date}|{time}|{category}|{message}|",
+                            date=log.date(),
+                            time=log.time(),
+                            category=log.category(),
+                            message=log.message())
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                window.clipboard().set_text(&
+                    format!("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n{body}")
                 );
-
-                window.clipboard().set_text(&copy_text);
             }
         ));
     }

@@ -6,8 +6,6 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use itertools::Itertools;
-
 use crate::groups_object::GroupsObject;
 use crate::pkg_object::PkgObject;
 
@@ -168,35 +166,30 @@ impl GroupsWindow {
             #[weak] imp,
             move |_| {
                 let mut group = String::default();
+                let mut body = String::default();
 
-                let copy_text = format!("## Pacman Groups\n|Package Name|Status|\n|---|---|\n{body}",
-                    body=imp.selection.iter::<glib::Object>().flatten()
-                        .map(|item| {
-                            let pkg = item
-                                .downcast::<GroupsObject>()
-                                .expect("Could not downcast to 'GroupsObject'");
+                for item in imp.selection.iter::<glib::Object>().flatten() {
+                    let pkg = item
+                        .downcast::<GroupsObject>()
+                        .expect("Could not downcast to 'GroupsObject'");
 
-                            let mut line = String::default();
+                    let pkg_group = pkg.groups();
 
-                            let pkg_group = pkg.groups();
+                    if pkg_group != group {
+                        body.push_str(&format!("|**{pkg_group}**||\n"));
 
-                            if pkg_group != group {
-                                line.push_str(&format!("|**{pkg_group}**||\n"));
+                        group = pkg_group;
+                    }
 
-                                group = pkg_group;
-                            }
+                    body.push_str(&format!("|{package}|{status}|\n",
+                        package=pkg.name(),
+                        status=pkg.status()
+                    ));
+                }
 
-                            line.push_str(&format!("|{package}|{status}|",
-                                package=pkg.name(),
-                                status=pkg.status()
-                            ));
-
-                            line
-                        })
-                        .join("\n")
+                window.clipboard().set_text(
+                    &format!("## Pacman Groups\n|Package Name|Status|\n|---|---|\n{body}")
                 );
-
-                window.clipboard().set_text(&copy_text);
             }
         ));
     }

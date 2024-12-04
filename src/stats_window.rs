@@ -3,7 +3,6 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use itertools::Itertools;
 use titlecase::titlecase;
 
 use crate::pkg_object::{PkgObject, PkgFlags};
@@ -122,23 +121,24 @@ impl StatsWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = format!("## Package Statistics\n|Repository|Packages|Installed|Installed Size|\n|---|---|---|---|\n{body}",
-                    body=imp.selection.iter::<glib::Object>().flatten()
-                        .map(|item| {
-                            let stat = item
-                                .downcast::<StatsObject>()
-                                .expect("Could not downcast to 'StatsObject'");
+                let body = imp.selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        let stat = item
+                            .downcast::<StatsObject>()
+                            .expect("Could not downcast to 'StatsObject'");
 
-                            format!("|{repository}|{packages}|{installed}|{size}|",
-                                repository=stat.repository(),
-                                packages=stat.packages(),
-                                installed=stat.installed(),
-                                size=stat.size())
-                        })
-                        .join("\n")
+                        format!("|{repository}|{packages}|{installed}|{size}|",
+                            repository=stat.repository(),
+                            packages=stat.packages(),
+                            installed=stat.installed(),
+                            size=stat.size())
+                    })
+                    .collect::<Vec<String>>()
+                    .join("\n");
+
+                window.clipboard().set_text(
+                    &format!("## Package Statistics\n|Repository|Packages|Installed|Installed Size|\n|---|---|---|---|\n{body}")
                 );
-
-                window.clipboard().set_text(&copy_text);
             }
         ));
     }

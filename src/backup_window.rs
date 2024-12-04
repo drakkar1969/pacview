@@ -7,8 +7,6 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use itertools::Itertools;
-
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
@@ -243,35 +241,30 @@ impl BackupWindow {
             #[weak] imp,
             move |_| {
                 let mut package = String::default();
+                let mut body = String::default();
 
-                let copy_text = format!("## Backup Files\n|Filename|Status|\n|---|---|\n{body}",
-                    body=imp.selection.iter::<glib::Object>().flatten()
-                        .map(|item| {
-                            let backup = item
-                                .downcast::<BackupObject>()
-                                .expect("Could not downcast to 'BackupObject'");
+                for item in imp.selection.iter::<glib::Object>().flatten() {
+                    let backup = item
+                        .downcast::<BackupObject>()
+                        .expect("Could not downcast to 'BackupObject'");
 
-                            let mut line = String::default();
+                    let backup_package = backup.package();
 
-                            let backup_package = backup.package();
+                    if backup_package != package {
+                        body.push_str(&format!("|**{backup_package}**||\n"));
 
-                            if backup_package != package {
-                                line.push_str(&format!("|**{backup_package}**||\n"));
+                        package = backup_package;
+                    }
 
-                                package = backup_package;
-                            }
+                    body.push_str(&format!("|{filename}|{status}|\n",
+                        filename=backup.filename(),
+                        status=backup.status_text()
+                    ));
+                }
 
-                            line.push_str(&format!("|{filename}|{status}|",
-                                filename=backup.filename(),
-                                status=backup.status_text()
-                            ));
-
-                            line
-                        })
-                        .join("\n")
+                window.clipboard().set_text(
+                    &format!("## Backup Files\n|Filename|Status|\n|---|---|\n{body}")
                 );
-
-                window.clipboard().set_text(&copy_text);
             }
         ));
 

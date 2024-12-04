@@ -7,8 +7,6 @@ use gtk::prelude::*;
 use glib::closure_local;
 use glib::clone;
 
-use itertools::Itertools;
-
 use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
@@ -470,26 +468,23 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = format!("## Package Information\n{body}",
-                    body={
-                        let mut properties: Vec<String> = vec![];
+                let body = {
+                    let mut properties: Vec<String> = vec![];
 
-                        let mut child = imp.info_listbox.first_child();
+                    let mut child = imp.info_listbox.first_child();
 
-                        while let Some(row) = child.and_downcast::<PropertyValue>() {
-                            if !(row.label().is_empty() || row.value().is_empty()) {
-                                properties.push(format!("- **{}** : {}", row.label(), row.value()));
-                            }
-
-                            child = row.next_sibling();
+                    while let Some(row) = child.and_downcast::<PropertyValue>() {
+                        if !(row.label().is_empty() || row.value().is_empty()) {
+                            properties.push(format!("- **{}** : {}", row.label(), row.value()));
                         }
 
-                        properties.join("\n")
+                        child = row.next_sibling();
                     }
-                );
 
+                    properties.join("\n")
+                };
 
-                infopane.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(&format!("## Package Information\n{body}"));
             }
         ));
 
@@ -525,19 +520,19 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = format!("{header}\n{body}",
-                    header=format_args!("## {}\n|Files|\n|---|",infopane.pkg().unwrap().name()),
-                    body=imp.files_selection.iter::<glib::Object>().flatten()
-                        .map(|item| {
-                            item
-                                .downcast::<gtk::StringObject>()
-                                .expect("Could not downcast to 'StringObject'")
-                                .string()
-                        })
-                        .join("\n")
-                );
+                let body = imp.files_selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<gtk::StringObject>()
+                            .expect("Could not downcast to 'StringObject'")
+                            .string()
+                    })
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
 
-                infopane.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(
+                    &format!("## {}\n|Files|\n|---|\n{body}", infopane.pkg().unwrap().name())
+                );
             }
         ));
 
@@ -556,14 +551,14 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = format!("{header}\n{body}",
-                    header=format_args!("## {}\n|Log Messages|\n|---|", infopane.pkg().unwrap().name()),
-                    body=imp.log_model.iter::<gtk::StringObject>().flatten()
-                        .map(|item| item.string())
-                        .join("\n")
-                );
+                let body = imp.log_model.iter::<gtk::StringObject>().flatten()
+                    .map(|item| item.string())
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
 
-                infopane.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(
+                    &format!("## {}\n|Log Messages|\n|---|\n{body}", infopane.pkg().unwrap().name())
+                );
             }
         ));
 
@@ -584,14 +579,14 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = format!("{header}\n{body}",
-                    header=format_args!("## {}\n|Cache Files|\n|---|", infopane.pkg().unwrap().name()),
-                    body=imp.cache_model.iter::<gtk::StringObject>().flatten()
-                        .map(|item| item.string())
-                        .join("\n")
-                );
+                let body = imp.cache_model.iter::<gtk::StringObject>().flatten()
+                    .map(|item| item.string())
+                    .collect::<Vec<glib::GString>>()
+                    .join("\n");
 
-                infopane.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(
+                    &format!("## {}\n|Cache Files|\n|---|\n{body}", infopane.pkg().unwrap().name())
+                );
             }
         ));
 
@@ -622,14 +617,14 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             #[weak] imp,
             move |_| {
-                let copy_text = format!("{header}\n{body}",
-                    header=format_args!("## {}\n|Backup Files|Status|\n|---|---|", infopane.pkg().unwrap().name()),
-                    body=imp.backup_model.iter::<BackupObject>().flatten()
-                        .map(|item| format!("{}|{}", item.filename(), item.status_text()))
-                        .join("\n")
-                );
+                let body = imp.backup_model.iter::<BackupObject>().flatten()
+                    .map(|item| format!("{}|{}", item.filename(), item.status_text()))
+                    .collect::<Vec<String>>()
+                    .join("\n");
 
-                infopane.clipboard().set_text(&copy_text);
+                infopane.clipboard().set_text(
+                    &format!("## {}\n|Backup Files|Status|\n|---|---|\n{body}", infopane.pkg().unwrap().name())
+                );
             }
         ));
 
