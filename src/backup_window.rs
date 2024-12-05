@@ -303,9 +303,7 @@ impl BackupWindow {
             // Get backup list
             let backup_list: Vec<BackupObject> = installed_pkgs.iter()
                 .flat_map(|pkg|
-                    pkg.backup().iter()
-                        .map(BackupObject::new)
-                        .collect::<Vec<BackupObject>>()
+                    pkg.backup().iter().map(BackupObject::new)
                 )
                 .collect();
 
