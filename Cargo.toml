@@ -24,6 +24,7 @@ num = "0.4"
 pacmanconf = "3"
 pangocairo = "0.20"
 raur = "7"
+rayon = "1.10.0"
 regex = "1"
 reqwest = { version = "0.12", features = ["json"] }
 shlex = "1"

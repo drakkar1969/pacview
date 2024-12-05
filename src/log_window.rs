@@ -8,6 +8,7 @@ use gtk::prelude::*;
 use glib::clone;
 
 use regex::Regex;
+use rayon::{str::ParallelString, iter::ParallelIterator};
 
 use crate::log_object::LogObject;
 
@@ -251,78 +252,62 @@ impl LogWindow {
                 message: String
             }
 
-            // Spawn task to populate column view
-            let (sender, receiver) = async_channel::bounded(1);
+            // Read log lines
+            let log_lines: Vec<LogLine> = if !log.is_empty() {
+                // Strip ANSI control sequences from log
+                static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
-            gio::spawn_blocking(clone!(
-                move || {
-                    let mut log_lines: Vec<LogLine> = vec![];
+                let ansi_expr = ANSI_EXPR.get_or_init(|| {
+                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
+                        .expect("Regex error")
+                });
 
-                    if !log.is_empty() {
-                        // Strip ANSI control sequences from log
-                        static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
+                let log = ansi_expr.replace_all(&log, "");
 
-                        let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
-                                .expect("Regex error")
-                        });
+                // Parse log lines
+                static EXPR: OnceLock<Regex> = OnceLock::new();
 
-                        let log = ansi_expr.replace_all(&log, "");
+                let expr = EXPR.get_or_init(|| {
+                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
+                        .expect("Regex error")
+                });
 
-                        // Read log lines
-                        static EXPR: OnceLock<Regex> = OnceLock::new();
+                log.par_lines()
+                    .filter_map(|line|
+                        expr.captures(line)
+                            .map(|caps| LogLine {
+                                date: caps[1].to_string(),
+                                time: caps[2].to_string(),
+                                category: caps[3].to_string(),
+                                message: caps[4].to_string()
+                            })
+                    )
+                    .collect()
+            } else {
+                vec![]
+            };
 
-                        let expr = EXPR.get_or_init(|| {
-                            Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
-                                .expect("Regex error")
-                        });
+            // Populate column view
+            imp.model.splice(0, 0, &log_lines.iter()
+                .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
+                .collect::<Vec<LogObject>>()
+            );
 
-                        log_lines.extend(log.lines().rev()
-                            .filter_map(|line|
-                                expr.captures(line)
-                                    .map(|caps| LogLine {
-                                        date: caps[1].to_string(),
-                                        time: caps[2].to_string(),
-                                        category: caps[3].to_string(),
-                                        message: caps[4].to_string()
-                                    })
-                            )
-                        );
-                    }
+            // Bind view count to header sub label
+            let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
+            .transform_to(|_, n_items: u32|
+                Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
+            )
+            .sync_create()
+            .build();
 
-                    sender.send_blocking(log_lines).expect("Could not send through channel");
-                }
-            ));
+            // Bind view count to copy button state
+            let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
+                .transform_to(|_, n_items: u32|Some(n_items > 0))
+                .sync_create()
+                .build();
 
-            // Attach channel receiver
-            glib::spawn_future_local(clone!(
-                #[weak] imp,
-                async move {
-                    while let Ok(log_lines) = receiver.recv().await {
-                        // Populate column view
-                        imp.model.splice(0, 0, &log_lines.iter()
-                            .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
-                            .collect::<Vec<LogObject>>()
-                        );
-
-                        // Bind view count to header sub label
-                        let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-                        .transform_to(|_, n_items: u32|
-                            Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
-                        )
-                        .sync_create()
-                        .build();
-
-                        // Bind view count to copy button state
-                        let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                            .transform_to(|_, n_items: u32|Some(n_items > 0))
-                            .sync_create()
-                            .build();
-
-                        imp.bindings.replace(vec![label_binding, copy_binding]);
-                    }
-                }
-            ));
+            imp.bindings.replace(vec![label_binding, copy_binding]);
         }
     }
 }
