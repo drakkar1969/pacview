@@ -318,7 +318,7 @@ impl BackupWindow {
                 .transform_to(move |binding, n_items: u32| {
                     let selection = binding.source()
                         .and_downcast::<gtk::SingleSelection>()
-                        .expect("Could not downcast to 'FilterListModel'");
+                        .expect("Could not downcast to 'SingleSelection'");
 
                     let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
                         .map(|item| {
