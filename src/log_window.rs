@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::sync::Arc;
 use std::sync::OnceLock;
 
 use gtk::{glib, gio, gdk};
@@ -237,7 +236,7 @@ impl LogWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, log: Arc<String>) {
+    pub fn show(&self, log: &str) {
         let imp = self.imp();
 
         self.present();
@@ -262,7 +261,7 @@ impl LogWindow {
                         .expect("Regex error")
                 });
 
-                let log = ansi_expr.replace_all(&log, "");
+                let log = ansi_expr.replace_all(log, "");
 
                 // Parse log lines
                 static EXPR: OnceLock<Regex> = OnceLock::new();
