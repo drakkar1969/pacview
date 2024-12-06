@@ -240,8 +240,8 @@ impl BackupWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut package = String::default();
-                let mut body = String::default();
+                let mut package = String::new();
+                let mut body = String::new();
 
                 for item in imp.selection.iter::<glib::Object>().flatten() {
                     let backup = item

@@ -25,7 +25,7 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static AUR_PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static AUR_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
 }
 
 //------------------------------------------------------------------------------

@@ -165,8 +165,8 @@ impl GroupsWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut group = String::default();
-                let mut body = String::default();
+                let mut group = String::new();
+                let mut body = String::new();
 
                 for item in imp.selection.iter::<glib::Object>().flatten() {
                     let pkg = item

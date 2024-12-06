@@ -42,7 +42,7 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static PACMAN_LOG: RefCell<String> = RefCell::new(String::default());
+    pub static PACMAN_LOG: RefCell<String> = const { RefCell::new(String::new()) };
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
@@ -1061,7 +1061,7 @@ impl PacViewWindow {
             #[weak] imp,
             #[weak] update_row,
             async move {
-                let mut update_str = String::default();
+                let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;
 
                 let aur_command = imp.prefs_dialog.aur_command();
@@ -1075,7 +1075,7 @@ impl PacViewWindow {
 
                     join!(pacman_handle, aur_handle)
                 } else {
-                    (pacman_handle.await, Ok((None, String::default())))
+                    (pacman_handle.await, Ok((None, String::new())))
                 };
 
                 // Get pacman update results

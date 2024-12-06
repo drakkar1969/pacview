@@ -20,10 +20,10 @@ use crate::utils::{date_to_string, size_to_string};
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const {RefCell::new(None)};
+    pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const { RefCell::new(None) };
     pub static AUR_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
-    pub static PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
-    pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const {RefCell::new(vec![])};
+    pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
+    pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKG_NAMES: RefCell<Arc<HashSet<String>>> = RefCell::new(Arc::new(HashSet::new()));
 }
 
@@ -347,7 +347,7 @@ mod imp {
                 match self.pkg() {
                     PkgInternal::Pacman(pkg) => { alpm_list_to_string(pkg.groups()) },
                     PkgInternal::Aur(pkg) => { aur_vec_to_string(&pkg.groups) },
-                    PkgInternal::None => { String::default() }
+                    PkgInternal::None => { String::new() }
                 }
             })
             .to_string()
@@ -556,7 +556,7 @@ impl PkgObject {
             match imp.pkg() {
                 PkgInternal::Pacman(pkg) => { alpm_list_to_string(pkg.licenses()) },
                 PkgInternal::Aur(pkg) => { aur_vec_to_string(&pkg.license) },
-                PkgInternal::None => { String::default() }
+                PkgInternal::None => { String::new() }
             }
         })
     }
@@ -752,7 +752,7 @@ impl PkgObject {
                 name=self.name()
             )
         } else {
-            String::default()
+            String::new()
         }
     }
 

@@ -69,7 +69,7 @@ pub fn size_to_string(size: i64, decimals: usize) -> String {
 //---------------------------------------
 pub fn date_to_string(date: i64, format: &str) -> String {
     if date == 0 {
-        String::default()
+        String::new()
     } else {
         glib::DateTime::from_unix_local(date)
             .and_then(|datetime| datetime.format(format))
