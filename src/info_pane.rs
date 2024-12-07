@@ -343,7 +343,7 @@ impl InfoPane {
     fn installed_optdeps(optdepends: &[String]) -> Vec<String> {
         optdepends.iter()
             .map(|dep| {
-                if dep.split_once(['<', '>', '=', ':'])
+                if dep.split_once([':'])
                     .and_then(|(name, _)| PkgObject::find_satisfier(name, false))
                     .is_some()
                 {
