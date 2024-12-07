@@ -390,13 +390,15 @@ mod imp {
                             })
                         );
 
+                        let comment_len = INSTALLED_LABEL.len();
+
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .map(|(i, s)| {
                                 TextTag::new(
                                     s,
                                     "",
                                     i.to_u32().unwrap(),
-                                    i.checked_add(s.len()).and_then(|i| i.to_u32()).unwrap()
+                                    i.checked_add(comment_len).and_then(|i| i.to_u32()).unwrap()
                                 )
                             })
                         );
