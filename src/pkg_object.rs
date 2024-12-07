@@ -660,11 +660,11 @@ impl PkgObject {
     pub fn log(&self) -> &[String] {
         PACMAN_LOG.with_borrow(|pacman_log| {
             self.imp().log.get_or_init(|| {
-                if !pacman_log.is_empty() {
+                pacman_log.as_ref().map_or(vec![], |log| {
                     let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&self.name())))
                         .expect("Regex error");
 
-                    pacman_log.lines().rev()
+                    log.lines().rev()
                         .filter_map(|s| {
                             if expr.is_match(s) {
                                 Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
@@ -673,9 +673,7 @@ impl PkgObject {
                             }
                         })
                         .collect()
-                } else {
-                    vec![]
-                }
+                })
             })
         })
     }

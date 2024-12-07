@@ -236,7 +236,7 @@ impl LogWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, log: &str) {
+    pub fn show(&self, log: Option<&str>) {
         let imp = self.imp();
 
         self.present();
@@ -252,7 +252,7 @@ impl LogWindow {
             }
 
             // Read log lines
-            let log_lines: Vec<LogLine> = if !log.is_empty() {
+            let log_lines = log.map_or(vec![], |log| {
                 // Strip ANSI control sequences from log
                 static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
@@ -282,9 +282,7 @@ impl LogWindow {
                             })
                     )
                     .collect()
-            } else {
-                vec![]
-            };
+            });
 
             // Populate column view
             imp.model.splice(0, 0, &log_lines.iter()

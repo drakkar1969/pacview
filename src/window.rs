@@ -42,7 +42,7 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static PACMAN_LOG: RefCell<String> = const { RefCell::new(String::new()) };
+    pub static PACMAN_LOG: RefCell<Option<String>> = const { RefCell::new(None) };
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
@@ -606,7 +606,7 @@ impl PacViewWindow {
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
                 PACMAN_LOG.with_borrow(|pacman_log| {
-                    window.imp().log_window.show(pacman_log);
+                    window.imp().log_window.show(pacman_log.as_deref());
                 });
             })
             .build();
@@ -959,7 +959,7 @@ impl PacViewWindow {
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
         // Load pacman log
-        PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).unwrap_or_default());
+        PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok());
 
         // Load AUR package names from file
         let aur_names: HashSet<String> = imp.aur_file.get()
