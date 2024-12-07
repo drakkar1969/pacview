@@ -49,8 +49,6 @@ make_release()
 
 		print_item "Building release version"
 		cargo build --release
-
-		print_item "Copying release version executable"
 		cp "$SCRIPTFOLDER/target/release/pacview" "$SCRIPTFOLDER"
 
 		print_item "Committing git changes"
@@ -62,8 +60,14 @@ make_release()
 
 		print_item "Adding git tag ($version)"
 		git tag "$version"
+	fi
 
-		print_item "Pushing changes to upstream repository"
+	echo ""
+	echo "Pushing changes to upstream repository ${GREEN}${version}${RESET}"
+	read -r -s -n 1 -p "Are you sure you want to continue [y/N]: " confirm
+	echo ""
+
+	if [[ "${confirm,,}" == "y" ]]; then
 		git push
 		git push origin --tags
 	fi
