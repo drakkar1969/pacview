@@ -80,7 +80,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add opne key binding
+            // Add open key binding
             klass.add_binding(gdk::Key::O, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
