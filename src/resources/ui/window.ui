@@ -229,26 +229,29 @@
       </item>
     </section>
     <section>
-      <item>
-        <attribute name="label">View Statistics</attribute>
-        <attribute name="action">win.show-stats</attribute>
-      </item>
-      <item>
-        <attribute name="label">View Backup Files</attribute>
-        <attribute name="action">win.show-backup-files</attribute>
-      </item>
-      <item>
-        <attribute name="label">View Pacman Log</attribute>
-        <attribute name="action">win.show-pacman-log</attribute>
-      </item>
-      <item>
-        <attribute name="label">View Pacman Groups</attribute>
-        <attribute name="action">win.show-pacman-groups</attribute>
-      </item>
-      <item>
-        <attribute name="label">View Pacman Config</attribute>
-        <attribute name="action">win.show-pacman-config</attribute>
-      </item>
+      <submenu>
+        <attribute name="label">View</attribute>
+        <item>
+          <attribute name="label">Statistics</attribute>
+          <attribute name="action">win.show-stats</attribute>
+        </item>
+        <item>
+          <attribute name="label">Backup Files</attribute>
+          <attribute name="action">win.show-backup-files</attribute>
+        </item>
+        <item>
+          <attribute name="label">Pacman Log</attribute>
+          <attribute name="action">win.show-pacman-log</attribute>
+        </item>
+        <item>
+          <attribute name="label">Pacman Groups</attribute>
+          <attribute name="action">win.show-pacman-groups</attribute>
+        </item>
+        <item>
+          <attribute name="label">Pacman Config</attribute>
+          <attribute name="action">win.show-pacman-config</attribute>
+        </item>
+      </submenu>
     </section>
     <section>
       <item>
