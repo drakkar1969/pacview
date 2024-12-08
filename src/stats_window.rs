@@ -46,8 +46,6 @@ mod imp {
 
             klass.bind_template();
 
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
-
             // Add copy key binding
             klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
@@ -75,6 +73,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_controllers();
             obj.setup_signals();
         }
     }
@@ -108,6 +107,24 @@ impl StatsWindow {
     fn setup_widgets(&self) {
         // Set initial focus on view
         self.imp().view.grab_focus();
+    }
+
+    //---------------------------------------
+    // Setup controllers
+    //---------------------------------------
+    fn setup_controllers(&self) {
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
+        controller.set_propagation_phase(gtk::PropagationPhase::Capture);
+
+        // Add close window shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::NamedAction::new("window.close"))
+        ));
+
+        // Add shortcut controller to window
+        self.add_controller(controller);
     }
 
     //---------------------------------------

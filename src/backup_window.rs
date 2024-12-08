@@ -69,8 +69,6 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
-
             // Add find key binding
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
@@ -145,6 +143,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
+            obj.setup_controllers();
             obj.setup_signals();
         }
     }
@@ -184,6 +183,24 @@ impl BackupWindow {
 
         // Set initial focus on view
         imp.view.grab_focus();
+    }
+
+    //---------------------------------------
+    // Setup controllers
+    //---------------------------------------
+    fn setup_controllers(&self) {
+        // Create shortcut controller
+        let controller = gtk::ShortcutController::new();
+        controller.set_propagation_phase(gtk::PropagationPhase::Capture);
+
+        // Add close window shortcut
+        controller.add_shortcut(gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::NamedAction::new("window.close"))
+        ));
+
+        // Add shortcut controller to window
+        self.add_controller(controller);
     }
 
     //---------------------------------------
