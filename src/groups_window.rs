@@ -26,6 +26,8 @@ mod imp {
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
+        pub(super) installed_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
         pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
@@ -40,6 +42,8 @@ mod imp {
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) installed_filter: TemplateChild<gtk::CustomFilter>,
 
         pub(super) bindings: RefCell<Vec<glib::Binding>>,
     }
@@ -65,6 +69,15 @@ mod imp {
                 if !imp.search_entry.has_focus() {
                     imp.search_entry.grab_focus();
                 }
+
+                glib::Propagation::Stop
+            });
+
+            // Add installed key binding
+            klass.add_binding(gdk::Key::I, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                imp.installed_button.set_active(!imp.installed_button.is_active());
 
                 glib::Propagation::Stop
             });
@@ -174,6 +187,27 @@ impl GroupsWindow {
             #[weak] imp,
             move |entry| {
                 imp.search_filter.set_search(Some(&entry.text()));
+            }
+        ));
+
+        // Installed button toggled signal
+        imp.installed_button.connect_toggled(clone!(
+            #[weak] imp,
+            move |installed_button| {
+                if installed_button.is_active() {
+                    imp.installed_filter.set_filter_func(move |item| {
+                        let status = item
+                            .downcast_ref::<GroupsObject>()
+                            .expect("Could not downcast to 'GroupsObject'")
+                            .status();
+
+                        println!("{:?}", status);
+
+                        status != "not installed"
+                    });
+                } else {
+                    imp.installed_filter.unset_filter_func();
+                }
             }
         ));
 

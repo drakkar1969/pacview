@@ -2,7 +2,7 @@
 <interface>
   <!--// GroupsWindow template //-->
   <template class="GroupsWindow" parent="AdwWindow">
-    <property name="default-width">650</property>
+    <property name="default-width">720</property>
     <property name="default-height">640</property>
     <property name="modal">true</property>
     <property name="hide-on-close">true</property>
@@ -83,6 +83,16 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkToggleButton" id="installed_button">
+                        <property name="icon-name">status-installed-symbolic</property>
+                        <property name="tooltip-text">Filter Installed Packages</property>
+                        <style>
+                          <class name="flat"/>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkButton" id="copy_button">
                         <property name="icon-name">edit-copy-symbolic</property>
                         <property name="tooltip-text">Copy Package List</property>
@@ -131,10 +141,17 @@
                             <property name="model">
                               <object class="GtkFilterListModel" id="filter_model">
                                 <property name="filter">
-                                  <object class="GtkStringFilter" id="search_filter">
-                                    <property name="expression">
-                                      <lookup name="groups" type="GroupsObject"/>
-                                    </property>
+                                  <object class="GtkEveryFilter" id="group_filter">
+                                    <child>
+                                      <object class="GtkStringFilter" id="search_filter">
+                                        <property name="expression">
+                                          <lookup name="groups" type="GroupsObject"/>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCustomFilter" id="installed_filter"/>
+                                    </child>
                                   </object>
                                 </property>
                                 <property name="model">
