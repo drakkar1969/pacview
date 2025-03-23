@@ -302,7 +302,7 @@ impl LogWindow {
             });
 
             // Populate column view
-            imp.model.splice(0, 0, &log_lines.iter()
+            imp.model.splice(0, 0, &log_lines.iter().rev()
                 .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
                 .collect::<Vec<LogObject>>()
             );
