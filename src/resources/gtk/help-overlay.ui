@@ -344,6 +344,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;I</property>
+                <property name="title">Filter Installed Packages</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;C</property>
                 <property name="title">Copy Package List</property>
               </object>
