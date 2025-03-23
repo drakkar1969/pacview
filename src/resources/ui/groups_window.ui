@@ -44,6 +44,7 @@
                   <object class="GtkBox">
                     <property name="orientation">vertical</property>
                     <property name="valign">center</property>
+                    <property name="spacing">2</property>
                     <child>
                       <object class="GtkLabel" id="header_label">
                         <property name="xalign">0</property>
