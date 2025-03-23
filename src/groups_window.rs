@@ -201,8 +201,6 @@ impl GroupsWindow {
                             .expect("Could not downcast to 'GroupsObject'")
                             .status();
 
-                        println!("{:?}", status);
-
                         status != "not installed"
                     });
                 } else {
