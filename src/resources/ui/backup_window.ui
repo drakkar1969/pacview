@@ -77,7 +77,7 @@
                       <object class="GtkSearchEntry" id="search_entry">
                         <property name="margin-start">20</property>
                         <property name="margin-end">14</property>
-                        <property name="placeholder-text">Search for packages</property>
+                        <property name="placeholder-text">Search for files</property>
                         <style>
                           <class name="rounded"/>
                         </style>
@@ -156,7 +156,7 @@
                                     <child>
                                       <object class="GtkStringFilter" id="search_filter">
                                         <property name="expression">
-                                          <lookup name="package" type="BackupObject"/>
+                                          <lookup name="filename" type="BackupObject"/>
                                         </property>
                                       </object>
                                     </child>
