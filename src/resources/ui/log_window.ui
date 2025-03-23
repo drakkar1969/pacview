@@ -2,7 +2,7 @@
 <interface>
   <!--// LogWindow template //-->
   <template class="LogWindow" parent="AdwWindow">
-    <property name="default-width">850</property>
+    <property name="default-width">1000</property>
     <property name="default-height">640</property>
     <property name="modal">true</property>
     <property name="hide-on-close">true</property>
