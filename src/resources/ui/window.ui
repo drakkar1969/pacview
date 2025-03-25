@@ -211,6 +211,8 @@
         <attribute name="label">Refresh</attribute>
         <attribute name="action">win.refresh</attribute>
       </item>
+    </section>
+    <section>
       <item>
         <attribute name="label">Refresh AUR Database</attribute>
         <attribute name="action">win.refresh-aur-database</attribute>
