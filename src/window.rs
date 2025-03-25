@@ -502,25 +502,17 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(aur_file) = imp.aur_file.get() {
-                    // Download AUR file
-                    let (sender, receiver) = async_channel::bounded(1);
-
                     imp.package_view.set_loading(true);
 
                     // Spawn tokio task to download AUR package names file
-                    Self::download_aur_names(aur_file, Some(sender));
-
-                    // Attach channel receiver
-                    glib::spawn_future_local(clone!(
+                    Self::download_aur_names_async(aur_file, clone!(
+                        #[weak] window,
                         #[weak] imp,
-                        #[weak(rename_to = window)] window,
-                        async move {
-                            while receiver.recv().await == Ok(()) {
-                                imp.package_view.set_loading(false);
+                        move || {
+                            imp.package_view.set_loading(false);
 
-                                // Refresh packages
-                                ActionGroupExt::activate_action(&window, "refresh", None);
-                            }
+                            // Refresh packages
+                            ActionGroupExt::activate_action(&window, "refresh", None);
                         }
                     ));
                 }
@@ -761,7 +753,10 @@ impl PacViewWindow {
     //---------------------------------------
     // Download AUR names helper function
     //---------------------------------------
-    fn download_aur_names(file: &gio::File, sender: Option<async_channel::Sender<()>>) {
+    fn download_aur_names_async<F>(file: &gio::File, f: F)
+    where F: Fn() + 'static {
+        let (sender, receiver) = async_channel::bounded(1);
+
         tokio_runtime().spawn(clone!(
             #[weak] file,
             async move {
@@ -785,8 +780,14 @@ impl PacViewWindow {
                     }
                 }
 
-                if let Some(sender) = sender {
-                    sender.send(()).await.expect("Could not send through channel");
+                sender.send(()).await.expect("Could not send through channel");
+            }
+        ));
+
+        glib::spawn_future_local(clone!(
+            async move {
+                while receiver.recv().await == Ok(()) {
+                    f();
                 }
             }
         ));
@@ -808,24 +809,17 @@ impl PacViewWindow {
         if let Some(aur_file) = imp.aur_file.get().as_ref().filter(|_| first_load) {
             if !aur_file.query_exists(None::<&gio::Cancellable>) {
                 // If AUR file does not exist, download it
-                let (sender, receiver) = async_channel::bounded(1);
-
                 imp.package_view.set_loading(true);
 
                 // Spawn tokio task to download AUR package names file
-                Self::download_aur_names(aur_file, Some(sender));
-
-                // Attach channel receiver
-                glib::spawn_future_local(clone!(
-                    #[weak] imp,
+                Self::download_aur_names_async(aur_file, clone!(
                     #[weak(rename_to = window)] self,
-                    async move {
-                        while receiver.recv().await == Ok(()) {
-                            imp.package_view.set_loading(false);
+                    #[weak] imp,
+                    move || {
+                        imp.package_view.set_loading(false);
 
-                            // Load packages, no AUR file age check
-                            window.load_packages(false);
-                        }
+                        // Load packages, no AUR file age check
+                        window.load_packages(false);
                     }
                 ));
             } else {
@@ -955,7 +949,7 @@ impl PacViewWindow {
 
             // Spawn tokio task to download AUR package names file if does not exist or older than 7 days
             if file_days.is_none() || file_days.unwrap() >= 7 {
-                Self::download_aur_names(aur_file, None);
+                Self::download_aur_names_async(aur_file, || {});
             }
         }
     }
