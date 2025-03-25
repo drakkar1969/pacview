@@ -33,6 +33,7 @@ titlecase = "3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 tokio-util = "0.7.12"
 url = "2"
+xdg = "2.5"
 
 [build-dependencies]
 glib-build-tools = "0.20"
