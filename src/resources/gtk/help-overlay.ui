@@ -93,6 +93,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F7</property>
+                <property name="title">Refresh AUR Database</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
                 <property name="title">Copy Package List</property>
               </object>

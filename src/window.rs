@@ -154,6 +154,9 @@ mod imp {
             // Add view refresh key binding
             klass.add_binding_action(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh");
 
+            // Add view refresh AUR database key binding
+            klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh-aur-database");
+
             // Add view copy list key binding
             klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.copy-package-list");
 
@@ -493,6 +496,37 @@ impl PacViewWindow {
             })
             .build();
 
+        // Add package view refresh AUR database action
+        let aur_action = gio::ActionEntry::builder("refresh-aur-database")
+            .activate(|window: &Self, _, _| {
+                let imp = window.imp();
+
+                if let Some(aur_file) = imp.aur_file.get() {
+                    // Download AUR file
+                    let (sender, receiver) = async_channel::bounded(1);
+
+                    imp.package_view.set_loading(true);
+
+                    // Spawn tokio task to download AUR package names file
+                    Self::download_aur_names(aur_file, Some(sender));
+
+                    // Attach channel receiver
+                    glib::spawn_future_local(clone!(
+                        #[weak] imp,
+                        #[weak(rename_to = window)] window,
+                        async move {
+                            while receiver.recv().await == Ok(()) {
+                                imp.package_view.set_loading(false);
+
+                                // Refresh packages
+                                ActionGroupExt::activate_action(&window, "refresh", None);
+                            }
+                        }
+                    ));
+                }
+            })
+            .build();
+
         // Add package view copy list action
         let copy_action = gio::ActionEntry::builder("copy-package-list")
             .activate(|window: &Self, _, _| {
@@ -524,7 +558,7 @@ impl PacViewWindow {
         let sort_prop_action = gio::PropertyAction::new("set-sort-prop", &imp.package_view.get(), "sort-prop");
 
         // Add package view actions to window
-        self.add_action_entries([refresh_action, copy_action, all_pkgs_action, reset_sort_action]);
+        self.add_action_entries([refresh_action, aur_action, copy_action, all_pkgs_action, reset_sort_action]);
         self.add_action(&sort_prop_action);
 
         // Bind package view item count to copy list action enabled state
