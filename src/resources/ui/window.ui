@@ -4,7 +4,7 @@
   <template class="PacViewWindow" parent="AdwApplicationWindow">
     <property name="default-width">1420</property>
     <property name="default-height">840</property>
-    <property name="width-request">600</property>
+    <property name="width-request">625</property>
     <property name="title">PacView</property>
     <child>
       <object class="AdwBreakpoint" id="main_breakpoint">
