@@ -137,9 +137,15 @@ mod imp {
             });
 
             klass.add_binding(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
-                window.imp().search_bar.set_enabled(false);
+                let imp = window.imp();
 
-                glib::Propagation::Stop
+                if (imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar()) || (imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar()) {
+                    glib::Propagation::Proceed
+                } else {
+                    window.imp().search_bar.set_enabled(false);
+
+                    glib::Propagation::Stop
+                }
             });
 
             // Add show sidebar key binding
