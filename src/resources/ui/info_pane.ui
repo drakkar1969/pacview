@@ -592,13 +592,17 @@
           </object>
         </property>
         <child type="bottom">
-          <object class="AdwViewSwitcher" id="tab_switcher">
+          <object class="AdwInlineViewSwitcher" id="tab_switcher">
             <property name="margin-start">16</property>
             <property name="margin-end">16</property>
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">12</property>
+            <property name="margin-top">16</property>
+            <property name="margin-bottom">16</property>
             <property name="stack">tab_stack</property>
-            <property name="policy">wide</property>
+            <property name="display-mode">both</property>
+            <property name="homogeneous">true</property>
+            <style>
+              <class name="round"/>
+            </style>
           </object>
         </child>
       </object>
