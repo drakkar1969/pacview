@@ -106,6 +106,7 @@
                                     <property name="margin-top">6</property>
                                     <property name="margin-bottom">16</property>
                                     <property name="selection-mode">none</property>
+                                    <property name="tab-behavior">item</property>
                                     <style>
                                       <class name="boxed-list"/>
                                     </style>

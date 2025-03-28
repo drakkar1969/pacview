@@ -68,6 +68,7 @@
                         <child>
                           <object class="GtkListBox" id="repo_listbox">
                             <property name="margin-bottom">6</property>
+                            <property name="tab-behavior">item</property>
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>
@@ -94,6 +95,7 @@
                         </child>
                         <child>
                           <object class="GtkListBox" id="status_listbox">
+                            <property name="tab-behavior">item</property>
                             <style>
                               <class name="navigation-sidebar"/>
                             </style>
