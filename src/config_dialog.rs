@@ -128,8 +128,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ConfigDialog(ObjectSubclass<imp::ConfigDialog>)
-    @extends adw::Dialog, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
+    @extends adw::PreferencesDialog, adw::Dialog, gtk::Widget,
+    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
 impl ConfigDialog {
