@@ -80,7 +80,7 @@
                         <property name="margin-end">14</property>
                         <property name="placeholder-text">Search for files</property>
                         <style>
-                          <class name="rounded"/>
+                          <class name="round"/>
                         </style>
                       </object>
                     </child>
@@ -97,7 +97,7 @@
                           <lookup type="AdwEnumListItem" name="name"/>
                         </property>
                         <style>
-                          <class name="rounded"/>
+                          <class name="round"/>
                         </style>
                       </object>
                     </child>

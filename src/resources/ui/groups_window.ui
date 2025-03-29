@@ -80,7 +80,7 @@
                         <property name="margin-end">14</property>
                         <property name="placeholder-text">Search for packages</property>
                         <style>
-                          <class name="rounded"/>
+                          <class name="round"/>
                         </style>
                       </object>
                     </child>

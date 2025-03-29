@@ -146,17 +146,17 @@ image.bubble.large {
 	min-height: 64px;
 }
 
-/* Dialog rounded controls */
-entry.rounded {
+/* Dialog round controls */
+entry.round {
 	border-radius: 9999px;
 	padding-right: 12px;
 }
 
-dropdown.rounded {
+dropdown.round {
 	border-radius: 9999px;
 }
 
-dropdown.rounded > button.toggle {
+dropdown.round > button.toggle {
 	border-radius: 9999px;
 	padding-left: 20px;
 }
