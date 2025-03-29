@@ -463,6 +463,22 @@ impl InfoPane {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Previous button clicked signal
+        imp.prev_button.connect_clicked(clone!(
+            #[weak(rename_to = infopane)] self,
+            move |_| {
+                infopane.display_prev();
+            }
+        ));
+
+        // Next button clicked signal
+        imp.next_button.connect_clicked(clone!(
+            #[weak(rename_to = infopane)] self,
+            move |_| {
+                infopane.display_next();
+            }
+        ));
+
         // Info copy button clicked signal
         imp.info_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,

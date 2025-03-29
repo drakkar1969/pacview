@@ -216,9 +216,17 @@ mod imp {
             ));
 
             // Add infopane previous/next key bindings
-            klass.add_binding_action(gdk::Key::Left, gdk::ModifierType::ALT_MASK, "win.infopane-previous");
+            klass.add_binding(gdk::Key::Left, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().info_pane.display_prev();
 
-            klass.add_binding_action(gdk::Key::Right, gdk::ModifierType::ALT_MASK, "win.infopane-next");
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::Right, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().info_pane.display_next();
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -580,21 +588,8 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add info pane prev/next actions
-        let prev_action = gio::ActionEntry::builder("infopane-previous")
-            .activate(|window: &Self, _, _| {
-                window.imp().info_pane.display_prev();
-            })
-            .build();
-
-        let next_action = gio::ActionEntry::builder("infopane-next")
-            .activate(|window: &Self, _, _| {
-                window.imp().info_pane.display_next();
-            })
-            .build();
-
         // Add info pane actions to window
-        self.add_action_entries([visible_tab_action, prev_action, next_action]);
+        self.add_action_entries([visible_tab_action]);
 
         // Add show stats window action
         let stats_action = gio::ActionEntry::builder("show-stats")

@@ -12,17 +12,17 @@
             </property>
             <child>
               <object class="GtkButton" id="prev_button">
+                <property name="sensitive">false</property>
                 <property name="icon-name">go-previous-symbolic</property>
                 <property name="tooltip-text">Previous</property>
-                <property name="action-name">win.infopane-previous</property>
               </object>
             </child>
             <child>
               <object class="GtkButton" id="next_button">
+                <property name="sensitive">false</property>
                 <property name="margin-end">20</property>
                 <property name="icon-name">go-next-symbolic</property>
                 <property name="tooltip-text">Next</property>
-                <property name="action-name">win.infopane-next</property>
               </object>
             </child>
           </object>
