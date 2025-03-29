@@ -56,16 +56,6 @@ label.count-indicator {
 	padding: 2px 7px;
 }
 
-/* Package view spinner */
-image.spinner.dim-spinner {
-	opacity: var(--dim-opacity);
-}
-
-/* Package view dim images */
-image.dim-image {
-	opacity: var(--disabled-opacity);
-}
-
 /* Info pane scrolled windows */
 scrolledwindow.no-shadow > overshoot.top,
 scrolledwindow.no-shadow > overshoot.bottom {

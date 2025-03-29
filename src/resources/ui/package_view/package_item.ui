@@ -94,7 +94,7 @@
                         </binding>
                         <property name="halign">start</property>
                         <style>
-                          <class name="dim-image"/>
+                          <class name="dimmed"/>
                         </style>
                       </object>
                     </child>
@@ -138,7 +138,7 @@
                           </closure>
                         </binding>
                         <style>
-                          <class name="dim-image"/>
+                          <class name="dimmed"/>
                         </style>
                       </object>
                     </child>

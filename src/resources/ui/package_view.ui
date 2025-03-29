@@ -103,7 +103,7 @@
                 <child>
                   <object class="AdwSpinner" id="loading_spinner">
                     <style>
-                      <class name="dim-spinner"/>
+                      <class name="dimmed"/>
                     </style>
                   </object>
                 </child>
