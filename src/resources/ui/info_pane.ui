@@ -39,7 +39,7 @@
                     <property name="label">No package selected</property>
                     <style>
                       <class name="title-4"/>
-                      <class name="dim-label"/>
+                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>

@@ -84,7 +84,7 @@
                     <property name="label">No packages found</property>
                     <style>
                       <class name="title-4"/>
-                      <class name="dim-label"/>
+                      <class name="dimmed"/>
                     </style>
                   </object>
                 </child>
@@ -112,7 +112,7 @@
                     <property name="label">Downloading AUR package list</property>
                     <style>
                       <class name="title-4"/>
-                      <class name="dim-label"/>
+                      <class name="dimmed"/>
                     </style>
                   </object>
                 </child>

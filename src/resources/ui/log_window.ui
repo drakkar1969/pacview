@@ -62,7 +62,7 @@
                         <property name="label"></property>
                         <style>
                           <class name="caption-heading"/>
-                          <class name="dim-label"/>
+                          <class name="dimmed"/>
                         </style>
                       </object>
                     </child>
