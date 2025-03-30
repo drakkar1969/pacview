@@ -129,7 +129,7 @@
                             <property name="sorter">
                               <object class="GtkStringSorter" id="sorter">
                                 <property name="expression">
-                                  <lookup name="name" type="GroupsObject"/>
+                                  <lookup name="package" type="GroupsObject"/>
                                 </property>
                               </object>
                             </property>
@@ -149,7 +149,7 @@
                                         <child>
                                           <object class="GtkStringFilter" id="package_filter">
                                             <property name="expression">
-                                              <lookup name="name" type="GroupsObject"/>
+                                              <lookup name="package" type="GroupsObject"/>
                                             </property>
                                           </object>
                                         </child>

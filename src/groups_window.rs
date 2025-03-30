@@ -234,7 +234,7 @@ impl GroupsWindow {
                     }
 
                     body.push_str(&format!("|{package}|{status}|\n",
-                        package=pkg.name(),
+                        package=pkg.package(),
                         status=pkg.status()
                     ));
                 }

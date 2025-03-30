@@ -17,7 +17,7 @@ mod imp {
     #[properties(wrapper_type = super::GroupsObject)]
     pub struct GroupsObject {
         #[property(get, set)]
-        name: RefCell<String>,
+        package: RefCell<String>,
         #[property(get, set)]
         status: RefCell<String>,
         #[property(get, set)]
@@ -50,10 +50,10 @@ impl GroupsObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(name: &str, status: &str, status_icon: &str, groups: &str) -> Self {
+    pub fn new(package: &str, status: &str, status_icon: &str, groups: &str) -> Self {
         // Build LogObject
         glib::Object::builder()
-            .property("name", name)
+            .property("package", package)
             .property("status", status)
             .property("status-icon", status_icon)
             .property("groups", groups)
