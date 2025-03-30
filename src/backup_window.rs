@@ -46,9 +46,9 @@ mod imp {
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) backup_filter: TemplateChild<gtk::EveryFilter>,
+        pub(super) filename_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
-        pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) package_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
@@ -220,7 +220,8 @@ impl BackupWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |entry| {
-                imp.search_filter.set_search(Some(&entry.text()));
+                imp.filename_filter.set_search(Some(&entry.text()));
+                imp.package_filter.set_search(Some(&entry.text()));
             }
         ));
 

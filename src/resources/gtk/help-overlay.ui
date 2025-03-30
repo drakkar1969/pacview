@@ -264,7 +264,7 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;F</property>
-                <property name="title">Search for Files</property>
+                <property name="title">Search for Files or Packages</property>
               </object>
             </child>
             <child>

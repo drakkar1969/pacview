@@ -78,7 +78,7 @@
                       <object class="GtkSearchEntry" id="search_entry">
                         <property name="margin-start">20</property>
                         <property name="margin-end">14</property>
-                        <property name="placeholder-text">Search for files</property>
+                        <property name="placeholder-text">Search</property>
                         <style>
                           <class name="round"/>
                         </style>
@@ -153,12 +153,23 @@
                             <property name="model">
                               <object class="GtkFilterListModel" id="filter_model">
                                 <property name="filter">
-                                  <object class="GtkEveryFilter" id="backup_filter">
+                                  <object class="GtkEveryFilter" id="main_filter">
                                     <child>
-                                      <object class="GtkStringFilter" id="search_filter">
-                                        <property name="expression">
-                                          <lookup name="filename" type="BackupObject"/>
-                                        </property>
+                                      <object class="GtkAnyFilter" id="search_filter">
+                                        <child>
+                                          <object class="GtkStringFilter" id="filename_filter">
+                                            <property name="expression">
+                                              <lookup name="filename" type="BackupObject"/>
+                                            </property>
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkStringFilter" id="package_filter">
+                                            <property name="expression">
+                                              <lookup name="package" type="BackupObject"/>
+                                            </property>
+                                          </object>
+                                        </child>
                                       </object>
                                     </child>
                                     <child>
