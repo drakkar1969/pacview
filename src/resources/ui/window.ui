@@ -282,6 +282,7 @@
   <!--// Package sort menu //-->
   <menu id="sort_menu">
     <section>
+      <attribute name="label">Sort Property</attribute>
       <item>
         <attribute name="label">Name</attribute>
         <attribute name="action">win.set-sort-prop</attribute>
