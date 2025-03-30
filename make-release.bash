@@ -39,7 +39,7 @@ make_release()
 	fi
 
 	echo ""
-	echo "Making release for version ${GREEN}${version}${RESET}"
+	echo "${BOLD}Making release for version ${GREEN}${version}${RESET}"
 	read -r -s -n 1 -p "Are you sure you want to continue [y/N]: " confirm
 	echo ""
 
@@ -54,20 +54,20 @@ make_release()
 		print_item "Committing git changes"
 		git add "$SCRIPTFOLDER/Cargo.toml"
 		git add "$SCRIPTFOLDER/Cargo.lock"
-		git add "$SCRIPTFOLDER/src/app.rs"
 		git add "$SCRIPTFOLDER/pacview"
 		git commit -m "Bump version to ${version}"
-
-		print_item "Adding git tag ($version)"
-		git tag "$version"
 	fi
 
 	echo ""
-	echo "Pushing changes to upstream repository ${GREEN}${version}${RESET}"
+	echo "${BOLD}Ready to push version ${GREEN}${version}${RESET} ${BOLD}to upstream repository${RESET}"
 	read -r -s -n 1 -p "Are you sure you want to continue [y/N]: " confirm
 	echo ""
 
 	if [[ "${confirm,,}" == "y" ]]; then
+		print_item "Adding git tag ($version)"
+		git tag "$version"
+
+		print_item "Pushing to upstream repository"
 		git push
 		git push origin --tags
 	fi
