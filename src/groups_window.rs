@@ -41,7 +41,9 @@ mod imp {
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) package_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) groups_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) installed_filter: TemplateChild<gtk::CustomFilter>,
 
@@ -186,7 +188,8 @@ impl GroupsWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |entry| {
-                imp.search_filter.set_search(Some(&entry.text()));
+                imp.package_filter.set_search(Some(&entry.text()));
+                imp.groups_filter.set_search(Some(&entry.text()));
             }
         ));
 
