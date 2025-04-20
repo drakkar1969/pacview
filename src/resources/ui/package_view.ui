@@ -94,7 +94,7 @@
         </child>
         <child>
           <object class="GtkStackPage">
-            <property name="name">empty</property>
+            <property name="name">loading</property>
             <property name="child">
               <object class="GtkBox" id="loading_box">
                 <property name="halign">center</property>

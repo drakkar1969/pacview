@@ -26,7 +26,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_object::{ALPM_HANDLE, AUR_NAMES, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES, PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
-use crate::package_view::{PackageView, SortProp};
+use crate::package_view::{PackageView, PackageViewStatus, SortProp};
 use crate::info_pane::InfoPane;
 use crate::filter_row::FilterRow;
 use crate::stats_window::StatsWindow;
@@ -516,14 +516,14 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(aur_file) = imp.aur_file.get() {
-                    imp.package_view.set_loading(true);
+                    imp.package_view.set_status(PackageViewStatus::AURDownload);
 
                     // Spawn tokio task to download AUR package names file
                     Self::download_aur_names_async(aur_file, clone!(
                         #[weak] window,
                         #[weak] imp,
                         move || {
-                            imp.package_view.set_loading(false);
+                            imp.package_view.set_status(PackageViewStatus::Normal);
 
                             // Refresh packages
                             ActionGroupExt::activate_action(&window, "refresh", None);
@@ -810,14 +810,14 @@ impl PacViewWindow {
         if let Some(aur_file) = imp.aur_file.get().as_ref().filter(|_| first_load) {
             if !aur_file.query_exists(None::<&gio::Cancellable>) {
                 // If AUR file does not exist, download it
-                imp.package_view.set_loading(true);
+                imp.package_view.set_status(PackageViewStatus::AURDownload);
 
                 // Spawn tokio task to download AUR package names file
                 Self::download_aur_names_async(aur_file, clone!(
                     #[weak(rename_to = window)] self,
                     #[weak] imp,
                     move || {
-                        imp.package_view.set_loading(false);
+                        imp.package_view.set_status(PackageViewStatus::Normal);
 
                         // Load packages, no AUR file age check
                         window.load_packages(false);

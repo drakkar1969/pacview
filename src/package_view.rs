@@ -29,6 +29,17 @@ thread_local! {
 }
 
 //------------------------------------------------------------------------------
+// ENUM: PackageViewStatus
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq)]
+#[repr(u32)]
+pub enum PackageViewStatus {
+    #[default]
+    Normal,
+    AURDownload,
+}
+
+//------------------------------------------------------------------------------
 // ENUM: SortProp
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString)]
@@ -483,15 +494,19 @@ impl PackageView {
     }
 
     //---------------------------------------
-    // Public set loading function
+    // Public set status function
     //---------------------------------------
-    pub fn set_loading(&self, loading: bool) {
+    pub fn set_status(&self, status: PackageViewStatus) {
         let imp = self.imp();
 
-        if loading {
-            imp.stack.set_visible_child_name("empty");
-        } else {
-            imp.stack.set_visible_child_name("view");
+        match status {
+            PackageViewStatus::Normal => {
+                imp.stack.set_visible_child_name("view");
+            },
+            PackageViewStatus::AURDownload => {
+                imp.loading_label.set_label("Downloading AUR package list");
+                imp.stack.set_visible_child_name("loading");
+            }
         }
     }
 
