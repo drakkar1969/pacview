@@ -97,14 +97,14 @@
             <property name="name">loading</property>
             <property name="child">
               <object class="GtkBox" id="loading_box">
+                <property name="orientation">vertical</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
-                <property name="spacing">12</property>
+                <property name="spacing">24</property>
                 <child>
                   <object class="AdwSpinner" id="loading_spinner">
-                    <style>
-                      <class name="dimmed"/>
-                    </style>
+                    <property name="width-request">64</property>
+                    <property name="height-request">64</property>
                   </object>
                 </child>
                 <child>
