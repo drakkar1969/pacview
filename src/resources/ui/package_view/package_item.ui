@@ -39,11 +39,9 @@
                     <child>
                       <object class="GtkImage">
                         <binding name="visible">
-                          <closure type="gboolean" function="version_image_visible">
-                            <lookup name="flags" type="PkgObject">
-                              <lookup name="item">GtkListItem</lookup>
-                            </lookup>
-                          </closure>
+                          <lookup name="show-version-icon" type="PkgObject">
+                            <lookup name="item">GtkListItem</lookup>
+                          </lookup>
                         </binding>
                         <property name="icon-name">pkg-update</property>
                         <property name="valign">center</property>
@@ -86,11 +84,9 @@
                           </lookup>
                         </binding>
                         <binding name="visible">
-                          <closure type="gboolean" function="status_image_visible">
-                            <lookup name="flags" type="PkgObject">
-                              <lookup name="item">GtkListItem</lookup>
-                            </lookup>
-                          </closure>
+                          <lookup name="show-status-icon" type="PkgObject">
+                            <lookup name="item">GtkListItem</lookup>
+                          </lookup>
                         </binding>
                         <property name="halign">start</property>
                         <style>
@@ -102,17 +98,9 @@
                       <object class="GtkLabel">
                         <property name="hexpand">true</property>
                         <binding name="label">
-                          <closure type="gchararray" function="subtitle_text">
-                            <lookup name="repository" type="PkgObject">
-                              <lookup name="item">GtkListItem</lookup>
-                            </lookup>
-                            <lookup name="status" type="PkgObject">
-                              <lookup name="item">GtkListItem</lookup>
-                            </lookup>
-                            <lookup name="install-size-string" type="PkgObject">
-                              <lookup name="item">GtkListItem</lookup>
-                            </lookup>
-                          </closure>
+                          <lookup name="subtitle-text" type="PkgObject">
+                            <lookup name="item">GtkListItem</lookup>
+                          </lookup>
                         </binding>
                         <property name="xalign">0</property>
                         <style>
@@ -131,11 +119,9 @@
                         <property name="margin-top">1</property>
                         <property name="icon-name">groups-symbolic</property>
                         <binding name="visible">
-                          <closure type="gboolean" function="groups_image_visible">
-                            <lookup name="groups" type="PkgObject">
-                              <lookup name="item">GtkListItem</lookup>
-                            </lookup>
-                          </closure>
+                          <lookup name="show-groups-icon" type="PkgObject">
+                            <lookup name="item">GtkListItem</lookup>
+                          </lookup>
                         </binding>
                         <style>
                           <class name="dimmed"/>

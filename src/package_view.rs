@@ -112,7 +112,6 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.rust_template_scope();
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -148,7 +147,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_factory();
             obj.setup_signals();
         }
     }
@@ -223,58 +221,6 @@ impl PackageView {
                 .into()
             }
         ));
-    }
-
-    //---------------------------------------
-    // Setup factory
-    //---------------------------------------
-    fn setup_factory(&self) {
-        let imp = self.imp();
-
-        // Get list view factory scope
-        let scope = imp.factory.scope()
-            .and_downcast::<gtk::BuilderRustScope>()
-            .expect("Could not downcast to 'BuilderRustScope'");
-
-        // Add version image visibility callback
-        scope.add_callback("version_image_visible", |values| {
-            let flags = values.get(1).and_then(|value| value.get::<PkgFlags>().ok())
-                .expect("Could not get value in scope callback");
-
-            Some(flags.intersects(PkgFlags::UPDATES).to_value())
-        });
-
-        // Add subtitle text callback
-        scope.add_callback("subtitle_text", |values| {
-            let repository = values.get(1).and_then(|value| value.get::<String>().ok())
-                .expect("Could not get value in scope callback");
-
-            let status = values.get(2).and_then(|value| value.get::<String>().ok())
-                .expect("Could not get value in scope callback");
-
-            let installed_size = values.get(3).and_then(|value| value.get::<String>().ok())
-                .expect("Could not get value in scope callback");
-
-            let subtitle = format!("{status}  |  {repository}  |  {installed_size}");
-
-            Some(subtitle.to_value())
-        });
-
-        // Add status image icon visibility callback
-        scope.add_callback("status_image_visible", |values| {
-            let flags = values.get(1).and_then(|value| value.get::<PkgFlags>().ok())
-                .expect("Could not get value in scope callback");
-
-            Some(flags.intersects(PkgFlags::INSTALLED).to_value())
-        });
-
-        // Add groups image visibility callback
-        scope.add_callback("groups_image_visible", |values| {
-            let groups = values.get(1).and_then(|value| value.get::<String>().ok())
-                .expect("Could not get value in scope callback");
-
-            Some((!groups.is_empty()).to_value())
-        });
     }
 
     //---------------------------------------

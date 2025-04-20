@@ -180,6 +180,15 @@ mod imp {
         #[property(get = Self::install_size_string)]
         _install_size_string: OnceCell<String>,
 
+        #[property(get = Self::show_version_icon)]
+        _show_version_icon: OnceCell<bool>,
+        #[property(get = Self::subtitle_text)]
+        _subtitle_text: OnceCell<String>,
+        #[property(get = Self::show_status_icon)]
+        _show_status_icon: OnceCell<bool>,
+        #[property(get = Self::show_groups_icon)]
+        _show_groups_icon: OnceCell<bool>,
+
         // Read only fields
         pub(super) description: OnceCell<String>,
         pub(super) url: OnceCell<String>,
@@ -365,6 +374,26 @@ mod imp {
         fn install_size_string(&self) -> String {
             size_to_string(self.install_size(), 1)
         }
+
+        fn show_version_icon(&self) -> bool {
+            self.flags().intersects(PkgFlags::UPDATES)
+        }
+
+        fn subtitle_text(&self) -> String {
+            format!("{status}  |  {repository}  |  {installed_size}",
+                status=self.status(),
+                repository=self.obj().repository(),
+                installed_size=self.install_size_string()
+            )
+        }
+
+        fn show_status_icon(&self) -> bool {
+            self.flags().intersects(PkgFlags::INSTALLED)
+        }
+
+        fn show_groups_icon(&self) -> bool {
+            !self.groups().is_empty()
+        }
     }
 }
 
@@ -414,6 +443,7 @@ impl PkgObject {
         pkg.connect_update_version_notify(|pkg| {
             pkg.notify_flags();
             pkg.notify_version();
+            pkg.notify_show_version_icon();
         });
 
         pkg
