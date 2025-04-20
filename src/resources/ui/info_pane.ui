@@ -601,9 +601,6 @@
             <property name="stack">tab_stack</property>
             <property name="display-mode">both</property>
             <property name="homogeneous">true</property>
-            <style>
-              <class name="round"/>
-            </style>
           </object>
         </child>
       </object>
