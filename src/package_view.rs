@@ -504,8 +504,8 @@ impl PackageView {
                 imp.stack.set_visible_child_name("view");
             },
             PackageViewStatus::AURDownload => {
-                imp.loading_label.set_label("Downloading AUR package list");
-                imp.stack.set_visible_child_name("loading");
+                imp.loading_label.set_label("Updating AUR package list");
+                imp.stack.set_visible_child_name("spinner");
             }
         }
     }

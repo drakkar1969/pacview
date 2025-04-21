@@ -94,7 +94,7 @@
         </child>
         <child>
           <object class="GtkStackPage">
-            <property name="name">loading</property>
+            <property name="name">spinner</property>
             <property name="child">
               <object class="GtkBox" id="loading_box">
                 <property name="orientation">vertical</property>
@@ -109,7 +109,7 @@
                 </child>
                 <child>
                   <object class="GtkLabel" id="loading_label">
-                    <property name="label">Downloading AUR package list</property>
+                    <property name="label"></property>
                     <style>
                       <class name="title-4"/>
                       <class name="dimmed"/>
