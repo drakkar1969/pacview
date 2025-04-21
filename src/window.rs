@@ -160,8 +160,8 @@ mod imp {
             // Add view refresh key binding
             klass.add_binding_action(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh");
 
-            // Add view refresh AUR database key binding
-            klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh-aur-database");
+            // Add view update AUR database key binding
+            klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
             // Add view copy list key binding
             klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.copy-package-list");
@@ -510,8 +510,8 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add package view refresh AUR database action
-        let aur_action = gio::ActionEntry::builder("refresh-aur-database")
+        // Add package view update AUR database action
+        let aur_action = gio::ActionEntry::builder("update-aur-database")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
 
