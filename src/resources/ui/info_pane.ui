@@ -21,7 +21,7 @@
                 <property name="content">
                   <object class="AdwStatusPage" id="empty_status">
                     <property name="icon-name">package-x-generic-symbolic</property>
-                    <property name="title">No package selected</property>
+                    <property name="title">No Package Selected</property>
                     <style>
                       <class name="compact"/>
                       <class name="dimmed"/>

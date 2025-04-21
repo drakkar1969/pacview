@@ -80,7 +80,7 @@
                 <child type="overlay">
                   <object class="AdwStatusPage" id="empty_status">
                     <property name="icon-name">edit-find-symbolic</property>
-                    <property name="title">No packages found</property>
+                    <property name="title">No Packages Found</property>
                     <style>
                       <class name="compact"/>
                       <class name="dimmed"/>
