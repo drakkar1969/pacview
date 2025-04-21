@@ -77,7 +77,7 @@ mod imp {
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
-        pub(super) loading_label: TemplateChild<gtk::Label>,
+        pub(super) loading_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
@@ -504,7 +504,7 @@ impl PackageView {
                 imp.stack.set_visible_child_name("view");
             },
             PackageViewStatus::AURDownload => {
-                imp.loading_label.set_label("Updating AUR package list");
+                imp.loading_status.set_title("Updating AUR package list");
                 imp.stack.set_visible_child_name("spinner");
             }
         }
