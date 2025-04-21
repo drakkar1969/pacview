@@ -99,7 +99,7 @@ mod imp {
         pub(super) sorter: TemplateChild<gtk::CustomSorter>,
 
         #[template_child]
-        pub(super) empty_label: TemplateChild<gtk::Label>,
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
         #[property(get, set)]
         n_items: Cell<u32>,
@@ -195,7 +195,7 @@ impl PackageView {
             .build();
 
         // Bind item count to empty label visibility
-        imp.selection.bind_property("n-items", &imp.empty_label.get(), "visible")
+        imp.selection.bind_property("n-items", &imp.empty_status.get(), "visible")
             .transform_to(|_, n_items: u32| Some(n_items == 0))
             .sync_create()
             .build();

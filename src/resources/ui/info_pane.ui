@@ -33,12 +33,11 @@
               <object class="GtkStackPage">
                 <property name="name">empty</property>
                 <property name="child">
-                  <object class="GtkLabel" id="empty_label">
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="label">No package selected</property>
+                  <object class="AdwStatusPage" id="empty_status">
+                    <property name="icon-name">package-x-generic-symbolic</property>
+                    <property name="title">No package selected</property>
                     <style>
-                      <class name="title-4"/>
+                      <class name="compact"/>
                       <class name="dimmed"/>
                     </style>
                   </object>

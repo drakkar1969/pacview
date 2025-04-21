@@ -78,12 +78,11 @@
                   </object>
                 </child>
                 <child type="overlay">
-                  <object class="GtkLabel" id="empty_label">
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="label">No packages found</property>
+                  <object class="AdwStatusPage" id="empty_status">
+                    <property name="icon-name">edit-find-symbolic</property>
+                    <property name="title">No packages found</property>
                     <style>
-                      <class name="title-4"/>
+                      <class name="compact"/>
                       <class name="dimmed"/>
                     </style>
                   </object>
