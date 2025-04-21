@@ -182,8 +182,6 @@ mod imp {
 
         #[property(get = Self::show_version_icon)]
         _show_version_icon: OnceCell<bool>,
-        #[property(get = Self::subtitle_text)]
-        _subtitle_text: OnceCell<String>,
         #[property(get = Self::show_status_icon)]
         _show_status_icon: OnceCell<bool>,
         #[property(get = Self::show_groups_icon)]
@@ -377,14 +375,6 @@ mod imp {
 
         fn show_version_icon(&self) -> bool {
             self.flags().intersects(PkgFlags::UPDATES)
-        }
-
-        fn subtitle_text(&self) -> String {
-            format!("{status}  |  {repository}  |  {installed_size}",
-                status=self.status(),
-                repository=self.obj().repository(),
-                installed_size=self.install_size_string()
-            )
         }
 
         fn show_status_icon(&self) -> bool {
