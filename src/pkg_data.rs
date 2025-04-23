@@ -92,16 +92,12 @@ impl PkgData {
         if let Some(pkg) = local_pkg {
             flags = if pkg.reason() == alpm::PackageReason::Explicit {
                 PkgFlags::EXPLICIT
+            } else if !pkg.required_by().is_empty() {
+                PkgFlags::DEPENDENCY
+            } else if !pkg.optional_for().is_empty() {
+                PkgFlags::OPTIONAL
             } else {
-                if !pkg.required_by().is_empty() {
-                    PkgFlags::DEPENDENCY
-                } else {
-                    if !pkg.optional_for().is_empty() {
-                        PkgFlags::OPTIONAL
-                    } else {
-                        PkgFlags::ORPHAN
-                    }
-                }
+                PkgFlags::ORPHAN
             };
 
             install_date = pkg.install_date().unwrap_or_default();
