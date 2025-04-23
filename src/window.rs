@@ -999,10 +999,8 @@ impl PacViewWindow {
         gio::spawn_blocking(move ||{
             match alpm_utils::alpm_with_conf(pacman_config) {
                 Ok(handle) => {
-                    let mut pkg_data: Vec<PkgData> = vec![];
-
                     // Load pacman sync packages
-                    pkg_data.extend(handle
+                    let mut pkg_data: Vec<PkgData> = handle
                         .syncdbs().iter()
                         .flat_map(|db| {
                             db.pkgs().iter()
@@ -1012,7 +1010,7 @@ impl PacViewWindow {
                                     PkgData::from_pkg(sync_pkg, local_pkg, &aur_names)
                                 })
                         })
-                    );
+                        .collect();
 
                     // Load pacman local packages not in sync databases
                     pkg_data.extend(handle
