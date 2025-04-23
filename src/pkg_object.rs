@@ -451,7 +451,9 @@ impl PkgObject {
                     let mut pkg = handle.localdb().pkgs().find_satisfier(search_term)
                         .and_then(|local_pkg|
                             INSTALLED_PKGS.with_borrow(|installed_pkgs| {
-                                installed_pkgs.iter().find(|&pkg| pkg.name() == local_pkg.name()).cloned()
+                                installed_pkgs.iter()
+                                    .find(|&pkg| pkg.name() == local_pkg.name())
+                                    .cloned()
                             })
                         );
 
@@ -459,7 +461,9 @@ impl PkgObject {
                         pkg = handle.syncdbs().find_satisfier(search_term)
                             .and_then(|sync_pkg|
                                 PKGS.with_borrow(|pkgs| {
-                                    pkgs.iter().find(|&pkg| pkg.name() == sync_pkg.name()).cloned()
+                                    pkgs.iter()
+                                        .find(|&pkg| pkg.name() == sync_pkg.name())
+                                        .cloned()
                                 })
                             );
                     }
