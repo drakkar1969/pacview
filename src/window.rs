@@ -24,7 +24,8 @@ use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventRe
 use crate::utils::{tokio_runtime, run_command_async};
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
+use crate::pkg_data::{PkgFlags, PkgData};
+use crate::pkg_object::PkgObject;
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, PackageViewStatus, SortProp};
 use crate::info_pane::InfoPane;

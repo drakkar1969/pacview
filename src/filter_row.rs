@@ -4,7 +4,7 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 
-use crate::pkg_object::PkgFlags;
+use crate::pkg_data::PkgFlags;
 
 //------------------------------------------------------------------------------
 // MODULE: FilterRow

@@ -17,7 +17,8 @@ use futures::future;
 use strum::EnumString;
 
 use crate::window::INSTALLED_PKG_NAMES;
-use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
+use crate::pkg_data::{PkgFlags, PkgData};
+use crate::pkg_object::PkgObject;
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumExt;

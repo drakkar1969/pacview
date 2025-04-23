@@ -5,7 +5,8 @@ use glib::clone;
 
 use titlecase::titlecase;
 
-use crate::pkg_object::{PkgObject, PkgFlags};
+use crate::pkg_data::PkgFlags;
+use crate::pkg_object::PkgObject;
 use crate::stats_object::StatsObject;
 use crate::utils::size_to_string;
 
