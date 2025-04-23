@@ -85,60 +85,63 @@ pub struct PkgData {
 // Constructors
 //---------------------------------------
 impl PkgData {
-    pub fn from_pkg(pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: &[String]) -> Self {
-        let mut flags = PkgFlags::NONE;
-        let mut install_date = 0i64;
+    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: &[String]) -> Self {
+        let (flags, version, install_date) = local_pkg
+            .map(|pkg| {
+                (
+                    if pkg.reason() == alpm::PackageReason::Explicit {
+                        PkgFlags::EXPLICIT
+                    } else if !pkg.required_by().is_empty() {
+                        PkgFlags::DEPENDENCY
+                    } else if !pkg.optional_for().is_empty() {
+                        PkgFlags::OPTIONAL
+                    } else {
+                        PkgFlags::ORPHAN
+                    },
+                    pkg.version(),
+                    pkg.install_date().unwrap_or_default()
+                )
+            })
+            .or_else(|| {
+                Some((PkgFlags::NONE, sync_pkg.version(), 0))
+            })
+            .unwrap();
 
-        if let Some(pkg) = local_pkg {
-            flags = if pkg.reason() == alpm::PackageReason::Explicit {
-                PkgFlags::EXPLICIT
-            } else if !pkg.required_by().is_empty() {
-                PkgFlags::DEPENDENCY
-            } else if !pkg.optional_for().is_empty() {
-                PkgFlags::OPTIONAL
-            } else {
-                PkgFlags::ORPHAN
-            };
-
-            install_date = pkg.install_date().unwrap_or_default();
-        }
-
-        let repository = pkg.db()
+        let repository = sync_pkg.db()
             .map(|db| {
                 let repo = db.name();
 
-                if repo == "local" && aur_names.contains(&pkg.name().to_string()) {
+                if repo == "local" && aur_names.contains(&sync_pkg.name().to_string()) {
                     "aur"
                 } else {
                     repo
                 }
-                .to_string()
             })
             .unwrap_or_default();
 
         Self {
             flags,
-            name: pkg.name().to_string(),
-            version: pkg.version().to_string(),
-            description: pkg.desc().map(String::from).unwrap_or_default(),
-            url: pkg.url().map(String::from).unwrap_or_default(),
-            licenses: alpm_list_to_string(pkg.licenses()),
-            repository,
-            groups: alpm_list_to_string(pkg.groups()),
-            depends: alpm_deplist_to_vec(pkg.depends()),
-            optdepends: alpm_deplist_to_vec(pkg.optdepends()),
+            name: sync_pkg.name().to_string(),
+            version: version.to_string(),
+            description: sync_pkg.desc().map(String::from).unwrap_or_default(),
+            url: sync_pkg.url().map(String::from).unwrap_or_default(),
+            licenses: alpm_list_to_string(sync_pkg.licenses()),
+            repository: repository.to_string(),
+            groups: alpm_list_to_string(sync_pkg.groups()),
+            depends: alpm_deplist_to_vec(sync_pkg.depends()),
+            optdepends: alpm_deplist_to_vec(sync_pkg.optdepends()),
             makedepends: vec![],
-            provides: alpm_deplist_to_vec(pkg.provides()),
-            conflicts: alpm_deplist_to_vec(pkg.conflicts()),
-            replaces: alpm_deplist_to_vec(pkg.replaces()),
-            architecture: pkg.arch().map(String::from).unwrap_or_default(),
-            packager: pkg.packager().map(String::from).unwrap_or(String::from("Unknown Packager")),
-            build_date: pkg.build_date(),
+            provides: alpm_deplist_to_vec(sync_pkg.provides()),
+            conflicts: alpm_deplist_to_vec(sync_pkg.conflicts()),
+            replaces: alpm_deplist_to_vec(sync_pkg.replaces()),
+            architecture: sync_pkg.arch().map(String::from).unwrap_or_default(),
+            packager: sync_pkg.packager().map(String::from).unwrap_or(String::from("Unknown Packager")),
+            build_date: sync_pkg.build_date(),
             install_date,
-            download_size: pkg.download_size(),
-            install_size: pkg.isize(),
-            has_script: pkg.has_scriptlet(),
-            sha256sum: pkg.sha256sum().map(String::from).unwrap_or_default(),
+            download_size: sync_pkg.download_size(),
+            install_size: sync_pkg.isize(),
+            has_script: sync_pkg.has_scriptlet(),
+            sha256sum: sync_pkg.sha256sum().map(String::from).unwrap_or_default(),
         }
     }
 

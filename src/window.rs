@@ -1004,7 +1004,7 @@ impl PacViewWindow {
                                 .map(|sync_pkg| {
                                     let local_pkg = handle.localdb().pkg(sync_pkg.name()).ok();
 
-                                    PkgData::from_pkg(sync_pkg, local_pkg, &aur_names)
+                                    PkgData::from_alpm(sync_pkg, local_pkg, &aur_names)
                                 })
                         })
                         .collect();
@@ -1013,7 +1013,7 @@ impl PacViewWindow {
                     pkg_data.extend(handle
                         .localdb().pkgs().iter()
                         .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
-                        .map(|pkg| PkgData::from_pkg(pkg, Some(pkg), &aur_names))
+                        .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), &aur_names))
                     );
 
                     sender.send_blocking(Ok(pkg_data)).expect("Could not send through channel");
