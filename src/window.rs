@@ -473,9 +473,6 @@ impl PacViewWindow {
             .transform_to(|_, lines: f64| Some(lines.to_i32().unwrap()))
             .sync_create()
             .build();
-
-        // Set initial focus on package view
-        imp.package_view.view().grab_focus();
     }
 
     //---------------------------------------
@@ -1092,6 +1089,9 @@ impl PacViewWindow {
 
                     // Hide loading spinner
                     imp.package_view.set_status(PackageViewStatus::Normal);
+
+                    // Set focus on package view
+                    imp.package_view.view().grab_focus();
                 }
             }
         ));
