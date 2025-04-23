@@ -105,13 +105,14 @@ impl PkgData {
 
         let repository = pkg.db()
             .map(|db| {
-                let mut repo = db.name();
+                let repo = db.name();
 
                 if repo == "local" && aur_names.contains(&pkg.name().to_string()) {
-                    repo = "aur";
+                    "aur"
+                } else {
+                    repo
                 }
-
-                repo.to_string()
+                .to_string()
             })
             .unwrap_or_default();
 
