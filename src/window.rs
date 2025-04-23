@@ -519,6 +519,7 @@ impl PacViewWindow {
 
                 if let Some(aur_file) = imp.aur_file.get() {
                     imp.package_view.set_status(PackageViewStatus::AURDownload);
+                    imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
                     Self::download_aur_names_async(aur_file, clone!(
@@ -813,6 +814,7 @@ impl PacViewWindow {
             if !aur_file.query_exists(None::<&gio::Cancellable>) {
                 // If AUR file does not exist, download it
                 imp.package_view.set_status(PackageViewStatus::AURDownload);
+                imp.info_pane.set_pkg(None::<PkgObject>);
 
                 // Spawn tokio task to download AUR package names file
                 Self::download_aur_names_async(aur_file, clone!(
@@ -986,6 +988,9 @@ impl PacViewWindow {
 
         // Show loading spinner
         imp.package_view.set_status(PackageViewStatus::PackageLoad);
+
+        // Clear info pane package
+        imp.info_pane.set_pkg(None::<PkgObject>);
 
         // Spawn task to load packages
         let (sender, receiver) = async_channel::bounded(1);
