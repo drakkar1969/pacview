@@ -228,8 +228,8 @@ impl PkgObject {
     //---------------------------------------
     // Public internal field getters/setters
     //---------------------------------------
-    pub fn description(&self) -> String {
-        self.imp().data.get().unwrap().description.clone()
+    pub fn description(&self) -> &str {
+        &self.imp().data.get().unwrap().description
     }
 
     pub fn package_url(&self) -> String {
@@ -253,24 +253,24 @@ impl PkgObject {
         }
     }
 
-    pub fn url(&self) -> String {
-        self.imp().data.get().unwrap().url.clone()
+    pub fn url(&self) -> &str {
+        &self.imp().data.get().unwrap().url
     }
 
-    pub fn licenses(&self) -> String {
-        self.imp().data.get().unwrap().licenses.clone()
+    pub fn licenses(&self) -> &str {
+        &self.imp().data.get().unwrap().licenses
     }
 
-    pub fn depends(&self) -> Vec<String> {
-        self.imp().data.get().unwrap().depends.clone()
+    pub fn depends(&self) -> &[String] {
+        &self.imp().data.get().unwrap().depends
     }
 
-    pub fn optdepends(&self) -> Vec<String> {
-        self.imp().data.get().unwrap().optdepends.clone()
+    pub fn optdepends(&self) -> &[String] {
+        &self.imp().data.get().unwrap().optdepends
     }
 
-    pub fn makedepends(&self) -> Vec<String> {
-        self.imp().data.get().unwrap().makedepends.clone()
+    pub fn makedepends(&self) -> &[String] {
+        &self.imp().data.get().unwrap().makedepends
     }
 
     pub fn required_by(&self) -> &[String] {
@@ -297,24 +297,24 @@ impl PkgObject {
         })
     }
 
-    pub fn provides(&self) -> Vec<String> {
-        self.imp().data.get().unwrap().provides.clone()
+    pub fn provides(&self) -> &[String] {
+        &self.imp().data.get().unwrap().provides
     }
 
-    pub fn conflicts(&self) -> Vec<String> {
-        self.imp().data.get().unwrap().conflicts.clone()
+    pub fn conflicts(&self) -> &[String] {
+        &self.imp().data.get().unwrap().conflicts
     }
 
-    pub fn replaces(&self) -> Vec<String> {
-        self.imp().data.get().unwrap().replaces.clone()
+    pub fn replaces(&self) -> &[String] {
+        &self.imp().data.get().unwrap().replaces
     }
 
-    pub fn architecture(&self) -> String {
-        self.imp().data.get().unwrap().architecture.clone()
+    pub fn architecture(&self) -> &str {
+        &self.imp().data.get().unwrap().architecture
     }
 
-    pub fn packager(&self) -> String {
-        self.imp().data.get().unwrap().packager.clone()
+    pub fn packager(&self) -> &str {
+        &self.imp().data.get().unwrap().packager
     }
 
     pub fn install_date(&self) -> i64 {
@@ -345,8 +345,8 @@ impl PkgObject {
         self.imp().data.get().unwrap().has_script
     }
 
-    pub fn sha256sum(&self) -> String {
-        self.imp().data.get().unwrap().sha256sum.clone()
+    pub fn sha256sum(&self) -> &str {
+        &self.imp().data.get().unwrap().sha256sum
     }
 
     pub fn files(&self) -> &[String] {
