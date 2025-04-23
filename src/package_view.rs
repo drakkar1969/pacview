@@ -16,7 +16,8 @@ use raur::ArcPackage;
 use futures::future;
 use strum::EnumString;
 
-use crate::pkg_object::{INSTALLED_PKG_NAMES, PkgData, PkgFlags, PkgObject};
+use crate::window::INSTALLED_PKG_NAMES;
+use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumExt;
@@ -36,6 +37,7 @@ thread_local! {
 pub enum PackageViewStatus {
     #[default]
     Normal,
+    PackageLoad,
     AURDownload,
 }
 
@@ -426,7 +428,11 @@ impl PackageView {
                 async move {
                     let result = tokio::select! {
                         () = cancel_token_clone.cancelled() => { Ok(vec![]) },
-                        res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => { res }
+                        res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => {
+                            res.map(|aur_list| {
+                                aur_list.iter().map(|pkg| { PkgData::from_aur(pkg)}).collect()
+                            })
+                        }
                     };
 
                     sender.send(result)
@@ -443,13 +449,11 @@ impl PackageView {
                 while let Ok(result) = receiver.recv().await {
                     match result {
                         // Get AUR search results
-                        Ok(aur_list) => {
+                        Ok(data_list) => {
                             if search_bar.enabled() {
-                                let pkg_list: Vec<PkgObject> = aur_list.into_iter()
-                                    .map(|pkg| {
-                                        let pkg_name = &pkg.name.to_string();
-
-                                        PkgObject::new(pkg_name, PkgData::AurPkg(pkg))
+                                let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                                    .map(|data| {
+                                        PkgObject::new(data, None)
                                     })
                                     .collect();
 
@@ -502,6 +506,10 @@ impl PackageView {
         match status {
             PackageViewStatus::Normal => {
                 imp.stack.set_visible_child_name("view");
+            },
+            PackageViewStatus::PackageLoad => {
+                imp.loading_status.set_title("Loading Pacman Databases");
+                imp.stack.set_visible_child_name("spinner");
             },
             PackageViewStatus::AURDownload => {
                 imp.loading_status.set_title("Updating AUR Database");

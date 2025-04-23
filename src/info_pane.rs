@@ -287,75 +287,6 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Add property function
-    //---------------------------------------
-    fn add_property(&self, id: PropID, ptype: PropType) {
-        let imp = self.imp();
-
-        let property = PropertyValue::new(ptype, &id.name());
-        property.add_css_class("property-value");
-
-        if id == PropID::Version {
-            property.set_icon_css_class("success", true);
-        }
-
-        property.set_pkg_link_handler(closure_local!(
-            #[watch(rename_to = infopane)] self,
-            move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
-                infopane.pkg_link_handler(pkg_name, pkg_version);
-            }
-        ));
-
-        self.bind_property("property-max-lines", &property, "max-lines")
-            .sync_create()
-            .build();
-
-        imp.info_listbox.append(&property);
-
-        imp.property_map.borrow_mut().insert(id, property);
-    }
-
-    //---------------------------------------
-    // Set property functions
-    //---------------------------------------
-    fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
-        if let Some(property) = self.imp().property_map.borrow().get(&id) {
-            property.set_visible(visible);
-
-            if visible {
-                property.set_icon(icon);
-                property.set_value(value);
-            }
-
-            if id == PropID::Status {
-                property.set_icon_css_class("error", property.icon().unwrap_or_default() == "pkg-orphan");
-            }
-        }
-    }
-
-    fn set_vec_property(&self, id: PropID, visible: bool, value: &[String], icon: Option<&str>) {
-        self.set_string_property(id, visible, &value.join(LINK_SPACER), icon);
-    }
-
-    //---------------------------------------
-    // Get installed optdeps function
-    //---------------------------------------
-    fn installed_optdeps(optdepends: &[String]) -> Vec<String> {
-        optdepends.iter()
-            .map(|dep| {
-                if dep.split_once([':'])
-                    .and_then(|(name, _)| PkgObject::find_satisfier(name, false))
-                    .is_some()
-                {
-                    format!("{dep}{INSTALLED_LABEL}")
-                } else {
-                    dep.to_string()
-                }
-            })
-            .collect()
-    }
-
-    //---------------------------------------
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
@@ -656,6 +587,75 @@ impl InfoPane {
     }
 
     //---------------------------------------
+    // Add property function
+    //---------------------------------------
+    fn add_property(&self, id: PropID, ptype: PropType) {
+        let imp = self.imp();
+
+        let property = PropertyValue::new(ptype, &id.name());
+        property.add_css_class("property-value");
+
+        if id == PropID::Version {
+            property.set_icon_css_class("success", true);
+        }
+
+        property.set_pkg_link_handler(closure_local!(
+            #[watch(rename_to = infopane)] self,
+            move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
+                infopane.pkg_link_handler(pkg_name, pkg_version);
+            }
+        ));
+
+        self.bind_property("property-max-lines", &property, "max-lines")
+            .sync_create()
+            .build();
+
+        imp.info_listbox.append(&property);
+
+        imp.property_map.borrow_mut().insert(id, property);
+    }
+
+    //---------------------------------------
+    // Set property functions
+    //---------------------------------------
+    fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
+        if let Some(property) = self.imp().property_map.borrow().get(&id) {
+            property.set_visible(visible);
+
+            if visible {
+                property.set_icon(icon);
+                property.set_value(value);
+            }
+
+            if id == PropID::Status {
+                property.set_icon_css_class("error", property.icon().unwrap_or_default() == "pkg-orphan");
+            }
+        }
+    }
+
+    fn set_vec_property(&self, id: PropID, visible: bool, value: &[String], icon: Option<&str>) {
+        self.set_string_property(id, visible, &value.join(LINK_SPACER), icon);
+    }
+
+    //---------------------------------------
+    // Get installed optdeps function
+    //---------------------------------------
+    fn installed_optdeps(optdepends: &[String]) -> Vec<String> {
+        optdepends.iter()
+            .map(|dep| {
+                if dep.split_once([':'])
+                    .and_then(|(name, _)| PkgObject::find_satisfier(name, false))
+                    .is_some()
+                {
+                    format!("{dep}{INSTALLED_LABEL}")
+                } else {
+                    dep.to_string()
+                }
+            })
+            .collect()
+    }
+
+    //---------------------------------------
     // Display helper functions
     //---------------------------------------
     fn update_info_listbox(&self, pkg: &PkgObject) {
@@ -671,7 +671,7 @@ impl InfoPane {
         );
 
         // Description
-        self.set_string_property(PropID::Description, true, pkg.description(), None);
+        self.set_string_property(PropID::Description, true, &pkg.description(), None);
 
         // Package URL
         let package_url = pkg.package_url();
@@ -679,10 +679,10 @@ impl InfoPane {
         self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
 
         // URL
-        self.set_string_property(PropID::Url, !pkg.url().is_empty(), pkg.url(), None);
+        self.set_string_property(PropID::Url, !pkg.url().is_empty(), &pkg.url(), None);
 
         // Licenses
-        self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), pkg.licenses(), None);
+        self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), &pkg.licenses(), None);
 
         // Status
         let status_icon = pkg.status_icon();
@@ -701,19 +701,19 @@ impl InfoPane {
         self.set_string_property(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
 
         // Depends
-        self.set_vec_property(PropID::Dependencies, true, pkg.depends(), None);
+        self.set_vec_property(PropID::Dependencies, true, &pkg.depends(), None);
 
         // Optdepends
         let optdepends = if pkg.flags().intersects(PkgFlags::INSTALLED) {
-            Self::installed_optdeps(pkg.optdepends())
+            Self::installed_optdeps(&pkg.optdepends())
         } else {
-            pkg.optdepends().to_vec()
+            pkg.optdepends()
         };
 
         self.set_vec_property(PropID::Optional, !optdepends.is_empty(), &optdepends, None);
 
         // Makedepends
-        self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), pkg.makedepends(), None);
+        self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), &pkg.makedepends(), None);
 
         // Required by
         self.set_vec_property(PropID::RequiredBy, true, pkg.required_by(), None);
@@ -724,19 +724,19 @@ impl InfoPane {
         self.set_vec_property(PropID::OptionalFor, !optional_for.is_empty(), optional_for, None);
 
         // Provides
-        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), pkg.provides(), None);
+        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), &pkg.provides(), None);
 
         // Conflicts
-        self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), pkg.conflicts(), None);
+        self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), &pkg.conflicts(), None);
 
         // Replaces
-        self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), pkg.replaces(), None);
+        self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), &pkg.replaces(), None);
 
         // Architecture
-        self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), pkg.architecture(), None);
+        self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), &pkg.architecture(), None);
 
         // Packager
-        self.set_string_property(PropID::Packager, true, pkg.packager(), None);
+        self.set_string_property(PropID::Packager, true, &pkg.packager(), None);
 
         // Build date
         self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_string(), None);
@@ -759,7 +759,7 @@ impl InfoPane {
         );
 
         // SHA256 sum
-        self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), pkg.sha256sum(), None);
+        self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), &pkg.sha256sum(), None);
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {

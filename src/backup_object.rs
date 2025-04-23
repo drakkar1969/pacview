@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{RefCell, OnceCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -43,12 +43,13 @@ mod imp {
         filename: RefCell<String>,
         #[property(get, set, construct_only)]
         hash: RefCell<String>,
-        #[property(get, set, nullable, construct_only)]
-        file_hash: RefCell<Option<String>>,
         #[property(get, set, construct_only)]
         package: RefCell<String>,
 
         // Read only properties
+        #[property(get = Self::file_hash, nullable)]
+        file_hash: OnceCell<Option<String>>,
+
         #[property(get = Self::status, builder(BackupStatus::default()))]
         _status: RefCell<BackupStatus>,
         #[property(get = Self::status_icon)]
@@ -73,6 +74,15 @@ mod imp {
         //---------------------------------------
         // Custom property getters
         //---------------------------------------
+        fn file_hash(&self) -> Option<String> {
+            self.file_hash.get_or_init(|| {
+                let filename = self.filename.borrow();
+
+                alpm::compute_md5sum(filename.as_str()).ok()
+            })
+            .clone()
+        }
+
         fn status(&self) -> BackupStatus {
             self.obj().file_hash()
                 .map_or(BackupStatus::Locked, |file_hash| {
@@ -109,7 +119,6 @@ impl BackupObject {
         glib::Object::builder()
             .property("filename", backup.filename())
             .property("hash", backup.hash())
-            .property("file-hash", backup.file_hash())
             .property("package", backup.package())
             .build()
     }

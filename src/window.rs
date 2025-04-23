@@ -24,7 +24,7 @@ use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventRe
 use crate::utils::{tokio_runtime, run_command_async};
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::pkg_object::{ALPM_HANDLE, AUR_NAMES, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES, PkgData, PkgFlags, PkgObject};
+use crate::pkg_object::{PkgData, PkgFlags, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, PackageViewStatus, SortProp};
 use crate::info_pane::InfoPane;
@@ -42,6 +42,10 @@ use crate::enum_traits::EnumExt;
 //------------------------------------------------------------------------------
 thread_local! {
     pub static PACMAN_LOG: RefCell<Option<String>> = const { RefCell::new(None) };
+    pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const { RefCell::new(None) };
+    pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
+    pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
+    pub static INSTALLED_PKG_NAMES: RefCell<Arc<HashSet<String>>> = RefCell::new(Arc::new(HashSet::new()));
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
@@ -973,7 +977,7 @@ impl PacViewWindow {
         PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok());
 
         // Load AUR package names from file
-        let aur_names: HashSet<String> = imp.aur_file.get()
+        let aur_names: Vec<String> = imp.aur_file.get()
             .and_then(|aur_file| aur_file.load_contents(None::<&gio::Cancellable>).ok())
             .map(|(bytes, _)|
                 String::from_utf8_lossy(&bytes).lines()
@@ -982,80 +986,115 @@ impl PacViewWindow {
             )
             .unwrap_or_default();
 
-        AUR_NAMES.replace(aur_names);
+        use std::time::Instant;
+        let now = Instant::now();
 
-        // Populate package view
-        match alpm_utils::alpm_with_conf(pacman_config) {
-            Ok(handle) => {
-                let handle_ref = Rc::new(handle);
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
+            async move {
+                imp.package_view.set_status(PackageViewStatus::PackageLoad);
 
-                let mut all_pkgs: Vec<PkgObject> = vec![];
-                let mut installed_pkgs: Vec<PkgObject> = vec![];
-                let mut installed_pkg_names: HashSet<String> = HashSet::new();
+                let pkg_data = gio::spawn_blocking(move ||{
+                    match alpm_utils::alpm_with_conf(pacman_config) {
+                        Ok(handle) => {
+                            let mut pkg_data: Vec<PkgData> = vec![];
 
-                // Load pacman sync packages
-                handle_ref.syncdbs().iter()
-                    .flat_map(|db| {
-                        db.pkgs().iter()
-                            .map(|syncpkg| {
-                                PkgObject::new(syncpkg.name(), PkgData::Handle(Rc::clone(&handle_ref), syncpkg))
-                            })
-                    })
-                    .for_each(|pkg| {
-                        if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                            installed_pkg_names.insert(pkg.name());
-                            installed_pkgs.push(pkg.clone());
+                            // Load pacman sync packages
+                            pkg_data.extend(handle
+                                .syncdbs().iter()
+                                .flat_map(|db| {
+                                    db.pkgs().iter()
+                                        .map(|sync_pkg| {
+                                            let local_pkg = handle.localdb().pkg(sync_pkg.name()).ok();
+
+                                            PkgData::from_pkg(sync_pkg, local_pkg, &aur_names)
+                                        })
+                                })
+                            );
+
+                            // Load pacman local packages not in sync databases
+                            pkg_data.extend(handle
+                                .localdb().pkgs().iter()
+                                .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
+                                .map(|pkg| PkgData::from_pkg(pkg, Some(pkg), &aur_names))
+                            );
+
+                            Ok(pkg_data)
+                        },
+                        Err(error) => {
+                            Err(error)
                         }
+                    }
+                })
+                .await
+                .expect("Could not finish async task");
 
-                        all_pkgs.push(pkg);
-                    });
+                match pkg_data {
+                    Ok(pkg_data) => {
+                        // Get alpm handle
+                        let handle_ref = alpm_utils::alpm_with_conf(pacman_config)
+                            .map(Rc::new)
+                            .ok();
 
-                // Load pacman local packages not in sync databases
-                handle_ref
-                    .localdb().pkgs().iter()
-                    .filter(|pkg| handle_ref.syncdbs().pkg(pkg.name()).is_err())
-                    .map(|pkg| {
-                        PkgObject::new(pkg.name(), PkgData::Handle(Rc::clone(&handle_ref), pkg))
-                    })
-                    .for_each(|pkg| {
-                        installed_pkg_names.insert(pkg.name());
-                        installed_pkgs.push(pkg.clone());
-                        all_pkgs.push(pkg);
-                    });
+                        let mut pkgs: Vec<PkgObject> = vec![];
+                        let mut installed_pkgs: Vec<PkgObject> = vec![];
+                        let mut installed_pkg_names: HashSet<String> = HashSet::new();
 
-                // Add packages to package view
-                imp.package_view.splice_packages(&all_pkgs);
+                        // Get package lists
+                        pkg_data.into_iter()
+                            .map(|data| PkgObject::new(
+                                data,
+                                handle_ref.as_ref().map(Rc::clone)
+                            ))
+                            .for_each(|pkg| {
+                                if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                                    installed_pkg_names.insert(pkg.name());
+                                    installed_pkgs.push(pkg.clone());
+                                }
 
-                // Store alpm handle in PkgObject global variable
-                ALPM_HANDLE.replace(Some(handle_ref));
+                                pkgs.push(pkg);
+                            });
 
-                // Store package lists in global variables
-                PKGS.replace(all_pkgs);
-                INSTALLED_PKGS.replace(installed_pkgs);
-                INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkg_names));
-            },
-            Err(error) => {
-                let mut error = error.to_string();
+                        // Store alpm handle
+                        ALPM_HANDLE.replace(handle_ref);
 
-                let warning_dialog = adw::AlertDialog::builder()
-                    .heading("Alpm Error")
-                    .body(error.remove(0).to_uppercase().to_string() + &error)
-                    .default_response("ok")
-                    .build();
+                        // Add packages to package view
+                        imp.package_view.splice_packages(&pkgs);
 
-                warning_dialog.add_responses(&[("ok", "_Ok")]);
+                        imp.package_view.set_status(PackageViewStatus::Normal);
 
-                warning_dialog.present(Some(self));
+                        println!("{:.2?}", now.elapsed());
+
+                        // Store package lists
+                        PKGS.replace(pkgs);
+                        INSTALLED_PKGS.replace(installed_pkgs);
+                        INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkg_names));
+
+                        // Get package updates
+                        window.get_package_updates();
+
+                        // Check AUR package names file age
+                        if check_aur_file {
+                            window.check_aur_file_age();
+                        }
+                    },
+                    Err(error) => {
+                        let mut error = error.to_string();
+
+                        let warning_dialog = adw::AlertDialog::builder()
+                            .heading("Alpm Error")
+                            .body(error.remove(0).to_uppercase().to_string() + &error)
+                            .default_response("ok")
+                            .build();
+        
+                        warning_dialog.add_responses(&[("ok", "_Ok")]);
+
+                        warning_dialog.present(Some(&window));
+                    }
+                }
             }
-        }
-
-        // Get package updates
-        self.get_package_updates();
-
-        // Check AUR package names file age
-        if check_aur_file {
-            self.check_aur_file_age();
-        }
+        ));
     }
 
     //---------------------------------------
