@@ -987,9 +987,6 @@ impl PacViewWindow {
             )
             .unwrap_or_default();
 
-        use std::time::Instant;
-        let now = Instant::now();
-
         // Show loading spinner
         imp.package_view.set_status(PackageViewStatus::PackageLoad);
 
@@ -1061,8 +1058,6 @@ impl PacViewWindow {
 
                             // Add packages to package view
                             imp.package_view.splice_packages(&pkgs);
-
-                            println!("{:.2?}", now.elapsed());
 
                             // Store alpm handle
                             ALPM_HANDLE.replace(handle_ref);
