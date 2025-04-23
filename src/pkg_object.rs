@@ -127,13 +127,11 @@ mod imp {
         }
 
         fn show_version_icon(&self) -> bool {
-            self.data.get().unwrap().flags.intersects(PkgFlags::UPDATES)
+            self.flags().intersects(PkgFlags::UPDATES)
         }
 
         fn status(&self) -> String {
-            let flags = self.data.get().unwrap().flags & !PkgFlags::UPDATES;
-
-            match flags {
+            match self.data.get().unwrap().flags {
                 PkgFlags::EXPLICIT => "explicit",
                 PkgFlags::DEPENDENCY => "dependency",
                 PkgFlags::OPTIONAL => "optional",
@@ -144,9 +142,7 @@ mod imp {
         }
 
         fn status_icon(&self) -> String {
-            let flags = self.data.get().unwrap().flags & !PkgFlags::UPDATES;
-
-            match flags {
+            match self.data.get().unwrap().flags {
                 PkgFlags::EXPLICIT => "pkg-explicit",
                 PkgFlags::DEPENDENCY => "pkg-dependency",
                 PkgFlags::OPTIONAL => "pkg-optional",
@@ -157,9 +153,7 @@ mod imp {
         }
 
         fn status_icon_symbolic(&self) -> String {
-            let flags = self.data.get().unwrap().flags & !PkgFlags::UPDATES;
-
-            match flags {
+            match self.data.get().unwrap().flags {
                 PkgFlags::EXPLICIT => "status-explicit-symbolic",
                 PkgFlags::DEPENDENCY => "status-dependency-symbolic",
                 PkgFlags::OPTIONAL => "status-optional-symbolic",
