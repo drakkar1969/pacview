@@ -971,6 +971,7 @@ impl PacViewWindow {
         imp.groups_window.remove_all();
         imp.stats_window.remove_all();
 
+        // Get pacman config
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
         // Load pacman log
@@ -1142,7 +1143,9 @@ impl PacViewWindow {
                             error_msg = Some("Could not retrieve pacman updates: checkupdates error".to_string());
                         }
                     },
-                    Err(error) => error_msg = Some(format!("Could not retrieve pacman updates: {error}"))
+                    Err(error) => {
+                        error_msg = Some(format!("Could not retrieve pacman updates: {error}"))
+                    }
                 }
 
                 // Get AUR update results
