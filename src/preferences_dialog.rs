@@ -195,7 +195,7 @@ impl PreferencesDialog {
     // Setup actions
     //---------------------------------------
     fn setup_actions(&self) {
-        // Add AUR helper command action with parameter
+        // AUR helper command action with parameter
         let aur_action = gio::ActionEntry::builder("aur-cmd", )
             .parameter_type(Some(&String::static_variant_type()))
             .activate(clone!(

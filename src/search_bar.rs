@@ -130,7 +130,7 @@ mod imp {
             klass.bind_template();
             klass.set_css_name("search-bar");
 
-            // Add cycle search mode key binding
+            // Cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, |bar| {
                 let mut mode_iter = SearchMode::iter().cycle();
                 mode_iter.find(|&mode| mode == bar.mode());
@@ -143,7 +143,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add reverse cycle search mode key binding
+            // Reverse cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
                 let mut mode_iter = SearchMode::iter().rev().cycle();
                 mode_iter.find(|&mode| mode == bar.mode());
@@ -156,7 +156,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add search mode letter shortcuts
+            // Search mode letter shortcuts
             klass.add_shortcut(&gtk::Shortcut::with_arguments(
                 gtk::ShortcutTrigger::parse_string("<ctrl>L"),
                 Some(gtk::NamedAction::new("search.set-mode")),
@@ -175,7 +175,7 @@ mod imp {
                 &SearchMode::Exact.nick_variant()
             ));
 
-            // Add cycle search prop key binding
+            // Cycle search prop key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |bar| {
                 let mut prop_iter = SearchProp::iter().cycle();
                 prop_iter.find(|&prop| prop == bar.prop());
@@ -188,7 +188,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add reverse cycle search prop key binding
+            // Reverse cycle search prop key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
                 let mut prop_iter = SearchProp::iter().rev().cycle();
                 prop_iter.find(|&prop| prop == bar.prop());
@@ -201,7 +201,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add search prop numbered shortcuts
+            // Search prop numbered shortcuts
             for (i, value) in SearchProp::iter().enumerate() {
                 klass.add_shortcut(&gtk::Shortcut::with_arguments(
                     gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
@@ -210,7 +210,7 @@ mod imp {
                 ));
             }
 
-            // Add reset search params key binding
+            // Reset search params key binding
             klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "search.reset-params");
         }
 
@@ -445,13 +445,13 @@ impl SearchBar {
     // Setup actions
     //---------------------------------------
     fn setup_actions(&self) {
-        // Add search mode property action
+        // Search mode property action
         let mode_action = gio::PropertyAction::new("set-mode", self, "mode");
 
-        // Add search prop property action
+        // Search prop property action
         let prop_action = gio::PropertyAction::new("set-prop", self, "prop");
 
-        // Add reset search params action
+        // Reset search params action
         let reset_params_action = gio::ActionEntry::builder("reset-params")
             .activate(clone!(
                 #[weak(rename_to = bar)] self,

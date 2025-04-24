@@ -611,7 +611,7 @@ impl TextWidget {
     fn setup_actions(&self) {
         let imp = self.imp();
 
-        // Add selection actions
+        // Selection actions
         let select_all_action = gio::ActionEntry::builder("select-all")
             .activate(clone!(
                 #[weak(rename_to = widget)] self,
@@ -637,7 +637,7 @@ impl TextWidget {
             ))
             .build();
 
-        // Add copy action
+        // Copy action
         let copy_action = gio::ActionEntry::builder("copy")
             .activate(clone!(
                 #[weak(rename_to = widget)] self,
@@ -649,7 +649,7 @@ impl TextWidget {
             ))
             .build();
 
-        // Add expand/contract actions
+        // Expand/contract actions
         let expand_action = gio::ActionEntry::builder("expand")
             .activate(clone!(
                 #[weak(rename_to = widget)] self,
@@ -672,7 +672,7 @@ impl TextWidget {
             ))
             .build();
 
-        // Add link actions
+        // Link actions
         let prev_link_action = gio::ActionEntry::builder("previous-link")
             .activate(clone!(
                 #[weak] imp,
@@ -892,7 +892,7 @@ impl TextWidget {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
-        // Add mouse motion controller
+        // Mouse motion controller
         let motion_controller = gtk::EventControllerMotion::new();
 
         motion_controller.connect_enter(clone!(
@@ -911,7 +911,7 @@ impl TextWidget {
 
         imp.draw_area.add_controller(motion_controller);
 
-        // Add mouse drag controller
+        // Mouse drag controller
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(
@@ -965,7 +965,7 @@ impl TextWidget {
 
         imp.draw_area.add_controller(drag_controller);
 
-        // Add mouse click gesture controller
+        // Mouse click gesture controller
         let click_gesture = gtk::GestureClick::builder()
             .button(gdk::BUTTON_PRIMARY)
             .build();

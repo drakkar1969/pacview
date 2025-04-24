@@ -134,7 +134,7 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            // Add search start/stop key bindings
+            // Search start/stop key bindings
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 window.imp().search_bar.set_enabled(true);
 
@@ -153,43 +153,43 @@ mod imp {
                 }
             });
 
-            // Add show sidebar key binding
+            // Show sidebar key binding
             klass.add_binding_action(gdk::Key::B, gdk::ModifierType::CONTROL_MASK, "win.show-sidebar");
 
-            // Add show infopane key binding
+            // Show infopane key binding
             klass.add_binding_action(gdk::Key::I, gdk::ModifierType::CONTROL_MASK, "win.show-infopane");
 
-            // Add show preferences key binding
+            // Show preferences key binding
             klass.add_binding_action(gdk::Key::comma, gdk::ModifierType::CONTROL_MASK, "win.show-preferences");
 
-            // Add view refresh key binding
+            // View refresh key binding
             klass.add_binding_action(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh");
 
-            // Add view update AUR database key binding
+            // View update AUR database key binding
             klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
-            // Add view copy list key binding
+            // View copy list key binding
             klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.copy-package-list");
 
-            // Add view show all packages key binding
+            // View show all packages key binding
             klass.add_binding_action(gdk::Key::A, gdk::ModifierType::ALT_MASK, "win.show-all-packages");
 
-            // Add stats window key binding
+            // Stats window key binding
             klass.add_binding_action(gdk::Key::S, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-stats");
 
-            // Add backup files window key binding
+            // Backup files window key binding
             klass.add_binding_action(gdk::Key::B, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-backup-files");
 
-            // Add pacman log window key binding
+            // Pacman log window key binding
             klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-log");
 
-            // Add pacman groups window key binding
+            // Pacman groups window key binding
             klass.add_binding_action(gdk::Key::G, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-groups");
 
-            // Add pacman config dialog key binding
+            // Pacman config dialog key binding
             klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-config");
 
-            // Add infopane set tab shortcuts
+            // Infopane set tab shortcuts
             klass.add_shortcut(&gtk::Shortcut::with_arguments(
                 gtk::ShortcutTrigger::parse_string("<alt>I"),
                 Some(gtk::NamedAction::new("win.infopane-set-tab")),
@@ -220,7 +220,7 @@ mod imp {
                 &"backup".to_variant()
             ));
 
-            // Add infopane previous/next key bindings
+            // Infopane previous/next key bindings
             klass.add_binding(gdk::Key::Left, gdk::ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.display_prev();
 
@@ -481,7 +481,7 @@ impl PacViewWindow {
     fn setup_actions(&self) {
         let imp = self.imp();
 
-        // Add pane visibility property actions
+        // Pane visibility property actions
         let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.sidebar_split_view.get(), "show-sidebar");
 
         let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.main_split_view.get(), "show-sidebar");
@@ -490,7 +490,7 @@ impl PacViewWindow {
         self.add_action(&show_sidebar_action);
         self.add_action(&show_infopane_action);
 
-        // Add package view refresh action
+        // Package view refresh action
         let refresh_action = gio::ActionEntry::builder("refresh")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
@@ -512,7 +512,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add package view update AUR database action
+        // Package view update AUR database action
         let aur_action = gio::ActionEntry::builder("update-aur-database")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
@@ -536,14 +536,14 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add package view copy list action
+        // Package view copy list action
         let copy_action = gio::ActionEntry::builder("copy-package-list")
             .activate(|window: &Self, _, _| {
                 window.clipboard().set_text(&window.imp().package_view.copy_list());
             })
             .build();
 
-        // Add package view all packages action
+        // Package view all packages action
         let all_pkgs_action = gio::ActionEntry::builder("show-all-packages")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
@@ -553,7 +553,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add package view reset sort action
+        // Package view reset sort action
         let reset_sort_action = gio::ActionEntry::builder("reset-package-sort")
             .activate(|window: &Self, _, _| {
                 let imp = window.imp();
@@ -563,7 +563,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add package view sort prop property action
+        // Package view sort prop property action
         let sort_prop_action = gio::PropertyAction::new("set-sort-prop", &imp.package_view.get(), "sort-prop");
 
         // Add package view actions to window
@@ -578,7 +578,7 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
-        // Add info pane set tab action with parameter
+        // Info pane set tab action with parameter
         let visible_tab_action = gio::ActionEntry::builder("infopane-set-tab", )
             .parameter_type(Some(&String::static_variant_type()))
             .activate(|window: &Self, _, param| {
@@ -594,7 +594,7 @@ impl PacViewWindow {
         // Add info pane actions to window
         self.add_action_entries([visible_tab_action]);
 
-        // Add show stats window action
+        // Show stats window action
         let stats_action = gio::ActionEntry::builder("show-stats")
             .activate(|window: &Self, _, _| {
                 PKGS.with_borrow(|pkgs| {
@@ -605,7 +605,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add show backup files window action
+        // Show backup files window action
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
                 INSTALLED_PKGS.with_borrow(|installed_pkgs| {
@@ -614,7 +614,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add show pacman log window action
+        // Show pacman log window action
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
                 PACMAN_LOG.with_borrow(|pacman_log| {
@@ -623,7 +623,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add show pacman groups window action
+        // Show pacman groups window action
         let groups_action = gio::ActionEntry::builder("show-pacman-groups")
             .activate(|window: &Self, _, _| {
                 PKGS.with_borrow(|pkgs| {
@@ -632,7 +632,7 @@ impl PacViewWindow {
             })
             .build();
 
-        // Add show pacman config window action
+        // Show pacman config window action
         let config_action = gio::ActionEntry::builder("show-pacman-config")
             .activate(|window: &Self, _, _| {
                 window.imp().config_dialog.present(Some(window));
@@ -642,7 +642,7 @@ impl PacViewWindow {
         // Add window actions to window
         self.add_action_entries([stats_action, backup_action, log_action, groups_action, config_action]);
 
-        // Add show preferences action
+        // Show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
             .activate(|window: &Self, _, _| {
                 window.imp().prefs_dialog.present(Some(window));

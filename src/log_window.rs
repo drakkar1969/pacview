@@ -62,7 +62,7 @@ mod imp {
 
             klass.bind_template();
 
-            // Add find key binding
+            // Find key binding
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
@@ -73,7 +73,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add filter package events key binding
+            // Filter package events key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
@@ -82,7 +82,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add copy key binding
+            // Copy key binding
             klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
@@ -159,7 +159,7 @@ impl LogWindow {
         let controller = gtk::ShortcutController::new();
         controller.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        // Add close window shortcut
+        // Close window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
             Some(gtk::NamedAction::new("window.close"))

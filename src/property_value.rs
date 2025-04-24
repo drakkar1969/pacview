@@ -54,7 +54,7 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            // Add select all/none key bindings
+            // Select all/none key bindings
             klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK, |property| {
                 property.imp().text_widget.activate_action("text.select-all", None).unwrap();
 
@@ -67,14 +67,14 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add copy key binding
+            // Copy key binding
             klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |property| {
                 property.imp().text_widget.activate_action("text.copy", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            // Add expand/contract key bindings
+            // Expand/contract key bindings
             klass.add_binding(gdk::Key::plus, gdk::ModifierType::CONTROL_MASK, |property| {
                 property.imp().text_widget.activate_action("text.expand", None).unwrap();
 
@@ -99,7 +99,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add previous/next link key bindings
+            // Previous/next link key bindings
             klass.add_binding(gdk::Key::Left, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
                 property.imp().text_widget.activate_action("text.previous-link", None).unwrap();
 
@@ -124,7 +124,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add activate link key bindings
+            // Activate link key bindings
             klass.add_binding(gdk::Key::Return, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
                 property.imp().text_widget.activate_action("text.activate-link", None).unwrap();
 
@@ -267,7 +267,7 @@ impl PropertyValue {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
-        // Add mouse drag controller
+        // Mouse drag controller
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(
@@ -281,7 +281,7 @@ impl PropertyValue {
 
         self.add_controller(drag_controller);
 
-        // Add popup menu controller
+        // Popup menu controller
         let popup_gesture = gtk::GestureClick::builder()
             .button(gdk::BUTTON_SECONDARY)
             .build();

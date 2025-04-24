@@ -85,12 +85,12 @@ impl PacViewApplication {
     // Setup actions
     //---------------------------------------
     fn setup_actions(&self) {
-        // Add quit action
+        // Quit action
         let quit_action = gio::ActionEntry::builder("quit-app")
             .activate(move |app: &Self, _, _| app.quit())
             .build();
 
-        // Add show about dialog action
+        // Show about dialog action
         let about_action = gio::ActionEntry::builder("show-about")
             .activate(move |app: &Self, _, _| {
                 let window = app.active_window()

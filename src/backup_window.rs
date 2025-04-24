@@ -66,7 +66,7 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            // Add find key binding
+            // Find key binding
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
@@ -77,7 +77,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add open key binding
+            // Open key binding
             klass.add_binding(gdk::Key::O, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
@@ -88,7 +88,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add copy key binding
+            // Copy key binding
             klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
@@ -99,7 +99,7 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            // Add status key bindings
+            // Status key bindings
             klass.add_binding(gdk::Key::A, gdk::ModifierType::ALT_MASK, |window| {
                 window.imp().status_dropdown.set_selected(BackupStatus::All.value());
 
@@ -190,7 +190,7 @@ impl BackupWindow {
         let controller = gtk::ShortcutController::new();
         controller.set_propagation_phase(gtk::PropagationPhase::Capture);
 
-        // Add close window shortcut
+        // Close window shortcut
         controller.add_shortcut(gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
             Some(gtk::NamedAction::new("window.close"))
