@@ -501,7 +501,7 @@ impl PackageView {
     //---------------------------------------
     // Public set status function
     //---------------------------------------
-    pub fn set_status(&self, status: PackageViewStatus) {
+    pub fn set_status(&self, status: &PackageViewStatus) {
         let imp = self.imp();
 
         match status {

@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -225,15 +226,16 @@ impl GroupsWindow {
                     let pkg_group = pkg.groups();
 
                     if pkg_group != group {
-                        body.push_str(&format!("|**{pkg_group}**||\n"));
+                        writeln!(body, "|**{pkg_group}**||").unwrap();
 
                         group = pkg_group;
                     }
 
-                    body.push_str(&format!("|{package}|{status}|\n",
+                    writeln!(body, "|{package}|{status}|",
                         package=pkg.package(),
                         status=pkg.status()
-                    ));
+                    )
+                    .unwrap();
                 }
 
                 window.clipboard().set_text(

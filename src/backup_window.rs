@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -265,15 +266,20 @@ impl BackupWindow {
                     let backup_package = backup.package();
 
                     if backup_package != package {
-                        body.push_str(&format!("|**{backup_package}**||\n"));
+                        writeln!(body, "|**{backup_package}**||").unwrap();
 
                         package = backup_package;
                     }
 
-                    body.push_str(&format!("|{filename}|{status}|\n",
+                    writeln!(body, "|{filename}|{status}|",
                         filename=backup.filename(),
                         status=backup.status_text()
-                    ));
+                    ).unwrap();
+
+                    writeln!(body, "|{filename}|{status}|",
+                        filename=backup.filename(),
+                        status=backup.status_text()
+                    ).unwrap();
                 }
 
                 window.clipboard().set_text(
