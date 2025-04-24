@@ -966,10 +966,10 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Clear windows
-        imp.backup_window.clear();
-        imp.log_window.clear();
-        imp.groups_window.clear();
-        imp.stats_window.clear();
+        imp.backup_window.remove_all();
+        imp.log_window.remove_all();
+        imp.groups_window.remove_all();
+        imp.stats_window.remove_all();
 
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 

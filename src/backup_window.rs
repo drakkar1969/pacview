@@ -330,7 +330,7 @@ impl BackupWindow {
     //---------------------------------------
     // Clear window
     //---------------------------------------
-    pub fn clear(&self) {
+    pub fn remove_all(&self) {
         self.imp().model.remove_all();
     }
 
