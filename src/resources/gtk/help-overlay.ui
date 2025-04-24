@@ -96,76 +96,6 @@
         </child>
         <child>
           <object class="GtkShortcutsGroup">
-            <property name="title">Package List</property>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">F5</property>
-                <property name="title">Refresh</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">F7</property>
-                <property name="title">Update AUR Database</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
-                <property name="title">Copy Package List</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;A</property>
-                <property name="title">Show All Packages</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkShortcutsGroup">
-            <property name="title">Info Pane</property>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;Left &lt;alt&gt;Right</property>
-                <property name="title">Previous/Next Package</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;I</property>
-                <property name="title">View Info Tab</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;F</property>
-                <property name="title">View Files Tab</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;L</property>
-                <property name="title">View Log Tab</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;C</property>
-                <property name="title">View Cache Tab</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkShortcutsShortcut">
-                <property name="accelerator">&lt;alt&gt;B</property>
-                <property name="title">View Backup Tab</property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="GtkShortcutsGroup">
             <property name="title">Info Pane Property</property>
             <child>
               <object class="GtkShortcutsShortcut">
@@ -248,6 +178,76 @@
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;R</property>
                 <property name="title">Reset Search Parameters</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Package List</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F5</property>
+                <property name="title">Refresh</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F7</property>
+                <property name="title">Update AUR Database</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
+                <property name="title">Copy Package List</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;A</property>
+                <property name="title">Show All Packages</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">Info Pane</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;Left &lt;alt&gt;Right</property>
+                <property name="title">Previous/Next Package</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;I</property>
+                <property name="title">View Info Tab</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;F</property>
+                <property name="title">View Files Tab</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;L</property>
+                <property name="title">View Log Tab</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;C</property>
+                <property name="title">View Cache Tab</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;B</property>
+                <property name="title">View Backup Tab</property>
               </object>
             </child>
           </object>
