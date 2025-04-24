@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::sync::OnceLock;
 
 use gtk::{glib, gio, gdk};
@@ -47,8 +46,6 @@ mod imp {
 
         #[template_child]
         pub(super) error_label: TemplateChild<gtk::Label>,
-
-        pub(super) bindings: RefCell<Vec<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -237,16 +234,24 @@ impl LogWindow {
                 );
             }
         ));
+
+        // Selection items changed signal
+        imp.selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                imp.header_sub_label.set_label(&format!("{n_items} line{}", if n_items != 1 {"s"} else {""}));
+
+                imp.copy_button.set_sensitive(n_items > 0);
+            }
+        ));
     }
 
     //---------------------------------------
     // Clear window
     //---------------------------------------
     pub fn clear(&self) {
-        for binding in self.imp().bindings.take() {
-            binding.unbind();
-        }
-
         self.imp().model.remove_all();
     }
 
@@ -306,22 +311,6 @@ impl LogWindow {
                 .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
                 .collect::<Vec<LogObject>>()
             );
-
-            // Bind view count to header sub label
-            let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-            .transform_to(|_, n_items: u32|
-                Some(format!("{n_items} line{}", if n_items != 1 {"s"} else {""}))
-            )
-            .sync_create()
-            .build();
-
-            // Bind view count to copy button state
-            let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                .transform_to(|_, n_items: u32|Some(n_items > 0))
-                .sync_create()
-                .build();
-
-            imp.bindings.replace(vec![label_binding, copy_binding]);
         }
     }
 }

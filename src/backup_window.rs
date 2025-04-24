@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use std::collections::HashSet;
 
 use gtk::{glib, gio, gdk};
@@ -53,8 +51,6 @@ mod imp {
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
-
-        pub(super) bindings: RefCell<Vec<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -286,6 +282,41 @@ impl BackupWindow {
             }
         ));
 
+        // Selection items changed signal
+        imp.selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<BackupObject>()
+                            .expect("Could not downcast to 'BackupObject'")
+                            .package()
+                    })
+                    .collect();
+
+                let n_sections = section_map.len();
+
+                imp.header_sub_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections != 1 {"s"} else {""}));
+
+                imp.copy_button.set_sensitive(n_items > 0);
+            }
+        ));
+
+        // Selection selected items property notify signal
+        imp.selection.connect_selected_item_notify(clone!(
+            #[weak] imp,
+            move |selection| {
+                let status = selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .map_or(BackupStatus::All, |object| object.status());
+
+                imp.open_button.set_sensitive(status != BackupStatus::Locked && status != BackupStatus::All);
+            }
+        ));
+
         // Column view activate signal
         imp.view.connect_activate(clone!(
             #[weak] imp,
@@ -301,10 +332,6 @@ impl BackupWindow {
     // Clear window
     //---------------------------------------
     pub fn clear(&self) {
-        for binding in self.imp().bindings.take() {
-            binding.unbind();
-        }
-
         self.imp().model.remove_all();
     }
 
@@ -330,52 +357,6 @@ impl BackupWindow {
 
             // Set status dropdown selected item
             imp.status_dropdown.set_selected(0);
-
-            // Bind backup files count to header sub label
-            let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-                .transform_to(move |binding, n_items: u32| {
-                    let selection = binding.source()
-                        .and_downcast::<gtk::SingleSelection>()
-                        .expect("Could not downcast to 'SingleSelection'");
-
-                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
-                        .map(|item| {
-                            item
-                                .downcast::<BackupObject>()
-                                .expect("Could not downcast to 'BackupObject'")
-                                .package()
-                        })
-                        .collect();
-
-                    let section_len = section_map.len();
-
-                    Some(format!("{n_items} files in {section_len} package{}",
-                        if section_len != 1 {"s"} else {""}
-                    ))
-                })
-                .sync_create()
-                .build();
-
-            // Bind selected item to open button state
-            let open_binding = imp.selection.bind_property("selected-item", &imp.open_button.get(), "sensitive")
-                .transform_to(|_, item: Option<glib::Object>| {
-                    item.and_downcast::<BackupObject>()
-                        .map_or(Some(false), |object| {
-                            let status = object.status();
-
-                            Some(status != BackupStatus::Locked && status != BackupStatus::All)
-                        })
-                })
-                .sync_create()
-                .build();
-
-            // Bind backup files count to copy button state
-            let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                .transform_to(|_, n_items: u32| Some(n_items > 0))
-                .sync_create()
-                .build();
-
-            imp.bindings.replace(vec![label_binding, open_binding, copy_binding]);
         }
     }
 }

@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::collections::HashSet;
 
 use gtk::{glib, gio, gdk};
@@ -46,8 +45,6 @@ mod imp {
         pub(super) groups_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) installed_filter: TemplateChild<gtk::CustomFilter>,
-
-        pub(super) bindings: RefCell<Vec<glib::Binding>>,
     }
 
     //---------------------------------------
@@ -244,16 +241,35 @@ impl GroupsWindow {
                 );
             }
         ));
+
+        // Selection items changed signal
+        imp.selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                    .map(|item| {
+                        item
+                            .downcast::<GroupsObject>()
+                            .expect("Could not downcast to 'GroupsObject'")
+                            .groups()
+                    })
+                    .collect();
+
+                let n_sections = section_map.len();
+
+                imp.header_sub_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections != 1 {"s"} else {""}));
+
+                imp.copy_button.set_sensitive(n_items > 0);
+            }
+        ));
     }
 
     //---------------------------------------
     // Clear window
     //---------------------------------------
     pub fn clear(&self) {
-        for binding in self.imp().bindings.take() {
-            binding.unbind();
-        }
-
         self.imp().model.remove_all();
     }
 
@@ -281,39 +297,6 @@ impl GroupsWindow {
 
             // Populate column view
             imp.model.splice(0, 0, &pkg_list);
-
-            // Bind view count to header sub label
-            let label_binding = imp.selection.bind_property("n-items", &imp.header_sub_label.get(), "label")
-                .transform_to(move |binding, n_items: u32| {
-                    let selection = binding.source()
-                        .and_downcast::<gtk::SingleSelection>()
-                        .expect("Could not downcast to 'SingleSelection'");
-
-                    let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
-                        .map(|item| {
-                            item
-                                .downcast::<GroupsObject>()
-                                .expect("Could not downcast to 'GroupsObject'")
-                                .groups()
-                        })
-                        .collect();
-
-                    let section_len = section_map.len();
-
-                    Some(format!("{n_items} packages in {section_len} group{}",
-                        if section_len != 1 {"s"} else {""}
-                    ))
-                })
-                .sync_create()
-                .build();
-
-            // Bind view count to copy button state
-            let copy_binding = imp.selection.bind_property("n-items", &imp.copy_button.get(), "sensitive")
-                .transform_to(|_, n_items: u32|Some(n_items > 0))
-                .sync_create()
-                .build();
-
-            imp.bindings.replace(vec![label_binding, copy_binding]);
         }
     }
 }
