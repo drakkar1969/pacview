@@ -288,16 +288,15 @@ impl BackupWindow {
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
 
-                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                let n_sections = selection.iter::<glib::Object>().flatten()
                     .map(|item| {
                         item
                             .downcast::<BackupObject>()
                             .expect("Could not downcast to 'BackupObject'")
                             .package()
                     })
-                    .collect();
-
-                let n_sections = section_map.len();
+                    .collect::<HashSet<String>>()
+                    .len();
 
                 imp.header_sub_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections != 1 {"s"} else {""}));
 

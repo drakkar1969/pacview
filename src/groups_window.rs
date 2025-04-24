@@ -248,16 +248,15 @@ impl GroupsWindow {
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
 
-                let section_map: HashSet<String> = selection.iter::<glib::Object>().flatten()
+                let n_sections = selection.iter::<glib::Object>().flatten()
                     .map(|item| {
                         item
                             .downcast::<GroupsObject>()
                             .expect("Could not downcast to 'GroupsObject'")
                             .groups()
                     })
-                    .collect();
-
-                let n_sections = section_map.len();
+                    .collect::<HashSet<String>>()
+                    .len();
 
                 imp.header_sub_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections != 1 {"s"} else {""}));
 
