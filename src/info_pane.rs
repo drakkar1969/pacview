@@ -30,6 +30,10 @@ enum PropID {
     Version,
     #[enum_value(name = "Description")]
     Description,
+    #[enum_value(name = "Votes")]
+    Votes,
+    #[enum_value(name = "Popularity")]
+    Popularity,
     #[enum_value(name = "Package URL")]
     PackageUrl,
     #[enum_value(name = "URL")]
@@ -297,6 +301,8 @@ impl InfoPane {
         self.add_property(PropID::Name, PropType::Title);
         self.add_property(PropID::Version, PropType::Text);
         self.add_property(PropID::Description, PropType::Text);
+        self.add_property(PropID::Votes, PropType::Text);
+        self.add_property(PropID::Popularity, PropType::Text);
         self.add_property(PropID::PackageUrl, PropType::Link);
         self.add_property(PropID::Url, PropType::Link);
         self.add_property(PropID::Status, PropType::Text);
@@ -673,6 +679,12 @@ impl InfoPane {
 
         // Description
         self.set_string_property(PropID::Description, true, pkg.description(), None);
+
+        // Votes
+        self.set_string_property(PropID::Votes, !pkg.votes().is_empty(), pkg.votes(), None);
+
+        // Popularity
+        self.set_string_property(PropID::Popularity, !pkg.popularity().is_empty(), pkg.popularity(), None);
 
         // Package URL
         let package_url = pkg.package_url();
