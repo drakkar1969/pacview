@@ -226,7 +226,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public internal field getters/setters
+    // Public data field getters
     //---------------------------------------
     pub fn description(&self) -> &str {
         &self.imp().data.get().unwrap().description
@@ -271,30 +271,6 @@ impl PkgObject {
 
     pub fn makedepends(&self) -> &[String] {
         &self.imp().data.get().unwrap().makedepends
-    }
-
-    pub fn required_by(&self) -> &[String] {
-        self.imp().required_by.get_or_init(|| {
-            self.pkg()
-                .map(|pkg| {
-                    pkg.required_by().into_iter()
-                        .sorted_unstable()
-                        .collect::<Vec<String>>()
-                })
-                .unwrap_or_default()
-        })
-    }
-
-    pub fn optional_for(&self) -> &[String] {
-        self.imp().optional_for.get_or_init(|| {
-            self.pkg()
-                .map(|pkg| {
-                    pkg.optional_for().into_iter()
-                        .sorted_unstable()
-                        .collect::<Vec<String>>()
-                })
-                .unwrap_or_default()
-        })
     }
 
     pub fn provides(&self) -> &[String] {
@@ -347,6 +323,33 @@ impl PkgObject {
 
     pub fn sha256sum(&self) -> &str {
         &self.imp().data.get().unwrap().sha256sum
+    }
+
+    //---------------------------------------
+    // Public getters from alpm package
+    //---------------------------------------
+    pub fn required_by(&self) -> &[String] {
+        self.imp().required_by.get_or_init(|| {
+            self.pkg()
+                .map(|pkg| {
+                    pkg.required_by().into_iter()
+                        .sorted_unstable()
+                        .collect::<Vec<String>>()
+                })
+                .unwrap_or_default()
+        })
+    }
+
+    pub fn optional_for(&self) -> &[String] {
+        self.imp().optional_for.get_or_init(|| {
+            self.pkg()
+                .map(|pkg| {
+                    pkg.optional_for().into_iter()
+                        .sorted_unstable()
+                        .collect::<Vec<String>>()
+                })
+                .unwrap_or_default()
+        })
     }
 
     pub fn files(&self) -> &[String] {
