@@ -18,14 +18,14 @@ fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
         .collect()
 }
 
-fn aur_vec_to_string(vec: &[String]) -> String {
-    vec.iter()
+fn aur_vec_to_string(slice: &[String]) -> String {
+    slice.iter()
         .sorted_unstable()
         .join(" | ")
 }
 
-fn aur_sorted_vec(vec: &[String]) -> Vec<String> {
-    vec.iter()
+fn aur_sorted_vec(slice: &[String]) -> Vec<String> {
+    slice.iter()
         .map(String::from)
         .sorted_unstable()
         .collect()
