@@ -232,10 +232,6 @@ impl PkgObject {
         &self.imp().data.get().unwrap().description
     }
 
-    pub fn votes(&self) -> &str {
-        &self.imp().data.get().unwrap().votes
-    }
-
     pub fn popularity(&self) -> &str {
         &self.imp().data.get().unwrap().popularity
     }
