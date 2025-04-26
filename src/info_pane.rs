@@ -683,7 +683,7 @@ impl InfoPane {
         // Package URL
         let package_url = pkg.package_url();
 
-        self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), &package_url, None);
+        self.set_string_property(PropID::PackageUrl, !package_url.is_empty(), package_url, None);
 
         // URL
         self.set_string_property(PropID::Url, !pkg.url().is_empty(), pkg.url(), None);
@@ -746,13 +746,13 @@ impl InfoPane {
         self.set_string_property(PropID::Packager, true, pkg.packager(), None);
 
         // Build date
-        self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, &pkg.build_date_string(), None);
+        self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, pkg.build_date_string(), None);
 
         // Install date
-        self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, &pkg.install_date_string(), None);
+        self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, pkg.install_date_string(), None);
 
         // Download size
-        self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, &pkg.download_size_string(), None);
+        self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, pkg.download_size_string(), None);
 
         // Installed size
         self.set_string_property(PropID::InstalledSize, true, &pkg.install_size_string(), None);

@@ -85,6 +85,11 @@ mod imp {
         pub(super) data: OnceCell<PkgData>,
 
         // Read only fields
+        pub(super) package_url: OnceCell<String>,
+        pub(super) install_date_string: OnceCell<String>,
+        pub(super) build_date_string: OnceCell<String>,
+        pub(super) download_size_string: OnceCell<String>,
+
         pub(super) required_by: OnceCell<Vec<String>>,
         pub(super) optional_for: OnceCell<Vec<String>>,
 
@@ -236,25 +241,27 @@ impl PkgObject {
         &self.imp().data.get().unwrap().popularity
     }
 
-    pub fn package_url(&self) -> String {
-        let default_repos = ["core", "extra", "multilib"];
+    pub fn package_url(&self) -> &str {
+        self.imp().package_url.get_or_init(|| {
+            let default_repos = ["core", "extra", "multilib"];
 
-        let data = self.imp().data.get().unwrap();
-
-        let repo = &data.repository;
-
-        if default_repos.contains(&repo.as_str()) {
-            format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
-                arch=data.architecture,
-                name=data.name
-            )
-        } else if repo == "aur" {
-            format!("https://aur.archlinux.org/packages/{name}",
-                name=data.name
-            )
-        } else {
-            String::new()
-        }
+            let data = self.imp().data.get().unwrap();
+    
+            let repo = &data.repository;
+    
+            if default_repos.contains(&repo.as_str()) {
+                format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
+                    arch=data.architecture,
+                    name=data.name
+                )
+            } else if repo == "aur" {
+                format!("https://aur.archlinux.org/packages/{name}",
+                    name=data.name
+                )
+            } else {
+                String::new()
+            }
+        })
     }
 
     pub fn url(&self) -> &str {
@@ -301,24 +308,30 @@ impl PkgObject {
         self.imp().data.get().unwrap().install_date
     }
 
-    pub fn install_date_string(&self) -> String {
-        date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
+    pub fn install_date_string(&self) -> &str {
+        self.imp().install_date_string.get_or_init(|| {
+            date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
+        })
     }
 
     pub fn build_date(&self) -> i64 {
         self.imp().data.get().unwrap().build_date
     }
 
-    pub fn build_date_string(&self) -> String {
-        date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
+    pub fn build_date_string(&self) -> &str {
+        self.imp().build_date_string.get_or_init(|| {
+            date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
+        })
     }
 
     pub fn download_size(&self) -> i64 {
         self.imp().data.get().unwrap().download_size
     }
 
-    pub fn download_size_string(&self) -> String {
-        size_to_string(self.imp().data.get().unwrap().download_size, 1)
+    pub fn download_size_string(&self) -> &str {
+        self.imp().download_size_string.get_or_init(|| {
+            size_to_string(self.imp().data.get().unwrap().download_size, 1)
+        })
     }
 
     pub fn has_script(&self) -> bool {
