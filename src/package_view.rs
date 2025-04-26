@@ -2,6 +2,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, OnceLock};
 use std::cmp::Ordering;
+use std::borrow::Cow;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -293,6 +294,18 @@ impl PackageView {
         });
     }
 
+    fn get_search_props<'a>(prop: &SearchProp, pkg: &'a PkgObject) -> Cow<'a, [String]> {
+        match prop {
+            SearchProp::Name => { vec![pkg.name()].into() },
+            SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_string()].into() },
+            SearchProp::Group => { vec![pkg.groups()].into() },
+            SearchProp::Deps => { Cow::Borrowed(pkg.depends()) },
+            SearchProp::Optdeps => { Cow::Borrowed(pkg.optdepends()) },
+            SearchProp::Provides => { Cow::Borrowed(pkg.provides()) },
+            SearchProp::Files => { Cow::Borrowed(pkg.files()) },
+        }
+    }
+
     pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
         let imp = self.imp();
 
@@ -306,15 +319,7 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Could not downcast to 'PkgObject'");
 
-                let search_props = match prop {
-                    SearchProp::Name => { vec![pkg.name()] },
-                    SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_string()] },
-                    SearchProp::Group => { vec![pkg.groups()] },
-                    SearchProp::Deps => { pkg.depends().to_vec() },
-                    SearchProp::Optdeps => { pkg.optdepends().to_vec() },
-                    SearchProp::Provides => { pkg.provides().to_vec() },
-                    SearchProp::Files => { pkg.files().to_vec() },
-                };
+                let search_props = Self::get_search_props(&prop, pkg);
 
                 if mode == SearchMode::Exact {
                     search_props.iter().any(|s| s.eq(&term))
