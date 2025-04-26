@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::collections::HashSet;
 use std::fmt::Write as _;
 
@@ -12,6 +13,21 @@ use crate::enum_traits::EnumExt;
 use crate::utils::open_with_default_app;
 
 //------------------------------------------------------------------------------
+// ENUM: BackupSearchMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "BackupSearchMode")]
+pub enum BackupSearchMode {
+    #[default]
+    Both,
+    Packages,
+    Files,
+}
+
+impl EnumExt for BackupSearchMode {}
+
+//------------------------------------------------------------------------------
 // MODULE: BackupWindow
 //------------------------------------------------------------------------------
 mod imp {
@@ -20,7 +36,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::BackupWindow)]
     #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
     pub struct BackupWindow {
         #[template_child]
@@ -45,13 +62,14 @@ mod imp {
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) filename_filter: TemplateChild<gtk::StringFilter>,
-        #[template_child]
-        pub(super) package_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
+
+        #[property(get, set, builder(BackupSearchMode::default()))]
+        search_mode: Cell<BackupSearchMode>,
     }
 
     //---------------------------------------
@@ -130,6 +148,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for BackupWindow {
         //---------------------------------------
         // Constructor
@@ -141,6 +160,7 @@ mod imp {
 
             obj.setup_widgets();
             obj.setup_controllers();
+            obj.setup_actions();
             obj.setup_signals();
         }
     }
@@ -201,6 +221,19 @@ impl BackupWindow {
     }
 
     //---------------------------------------
+    // Setup actions
+    //---------------------------------------
+    fn setup_actions(&self) {
+        let search_action = gio::PropertyAction::new("set-mode", self, "search-mode");
+
+        let search_group = gio::SimpleActionGroup::new();
+
+        self.insert_action_group("search", Some(&search_group));
+
+        search_group.add_action(&search_action);
+    }
+
+    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -215,12 +248,54 @@ impl BackupWindow {
 
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
+            #[weak(rename_to = window)] self,
             #[weak] imp,
             move |entry| {
-                imp.filename_filter.set_search(Some(&entry.text()));
-                imp.package_filter.set_search(Some(&entry.text()));
+                let search_term = entry.text().to_lowercase();
+
+                if search_term.is_empty() {
+                    imp.search_filter.unset_filter_func();
+                } else {
+                    imp.search_filter.set_filter_func(clone!(
+                        #[weak] window,
+                        #[upgrade_or] false,
+                        move |item| {
+                            let obj = item
+                                .downcast_ref::<BackupObject>()
+                                .expect("Could not downcast to 'BackupObject'");
+
+                            match window.search_mode() {
+                                BackupSearchMode::Both => {
+                                    obj.filename().to_lowercase().contains(&search_term) ||
+                                        obj.package().to_lowercase().contains(&search_term)
+                                },
+                                BackupSearchMode::Packages => {
+                                    obj.package().to_lowercase().contains(&search_term)
+                                },
+                                BackupSearchMode::Files => {
+                                    obj.filename().to_lowercase().contains(&search_term)
+                                },
+                            }
+                        }
+                    ));
+                }
             }
         ));
+
+        // Search mode property notify signal
+        self.connect_search_mode_notify(|window| {
+            let imp = window.imp();
+
+            let search_mode = window.search_mode();
+
+            if search_mode == BackupSearchMode::Both {
+                imp.search_entry.set_placeholder_text(Some("Search all"));
+            } else {
+                imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.nick())));
+            }
+
+            imp.search_filter.changed(gtk::FilterChange::Different);
+        });
 
         // Status dropdown selected property notify signal
         imp.status_dropdown.connect_selected_item_notify(clone!(

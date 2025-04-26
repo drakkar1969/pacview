@@ -152,6 +152,17 @@ entry.round {
 	padding-right: 12px;
 }
 
+entry.round.left {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+menubutton.round.right button {
+	border-top-right-radius: 9999px;
+	border-bottom-right-radius: 9999px;
+	padding-right: 8px;
+}
+
 dropdown.round {
 	border-radius: 9999px;
 }

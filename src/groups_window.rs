@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::collections::HashSet;
 use std::fmt::Write as _;
 
@@ -8,6 +9,22 @@ use glib::clone;
 
 use crate::groups_object::GroupsObject;
 use crate::pkg_object::PkgObject;
+use crate::enum_traits::EnumExt;
+
+//------------------------------------------------------------------------------
+// ENUM: GroupsSearchMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "GroupsSearchMode")]
+pub enum GroupsSearchMode {
+    #[default]
+    Both,
+    Groups,
+    Packages,
+}
+
+impl EnumExt for GroupsSearchMode {}
 
 //------------------------------------------------------------------------------
 // MODULE: GroupsWindow
@@ -18,7 +35,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::GroupsWindow)]
     #[template(resource = "/com/github/PacView/ui/groups_window.ui")]
     pub struct GroupsWindow {
         #[template_child]
@@ -41,11 +59,12 @@ mod imp {
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) package_filter: TemplateChild<gtk::StringFilter>,
-        #[template_child]
-        pub(super) groups_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) installed_filter: TemplateChild<gtk::CustomFilter>,
+
+        #[property(get, set, builder(GroupsSearchMode::default()))]
+        search_mode: Cell<GroupsSearchMode>,
     }
 
     //---------------------------------------
@@ -99,6 +118,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for GroupsWindow {
         //---------------------------------------
         // Constructor
@@ -110,6 +130,7 @@ mod imp {
 
             obj.setup_widgets();
             obj.setup_controllers();
+            obj.setup_actions();
             obj.setup_signals();
         }
     }
@@ -170,6 +191,19 @@ impl GroupsWindow {
     }
 
     //---------------------------------------
+    // Setup actions
+    //---------------------------------------
+    fn setup_actions(&self) {
+        let search_action = gio::PropertyAction::new("set-mode", self, "search-mode");
+
+        let search_group = gio::SimpleActionGroup::new();
+
+        self.insert_action_group("search", Some(&search_group));
+
+        search_group.add_action(&search_action);
+    }
+
+    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -184,12 +218,54 @@ impl GroupsWindow {
 
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
+            #[weak(rename_to = window)] self,
             #[weak] imp,
             move |entry| {
-                imp.package_filter.set_search(Some(&entry.text()));
-                imp.groups_filter.set_search(Some(&entry.text()));
+                let search_term = entry.text().to_lowercase();
+
+                if search_term.is_empty() {
+                    imp.search_filter.unset_filter_func();
+                } else {
+                    imp.search_filter.set_filter_func(clone!(
+                        #[weak] window,
+                        #[upgrade_or] false,
+                        move |item| {
+                            let obj = item
+                                .downcast_ref::<GroupsObject>()
+                                .expect("Could not downcast to 'GroupsObject'");
+
+                            match window.search_mode() {
+                                GroupsSearchMode::Both => {
+                                    obj.package().to_lowercase().contains(&search_term) ||
+                                        obj.groups().to_lowercase().contains(&search_term)
+                                },
+                                GroupsSearchMode::Groups => {
+                                    obj.groups().to_lowercase().contains(&search_term)
+                                },
+                                GroupsSearchMode::Packages => {
+                                    obj.package().to_lowercase().contains(&search_term)
+                                },
+                            }
+                        }
+                    ));
+                }
             }
         ));
+
+        // Search mode property notify signal
+        self.connect_search_mode_notify(|window| {
+            let imp = window.imp();
+
+            let search_mode = window.search_mode();
+
+            if search_mode == GroupsSearchMode::Both {
+                imp.search_entry.set_placeholder_text(Some("Search all"));
+            } else {
+                imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.nick())));
+            }
+
+            imp.search_filter.changed(gtk::FilterChange::Different);
+        });
 
         // Installed button toggled signal
         imp.installed_button.connect_toggled(clone!(
