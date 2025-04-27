@@ -8,7 +8,6 @@ use titlecase::titlecase;
 use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
 use crate::stats_object::StatsObject;
-use crate::utils::size_to_string;
 
 //------------------------------------------------------------------------------
 // MODULE: StatsWindow
@@ -204,7 +203,7 @@ impl StatsWindow {
                         &repo,
                         &pkg_count.to_string(),
                         &install_count.to_string(),
-                        &size_to_string(install_size, 2)
+                        &PkgObject::size_to_string(install_size, 2)
                     ));
 
                     (tot_pkg_count + pkg_count, tot_install_count + install_count, tot_install_size + install_size)
@@ -215,7 +214,7 @@ impl StatsWindow {
                 "<b>Total</b>",
                 &format!("<b>{tot_pkg_count}</b>"),
                 &format!("<b>{tot_install_count}</b>"),
-                &format!("<b>{}</b>", &size_to_string(tot_install_size, 2))
+                &format!("<b>{}</b>", &PkgObject::size_to_string(tot_install_size, 2))
             ));
 
             imp.model.splice(0, 0, &stats_items);

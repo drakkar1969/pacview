@@ -13,7 +13,6 @@ use glob::glob;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, ALPM_HANDLE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgFlags, PkgData};
-use crate::utils::{date_to_string, size_to_string};
 
 //------------------------------------------------------------------------------
 // STRUCT: PkgBackup
@@ -173,7 +172,7 @@ mod imp {
         }
 
         fn install_size_string(&self) -> String {
-            size_to_string(self.data.get().unwrap().install_size, 1)
+            super::PkgObject::size_to_string(self.data.get().unwrap().install_size, 1)
         }
 
         fn show_groups_icon(&self) -> bool {
@@ -310,7 +309,7 @@ impl PkgObject {
 
     pub fn install_date_string(&self) -> &str {
         self.imp().install_date_string.get_or_init(|| {
-            date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
+            PkgObject::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
         })
     }
 
@@ -320,7 +319,7 @@ impl PkgObject {
 
     pub fn build_date_string(&self) -> &str {
         self.imp().build_date_string.get_or_init(|| {
-            date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
+            PkgObject::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
         })
     }
 
@@ -330,7 +329,7 @@ impl PkgObject {
 
     pub fn download_size_string(&self) -> &str {
         self.imp().download_size_string.get_or_init(|| {
-            size_to_string(self.imp().data.get().unwrap().download_size, 1)
+            PkgObject::size_to_string(self.imp().data.get().unwrap().download_size, 1)
         })
     }
 
@@ -462,7 +461,46 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public associated functions
+    // Size to string associated function
+    //---------------------------------------
+    pub fn size_to_string(size: i64, decimals: usize) -> String {
+        let mut size = size as f64;
+
+        if size == 0.0 {
+            String::from("0 B")
+        } else {
+            let mut unit = "";
+
+            for u in ["B", "KiB", "MiB", "GiB", "TiB", "PiB"] {
+                unit = u;
+
+                if size < 1024.0 || u == "PiB" {
+                    break;
+                }
+
+                size /= 1024.0;
+            }
+
+            format!("{size:.decimals$}\u{202F}{unit}")
+        }
+    }
+
+    //---------------------------------------
+    // Date to string associated function
+    //---------------------------------------
+    pub fn date_to_string(date: i64, format: &str) -> String {
+        if date == 0 {
+            String::new()
+        } else {
+            glib::DateTime::from_unix_local(date)
+                .and_then(|datetime| datetime.format(format))
+                .expect("Datetime error")
+                .to_string()
+        }
+    }
+
+    //---------------------------------------
+    // Find satisfier associated function
     //---------------------------------------
     pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<Self> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
