@@ -370,16 +370,16 @@ impl BackupWindow {
                 let n_items = selection.n_items();
 
                 let n_sections = selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
+                    .map(|item|
                         item
                             .downcast::<BackupObject>()
                             .expect("Could not downcast to 'BackupObject'")
                             .package()
-                    })
+                    )
                     .collect::<HashSet<String>>()
                     .len();
 
-                imp.header_sub_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections != 1 {"s"} else {""}));
+                imp.header_sub_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections != 1 { "s" } else { "" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
             }

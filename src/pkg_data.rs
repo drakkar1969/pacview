@@ -88,7 +88,7 @@ pub struct PkgData {
 impl PkgData {
     pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: &[String]) -> Self {
         let (flags, version, install_date) = local_pkg
-            .map(|pkg| {
+            .map(|pkg|
                 (
                     if pkg.reason() == alpm::PackageReason::Explicit {
                         PkgFlags::EXPLICIT
@@ -102,10 +102,10 @@ impl PkgData {
                     pkg.version(),
                     pkg.install_date().unwrap_or_default()
                 )
-            })
-            .or_else(|| {
+            )
+            .or_else(||
                 Some((PkgFlags::NONE, sync_pkg.version(), 0))
-            })
+            )
             .unwrap();
 
         let repository = sync_pkg.db()

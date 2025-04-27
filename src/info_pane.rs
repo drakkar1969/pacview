@@ -396,14 +396,14 @@ impl InfoPane {
 
         // Bind selected backup item to backup open button state
         imp.backup_selection.bind_property("selected-item", &imp.backup_open_button.get(), "sensitive")
-            .transform_to(|_, item: Option<glib::Object>| {
+            .transform_to(|_, item: Option<glib::Object>|
                 item.and_downcast::<BackupObject>()
                     .map_or(Some(false), |object| {
                         let status = object.status();
 
                         Some(status != BackupStatus::Locked && status != BackupStatus::All)
                     })
-            })
+            )
             .sync_create()
             .build();
 
@@ -494,12 +494,12 @@ impl InfoPane {
             #[weak] imp,
             move |_| {
                 let body = imp.files_selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
+                    .map(|item|
                         item
                             .downcast::<gtk::StringObject>()
                             .expect("Could not downcast to 'StringObject'")
                             .string()
-                    })
+                    )
                     .collect::<Vec<glib::GString>>()
                     .join("\n");
 
@@ -682,7 +682,7 @@ impl InfoPane {
     fn installed_optdeps<'a>(flags: &PkgFlags, optdepends: &'a [String]) -> Cow<'a, [String]> {
         if !optdepends.is_empty() && flags.intersects(PkgFlags::INSTALLED) {
             optdepends.iter()
-                .map(|dep| {
+                .map(|dep|
                     if dep.split_once([':'])
                         .and_then(|(name, _)| PkgObject::find_satisfier(name, false))
                         .is_some()
@@ -691,7 +691,7 @@ impl InfoPane {
                     } else {
                         dep.to_string()
                     }
-                })
+                )
                 .collect()
         } else {
             Cow::Borrowed(optdepends)
@@ -709,7 +709,7 @@ impl InfoPane {
         self.set_property(PropID::Version,
             ValueType::StrIcon(
                 &pkg.version(),
-                if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None}
+                if pkg.flags().intersects(PkgFlags::UPDATES) { Some("pkg-update") } else { None }
             )
         );
 
@@ -734,7 +734,7 @@ impl InfoPane {
         self.set_property(PropID::Status,
             ValueType::StrIcon(
                 &pkg.status(),
-                if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
+                if pkg.flags().intersects(PkgFlags::INSTALLED) { Some(&status_icon) } else { None }
             )
         );
 

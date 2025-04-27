@@ -112,7 +112,7 @@ impl FilterRow {
 
         // Bind properties to widgets
         self.bind_property("updating", &imp.stack.get(), "visible_child_name")
-            .transform_to(|_, updating: bool| Some(if updating {"spinner"} else {"icon"}))
+            .transform_to(|_, updating: bool| Some(if updating { "spinner" } else { "icon" }))
             .sync_create()
             .build();
         self.bind_property("icon", &imp.image.get(), "icon-name")

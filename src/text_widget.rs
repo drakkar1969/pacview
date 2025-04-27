@@ -376,7 +376,7 @@ mod imp {
 
                         link_list.extend(expr.captures_iter(text)
                             .flatten()
-                            .filter_map(|caps| {
+                            .filter_map(|caps|
                                 if let (Some(m1), Some(m2)) = (caps.get(1), caps.get(2)) {
                                     Some(TextTag::new(
                                         &format!("pkg://{}", m1.as_str()),
@@ -387,20 +387,20 @@ mod imp {
                                 } else {
                                     None
                                 }
-                            })
+                            )
                         );
 
                         let comment_len = INSTALLED_LABEL.len();
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
-                            .map(|(i, s)| {
+                            .map(|(i, s)|
                                 TextTag::new(
                                     s,
                                     "",
                                     i.to_u32().unwrap(),
                                     i.checked_add(comment_len).and_then(|i| i.to_u32()).unwrap()
                                 )
-                            })
+                            )
                         );
                     }
                 },
@@ -521,7 +521,10 @@ impl TextWidget {
 
                 // Format pango layout text selection
                 if let Some(attr_list) = layout.attributes()
-                    .and_then(|list| list.filter(|attr| attr.type_() != pango::AttrType::Background && attr.type_() != pango::AttrType::BackgroundAlpha))
+                    .and_then(|list| list.filter(|attr|
+                        attr.type_() != pango::AttrType::Background &&
+                        attr.type_() != pango::AttrType::BackgroundAlpha
+                    ))
                 {
                     if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get())
                     {
@@ -986,19 +989,19 @@ impl TextWidget {
                         let text = widget.text();
 
                         let start = text.get(..index)
-                            .and_then(|s| {
+                            .and_then(|s|
                                 s.bytes()
                                     .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
                                     .and_then(|start| start.checked_add(1))
-                            })
+                            )
                             .unwrap_or(0);
 
                         let end = text.get(index..)
-                            .and_then(|s| {
+                            .and_then(|s|
                                 s.bytes()
                                     .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
                                     .and_then(|end| end.checked_add(index))
-                            })
+                            )
                             .unwrap_or(text.len());
 
                         imp.selection_start.set(start.to_u32());
@@ -1028,7 +1031,7 @@ impl TextWidget {
 
                 // Launch link if any
                 if let Some(link) = imp.pressed_link.take()
-                    .filter(|pressed| { widget.link_at_xy(x, y).as_ref() == Some(pressed)})
+                    .filter(|pressed| widget.link_at_xy(x, y).as_ref() == Some(pressed))
                 {
                     widget.handle_link(&link);
                 }

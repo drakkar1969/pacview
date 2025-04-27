@@ -325,9 +325,7 @@ impl PackageView {
                     search_props.iter().any(|s| s.eq(&term))
                 } else {
                     let mut results = term.split_whitespace()
-                        .map(|t| {
-                            search_props.iter().any(|s| s.to_lowercase().contains(t))
-                        });
+                        .map(|t| search_props.iter().any(|s| s.to_lowercase().contains(t)));
 
                     if mode == SearchMode::All {
                         results.all(|x| x)
@@ -435,9 +433,9 @@ impl PackageView {
                     let result = tokio::select! {
                         () = cancel_token_clone.cancelled() => { Ok(vec![]) },
                         res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => {
-                            res.map(|aur_list| {
-                                aur_list.iter().map(|pkg| { PkgData::from_aur(pkg)}).collect()
-                            })
+                            res.map(|aur_list|
+                                aur_list.iter().map(|pkg| PkgData::from_aur(pkg)).collect()
+                            )
                         }
                     };
 
@@ -458,9 +456,7 @@ impl PackageView {
                         Ok(data_list) => {
                             if search_bar.enabled() {
                                 let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                                    .map(|data| {
-                                        PkgObject::new(data, None)
-                                    })
+                                    .map(|data| PkgObject::new(data, None))
                                     .collect();
 
                                 imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);

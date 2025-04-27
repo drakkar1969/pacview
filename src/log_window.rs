@@ -241,7 +241,7 @@ impl LogWindow {
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
 
-                imp.header_sub_label.set_label(&format!("{n_items} line{}", if n_items != 1 {"s"} else {""}));
+                imp.header_sub_label.set_label(&format!("{n_items} line{}", if n_items != 1 { "s" } else { "" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
             }

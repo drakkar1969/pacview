@@ -462,9 +462,9 @@ impl PacViewWindow {
 
         // Bind package view item count to status label text
         imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
-            .transform_to(|_, n_items: u32| {
-                Some(format!("{n_items} matching package{}", if n_items != 1 {"s"} else {""}))
-            })
+            .transform_to(|_, n_items: u32|
+                Some(format!("{n_items} matching package{}", if n_items != 1 { "s" } else { "" }))
+            )
             .sync_create()
             .build();
 
@@ -946,11 +946,11 @@ impl PacViewWindow {
                 .query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
                 .ok()
                 .and_then(|file_info| file_info.modification_date_time())
-                .and_then(|file_time| {
+                .and_then(|file_time|
                     glib::DateTime::now_local()
                         .ok()
                         .map(|current_time| current_time.difference(&file_time).as_days())
-                });
+                );
 
             // Spawn tokio task to download AUR package names file if does not exist or older than 7 days
             if file_days.is_none() || file_days.unwrap() >= 7 {
@@ -1002,14 +1002,14 @@ impl PacViewWindow {
                     // Load pacman sync packages
                     let mut pkg_data: Vec<PkgData> = handle
                         .syncdbs().iter()
-                        .flat_map(|db| {
+                        .flat_map(|db|
                             db.pkgs().iter()
                                 .map(|sync_pkg| {
                                     let local_pkg = handle.localdb().pkg(sync_pkg.name()).ok();
 
                                     PkgData::from_alpm(sync_pkg, local_pkg, &aur_names)
                                 })
-                        })
+                        )
                         .collect();
 
                     // Load pacman local packages not in sync databases
@@ -1171,10 +1171,10 @@ impl PacViewWindow {
                 });
 
                 let update_map: HashMap<String, String> = update_str.lines()
-                    .filter_map(|s| {
+                    .filter_map(|s|
                         expr.captures(s)
                             .map(|caps| (caps[1].to_string(), caps[2].to_string()))
-                    })
+                    )
                     .collect();
 
                 // Update status of packages with updates

@@ -125,9 +125,9 @@ mod imp {
             let version = &self.data.get().unwrap().version;
 
             self.obj().update_version()
-                .map_or_else(|| version.to_string(), |update_version| {
+                .map_or_else(|| version.to_string(), |update_version|
                     format!("{version} \u{2192} {update_version}")
-                })
+                )
         }
 
         fn show_version_icon(&self) -> bool {
@@ -347,11 +347,11 @@ impl PkgObject {
     pub fn required_by(&self) -> &[String] {
         self.imp().required_by.get_or_init(|| {
             self.pkg()
-                .map(|pkg| {
+                .map(|pkg|
                     pkg.required_by().into_iter()
                         .sorted_unstable()
                         .collect::<Vec<String>>()
-                })
+                )
                 .unwrap_or_default()
         })
     }
@@ -359,11 +359,11 @@ impl PkgObject {
     pub fn optional_for(&self) -> &[String] {
         self.imp().optional_for.get_or_init(|| {
             self.pkg()
-                .map(|pkg| {
+                .map(|pkg|
                     pkg.optional_for().into_iter()
                         .sorted_unstable()
                         .collect::<Vec<String>>()
-                })
+                )
                 .unwrap_or_default()
         })
     }
@@ -375,12 +375,12 @@ impl PkgObject {
             let pacman_config = PACMAN_CONFIG.get().unwrap();
 
             self.pkg()
-                .map(|pkg| {
+                .map(|pkg|
                     pkg.files().files().iter()
                         .map(|file| format!("{}{}", pacman_config.root_dir, file.name()))
                         .sorted_unstable()
                         .collect()
-                })
+                )
                 .unwrap_or_default()
         })
     }
@@ -393,13 +393,13 @@ impl PkgObject {
                         .expect("Regex error");
 
                     log.lines().rev()
-                        .filter_map(|s| {
+                        .filter_map(|s|
                             if expr.is_match(s) {
                                 Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
                             } else {
                                 None
                             }
-                        })
+                        )
                         .collect()
                 })
             })
@@ -446,7 +446,7 @@ impl PkgObject {
             let pacman_config = PACMAN_CONFIG.get().unwrap();
 
             self.pkg()
-                .map(|pkg| {
+                .map(|pkg|
                     pkg.backup().iter()
                         .map(|backup|
                             PkgBackup::new(&format!("{}{}", pacman_config.root_dir, backup.name()), backup.hash(), pkg.name())
@@ -455,7 +455,7 @@ impl PkgObject {
                             backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
                         )
                         .collect()
-                })
+                )
                 .unwrap_or_default()
         })
     }
@@ -508,21 +508,21 @@ impl PkgObject {
                 .and_then(|handle| {
                     let mut pkg = handle.localdb().pkgs().find_satisfier(search_term)
                         .and_then(|local_pkg|
-                            INSTALLED_PKGS.with_borrow(|installed_pkgs| {
+                            INSTALLED_PKGS.with_borrow(|installed_pkgs|
                                 installed_pkgs.iter()
                                     .find(|&pkg| pkg.name() == local_pkg.name())
                                     .cloned()
-                            })
+                            )
                         );
 
                     if include_sync && pkg.is_none() {
                         pkg = handle.syncdbs().find_satisfier(search_term)
                             .and_then(|sync_pkg|
-                                PKGS.with_borrow(|pkgs| {
+                                PKGS.with_borrow(|pkgs|
                                     pkgs.iter()
                                         .find(|&pkg| pkg.name() == sync_pkg.name())
                                         .cloned()
-                                })
+                                )
                             );
                     }
 
