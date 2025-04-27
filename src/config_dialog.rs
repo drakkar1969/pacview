@@ -48,8 +48,6 @@ mod imp {
         #[template_child]
         pub(super) paralleldownloads_row: TemplateChild<adw::ActionRow>,
         #[template_child]
-        pub(super) totaldownload_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
         pub(super) disabledownloadtimeout_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) downloaduser_row: TemplateChild<adw::ActionRow>,
@@ -219,7 +217,6 @@ impl ConfigDialog {
 
         imp.xfercommand_row.set_subtitle(&config.xfer_command);
         imp.paralleldownloads_row.set_subtitle(&config.parallel_downloads.to_string());
-        imp.totaldownload_row.set_subtitle(&config.total_download.to_string());
         imp.disabledownloadtimeout_row.set_subtitle(&config.disable_download_timeout.to_string());
         imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or_else(|| "None".to_string()));
         imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());

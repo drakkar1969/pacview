@@ -154,15 +154,6 @@
               </object>
             </child>
             <child>
-              <object class="AdwActionRow" id="totaldownload_row">
-                <property name="title">TotalDownload</property>
-                <property name="subtitle-selectable">true</property>
-                <style>
-                  <class name="property"/>
-                </style>
-              </object>
-            </child>
-            <child>
               <object class="AdwActionRow" id="disabledownloadtimeout_row">
                 <property name="title">DisableDownloadTimeout</property>
                 <property name="subtitle-selectable">true</property>
