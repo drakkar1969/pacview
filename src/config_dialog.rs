@@ -29,12 +29,6 @@ mod imp {
         pub(super) gpgdir_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) hookdir_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) xfercommand_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) cleanmethod_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) architecture_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
         pub(super) rootdir_open_button: TemplateChild<gtk::Button>,
@@ -50,6 +44,21 @@ mod imp {
         pub(super) hookdir_open_button: TemplateChild<gtk::Button>,
 
         #[template_child]
+        pub(super) xfercommand_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) paralleldownloads_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) totaldownload_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) disabledownloadtimeout_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) downloaduser_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) disablesandbox_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) architecture_row: TemplateChild<adw::ActionRow>,
+
+        #[template_child]
         pub(super) holdpkg_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) ignorepkg_row: TemplateChild<adw::ActionRow>,
@@ -61,23 +70,15 @@ mod imp {
         pub(super) noextract_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
-        pub(super) downloaduser_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) disablesandbox_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
         pub(super) usesyslog_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) color_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) checkspace_row: TemplateChild<adw::ActionRow>,
         #[template_child]
+        pub(super) cleanmethod_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
         pub(super) verbosepkglists_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) paralleldownloads_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) totaldownload_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) disabledownloadtimeout_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) ilovecandy_row: TemplateChild<adw::ActionRow>,
 
@@ -215,8 +216,13 @@ impl ConfigDialog {
         imp.logfile_row.set_subtitle(&config.log_file);
         imp.gpgdir_row.set_subtitle(&config.gpg_dir);
         imp.hookdir_row.set_subtitle(&config.hook_dir.join("\n"));
+
         imp.xfercommand_row.set_subtitle(&config.xfer_command);
-        imp.cleanmethod_row.set_subtitle(&config.clean_method.join(" | "));
+        imp.paralleldownloads_row.set_subtitle(&config.parallel_downloads.to_string());
+        imp.totaldownload_row.set_subtitle(&config.total_download.to_string());
+        imp.disabledownloadtimeout_row.set_subtitle(&config.disable_download_timeout.to_string());
+        imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or_else(|| "None".to_string()));
+        imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
         imp.architecture_row.set_subtitle(&config.architecture.join(" | "));
 
         imp.holdpkg_row.set_subtitle(&config.hold_pkg.join(" | "));
@@ -225,15 +231,11 @@ impl ConfigDialog {
         imp.noupgrade_row.set_subtitle(&config.no_upgrade.join(" | "));
         imp.noextract_row.set_subtitle(&config.no_extract.join(" | "));
 
-        imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or_else(|| "None".to_string()));
-        imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
         imp.usesyslog_row.set_subtitle(&config.use_syslog.to_string());
         imp.color_row.set_subtitle(&config.color.to_string());
         imp.checkspace_row.set_subtitle(&config.check_space.to_string());
+        imp.cleanmethod_row.set_subtitle(&config.clean_method.join(" | "));
         imp.verbosepkglists_row.set_subtitle(&config.verbose_pkg_lists.to_string());
-        imp.paralleldownloads_row.set_subtitle(&config.parallel_downloads.to_string());
-        imp.totaldownload_row.set_subtitle(&config.total_download.to_string());
-        imp.disabledownloadtimeout_row.set_subtitle(&config.disable_download_timeout.to_string());
         imp.ilovecandy_row.set_subtitle(&config.chomp.to_string());
 
         imp.siglevel_row.set_subtitle(&config.sig_level.join(" | "));
