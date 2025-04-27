@@ -869,15 +869,15 @@ impl InfoPane {
     }
 
     pub fn display_prev(&self) {
-        if self.imp().pkg_history.borrow().select_previous() {
-            self.update_display();
-        }
+        self.imp().pkg_history.borrow().select_previous();
+
+        self.update_display();
     }
 
     pub fn display_next(&self) {
-        if self.imp().pkg_history.borrow().select_next() {
-            self.update_display();
-        }
+        self.imp().pkg_history.borrow().select_next();
+
+        self.update_display();
     }
 
     //---------------------------------------

@@ -108,35 +108,28 @@ impl HistoryList {
         // Clear history and append item
         list.clear();
 
-        if let Some(item) = item {
+        let selected = if let Some(item) = item {
             list.push(item.clone());
-            drop(list);
 
-            self.set_selected(0);
+            0
         } else {
-            drop(list);
+            gtk::INVALID_LIST_POSITION
+        };
 
-            self.set_selected(gtk::INVALID_LIST_POSITION);
-        }
+        drop(list);
+
+        self.set_selected(selected);
     }
 
-    pub fn select_previous(&self) -> bool {
+    pub fn select_previous(&self) {
         if self.can_select_prev() {
             self.set_selected(self.selected() - 1);
-
-            true
-        } else {
-            false
         }
     }
 
-    pub fn select_next(&self) -> bool {
+    pub fn select_next(&self) {
         if self.can_select_next() {
             self.set_selected(self.selected() + 1);
-
-            true
-        } else {
-            false
         }
     }
 
@@ -145,28 +138,26 @@ impl HistoryList {
 
         let mut list = imp.list.borrow_mut();
 
-        if let Some(index) = list.iter().position(|pkg| pkg.name() == item.name()) {
+        let selected = if let Some(index) = list.iter().position(|pkg| pkg.name() == item.name()) {
             // If item is in history, select it
-            drop(list);
-
-            self.set_selected(index as u32);
+            index
         } else {
             // If currently selected item is not the last one, truncate the list
             let selected = self.selected();
 
-            if let Some(i) = selected.checked_add(1).filter(|i| *i <= list.len() as u32) {
+            if let Some(i) = selected.checked_add(1).filter(|i| *i < list.len() as u32) {
                 list.truncate(i as usize);
             }
 
-            // Append item
+            // Append and select item
             list.push(item.clone());
 
-            let n_items = list.len() as u32;
+            list.len() - 1
+        };
 
-            drop(list);
+        drop(list);
 
-            self.set_selected(n_items - 1);
-        }
+        self.set_selected(selected as u32);
     }
 }
 
