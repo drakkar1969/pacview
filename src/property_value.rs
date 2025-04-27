@@ -9,6 +9,19 @@ use glib::RustClosure;
 use crate::text_widget::{TextWidget, PropType};
 
 //------------------------------------------------------------------------------
+// ENUM: ValueType
+//------------------------------------------------------------------------------
+#[derive(Debug)]
+pub enum ValueType<'a> {
+    Str(&'a str),
+    StrIcon(&'a str, Option<&'a str>),
+    StrOpt(&'a str),
+    StrOptNum(&'a str, i64),
+    Vec(&'a [String]),
+    VecOpt(&'a [String])
+}
+
+//------------------------------------------------------------------------------
 // MODULE: PropertyValue
 //------------------------------------------------------------------------------
 mod imp {

@@ -10,7 +10,7 @@ use glib::clone;
 
 use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
-use crate::property_value::PropertyValue;
+use crate::property_value::{ValueType, PropertyValue};
 use crate::history_list::HistoryList;
 use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
@@ -642,25 +642,38 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Set property functions
+    // Set property function
     //---------------------------------------
-    fn set_string_property(&self, id: PropID, visible: bool, value: &str, icon: Option<&str>) {
+    fn set_property(&self, id: PropID, value: ValueType) {
         if let Some(property) = self.imp().property_map.borrow().get(&id) {
+            let visible = match value {
+                ValueType::Str(_) | ValueType::StrIcon(_, _) | ValueType::Vec(_) => true,
+                ValueType::StrOpt(s) => !s.is_empty(),
+                ValueType::StrOptNum(_, i) => i != 0,
+                ValueType::VecOpt(v) => !v.is_empty(),
+            };
+
             property.set_visible(visible);
 
             if visible {
-                property.set_icon(icon);
-                property.set_value(value);
+                match value {
+                    ValueType::Str(s) | ValueType::StrOpt(s) | ValueType::StrOptNum(s, _) => {
+                        property.set_value(s);
+                    },
+                    ValueType::StrIcon(s, icon) => {
+                        property.set_value(s);
+                        property.set_icon(icon);
+                    }
+                    ValueType::Vec(v) | ValueType::VecOpt(v) => {
+                        property.set_value(v.join(LINK_SPACER));
+                    }
+                }
             }
 
             if id == PropID::Status {
                 property.set_icon_css_class("error", property.icon().unwrap_or_default() == "pkg-orphan");
             }
         }
-    }
-
-    fn set_vec_property(&self, id: PropID, visible: bool, value: &[String], icon: Option<&str>) {
-        self.set_string_property(id, visible, &value.join(LINK_SPACER), icon);
     }
 
     //---------------------------------------
@@ -690,99 +703,96 @@ impl InfoPane {
     //---------------------------------------
     fn update_info_listbox(&self, pkg: &PkgObject) {
         // Name
-        self.set_string_property(PropID::Name, true, &pkg.name(), None);
+        self.set_property(PropID::Name, ValueType::Str(&pkg.name()));
 
         // Version
-        self.set_string_property(
-            PropID::Version,
-            true,
-            &pkg.version(),
-            if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None}
+        self.set_property(PropID::Version,
+            ValueType::StrIcon(
+                &pkg.version(),
+                if pkg.flags().intersects(PkgFlags::UPDATES) {Some("pkg-update")} else {None}
+            )
         );
 
         // Description
-        self.set_string_property(PropID::Description, true, pkg.description(), None);
+        self.set_property(PropID::Description, ValueType::Str(pkg.description()));
 
         // Popularity
-        self.set_string_property(PropID::Popularity, !pkg.popularity().is_empty(), pkg.popularity(), None);
+        self.set_property(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
         // Package URL
-        self.set_string_property(PropID::PackageUrl, !pkg.package_url().is_empty(), pkg.package_url(), None);
+        self.set_property(PropID::PackageUrl, ValueType::StrOpt(pkg.package_url()));
 
         // URL
-        self.set_string_property(PropID::Url, !pkg.url().is_empty(), pkg.url(), None);
+        self.set_property(PropID::Url, ValueType::StrOpt(pkg.url()));
 
         // Licenses
-        self.set_string_property(PropID::Licenses, !pkg.licenses().is_empty(), pkg.licenses(), None);
+        self.set_property(PropID::Licenses, ValueType::StrOpt(pkg.licenses()));
 
         // Status
         let status_icon = pkg.status_icon();
 
-        self.set_string_property(
-            PropID::Status,
-            true,
-            &pkg.status(),
-            if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
+        self.set_property(PropID::Status,
+            ValueType::StrIcon(
+                &pkg.status(),
+                if pkg.flags().intersects(PkgFlags::INSTALLED) {Some(&status_icon)} else {None}
+            )
         );
 
         // Repository
-        self.set_string_property(PropID::Repository, true, &pkg.repository(), None);
+        self.set_property(PropID::Repository, ValueType::Str(&pkg.repository()));
 
         // Groups
-        self.set_string_property(PropID::Groups, !pkg.groups().is_empty(), &pkg.groups(), None);
+        self.set_property(PropID::Groups, ValueType::StrOpt(&pkg.groups()));
 
         // Depends
-        self.set_vec_property(PropID::Dependencies, true, pkg.depends(), None);
+        self.set_property(PropID::Dependencies, ValueType::Vec(pkg.depends()));
 
         // Optdepends
-        self.set_vec_property(PropID::Optional, !pkg.optdepends().is_empty(), &Self::installed_optdeps(&pkg.flags(), pkg.optdepends()), None);
+        self.set_property(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(&pkg.flags(), pkg.optdepends())));
 
         // Makedepends
-        self.set_vec_property(PropID::Make, !pkg.makedepends().is_empty(), pkg.makedepends(), None);
+        self.set_property(PropID::Make, ValueType::VecOpt(pkg.makedepends()));
 
         // Required by
-        self.set_vec_property(PropID::RequiredBy, true, pkg.required_by(), None);
+        self.set_property(PropID::RequiredBy, ValueType::Vec(pkg.required_by()));
 
         // Optional for
-        self.set_vec_property(PropID::OptionalFor, !pkg.optional_for().is_empty(), pkg.optional_for(), None);
+        self.set_property(PropID::OptionalFor, ValueType::VecOpt(pkg.optional_for()));
 
         // Provides
-        self.set_vec_property(PropID::Provides, !pkg.provides().is_empty(), pkg.provides(), None);
+        self.set_property(PropID::Provides, ValueType::VecOpt(pkg.provides()));
 
         // Conflicts
-        self.set_vec_property(PropID::ConflictsWith, !pkg.conflicts().is_empty(), pkg.conflicts(), None);
+        self.set_property(PropID::ConflictsWith, ValueType::VecOpt(pkg.conflicts()));
 
         // Replaces
-        self.set_vec_property(PropID::Replaces, !pkg.replaces().is_empty(), pkg.replaces(), None);
+        self.set_property(PropID::Replaces, ValueType::VecOpt(pkg.replaces()));
 
         // Architecture
-        self.set_string_property(PropID::Architecture, !pkg.architecture().is_empty(), pkg.architecture(), None);
+        self.set_property(PropID::Architecture, ValueType::StrOpt(pkg.architecture()));
 
         // Packager
-        self.set_string_property(PropID::Packager, true, pkg.packager(), None);
+        self.set_property(PropID::Packager, ValueType::Str(pkg.packager()));
 
         // Build date
-        self.set_string_property(PropID::BuildDate, pkg.build_date() != 0, pkg.build_date_string(), None);
+        self.set_property(PropID::BuildDate, ValueType::StrOptNum(pkg.build_date_string(), pkg.build_date()));
 
         // Install date
-        self.set_string_property(PropID::InstallDate, pkg.install_date() != 0, pkg.install_date_string(), None);
+        self.set_property(PropID::InstallDate, ValueType::StrOptNum(pkg.install_date_string(), pkg.install_date()));
 
         // Download size
-        self.set_string_property(PropID::DownloadSize, pkg.download_size() != 0, pkg.download_size_string(), None);
+        self.set_property(PropID::DownloadSize, ValueType::StrOptNum(pkg.download_size_string(), pkg.download_size()));
 
         // Installed size
-        self.set_string_property(PropID::InstalledSize, true, &pkg.install_size_string(), None);
+        self.set_property(PropID::InstalledSize, ValueType::Str(&pkg.install_size_string()));
 
         // Has script
-        self.set_string_property(
-            PropID::InstallScript,
-            true,
-            if pkg.has_script() {"Yes"} else {"No"},
-            None
+        self.set_property(PropID::InstallScript,
+            ValueType::Str(if pkg.has_script() { "Yes" } else { "No" })
         );
 
         // SHA256 sum
-        self.set_string_property(PropID::SHA256Sum, !pkg.sha256sum().is_empty(), pkg.sha256sum(), None);
+        self.set_property(PropID::SHA256Sum, ValueType::StrOpt(pkg.sha256sum()));
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {
