@@ -75,6 +75,8 @@ mod imp {
         #[template_child]
         pub(super) paralleldownloads_row: TemplateChild<adw::ActionRow>,
         #[template_child]
+        pub(super) totaldownload_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
         pub(super) disabledownloadtimeout_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) ilovecandy_row: TemplateChild<adw::ActionRow>,
@@ -230,6 +232,7 @@ impl ConfigDialog {
         imp.checkspace_row.set_subtitle(&config.check_space.to_string());
         imp.verbosepkglists_row.set_subtitle(&config.verbose_pkg_lists.to_string());
         imp.paralleldownloads_row.set_subtitle(&config.parallel_downloads.to_string());
+        imp.totaldownload_row.set_subtitle(&config.total_download.to_string());
         imp.disabledownloadtimeout_row.set_subtitle(&config.disable_download_timeout.to_string());
         imp.ilovecandy_row.set_subtitle(&config.chomp.to_string());
 
