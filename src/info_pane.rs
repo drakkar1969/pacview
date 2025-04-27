@@ -714,7 +714,7 @@ impl InfoPane {
         );
 
         // Description
-        self.set_property(PropID::Description, ValueType::Str(pkg.description()));
+        self.set_property(PropID::Description, ValueType::StrOpt(pkg.description()));
 
         // Popularity
         self.set_property(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
