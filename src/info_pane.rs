@@ -277,7 +277,8 @@ impl InfoPane {
             if let Some(new_pkg) = new_pkg {
                 let pkg_history = self.imp().pkg_history.borrow();
 
-                // If link package is in infopane history, select it - otherwise append it after current history package
+                // If link package is in infopane history, select it
+                // Otherwise append it after current history package
                 pkg_history.select_or_append_next(new_pkg);
 
                 // Display link package
