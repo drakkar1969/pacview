@@ -11,7 +11,7 @@ use glib::clone;
 use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
 use crate::property_value::PropertyValue;
-use crate::pkg_history::PkgHistory;
+use crate::history_list::HistoryList;
 use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
@@ -180,7 +180,7 @@ mod imp {
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
-        pub(super) pkg_history: RefCell<PkgHistory>,
+        pub(super) pkg_history: RefCell<HistoryList>,
     }
 
     //---------------------------------------
@@ -223,16 +223,15 @@ mod imp {
         //---------------------------------------
         // Custom property getters/setters
         //---------------------------------------
-        pub fn pkg(&self) -> Option<PkgObject> {
+        fn pkg(&self) -> Option<PkgObject> {
             self.pkg_history.borrow().selected_item()
         }
 
-        pub fn set_pkg(&self, pkg: Option<&PkgObject>) {
+        fn set_pkg(&self, pkg: Option<&PkgObject>) {
             self.pkg_history.borrow().init(pkg);
 
             self.obj().update_display();
         }
-
     }
 }
 
@@ -276,13 +275,10 @@ impl InfoPane {
 
             // If link package found
             if let Some(new_pkg) = new_pkg {
-                let history = self.imp().pkg_history.borrow();
+                let pkg_history = self.imp().pkg_history.borrow();
 
-                // If link package is in infopane history, select it
-                if !history.set_selected_item(new_pkg) {
-                    // If history package is not the last one in history, truncate history list and append link package
-                    history.truncate_and_append(new_pkg);
-                }
+                // If link package is in infopane history, select it - otherwise append it after current history package
+                pkg_history.select_or_append_next(new_pkg);
 
                 // Display link package
                 self.update_display();
@@ -326,6 +322,30 @@ impl InfoPane {
 
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
+
+        // Bind pkg property to widgets
+        self.bind_property("pkg", &imp.main_stack.get(), "visible-child-name")
+            .transform_to(move |_, pkg: Option<PkgObject>|
+                Some(if pkg.is_some() { "properties" } else { "empty" })
+            )
+            .sync_create()
+            .build();
+
+        self.bind_property("pkg", &imp.tab_switcher.get(), "sensitive")
+            .transform_to(move |_, pkg: Option<PkgObject>| Some(pkg.is_some()))
+            .sync_create()
+            .build();
+
+        // Bind history list properties to widgets
+        let pkg_history = imp.pkg_history.borrow();
+
+        pkg_history.bind_property("can-select-prev", &imp.prev_button.get(), "sensitive")
+            .sync_create()
+            .build();
+
+        pkg_history.bind_property("can-select-next", &imp.next_button.get(), "sensitive")
+            .sync_create()
+            .build();
 
         // Bind files count to files count label
         imp.files_selection.bind_property("n-items", &imp.files_count_label.get(), "label")
@@ -817,48 +837,16 @@ impl InfoPane {
         // Clear header bar title
         imp.title_widget.set_title("");
 
-        // Set main stack visible page
-        let visible_stack_page = if self.pkg().is_some() {
-            "properties"
-        } else {
-            "empty"
-        };
-
-        if imp.main_stack.visible_child_name().unwrap_or_default() != visible_stack_page {
-            imp.main_stack.set_visible_child_name(visible_stack_page);
-        }
-
-        // Set tab switcher sensitivity
-        let switcher_sensitive = self.pkg().is_some();
-
-        if imp.tab_switcher.is_sensitive() != switcher_sensitive {
-            imp.tab_switcher.set_sensitive(switcher_sensitive);
-        }
-
-        // Get package history
-        let history = imp.pkg_history.borrow();
-
-        // Set header prev/next button states
-        let prev_sensitive = history.can_select_previous();
-
-        if imp.prev_button.is_sensitive() != prev_sensitive {
-            imp.prev_button.set_sensitive(prev_sensitive);
-        }
-
-        let next_sensitive = history.can_select_next();
-
-        if imp.next_button.is_sensitive() != next_sensitive {
-            imp.next_button.set_sensitive(next_sensitive);
-        }
-
         // Clear files search entry
         imp.files_search_entry.set_text("");
 
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
             // Set header bar title
-            let title = if history.len() > 1 {
-                format!("{}/{}  |  {}", history.selected().unwrap_or_default() + 1, history.len(), pkg.name())
+            let pkg_history = imp.pkg_history.borrow();
+
+            let title = if pkg_history.n_items() > 1 {
+                format!("{}/{}  |  {}", pkg_history.selected() + 1, pkg_history.n_items(), pkg.name())
             } else {
                 pkg.name()
             };
