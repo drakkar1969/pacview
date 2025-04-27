@@ -333,8 +333,8 @@ impl PkgObject {
         })
     }
 
-    pub fn has_script(&self) -> bool {
-        self.imp().data.get().unwrap().has_script
+    pub fn has_script(&self) -> &str {
+        &self.imp().data.get().unwrap().has_script
     }
 
     pub fn sha256sum(&self) -> &str {

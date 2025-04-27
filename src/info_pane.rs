@@ -787,9 +787,7 @@ impl InfoPane {
         self.set_property(PropID::InstalledSize, ValueType::Str(&pkg.install_size_string()));
 
         // Has script
-        self.set_property(PropID::InstallScript,
-            ValueType::Str(if pkg.has_script() { "Yes" } else { "No" })
-        );
+        self.set_property(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
 
         // SHA256 sum
         self.set_property(PropID::SHA256Sum, ValueType::StrOpt(pkg.sha256sum()));

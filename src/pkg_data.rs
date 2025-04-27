@@ -78,7 +78,7 @@ pub struct PkgData {
     pub install_date: i64,
     pub download_size: i64,
     pub install_size: i64,
-    pub has_script: bool,
+    pub has_script: String,
     pub sha256sum: String,
 }
 
@@ -142,7 +142,7 @@ impl PkgData {
             install_date,
             download_size: sync_pkg.download_size(),
             install_size: sync_pkg.isize(),
-            has_script: sync_pkg.has_scriptlet(),
+            has_script: if sync_pkg.has_scriptlet() { "Yes" } else { "No" }.to_string(),
             sha256sum: sync_pkg.sha256sum().map(String::from).unwrap_or_default(),
         }
     }
@@ -170,7 +170,7 @@ impl PkgData {
             install_date: 0,
             download_size: 0,
             install_size: 0,
-            has_script: false,
+            has_script: String::new(),
             sha256sum: String::new(),
         }
     }
