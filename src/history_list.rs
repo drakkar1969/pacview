@@ -53,7 +53,7 @@ mod imp {
         }
 
         fn set_selected(&self, index: u32) {
-            if index.checked_add(1).filter(|i| *i <= self.list.borrow().len() as u32).is_some() {
+            if index < self.list.borrow().len() as u32 {
                 self.selected.set(index);
             } else {
                 self.selected.set(gtk::INVALID_LIST_POSITION);
