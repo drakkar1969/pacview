@@ -294,7 +294,7 @@ impl PackageView {
         });
     }
 
-    fn get_search_props<'a>(prop: &SearchProp, pkg: &'a PkgObject) -> Cow<'a, [String]> {
+    fn get_search_props(prop: SearchProp, pkg: &PkgObject) -> Cow<'_, [String]> {
         match prop {
             SearchProp::Name => { vec![pkg.name()].into() },
             SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_string()].into() },
@@ -319,7 +319,7 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Could not downcast to 'PkgObject'");
 
-                let search_props = Self::get_search_props(&prop, pkg);
+                let search_props = Self::get_search_props(prop, pkg);
 
                 if mode == SearchMode::Exact {
                     search_props.iter().any(|s| s.eq(&term))

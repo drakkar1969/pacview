@@ -108,13 +108,11 @@ impl HistoryList {
         // Clear history and append item
         list.clear();
 
-        let selected = if let Some(item) = item {
+        let selected = item.map_or(gtk::INVALID_LIST_POSITION, |item| {
             list.push(item.clone());
 
             0
-        } else {
-            gtk::INVALID_LIST_POSITION
-        };
+        });
 
         drop(list);
 
@@ -138,10 +136,7 @@ impl HistoryList {
 
         let mut list = imp.list.borrow_mut();
 
-        let selected = if let Some(index) = list.iter().position(|pkg| pkg.name() == item.name()) {
-            // If item is in history, select it
-            index
-        } else {
+        let selected = list.iter().position(|pkg| pkg.name() == item.name()).map_or_else(|| {
             // If currently selected item is not the last one, truncate the list
             let selected = self.selected();
 
@@ -153,7 +148,7 @@ impl HistoryList {
             list.push(item.clone());
 
             list.len() - 1
-        };
+        }, |index| index);
 
         drop(list);
 

@@ -679,7 +679,7 @@ impl InfoPane {
     //---------------------------------------
     // Get installed optdeps function
     //---------------------------------------
-    fn installed_optdeps<'a>(flags: &PkgFlags, optdepends: &'a [String]) -> Cow<'a, [String]> {
+    fn installed_optdeps(flags: PkgFlags, optdepends: &[String]) -> Cow<'_, [String]> {
         if !optdepends.is_empty() && flags.intersects(PkgFlags::INSTALLED) {
             optdepends.iter()
                 .map(|dep|
@@ -748,7 +748,7 @@ impl InfoPane {
         self.set_property(PropID::Dependencies, ValueType::Vec(pkg.depends()));
 
         // Optdepends
-        self.set_property(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(&pkg.flags(), pkg.optdepends())));
+        self.set_property(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(pkg.flags(), pkg.optdepends())));
 
         // Makedepends
         self.set_property(PropID::Make, ValueType::VecOpt(pkg.makedepends()));

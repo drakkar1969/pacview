@@ -309,7 +309,7 @@ impl PkgObject {
 
     pub fn install_date_string(&self) -> &str {
         self.imp().install_date_string.get_or_init(|| {
-            PkgObject::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
+            Self::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
         })
     }
 
@@ -319,7 +319,7 @@ impl PkgObject {
 
     pub fn build_date_string(&self) -> &str {
         self.imp().build_date_string.get_or_init(|| {
-            PkgObject::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
+            Self::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
         })
     }
 
@@ -329,7 +329,7 @@ impl PkgObject {
 
     pub fn download_size_string(&self) -> &str {
         self.imp().download_size_string.get_or_init(|| {
-            PkgObject::size_to_string(self.imp().data.get().unwrap().download_size, 1)
+            Self::size_to_string(self.imp().data.get().unwrap().download_size, 1)
         })
     }
 

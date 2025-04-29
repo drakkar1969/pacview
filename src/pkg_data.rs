@@ -13,7 +13,7 @@ fn alpm_list_to_string(list: alpm::AlpmList<&str>) -> String {
 
 fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
     list.iter()
-        .map(|dep| dep.to_string())
+        .map(ToString::to_string)
         .sorted_unstable()
         .collect()
 }
