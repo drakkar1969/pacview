@@ -286,6 +286,22 @@ mod imp {
             }
         }
 
+        pub(super) fn format_focus_link(&self, attr_list: &pango::AttrList) {
+            if self.obj().focused() {
+                let link_list = &*self.link_list.borrow();
+
+                let focus_index = self.focus_link_index.get();
+
+                if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
+                    let mut attr = pango::AttrInt::new_overline(pango::Overline::Single);
+                    attr.set_start_index(link.start);
+                    attr.set_end_index(link.end);
+
+                    attr_list.insert(attr);
+                }    
+            }
+        }
+
         pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
             let (red, green, blue, alpha) = if self.obj().focused() {
                 self.sel_focus_bg_color.get()
@@ -519,18 +535,25 @@ impl TextWidget {
                     widget.set_can_expand(can_expand);
                 }
 
-                // Format pango layout text selection
+                // Update pango layout text attributes
                 if let Some(attr_list) = layout.attributes()
                     .and_then(|list| list.filter(|attr|
                         attr.type_() != pango::AttrType::Background &&
-                        attr.type_() != pango::AttrType::BackgroundAlpha
+                        attr.type_() != pango::AttrType::BackgroundAlpha &&
+                        attr.type_() != pango::AttrType::Overline
                     ))
                 {
+                    // Format text selection
                     if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get())
                     {
                         if start != end {
                             imp.format_selection(&attr_list, start.min(end), start.max(end));
                         }
+                    }
+
+                    // Format focused link
+                    if widget.ptype() != PropType::Title && widget.ptype() != PropType::Text {
+                        imp.format_focus_link(&attr_list);
                     }
 
                     layout.set_attributes(Some(&attr_list));
@@ -543,53 +566,6 @@ impl TextWidget {
                 context.move_to(0.0, 0.0);
 
                 pangocairo::functions::show_layout(context, layout);
-
-                // Draw link focus indicator
-                let link_list = imp.link_list.borrow();
-
-                let index = imp.focus_link_index.get();
-
-                if widget.focused() {
-                    if let Some(link) = index.and_then(|i| link_list.get(i)) {
-                        let link_start = link.start.to_i32().unwrap();
-                        let link_end = link.end.to_i32().unwrap();
-
-                        let (start_n, start_x) = layout.index_to_line_x(link_start, false);
-                        let (end_n, end_x) = layout.index_to_line_x(link_end, false);
-
-                        let start_char_rect = layout.index_to_pos(link_start);
-
-                        if start_n == end_n {
-                            // Link is all on one line
-                            let y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
-
-                            context.move_to(pango::units_to_double(start_x), y);
-                            context.line_to(pango::units_to_double(end_x), y);
-                        } else {
-                            // Link is split across lines
-                            let end_char_rect = layout.index_to_pos(link_end);
-
-                            let (_, start_line_rect) = layout.line_readonly(start_n).unwrap().extents();
-
-                            let start_y = pango::units_to_double(start_char_rect.y() + start_char_rect.height()) - 1.0;
-
-                            context.move_to(pango::units_to_double(start_x), start_y);
-                            context.line_to(pango::units_to_double(start_line_rect.width()), start_y);
-
-                            let end_y = pango::units_to_double(end_char_rect.y() + end_char_rect.height()) - 1.0;
-
-                            context.move_to(0.0, end_y);
-                            context.line_to(pango::units_to_double(end_x), end_y);
-                        }
-
-                        let (red, green, blue, alpha) = imp.link_fg_color.get();
-
-                        context.set_source_rgba(f64::from(red) / 65535.0, f64::from(green) / 65535.0, f64::from(blue) / 65535.0, (f64::from(alpha))/2.0 / 65535.0);
-
-                        context.set_line_width(2.0);
-                        context.stroke().unwrap();
-                    }
-                }
             }
         ));
     }
