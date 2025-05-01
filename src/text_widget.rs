@@ -104,8 +104,8 @@ mod imp {
 
         pub(super) is_selecting: Cell<bool>,
         pub(super) is_clicked: Cell<bool>,
-        pub(super) selection_start: Cell<Option<u32>>,
-        pub(super) selection_end: Cell<Option<u32>>,
+        pub(super) selection_start: Cell<Option<usize>>,
+        pub(super) selection_end: Cell<Option<usize>>,
 
         pub(super) focus_link_index: Cell<Option<usize>>,
     }
@@ -229,97 +229,59 @@ mod imp {
         }
 
         fn format_links(&self, attr_list: &pango::AttrList) {
-            let link_list = &*self.link_list.borrow();
-
             let (red, green, blue, alpha) = self.link_fg_color.get();
 
-            for link in link_list {
-                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(link.start);
-                attr.set_end_index(link.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                attr.set_start_index(link.start);
-                attr.set_end_index(link.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                attr.set_start_index(link.start);
-                attr.set_end_index(link.end);
-
-                attr_list.insert(attr);
-            }
-        }
-
-        fn format_comments(&self, attr_list: &pango::AttrList) {
-            let comment_list = &*self.comment_list.borrow();
-
-            let (red, green, blue, alpha) = self.comment_fg_color.get();
-
-            for comment in comment_list {
-                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrInt::new_weight(pango::Weight::Medium);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrFloat::new_scale(0.9);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-            }
-        }
-
-        pub(super) fn format_focus_link(&self, attr_list: &pango::AttrList) {
-            if self.obj().focused() {
-                let link_list = &*self.link_list.borrow();
-
-                let focus_index = self.focus_link_index.get();
-
-                if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
-                    let mut attr = pango::AttrInt::new_overline(pango::Overline::Single);
+            self.link_list.borrow().iter()
+                .for_each(|link| {
+                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
                     attr.set_start_index(link.start);
                     attr.set_end_index(link.end);
 
                     attr_list.insert(attr);
-                }    
-            }
+
+                    let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
+                    attr.set_start_index(link.start);
+                    attr.set_end_index(link.end);
+
+                    attr_list.insert(attr);
+
+                    let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+                    attr.set_start_index(link.start);
+                    attr.set_end_index(link.end);
+
+                    attr_list.insert(attr);
+                });
         }
 
-        pub(super) fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
-            let (red, green, blue, alpha) = if self.obj().focused() {
-                self.sel_focus_bg_color.get()
-            } else {
-                self.sel_bg_color.get()
-            };
+        fn format_comments(&self, attr_list: &pango::AttrList) {
+            let (red, green, blue, alpha) = self.comment_fg_color.get();
 
-            let mut attr = pango::AttrColor::new_background(red, green, blue);
-            attr.set_start_index(start);
-            attr.set_end_index(end);
+            self.comment_list.borrow().iter()
+                .for_each(|comment| {
+                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                    attr.set_start_index(comment.start);
+                    attr.set_end_index(comment.end);
 
-            attr_list.insert(attr);
+                    attr_list.insert(attr);
 
-            let mut attr = pango::AttrInt::new_background_alpha(alpha);
-            attr.set_start_index(start);
-            attr.set_end_index(end);
+                    let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
+                    attr.set_start_index(comment.start);
+                    attr.set_end_index(comment.end);
 
-            attr_list.insert(attr);
+                    attr_list.insert(attr);
+
+                    let mut attr = pango::AttrInt::new_weight(pango::Weight::Medium);
+                    attr.set_start_index(comment.start);
+                    attr.set_end_index(comment.end);
+
+                    attr_list.insert(attr);
+
+                    let mut attr = pango::AttrFloat::new_scale(0.9);
+                    attr.set_start_index(comment.start);
+                    attr.set_end_index(comment.end);
+
+                    attr_list.insert(attr);
+                });
         }
 
         pub(super) fn do_format(&self) {
@@ -353,7 +315,7 @@ mod imp {
             let mut link_list: Vec<TextTag> = vec![];
             let mut comment_list: Vec<TextTag> = vec![];
 
-            // Set pango layout text and store links in link map
+            // Set pango layout text and store links/comments in lists
             let layout = self.pango_layout.get().unwrap();
 
             layout.set_text(text);
@@ -494,6 +456,49 @@ impl TextWidget {
     }
 
     //---------------------------------------
+    // Format text helper functions
+    //---------------------------------------
+    fn format_focus_link(&self, attr_list: &pango::AttrList) {
+        if self.focused() {
+            let imp = self.imp();
+
+            let link_list = imp.link_list.borrow();
+
+            let focus_index = imp.focus_link_index.get();
+
+            if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
+                let mut attr = pango::AttrInt::new_overline(pango::Overline::Single);
+                attr.set_start_index(link.start);
+                attr.set_end_index(link.end);
+
+                attr_list.insert(attr);
+            }
+        }
+    }
+
+    fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
+        let imp = self.imp();
+
+        let (red, green, blue, alpha) = if self.focused() {
+            imp.sel_focus_bg_color.get()
+        } else {
+            imp.sel_bg_color.get()
+        };
+
+        let mut attr = pango::AttrColor::new_background(red, green, blue);
+        attr.set_start_index(start);
+        attr.set_end_index(end);
+
+        attr_list.insert(attr);
+
+        let mut attr = pango::AttrInt::new_background_alpha(alpha);
+        attr.set_start_index(start);
+        attr.set_end_index(end);
+
+        attr_list.insert(attr);
+    }
+
+    //---------------------------------------
     // Setup layout
     //---------------------------------------
     fn setup_layout(&self) {
@@ -547,13 +552,13 @@ impl TextWidget {
                     if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get())
                     {
                         if start != end {
-                            imp.format_selection(&attr_list, start.min(end), start.max(end));
+                            widget.format_selection(&attr_list, start.min(end) as u32, start.max(end) as u32);
                         }
                     }
 
                     // Format focused link
                     if widget.ptype() != PropType::Title && widget.ptype() != PropType::Text {
-                        imp.format_focus_link(&attr_list);
+                        widget.format_focus_link(&attr_list);
                     }
 
                     layout.set_attributes(Some(&attr_list));
@@ -577,7 +582,7 @@ impl TextWidget {
         let imp = self.imp();
 
         if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get()) {
-            self.text().get(start.min(end) as usize..start.max(end) as usize)
+            self.text().get(start.min(end)..start.max(end))
                 .map(String::from)
         } else {
             None
@@ -597,7 +602,7 @@ impl TextWidget {
                 #[weak] imp,
                 move |_, _, _| {
                     imp.selection_start.set(Some(0));
-                    imp.selection_end.set(widget.text().len().to_u32());
+                    imp.selection_end.set(Some(widget.text().len()));
 
                     imp.draw_area.queue_draw();
                 }
@@ -901,7 +906,7 @@ impl TextWidget {
                     if !imp.is_clicked.get() {
                         let index = widget.index_at_xy(x, y);
 
-                        imp.selection_start.set(index.to_u32());
+                        imp.selection_start.set(index.to_usize());
                         imp.selection_end.set(None);
                     }
 
@@ -917,7 +922,7 @@ impl TextWidget {
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let index = widget.index_at_xy(start_x + x, start_y + y);
 
-                    imp.selection_end.set(index.to_u32());
+                    imp.selection_end.set(index.to_usize());
 
                     imp.draw_area.queue_draw();
                 }
@@ -980,8 +985,8 @@ impl TextWidget {
                             )
                             .unwrap_or(text.len());
 
-                        imp.selection_start.set(start.to_u32());
-                        imp.selection_end.set(end.to_u32());
+                        imp.selection_start.set(Some(start));
+                        imp.selection_end.set(Some(end));
 
                         imp.draw_area.queue_draw();
                     } else if n == 3 {
@@ -989,7 +994,7 @@ impl TextWidget {
                         imp.is_clicked.set(true);
 
                         imp.selection_start.set(Some(0));
-                        imp.selection_end.set(widget.text().len().to_u32());
+                        imp.selection_end.set(Some(widget.text().len()));
 
                         imp.draw_area.queue_draw();
                     }
