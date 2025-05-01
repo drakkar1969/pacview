@@ -15,7 +15,6 @@ use url::Url;
 //------------------------------------------------------------------------------
 // CONST variables
 //------------------------------------------------------------------------------
-const EXPAND_MARGIN: i32 = 50;
 pub const INSTALLED_LABEL: &str = " [INSTALLED]";
 pub const LINK_SPACER: &str = "     ";
 
@@ -185,14 +184,8 @@ mod imp {
 
                 (measure_layout.pixel_size().0, measure_layout.pixel_size().0, -1, -1)
             } else {
-                let obj = self.obj();
-
                 if for_size != -1 {
-                    if obj.can_expand() {
-                        measure_layout.set_width((for_size - EXPAND_MARGIN) * pango::SCALE);
-                    } else {
-                        measure_layout.set_width(for_size * pango::SCALE);
-                    }
+                    measure_layout.set_width(for_size * pango::SCALE);
                 }
 
                 (measure_layout.pixel_size().1, measure_layout.pixel_size().1, -1, -1)
@@ -518,28 +511,6 @@ impl TextWidget {
             move |_, context, _, _| {
                 let layout = imp.pango_layout.get().unwrap();
 
-                // Check if text widget can expand
-                let measure_layout = layout.copy();
-                measure_layout.set_width((imp.draw_area.width() - EXPAND_MARGIN) * pango::SCALE);
-
-                let can_expand = if widget.expanded() {
-                    measure_layout.line_count() > widget.max_lines()
-                } else {
-                    measure_layout.is_ellipsized()
-                };
-
-                // Adjust pango layout width if text widget can expand
-                if can_expand {
-                    layout.set_width((imp.draw_area.width() - EXPAND_MARGIN) * pango::SCALE);
-                } else {
-                    layout.set_width(imp.draw_area.width() * pango::SCALE);
-                }
-
-                // Set can expand property if changed
-                if widget.can_expand() != can_expand {
-                    widget.set_can_expand(can_expand);
-                }
-
                 // Update pango layout text attributes
                 if let Some(attr_list) = layout.attributes()
                     .and_then(|list| list.filter(|attr|
@@ -736,6 +707,18 @@ impl TextWidget {
         } else {
             layout.set_height(-self.max_lines());
             layout.set_ellipsize(pango::EllipsizeMode::End);
+        }
+
+        // Check if text widget can expand
+        let can_expand = if self.expanded() {
+            layout.line_count() > self.max_lines()
+        } else {
+            layout.is_ellipsized()
+        };
+
+        // Set can expand property if changed
+        if self.can_expand() != can_expand {
+            self.set_can_expand(can_expand);
         }
 
         imp.draw_area.queue_resize();

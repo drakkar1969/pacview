@@ -257,11 +257,15 @@ impl PropertyValue {
         imp.expand_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                let expanded = !imp.text_widget.expanded();
+                imp.text_widget.set_expanded(!imp.text_widget.expanded());
+            }
+        ));
 
-                imp.text_widget.set_expanded(expanded);
-
-                if expanded {
+        // Text widget expanded property notify
+        imp.text_widget.connect_expanded_notify(clone!(
+            #[weak] imp,
+            move |widget| {
+                if widget.expanded() {
                     imp.expand_button.add_css_class("active");
                 } else {
                     imp.expand_button.remove_css_class("active");

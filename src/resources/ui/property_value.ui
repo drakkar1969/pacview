@@ -4,17 +4,22 @@
   <template class="PropertyValue" parent="GtkListBoxRow">
     <property name="hexpand">true</property>
     <property name="child">
-      <object class="GtkOverlay">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
         <property name="margin-start">12</property>
-        <property name="margin-end">12</property>
-        <property name="margin-top">8</property>
+        <property name="margin-end">6</property>
+        <property name="margin-top">6</property>
         <property name="margin-bottom">8</property>
+        <property name="spacing">2</property>
         <child>
           <object class="GtkBox">
-            <property name="orientation">vertical</property>
-            <property name="spacing">4</property>
+            <property name="spacing">12</property>
+            <style>
+              <class name="property"/>
+            </style>
             <child>
               <object class="GtkLabel" id="prop_label">
+                <property name="hexpand">true</property>
                 <property name="xalign">0</property>
                 <style>
                   <class name="caption"/>
@@ -23,37 +28,36 @@
               </object>
             </child>
             <child>
-              <object class="GtkBox">
-                <property name="spacing">6</property>
-                <child>
-                  <object class="GtkImage" id="image">
-                    <property name="valign">center</property>
-                    <style>
-                      <class name="status-image"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="TextWidget" id="text_widget">
-                    <property name="hexpand">true</property>
-                  </object>
-                </child>
+              <object class="GtkButton" id="expand_button">
+                <property name="can-focus">false</property>
+                <property name="valign">center</property>
+                <property name="icon-name">expander-symbolic</property>
+                <style>
+                  <class name="flat"/>
+                  <class name="caption"/>
+                  <class name="property"/>
+                </style>
               </object>
             </child>
           </object>
         </child>
-        <child type="overlay">
-          <object class="GtkButton" id="expand_button">
-            <property name="can-focus">false</property>
-            <property name="halign">end</property>
-            <property name="valign">start</property>
-            <property name="margin-top">4</property>
-            <property name="icon-name">expander-symbolic</property>
-            <style>
-              <class name="flat"/>
-              <class name="circular"/>
-              <class name="expander"/>
-            </style>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-end">6</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkImage" id="image">
+                <property name="valign">center</property>
+                <style>
+                  <class name="status-image"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="TextWidget" id="text_widget">
+                <property name="hexpand">true</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
