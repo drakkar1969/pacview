@@ -355,7 +355,7 @@ mod imp {
                         link_list.extend(expr.captures_iter(text)
                             .flatten()
                             .filter_map(|caps|
-                                if let (Some(m1), Some(m2)) = (caps.get(1), caps.get(2)) {
+                                if let Some((m1, m2)) = caps.get(1).zip(caps.get(2)) {
                                     Some(TextTag::new(
                                         &format!("pkg://{}", m1.as_str()),
                                         m2.as_str(),
@@ -476,7 +476,7 @@ impl TextWidget {
         }
     }
 
-    fn format_selection(&self, attr_list: &pango::AttrList, start: u32, end: u32) {
+    fn format_selection(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
         let imp = self.imp();
 
         let (red, green, blue, alpha) = if self.focused() {
@@ -486,14 +486,14 @@ impl TextWidget {
         };
 
         let mut attr = pango::AttrColor::new_background(red, green, blue);
-        attr.set_start_index(start);
-        attr.set_end_index(end);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
 
         attr_list.insert(attr);
 
         let mut attr = pango::AttrInt::new_background_alpha(alpha);
-        attr.set_start_index(start);
-        attr.set_end_index(end);
+        attr.set_start_index(start as u32);
+        attr.set_end_index(end as u32);
 
         attr_list.insert(attr);
     }
@@ -549,11 +549,10 @@ impl TextWidget {
                     ))
                 {
                     // Format text selection
-                    if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get())
+                    if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get())
+                        .filter(|(start, end)| start != end)
                     {
-                        if start != end {
-                            widget.format_selection(&attr_list, start.min(end) as u32, start.max(end) as u32);
-                        }
+                        widget.format_selection(&attr_list, start.min(end), start.max(end));
                     }
 
                     // Format focused link
@@ -581,7 +580,7 @@ impl TextWidget {
     fn selected_text(&self) -> Option<String> {
         let imp = self.imp();
 
-        if let (Some(start), Some(end)) = (imp.selection_start.get(), imp.selection_end.get()) {
+        if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get()) {
             self.text().get(start.min(end)..start.max(end))
                 .map(String::from)
         } else {
