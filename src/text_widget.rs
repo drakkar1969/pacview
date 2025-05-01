@@ -804,7 +804,7 @@ impl TextWidget {
     //---------------------------------------
     // Controller helper functions
     //---------------------------------------
-    fn _inside_index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
+    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
         let layout = self.imp().pango_layout.get().unwrap();
 
         let (inside, mut index, trailing) = layout.xy_to_index(pango::units_from_double(x), pango::units_from_double(y));
@@ -816,14 +816,8 @@ impl TextWidget {
         (inside, index)
     }
 
-    fn index_at_xy(&self, x: f64, y: f64) -> i32 {
-        let (_, index) = self._inside_index_at_xy(x, y);
-
-        index
-    }
-
     fn link_at_xy(&self, x: f64, y: f64) -> Option<TextTag> {
-        let (inside, index) = self._inside_index_at_xy(x, y);
+        let (inside, index) = self.index_at_xy(x, y);
 
         if inside && index >= 0 {
             return self.imp().link_list.borrow().iter()
@@ -904,7 +898,7 @@ impl TextWidget {
             move |_, x, y| {
                 if widget.link_at_xy(x, y).is_none() {
                     if !imp.is_clicked.get() {
-                        let index = widget.index_at_xy(x, y);
+                        let (_, index) = widget.index_at_xy(x, y);
 
                         imp.selection_start.set(index.to_usize());
                         imp.selection_end.set(None);
@@ -920,7 +914,7 @@ impl TextWidget {
             #[weak] imp,
             move |controller, x, y| {
                 if let Some((start_x, start_y)) = controller.start_point() {
-                    let index = widget.index_at_xy(start_x + x, start_y + y);
+                    let (_, index) = widget.index_at_xy(start_x + x, start_y + y);
 
                     imp.selection_end.set(index.to_usize());
 
@@ -965,7 +959,8 @@ impl TextWidget {
                         // Double click: select word under cursor and redraw widget
                         imp.is_clicked.set(true);
 
-                        let index = widget.index_at_xy(x, y).to_usize().unwrap();
+                        let (_, index) = widget.index_at_xy(x, y);
+                        let index = index.to_usize().unwrap();
 
                         let text = widget.text();
 
