@@ -84,11 +84,12 @@ mod imp {
         expanded: Cell<bool>,
         #[property(get, set)]
         max_lines: Cell<i32>,
-
         #[property(get, set)]
         focused: Cell<bool>,
 
-        pub(super) pango_layout: OnceCell<pango::Layout>,
+        pub(super) layout: OnceCell<pango::Layout>,
+        pub(super) layout_attributes: RefCell<pango::AttrList>,
+        pub(super) layout_max_index: Cell<usize>,
 
         pub(super) link_fg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) comment_fg_color: Cell<(u16, u16, u16, u16)>,
@@ -175,25 +176,57 @@ mod imp {
         }
 
         fn measure(&self, orientation: gtk::Orientation, for_size: i32) -> (i32, i32, i32, i32) {
-            let layout = self.pango_layout.get().unwrap();
+            let layout = self.layout.get().unwrap();
 
             let measure_layout = layout.copy();
 
             if orientation == gtk::Orientation::Horizontal {
                 measure_layout.set_width(pango::SCALE);
 
-                (measure_layout.pixel_size().0, measure_layout.pixel_size().0, -1, -1)
+                let width = measure_layout.pixel_size().0;
+
+                (width, width, -1, -1)
             } else {
                 if for_size != -1 {
                     measure_layout.set_width(for_size * pango::SCALE);
                 }
 
-                (measure_layout.pixel_size().1, measure_layout.pixel_size().1, -1, -1)
+                let obj = self.obj();
+
+                let layout_text_len = layout.text().len();
+                let layout_height = measure_layout.pixel_size().1;
+
+                let line = measure_layout.line_readonly(
+                    obj.max_lines().checked_sub(1).unwrap_or_default()
+                );
+
+                let max_index = line.as_ref()
+                    .map(|line| (line.start_index() + line.length()) as usize);
+
+                obj.set_can_expand(max_index.is_some_and(|index| index < layout_text_len));
+
+                if obj.expanded() {
+                    self.layout_max_index.set(layout_text_len);
+
+                    (layout_height, layout_height, -1, -1)
+                } else {
+                    self.layout_max_index.set(max_index.unwrap_or(layout_text_len));
+
+                    let line_height = line
+                        .map(|line| {
+                            let rect = measure_layout.index_to_pos(line.start_index());
+
+                            pango::units_to_double(rect.y() + rect.height()).round() as i32
+                        })
+                        .unwrap_or(layout_height);
+
+                    (line_height, line_height, -1, -1)
+                }
             }
         }
 
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
-            let layout = self.pango_layout.get().unwrap();
+            let layout = self.layout.get().unwrap();
 
             layout.set_width(width * pango::SCALE);
 
@@ -205,23 +238,9 @@ mod imp {
         //---------------------------------------
         // Layout format helper functions
         //---------------------------------------
-        fn format_weight(&self, attr_list: &pango::AttrList) {
-            let obj = self.obj();
+        fn link_attributes(&self) -> pango::AttrList {
+            let attr_list = pango::AttrList::new();
 
-            let weight = if obj.ptype() == PropType::Title {
-                pango::Weight::Bold
-            } else {
-                pango::Weight::Normal
-            };
-
-            let mut attr = pango::AttrInt::new_weight(weight);
-            attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
-            attr.set_end_index(pango::ATTR_INDEX_TO_TEXT_END);
-
-            attr_list.insert(attr);
-        }
-
-        fn format_links(&self, attr_list: &pango::AttrList) {
             let (red, green, blue, alpha) = self.link_fg_color.get();
 
             self.link_list.borrow().iter()
@@ -244,9 +263,13 @@ mod imp {
 
                     attr_list.insert(attr);
                 });
+
+            attr_list
         }
 
-        fn format_comments(&self, attr_list: &pango::AttrList) {
+        fn comment_attributes(&self) -> pango::AttrList {
+            let attr_list = pango::AttrList::new();
+
             let (red, green, blue, alpha) = self.comment_fg_color.get();
 
             self.comment_list.borrow().iter()
@@ -275,43 +298,55 @@ mod imp {
 
                     attr_list.insert(attr);
                 });
+
+            attr_list
         }
 
-        pub(super) fn do_format(&self) {
-            let layout = self.pango_layout.get().unwrap();
+        pub(super) fn set_layout_attributes(&self) {
+            let layout = self.layout.get().unwrap();
 
             let attr_list = pango::AttrList::new();
 
-            // Format text
-            self.format_weight(&attr_list);
+            // Add font weight attribute
+            let weight = if self.ptype.get() == PropType::Title {
+                pango::Weight::Bold
+            } else {
+                pango::Weight::Normal
+            };
 
-            // Format links
-            self.format_links(&attr_list);
+            let mut attr = pango::AttrInt::new_weight(weight);
+            attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
+            attr.set_end_index(pango::ATTR_INDEX_TO_TEXT_END);
 
-            // Format comments
-            self.format_comments(&attr_list);
+            attr_list.insert(attr);
+
+            // Add link attributes
+            attr_list.splice(&self.link_attributes(), 0, 0);
+
+            // Add comment attributes
+            attr_list.splice(&self.comment_attributes(), 0, 0);
 
             layout.set_attributes(Some(&attr_list));
+
+            // Store attributes
+            self.layout_attributes.replace(attr_list);
         }
 
         //---------------------------------------
         // Text property custom getter/setter
         //---------------------------------------
         fn text(&self) -> String {
-            self.pango_layout.get().unwrap().text().to_string()
+            self.layout.get().unwrap().text().to_string()
         }
 
         fn set_text(&self, text: &str) {
             let obj = self.obj();
 
+            let mut text = text;
+
             // Create link/comment lists
             let mut link_list: Vec<TextTag> = vec![];
             let mut comment_list: Vec<TextTag> = vec![];
-
-            // Set pango layout text and store links/comments in lists
-            let layout = self.pango_layout.get().unwrap();
-
-            layout.set_text(text);
 
             match obj.ptype() {
                 PropType::Link => {
@@ -336,7 +371,7 @@ mod imp {
                 },
                 PropType::LinkList => {
                     if text.is_empty() {
-                        layout.set_text("None");
+                        text = "None";
                     } else {
                         static EXPR: OnceLock<FancyRegex> = OnceLock::new();
 
@@ -387,13 +422,17 @@ mod imp {
             self.link_list.replace(link_list);
             self.comment_list.replace(comment_list);
 
-            // Format pango layout text
-            self.do_format();
+            // Set pango layout text
+            let layout = self.layout.get().unwrap();
 
+            layout.set_text(text);
+
+            // Format pango layout text
+            self.set_layout_attributes();
+
+            // Reset selection
             self.selection_start.set(None);
             self.selection_end.set(None);
-
-            obj.set_expanded(false);
 
             self.draw_area.queue_resize();
         }
@@ -449,28 +488,12 @@ impl TextWidget {
     }
 
     //---------------------------------------
-    // Format text helper functions
+    // Layout format helper functions
     //---------------------------------------
-    fn format_focus_link(&self, attr_list: &pango::AttrList) {
-        if self.focused() {
-            let imp = self.imp();
-
-            let link_list = imp.link_list.borrow();
-
-            let focus_index = imp.focus_link_index.get();
-
-            if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
-                let mut attr = pango::AttrInt::new_overline(pango::Overline::Single);
-                attr.set_start_index(link.start);
-                attr.set_end_index(link.end);
-
-                attr_list.insert(attr);
-            }
-        }
-    }
-
-    fn format_selection(&self, attr_list: &pango::AttrList, start: usize, end: usize) {
+    fn selection_attributes(&self, start: usize, end: usize) -> pango::AttrList {
         let imp = self.imp();
+
+        let attr_list = pango::AttrList::new();
 
         let (red, green, blue, alpha) = if self.focused() {
             imp.sel_focus_bg_color.get()
@@ -489,6 +512,34 @@ impl TextWidget {
         attr.set_end_index(end as u32);
 
         attr_list.insert(attr);
+
+        attr_list
+    }
+
+    fn focus_link_attributes(&self) -> pango::AttrList {
+        let attr_list = pango::AttrList::new();
+
+        let imp = self.imp();
+
+        let link_list = imp.link_list.borrow();
+
+        let focus_index = imp.focus_link_index.get();
+
+        if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
+            let mut attr = pango::AttrInt::new_underline(pango::Underline::Double);
+            attr.set_start_index(link.start);
+            attr.set_end_index(link.end);
+
+            attr_list.insert(attr);
+
+            let mut attr = pango::AttrInt::new_overline(pango::Overline::Single);
+            attr.set_start_index(link.start);
+            attr.set_end_index(link.end);
+
+            attr_list.insert(attr);
+        }
+
+        attr_list
     }
 
     //---------------------------------------
@@ -502,37 +553,31 @@ impl TextWidget {
         layout.set_wrap(pango::WrapMode::Word);
         layout.set_line_spacing(1.15);
 
-        imp.pango_layout.set(layout).unwrap();
+        imp.layout.set(layout).unwrap();
 
         // Connect drawing area draw function
         imp.draw_area.set_draw_func(clone!(
             #[weak(rename_to = widget)] self,
             #[weak] imp,
             move |_, context, _, _| {
-                let layout = imp.pango_layout.get().unwrap();
+                let layout = imp.layout.get().unwrap();
+                let attr_list = imp.layout_attributes.borrow().copy().unwrap();
 
-                // Update pango layout text attributes
-                if let Some(attr_list) = layout.attributes()
-                    .and_then(|list| list.filter(|attr|
-                        attr.type_() != pango::AttrType::Background &&
-                        attr.type_() != pango::AttrType::BackgroundAlpha &&
-                        attr.type_() != pango::AttrType::Overline
-                    ))
+                // Update pango layout selection attributes
+                if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get())
+                    .filter(|(start, end)| start != end)
                 {
-                    // Format text selection
-                    if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get())
-                        .filter(|(start, end)| start != end)
-                    {
-                        widget.format_selection(&attr_list, start.min(end), start.max(end));
-                    }
-
-                    // Format focused link
-                    if widget.ptype() != PropType::Title && widget.ptype() != PropType::Text {
-                        widget.format_focus_link(&attr_list);
-                    }
-
-                    layout.set_attributes(Some(&attr_list));
+                    attr_list.splice(&widget.selection_attributes(
+                        start.min(end), start.max(end)), 0, 0
+                    );
                 }
+
+                // Update pango layout focus link attributes
+                if widget.focused() && widget.ptype() != PropType::Title && widget.ptype() != PropType::Text {
+                    attr_list.splice(&widget.focus_link_attributes(), 0, 0);
+                }
+
+                layout.set_attributes(Some(&attr_list));
 
                 // Show pango layout
                 let text_color = widget.color();
@@ -608,7 +653,7 @@ impl TextWidget {
             .activate(clone!(
                 #[weak(rename_to = widget)] self,
                 move |_, _, _| {
-                    if !widget.expanded() {
+                    if widget.can_expand() && !widget.expanded() {
                         widget.set_expanded(true);
                     }
                 }
@@ -619,7 +664,7 @@ impl TextWidget {
             .activate(clone!(
                 #[weak(rename_to = widget)] self,
                 move |_, _, _| {
-                    if widget.expanded() {
+                    if widget.can_expand() && widget.expanded() {
                         widget.set_expanded(false);
                     }
                 }
@@ -631,11 +676,8 @@ impl TextWidget {
             .activate(clone!(
                 #[weak] imp,
                 move |_, _, _| {
-                    let link_list = imp.link_list.borrow();
-
                     if let Some(new_index) = imp.focus_link_index.get()
                         .and_then(|i| i.checked_sub(1))
-                        .or_else(|| link_list.len().checked_sub(1))
                     {
                         imp.focus_link_index.set(Some(new_index));
 
@@ -653,8 +695,10 @@ impl TextWidget {
 
                     if let Some(new_index) = imp.focus_link_index.get()
                         .and_then(|i| i.checked_add(1))
-                        .filter(|&i| i < link_list.len())
-                        .or_else(|| if link_list.is_empty() { None } else { Some(0) })
+                        .filter(|&i|
+                            link_list.get(i)
+                                .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
+                        )
                     {
                         imp.focus_link_index.set(Some(new_index));
 
@@ -690,38 +734,7 @@ impl TextWidget {
 
         self.insert_action_group("text", Some(&text_group));
 
-        text_group.add_action_entries([select_all_action, select_none_action, copy_action, expand_action, contract_action, prev_link_action, next_link_action, activate_link_action]);
-    }
-
-    //---------------------------------------
-    // Resize layout helper function
-    //---------------------------------------
-    fn resize_layout(&self) {
-        let imp = self.imp();
-
-        let layout = imp.pango_layout.get().unwrap();
-
-        if self.expanded() {
-            layout.set_height(-1);
-            layout.set_ellipsize(pango::EllipsizeMode::None);
-        } else {
-            layout.set_height(-self.max_lines());
-            layout.set_ellipsize(pango::EllipsizeMode::End);
-        }
-
-        // Check if text widget can expand
-        let can_expand = if self.expanded() {
-            layout.line_count() > self.max_lines()
-        } else {
-            layout.is_ellipsized()
-        };
-
-        // Set can expand property if changed
-        if self.can_expand() != can_expand {
-            self.set_can_expand(can_expand);
-        }
-
-        imp.draw_area.queue_resize();
+        text_group.add_action_entries([select_all_action, select_none_action,copy_action, expand_action, contract_action, prev_link_action, next_link_action, activate_link_action]);
     }
 
     //---------------------------------------
@@ -737,7 +750,7 @@ impl TextWidget {
         imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
 
         // Format pango layout text
-        imp.do_format();
+        imp.set_layout_attributes();
 
         // Redraw widget
         imp.draw_area.queue_draw();
@@ -749,13 +762,13 @@ impl TextWidget {
     fn setup_signals(&self) {
         // Expanded property notify signal
         self.connect_expanded_notify(|widget| {
-            widget.resize_layout();
+            widget.imp().draw_area.queue_resize();
         });
 
         // Max lines property notify signal
         self.connect_max_lines_notify(|widget| {
             if !widget.expanded() {
-                widget.resize_layout();
+                widget.imp().draw_area.queue_resize();
             }
         });
 
@@ -787,7 +800,7 @@ impl TextWidget {
     // Controller helper functions
     //---------------------------------------
     fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
-        let layout = self.imp().pango_layout.get().unwrap();
+        let layout = self.imp().layout.get().unwrap();
 
         let (inside, mut index, trailing) = layout.xy_to_index(pango::units_from_double(x), pango::units_from_double(y));
 
