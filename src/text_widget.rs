@@ -213,12 +213,11 @@ mod imp {
                     self.layout_max_index.set(max_index.unwrap_or(layout_text_len));
 
                     let line_height = line
-                        .map(|line| {
+                        .map_or(layout_height, |line| {
                             let rect = measure_layout.index_to_pos(line.start_index());
 
                             pango::units_to_double(rect.y() + rect.height()).round() as i32
-                        })
-                        .unwrap_or(layout_height);
+                        });
 
                     (line_height, line_height, -1, -1)
                 }
