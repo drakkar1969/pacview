@@ -56,20 +56,20 @@ make_release()
 		git add "$SCRIPTFOLDER/Cargo.lock"
 		git add "$SCRIPTFOLDER/pacview"
 		git commit -m "Bump version to ${version}"
-	fi
 
-	echo ""
-	echo "${BOLD}Ready to push version ${GREEN}${version}${RESET} ${BOLD}to upstream repository${RESET}"
-	read -r -s -n 1 -p "Are you sure you want to continue [y/N]: " confirm
-	echo ""
+		echo ""
+		echo "${BOLD}Ready to push version ${GREEN}${version}${RESET} ${BOLD}to upstream repository${RESET}"
+		read -r -s -n 1 -p "Are you sure you want to continue [y/N]: " confirm
+		echo ""
 
-	if [[ "${confirm,,}" == "y" ]]; then
-		print_item "Adding git tag ($version)"
-		git tag "$version"
+		if [[ "${confirm,,}" == "y" ]]; then
+			print_item "Adding git tag ($version)"
+			git tag "$version"
 
-		print_item "Pushing to upstream repository"
-		git push
-		git push origin --tags
+			print_item "Pushing to upstream repository"
+			git push
+			git push origin --tags
+		fi
 	fi
 }
 
