@@ -440,7 +440,7 @@ mod imp {
             self.selection_start.set(None);
             self.selection_end.set(None);
 
-            self.draw_area.queue_resize();
+            obj.set_expanded(false);
         }
     }
 }
