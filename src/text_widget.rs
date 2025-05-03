@@ -193,34 +193,41 @@ mod imp {
 
                 let obj = self.obj();
 
+                let max_lines = obj.max_lines();
+                let total_lines = measure_layout.line_count();
                 let layout_text_len = layout.text().len();
-                let layout_height = measure_layout.pixel_size().1;
 
-                let line = measure_layout.line_readonly(
-                    obj.max_lines().checked_sub(1).unwrap_or_default()
-                );
+                // Get max visible index in layout text
+                let max_index = measure_layout.line_readonly(max_lines.checked_sub(1).unwrap_or(0))
+                    .map_or(layout_text_len, |line| (line.start_index() + line.length()) as usize);
 
-                let max_index = line.as_ref()
-                    .map(|line| (line.start_index() + line.length()) as usize);
+                // Set widget can expand property
+                obj.set_can_expand(max_lines < total_lines);
 
-                obj.set_can_expand(max_index.is_some_and(|index| index < layout_text_len));
+                // Calculate pango layout height
+                let line_height = measure_layout.line_readonly(0)
+                    .map_or(0, |line| {
+                        let (_, rect) = line.pixel_extents();
 
-                if obj.expanded() {
+                        rect.height()
+                    });
+
+                let line_spacing = (line_height as f32 * measure_layout.line_spacing() - line_height as f32).round() as i32;
+
+                let n_lines = if obj.expanded() {
                     self.layout_max_index.set(layout_text_len);
 
-                    (layout_height, layout_height, -1, -1)
+                    total_lines
                 } else {
-                    self.layout_max_index.set(max_index.unwrap_or(layout_text_len));
+                    self.layout_max_index.set(max_index);
 
-                    let line_height = line
-                        .map_or(layout_height, |line| {
-                            let rect = measure_layout.index_to_pos(line.start_index());
+                    total_lines.min(max_lines)
+                };
 
-                            pango::units_to_double(rect.y() + rect.height()).round() as i32
-                        });
+                let layout_height = n_lines * line_height +
+                    n_lines.checked_sub(1).unwrap_or_default() * line_spacing;
 
-                    (line_height, line_height, -1, -1)
-                }
+                (layout_height, layout_height, -1, -1)
             }
         }
 
