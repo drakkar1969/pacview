@@ -517,21 +517,15 @@ impl TextWidget {
     }
 
     fn focus_link_attributes(&self) -> pango::AttrList {
-        let attr_list = pango::AttrList::new();
-
         let imp = self.imp();
+
+        let attr_list = pango::AttrList::new();
 
         let link_list = imp.link_list.borrow();
 
         let focus_index = imp.focus_link_index.get();
 
         if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
-            let mut attr = pango::AttrInt::new_underline(pango::Underline::Double);
-            attr.set_start_index(link.start);
-            attr.set_end_index(link.end);
-
-            attr_list.insert(attr);
-
             let mut attr = pango::AttrInt::new_overline(pango::Overline::Single);
             attr.set_start_index(link.start);
             attr.set_end_index(link.end);
@@ -566,10 +560,9 @@ impl TextWidget {
                 // Update pango layout selection attributes
                 if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get())
                     .filter(|(start, end)| start != end)
+                    .map(|(start, end)| (start.min(end), start.max(end)))
                 {
-                    attr_list.splice(&widget.selection_attributes(
-                        start.min(end), start.max(end)), 0, 0
-                    );
+                    attr_list.splice(&widget.selection_attributes(start, end), 0, 0);
                 }
 
                 // Update pango layout focus link attributes
@@ -597,8 +590,7 @@ impl TextWidget {
         let imp = self.imp();
 
         if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get()) {
-            self.text().get(start.min(end)..start.max(end))
-                .map(String::from)
+            self.text().get(start.min(end)..start.max(end)).map(String::from)
         } else {
             None
         }
