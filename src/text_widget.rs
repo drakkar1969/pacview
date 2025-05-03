@@ -537,6 +537,12 @@ impl TextWidget {
             attr.set_end_index(link.end);
 
             attr_list.insert(attr);
+
+            let mut attr = pango::AttrInt::new_underline(pango::Underline::Double);
+            attr.set_start_index(link.start);
+            attr.set_end_index(link.end);
+
+            attr_list.insert(attr);
         }
 
         attr_list
