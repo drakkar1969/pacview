@@ -60,6 +60,24 @@
                 </child>
               </object>
             </child>
+            <child>
+              <object class="AdwSpinRow" id="sidebar_width_row">
+                <property name="title">Side_bar Width</property>
+                <property name="subtitle">Sidebar width</property>
+                <property name="use-underline">true</property>
+                <property name="numeric">true</property>
+                <property name="snap-to-ticks">true</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">100</property>
+                    <property name="page-increment">20</property>
+                    <property name="step-increment">5</property>
+                    <property name="upper">400</property>
+                    <property name="value">240</property>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </child>
         <child>

@@ -331,6 +331,7 @@ impl PacViewWindow {
 
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
+        imp.prefs_dialog.set_sidebar_width(gsettings.double("sidebar-width"));
 
         let search_mode = SearchMode::from_str(&gsettings.string("search-mode")).unwrap();
         imp.prefs_dialog.set_search_mode(search_mode);
@@ -387,6 +388,7 @@ impl PacViewWindow {
         Self::set_gsetting(gsettings, "color-scheme", &imp.prefs_dialog.color_scheme().nick());
         Self::set_gsetting(gsettings, "auto-refresh", &imp.prefs_dialog.auto_refresh());
         Self::set_gsetting(gsettings, "aur-update-command", &imp.prefs_dialog.aur_command());
+        Self::set_gsetting(gsettings, "sidebar-width", &imp.prefs_dialog.sidebar_width());
         Self::set_gsetting(gsettings, "search-mode", &imp.prefs_dialog.search_mode().nick());
         Self::set_gsetting(gsettings, "search-prop", &imp.prefs_dialog.search_prop().nick());
         Self::set_gsetting(gsettings, "search-delay", &imp.prefs_dialog.search_delay());
@@ -482,6 +484,8 @@ impl PacViewWindow {
             .transform_to(|_, lines: f64| Some(lines.to_i32().unwrap()))
             .sync_create()
             .build();
+
+        self.resize_window();
     }
 
     //---------------------------------------
@@ -762,6 +766,14 @@ impl PacViewWindow {
             }
         ));
 
+        // Preferences sidebar width property notify signal
+        imp.prefs_dialog.connect_sidebar_width_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                window.resize_window();
+            }
+        ));
+
         // Preferences infopane width property notify signal
         imp.prefs_dialog.connect_infopane_width_notify(clone!(
             #[weak(rename_to = window)] self,
@@ -777,18 +789,22 @@ impl PacViewWindow {
     fn resize_window(&self) {
         let imp = self.imp();
 
+        let sidebar_width = imp.prefs_dialog.sidebar_width();
         let infopane_width = imp.prefs_dialog.infopane_width();
 
         let min_packageview_width = 500.0;
 
         self.set_width_request(infopane_width as i32);
 
+        imp.sidebar_split_view.set_min_sidebar_width(sidebar_width);
+        imp.sidebar_split_view.set_max_sidebar_width(sidebar_width);
+
         imp.main_split_view.set_min_sidebar_width(infopane_width);
 
         imp.main_breakpoint.set_condition(Some(
             &adw::BreakpointCondition::new_length(
                 adw::BreakpointConditionLengthType::MaxWidth,
-                imp.sidebar_split_view.min_sidebar_width() + infopane_width + min_packageview_width,
+                sidebar_width + infopane_width + min_packageview_width,
                 adw::LengthUnit::Sp
             )
         ));
@@ -796,7 +812,7 @@ impl PacViewWindow {
         imp.sidebar_breakpoint.set_condition(Some(
             &adw::BreakpointCondition::new_length(
                 adw::BreakpointConditionLengthType::MaxWidth,
-                imp.sidebar_split_view.min_sidebar_width() + infopane_width,
+                sidebar_width + infopane_width,
                 adw::LengthUnit::Sp
             )
         ));

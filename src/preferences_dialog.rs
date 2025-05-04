@@ -47,6 +47,8 @@ mod imp {
         #[template_child]
         pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
+        pub(super) sidebar_width_row: TemplateChild<adw::SpinRow>,
+        #[template_child]
         pub(super) search_mode_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) search_prop_row: TemplateChild<adw::ComboRow>,
@@ -67,6 +69,8 @@ mod imp {
         auto_refresh: Cell<bool>,
         #[property(get, set)]
         aur_command: RefCell<String>,
+        #[property(get, set)]
+        sidebar_width: Cell<f64>,
         #[property(get, set, builder(SearchMode::default()))]
         search_mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
@@ -157,6 +161,11 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
         self.bind_property("aur-command", &imp.aur_command_row.get(), "text")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("sidebar-width", &imp.sidebar_width_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();
@@ -283,6 +292,7 @@ impl PreferencesDialog {
                                 dialog.set_color_scheme(ColorScheme::default());
                                 dialog.set_auto_refresh(true);
                                 dialog.set_aur_command("");
+                                dialog.set_sidebar_width(240.0);
                                 dialog.set_search_mode(SearchMode::default());
                                 dialog.set_search_prop(SearchProp::default());
                                 dialog.set_search_delay(150.0);
