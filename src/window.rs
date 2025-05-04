@@ -64,6 +64,11 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
+        pub(super) sidebar_breakpoint: TemplateChild<adw::Breakpoint>,
+        #[template_child]
+        pub(super) main_breakpoint: TemplateChild<adw::Breakpoint>,
+
+        #[template_child]
         pub(super) sidebar_split_view: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
         pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
@@ -264,6 +269,7 @@ mod imp {
     }
 
     impl WidgetImpl for PacViewWindow {}
+
     impl WindowImpl for PacViewWindow {
         //---------------------------------------
         // Window close handler
@@ -274,6 +280,7 @@ mod imp {
             glib::Propagation::Proceed
         }
     }
+
     impl ApplicationWindowImpl for PacViewWindow {}
     impl AdwApplicationWindowImpl for PacViewWindow {}
 }
@@ -335,6 +342,7 @@ impl PacViewWindow {
 
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
+        imp.prefs_dialog.set_infopane_width(gsettings.double("infopane-width"));
         imp.prefs_dialog.set_property_max_lines(gsettings.double("property-max-lines"));
 
         // Load package view sort prop/order
@@ -383,6 +391,7 @@ impl PacViewWindow {
         Self::set_gsetting(gsettings, "search-prop", &imp.prefs_dialog.search_prop().nick());
         Self::set_gsetting(gsettings, "search-delay", &imp.prefs_dialog.search_delay());
         Self::set_gsetting(gsettings, "remember-sorting", &imp.prefs_dialog.remember_sort());
+        Self::set_gsetting(gsettings, "infopane-width", &imp.prefs_dialog.infopane_width());
         Self::set_gsetting(gsettings, "property-max-lines", &imp.prefs_dialog.property_max_lines());
 
         // Save package view sort prop/order
@@ -751,6 +760,45 @@ impl PacViewWindow {
                     imp.info_pane.set_pkg(pkg.as_ref());
                 }
             }
+        ));
+
+        // Preferences infopane width property notify signal
+        imp.prefs_dialog.connect_infopane_width_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                window.resize_window();
+            }
+        ));
+    }
+
+    //---------------------------------------
+    // Resize window helper function
+    //---------------------------------------
+    fn resize_window(&self) {
+        let imp = self.imp();
+
+        let infopane_width = imp.prefs_dialog.infopane_width();
+
+        let min_packageview_width = 500.0;
+
+        self.set_width_request(infopane_width as i32);
+
+        imp.main_split_view.set_min_sidebar_width(infopane_width);
+
+        imp.main_breakpoint.set_condition(Some(
+            &adw::BreakpointCondition::new_length(
+                adw::BreakpointConditionLengthType::MaxWidth,
+                imp.sidebar_split_view.min_sidebar_width() + infopane_width + min_packageview_width,
+                adw::LengthUnit::Sp
+            )
+        ));
+
+        imp.sidebar_breakpoint.set_condition(Some(
+            &adw::BreakpointCondition::new_length(
+                adw::BreakpointConditionLengthType::MaxWidth,
+                imp.sidebar_split_view.min_sidebar_width() + infopane_width,
+                adw::LengthUnit::Sp
+            )
         ));
     }
 

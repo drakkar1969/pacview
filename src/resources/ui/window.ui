@@ -8,13 +8,13 @@
     <property name="title">PacView</property>
     <child>
       <object class="AdwBreakpoint" id="main_breakpoint">
-        <condition>max-width: 1350sp</condition>
+        <condition>max-width: 1365sp</condition>
         <setter object="main_split_view" property="collapsed">true</setter>
       </object>
     </child>
     <child>
       <object class="AdwBreakpoint" id="sidebar_breakpoint">
-        <condition>max-width: 840sp</condition>
+        <condition>max-width: 865sp</condition>
         <setter object="main_split_view" property="collapsed">true</setter>
         <setter object="sidebar_split_view" property="collapsed">true</setter>
       </object>
@@ -121,7 +121,7 @@
         <property name="content">
           <object class="AdwOverlaySplitView" id="main_split_view">
             <property name="sidebar-position">end</property>
-            <property name="min-sidebar-width">600</property>
+            <property name="min-sidebar-width">625</property>
             <property name="sidebar">
               <object class="InfoPane" id="info_pane">
               </object>

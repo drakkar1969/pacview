@@ -15,6 +15,10 @@
       </choices>
       <default>'default'</default>
     </key>
+    <key name="infopane-width" type="d">
+      <range min="400" max="1000"/>
+      <default>625</default>
+    </key>
     <key name="property-max-lines" type="d">
       <range min="1" max="10"/>
       <default>3</default>
