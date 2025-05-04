@@ -332,6 +332,7 @@ impl PacViewWindow {
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
         imp.prefs_dialog.set_sidebar_width(gsettings.double("sidebar-width"));
+        imp.prefs_dialog.set_infopane_width(gsettings.double("infopane-width"));
 
         let search_mode = SearchMode::from_str(&gsettings.string("search-mode")).unwrap();
         imp.prefs_dialog.set_search_mode(search_mode);
@@ -343,7 +344,6 @@ impl PacViewWindow {
 
         imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
-        imp.prefs_dialog.set_infopane_width(gsettings.double("infopane-width"));
         imp.prefs_dialog.set_property_max_lines(gsettings.double("property-max-lines"));
         imp.prefs_dialog.set_property_line_spacing(gsettings.double("property-line-spacing"));
 
@@ -390,11 +390,11 @@ impl PacViewWindow {
         Self::set_gsetting(gsettings, "auto-refresh", &imp.prefs_dialog.auto_refresh());
         Self::set_gsetting(gsettings, "aur-update-command", &imp.prefs_dialog.aur_command());
         Self::set_gsetting(gsettings, "sidebar-width", &imp.prefs_dialog.sidebar_width());
+        Self::set_gsetting(gsettings, "infopane-width", &imp.prefs_dialog.infopane_width());
         Self::set_gsetting(gsettings, "search-mode", &imp.prefs_dialog.search_mode().nick());
         Self::set_gsetting(gsettings, "search-prop", &imp.prefs_dialog.search_prop().nick());
         Self::set_gsetting(gsettings, "search-delay", &imp.prefs_dialog.search_delay());
         Self::set_gsetting(gsettings, "remember-sorting", &imp.prefs_dialog.remember_sort());
-        Self::set_gsetting(gsettings, "infopane-width", &imp.prefs_dialog.infopane_width());
         Self::set_gsetting(gsettings, "property-max-lines", &imp.prefs_dialog.property_max_lines());
         Self::set_gsetting(gsettings, "property-line-spacing", &imp.prefs_dialog.property_line_spacing());
 

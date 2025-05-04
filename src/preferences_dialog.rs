@@ -49,6 +49,8 @@ mod imp {
         #[template_child]
         pub(super) sidebar_width_row: TemplateChild<adw::SpinRow>,
         #[template_child]
+        pub(super) infopane_width_row: TemplateChild<adw::SpinRow>,
+        #[template_child]
         pub(super) search_mode_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) search_prop_row: TemplateChild<adw::ComboRow>,
@@ -56,8 +58,6 @@ mod imp {
         pub(super) search_delay_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) remember_sort_row: TemplateChild<adw::SwitchRow>,
-        #[template_child]
-        pub(super) infopane_width_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) property_max_lines_row: TemplateChild<adw::SpinRow>,
         #[template_child]
@@ -73,6 +73,8 @@ mod imp {
         aur_command: RefCell<String>,
         #[property(get, set)]
         sidebar_width: Cell<f64>,
+        #[property(get, set)]
+        infopane_width: Cell<f64>,
         #[property(get, set, builder(SearchMode::default()))]
         search_mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
@@ -81,8 +83,6 @@ mod imp {
         search_delay: Cell<f64>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
-        #[property(get, set)]
-        infopane_width: Cell<f64>,
         #[property(get, set)]
         property_line_spacing: Cell<f64>,
         #[property(get, set)]
@@ -160,16 +160,23 @@ impl PreferencesDialog {
             .sync_create()
             .bidirectional()
             .build();
+
         self.bind_property("auto-refresh", &imp.auto_refresh_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();
+
         self.bind_property("aur-command", &imp.aur_command_row.get(), "text")
             .sync_create()
             .bidirectional()
             .build();
 
         self.bind_property("sidebar-width", &imp.sidebar_width_row.get(), "value")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("infopane-width", &imp.infopane_width_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();
@@ -198,11 +205,6 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("remember-sort", &imp.remember_sort_row.get(), "active")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        self.bind_property("infopane-width", &imp.infopane_width_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();
@@ -302,11 +304,11 @@ impl PreferencesDialog {
                                 dialog.set_auto_refresh(true);
                                 dialog.set_aur_command("");
                                 dialog.set_sidebar_width(240.0);
+                                dialog.set_infopane_width(625.0);
                                 dialog.set_search_mode(SearchMode::default());
                                 dialog.set_search_prop(SearchProp::default());
                                 dialog.set_search_delay(150.0);
                                 dialog.set_remember_sort(false);
-                                dialog.set_infopane_width(625.0);
                                 dialog.set_property_max_lines(3.0);
                                 dialog.set_property_line_spacing(1.3);
                             }

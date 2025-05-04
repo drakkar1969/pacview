@@ -63,7 +63,6 @@
             <child>
               <object class="AdwSpinRow" id="sidebar_width_row">
                 <property name="title">Side_bar Width</property>
-                <property name="subtitle">Sidebar width</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>
                 <property name="snap-to-ticks">true</property>
@@ -74,6 +73,23 @@
                     <property name="step-increment">5</property>
                     <property name="upper">400</property>
                     <property name="value">240</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSpinRow" id="infopane_width_row">
+                <property name="title">In_fo Pane Width</property>
+                <property name="use-underline">true</property>
+                <property name="numeric">true</property>
+                <property name="snap-to-ticks">true</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">400</property>
+                    <property name="page-increment">50</property>
+                    <property name="step-increment">5</property>
+                    <property name="upper">1000</property>
+                    <property name="value">625</property>
                   </object>
                 </property>
               </object>
@@ -149,26 +165,8 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Info Pane</property>
             <child>
-              <object class="AdwSpinRow" id="infopane_width_row">
-                <property name="title">_Width</property>
-                <property name="subtitle">Info pane width</property>
-                <property name="use-underline">true</property>
-                <property name="numeric">true</property>
-                <property name="snap-to-ticks">true</property>
-                <property name="adjustment">
-                  <object class="GtkAdjustment">
-                    <property name="lower">400</property>
-                    <property name="page-increment">50</property>
-                    <property name="step-increment">5</property>
-                    <property name="upper">1000</property>
-                    <property name="value">625</property>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
               <object class="AdwSpinRow" id="property_max_lines_row">
-                <property name="title">Ma_ximum Property Lines</property>
+                <property name="title">Ma_ximum Lines</property>
                 <property name="subtitle">Maximum number of text lines before properties are collapsed</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>
@@ -186,8 +184,8 @@
             </child>
             <child>
               <object class="AdwSpinRow" id="property_line_spacing_row">
-                <property name="title">Property _Line Spacing</property>
-                <property name="subtitle">Vertical spacing between property lines</property>
+                <property name="title">_Line Spacing</property>
+                <property name="subtitle">Vertical spacing between property text lines</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>
                 <property name="digits">2</property>
