@@ -199,35 +199,37 @@ mod imp {
                 let total_lines = measure_layout.line_count();
                 let layout_text_len = layout.text().len();
 
-                // Get max visible index in layout text
-                let max_index = measure_layout.line_readonly(max_lines.checked_sub(1).unwrap_or(0))
-                    .map_or(layout_text_len, |line| (line.start_index() + line.length()) as usize);
-
                 // Set widget can expand property
                 obj.set_can_expand(max_lines < total_lines);
 
                 // Calculate pango layout height
-                let line_height = measure_layout.line_readonly(0)
-                    .map_or(0, |line| {
-                        let (_, rect) = line.pixel_extents();
-
-                        rect.height()
-                    });
-
-                let line_spacing = (line_height as f32 * measure_layout.line_spacing() - line_height as f32).round() as i32;
-
-                let n_lines = if obj.expanded() {
+                let layout_height = if obj.expanded() {
+                    // Set layout max index
                     self.layout_max_index.set(layout_text_len);
 
-                    total_lines
+                    // Get layout height
+                    measure_layout.pixel_size().1
                 } else {
+                    // Set layout max index
+                    let max_index = measure_layout.line_readonly(0.max(max_lines - 1))
+                        .map_or(layout_text_len, |line| (line.start_index() + line.length()) as usize);
+
                     self.layout_max_index.set(max_index);
 
-                    total_lines.min(max_lines)
-                };
+                    // Get layout height
+                    let mut rect = measure_layout.line_readonly(0)
+                        .map_or(pango::Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
 
-                let layout_height = n_lines * line_height +
-                    n_lines.checked_sub(1).unwrap_or_default() * line_spacing;
+                    let n_lines = total_lines.min(max_lines);
+
+                    let line_spacing = (rect.height() as f32 * measure_layout.line_spacing()).round() as i32;
+
+                    rect.set_height(0.max(n_lines - 1) * line_spacing + rect.height());
+
+                    pango::extents_to_pixels(Some(&mut rect), None);
+
+                    rect.height()
+                };
 
                 (layout_height, layout_height, -1, -1)
             }
