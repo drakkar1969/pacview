@@ -10,6 +10,7 @@ use alpm_utils::DbListExt;
 use itertools::Itertools;
 use regex::Regex;
 use glob::glob;
+use size::Size;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, ALPM_HANDLE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgFlags, PkgData};
@@ -172,7 +173,7 @@ mod imp {
         }
 
         fn install_size_string(&self) -> String {
-            super::PkgObject::size_to_string(self.data.get().unwrap().install_size, 1)
+            Size::from_bytes(self.data.get().unwrap().install_size).to_string()
         }
 
         fn show_groups_icon(&self) -> bool {
@@ -329,7 +330,7 @@ impl PkgObject {
 
     pub fn download_size_string(&self) -> &str {
         self.imp().download_size_string.get_or_init(|| {
-            Self::size_to_string(self.imp().data.get().unwrap().download_size, 1)
+            Size::from_bytes(self.imp().data.get().unwrap().download_size).to_string()
         })
     }
 
@@ -458,31 +459,6 @@ impl PkgObject {
                 )
                 .unwrap_or_default()
         })
-    }
-
-    //---------------------------------------
-    // Size to string associated function
-    //---------------------------------------
-    pub fn size_to_string(size: i64, decimals: usize) -> String {
-        let mut size = size as f64;
-
-        if size == 0.0 {
-            String::from("0 B")
-        } else {
-            let mut unit = "";
-
-            for u in ["B", "KiB", "MiB", "GiB", "TiB", "PiB"] {
-                unit = u;
-
-                if size < 1024.0 || u == "PiB" {
-                    break;
-                }
-
-                size /= 1024.0;
-            }
-
-            format!("{size:.decimals$}\u{202F}{unit}")
-        }
     }
 
     //---------------------------------------

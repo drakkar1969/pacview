@@ -28,6 +28,7 @@ rayon = "1"
 regex = "1"
 reqwest = { version = "0.12", features = ["json"] }
 shlex = "1"
+size = "0.5"
 strum = { version = "0.27", features = ["derive"] }
 titlecase = "3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

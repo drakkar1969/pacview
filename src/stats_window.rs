@@ -3,6 +3,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
+use size::Size;
 use titlecase::titlecase;
 
 use crate::pkg_data::PkgFlags;
@@ -203,7 +204,7 @@ impl StatsWindow {
                         &repo,
                         &pkg_count.to_string(),
                         &install_count.to_string(),
-                        &PkgObject::size_to_string(install_size, 2)
+                        &Size::from_bytes(install_size).to_string()
                     ));
 
                     (tot_pkg_count + pkg_count, tot_install_count + install_count, tot_install_size + install_size)
@@ -214,7 +215,7 @@ impl StatsWindow {
                 "<b>Total</b>",
                 &format!("<b>{tot_pkg_count}</b>"),
                 &format!("<b>{tot_install_count}</b>"),
-                &format!("<b>{}</b>", &PkgObject::size_to_string(tot_install_size, 2))
+                &format!("<b>{}</b>", &Size::from_bytes(tot_install_size).to_string())
             ));
 
             imp.model.splice(0, 0, &stats_items);
