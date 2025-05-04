@@ -294,12 +294,6 @@ mod imp {
 
                     attr_list.insert(attr);
 
-                    let mut attr = pango::AttrInt::new_weight(pango::Weight::Medium);
-                    attr.set_start_index(comment.start);
-                    attr.set_end_index(comment.end);
-
-                    attr_list.insert(attr);
-
                     let mut attr = pango::AttrFloat::new_scale(0.9);
                     attr.set_start_index(comment.start);
                     attr.set_end_index(comment.end);
