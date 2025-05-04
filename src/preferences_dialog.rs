@@ -61,6 +61,8 @@ mod imp {
         #[template_child]
         pub(super) property_max_lines_row: TemplateChild<adw::SpinRow>,
         #[template_child]
+        pub(super) property_line_spacing_row: TemplateChild<adw::SpinRow>,
+        #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
         #[property(get, set, builder(ColorScheme::default()))]
@@ -81,6 +83,8 @@ mod imp {
         remember_sort: Cell<bool>,
         #[property(get, set)]
         infopane_width: Cell<f64>,
+        #[property(get, set)]
+        property_line_spacing: Cell<f64>,
         #[property(get, set)]
         property_max_lines: Cell<f64>,
     }
@@ -203,6 +207,11 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
+        self.bind_property("property-line_spacing", &imp.property_line_spacing_row.get(), "value")
+            .sync_create()
+            .bidirectional()
+            .build();
+
         self.bind_property("property-max-lines", &imp.property_max_lines_row.get(), "value")
             .sync_create()
             .bidirectional()
@@ -299,6 +308,7 @@ impl PreferencesDialog {
                                 dialog.set_remember_sort(false);
                                 dialog.set_infopane_width(625.0);
                                 dialog.set_property_max_lines(3.0);
+                                dialog.set_property_line_spacing(1.3);
                             }
                         }
                     )

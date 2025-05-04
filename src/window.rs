@@ -345,6 +345,7 @@ impl PacViewWindow {
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
         imp.prefs_dialog.set_infopane_width(gsettings.double("infopane-width"));
         imp.prefs_dialog.set_property_max_lines(gsettings.double("property-max-lines"));
+        imp.prefs_dialog.set_property_line_spacing(gsettings.double("property-line-spacing"));
 
         // Load package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -395,6 +396,7 @@ impl PacViewWindow {
         Self::set_gsetting(gsettings, "remember-sorting", &imp.prefs_dialog.remember_sort());
         Self::set_gsetting(gsettings, "infopane-width", &imp.prefs_dialog.infopane_width());
         Self::set_gsetting(gsettings, "property-max-lines", &imp.prefs_dialog.property_max_lines());
+        Self::set_gsetting(gsettings, "property-line-spacing", &imp.prefs_dialog.property_line_spacing());
 
         // Save package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -479,9 +481,13 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
-        // Bind info pane property max lines preference
+        // Bind info pane property preferences
         imp.prefs_dialog.bind_property("property-max-lines", &imp.info_pane.get(), "property-max-lines")
             .transform_to(|_, lines: f64| Some(lines.to_i32().unwrap()))
+            .sync_create()
+            .build();
+
+        imp.prefs_dialog.bind_property("property-line-spacing", &imp.info_pane.get(), "property-line-spacing")
             .sync_create()
             .build();
 

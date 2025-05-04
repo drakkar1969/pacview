@@ -53,6 +53,8 @@ mod imp {
         value: RefCell<String>,
         #[property(get, set)]
         max_lines: Cell<i32>,
+        #[property(get, set)]
+        line_spacing: Cell<f64>,
     }
 
     //---------------------------------------
@@ -238,6 +240,10 @@ impl PropertyValue {
             .build();
 
         self.bind_property("max-lines", &imp.text_widget.get(), "max-lines")
+            .sync_create()
+            .build();
+
+        self.bind_property("line-spacing", &imp.text_widget.get(), "line-spacing")
             .sync_create()
             .build();
 

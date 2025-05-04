@@ -85,6 +85,8 @@ mod imp {
         #[property(get, set)]
         max_lines: Cell<i32>,
         #[property(get, set)]
+        line_spacing: Cell<f64>,
+        #[property(get, set)]
         focused: Cell<bool>,
 
         pub(super) layout: OnceCell<pango::Layout>,
@@ -557,7 +559,7 @@ impl TextWidget {
         // Create pango layout
         let layout = imp.draw_area.create_pango_layout(None);
         layout.set_wrap(pango::WrapMode::Word);
-        layout.set_line_spacing(1.15);
+        layout.set_line_spacing(1.3);
 
         imp.layout.set(layout).unwrap();
 
@@ -773,6 +775,21 @@ impl TextWidget {
         self.connect_max_lines_notify(|widget| {
             if !widget.expanded() {
                 widget.imp().draw_area.queue_resize();
+            }
+        });
+
+        // Line spacing property notify signal
+        self.connect_line_spacing_notify(|widget| {
+            let imp = widget.imp();
+
+            let layout = imp.layout.get().unwrap();
+
+            let line_spacing = widget.line_spacing() as f32;
+
+            if line_spacing != layout.line_spacing() {
+                layout.set_line_spacing(line_spacing);
+
+                imp.draw_area.queue_resize();
             }
         });
 

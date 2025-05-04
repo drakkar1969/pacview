@@ -177,6 +177,8 @@ mod imp {
         _pkg: RefCell<Option<PkgObject>>,
         #[property(get, set)]
         property_max_lines: Cell<i32>,
+        #[property(get, set)]
+        property_line_spacing: Cell<f64>,
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
@@ -633,6 +635,10 @@ impl InfoPane {
         ));
 
         self.bind_property("property-max-lines", &property, "max-lines")
+            .sync_create()
+            .build();
+
+        self.bind_property("property-line-spacing", &property, "line-spacing")
             .sync_create()
             .build();
 
