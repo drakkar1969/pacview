@@ -231,7 +231,8 @@ mod imp {
                     rect.height()
                 };
 
-                (layout_height, layout_height, -1, -1)
+                // Note: add 2 to ensure double underline visible on last line
+                (layout_height + 2, layout_height + 2, -1, -1)
             }
         }
 
