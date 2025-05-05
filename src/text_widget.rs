@@ -472,7 +472,7 @@ impl TextWidget {
 
         let color = label.color();
 
-        let fc = |color: f32| -> u16 {(color * u16::MAX as f32) as u16};
+        let fc = |color: f32| -> u16 { (color * u16::MAX as f32) as u16 };
 
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
