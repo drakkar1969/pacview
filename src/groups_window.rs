@@ -291,7 +291,7 @@ impl GroupsWindow {
             #[weak(rename_to = window)] self,
             #[weak] imp,
             move |_| {
-                let mut group = String::new();
+                let mut groups = String::new();
                 let mut body = String::new();
 
                 for item in imp.selection.iter::<glib::Object>().flatten() {
@@ -299,12 +299,12 @@ impl GroupsWindow {
                         .downcast::<GroupsObject>()
                         .expect("Could not downcast to 'GroupsObject'");
 
-                    let pkg_group = pkg.groups();
+                    let pkg_groups = pkg.groups();
 
-                    if pkg_group != group {
-                        writeln!(body, "|**{pkg_group}**||").unwrap();
+                    if pkg_groups != groups {
+                        writeln!(body, "|**{pkg_groups}**||").unwrap();
 
-                        group = pkg_group;
+                        groups = pkg_groups;
                     }
 
                     writeln!(body, "|{package}|{status}|",

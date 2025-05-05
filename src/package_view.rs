@@ -298,7 +298,7 @@ impl PackageView {
         match prop {
             SearchProp::Name => { vec![pkg.name()].into() },
             SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_string()].into() },
-            SearchProp::Group => { vec![pkg.groups()].into() },
+            SearchProp::Groups => { vec![pkg.groups()].into() },
             SearchProp::Deps => { Cow::Borrowed(pkg.depends()) },
             SearchProp::Optdeps => { Cow::Borrowed(pkg.optdepends()) },
             SearchProp::Provides => { Cow::Borrowed(pkg.provides()) },
@@ -357,7 +357,7 @@ impl PackageView {
         let search_by = match prop {
             SearchProp::Name => { raur::SearchBy::Name },
             SearchProp::NameDesc => { raur::SearchBy::NameDesc },
-            SearchProp::Group => { raur::SearchBy::Groups },
+            SearchProp::Groups => { raur::SearchBy::Groups },
             SearchProp::Deps => { raur::SearchBy::Depends },
             SearchProp::Optdeps => { raur::SearchBy::OptDepends },
             SearchProp::Provides => { raur::SearchBy::Provides },

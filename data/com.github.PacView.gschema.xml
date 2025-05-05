@@ -46,7 +46,7 @@
       <choices>
         <choice value='name'/>
         <choice value='name-desc'/>
-        <choice value='group'/>
+        <choice value='groups'/>
         <choice value='deps'/>
         <choice value='optdeps'/>
         <choice value='provides'/>

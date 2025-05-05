@@ -45,8 +45,8 @@ pub enum SearchProp {
     Name,
     #[enum_value(name = "Name or Description")]
     NameDesc,
-    #[enum_value(name = "Group")]
-    Group,
+    #[enum_value(name = "Groups")]
+    Groups,
     #[enum_value(name = "Dependencies")]
     Deps,
     #[enum_value(name = "Optional Dependencies")]

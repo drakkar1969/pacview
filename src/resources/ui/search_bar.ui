@@ -126,9 +126,9 @@
         <attribute name="target">name-desc</attribute>
       </item>
       <item>
-        <attribute name="label">Group</attribute>
+        <attribute name="label">Groups</attribute>
         <attribute name="action">search.set-prop</attribute>
-        <attribute name="target">group</attribute>
+        <attribute name="target">groups</attribute>
       </item>
       <item>
         <attribute name="label">Dependencies</attribute>
