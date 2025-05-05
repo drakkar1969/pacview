@@ -476,7 +476,7 @@ impl TextWidget {
 
         let color = label.color();
 
-        let fc = |color: f32| -> u16 { (color * u16::MAX as f32) as u16 };
+        let fc = |color: f32| -> u16 { (color * f32::from(u16::MAX)) as u16 };
 
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
@@ -501,7 +501,7 @@ impl TextWidget {
         imp.error_fg_color.set((red, green, blue, alpha));
 
         // Initialize cairo error color
-        let fc = |color: u16| -> f64 { color as f64/u16::MAX as f64 };
+        let fc = |color: u16| -> f64 { f64::from(color)/f64::from(u16::MAX) };
 
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
     }
@@ -603,7 +603,7 @@ impl TextWidget {
                 } else {
                     let color = widget.color();
 
-                    (color.red() as f64, color.green() as f64, color.blue() as f64, color.alpha() as f64)
+                    (f64::from(color.red()), f64::from(color.green()), f64::from(color.blue()), f64::from(color.alpha()))
                 };
 
                 context.set_source_rgba(red, green, blue, alpha);
@@ -776,7 +776,7 @@ impl TextWidget {
         imp.error_fg_color.set((red, green, blue, alpha));
 
         // Initialize cairo error color
-        let fc = |color: u16| -> f64 { color as f64/u16::MAX as f64 };
+        let fc = |color: u16| -> f64 { f64::from(color)/f64::from(u16::MAX) };
 
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
 
