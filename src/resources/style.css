@@ -135,6 +135,10 @@ texttag.selection-focus {
 	color: color-mix(in srgb, var(--accent-bg-color) 30%, transparent);
 }
 
+texttag.error {
+	color: var(--error-color);
+}
+
 /* Bubble images */
 image.bubble {
 	border-radius: 50%;

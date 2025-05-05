@@ -86,6 +86,7 @@ mod imp {
 
         // Read only fields
         pub(super) package_url: OnceCell<String>,
+        pub(super) out_of_date_string: OnceCell<String>,
         pub(super) install_date_string: OnceCell<String>,
         pub(super) build_date_string: OnceCell<String>,
         pub(super) download_size_string: OnceCell<String>,
@@ -239,6 +240,16 @@ impl PkgObject {
 
     pub fn popularity(&self) -> &str {
         &self.imp().data.get().unwrap().popularity
+    }
+
+    pub fn out_of_date(&self) -> i64 {
+        self.imp().data.get().unwrap().out_of_date
+    }
+
+    pub fn out_of_date_string(&self) -> &str {
+        self.imp().out_of_date_string.get_or_init(|| {
+            Self::date_to_string(self.imp().data.get().unwrap().out_of_date, "%d %B %Y %H:%M")
+        })
     }
 
     pub fn package_url(&self) -> &str {

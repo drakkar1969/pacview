@@ -33,6 +33,8 @@ enum PropID {
     Description,
     #[enum_value(name = "Popularity")]
     Popularity,
+    #[enum_value(name = "Out of Date")]
+    OutOfDate,
     #[enum_value(name = "Package URL")]
     PackageUrl,
     #[enum_value(name = "URL")]
@@ -300,6 +302,7 @@ impl InfoPane {
         self.add_property(PropID::Version, PropType::Text);
         self.add_property(PropID::Description, PropType::Text);
         self.add_property(PropID::Popularity, PropType::Text);
+        self.add_property(PropID::OutOfDate, PropType::Error);
         self.add_property(PropID::PackageUrl, PropType::Link);
         self.add_property(PropID::Url, PropType::Link);
         self.add_property(PropID::Status, PropType::Text);
@@ -724,6 +727,9 @@ impl InfoPane {
 
         // Popularity
         self.set_property(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
+
+        // Out of Date
+        self.set_property(PropID::OutOfDate, ValueType::StrOptNum(pkg.out_of_date_string(), pkg.out_of_date()));
 
         // Package URL
         self.set_property(PropID::PackageUrl, ValueType::StrOpt(pkg.package_url()));

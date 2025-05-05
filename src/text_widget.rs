@@ -31,6 +31,7 @@ pub enum PropType {
     Link,
     Packager,
     LinkList,
+    Error,
 }
 
 //------------------------------------------------------------------------------
@@ -97,6 +98,9 @@ mod imp {
         pub(super) comment_fg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) sel_bg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) sel_focus_bg_color: Cell<(u16, u16, u16, u16)>,
+        pub(super) error_fg_color: Cell<(u16, u16, u16, u16)>,
+
+        pub(super) cairo_error_color: Cell<(f64, f64, f64, f64)>,
 
         pub(super) link_list: RefCell<Vec<TextTag>>,
         pub(super) comment_list: RefCell<Vec<TextTag>>,
@@ -492,6 +496,14 @@ impl TextWidget {
         imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
         imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
         imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
+
+        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
+        imp.error_fg_color.set((red, green, blue, alpha));
+
+        // Initialize cairo error color
+        let fc = |color: u16| -> f64 { color as f64/u16::MAX as f64 };
+
+        imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
     }
 
     //---------------------------------------
@@ -586,9 +598,15 @@ impl TextWidget {
                 layout.set_attributes(Some(&attr_list));
 
                 // Show pango layout
-                let text_color = widget.color();
+                let (red, green, blue, alpha) = if widget.ptype() == PropType::Error {
+                    imp.cairo_error_color.get()
+                } else {
+                    let color = widget.color();
 
-                context.set_source_rgba(f64::from(text_color.red()), f64::from(text_color.green()), f64::from(text_color.blue()), f64::from(text_color.alpha()));
+                    (color.red() as f64, color.green() as f64, color.blue() as f64, color.alpha() as f64)
+                };
+
+                context.set_source_rgba(red, green, blue, alpha);
                 context.move_to(0.0, 0.0);
 
                 pangocairo::functions::show_layout(context, layout);
@@ -753,6 +771,14 @@ impl TextWidget {
         imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
         imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
         imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
+
+        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
+        imp.error_fg_color.set((red, green, blue, alpha));
+
+        // Initialize cairo error color
+        let fc = |color: u16| -> f64 { color as f64/u16::MAX as f64 };
+
+        imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
 
         // Format pango layout text
         imp.set_layout_attributes();
