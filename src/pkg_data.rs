@@ -3,35 +3,6 @@ use gtk::glib;
 use itertools::Itertools;
 
 //------------------------------------------------------------------------------
-// GLOBAL: Helper functions
-//------------------------------------------------------------------------------
-fn alpm_list_to_string(list: alpm::AlpmList<&str>) -> String {
-    list.iter()
-        .sorted_unstable()
-        .join(" | ")
-}
-
-fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
-    list.iter()
-        .map(ToString::to_string)
-        .sorted_unstable()
-        .collect()
-}
-
-fn aur_vec_to_string(slice: &[String]) -> String {
-    slice.iter()
-        .sorted_unstable()
-        .join(" | ")
-}
-
-fn aur_sorted_vec(slice: &[String]) -> Vec<String> {
-    slice.iter()
-        .map(String::from)
-        .sorted_unstable()
-        .collect()
-}
-
-//------------------------------------------------------------------------------
 // FLAGS: PkgFlags
 //------------------------------------------------------------------------------
 #[glib::flags(name = "PkgFlags")]
@@ -82,11 +53,29 @@ pub struct PkgData {
     pub sha256sum: String,
 }
 
-//---------------------------------------
-// Constructors
-//---------------------------------------
+//------------------------------------------------------------------------------
+// IMPLEMENTATION: PkgData
+//------------------------------------------------------------------------------
 impl PkgData {
+    //---------------------------------------
+    // Alpm constructor
+    //---------------------------------------
     pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: &[String]) -> Self {
+        // Helper closures
+        let alpm_list_to_string = |list: alpm::AlpmList<&str>| -> String {
+            list.iter()
+                .sorted_unstable()
+                .join(" | ")
+        };
+
+        let alpm_deplist_to_vec = |list: alpm::AlpmList<&alpm::Dep>| -> Vec<String> {
+            list.iter()
+                .map(ToString::to_string)
+                .sorted_unstable()
+                .collect()
+        };
+        
+        // Build PkgData
         let (flags, version, install_date) = local_pkg
             .map(|pkg|
                 (
@@ -147,7 +136,25 @@ impl PkgData {
         }
     }
 
+    //---------------------------------------
+    // AUR constructor
+    //---------------------------------------
     pub fn from_aur(pkg: &raur::Package) -> Self {
+        // Helper closures
+        let aur_vec_to_string = |slice: &[String]| -> String {
+            slice.iter()
+                .sorted_unstable()
+                .join(" | ")
+        };
+        
+        let aur_sorted_vec = |slice: &[String]| -> Vec<String> {
+            slice.iter()
+                .map(String::from)
+                .sorted_unstable()
+                .collect()
+        };
+
+        // Build PkgData
         Self {
             flags: PkgFlags::NONE,
             name: pkg.name.to_string(),
