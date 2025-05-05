@@ -57,14 +57,8 @@ label.count-indicator {
 }
 
 /* Info pane scrolled windows */
-scrolledwindow.no-shadow > overshoot.top,
-scrolledwindow.no-shadow > overshoot.bottom {
-	background-image: none;
-	box-shadow: none;
-}
-
-scrolledwindow.no-shadow > undershoot.top,
-scrolledwindow.no-shadow > undershoot.bottom {
+scrolledwindow.no-undershoot > undershoot.top,
+scrolledwindow.no-undershoot > undershoot.bottom {
 	background-image: none;
 	box-shadow: none;
 }

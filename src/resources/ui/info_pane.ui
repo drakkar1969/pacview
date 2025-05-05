@@ -117,7 +117,7 @@
                                     <property name="margin-start">16</property>
                                     <property name="margin-end">16</property>
                                     <property name="margin-top">6</property>
-                                    <property name="margin-bottom">16</property>
+                                    <property name="margin-bottom">6</property>
                                     <property name="selection-mode">none</property>
                                     <property name="tab-behavior">item</property>
                                     <style>
@@ -219,53 +219,59 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkScrolledWindow">
+                              <object class="GtkBox">
                                 <style>
                                   <class name="card"/>
-                                  <class name="no-shadow"/>
                                 </style>
-                                <property name="hexpand">true</property>
-                                <property name="vexpand">true</property>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
-                                <property name="margin-bottom">16</property>
-                                <property name="child">
-                                  <object class="GtkListView" id="files_view">
+                                <property name="margin-bottom">6</property>
+                                <child>
+                                  <object class="GtkScrolledWindow">
                                     <style>
-                                      <class name="card-list"/>
+                                      <class name="no-undershoot"/>
                                     </style>
-                                    <property name="margin-start">12</property>
-                                    <property name="margin-end">12</property>
+                                    <property name="hexpand">true</property>
+                                    <property name="vexpand">true</property>
                                     <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
-                                    <property name="tab-behavior">item</property>
-                                    <property name="model">
-                                      <object class="GtkSingleSelection" id="files_selection">
+                                    <property name="child">
+                                      <object class="GtkListView" id="files_view">
+                                        <style>
+                                          <class name="card-list"/>
+                                        </style>
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-end">12</property>
+                                        <property name="tab-behavior">item</property>
                                         <property name="model">
-                                          <object class="GtkFilterListModel" id="files_filter_model">
-                                            <property name="filter">
-                                              <object class="GtkStringFilter" id="files_filter">
-                                                <property name="expression">
-                                                  <lookup name="string" type="GtkStringObject"/>
-                                                </property>
-                                              </object>
-                                            </property>
+                                          <object class="GtkSingleSelection" id="files_selection">
                                             <property name="model">
-                                              <object class="GListStore" id="files_model">
-                                                <property name="item-type">GtkStringObject</property>
+                                              <object class="GtkFilterListModel" id="files_filter_model">
+                                                <property name="filter">
+                                                  <object class="GtkStringFilter" id="files_filter">
+                                                    <property name="expression">
+                                                      <lookup name="string" type="GtkStringObject"/>
+                                                    </property>
+                                                  </object>
+                                                </property>
+                                                <property name="model">
+                                                  <object class="GListStore" id="files_model">
+                                                    <property name="item-type">GtkStringObject</property>
+                                                  </object>
+                                                </property>
                                               </object>
                                             </property>
                                           </object>
                                         </property>
-                                      </object>
-                                    </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
+                                          </object>
+                                        </property>
                                       </object>
                                     </property>
                                   </object>
-                                </property>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -318,42 +324,48 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkScrolledWindow">
+                              <object class="GtkBox">
                                 <style>
                                   <class name="card"/>
-                                  <class name="no-shadow"/>
                                 </style>
-                                <property name="hexpand">true</property>
-                                <property name="vexpand">true</property>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
-                                <property name="margin-bottom">16</property>
-                                <property name="child">
-                                  <object class="GtkListView" id="log_view">
+                                <property name="margin-bottom">6</property>
+                                <child>
+                                  <object class="GtkScrolledWindow">
                                     <style>
-                                      <class name="card-list"/>
+                                      <class name="no-undershoot"/>
                                     </style>
-                                    <property name="margin-start">12</property>
-                                    <property name="margin-end">12</property>
+                                    <property name="hexpand">true</property>
+                                    <property name="vexpand">true</property>
                                     <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
-                                    <property name="tab-behavior">item</property>
-                                    <property name="model">
-                                      <object class="GtkNoSelection" id="log_selection">
+                                    <property name="child">
+                                      <object class="GtkListView" id="log_view">
+                                        <style>
+                                          <class name="card-list"/>
+                                        </style>
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-end">12</property>
+                                        <property name="tab-behavior">item</property>
                                         <property name="model">
-                                          <object class="GListStore" id="log_model">
-                                            <property name="item-type">GtkStringObject</property>
+                                          <object class="GtkNoSelection" id="log_selection">
+                                            <property name="model">
+                                              <object class="GListStore" id="log_model">
+                                                <property name="item-type">GtkStringObject</property>
+                                              </object>
+                                            </property>
+                                          </object>
+                                        </property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/log_item.ui</property>
                                           </object>
                                         </property>
                                       </object>
                                     </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/log_item.ui</property>
-                                      </object>
-                                    </property>
                                   </object>
-                                </property>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -438,42 +450,48 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkScrolledWindow">
+                              <object class="GtkBox">
                                 <style>
                                   <class name="card"/>
-                                  <class name="no-shadow"/>
                                 </style>
-                                <property name="hexpand">true</property>
-                                <property name="vexpand">true</property>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
-                                <property name="margin-bottom">16</property>
-                                <property name="child">
-                                  <object class="GtkListView" id="cache_view">
+                                <property name="margin-bottom">6</property>
+                                <child>
+                                  <object class="GtkScrolledWindow">
                                     <style>
-                                      <class name="card-list"/>
+                                      <class name="no-undershoot"/>
                                     </style>
-                                    <property name="margin-start">12</property>
-                                    <property name="margin-end">12</property>
+                                    <property name="hexpand">true</property>
+                                    <property name="vexpand">true</property>
                                     <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
-                                    <property name="tab-behavior">item</property>
-                                    <property name="model">
-                                      <object class="GtkSingleSelection" id="cache_selection">
+                                    <property name="child">
+                                      <object class="GtkListView" id="cache_view">
+                                        <style>
+                                          <class name="card-list"/>
+                                        </style>
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-end">12</property>
+                                        <property name="tab-behavior">item</property>
                                         <property name="model">
-                                          <object class="GListStore" id="cache_model">
-                                            <property name="item-type">GtkStringObject</property>
+                                          <object class="GtkSingleSelection" id="cache_selection">
+                                            <property name="model">
+                                              <object class="GListStore" id="cache_model">
+                                                <property name="item-type">GtkStringObject</property>
+                                              </object>
+                                            </property>
+                                          </object>
+                                        </property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/cache_item.ui</property>
                                           </object>
                                         </property>
                                       </object>
                                     </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/cache_item.ui</property>
-                                      </object>
-                                    </property>
                                   </object>
-                                </property>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -558,42 +576,48 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkScrolledWindow">
+                              <object class="GtkBox">
                                 <style>
                                   <class name="card"/>
-                                  <class name="no-shadow"/>
                                 </style>
-                                <property name="hexpand">true</property>
-                                <property name="vexpand">true</property>
                                 <property name="margin-start">16</property>
                                 <property name="margin-end">16</property>
-                                <property name="margin-bottom">16</property>
-                                <property name="child">
-                                  <object class="GtkListView" id="backup_view">
+                                <property name="margin-bottom">6</property>
+                                <child>
+                                  <object class="GtkScrolledWindow">
                                     <style>
-                                      <class name="card-list"/>
+                                      <class name="no-undershoot"/>
                                     </style>
-                                    <property name="margin-start">12</property>
-                                    <property name="margin-end">12</property>
+                                    <property name="hexpand">true</property>
+                                    <property name="vexpand">true</property>
                                     <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
-                                    <property name="tab-behavior">item</property>
-                                    <property name="model">
-                                      <object class="GtkSingleSelection" id="backup_selection">
+                                    <property name="child">
+                                      <object class="GtkListView" id="backup_view">
+                                        <style>
+                                          <class name="card-list"/>
+                                        </style>
+                                        <property name="margin-start">12</property>
+                                        <property name="margin-end">12</property>
+                                        <property name="tab-behavior">item</property>
                                         <property name="model">
-                                          <object class="GListStore" id="backup_model">
-                                            <property name="item-type">BackupObject</property>
+                                          <object class="GtkSingleSelection" id="backup_selection">
+                                            <property name="model">
+                                              <object class="GListStore" id="backup_model">
+                                                <property name="item-type">BackupObject</property>
+                                              </object>
+                                            </property>
+                                          </object>
+                                        </property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
                                           </object>
                                         </property>
                                       </object>
                                     </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
-                                      </object>
-                                    </property>
                                   </object>
-                                </property>
+                                </child>
                               </object>
                             </child>
                           </object>
