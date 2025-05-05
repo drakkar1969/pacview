@@ -218,7 +218,7 @@ mod imp {
 
                     // Get layout height
                     let mut rect = measure_layout.line_readonly(0)
-                        .map_or(pango::Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
+                        .map_or_else(|| pango::Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
 
                     let n_lines = total_lines.min(max_lines);
 
