@@ -128,7 +128,7 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.set_css_name("search-bar");
+            klass.set_css_name("searchbar");
 
             // Cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, |bar| {

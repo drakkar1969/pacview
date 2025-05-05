@@ -1,23 +1,23 @@
 /* Search bar */
-search-bar button {
+searchbar button {
 	background: none;
 }
 
-search-bar button.toggle {
+searchbar button.toggle {
 	min-height: 24px;
 	min-width: 24px;
 	margin: 5px 0;
 }
 
-search-bar button.toggle:checked {
+searchbar button.toggle:checked {
 	background: color-mix(in srgb, currentColor 10%, transparent);
 }
 
-search-bar image:not(:hover) {
+searchbar image:not(:hover) {
 	opacity: 0.7;
 }
 
-search-bar button.toggle:checked image {
+searchbar button.toggle:checked image {
 	opacity: 1.0;
 }
 
@@ -33,15 +33,15 @@ searchtag label {
 }
 
 /* Sidebar error button */
-row.filter-row menubutton {
+.filter-row menubutton {
 	margin: 0;
 }
 
-row.filter-row button {
+.filter-row button {
 	margin: 0;
 }
 
-row.filter-row menubutton > button {
+.filter-row menubutton > button {
 	min-height: 28px;
 	min-width: 28px;
 	margin: 3px 0;
@@ -88,7 +88,7 @@ label.count-superscript {
 	border-bottom-right-radius: var(--window-radius);
 }
 
-/* Info pane property row label */
+/* Info pane property row box */
 box.property {
 	min-height: 1.4em;
 }
@@ -101,7 +101,6 @@ button.property {
 	padding: 0.25em 0.5em;
 }
 
-/* Info pane property row expand button */
 button.property image {
 	-gtk-icon-size: 12px;
 	transition: -gtk-icon-transform 200ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -136,12 +135,10 @@ texttag.selection-focus {
 	color: color-mix(in srgb, var(--accent-bg-color) 30%, transparent);
 }
 
-/* Dialog images */
+/* Bubble images */
 image.bubble {
 	border-radius: 50%;
 	background: color-mix(in srgb, currentColor 15%, transparent);
-	min-width: 36px;
-	min-height: 36px;
 }
 
 image.bubble.medium {
@@ -149,12 +146,7 @@ image.bubble.medium {
 	min-height: 44px;
 }
 
-image.bubble.large {
-	min-width: 64px;
-	min-height: 64px;
-}
-
-/* Dialog round controls */
+/* Round controls */
 entry.round {
 	border-radius: 9999px;
 	padding-right: 12px;
@@ -180,7 +172,7 @@ dropdown.round > button.toggle {
 	padding-left: 20px;
 }
 
-/* Dialog lists */
+/* Card lists */
 listview.card-list {
 	background-color: transparent;
 }
