@@ -1069,13 +1069,15 @@ impl PacViewWindow {
         gio::spawn_blocking(move ||{
             match alpm_utils::alpm_with_conf(pacman_config) {
                 Ok(handle) => {
+                    let localdb = handle.localdb();
+                    let syncdbs = handle.syncdbs();
+
                     // Load pacman sync packages
-                    let mut pkg_data: Vec<PkgData> = handle
-                        .syncdbs().iter()
+                    let mut pkg_data: Vec<PkgData> = syncdbs.iter()
                         .flat_map(|db|
                             db.pkgs().iter()
                                 .map(|sync_pkg| {
-                                    let local_pkg = handle.localdb().pkg(sync_pkg.name()).ok();
+                                    let local_pkg = localdb.pkg(sync_pkg.name()).ok();
 
                                     PkgData::from_alpm(sync_pkg, local_pkg, &aur_names)
                                 })
@@ -1083,9 +1085,8 @@ impl PacViewWindow {
                         .collect();
 
                     // Load pacman local packages not in sync databases
-                    pkg_data.extend(handle
-                        .localdb().pkgs().iter()
-                        .filter(|pkg| handle.syncdbs().pkg(pkg.name()).is_err())
+                    pkg_data.extend(localdb.pkgs().iter()
+                        .filter(|pkg| syncdbs.pkg(pkg.name()).is_err())
                         .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), &aur_names))
                     );
 
