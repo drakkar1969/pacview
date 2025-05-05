@@ -487,33 +487,44 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Find satisfier associated function
+    // Satisfier associated functions
     //---------------------------------------
-    pub fn find_satisfier(search_term: &str, include_sync: bool) -> Option<Self> {
+    pub fn has_local_satisfier(search_term: &str) -> Option<bool> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
             alpm_handle.as_ref()
                 .and_then(|handle| {
-                    let mut pkg = handle.localdb().pkgs().find_satisfier(search_term)
+                    handle.localdb().pkgs().find_satisfier(search_term)
+                        .map(|local_pkg|
+                            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names|
+                                installed_pkg_names.contains(local_pkg.name())
+                            )
+                        )
+                })
+        })
+    }
+
+    pub fn find_satisfier(search_term: &str) -> Option<Self> {
+        ALPM_HANDLE.with_borrow(|alpm_handle| {
+            alpm_handle.as_ref()
+                .and_then(|handle| {
+                    handle.localdb().pkgs().find_satisfier(search_term)
                         .and_then(|local_pkg|
                             INSTALLED_PKGS.with_borrow(|installed_pkgs|
                                 installed_pkgs.iter()
                                     .find(|&pkg| pkg.name() == local_pkg.name())
                                     .cloned()
                             )
-                        );
-
-                    if include_sync && pkg.is_none() {
-                        pkg = handle.syncdbs().find_satisfier(search_term)
-                            .and_then(|sync_pkg|
-                                PKGS.with_borrow(|pkgs|
-                                    pkgs.iter()
-                                        .find(|&pkg| pkg.name() == sync_pkg.name())
-                                        .cloned()
+                        )
+                        .or_else(|| {
+                            handle.syncdbs().find_satisfier(search_term)
+                                .and_then(|sync_pkg|
+                                    PKGS.with_borrow(|pkgs|
+                                        pkgs.iter()
+                                            .find(|&pkg| pkg.name() == sync_pkg.name())
+                                            .cloned()
+                                    )
                                 )
-                            );
-                    }
-
-                    pkg
+                        })
                 })
         })
     }

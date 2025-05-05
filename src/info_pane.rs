@@ -264,7 +264,7 @@ impl InfoPane {
             // Find link package in pacman databases
             let pkg_link = format!("{pkg_name}{pkg_version}");
 
-            let pkg = PkgObject::find_satisfier(&pkg_link, true);
+            let pkg = PkgObject::find_satisfier(&pkg_link);
 
             // Find link package in AUR search results
             let new_pkg = pkg.as_ref()
@@ -693,8 +693,8 @@ impl InfoPane {
             optdepends.iter()
                 .map(|dep|
                     if dep.split_once([':'])
-                        .and_then(|(name, _)| PkgObject::find_satisfier(name, false))
-                        .is_some()
+                        .and_then(|(name, _)| PkgObject::has_local_satisfier(name))
+                        .unwrap_or_default()
                     {
                         format!("{dep}{INSTALLED_LABEL}")
                     } else {
