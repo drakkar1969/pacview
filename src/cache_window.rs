@@ -8,7 +8,7 @@ use glib::clone;
 use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, slice::ParallelSliceMut};
 
 use crate::cache_object::CacheObject;
-use crate::utils::open_with_default_app;
+use crate::utils::open_containing_folder;
 
 //------------------------------------------------------------------------------
 // MODULE: CacheWindow
@@ -193,7 +193,7 @@ impl CacheWindow {
                     .and_downcast::<CacheObject>()
                     .expect("Could not downcast to 'CacheObject'");
 
-                open_with_default_app(&item.filename());
+                open_containing_folder(&item.filename());
             }
         ));
 

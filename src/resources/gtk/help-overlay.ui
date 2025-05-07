@@ -346,7 +346,7 @@
             <child>
               <object class="GtkShortcutsShortcut">
                 <property name="accelerator">&lt;ctrl&gt;O</property>
-                <property name="title">Open Cache File</property>
+                <property name="title">Show Cache File in Folder</property>
               </object>
             </child>
             <child>

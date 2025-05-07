@@ -40,8 +40,16 @@ pub async fn run_command_async(cmd: &str) -> io::Result<(Option<i32>, String)> {
 }
 
 //---------------------------------------
-// Open with default app function
+// Open functions
 //---------------------------------------
+pub fn open_containing_folder(path: &str) {
+    let uri = format!("file://{path}");
+
+    if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
+        let _res = desktop.launch_uris(&[&uri], None::<&gio::AppLaunchContext>);
+    }
+}
+
 pub fn open_with_default_app(path: &str) {
     let uri = format!("file://{path}");
 
