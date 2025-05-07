@@ -198,6 +198,9 @@
     <object class="LogWindow" id="log_window">
       <property name="transient-for">PacViewWindow</property>
     </object>
+    <object class="CacheWindow" id="cache_window">
+      <property name="transient-for">PacViewWindow</property>
+    </object>
     <object class="GroupsWindow" id="groups_window">
       <property name="transient-for">PacViewWindow</property>
     </object>
@@ -250,6 +253,10 @@
         <item>
           <attribute name="label">Pacman Log</attribute>
           <attribute name="action">win.show-pacman-log</attribute>
+        </item>
+        <item>
+          <attribute name="label">Pacman Cache</attribute>
+          <attribute name="action">win.show-pacman-cache</attribute>
         </item>
         <item>
           <attribute name="label">Pacman Groups</attribute>

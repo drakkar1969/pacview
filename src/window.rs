@@ -34,6 +34,7 @@ use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
 use crate::groups_window::GroupsWindow;
 use crate::log_window::LogWindow;
+use crate::cache_window::CacheWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::{PreferencesDialog, ColorScheme};
 use crate::enum_traits::EnumExt;
@@ -106,6 +107,8 @@ mod imp {
         pub(super) backup_window: TemplateChild<BackupWindow>,
         #[template_child]
         pub(super) log_window: TemplateChild<LogWindow>,
+        #[template_child]
+        pub(super) cache_window: TemplateChild<CacheWindow>,
         #[template_child]
         pub(super) groups_window: TemplateChild<GroupsWindow>,
         #[template_child]
@@ -187,6 +190,9 @@ mod imp {
 
             // Pacman log window key binding
             klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-log");
+
+            // Pacman cache window key binding
+            klass.add_binding_action(gdk::Key::H, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-cache");
 
             // Pacman groups window key binding
             klass.add_binding_action(gdk::Key::G, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-groups");
@@ -642,6 +648,15 @@ impl PacViewWindow {
             })
             .build();
 
+        // Show pacman cache window action
+        let cache_action = gio::ActionEntry::builder("show-pacman-cache")
+            .activate(|window: &Self, _, _| {
+                let pacman_config = PACMAN_CONFIG.get().unwrap();
+
+                window.imp().cache_window.show(&pacman_config.cache_dir);
+            })
+            .build();
+
         // Show pacman groups window action
         let groups_action = gio::ActionEntry::builder("show-pacman-groups")
             .activate(|window: &Self, _, _| {
@@ -659,7 +674,7 @@ impl PacViewWindow {
             .build();
 
         // Add window actions to window
-        self.add_action_entries([stats_action, backup_action, log_action, groups_action, config_action]);
+        self.add_action_entries([stats_action, backup_action, log_action, cache_action, groups_action, config_action]);
 
         // Show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
@@ -1038,6 +1053,7 @@ impl PacViewWindow {
         // Clear windows
         imp.backup_window.remove_all();
         imp.log_window.remove_all();
+        imp.cache_window.remove_all();
         imp.groups_window.remove_all();
         imp.stats_window.remove_all();
 

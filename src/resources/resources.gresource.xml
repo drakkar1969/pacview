@@ -8,6 +8,7 @@
     <file alias="expander-symbolic.svg">icons/expander-symbolic.svg</file>
     <file alias="info-item-symbolic.svg">icons/info-item-symbolic.svg</file>
     <file alias="info-archive-symbolic.svg">icons/info-archive-symbolic.svg</file>
+    <file alias="info-signed-symbolic.svg">icons/info-signed-symbolic.svg</file>
     <file alias="info-files-symbolic.svg">icons/info-files-symbolic.svg</file>
     <file alias="info-log-symbolic.svg">icons/info-log-symbolic.svg</file>
     <file alias="info-cache-symbolic.svg">icons/info-cache-symbolic.svg</file>
@@ -38,6 +39,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/filename_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/section_header.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/cache_window/cache_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/package_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/section_header.ui</file>
@@ -55,6 +57,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/cache_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/config_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window.ui</file>
