@@ -194,7 +194,11 @@ mod imp {
                 (width, width, -1, -1)
             } else {
                 if for_size != -1 {
+                    // Calculate natural height
                     measure_layout.set_width(for_size * pango::SCALE);
+                } else {
+                    // Calculate minimum height
+                    measure_layout.set_width(-1);
                 }
 
                 let obj = self.obj();
