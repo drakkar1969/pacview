@@ -46,12 +46,9 @@ mod imp {
             let application = self.obj();
 
             // Show main window
-            let window = if let Some(window) = application.active_window() {
-                window
-            } else {
-                let window = PacViewWindow::new(&application);
-                window.upcast()
-            };
+            let window = application.active_window().map_or_else(|| {
+                PacViewWindow::new(&application).upcast()
+            }, |window| window);
 
             window.present();
         }
