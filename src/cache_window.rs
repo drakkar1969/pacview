@@ -250,19 +250,16 @@ impl CacheWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get cache files
-            let mut cache_files = cache_dirs.par_iter()
+            let mut cache_files: Vec<String> = cache_dirs.par_iter()
                 .flat_map(|dir| {
-                    let read_dir = fs::read_dir(dir);
-
-                    read_dir.map(|read_dir| {
+                    fs::read_dir(dir).map_or(vec![], |read_dir| {
                         read_dir.into_iter()
                             .flatten()
                             .map(|entry| entry.path().display().to_string())
-                            .collect::<Vec<_>>()
+                            .collect()
                     })
-                    .unwrap_or_default()
                 })
-                .collect::<Vec<_>>();
+                .collect();
 
             cache_files.par_sort_unstable();
 
