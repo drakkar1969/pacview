@@ -274,7 +274,7 @@ impl LogWindow {
             }
 
             // Read log lines
-            let log_lines = log.map_or(vec![], |log| {
+            let log_lines: Vec<LogLine> = log.map_or(vec![], |log| {
                 // Strip ANSI control sequences from log
                 static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
 
