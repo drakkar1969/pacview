@@ -196,7 +196,7 @@
                                     </child>
                                     <child>
                                       <object class="GtkButton" id="files_open_button">
-                                        <property name="icon-name">folder-open-symbolic</property>
+                                        <property name="icon-name">document-open-symbolic</property>
                                         <property name="tooltip-text">Open</property>
                                         <style>
                                           <class name="flat"/>
@@ -553,7 +553,7 @@
                                     <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkButton" id="backup_open_button">
-                                        <property name="icon-name">folder-open-symbolic</property>
+                                        <property name="icon-name">document-open-symbolic</property>
                                         <property name="tooltip-text">Open</property>
                                         <style>
                                           <class name="flat"/>
