@@ -820,22 +820,32 @@ impl InfoPane {
         let imp = self.imp();
 
         // Populate log view
-        let log_lines: Vec<gtk::StringObject> = pkg.log().iter()
-            .map(|line| gtk::StringObject::new(line))
-            .collect();
+        pkg.log_async(clone!(
+            #[weak] imp,
+            move |log| {
+                let log_lines: Vec<gtk::StringObject> = log.iter()
+                    .map(|line| gtk::StringObject::new(line))
+                    .collect();
 
-        imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
+                imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
+            }
+        ));
     }
 
     fn update_cache_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
         // Populate cache view
-        let cache_list: Vec<gtk::StringObject> = pkg.cache().iter()
-            .map(|cache_file| gtk::StringObject::new(cache_file))
-            .collect();
+        pkg.cache_async(clone!(
+            #[weak] imp,
+            move |cache| {
+                let cache_list: Vec<gtk::StringObject> = cache.iter()
+                    .map(|cache_file| gtk::StringObject::new(cache_file))
+                    .collect();
 
-        imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+                imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+            }
+        ));
     }
 
     fn update_backup_view(&self, pkg: &PkgObject) {

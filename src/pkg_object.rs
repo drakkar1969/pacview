@@ -5,12 +5,13 @@ use std::cmp::Ordering;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
+use glib::clone;
 
 use alpm_utils::DbListExt;
-use itertools::Itertools;
 use regex::Regex;
 use glob::glob;
 use size::Size;
+use rayon::{iter::{ParallelBridge, ParallelIterator},slice::ParallelSliceMut};
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, ALPM_HANDLE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgFlags, PkgData};
@@ -257,9 +258,9 @@ impl PkgObject {
             let default_repos = ["core", "extra", "multilib"];
 
             let data = self.imp().data.get().unwrap();
-    
+
             let repo = &data.repository;
-    
+
             if default_repos.contains(&repo.as_str()) {
                 format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
                     arch=data.architecture,
@@ -359,11 +360,14 @@ impl PkgObject {
     pub fn required_by(&self) -> &[String] {
         self.imp().required_by.get_or_init(|| {
             self.pkg()
-                .map(|pkg|
-                    pkg.required_by().into_iter()
-                        .sorted_unstable()
-                        .collect::<Vec<String>>()
-                )
+                .map(|pkg| {
+                    let mut required_by = pkg.required_by().into_iter().par_bridge()
+                        .collect::<Vec<String>>();
+
+                    required_by.par_sort_unstable();
+
+                    required_by
+                })
                 .unwrap_or_default()
         })
     }
@@ -371,11 +375,14 @@ impl PkgObject {
     pub fn optional_for(&self) -> &[String] {
         self.imp().optional_for.get_or_init(|| {
             self.pkg()
-                .map(|pkg|
-                    pkg.optional_for().into_iter()
-                        .sorted_unstable()
-                        .collect::<Vec<String>>()
-                )
+                .map(|pkg| {
+                    let mut optional_for = pkg.optional_for().into_iter().par_bridge()
+                        .collect::<Vec<String>>();
+
+                    optional_for.par_sort_unstable();
+
+                    optional_for
+                })
                 .unwrap_or_default()
         })
     }
@@ -384,70 +391,19 @@ impl PkgObject {
         let imp = self.imp();
 
         imp.files.get_or_init(|| {
-            let pacman_config = PACMAN_CONFIG.get().unwrap();
-
             self.pkg()
-                .map(|pkg|
-                    pkg.files().files().iter()
-                        .map(|file| format!("{}{}", pacman_config.root_dir, file.name()))
-                        .sorted_unstable()
-                        .collect()
-                )
-                .unwrap_or_default()
-        })
-    }
+                .map(|pkg| {
+                    let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
 
-    pub fn log(&self) -> &[String] {
-        PACMAN_LOG.with_borrow(|pacman_log| {
-            self.imp().log.get_or_init(|| {
-                pacman_log.as_ref().map_or(vec![], |log| {
-                    let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&self.name())))
-                        .expect("Regex error");
+                    let mut files: Vec<String> = pkg.files().files().iter().par_bridge()
+                        .map(|file| format!("{}{}", root_dir, file.name()))
+                        .collect();
 
-                    log.lines().rev()
-                        .filter_map(|s|
-                            if expr.is_match(s) {
-                                Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
-                            } else {
-                                None
-                            }
-                        )
-                        .collect()
+                    files.par_sort_unstable();
+
+                    files
                 })
-            })
-        })
-    }
-
-    pub fn cache(&self) -> &[String] {
-        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-            self.imp().cache.get_or_init(|| {
-                let pkg_name = self.name();
-
-                // Get cache blacklist package names
-                let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
-                    .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
-                    .collect();
-
-                let pacman_config = PACMAN_CONFIG.get().unwrap();
-
-                pacman_config.cache_dir.iter()
-                    .flat_map(|dir| {
-                        glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
-                            .expect("Glob pattern error")
-                            .flatten()
-                            .filter_map(|path| {
-                                let cache_file = path.display().to_string();
-
-                                // Exclude cache files that include blacklist package names
-                                if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
-                                    None
-                                } else {
-                                    Some(cache_file)
-                                }
-                            })
-                    })
-                    .collect::<Vec<String>>()
-            })
+                .unwrap_or_default()
         })
     }
 
@@ -455,21 +411,135 @@ impl PkgObject {
         let imp = self.imp();
 
         imp.backup.get_or_init(|| {
-            let pacman_config = PACMAN_CONFIG.get().unwrap();
-
             self.pkg()
-                .map(|pkg|
-                    pkg.backup().iter()
+                .map(|pkg| {
+                    let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
+                    let pkg_name = self.name();
+
+                    let mut backup: Vec<PkgBackup> = pkg.backup().iter().par_bridge()
                         .map(|backup|
-                            PkgBackup::new(&format!("{}{}", pacman_config.root_dir, backup.name()), backup.hash(), pkg.name())
+                            PkgBackup::new(&format!("{}{}", root_dir, backup.name()), backup.hash(), &pkg_name)
                         )
-                        .sorted_unstable_by(|backup_a, backup_b|
-                            backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
-                        )
-                        .collect()
-                )
+                        .collect();
+
+                    backup.par_sort_unstable_by(|backup_a, backup_b|
+                        backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
+                    );
+
+                    backup
+                })
                 .unwrap_or_default()
         })
+    }
+
+    //---------------------------------------
+    // Public async functions
+    //---------------------------------------
+    pub fn log_async<F>(&self, f: F)
+    where F: Fn(&[String]) + 'static {
+        let imp = self.imp();
+
+        if let Some(log) = imp.log.get() {
+            f(log);
+        } else {
+            let pkg_name = self.name();
+
+            let (sender, receiver) = async_channel::bounded(1);
+
+            PACMAN_LOG.with_borrow(|pacman_log| {
+                gio::spawn_blocking(clone!(
+                    #[strong] pacman_log,
+                    move || {
+                        let log: Vec<String> = pacman_log.map_or(vec![], |pacman_log| {
+                            let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
+                                .expect("Regex error");
+
+                            pacman_log.lines().rev()
+                                .filter(|s| s.contains(&pkg_name))
+                                .filter_map(|s|
+                                    if expr.is_match(s) {
+                                        Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
+                                    } else {
+                                        None
+                                    }
+                                )
+                                .collect()
+                        });
+
+                        sender.send_blocking(log).expect("Could not send through channel");
+                    }
+                ));
+            });
+
+            glib::spawn_future_local(clone!(
+                #[weak] imp,
+                async move {
+                    while let Ok(log) = receiver.recv().await {
+                        f(&log);
+
+                        imp.log.set(log).unwrap();
+                    }
+                }
+            ));
+        }
+    }
+
+    pub fn cache_async<F>(&self, f: F)
+    where F: Fn(&[String]) + 'static {
+        let imp = self.imp();
+
+        if let Some(cache) = imp.cache.get() {
+            f(cache);
+        } else {
+            let pkg_name = self.name();
+
+            let (sender, receiver) = async_channel::bounded(1);
+
+            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+                gio::spawn_blocking(clone!(
+                    #[weak] installed_pkg_names,
+                    move || {
+                        // Get cache blacklist package names
+                        let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
+                            .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
+                            .collect();
+
+                        let pacman_config = PACMAN_CONFIG.get().unwrap();
+
+                        let cache = pacman_config.cache_dir.iter()
+                            .flat_map(|dir| {
+                                glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
+                                    .expect("Glob pattern error")
+                                    .flatten()
+                                    .filter_map(|path| {
+                                        let cache_file = path.display().to_string();
+        
+                                        // Exclude cache files that include blacklist package names
+                                        if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
+                                            None
+                                        } else {
+                                            Some(cache_file)
+                                        }
+                                    })
+                            })
+                            .collect::<Vec<String>>();
+
+                        sender.send_blocking(cache).expect("Could not send through channel");
+                    }
+                ));
+            });
+
+            glib::spawn_future_local(clone!(
+                #[weak] imp,
+                async move {
+                    while let Ok(cache) = receiver.recv().await {
+                        f(&cache);
+
+                        imp.cache.set(cache).unwrap();
+                    }
+                }
+            ));
+        }
     }
 
     //---------------------------------------
