@@ -224,22 +224,6 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Get alpm package helper function
-    //---------------------------------------
-    pub(super) fn pkg(&self) -> Option<&alpm::Package> {
-        let imp = self.imp();
-
-        let handle = imp.handle.get();
-        let data = imp.data.get().unwrap();
-
-        if data.flags.intersects(PkgFlags::INSTALLED) {
-            handle.and_then(|handle| handle.localdb().pkg(data.name.as_str()).ok())
-        } else {
-            handle.and_then(|handle| handle.syncdbs().pkg(data.name.as_str()).ok())
-        }
-    }
-
-    //---------------------------------------
     // Public data field getters
     //---------------------------------------
     pub fn description(&self) -> &str {
@@ -359,6 +343,22 @@ impl PkgObject {
 
     pub fn sha256sum(&self) -> &str {
         &self.imp().data.get().unwrap().sha256sum
+    }
+
+    //---------------------------------------
+    // Get alpm package helper function
+    //---------------------------------------
+    fn pkg(&self) -> Option<&alpm::Package> {
+        let imp = self.imp();
+
+        let handle = imp.handle.get();
+        let data = imp.data.get().unwrap();
+
+        if data.flags.intersects(PkgFlags::INSTALLED) {
+            handle.and_then(|handle| handle.localdb().pkg(data.name.as_str()).ok())
+        } else {
+            handle.and_then(|handle| handle.syncdbs().pkg(data.name.as_str()).ok())
+        }
     }
 
     //---------------------------------------
