@@ -262,7 +262,7 @@ impl InfoPane {
     fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
         AUR_PKGS.with_borrow(|aur_pkgs| {
             // Find link package in pacman databases
-            let pkg_link = format!("{pkg_name}{pkg_version}");
+            let pkg_link = pkg_name.to_string() + pkg_version;
 
             let pkg = PkgObject::find_satisfier(&pkg_link);
 
@@ -696,7 +696,7 @@ impl InfoPane {
                         .and_then(|(name, _)| PkgObject::has_local_satisfier(name))
                         .unwrap_or_default()
                     {
-                        format!("{dep}{INSTALLED_LABEL}")
+                        dep.to_string() + INSTALLED_LABEL
                     } else {
                         dep.to_string()
                     }
