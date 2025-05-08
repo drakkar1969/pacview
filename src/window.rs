@@ -1127,23 +1127,22 @@ impl PacViewWindow {
                                 .ok();
 
                             // Get package lists
-                            let mut pkgs: Vec<PkgObject> = vec![];
-                            let mut installed_pkgs: Vec<PkgObject> = vec![];
-                            let mut installed_pkg_names: HashSet<String> = HashSet::new();
+                            let len = pkg_data.len();
 
-                            pkg_data.into_iter()
-                                .map(|data| PkgObject::new(
-                                    data,
-                                    handle_ref.as_ref().map(Rc::clone)
-                                ))
-                                .for_each(|pkg| {
-                                    if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                                        installed_pkg_names.insert(pkg.name());
-                                        installed_pkgs.push(pkg.clone());
-                                    }
+                            let mut pkgs: Vec<PkgObject> = Vec::with_capacity(len);
+                            let mut installed_pkgs: Vec<PkgObject> = Vec::with_capacity(len/10);
+                            let mut installed_pkg_names: HashSet<String> = HashSet::with_capacity(len/10);
 
-                                    pkgs.push(pkg);
-                                });
+                            for data in pkg_data {
+                                let pkg = PkgObject::new(data,handle_ref.as_ref().map(Rc::clone));
+
+                                if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                                    installed_pkg_names.insert(pkg.name());
+                                    installed_pkgs.push(pkg.clone());
+                                }
+
+                                pkgs.push(pkg);
+                            }
 
                             // Add packages to package view
                             imp.package_view.splice_packages(&pkgs);
