@@ -13,8 +13,15 @@ use glob::glob;
 use size::Size;
 use rayon::{iter::{ParallelBridge, ParallelIterator},slice::ParallelSliceMut};
 
-use crate::window::{PACMAN_CONFIG, PACMAN_LOG, ALPM_HANDLE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
+use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgFlags, PkgData};
+
+//------------------------------------------------------------------------------
+// GLOBAL VARIABLES
+//------------------------------------------------------------------------------
+thread_local! {
+    pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const { RefCell::new(None) };
+}
 
 //------------------------------------------------------------------------------
 // STRUCT: PkgBackup

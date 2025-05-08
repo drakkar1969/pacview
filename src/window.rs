@@ -25,7 +25,7 @@ use crate::utils::{tokio_runtime, run_command_async};
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_data::{PkgFlags, PkgData};
-use crate::pkg_object::PkgObject;
+use crate::pkg_object::{ALPM_HANDLE, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, PackageViewStatus, SortProp};
 use crate::info_pane::InfoPane;
@@ -44,7 +44,6 @@ use crate::enum_traits::EnumExt;
 //------------------------------------------------------------------------------
 thread_local! {
     pub static PACMAN_LOG: RefCell<Option<String>> = const { RefCell::new(None) };
-    pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const { RefCell::new(None) };
     pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKG_NAMES: RefCell<Arc<HashSet<String>>> = RefCell::new(Arc::new(HashSet::new()));
