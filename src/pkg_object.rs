@@ -11,7 +11,7 @@ use alpm_utils::DbListExt;
 use regex::Regex;
 use glob::glob;
 use size::Size;
-use rayon::{iter::{ParallelBridge, ParallelIterator},slice::ParallelSliceMut};
+use rayon::prelude::*;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgFlags, PkgData};

@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use rayon::{iter::{IntoParallelRefIterator, ParallelIterator}, slice::ParallelSliceMut};
+use rayon::prelude::*;
 
 use crate::cache_object::CacheObject;
 use crate::utils::open_containing_folder;

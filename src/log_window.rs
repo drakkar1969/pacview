@@ -6,7 +6,7 @@ use gtk::prelude::*;
 use glib::clone;
 
 use regex::Regex;
-use rayon::{str::ParallelString, iter::ParallelIterator};
+use rayon::prelude::*;
 
 use crate::log_object::LogObject;
 
