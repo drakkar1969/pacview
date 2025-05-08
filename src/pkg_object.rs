@@ -368,8 +368,9 @@ impl PkgObject {
         self.imp().required_by.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
-                    let mut required_by = pkg.required_by().into_iter().par_bridge()
-                        .collect::<Vec<String>>();
+                    let mut required_by: Vec<String> = pkg.required_by().into_iter()
+                        .par_bridge()
+                        .collect();
 
                     required_by.par_sort_unstable();
 
@@ -383,8 +384,9 @@ impl PkgObject {
         self.imp().optional_for.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
-                    let mut optional_for = pkg.optional_for().into_iter().par_bridge()
-                        .collect::<Vec<String>>();
+                    let mut optional_for: Vec<String> = pkg.optional_for().into_iter()
+                        .par_bridge()
+                        .collect();
 
                     optional_for.par_sort_unstable();
 
@@ -402,7 +404,8 @@ impl PkgObject {
                 .map(|pkg| {
                     let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
 
-                    let mut files: Vec<String> = pkg.files().files().iter().par_bridge()
+                    let mut files: Vec<String> = pkg.files().files().iter()
+                        .par_bridge()
                         .map(|file| root_dir.to_string() + file.name())
                         .collect();
 
@@ -423,7 +426,8 @@ impl PkgObject {
                     let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
                     let pkg_name = self.name();
 
-                    let mut backup: Vec<PkgBackup> = pkg.backup().iter().par_bridge()
+                    let mut backup: Vec<PkgBackup> = pkg.backup().iter()
+                        .par_bridge()
                         .map(|backup|
                             PkgBackup::new(&(root_dir.to_string() + backup.name()), backup.hash(), &pkg_name)
                         )
@@ -513,7 +517,7 @@ impl PkgObject {
 
                         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
-                        let cache = pacman_config.cache_dir.iter()
+                        let cache: Vec<String> = pacman_config.cache_dir.iter()
                             .flat_map(|dir| {
                                 glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
                                     .expect("Glob pattern error")
@@ -529,7 +533,7 @@ impl PkgObject {
                                         }
                                     })
                             })
-                            .collect::<Vec<String>>();
+                            .collect();
 
                         sender.send_blocking(cache).expect("Could not send through channel");
                     }
