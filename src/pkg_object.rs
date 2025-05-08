@@ -129,7 +129,7 @@ mod imp {
 
             self.obj().update_version()
                 .map_or_else(|| version.to_string(), |update_version|
-                    format!("{version} \u{2192} {update_version}")
+                    version.to_string() + " \u{2192} " + &update_version
                 )
         }
 
@@ -396,7 +396,7 @@ impl PkgObject {
                     let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
 
                     let mut files: Vec<String> = pkg.files().files().iter().par_bridge()
-                        .map(|file| format!("{}{}", root_dir, file.name()))
+                        .map(|file| root_dir.to_string() + file.name())
                         .collect();
 
                     files.par_sort_unstable();
@@ -418,7 +418,7 @@ impl PkgObject {
 
                     let mut backup: Vec<PkgBackup> = pkg.backup().iter().par_bridge()
                         .map(|backup|
-                            PkgBackup::new(&format!("{}{}", root_dir, backup.name()), backup.hash(), &pkg_name)
+                            PkgBackup::new(&(root_dir.to_string() + backup.name()), backup.hash(), &pkg_name)
                         )
                         .collect();
 
