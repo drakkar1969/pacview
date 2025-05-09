@@ -8,7 +8,6 @@ use glib::clone;
 use glib::subclass::Signal;
 
 use fancy_regex::Regex as FancyRegex;
-use num::ToPrimitive;
 use regex::Regex;
 use url::Url;
 
@@ -363,7 +362,7 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag::new(text, "", 0, text.len().to_u32().unwrap()));
+                    link_list.push(TextTag::new(text, "", 0, text.len() as u32));
                 },
                 PropType::Packager => {
                     static EXPR: OnceLock<Regex> = OnceLock::new();
@@ -377,8 +376,8 @@ mod imp {
                         link_list.push(TextTag::new(
                             &format!("mailto:{}", m.as_str()),
                             "",
-                            m.start().to_u32().unwrap(),
-                            m.end().to_u32().unwrap()
+                            m.start() as u32,
+                            m.end() as u32
                         ));
                     }
                 },
@@ -400,8 +399,8 @@ mod imp {
                                     Some(TextTag::new(
                                         &format!("pkg://{}", m1.as_str()),
                                         m2.as_str(),
-                                        m1.start().to_u32().unwrap(),
-                                        m1.end().to_u32().unwrap()
+                                        m1.start() as u32,
+                                        m1.end() as u32
                                     ))
                                 } else {
                                     None
@@ -416,8 +415,8 @@ mod imp {
                                 TextTag::new(
                                     s,
                                     "",
-                                    i.to_u32().unwrap(),
-                                    i.checked_add(comment_len).and_then(|i| i.to_u32()).unwrap()
+                                    i as u32,
+                                    i.checked_add(comment_len).map(|i| i as u32).unwrap_or_default()
                                 )
                             )
                         );
@@ -945,7 +944,7 @@ impl TextWidget {
                     if !imp.is_clicked.get() {
                         let (_, index) = widget.index_at_xy(x, y);
 
-                        imp.selection_start.set(index.to_usize());
+                        imp.selection_start.set(Some(index as usize));
                         imp.selection_end.set(None);
                     }
 
@@ -961,7 +960,7 @@ impl TextWidget {
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let (_, index) = widget.index_at_xy(start_x + x, start_y + y);
 
-                    imp.selection_end.set(index.to_usize());
+                    imp.selection_end.set(Some(index as usize));
 
                     imp.draw_area.queue_draw();
                 }
@@ -1005,7 +1004,7 @@ impl TextWidget {
                         imp.is_clicked.set(true);
 
                         let (_, index) = widget.index_at_xy(x, y);
-                        let index = index.to_usize().unwrap();
+                        let index = index as usize;
 
                         let text = widget.text();
 
@@ -1072,7 +1071,7 @@ impl TextWidget {
         self.action_set_enabled("text.copy", self.selected_text().is_some());
 
         // Show popover menu
-        let rect = gdk::Rectangle::new(x.to_i32().unwrap(), y.to_i32().unwrap(), 0, 0);
+        let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
 
         imp.popover_menu.set_pointing_to(Some(&rect));
         imp.popover_menu.popup();

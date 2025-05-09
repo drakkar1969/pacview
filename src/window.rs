@@ -14,7 +14,6 @@ use adw::prelude::*;
 use glib::{clone, closure_local};
 
 use alpm_utils::DbListExt;
-use num::ToPrimitive;
 use titlecase::titlecase;
 use regex::Regex;
 use futures::join;
@@ -488,7 +487,7 @@ impl PacViewWindow {
 
         // Bind info pane property preferences
         imp.prefs_dialog.bind_property("property-max-lines", &imp.info_pane.get(), "property-max-lines")
-            .transform_to(|_, lines: f64| Some(lines.to_i32().unwrap()))
+            .transform_to(|_, lines: f64| Some(lines as i32))
             .sync_create()
             .build();
 
