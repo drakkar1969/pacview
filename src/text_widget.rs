@@ -261,26 +261,25 @@ mod imp {
 
             let (red, green, blue, alpha) = self.link_fg_color.get();
 
-            self.link_list.borrow().iter()
-                .for_each(|link| {
-                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                    attr.set_start_index(link.start);
-                    attr.set_end_index(link.end);
+            for link in &*self.link_list.borrow() {
+                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                attr.set_start_index(link.start);
+                attr.set_end_index(link.end);
 
-                    attr_list.insert(attr);
+                attr_list.insert(attr);
 
-                    let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                    attr.set_start_index(link.start);
-                    attr.set_end_index(link.end);
+                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
+                attr.set_start_index(link.start);
+                attr.set_end_index(link.end);
 
-                    attr_list.insert(attr);
+                attr_list.insert(attr);
 
-                    let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                    attr.set_start_index(link.start);
-                    attr.set_end_index(link.end);
+                let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+                attr.set_start_index(link.start);
+                attr.set_end_index(link.end);
 
-                    attr_list.insert(attr);
-                });
+                attr_list.insert(attr);
+            }
 
             attr_list
         }
@@ -290,26 +289,25 @@ mod imp {
 
             let (red, green, blue, alpha) = self.comment_fg_color.get();
 
-            self.comment_list.borrow().iter()
-                .for_each(|comment| {
-                    let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                    attr.set_start_index(comment.start);
-                    attr.set_end_index(comment.end);
+            for comment in &*self.comment_list.borrow() {
+                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
 
-                    attr_list.insert(attr);
+                attr_list.insert(attr);
 
-                    let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                    attr.set_start_index(comment.start);
-                    attr.set_end_index(comment.end);
+                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
 
-                    attr_list.insert(attr);
+                attr_list.insert(attr);
 
-                    let mut attr = pango::AttrFloat::new_scale(0.9);
-                    attr.set_start_index(comment.start);
-                    attr.set_end_index(comment.end);
+                let mut attr = pango::AttrFloat::new_scale(0.9);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
 
-                    attr_list.insert(attr);
-                });
+                attr_list.insert(attr);
+            }
 
             attr_list
         }
