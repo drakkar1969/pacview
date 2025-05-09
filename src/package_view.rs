@@ -372,6 +372,8 @@ impl PackageView {
 
         let mut aur_names: HashSet<String> = HashSet::new();
 
+        println!("{:?}",installed_pkg_names.len());
+
         for result in search_results {
             aur_names.extend(result?.iter()
                 .filter(|&pkg| !installed_pkg_names.contains(&pkg.name))
@@ -426,9 +428,8 @@ impl PackageView {
         let (sender, receiver) = async_channel::bounded(1);
 
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-            let installed_pkg_names = Arc::clone(installed_pkg_names);
-
             tokio_runtime().spawn(clone!(
+                #[strong] installed_pkg_names,
                 async move {
                     let result = tokio::select! {
                         () = cancel_token_clone.cancelled() => { Ok(vec![]) },

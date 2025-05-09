@@ -508,7 +508,7 @@ impl PkgObject {
 
             INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
                 gio::spawn_blocking(clone!(
-                    #[weak] installed_pkg_names,
+                    #[strong] installed_pkg_names,
                     move || {
                         // Get cache blacklist package names
                         let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
