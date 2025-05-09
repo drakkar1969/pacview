@@ -3,7 +3,7 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
-use crate::utils::open_with_default_app;
+use crate::utils::AppInfo;
 
 //------------------------------------------------------------------------------
 // MODULE: ConfigDialog
@@ -152,7 +152,7 @@ impl ConfigDialog {
         imp.rootdir_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                open_with_default_app(&imp.rootdir_row.subtitle().unwrap_or_default());
+                AppInfo::open_with_default_app(&imp.rootdir_row.subtitle().unwrap_or_default());
             }
         ));
 
@@ -160,7 +160,7 @@ impl ConfigDialog {
         imp.dbpath_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                open_with_default_app(&imp.dbpath_row.subtitle().unwrap_or_default());
+                AppInfo::open_with_default_app(&imp.dbpath_row.subtitle().unwrap_or_default());
             }
         ));
 
@@ -169,7 +169,7 @@ impl ConfigDialog {
             #[weak] imp,
             move |_| {
                 for item in imp.cachedir_row.subtitle().unwrap_or_default().split('\n') {
-                    open_with_default_app(item);
+                    AppInfo::open_with_default_app(item);
                 }
             }
         ));
@@ -178,7 +178,7 @@ impl ConfigDialog {
         imp.logfile_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                open_with_default_app(&imp.logfile_row.subtitle().unwrap_or_default());
+                AppInfo::open_with_default_app(&imp.logfile_row.subtitle().unwrap_or_default());
             }
         ));
 
@@ -186,7 +186,7 @@ impl ConfigDialog {
         imp.gpgdir_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                open_with_default_app(&imp.gpgdir_row.subtitle().unwrap_or_default());
+                AppInfo::open_with_default_app(&imp.gpgdir_row.subtitle().unwrap_or_default());
             }
         ));
 
@@ -195,7 +195,7 @@ impl ConfigDialog {
             #[weak] imp,
             move |_| {
                 for item in imp.hookdir_row.subtitle().unwrap_or_default().split('\n') {
-                    open_with_default_app(item);
+                    AppInfo::open_with_default_app(item);
                 }
             }
         ));

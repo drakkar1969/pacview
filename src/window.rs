@@ -21,7 +21,7 @@ use futures::join;
 use flate2::read::GzDecoder;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 
-use crate::utils::{tokio_runtime, run_command_async};
+use crate::utils::{AsyncCommand, Tokio};
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_data::{PkgFlags, PkgData};
@@ -845,7 +845,7 @@ impl PacViewWindow {
     where F: Fn() + 'static {
         let (sender, receiver) = async_channel::bounded(1);
 
-        tokio_runtime().spawn(clone!(
+        Tokio::runtime().spawn(clone!(
             #[weak] file,
             async move {
                 let url = "https://aur.archlinux.org/packages.gz";
@@ -1208,11 +1208,11 @@ impl PacViewWindow {
                 let aur_command = imp.prefs_dialog.aur_command();
 
                 // Check for pacman updates async
-                let pacman_handle = run_command_async("/usr/bin/checkupdates");
+                let pacman_handle = AsyncCommand::run("/usr/bin/checkupdates");
 
                 let (pacman_res, aur_res) = if !aur_command.is_empty() {
                     // Check for AUR updates async
-                    let aur_handle = run_command_async(&aur_command);
+                    let aur_handle = AsyncCommand::run(&aur_command);
 
                     join!(pacman_handle, aur_handle)
                 } else {

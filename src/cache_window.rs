@@ -8,7 +8,7 @@ use glib::clone;
 use rayon::prelude::*;
 
 use crate::cache_object::CacheObject;
-use crate::utils::open_containing_folder;
+use crate::utils::AppInfo;
 
 //------------------------------------------------------------------------------
 // MODULE: CacheWindow
@@ -193,7 +193,7 @@ impl CacheWindow {
                     .and_downcast::<CacheObject>()
                     .expect("Could not downcast to 'CacheObject'");
 
-                open_containing_folder(&item.filename());
+                AppInfo::open_containing_folder(&item.filename());
             }
         ));
 
