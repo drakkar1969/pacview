@@ -36,9 +36,9 @@ pub struct PkgBackup {
 impl PkgBackup {
     fn new(filename: &str, hash: &str, package: &str) -> Self {
         Self {
-            filename: filename.to_string(),
-            hash: hash.to_string(),
-            package: package.to_string()
+            filename: filename.to_owned(),
+            hash: hash.to_owned(),
+            package: package.to_owned()
         }
     }
 
@@ -151,8 +151,7 @@ mod imp {
                 PkgFlags::OPTIONAL => "optional",
                 PkgFlags::ORPHAN => "orphan",
                 _ => "not installed"
-            }
-            .to_string()
+            }.to_owned()
         }
 
         fn status_icon(&self) -> String {
@@ -162,8 +161,7 @@ mod imp {
                 PkgFlags::OPTIONAL => "pkg-optional",
                 PkgFlags::ORPHAN => "pkg-orphan",
                 _ => ""
-            }
-            .to_string()
+            }.to_owned()
         }
 
         fn status_icon_symbolic(&self) -> String {
@@ -173,8 +171,7 @@ mod imp {
                 PkgFlags::OPTIONAL => "status-optional-symbolic",
                 PkgFlags::ORPHAN => "status-orphan-symbolic",
                 _ => ""
-            }
-            .to_string()
+            }.to_owned()
         }
 
         fn show_status_icon(&self) -> bool {
@@ -351,13 +348,13 @@ impl PkgObject {
     fn pkg(&self) -> Option<&alpm::Package> {
         let imp = self.imp();
 
-        let handle = imp.handle.get();
+        let handle = imp.handle.get()?;
         let data = imp.data.get().unwrap();
 
         if data.flags.intersects(PkgFlags::INSTALLED) {
-            handle.and_then(|handle| handle.localdb().pkg(data.name.as_str()).ok())
+            handle.localdb().pkg(data.name.as_str()).ok()
         } else {
-            handle.and_then(|handle| handle.syncdbs().pkg(data.name.as_str()).ok())
+            handle.syncdbs().pkg(data.name.as_str()).ok()
         }
     }
 
@@ -467,13 +464,9 @@ impl PkgObject {
 
                             pacman_log.lines().rev()
                                 .filter(|s| s.contains(&pkg_name))
-                                .filter_map(|s|
-                                    if expr.is_match(s) {
-                                        Some(expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
-                                    } else {
-                                        None
-                                    }
-                                )
+                                .filter(|&s|
+                                    expr.is_match(s))
+                                        .map(|s| expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
                                 .collect()
                         });
 
@@ -572,40 +565,38 @@ impl PkgObject {
     //---------------------------------------
     pub fn has_local_satisfier(search_term: &str) -> Option<bool> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
-            alpm_handle.as_ref()
-                .and_then(|handle| {
-                    handle.localdb().pkgs().find_satisfier(search_term)
-                        .map(|local_pkg|
-                            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names|
-                                installed_pkg_names.contains(local_pkg.name())
-                            )
-                        )
-                })
+            let handle = alpm_handle.as_ref()?;
+
+            handle.localdb().pkgs().find_satisfier(search_term)
+                .map(|local_pkg|
+                    INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names|
+                        installed_pkg_names.contains(local_pkg.name())
+                    )
+                )
         })
     }
 
     pub fn find_satisfier(search_term: &str) -> Option<Self> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
-            alpm_handle.as_ref()
-                .and_then(|handle| {
-                    handle.localdb().pkgs().find_satisfier(search_term)
-                        .and_then(|local_pkg|
-                            INSTALLED_PKGS.with_borrow(|installed_pkgs|
-                                installed_pkgs.iter()
-                                    .find(|&pkg| pkg.name() == local_pkg.name())
+            let handle = alpm_handle.as_ref()?;
+
+            handle.localdb().pkgs().find_satisfier(search_term)
+                .and_then(|local_pkg|
+                    INSTALLED_PKGS.with_borrow(|installed_pkgs|
+                        installed_pkgs.iter()
+                            .find(|&pkg| pkg.name() == local_pkg.name())
+                            .cloned()
+                    )
+                )
+                .or_else(|| {
+                    handle.syncdbs().find_satisfier(search_term)
+                        .and_then(|sync_pkg|
+                            PKGS.with_borrow(|pkgs|
+                                pkgs.iter()
+                                    .find(|&pkg| pkg.name() == sync_pkg.name())
                                     .cloned()
                             )
                         )
-                        .or_else(|| {
-                            handle.syncdbs().find_satisfier(search_term)
-                                .and_then(|sync_pkg|
-                                    PKGS.with_borrow(|pkgs|
-                                        pkgs.iter()
-                                            .find(|&pkg| pkg.name() == sync_pkg.name())
-                                            .cloned()
-                                    )
-                                )
-                        })
                 })
         })
     }

@@ -102,7 +102,7 @@ impl PkgData {
             .map(|db| {
                 let repo = db.name();
 
-                if repo == "local" && aur_names.contains(&sync_pkg.name().to_string()) {
+                if repo == "local" && aur_names.contains(&sync_pkg.name().to_owned()) {
                     "aur"
                 } else {
                     repo
@@ -112,14 +112,14 @@ impl PkgData {
 
         Self {
             flags,
-            name: sync_pkg.name().to_string(),
+            name: sync_pkg.name().to_owned(),
             version: version.to_string(),
-            description: sync_pkg.desc().map(String::from).unwrap_or_default(),
+            description: sync_pkg.desc().unwrap_or_default().to_owned(),
             popularity: String::new(),
             out_of_date: 0,
-            url: sync_pkg.url().map(String::from).unwrap_or_default(),
+            url: sync_pkg.url().unwrap_or_default().to_owned(),
             licenses: alpm_list_to_string(sync_pkg.licenses()),
-            repository: repository.to_string(),
+            repository: repository.to_owned(),
             groups: alpm_list_to_string(sync_pkg.groups()),
             depends: alpm_deplist_to_vec(sync_pkg.depends()),
             optdepends: alpm_deplist_to_vec(sync_pkg.optdepends()),
@@ -127,14 +127,14 @@ impl PkgData {
             provides: alpm_deplist_to_vec(sync_pkg.provides()),
             conflicts: alpm_deplist_to_vec(sync_pkg.conflicts()),
             replaces: alpm_deplist_to_vec(sync_pkg.replaces()),
-            architecture: sync_pkg.arch().map(String::from).unwrap_or_default(),
-            packager: sync_pkg.packager().map_or_else(|| String::from("Unknown Packager"), String::from),
+            architecture: sync_pkg.arch().unwrap_or_default().to_owned(),
+            packager: sync_pkg.packager().unwrap_or("Unknown Packager").to_owned(),
             build_date: sync_pkg.build_date(),
             install_date,
             download_size: sync_pkg.download_size(),
             install_size: sync_pkg.isize(),
-            has_script: if sync_pkg.has_scriptlet() { "Yes" } else { "No" }.to_string(),
-            sha256sum: sync_pkg.sha256sum().map(String::from).unwrap_or_default(),
+            has_script: if sync_pkg.has_scriptlet() { "Yes" } else { "No" }.to_owned(),
+            sha256sum: sync_pkg.sha256sum().unwrap_or_default().to_owned(),
         }
     }
 
@@ -159,12 +159,12 @@ impl PkgData {
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,
-            name: pkg.name.to_string(),
-            version: pkg.version.to_string(),
-            description: pkg.description.as_ref().map(String::from).unwrap_or_default(),
+            name: pkg.name.clone(),
+            version: pkg.version.clone(),
+            description: pkg.description.clone().unwrap_or_default(),
             popularity: format!("{:.2?} ({} votes)", pkg.popularity, pkg.num_votes),
             out_of_date: pkg.out_of_date.unwrap_or_default(),
-            url: pkg.url.as_ref().map(String::from).unwrap_or_default(),
+            url: pkg.url.clone().unwrap_or_default(),
             licenses: aur_vec_to_string(&pkg.license),
             repository: String::from("aur"),
             groups: aur_vec_to_string(&pkg.groups),
@@ -175,7 +175,7 @@ impl PkgData {
             conflicts: aur_sorted_vec(&pkg.conflicts),
             replaces: aur_sorted_vec(&pkg.replaces),
             architecture: String::new(),
-            packager: pkg.maintainer.as_ref().map_or_else(|| String::from("Unknown Packager"), String::from),
+            packager: pkg.maintainer.clone().unwrap_or(String::from("Unknown Packager")),
             build_date: pkg.last_modified,
             install_date: 0,
             download_size: 0,

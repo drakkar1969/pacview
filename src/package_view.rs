@@ -225,15 +225,13 @@ impl PackageView {
                     SortProp::InstallDate => { pkg_a.install_date().partial_cmp(&pkg_b.install_date()) },
                     SortProp::InstalledSize => { pkg_a.install_size().partial_cmp(&pkg_b.install_size()) },
                     SortProp::Groups => { pkg_a.groups().partial_cmp(&pkg_b.groups()) },
-                }
-                .unwrap_or(Ordering::Equal);
+                }.unwrap_or(Ordering::Equal);
 
                 if view.sort_ascending() {
                     sort
                 } else {
                     sort.reverse()
-                }
-                .into()
+                }.into()
             }
         ));
     }
@@ -297,7 +295,7 @@ impl PackageView {
     fn get_search_props(prop: SearchProp, pkg: &PkgObject) -> Cow<'_, [String]> {
         match prop {
             SearchProp::Name => { vec![pkg.name()].into() },
-            SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_string()].into() },
+            SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_owned()].into() },
             SearchProp::Groups => { vec![pkg.groups()].into() },
             SearchProp::Deps => { Cow::Borrowed(pkg.depends()) },
             SearchProp::Optdeps => { Cow::Borrowed(pkg.optdepends()) },
@@ -345,12 +343,12 @@ impl PackageView {
 
         // Return if query arg too small
         if term.len() < 2 {
-            return Err(raur::Error::Aur("Query arg too small.".to_string()))
+            return Err(raur::Error::Aur(String::from("Query arg too small.")))
         }
 
         // Return if attempting to search by files
         if prop == SearchProp::Files {
-            return Err(raur::Error::Aur("Cannot search by files.".to_string()))
+            return Err(raur::Error::Aur(String::from("Cannot search by files.")))
         }
 
         // Set search mode
@@ -377,7 +375,7 @@ impl PackageView {
         for result in search_results {
             aur_names.extend(result?.iter()
                 .filter(|&pkg| !installed_pkg_names.contains(&pkg.name))
-                .map(|pkg| pkg.name.to_string())
+                .map(|pkg| pkg.name.clone())
             );
         }
 
@@ -535,7 +533,7 @@ impl PackageView {
             .flatten()
             .filter(|pkg| update_map.contains_key(&pkg.name()))
             .for_each(|pkg|
-                pkg.set_update_version(Some(update_map[&pkg.name()].to_string()))
+                pkg.set_update_version(Some(update_map[&pkg.name()].clone()))
             );
     }
 

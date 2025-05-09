@@ -932,7 +932,7 @@ impl PacViewWindow {
 
         // Get pacman repositories
         let pacman_repos: Vec<String> = pacman_config.repos.iter()
-            .map(|r| r.name.to_string())
+            .map(|r| r.name.clone())
             .chain([String::from("aur"), String::from("local")])
             .collect();
 
@@ -1224,7 +1224,7 @@ impl PacViewWindow {
                         if code == Some(0) {
                             update_str.push_str(&stdout);
                         } else if code == Some(1) {
-                            error_msg = Some("Could not retrieve pacman updates: checkupdates error".to_string());
+                            error_msg = Some(String::from("Could not retrieve pacman updates: checkupdates error"));
                         }
                     },
                     Err(error) => {

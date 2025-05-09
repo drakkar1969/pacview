@@ -10,13 +10,13 @@ pub trait EnumExt
 where Self: ToValue + StaticType + HasParamSpec<ParamSpec = ParamSpecEnum> + Sized {
     fn name(&self) -> String {
         EnumValue::from_value(&self.to_value())
-            .map(|(_, enum_value)| enum_value.name().to_string())
+            .map(|(_, enum_value)| enum_value.name().to_owned())
             .expect("Could not get 'EnumValue'")
     }
 
     fn nick(&self) -> String {
         EnumValue::from_value(&self.to_value())
-            .map(|(_, enum_value)| enum_value.nick().to_string())
+            .map(|(_, enum_value)| enum_value.nick().to_owned())
             .expect("Could not get 'EnumValue'")
     }
 

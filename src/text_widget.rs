@@ -47,8 +47,8 @@ struct TextTag {
 impl TextTag {
     fn new(text: &str, version: &str, start: u32, end: u32) -> Self {
         Self {
-            text: text.to_string(),
-            version: version.to_string(),
+            text: text.to_owned(),
+            version: version.to_owned(),
             start,
             end
         }
@@ -887,7 +887,7 @@ impl TextWidget {
             if cursor != *imp.cursor.borrow() {
                 imp.draw_area.set_cursor_from_name(Some(cursor));
 
-                imp.cursor.replace(cursor.to_string());
+                imp.cursor.replace(cursor.to_owned());
             }
         }
     }

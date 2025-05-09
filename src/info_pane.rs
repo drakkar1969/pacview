@@ -262,7 +262,7 @@ impl InfoPane {
     fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
         AUR_PKGS.with_borrow(|aur_pkgs| {
             // Find link package in pacman databases
-            let pkg_link = pkg_name.to_string() + pkg_version;
+            let pkg_link = pkg_name.to_owned() + pkg_version;
 
             let pkg = PkgObject::find_satisfier(&pkg_link);
 
@@ -718,7 +718,7 @@ impl InfoPane {
         self.set_property(PropID::Version,
             ValueType::StrIcon(
                 &pkg.version(),
-                if pkg.flags().intersects(PkgFlags::UPDATES) { Some("pkg-update") } else { None }
+                pkg.flags().intersects(PkgFlags::UPDATES).then_some("pkg-update")
             )
         );
 
@@ -746,7 +746,7 @@ impl InfoPane {
         self.set_property(PropID::Status,
             ValueType::StrIcon(
                 &pkg.status(),
-                if pkg.flags().intersects(PkgFlags::INSTALLED) { Some(&status_icon) } else { None }
+                pkg.flags().intersects(PkgFlags::INSTALLED).then_some(&status_icon)
             )
         );
 

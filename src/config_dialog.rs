@@ -218,7 +218,7 @@ impl ConfigDialog {
         imp.xfercommand_row.set_subtitle(&config.xfer_command);
         imp.paralleldownloads_row.set_subtitle(&config.parallel_downloads.to_string());
         imp.disabledownloadtimeout_row.set_subtitle(&config.disable_download_timeout.to_string());
-        imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or_else(|| "None".to_string()));
+        imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or(String::from("None")));
         imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
         imp.architecture_row.set_subtitle(&config.architecture.join(" | "));
 

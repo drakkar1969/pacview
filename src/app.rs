@@ -15,7 +15,7 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default)]
-    pub struct PacViewApplication {}
+    pub struct PacViewApplication;
 
     //---------------------------------------
     // Subclass

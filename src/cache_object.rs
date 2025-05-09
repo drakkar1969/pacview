@@ -43,8 +43,7 @@ mod imp {
                 "info-signed-symbolic"
             } else {
                 "info-archive-symbolic"
-            }
-            .to_string()
+            }.to_owned()
         }
     }
 }
