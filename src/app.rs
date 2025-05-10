@@ -91,7 +91,7 @@ impl PacViewApplication {
         let about_action = gio::ActionEntry::builder("show-about")
             .activate(move |app: &Self, _, _| {
                 let window = app.active_window()
-                    .expect("Could not retrieve active window");
+                    .expect("Failed to retrieve active window");
 
                 let about_dialog = adw::AboutDialog::builder()
                     .application_name("PacView")

@@ -211,11 +211,11 @@ impl PackageView {
             move |item_a, item_b| {
                 let pkg_a: &PkgObject = item_a
                     .downcast_ref::<PkgObject>()
-                    .expect("Could not downcast to 'PkgObject'");
+                    .expect("Failed to downcast to 'PkgObject'");
 
                 let pkg_b: &PkgObject = item_b
                     .downcast_ref::<PkgObject>()
-                    .expect("Could not downcast to 'PkgObject'");
+                    .expect("Failed to downcast to 'PkgObject'");
 
                 let sort = match view.sort_prop() {
                     SortProp::Name => { pkg_a.name().partial_cmp(&pkg_b.name()) },
@@ -286,7 +286,7 @@ impl PackageView {
         self.imp().status_filter.set_filter_func(move |item| {
             let pkg: &PkgObject = item
                 .downcast_ref::<PkgObject>()
-                .expect("Could not downcast to 'PkgObject'");
+                .expect("Failed to downcast to 'PkgObject'");
 
             pkg.flags().intersects(status_id)
         });
@@ -315,7 +315,7 @@ impl PackageView {
             imp.search_filter.set_filter_func(move |item| {
                 let pkg: &PkgObject = item
                     .downcast_ref::<PkgObject>()
-                    .expect("Could not downcast to 'PkgObject'");
+                    .expect("Failed to downcast to 'PkgObject'");
 
                 let search_props = Self::get_search_props(prop, pkg);
 
@@ -440,7 +440,7 @@ impl PackageView {
 
                     sender.send(result)
                         .await
-                        .expect("Could not send through channel");
+                        .expect("Failed to send through channel");
                 }
             ));
         });
@@ -546,7 +546,7 @@ impl PackageView {
             .map(|item| {
                 let pkg = item
                     .downcast::<PkgObject>()
-                    .expect("Could not downcast to 'PkgObject'");
+                    .expect("Failed to downcast to 'PkgObject'");
 
                 format!("|{name}|{version}|{repo}|{status}|{size}|{groups}|",
                     name=pkg.name(),

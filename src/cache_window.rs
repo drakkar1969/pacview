@@ -191,7 +191,7 @@ impl CacheWindow {
             move |_| {
                 let item = imp.selection.selected_item()
                     .and_downcast::<CacheObject>()
-                    .expect("Could not downcast to 'CacheObject'");
+                    .expect("Failed to downcast to 'CacheObject'");
 
                 AppInfo::open_containing_folder(&item.filename());
             }
@@ -206,7 +206,7 @@ impl CacheWindow {
                     .map(|item| {
                         let cache = item
                             .downcast::<CacheObject>()
-                            .expect("Could not downcast to 'CacheObject'");
+                            .expect("Failed to downcast to 'CacheObject'");
 
                         format!("|{file}|", file=cache.filename())
                     })

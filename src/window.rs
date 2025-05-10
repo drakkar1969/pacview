@@ -365,9 +365,9 @@ impl PacViewWindow {
     //---------------------------------------
     fn set_gsetting<T: FromVariant + ToVariant + PartialEq>(gsettings: &gio::Settings, key: &str, value: &T) {
         let default: T = gsettings.default_value(key)
-            .expect("Could not get gsettings default value")
+            .expect("Failed to get gsettings default value")
             .get::<T>()
-            .expect("Could not retrieve value from variant");
+            .expect("Failed to retrieve value from variant");
 
         if !(default == *value && default == gsettings.get(key)) {
             gsettings.set(key, value.to_variant()).unwrap();
@@ -606,9 +606,9 @@ impl PacViewWindow {
             .parameter_type(Some(&String::static_variant_type()))
             .activate(|window: &Self, _, param| {
                 let tab = param
-                    .expect("Could not retrieve Variant")
+                    .expect("Failed to retrieve Variant")
                     .get::<String>()
-                    .expect("Could not retrieve String from variant");
+                    .expect("Failed to retrieve String from variant");
 
                 window.imp().info_pane.set_visible_tab(&tab);
             })
@@ -705,7 +705,7 @@ impl PacViewWindow {
             move |_, row| {
                 let repo_id = row
                     .downcast_ref::<FilterRow>()
-                    .expect("Could not downcast to 'FilterRow'")
+                    .expect("Failed to downcast to 'FilterRow'")
                     .repo_id();
 
                 imp.package_view.set_repo_filter(repo_id.as_deref());
@@ -724,7 +724,7 @@ impl PacViewWindow {
             move |_, row| {
                 let status_id = row
                     .downcast_ref::<FilterRow>()
-                    .expect("Could not downcast to 'FilterRow'")
+                    .expect("Failed to downcast to 'FilterRow'")
                     .status_id();
 
                 imp.package_view.set_status_filter(status_id);
@@ -867,7 +867,7 @@ impl PacViewWindow {
                     }
                 }
 
-                sender.send(()).await.expect("Could not send through channel");
+                sender.send(()).await.expect("Failed to send through channel");
             }
         ));
 
@@ -928,7 +928,7 @@ impl PacViewWindow {
 
         // Get pacman config
         let pacman_config = pacmanconf::Config::new()
-            .expect("Could not get pacman config");
+            .expect("Failed to get pacman config");
 
         // Get pacman repositories
         let pacman_repos: Vec<String> = pacman_config.repos.iter()
@@ -1104,10 +1104,10 @@ impl PacViewWindow {
                         .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), &aur_names))
                     );
 
-                    sender.send_blocking(Ok(pkg_data)).expect("Could not send through channel");
+                    sender.send_blocking(Ok(pkg_data)).expect("Failed to send through channel");
                 },
                 Err(error) => {
-                    sender.send_blocking(Err(error)).expect("Could not send through channel");
+                    sender.send_blocking(Err(error)).expect("Failed to send through channel");
                 }
             }
         });
@@ -1224,11 +1224,11 @@ impl PacViewWindow {
                         if code == Some(0) {
                             update_str.push_str(&stdout);
                         } else if code == Some(1) {
-                            error_msg = Some(String::from("Could not retrieve pacman updates: checkupdates error"));
+                            error_msg = Some(String::from("Failed to retrieve pacman updates: checkupdates error"));
                         }
                     },
                     Err(error) => {
-                        error_msg = Some(format!("Could not retrieve pacman updates: {error}"));
+                        error_msg = Some(format!("Failed to retrieve pacman updates: {error}"));
                     }
                 }
 
@@ -1241,7 +1241,7 @@ impl PacViewWindow {
                     },
                     Err(error) => {
                         if error_msg.is_none() {
-                            error_msg = Some(format!("Could not retrieve AUR updates: {error}"));
+                            error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
                         }
                     }
                 }
@@ -1295,14 +1295,14 @@ impl PacViewWindow {
                 for event in events {
                     if event.kind.is_create() || event.kind.is_modify() || event.kind.is_remove() {
                         sender.send_blocking(())
-                            .expect("Could not send through channel");
+                            .expect("Failed to send through channel");
 
                         break;
                     }
                 }
             }
         })
-        .expect("Could not create debouncer");
+        .expect("Failed to create debouncer");
 
         // Watch pacman local db path
         let pacman_config = PACMAN_CONFIG.get().unwrap();

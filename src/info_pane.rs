@@ -487,7 +487,7 @@ impl InfoPane {
             move |_| {
                 let item = imp.files_selection.selected_item()
                     .and_downcast::<gtk::StringObject>()
-                    .expect("Could not downcast to 'StringObject'");
+                    .expect("Failed to downcast to 'StringObject'");
 
                 AppInfo::open_with_default_app(&item.string());
             }
@@ -502,7 +502,7 @@ impl InfoPane {
                     .map(|item|
                         item
                             .downcast::<gtk::StringObject>()
-                            .expect("Could not downcast to 'StringObject'")
+                            .expect("Failed to downcast to 'StringObject'")
                             .string()
                     )
                     .collect::<Vec<glib::GString>>()
@@ -546,7 +546,7 @@ impl InfoPane {
             move |_| {
                 let item = imp.cache_selection.selected_item()
                     .and_downcast::<gtk::StringObject>()
-                    .expect("Could not downcast to 'StringObject'");
+                    .expect("Failed to downcast to 'StringObject'");
 
                 AppInfo::open_containing_folder(&item.string());
             }
@@ -584,7 +584,7 @@ impl InfoPane {
             move |_| {
                 let item = imp.backup_selection.selected_item()
                     .and_downcast::<BackupObject>()
-                    .expect("Could not downcast to 'BackupObject'");
+                    .expect("Failed to downcast to 'BackupObject'");
 
                     AppInfo::open_with_default_app(&item.filename());
             }

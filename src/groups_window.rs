@@ -232,7 +232,7 @@ impl GroupsWindow {
                         move |item| {
                             let obj = item
                                 .downcast_ref::<GroupsObject>()
-                                .expect("Could not downcast to 'GroupsObject'");
+                                .expect("Failed to downcast to 'GroupsObject'");
 
                             match window.search_mode() {
                                 GroupsSearchMode::Both => {
@@ -275,7 +275,7 @@ impl GroupsWindow {
                     imp.installed_filter.set_filter_func(move |item| {
                         let status = item
                             .downcast_ref::<GroupsObject>()
-                            .expect("Could not downcast to 'GroupsObject'")
+                            .expect("Failed to downcast to 'GroupsObject'")
                             .status();
 
                         status != "not installed"
@@ -297,7 +297,7 @@ impl GroupsWindow {
                 for item in imp.selection.iter::<glib::Object>().flatten() {
                     let pkg = item
                         .downcast::<GroupsObject>()
-                        .expect("Could not downcast to 'GroupsObject'");
+                        .expect("Failed to downcast to 'GroupsObject'");
 
                     let pkg_groups = pkg.groups();
 
@@ -330,7 +330,7 @@ impl GroupsWindow {
                     .map(|item|
                         item
                             .downcast::<GroupsObject>()
-                            .expect("Could not downcast to 'GroupsObject'")
+                            .expect("Failed to downcast to 'GroupsObject'")
                             .groups()
                     )
                     .collect::<HashSet<String>>()

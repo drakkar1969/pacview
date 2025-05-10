@@ -143,7 +143,7 @@ impl StatsWindow {
                     .map(|item| {
                         let stat = item
                             .downcast::<StatsObject>()
-                            .expect("Could not downcast to 'StatsObject'");
+                            .expect("Failed to downcast to 'StatsObject'");
 
                         format!("|{repository}|{packages}|{installed}|{size}|",
                             repository=stat.repository(),

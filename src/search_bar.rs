@@ -136,7 +136,7 @@ mod imp {
                 mode_iter.find(|&mode| mode == bar.mode());
 
                 let new_mode = mode_iter.next()
-                    .expect("Could not get 'SearchMode'");
+                    .expect("Failed to get 'SearchMode'");
 
                 bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
 
@@ -149,7 +149,7 @@ mod imp {
                 mode_iter.find(|&mode| mode == bar.mode());
 
                 let new_mode = mode_iter.next()
-                    .expect("Could not get 'SearchMode'");
+                    .expect("Failed to get 'SearchMode'");
 
                 bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
 
@@ -181,7 +181,7 @@ mod imp {
                 prop_iter.find(|&prop| prop == bar.prop());
 
                 let new_prop = prop_iter.next()
-                    .expect("Could not get 'SearchProp'");
+                    .expect("Failed to get 'SearchProp'");
 
                 bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
 
@@ -194,7 +194,7 @@ mod imp {
                 prop_iter.find(|&prop| prop == bar.prop());
 
                 let new_prop = prop_iter.next()
-                    .expect("Could not get 'SearchProp'");
+                    .expect("Failed to get 'SearchProp'");
 
                 bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
 

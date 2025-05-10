@@ -198,7 +198,7 @@ impl LogWindow {
                     imp.package_filter.set_filter_func(move |item| {
                         let msg = item
                             .downcast_ref::<LogObject>()
-                            .expect("Could not downcast to 'LogObject'")
+                            .expect("Failed to downcast to 'LogObject'")
                             .message();
 
                         msg.starts_with("installed ") || msg.starts_with("removed ") || msg.starts_with("upgraded ") || msg.starts_with("downgraded ")
@@ -218,7 +218,7 @@ impl LogWindow {
                     .map(|item| {
                         let log = item
                             .downcast::<LogObject>()
-                            .expect("Could not downcast to 'LogObject'");
+                            .expect("Failed to downcast to 'LogObject'");
 
                         format!("|{date}|{time}|{category}|{message}|",
                             date=log.date(),

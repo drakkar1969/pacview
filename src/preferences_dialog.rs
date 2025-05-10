@@ -231,9 +231,9 @@ impl PreferencesDialog {
                 #[weak(rename_to = dialog)] self,
                 move |_, _, param| {
                     let param = param
-                        .expect("Could not retrieve Variant")
+                        .expect("Failed to retrieve Variant")
                         .get::<String>()
-                        .expect("Could not retrieve String from variant");
+                        .expect("Failed to retrieve String from variant");
 
                     let cmd = match param.as_str() {
                         "paru" => "/usr/bin/paru -Qu --mode=ap",

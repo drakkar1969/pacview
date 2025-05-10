@@ -262,7 +262,7 @@ impl BackupWindow {
                         move |item| {
                             let obj = item
                                 .downcast_ref::<BackupObject>()
-                                .expect("Could not downcast to 'BackupObject'");
+                                .expect("Failed to downcast to 'BackupObject'");
 
                             match window.search_mode() {
                                 BackupSearchMode::Both => {
@@ -319,7 +319,7 @@ impl BackupWindow {
             move |_| {
                 let item = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
-                    .expect("Could not downcast to 'BackupObject'");
+                    .expect("Failed to downcast to 'BackupObject'");
 
                 AppInfo::open_with_default_app(&item.filename());
             }
@@ -336,7 +336,7 @@ impl BackupWindow {
                 for item in imp.selection.iter::<glib::Object>().flatten() {
                     let backup = item
                         .downcast::<BackupObject>()
-                        .expect("Could not downcast to 'BackupObject'");
+                        .expect("Failed to downcast to 'BackupObject'");
 
                     let backup_package = backup.package();
 
@@ -373,7 +373,7 @@ impl BackupWindow {
                     .map(|item|
                         item
                             .downcast::<BackupObject>()
-                            .expect("Could not downcast to 'BackupObject'")
+                            .expect("Failed to downcast to 'BackupObject'")
                             .package()
                     )
                     .collect::<HashSet<String>>()

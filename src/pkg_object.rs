@@ -470,7 +470,7 @@ impl PkgObject {
                                 .collect()
                         });
 
-                        sender.send_blocking(log).expect("Could not send through channel");
+                        sender.send_blocking(log).expect("Failed to send through channel");
                     }
                 ));
             });
@@ -528,7 +528,7 @@ impl PkgObject {
                             })
                             .collect();
 
-                        sender.send_blocking(cache).expect("Could not send through channel");
+                        sender.send_blocking(cache).expect("Failed to send through channel");
                     }
                 ));
             });
