@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::OnceLock;
+use std::sync::{OnceLock, LazyLock};
 
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
@@ -363,14 +363,12 @@ mod imp {
                     link_list.push(TextTag::new(text, "", 0, text.len() as u32));
                 },
                 PropType::Packager => {
-                    static EXPR: OnceLock<Regex> = OnceLock::new();
-
-                    let expr = EXPR.get_or_init(|| {
+                    static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                         Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}")
                             .expect("Regex error")
                     });
 
-                    if let Some(m) = expr.find(text) {
+                    if let Some(m) = EXPR.find(text) {
                         link_list.push(TextTag::new(
                             &format!("mailto:{}", m.as_str()),
                             "",
@@ -383,14 +381,12 @@ mod imp {
                     if text.is_empty() {
                         text = "None";
                     } else {
-                        static EXPR: OnceLock<FancyRegex> = OnceLock::new();
-
-                        let expr = EXPR.get_or_init(|| {
+                        static EXPR: LazyLock<FancyRegex> = LazyLock::new(|| {
                             FancyRegex::new(&format!(r"(?<=^|{spacer})([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|{spacer}|$)", spacer=regex::escape(LINK_SPACER)))
                                 .expect("Regex error")
                         });
 
-                        link_list.extend(expr.captures_iter(text)
+                        link_list.extend(EXPR.captures_iter(text)
                             .flatten()
                             .filter_map(|caps|
                                 if let Some((m1, m2)) = caps.get(1).zip(caps.get(2)) {

@@ -1,4 +1,4 @@
-use std::sync::OnceLock;
+use std::sync::LazyLock;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -276,26 +276,20 @@ impl LogWindow {
             // Read log lines
             let log_lines: Vec<LogLine> = log.map_or(vec![], |log| {
                 // Strip ANSI control sequences from log
-                static ANSI_EXPR: OnceLock<Regex> = OnceLock::new();
-
-                let ansi_expr = ANSI_EXPR.get_or_init(|| {
-                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
-                        .expect("Regex error")
+                static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Regex error")
                 });
 
-                let log = ansi_expr.replace_all(log, "");
+                let log = ANSI_EXPR.replace_all(log, "");
 
                 // Parse log lines
-                static EXPR: OnceLock<Regex> = OnceLock::new();
-
-                let expr = EXPR.get_or_init(|| {
-                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
-                        .expect("Regex error")
+                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Regex error")
                 });
 
                 log.par_lines()
                     .filter_map(|line|
-                        expr.captures(line)
+                        EXPR.captures(line)
                             .map(|caps| LogLine {
                                 date: caps[1].to_string(),
                                 time: caps[2].to_string(),

@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::OnceLock;
+use std::sync::{OnceLock, LazyLock};
 use std::path::Path;
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -1247,16 +1247,14 @@ impl PacViewWindow {
                 }
 
                 // Create map with updates (name, version)
-                static EXPR: OnceLock<Regex> = OnceLock::new();
-
-                let expr = EXPR.get_or_init(|| {
+                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                     Regex::new(r"([a-zA-Z0-9@._+-]+?)[ \t]+?[a-zA-Z0-9@._+-:]+?[ \t]+?->[ \t]+?([a-zA-Z0-9@._+-:]+)")
                         .expect("Regex error")
                 });
 
                 let update_map: HashMap<String, String> = update_str.lines()
                     .filter_map(|s|
-                        expr.captures(s)
+                        EXPR.captures(s)
                             .map(|caps| (caps[1].to_string(), caps[2].to_string()))
                     )
                     .collect();
