@@ -37,3 +37,56 @@ xdg = "2.5"
 
 [build-dependencies]
 glib-build-tools = "0.20"
+
+[lints.clippy]
+# NURSERY
+# nursery = { level = "warn", priority = -1 }
+
+# missing_const_for_fn = "allow"
+
+# PEDANTIC
+# pedantic = { level = "warn", priority = -1 }
+
+# wildcard_imports = "allow"
+# cast_sign_loss = "allow"
+# if_not_else = "allow"
+# too_many_lines = "allow"
+# cast_possible_truncation = "allow"
+# cast_precision_loss = "allow"
+# items_after_statements = "allow"
+# float_cmp = "allow"
+# needless_pass_by_value = "allow"
+
+# RESTRICTION
+# arithmetic_side_effects = "warn"
+# clone_on_ref_ptr = "warn"
+# create_dir = "warn"
+# empty_enum_variants_with_brackets = "warn"
+# empty_structs_with_brackets = "warn"
+# float_arithmetic = "warn"
+# float_cmp_const = "warn"
+# get_unwrap = "warn"
+# if_then_some_else_none = "warn"
+# indexing_slicing = "warn"
+# integer_division = "warn"
+# integer_division_remainder_used = "warn"
+# iter_over_hash_type = "warn"
+# lossy_float_literal = "warn"
+# mixed_read_write_in_expression = "warn"
+# mutex_atomic = "warn"
+# mutex_integer = "warn"
+# non_ascii_literal = "warn"
+# non_zero_suggestions = "warn"
+# pathbuf_init_then_push = "warn"
+# pattern_type_mismatch = "warn"
+# rc_buffer = "warn"
+# rc_mutex = "warn"
+# redundant_type_annotations = "warn"
+# return_and_then = "warn"
+# semicolon_inside_block = "warn"
+# single_call_fn = "warn"
+# str_to_string = "warn"
+# string_add = "warn"
+# string_slice = "warn"
+# string_to_string = "warn"
+# unneeded_field_pattern = "warn"
