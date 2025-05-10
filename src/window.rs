@@ -541,7 +541,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(aur_file) = imp.aur_file.get() {
-                    imp.package_view.set_status(&PackageViewStatus::AURDownload);
+                    imp.package_view.set_status(PackageViewStatus::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
@@ -549,7 +549,7 @@ impl PacViewWindow {
                         #[weak] window,
                         #[weak] imp,
                         move || {
-                            imp.package_view.set_status(&PackageViewStatus::Normal);
+                            imp.package_view.set_status(PackageViewStatus::Normal);
 
                             // Refresh packages
                             ActionGroupExt::activate_action(&window, "refresh", None);
@@ -896,7 +896,7 @@ impl PacViewWindow {
         if let Some(aur_file) = imp.aur_file.get().as_ref().filter(|_| first_load) {
             if !aur_file.query_exists(None::<&gio::Cancellable>) {
                 // If AUR file does not exist, download it
-                imp.package_view.set_status(&PackageViewStatus::AURDownload);
+                imp.package_view.set_status(PackageViewStatus::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
                 // Spawn tokio task to download AUR package names file
@@ -904,7 +904,7 @@ impl PacViewWindow {
                     #[weak(rename_to = window)] self,
                     #[weak] imp,
                     move || {
-                        imp.package_view.set_status(&PackageViewStatus::Normal);
+                        imp.package_view.set_status(PackageViewStatus::Normal);
 
                         // Load packages, no AUR file age check
                         window.load_packages(false);
@@ -1072,7 +1072,7 @@ impl PacViewWindow {
             .unwrap_or_default();
 
         // Show loading spinner
-        imp.package_view.set_status(&PackageViewStatus::PackageLoad);
+        imp.package_view.set_status(PackageViewStatus::PackageLoad);
 
         // Clear info pane package
         imp.info_pane.set_pkg(None::<PkgObject>);
@@ -1178,7 +1178,7 @@ impl PacViewWindow {
                     }
 
                     // Hide loading spinner
-                    imp.package_view.set_status(&PackageViewStatus::Normal);
+                    imp.package_view.set_status(PackageViewStatus::Normal);
 
                     // Set focus on package view
                     imp.package_view.view().grab_focus();

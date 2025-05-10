@@ -581,7 +581,7 @@ impl TextWidget {
 
                 // Update pango layout selection attributes
                 if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get())
-                    .filter(|(start, end)| start != end)
+                    .filter(|&(start, end)| start != end)
                     .map(|(start, end)| (start.min(end), start.max(end)))
                 {
                     attr_list.splice(&widget.selection_attributes(start, end), 0, 0);
