@@ -370,8 +370,6 @@ impl PackageView {
 
         let mut aur_names: HashSet<String> = HashSet::new();
 
-        println!("{:?}",installed_pkg_names.len());
-
         for result in search_results {
             aur_names.extend(result?.iter()
                 .filter(|&pkg| !installed_pkg_names.contains(&pkg.name))
