@@ -175,7 +175,7 @@ impl PkgData {
             conflicts: aur_sorted_vec(&pkg.conflicts),
             replaces: aur_sorted_vec(&pkg.replaces),
             architecture: String::new(),
-            packager: pkg.maintainer.clone().unwrap_or(String::from("Unknown Packager")),
+            packager: pkg.maintainer.clone().unwrap_or_else(|| String::from("Unknown Packager")),
             build_date: pkg.last_modified,
             install_date: 0,
             download_size: 0,
