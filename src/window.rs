@@ -1030,8 +1030,8 @@ impl PacViewWindow {
                     now.duration_since(file_time).ok()
                 });
 
-            // Spawn tokio task to download AUR package names file if does not exist or older than 7 days
-            if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(7 * 24 * 60 * 60) {
+            // Spawn tokio task to download AUR package names file if does not exist or older than 1 day
+            if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(24 * 60 * 60) {
                 Self::download_aur_names_async(aur_file, || {});
             }
         }
