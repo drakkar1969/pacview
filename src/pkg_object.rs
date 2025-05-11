@@ -499,39 +499,30 @@ impl PkgObject {
 
             let (sender, receiver) = async_channel::bounded(1);
 
-            INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-                gio::spawn_blocking(clone!(
-                    #[strong] installed_pkg_names,
-                    move || {
-                        // Get cache blacklist package names
-                        let cache_blacklist: Vec<&String> = installed_pkg_names.iter()
-                            .filter(|&name| name.starts_with(&pkg_name) && name != &pkg_name)
-                            .collect();
+            gio::spawn_blocking(clone!(
+                move || {
+                    let pacman_config = PACMAN_CONFIG.get().unwrap();
 
-                        let pacman_config = PACMAN_CONFIG.get().unwrap();
+                    let cache: Vec<String> = pacman_config.cache_dir.iter()
+                        .flat_map(|dir| {
+                            glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
+                                .expect("Glob pattern error")
+                                .flatten()
+                                .filter_map(|path|
+                                    path.file_name()
+                                        .and_then(|filename| filename.to_str())
+                                        .filter(|filename| 
+                                            filename.rsplitn(4, '-').last()
+                                                .is_some_and(|name| name == pkg_name)
+                                        )
+                                        .map(|filename| filename.to_owned())
+                                )
+                        })
+                        .collect();
 
-                        let cache: Vec<String> = pacman_config.cache_dir.iter()
-                            .flat_map(|dir| {
-                                glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
-                                    .expect("Glob pattern error")
-                                    .flatten()
-                                    .filter_map(|path| {
-                                        let cache_file = path.display().to_string();
-        
-                                        // Exclude cache files that include blacklist package names
-                                        if cache_blacklist.iter().any(|&s| cache_file.contains(s)) {
-                                            None
-                                        } else {
-                                            Some(cache_file)
-                                        }
-                                    })
-                            })
-                            .collect();
-
-                        sender.send_blocking(cache).expect("Failed to send through channel");
-                    }
-                ));
-            });
+                    sender.send_blocking(cache).expect("Failed to send through channel");
+                }
+            ));
 
             glib::spawn_future_local(clone!(
                 #[weak] imp,
