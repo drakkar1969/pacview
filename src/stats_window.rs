@@ -6,8 +6,8 @@ use glib::clone;
 use size::Size;
 use titlecase::titlecase;
 
+use crate::window::PKGS;
 use crate::pkg_data::PkgFlags;
-use crate::pkg_object::PkgObject;
 use crate::stats_object::StatsObject;
 
 //------------------------------------------------------------------------------
@@ -171,54 +171,56 @@ impl StatsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, repo_names: &[String], pkgs: &[PkgObject]) {
+    pub fn show(&self, repo_names: &[String]) {
         let imp = self.imp();
 
         self.present();
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            let mut stats_items: Vec<StatsObject> = vec![];
+            PKGS.with_borrow(|pkgs| {
+                let mut stats_items: Vec<StatsObject> = vec![];
 
-            // Iterate repos
-            let (tot_pkg_count, tot_install_count, tot_install_size) = repo_names.iter()
-                .fold((0, 0, 0), |(tot_pkg_count, tot_install_count, tot_install_size), repo| {
-                    // Iterate packages per repo
-                    let (pkg_count, install_count, install_size) = pkgs.iter()
-                        .filter(|pkg| pkg.repository() == *repo)
-                        .fold((0, 0, 0), |(mut pkg_count, mut install_count, mut install_size), pkg| {
-                            pkg_count += 1;
+                // Iterate repos
+                let (tot_pkg_count, tot_install_count, tot_install_size) = repo_names.iter()
+                    .fold((0, 0, 0), |(tot_pkg_count, tot_install_count, tot_install_size), repo| {
+                        // Iterate packages per repo
+                        let (pkg_count, install_count, install_size) = pkgs.iter()
+                            .filter(|pkg| pkg.repository() == *repo)
+                            .fold((0, 0, 0), |(mut pkg_count, mut install_count, mut install_size), pkg| {
+                                pkg_count += 1;
 
-                            if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                                install_count += 1;
-                                install_size += pkg.install_size();
-                            }
+                                if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                                    install_count += 1;
+                                    install_size += pkg.install_size();
+                                }
 
-                            (pkg_count, install_count, install_size)
-                        });
+                                (pkg_count, install_count, install_size)
+                            });
 
-                    // Add repo item to stats column view
-                    let repo = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+                        // Add repo item to stats column view
+                        let repo = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
 
-                    stats_items.push(StatsObject::new(
-                        &repo,
-                        &pkg_count.to_string(),
-                        &install_count.to_string(),
-                        &Size::from_bytes(install_size).to_string()
-                    ));
+                        stats_items.push(StatsObject::new(
+                            &repo,
+                            &pkg_count.to_string(),
+                            &install_count.to_string(),
+                            &Size::from_bytes(install_size).to_string()
+                        ));
 
-                    (tot_pkg_count + pkg_count, tot_install_count + install_count, tot_install_size + install_size)
-                });
+                        (tot_pkg_count + pkg_count, tot_install_count + install_count, tot_install_size + install_size)
+                    });
 
-            // Add item with totals to stats column view
-            stats_items.push(StatsObject::new(
-                "<b>Total</b>",
-                &format!("<b>{tot_pkg_count}</b>"),
-                &format!("<b>{tot_install_count}</b>"),
-                &format!("<b>{}</b>", &Size::from_bytes(tot_install_size).to_string())
-            ));
+                // Add item with totals to stats column view
+                stats_items.push(StatsObject::new(
+                    "<b>Total</b>",
+                    &format!("<b>{tot_pkg_count}</b>"),
+                    &format!("<b>{tot_install_count}</b>"),
+                    &format!("<b>{}</b>", &Size::from_bytes(tot_install_size).to_string())
+                ));
 
-            imp.model.splice(0, 0, &stats_items);
+                imp.model.splice(0, 0, &stats_items);
+            });
         }
     }
 }

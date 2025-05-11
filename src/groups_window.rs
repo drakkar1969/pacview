@@ -7,8 +7,8 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
+use crate::window::PKGS;
 use crate::groups_object::GroupsObject;
-use crate::pkg_object::PkgObject;
 use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
@@ -358,27 +358,30 @@ impl GroupsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, pkgs: &[PkgObject]) {
+    pub fn show(&self) {
         let imp = self.imp();
 
         self.present();
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            // Get list of packages with groups
-            let pkg_list: Vec<GroupsObject> = pkgs.iter()
-                .filter(|pkg| !pkg.groups().is_empty())
-                .flat_map(|pkg|
-                    pkg.groups().split(" | ")
-                        .map(|group|
-                            GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
-                        )
-                        .collect::<Vec<GroupsObject>>()
-                )
-                .collect();
+            PKGS.with_borrow(|pkgs| {
+                // Get list of packages with groups
+                let pkg_list: Vec<GroupsObject> = pkgs.iter()
+                    .filter(|pkg| !pkg.groups().is_empty())
+                    .flat_map(|pkg|
+                        pkg.groups().split(" | ")
+                            .map(|group|
+                                GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
+                            )
+                            .collect::<Vec<GroupsObject>>()
+                    )
+                    .collect();
 
-            // Populate column view
-            imp.model.splice(0, 0, &pkg_list);
+                // Populate column view
+                imp.model.splice(0, 0, &pkg_list);
+
+            });
         }
     }
 }

@@ -620,47 +620,37 @@ impl PacViewWindow {
         // Show stats window action
         let stats_action = gio::ActionEntry::builder("show-stats")
             .activate(|window: &Self, _, _| {
-                PKGS.with_borrow(|pkgs| {
-                    let imp = window.imp();
+                let imp = window.imp();
 
-                    imp.stats_window.show(imp.pacman_repos.get().unwrap(), pkgs);
-                });
+                imp.stats_window.show(imp.pacman_repos.get().unwrap());
             })
             .build();
 
         // Show backup files window action
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
-                INSTALLED_PKGS.with_borrow(|installed_pkgs| {
-                    window.imp().backup_window.show(installed_pkgs);
-                });
+                window.imp().backup_window.show();
             })
             .build();
 
         // Show pacman log window action
         let log_action = gio::ActionEntry::builder("show-pacman-log")
             .activate(|window: &Self, _, _| {
-                PACMAN_LOG.with_borrow(|pacman_log| {
-                    window.imp().log_window.show(pacman_log.as_deref());
-                });
+                window.imp().log_window.show();
             })
             .build();
 
         // Show pacman cache window action
         let cache_action = gio::ActionEntry::builder("show-pacman-cache")
             .activate(|window: &Self, _, _| {
-                let pacman_config = PACMAN_CONFIG.get().unwrap();
-
-                window.imp().cache_window.show(&pacman_config.cache_dir);
+                window.imp().cache_window.show();
             })
             .build();
 
         // Show pacman groups window action
         let groups_action = gio::ActionEntry::builder("show-pacman-groups")
             .activate(|window: &Self, _, _| {
-                PKGS.with_borrow(|pkgs| {
-                    window.imp().groups_window.show(pkgs);
-                });
+                window.imp().groups_window.show();
             })
             .build();
 

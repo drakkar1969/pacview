@@ -7,6 +7,7 @@ use glib::clone;
 
 use rayon::prelude::*;
 
+use crate::window::PACMAN_CONFIG;
 use crate::cache_object::CacheObject;
 use crate::utils::app_info;
 
@@ -247,7 +248,7 @@ impl CacheWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, cache_dirs: &[String]) {
+    pub fn show(&self) {
         let imp = self.imp();
 
         self.present();
@@ -255,6 +256,8 @@ impl CacheWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get cache files
+            let cache_dirs = &PACMAN_CONFIG.get().unwrap().cache_dir;
+
             let mut cache_files: Vec<String> = cache_dirs.par_iter()
                 .flat_map(|dir| {
                     fs::read_dir(dir).map_or(vec![], |read_dir| {

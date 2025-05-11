@@ -8,6 +8,7 @@ use glib::clone;
 use regex::Regex;
 use rayon::prelude::*;
 
+use crate::window::PACMAN_LOG;
 use crate::log_object::LogObject;
 
 //------------------------------------------------------------------------------
@@ -260,7 +261,7 @@ impl LogWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, log: Option<&str>) {
+    pub fn show(&self) {
         let imp = self.imp();
 
         self.present();
@@ -275,38 +276,40 @@ impl LogWindow {
                 message: String
             }
 
-            // Read log lines
-            let log_lines: Vec<LogLine> = log.map_or(vec![], |log| {
-                // Strip ANSI control sequences from log
-                static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Regex error")
+            PACMAN_LOG.with_borrow(|pacman_log| {
+                // Read log lines
+                let log_lines: Vec<LogLine> = pacman_log.as_ref().map_or(vec![], |log| {
+                    // Strip ANSI control sequences from log
+                    static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                        Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Regex error")
+                    });
+
+                    let log = ANSI_EXPR.replace_all(&log, "");
+
+                    // Parse log lines
+                    static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Regex error")
+                    });
+
+                    log.par_lines()
+                        .filter_map(|line|
+                            EXPR.captures(line)
+                                .map(|caps| LogLine {
+                                    date: caps[1].to_string(),
+                                    time: caps[2].to_string(),
+                                    category: caps[3].to_string(),
+                                    message: caps[4].to_string()
+                                })
+                        )
+                        .collect()
                 });
 
-                let log = ANSI_EXPR.replace_all(log, "");
-
-                // Parse log lines
-                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Regex error")
-                });
-
-                log.par_lines()
-                    .filter_map(|line|
-                        EXPR.captures(line)
-                            .map(|caps| LogLine {
-                                date: caps[1].to_string(),
-                                time: caps[2].to_string(),
-                                category: caps[3].to_string(),
-                                message: caps[4].to_string()
-                            })
-                    )
-                    .collect()
+                // Populate column view
+                imp.model.splice(0, 0, &log_lines.iter().rev()
+                    .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
+                    .collect::<Vec<LogObject>>()
+                );
             });
-
-            // Populate column view
-            imp.model.splice(0, 0, &log_lines.iter().rev()
-                .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
-                .collect::<Vec<LogObject>>()
-            );
         }
     }
 }

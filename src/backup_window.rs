@@ -7,7 +7,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::pkg_object::PkgObject;
+use crate::window::INSTALLED_PKGS;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
 use crate::utils::app_info;
@@ -423,22 +423,24 @@ impl BackupWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, installed_pkgs: &[PkgObject]) {
+    pub fn show(&self) {
         let imp = self.imp();
 
         self.present();
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            // Get backup list
-            let backup_list: Vec<BackupObject> = installed_pkgs.iter()
-                .flat_map(|pkg|
-                    pkg.backup().iter().map(BackupObject::new)
-                )
-                .collect();
+            INSTALLED_PKGS.with_borrow(|installed_pkgs| {
+                // Get backup list
+                let backup_list: Vec<BackupObject> = installed_pkgs.iter()
+                    .flat_map(|pkg|
+                        pkg.backup().iter().map(BackupObject::new)
+                    )
+                    .collect();
 
-            // Populate column view
-            imp.model.splice(0, 0, &backup_list);
+                // Populate column view
+                imp.model.splice(0, 0, &backup_list);
+            });
 
             // Set status dropdown selected item
             imp.status_dropdown.set_selected(0);
