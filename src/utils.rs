@@ -1,17 +1,10 @@
-use std::sync::OnceLock;
-use std::io;
-
-use gtk::gio;
-use gtk::prelude::AppInfoExt;
-
-use tokio::runtime::Runtime;
-
 //------------------------------------------------------------------------------
-// MODULE: Tokio
+// MODULE: TokioRuntime
 //------------------------------------------------------------------------------
-pub struct Tokio;
+pub mod tokio_runtime {
+    use std::sync::OnceLock;
+    use tokio::runtime::Runtime;
 
-impl Tokio {
     //---------------------------------------
     // Runtime function
     //---------------------------------------
@@ -27,9 +20,9 @@ impl Tokio {
 //------------------------------------------------------------------------------
 // MODULE: AsyncCommand
 //------------------------------------------------------------------------------
-pub struct AsyncCommand;
+pub mod async_command {
+    use std::io;
 
-impl AsyncCommand {
     //---------------------------------------
     // Run function
     //---------------------------------------
@@ -53,9 +46,10 @@ impl AsyncCommand {
 //------------------------------------------------------------------------------
 // MODULE: AppInfo
 //------------------------------------------------------------------------------
-pub struct AppInfo;
+pub mod app_info {
+    use gtk::gio;
+    use gtk::prelude::AppInfoExt;
 
-impl AppInfo {
     //---------------------------------------
     // Open containing folder function
     //---------------------------------------

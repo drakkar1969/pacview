@@ -21,7 +21,7 @@ use crate::window::INSTALLED_PKG_NAMES;
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
-use crate::utils::Tokio;
+use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
@@ -424,7 +424,7 @@ impl PackageView {
         let (sender, receiver) = async_channel::bounded(1);
 
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-            Tokio::runtime().spawn(clone!(
+            tokio_runtime::runtime().spawn(clone!(
                 #[strong] installed_pkg_names,
                 async move {
                     let result = tokio::select! {

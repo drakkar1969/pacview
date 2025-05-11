@@ -16,7 +16,7 @@ use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
-use crate::utils::AppInfo;
+use crate::utils::app_info;
 
 //------------------------------------------------------------------------------
 // ENUM: PropID
@@ -489,7 +489,7 @@ impl InfoPane {
                     .and_downcast::<gtk::StringObject>()
                     .expect("Failed to downcast to 'StringObject'");
 
-                AppInfo::open_with_default_app(&item.string());
+                app_info::open_with_default_app(&item.string());
             }
         ));
 
@@ -548,7 +548,7 @@ impl InfoPane {
                     .and_downcast::<gtk::StringObject>()
                     .expect("Failed to downcast to 'StringObject'");
 
-                AppInfo::open_containing_folder(&item.string());
+                app_info::open_containing_folder(&item.string());
             }
         ));
 
@@ -586,7 +586,7 @@ impl InfoPane {
                     .and_downcast::<BackupObject>()
                     .expect("Failed to downcast to 'BackupObject'");
 
-                    AppInfo::open_with_default_app(&item.filename());
+                    app_info::open_with_default_app(&item.filename());
             }
         ));
 
