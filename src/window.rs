@@ -850,19 +850,21 @@ impl PacViewWindow {
             async move {
                 let url = "https://aur.archlinux.org/packages.gz";
 
-                if let Ok(response) = reqwest::get(url).await {
-                    if let Ok(bytes) = response.bytes().await {
-                        let mut decoder = GzDecoder::new(&bytes[..]);
+                let response = reqwest::get(url).await?;
 
-                        let mut gz_string = String::new();
+                let bytes = response.bytes().await?;
 
-                        if decoder.read_to_string(&mut gz_string).is_ok() {
-                            fs::write(&aur_file, gz_string).unwrap_or_default();
-                        }
-                    }
+                let mut decoder = GzDecoder::new(&bytes[..]);
+
+                let mut gz_string = String::new();
+
+                if decoder.read_to_string(&mut gz_string).is_ok() {
+                    fs::write(&aur_file, gz_string).unwrap_or_default();
                 }
 
                 sender.send(()).await.expect("Failed to send through channel");
+
+                Ok::<(), reqwest::Error>(())
             }
         ));
 
