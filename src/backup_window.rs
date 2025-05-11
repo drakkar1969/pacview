@@ -20,7 +20,7 @@ use crate::utils::app_info;
 #[enum_type(name = "BackupSearchMode")]
 pub enum BackupSearchMode {
     #[default]
-    Both,
+    All,
     Packages,
     Files,
 }
@@ -268,7 +268,7 @@ impl BackupWindow {
                                 .expect("Failed to downcast to 'BackupObject'");
 
                             match window.search_mode() {
-                                BackupSearchMode::Both => {
+                                BackupSearchMode::All => {
                                     obj.filename().to_lowercase().contains(&search_term) ||
                                         obj.package().to_lowercase().contains(&search_term)
                                 },
@@ -291,7 +291,7 @@ impl BackupWindow {
 
             let search_mode = window.search_mode();
 
-            if search_mode == BackupSearchMode::Both {
+            if search_mode == BackupSearchMode::All {
                 imp.search_entry.set_placeholder_text(Some("Search all"));
             } else {
                 imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.nick())));

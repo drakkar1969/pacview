@@ -19,7 +19,7 @@ use crate::enum_traits::EnumExt;
 #[enum_type(name = "GroupsSearchMode")]
 pub enum GroupsSearchMode {
     #[default]
-    Both,
+    All,
     Groups,
     Packages,
 }
@@ -238,7 +238,7 @@ impl GroupsWindow {
                                 .expect("Failed to downcast to 'GroupsObject'");
 
                             match window.search_mode() {
-                                GroupsSearchMode::Both => {
+                                GroupsSearchMode::All => {
                                     obj.package().to_lowercase().contains(&search_term) ||
                                         obj.groups().to_lowercase().contains(&search_term)
                                 },
@@ -261,7 +261,7 @@ impl GroupsWindow {
 
             let search_mode = window.search_mode();
 
-            if search_mode == GroupsSearchMode::Both {
+            if search_mode == GroupsSearchMode::All {
                 imp.search_entry.set_placeholder_text(Some("Search all"));
             } else {
                 imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.nick())));

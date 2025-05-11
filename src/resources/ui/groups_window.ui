@@ -239,9 +239,9 @@
     <section>
       <attribute name="label">Search</attribute>
       <item>
-        <attribute name="label">Both</attribute>
+        <attribute name="label">All</attribute>
         <attribute name="action">search.set-mode</attribute>
-        <attribute name="target">both</attribute>
+        <attribute name="target">all</attribute>
       </item>
       <item>
         <attribute name="label">Groups</attribute>
