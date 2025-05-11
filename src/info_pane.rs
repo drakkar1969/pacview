@@ -135,6 +135,8 @@ mod imp {
         pub(super) files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) files_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) files_empty_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
         pub(super) log_header_label: TemplateChild<gtk::Label>,
@@ -367,6 +369,12 @@ impl InfoPane {
 
         imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
             .transform_to(|_, n_items: u32| Some(n_items > 0))
+            .sync_create()
+            .build();
+
+        // Bind files count to files empty status visibility
+        imp.files_selection.bind_property("n-items", &imp.files_empty_status.get(), "visible")
+            .transform_to(move |_, n_items: u32| Some(n_items == 0))
             .sync_create()
             .build();
 
