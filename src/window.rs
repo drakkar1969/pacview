@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell, OnceCell};
 use std::sync::{OnceLock, LazyLock};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
@@ -114,7 +114,7 @@ mod imp {
 
         pub(super) gsettings: OnceCell<gio::Settings>,
 
-        pub(super) aur_file: OnceCell<gio::File>,
+        pub(super) aur_file: OnceCell<PathBuf>,
 
         pub(super) pacman_repos: OnceCell<Vec<String>>,
 
@@ -418,7 +418,7 @@ impl PacViewWindow {
     fn init_cache_dir(&self) {
         if let Some(aur_file) = xdg::BaseDirectories::new().ok()
             .and_then(|xdg_dirs| xdg_dirs.create_cache_directory("pacview").ok())
-            .map(|cache_dir| gio::File::for_path(cache_dir.join("aur_packages")))
+            .map(|cache_dir| cache_dir.join("aur_packages"))
         {
             self.imp().aur_file.set(aur_file).unwrap();
         }
@@ -840,12 +840,13 @@ impl PacViewWindow {
     //---------------------------------------
     // Download AUR names helper function
     //---------------------------------------
-    fn download_aur_names_async<F>(file: &gio::File, f: F)
+    fn download_aur_names_async<F>(aur_file: &PathBuf, f: F)
     where F: Fn() + 'static {
         let (sender, receiver) = async_channel::bounded(1);
 
+        let aur_file = aur_file.to_owned();
+
         tokio_runtime::runtime().spawn(clone!(
-            #[weak] file,
             async move {
                 let url = "https://aur.archlinux.org/packages.gz";
 
@@ -856,13 +857,7 @@ impl PacViewWindow {
                         let mut gz_string = String::new();
 
                         if decoder.read_to_string(&mut gz_string).is_ok() {
-                            file.replace_contents(
-                                gz_string.as_bytes(),
-                                None,
-                                false,
-                                gio::FileCreateFlags::REPLACE_DESTINATION,
-                                None::<&gio::Cancellable>
-                            ).unwrap_or_default();
+                            fs::write(&aur_file, gz_string).unwrap_or_default();
                         }
                     }
                 }
@@ -893,8 +888,11 @@ impl PacViewWindow {
         self.populate_sidebar(first_load);
 
         // If first load, check AUR file
-        if let Some(aur_file) = imp.aur_file.get().as_ref().filter(|_| first_load) {
-            if !aur_file.query_exists(None::<&gio::Cancellable>) {
+        if let Some(aur_file) = imp.aur_file.get().filter(|_| first_load) {
+            if fs::exists(&aur_file).is_ok_and(|exists| exists) {
+                // AUR file exists: load packages and check AUR file age
+                self.load_packages(true);
+            } else {
                 // If AUR file does not exist, download it
                 imp.package_view.set_status(PackageViewStatus::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
@@ -910,9 +908,6 @@ impl PacViewWindow {
                         window.load_packages(false);
                     }
                 ));
-            } else {
-                // AUR file exists: load packages and check AUR file age
-                self.load_packages(true);
             }
         } else {
             // Not first load or path of AUR file is invalid: load packages, no AUR file age check
@@ -1025,18 +1020,16 @@ impl PacViewWindow {
 
         if let Some(aur_file) = imp.aur_file.get() {
             // Get AUR package names file age
-            let file_days = aur_file
-                .query_info("time::modified", gio::FileQueryInfoFlags::NONE, None::<&gio::Cancellable>)
-                .ok()
-                .and_then(|file_info| file_info.modification_date_time())
-                .and_then(|file_time|
-                    glib::DateTime::now_local()
-                        .ok()
-                        .map(|current_time| current_time.difference(&file_time).as_days())
-                );
+            let file_time = fs::metadata(aur_file).ok()
+                .and_then(|metadata| metadata.modified().ok())
+                .and_then(|file_time| {
+                    let now = std::time::SystemTime::now();
+
+                    now.duration_since(file_time).ok()
+                });
 
             // Spawn tokio task to download AUR package names file if does not exist or older than 7 days
-            if file_days.is_none() || file_days.unwrap() >= 7 {
+            if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(7 * 24 * 60 * 60) {
                 Self::download_aur_names_async(aur_file, || {});
             }
         }
@@ -1063,8 +1056,8 @@ impl PacViewWindow {
 
         // Load AUR package names from file
         let aur_names: Vec<String> = imp.aur_file.get()
-            .and_then(|aur_file| aur_file.load_contents(None::<&gio::Cancellable>).ok())
-            .map(|(bytes, _)|
+            .and_then(|aur_file| fs::read(aur_file).ok())
+            .map(|bytes|
                 String::from_utf8_lossy(&bytes).lines()
                     .map(String::from)
                     .collect()
