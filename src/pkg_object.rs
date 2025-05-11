@@ -515,7 +515,7 @@ impl PkgObject {
                                             filename.rsplitn(4, '-').last()
                                                 .is_some_and(|name| name == pkg_name)
                                         )
-                                        .map(|filename| filename.to_owned())
+                                        .map(ToOwned::to_owned)
                                 )
                         })
                         .collect();

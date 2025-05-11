@@ -244,7 +244,7 @@ impl LogWindow {
 
                 imp.empty_status.set_visible(n_items == 0);
 
-                imp.header_sub_label.set_label(&format!("{n_items} line{}", if n_items != 1 { "s" } else { "" }));
+                imp.header_sub_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
             }
@@ -284,7 +284,7 @@ impl LogWindow {
                         Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Regex error")
                     });
 
-                    let log = ANSI_EXPR.replace_all(&log, "");
+                    let log = ANSI_EXPR.replace_all(log, "");
 
                     // Parse log lines
                     static EXPR: LazyLock<Regex> = LazyLock::new(|| {

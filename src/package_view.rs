@@ -34,7 +34,7 @@ thread_local! {
 //------------------------------------------------------------------------------
 // ENUM: PackageViewStatus
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy)]
 #[repr(u32)]
 pub enum PackageViewStatus {
     #[default]

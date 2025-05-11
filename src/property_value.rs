@@ -11,7 +11,7 @@ use crate::text_widget::{TextWidget, PropType};
 //------------------------------------------------------------------------------
 // ENUM: ValueType
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ValueType<'a> {
     Str(&'a str),
     StrIcon(&'a str, Option<&'a str>),

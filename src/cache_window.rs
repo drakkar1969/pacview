@@ -231,7 +231,7 @@ impl CacheWindow {
 
                 imp.empty_status.set_visible(n_items == 0);
 
-                imp.header_sub_label.set_label(&format!("{n_items} file{}", if n_items != 1 { "s" } else { "" }));
+                imp.header_sub_label.set_label(&format!("{n_items} file{}", if n_items == 1 { "" } else { "s" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
             }

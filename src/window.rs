@@ -480,7 +480,7 @@ impl PacViewWindow {
         // Bind package view item count to status label text
         imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
             .transform_to(|_, n_items: u32|
-                Some(format!("{n_items} matching package{}", if n_items != 1 { "s" } else { "" }))
+                Some(format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" }))
             )
             .sync_create()
             .build();
@@ -881,7 +881,7 @@ impl PacViewWindow {
 
         // If first load, check AUR file
         if let Some(aur_file) = imp.aur_file.get().filter(|_| first_load) {
-            if fs::exists(&aur_file).is_ok_and(|exists| exists) {
+            if fs::exists(aur_file).is_ok_and(|exists| exists) {
                 // AUR file exists: load packages and check AUR file age
                 self.load_packages(true);
             } else {
@@ -1194,13 +1194,13 @@ impl PacViewWindow {
                 // Check for pacman updates async
                 let pacman_handle = async_command::run("/usr/bin/checkupdates");
 
-                let (pacman_res, aur_res) = if !aur_command.is_empty() {
+                let (pacman_res, aur_res) = if aur_command.is_empty() {
+                    (pacman_handle.await, Ok((None, String::new())))
+                } else {
                     // Check for AUR updates async
                     let aur_handle = async_command::run(&aur_command);
 
                     join!(pacman_handle, aur_handle)
-                } else {
-                    (pacman_handle.await, Ok((None, String::new())))
                 };
 
                 // Get pacman update results
