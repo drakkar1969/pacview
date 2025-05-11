@@ -63,6 +63,9 @@ mod imp {
         #[template_child]
         pub(super) installed_filter: TemplateChild<gtk::CustomFilter>,
 
+        #[template_child]
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
+
         #[property(get, set, builder(GroupsSearchMode::default()))]
         search_mode: Cell<GroupsSearchMode>,
     }
@@ -335,6 +338,8 @@ impl GroupsWindow {
                     )
                     .collect::<HashSet<String>>()
                     .len();
+
+                imp.empty_status.set_visible(n_items == 0);
 
                 imp.header_sub_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections != 1 { "s" } else { "" }));
 

@@ -45,7 +45,7 @@ mod imp {
         pub(super) package_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
-        pub(super) error_label: TemplateChild<gtk::Label>,
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
     }
 
     //---------------------------------------
@@ -240,6 +240,8 @@ impl LogWindow {
             #[weak] imp,
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
+
+                imp.empty_status.set_visible(n_items == 0);
 
                 imp.header_sub_label.set_label(&format!("{n_items} line{}", if n_items != 1 { "s" } else { "" }));
 

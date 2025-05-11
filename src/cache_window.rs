@@ -39,6 +39,9 @@ mod imp {
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+
+        #[template_child]
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
     }
 
     //---------------------------------------
@@ -224,6 +227,8 @@ impl CacheWindow {
             #[weak] imp,
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
+
+                imp.empty_status.set_visible(n_items == 0);
 
                 imp.header_sub_label.set_label(&format!("{n_items} file{}", if n_items != 1 { "s" } else { "" }));
 

@@ -109,51 +109,65 @@
               </object>
             </child>
             <child>
-              <object class="GtkScrolledWindow">
-                <property name="hexpand">true</property>
-                <property name="vexpand">true</property>
-                <property name="margin-bottom">16</property>
-                <property name="child">
-                  <object class="GtkColumnView" id="view">
-                    <style>
-                      <class name="card-list"/>
-                    </style>
-                    <property name="margin-start">16</property>
-                    <property name="margin-end">16</property>
-                    <property name="tab-behavior">item</property>
-                    <property name="model">
-                      <object class="GtkSingleSelection" id="selection">
+              <object class="GtkOverlay">
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="child">
+                      <object class="GtkColumnView" id="view">
+                        <style>
+                          <class name="card-list"/>
+                        </style>
+                        <property name="margin-start">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="tab-behavior">item</property>
                         <property name="model">
-                          <object class="GtkFilterListModel" id="filter_model">
-                            <property name="filter">
-                              <object class="GtkStringFilter" id="search_filter">
-                                <property name="expression">
-                                  <lookup name="filename" type="CacheObject"/>
+                          <object class="GtkSingleSelection" id="selection">
+                            <property name="model">
+                              <object class="GtkFilterListModel" id="filter_model">
+                                <property name="filter">
+                                  <object class="GtkStringFilter" id="search_filter">
+                                    <property name="expression">
+                                      <lookup name="filename" type="CacheObject"/>
+                                    </property>
+                                  </object>
+                                </property>
+                                <property name="model">
+                                  <object class="GListStore" id="model">
+                                    <property name="item-type">CacheObject</property>
+                                  </object>
                                 </property>
                               </object>
                             </property>
-                            <property name="model">
-                              <object class="GListStore" id="model">
-                                <property name="item-type">CacheObject</property>
+                          </object>
+                        </property>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="file_column">
+                            <property name="title">Cache File</property>
+                            <property name="expand">true</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/cache_window/cache_item.ui</property>
                               </object>
                             </property>
                           </object>
-                        </property>
+                        </child>
                       </object>
                     </property>
-                    <child>
-                      <object class="GtkColumnViewColumn" id="file_column">
-                        <property name="title">Cache File</property>
-                        <property name="expand">true</property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/cache_window/cache_item.ui</property>
-                          </object>
-                        </property>
-                      </object>
-                    </child>
                   </object>
-                </property>
+                </child>
+                <child type="overlay">
+                  <object class="AdwStatusPage" id="empty_status">
+                    <property name="icon-name">edit-find-symbolic</property>
+                    <property name="title">No Cache Files Found</property>
+                    <style>
+                      <class name="compact"/>
+                      <class name="dimmed"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

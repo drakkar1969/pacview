@@ -68,6 +68,9 @@ mod imp {
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
 
+        #[template_child]
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
+
         #[property(get, set, builder(BackupSearchMode::default()))]
         search_mode: Cell<BackupSearchMode>,
     }
@@ -378,6 +381,8 @@ impl BackupWindow {
                     )
                     .collect::<HashSet<String>>()
                     .len();
+
+                imp.empty_status.set_visible(n_items == 0);
 
                 imp.header_sub_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections != 1 { "s" } else { "" }));
 

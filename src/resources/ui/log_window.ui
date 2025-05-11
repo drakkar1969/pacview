@@ -200,14 +200,12 @@
                   </object>
                 </child>
                 <child type="overlay">
-                  <object class="GtkLabel" id="error_label">
-                    <property name="visible">false</property>
-                    <property name="halign">center</property>
-                    <property name="valign">center</property>
-                    <property name="label">Error retrieving log</property>
+                  <object class="AdwStatusPage" id="empty_status">
+                    <property name="icon-name">edit-find-symbolic</property>
+                    <property name="title">No Log Messages Found</property>
                     <style>
-                      <class name="title-3"/>
-                      <class name="error"/>
+                      <class name="compact"/>
+                      <class name="dimmed"/>
                     </style>
                   </object>
                 </child>

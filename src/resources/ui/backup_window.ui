@@ -144,89 +144,103 @@
               </object>
             </child>
             <child>
-              <object class="GtkScrolledWindow">
-                <property name="hscrollbar-policy">never</property>
-                <property name="hexpand">true</property>
-                <property name="vexpand">true</property>
-                <property name="margin-bottom">16</property>
-                <property name="child">
-                  <object class="GtkColumnView" id="view">
-                    <style>
-                      <class name="card-list"/>
-                    </style>
-                    <property name="margin-start">16</property>
-                    <property name="margin-end">16</property>
-                    <property name="tab-behavior">item</property>
-                    <property name="model">
-                      <object class="GtkSingleSelection" id="selection">
+              <object class="GtkOverlay">
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="hexpand">true</property>
+                    <property name="vexpand">true</property>
+                    <property name="margin-bottom">16</property>
+                    <property name="child">
+                      <object class="GtkColumnView" id="view">
+                        <style>
+                          <class name="card-list"/>
+                        </style>
+                        <property name="margin-start">16</property>
+                        <property name="margin-end">16</property>
+                        <property name="tab-behavior">item</property>
                         <property name="model">
-                          <object class="GtkSortListModel" id="section_sort_model">
-                            <property name="section-sorter">
-                              <object class="GtkStringSorter" id="section_sorter">
-                                <property name="expression">
-                                  <lookup name="package" type="BackupObject"/>
-                                </property>
-                              </object>
-                            </property>
+                          <object class="GtkSingleSelection" id="selection">
                             <property name="model">
-                              <object class="GtkFilterListModel" id="filter_model">
-                                <property name="filter">
-                                  <object class="GtkEveryFilter" id="main_filter">
-                                    <child>
-                                      <object class="GtkCustomFilter" id="search_filter">
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkStringFilter" id="status_filter">
-                                        <property name="expression">
-                                          <lookup name="status-text" type="BackupObject"/>
-                                        </property>
-                                        <property name="match-mode">exact</property>
-                                      </object>
-                                    </child>
+                              <object class="GtkSortListModel" id="section_sort_model">
+                                <property name="section-sorter">
+                                  <object class="GtkStringSorter" id="section_sorter">
+                                    <property name="expression">
+                                      <lookup name="package" type="BackupObject"/>
+                                    </property>
                                   </object>
                                 </property>
                                 <property name="model">
-                                  <object class="GListStore" id="model">
-                                    <property name="item-type">BackupObject</property>
+                                  <object class="GtkFilterListModel" id="filter_model">
+                                    <property name="filter">
+                                      <object class="GtkEveryFilter" id="main_filter">
+                                        <child>
+                                          <object class="GtkCustomFilter" id="search_filter">
+                                          </object>
+                                        </child>
+                                        <child>
+                                          <object class="GtkStringFilter" id="status_filter">
+                                            <property name="expression">
+                                              <lookup name="status-text" type="BackupObject"/>
+                                            </property>
+                                            <property name="match-mode">exact</property>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </property>
+                                    <property name="model">
+                                      <object class="GListStore" id="model">
+                                        <property name="item-type">BackupObject</property>
+                                      </object>
+                                    </property>
                                   </object>
                                 </property>
                               </object>
                             </property>
                           </object>
                         </property>
-                      </object>
-                    </property>
-                    <property name="header-factory">
-                      <object class="GtkBuilderListItemFactory" id="section_factory">
-                        <property name="resource">/com/github/PacView/ui/backup_window/section_header.ui</property>
-                      </object>
-                    </property>
-                    <child>
-                      <object class="GtkColumnViewColumn" id="filename_column">
-                        <property name="title">Filename</property>
-                        <property name="resizable">true</property>
-                        <property name="expand">true</property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_window/filename_item.ui</property>
+                        <property name="header-factory">
+                          <object class="GtkBuilderListItemFactory" id="section_factory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/section_header.ui</property>
                           </object>
                         </property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkColumnViewColumn" id="status_column">
-                        <property name="title">Status</property>
-                        <property name="resizable">true</property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="filename_column">
+                            <property name="title">Filename</property>
+                            <property name="resizable">true</property>
+                            <property name="expand">true</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/backup_window/filename_item.ui</property>
+                              </object>
+                            </property>
                           </object>
-                        </property>
+                        </child>
+                        <child>
+                          <object class="GtkColumnViewColumn" id="status_column">
+                            <property name="title">Status</property>
+                            <property name="resizable">true</property>
+                            <property name="factory">
+                              <object class="GtkBuilderListItemFactory">
+                                <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
+                              </object>
+                            </property>
+                          </object>
+                        </child>
                       </object>
-                    </child>
+                    </property>
                   </object>
-                </property>
+                </child>
+                <child type="overlay">
+                  <object class="AdwStatusPage" id="empty_status">
+                    <property name="icon-name">edit-find-symbolic</property>
+                    <property name="title">No Backup Files Found</property>
+                    <style>
+                      <class name="compact"/>
+                      <class name="dimmed"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
