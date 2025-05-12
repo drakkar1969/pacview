@@ -43,6 +43,7 @@ use crate::enum_traits::EnumExt;
 //------------------------------------------------------------------------------
 thread_local! {
     pub static PACMAN_LOG: RefCell<Option<String>> = const { RefCell::new(None) };
+    pub static PACMAN_CACHE: RefCell<Vec<PathBuf>> = const { RefCell::new(vec![]) };
     pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
@@ -1045,6 +1046,22 @@ impl PacViewWindow {
 
         // Load pacman log
         PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok());
+
+        // Load pacman cache
+        let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
+            .flat_map(|dir| {
+                fs::read_dir(dir).map_or(vec![], |read_dir| {
+                    read_dir.into_iter()
+                        .flatten()
+                        .map(|entry| entry.path())
+                        .collect()
+                })
+            })
+            .collect();
+
+        cache_files.sort_unstable();
+
+        PACMAN_CACHE.replace(cache_files);
 
         // Load AUR package names from file
         let aur_names: Vec<String> = imp.aur_file.get()

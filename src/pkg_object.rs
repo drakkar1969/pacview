@@ -9,11 +9,10 @@ use glib::clone;
 
 use alpm_utils::DbListExt;
 use regex::Regex;
-use glob::glob;
 use size::Size;
 use rayon::prelude::*;
 
-use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
+use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgFlags, PkgData};
 
 //------------------------------------------------------------------------------
@@ -499,30 +498,27 @@ impl PkgObject {
 
             let (sender, receiver) = async_channel::bounded(1);
 
-            gio::spawn_blocking(clone!(
-                move || {
-                    let pacman_config = PACMAN_CONFIG.get().unwrap();
+            PACMAN_CACHE.with_borrow(|pacman_cache| {
+                gio::spawn_blocking(clone!(
+                    #[strong] pacman_cache,
+                    move || {
+                        let cache: Vec<String> = pacman_cache.iter()
+                            .filter_map(|path|
+                                path.file_name()
+                                    .and_then(|filename| filename.to_str())
+                                    .filter(|filename| filename.ends_with(".pkg.tar.zst"))
+                                    .filter(|filename| 
+                                        filename.rsplitn(4, '-').last()
+                                            .is_some_and(|name| name == pkg_name)
+                                    )
+                                    .map(ToOwned::to_owned)
+                            )
+                            .collect();
 
-                    let cache: Vec<String> = pacman_config.cache_dir.iter()
-                        .flat_map(|dir| {
-                            glob(&format!("{dir}{pkg_name}*.pkg.tar.zst"))
-                                .expect("Glob pattern error")
-                                .flatten()
-                                .filter_map(|path|
-                                    path.file_name()
-                                        .and_then(|filename| filename.to_str())
-                                        .filter(|filename| 
-                                            filename.rsplitn(4, '-').last()
-                                                .is_some_and(|name| name == pkg_name)
-                                        )
-                                        .map(ToOwned::to_owned)
-                                )
-                        })
-                        .collect();
-
-                    sender.send_blocking(cache).expect("Failed to send through channel");
-                }
-            ));
+                        sender.send_blocking(cache).expect("Failed to send through channel");
+                    }
+                ));
+            });
 
             glib::spawn_future_local(clone!(
                 #[weak] imp,

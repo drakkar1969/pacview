@@ -1,13 +1,9 @@
-use std::fs;
-
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use rayon::prelude::*;
-
-use crate::window::PACMAN_CONFIG;
+use crate::window::PACMAN_CACHE;
 use crate::cache_object::CacheObject;
 use crate::utils::app_info;
 
@@ -256,26 +252,13 @@ impl CacheWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get cache files
-            let cache_dirs = &PACMAN_CONFIG.get().unwrap().cache_dir;
+            PACMAN_CACHE.with_borrow(|pacman_cache| {
+                imp.model.splice(0, 0, &pacman_cache.iter()
+                    .map(|file| CacheObject::new(&file.display().to_string()))
+                    .collect::<Vec<CacheObject>>()
+                );
 
-            let mut cache_files: Vec<String> = cache_dirs.par_iter()
-                .flat_map(|dir| {
-                    fs::read_dir(dir).map_or(vec![], |read_dir| {
-                        read_dir.into_iter()
-                            .flatten()
-                            .map(|entry| entry.path().display().to_string())
-                            .collect()
-                    })
-                })
-                .collect();
-
-            cache_files.par_sort_unstable();
-
-            // Populate column view
-            imp.model.splice(0, 0, &cache_files.iter()
-                .map(|file| CacheObject::new(file))
-                .collect::<Vec<CacheObject>>()
-            );
+            });
         }
     }
 }
