@@ -365,7 +365,6 @@ impl PkgObject {
             self.pkg()
                 .map(|pkg| {
                     let mut required_by: Vec<String> = pkg.required_by().into_iter()
-                        .par_bridge()
                         .collect();
 
                     required_by.par_sort_unstable();
@@ -381,7 +380,6 @@ impl PkgObject {
             self.pkg()
                 .map(|pkg| {
                     let mut optional_for: Vec<String> = pkg.optional_for().into_iter()
-                        .par_bridge()
                         .collect();
 
                     optional_for.par_sort_unstable();
@@ -401,7 +399,6 @@ impl PkgObject {
                     let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
 
                     let mut files: Vec<String> = pkg.files().files().iter()
-                        .par_bridge()
                         .map(|file| root_dir.to_string() + file.name())
                         .collect();
 
@@ -423,7 +420,6 @@ impl PkgObject {
                     let pkg_name = self.name();
 
                     let mut backup: Vec<PkgBackup> = pkg.backup().iter()
-                        .par_bridge()
                         .map(|backup|
                             PkgBackup::new(&(root_dir.to_string() + backup.name()), backup.hash(), &pkg_name)
                         )
