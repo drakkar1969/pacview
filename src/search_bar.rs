@@ -358,10 +358,8 @@ impl SearchBar {
 
         // Search text changed signal
         imp.search_text.connect_changed(clone!(
-            #[weak(rename_to = bar)]
-            self,
-            #[weak]
-            imp,
+            #[weak(rename_to = bar)] self,
+            #[weak] imp,
             move |search_text| {
                 // Remove delay timer if present
                 if let Some(delay_id) = imp.delay_source_id.take() {
@@ -394,8 +392,7 @@ impl SearchBar {
 
         // Search text activate signal
         imp.search_text.connect_activate(clone!(
-            #[weak(rename_to = bar)]
-            self,
+            #[weak(rename_to = bar)] self,
             move |search_text| {
                 if !search_text.text().is_empty() {
                     bar.emit_aur_search_signal();
@@ -405,8 +402,7 @@ impl SearchBar {
 
         // Clear button clicked signal
         imp.clear_button.connect_clicked(clone!(
-            #[weak]
-            imp,
+            #[weak] imp,
             move |_| {
                 imp.search_text.set_text("");
 
