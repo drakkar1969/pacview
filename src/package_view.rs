@@ -294,13 +294,13 @@ impl PackageView {
 
     fn get_search_props(prop: SearchProp, pkg: &PkgObject) -> Cow<'_, [String]> {
         match prop {
-            SearchProp::Name => { vec![pkg.name()].into() },
-            SearchProp::NameDesc => { vec![pkg.name(), pkg.description().to_owned()].into() },
-            SearchProp::Groups => { vec![pkg.groups()].into() },
-            SearchProp::Deps => { Cow::Borrowed(pkg.depends()) },
-            SearchProp::Optdeps => { Cow::Borrowed(pkg.optdepends()) },
-            SearchProp::Provides => { Cow::Borrowed(pkg.provides()) },
-            SearchProp::Files => { Cow::Borrowed(pkg.files()) },
+            SearchProp::Name => Cow::Owned(vec![pkg.name()]),
+            SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
+            SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
+            SearchProp::Deps => Cow::Borrowed(pkg.depends()),
+            SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
+            SearchProp::Provides => Cow::Borrowed(pkg.provides()),
+            SearchProp::Files => Cow::Borrowed(pkg.files()),
         }
     }
 
@@ -317,19 +317,24 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Failed to downcast to 'PkgObject'");
 
-                let search_props = Self::get_search_props(prop, pkg);
+                let search_props: Vec<String> = Self::get_search_props(prop, pkg).iter()
+                    .map(|s| s.to_lowercase())
+                    .collect();
 
-                if mode == SearchMode::Exact {
-                    search_props.iter().any(|s| s.eq(&term))
-                } else {
-                    let mut results = term.split_whitespace()
-                        .map(|t| search_props.iter().any(|s| s.to_lowercase().contains(t)));
-
-                    if mode == SearchMode::All {
-                        results.all(|x| x)
-                    } else {
-                        results.any(|x| x)
-                    }
+                match mode {
+                    SearchMode::Exact => {
+                        search_props.iter().any(|s| s.eq(&term))
+                    },
+                    SearchMode::All => {
+                        term.split_whitespace().all(|t|
+                            search_props.iter().any(|s| s.contains(t))
+                        )
+                    },
+                    SearchMode::Any => {
+                        term.split_whitespace().any(|t|
+                            search_props.iter().any(|s| s.contains(t))
+                        )
+                    },
                 }
             });
         }
@@ -353,12 +358,12 @@ impl PackageView {
 
         // Set search mode
         let search_by = match prop {
-            SearchProp::Name => { raur::SearchBy::Name },
-            SearchProp::NameDesc => { raur::SearchBy::NameDesc },
-            SearchProp::Groups => { raur::SearchBy::Groups },
-            SearchProp::Deps => { raur::SearchBy::Depends },
-            SearchProp::Optdeps => { raur::SearchBy::OptDepends },
-            SearchProp::Provides => { raur::SearchBy::Provides },
+            SearchProp::Name => raur::SearchBy::Name,
+            SearchProp::NameDesc => raur::SearchBy::NameDesc,
+            SearchProp::Groups => raur::SearchBy::Groups,
+            SearchProp::Deps => raur::SearchBy::Depends,
+            SearchProp::Optdeps => raur::SearchBy::OptDepends,
+            SearchProp::Provides => raur::SearchBy::Provides,
             SearchProp::Files => unreachable!(),
         };
 
@@ -371,9 +376,9 @@ impl PackageView {
         let mut aur_names: HashSet<String> = HashSet::new();
 
         for result in search_results {
-            aur_names.extend(result?.iter()
-                .filter(|&pkg| !installed_pkg_names.contains(&pkg.name))
-                .map(|pkg| pkg.name.clone())
+            aur_names.extend(result?.into_iter()
+                .filter(|pkg| !installed_pkg_names.contains(&pkg.name))
+                .map(|pkg| pkg.name)
             );
         }
 
