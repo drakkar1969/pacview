@@ -62,64 +62,54 @@ impl PkgData {
     // Alpm constructor
     //---------------------------------------
     pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: &[String]) -> Self {
-        // Helper closures
-        let alpm_list_to_string = |list: alpm::AlpmList<&str>| -> String {
-            list.iter()
-                .sorted_unstable()
-                .join(" | ")
-        };
+        // Helper functions
+        fn alpm_list_to_string(list: alpm::AlpmList<&str>) -> String {
+            list.iter().sorted_unstable().join(" | ")
+        }
 
-        let alpm_deplist_to_vec = |list: alpm::AlpmList<&alpm::Dep>| -> Vec<String> {
-            list.iter()
-                .map(ToString::to_string)
-                .sorted_unstable()
-                .collect()
-        };
+        fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
+            list.iter().map(ToString::to_string).sorted_unstable().collect()
+        }
         
         // Build PkgData
-        let (flags, version, install_date) = local_pkg
-            .map(|pkg|
-                (
-                    if pkg.reason() == alpm::PackageReason::Explicit {
-                        PkgFlags::EXPLICIT
-                    } else if !pkg.required_by().is_empty() {
-                        PkgFlags::DEPENDENCY
-                    } else if !pkg.optional_for().is_empty() {
-                        PkgFlags::OPTIONAL
-                    } else {
-                        PkgFlags::ORPHAN
-                    },
-                    pkg.version(),
-                    pkg.install_date().unwrap_or_default()
-                )
-            )
-            .or_else(||
-                Some((PkgFlags::NONE, sync_pkg.version(), 0))
-            )
-            .unwrap();
+        let (flags, version, install_date) = match local_pkg {
+            Some(pkg) => {
+                let flags = match pkg.reason() {
+                    alpm::PackageReason::Explicit => PkgFlags::EXPLICIT,
+                    _ if !pkg.required_by().is_empty() => PkgFlags::DEPENDENCY,
+                    _ if !pkg.optional_for().is_empty() => PkgFlags::OPTIONAL,
+                    _ => PkgFlags::ORPHAN
+                };
+
+                (flags, pkg.version(), pkg.install_date().unwrap_or_default())
+            },
+            None => (PkgFlags::NONE, sync_pkg.version(), 0)
+        };
+
+        let sync_name = sync_pkg.name();
 
         let repository = sync_pkg.db()
-            .map(|db| {
+            .map_or("", |db| {
                 let repo = db.name();
 
-                if repo == "local" && aur_names.contains(&sync_pkg.name().to_owned()) {
+                if repo == "local" && aur_names.iter().any(|name| name == sync_name) {
                     "aur"
                 } else {
                     repo
                 }
             })
-            .unwrap_or_default();
+            .to_owned();
 
         Self {
             flags,
-            name: sync_pkg.name().to_owned(),
+            name: sync_name.to_owned(),
             version: version.to_string(),
             description: sync_pkg.desc().unwrap_or_default().to_owned(),
             popularity: String::new(),
             out_of_date: 0,
             url: sync_pkg.url().unwrap_or_default().to_owned(),
             licenses: alpm_list_to_string(sync_pkg.licenses()),
-            repository: repository.to_owned(),
+            repository,
             groups: alpm_list_to_string(sync_pkg.groups()),
             depends: alpm_deplist_to_vec(sync_pkg.depends()),
             optdepends: alpm_deplist_to_vec(sync_pkg.optdepends()),
@@ -142,19 +132,14 @@ impl PkgData {
     // AUR constructor
     //---------------------------------------
     pub fn from_aur(pkg: &raur::Package) -> Self {
-        // Helper closures
-        let aur_vec_to_string = |slice: &[String]| -> String {
-            slice.iter()
-                .sorted_unstable()
-                .join(" | ")
-        };
+        // Helper functions
+        fn aur_vec_to_string(slice: &[String]) -> String {
+            slice.iter().sorted_unstable().join(" | ")
+        }
         
-        let aur_sorted_vec = |slice: &[String]| -> Vec<String> {
-            slice.iter()
-                .map(String::from)
-                .sorted_unstable()
-                .collect()
-        };
+        fn aur_sorted_vec(slice: &[String]) -> Vec<String> {
+            slice.iter().map(String::from).sorted_unstable().collect()
+        }
 
         // Build PkgData
         Self {

@@ -1085,6 +1085,8 @@ impl PacViewWindow {
         gio::spawn_blocking(move ||{
             match alpm_utils::alpm_with_conf(pacman_config) {
                 Ok(handle) => {
+                    use std::time::Instant;
+                    let now = Instant::now();
                     let localdb = handle.localdb();
                     let syncdbs = handle.syncdbs();
 
@@ -1105,6 +1107,7 @@ impl PacViewWindow {
                         .filter(|pkg| syncdbs.pkg(pkg.name()).is_err())
                         .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), &aur_names))
                     );
+                    println!("{:.2?}", now.elapsed());
 
                     sender.send_blocking(Ok(pkg_data)).expect("Failed to send through channel");
                 },
