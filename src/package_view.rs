@@ -79,8 +79,6 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) view: TemplateChild<gtk::ListView>,
-        #[template_child]
         pub(super) loading_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
@@ -104,6 +102,10 @@ mod imp {
 
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
+
+        #[property(get)]
+        #[template_child]
+        pub(super) view: TemplateChild<gtk::ListView>,
 
         #[property(get, set)]
         n_items: Cell<u32>,
@@ -492,13 +494,6 @@ impl PackageView {
         if let Some(token) = imp.search_cancel_token.take() {
             token.cancel();
         }
-    }
-
-    //---------------------------------------
-    // Public view function
-    //---------------------------------------
-    pub fn view(&self) -> gtk::ListView {
-        self.imp().view.get()
     }
 
     //---------------------------------------
