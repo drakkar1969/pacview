@@ -458,10 +458,8 @@ impl PkgObject {
                                 .expect("Regex error");
 
                             pacman_log.lines().rev()
-                                .filter(|s| s.contains(&pkg_name))
-                                .filter(|&s|
-                                    expr.is_match(s))
-                                        .map(|s| expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
+                                .filter(|&s| s.contains(&pkg_name) && expr.is_match(s))
+                                .map(|s| expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
                                 .collect()
                         });
 
