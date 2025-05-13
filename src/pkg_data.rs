@@ -72,8 +72,9 @@ impl PkgData {
         }
         
         // Build PkgData
-        let (flags, version, install_date) = match local_pkg {
-            Some(pkg) => {
+        let (flags, version, install_date) = local_pkg.map_or_else(
+            || (PkgFlags::NONE, sync_pkg.version(), 0),
+            |pkg| {
                 let flags = match pkg.reason() {
                     alpm::PackageReason::Explicit => PkgFlags::EXPLICIT,
                     _ if !pkg.required_by().is_empty() => PkgFlags::DEPENDENCY,
@@ -82,9 +83,8 @@ impl PkgData {
                 };
 
                 (flags, pkg.version(), pkg.install_date().unwrap_or_default())
-            },
-            None => (PkgFlags::NONE, sync_pkg.version(), 0)
-        };
+            }
+        );
 
         let sync_name = sync_pkg.name();
 
