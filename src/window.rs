@@ -1225,30 +1225,27 @@ impl PacViewWindow {
 
                 // Get pacman update results
                 match pacman_res {
-                    Ok((code, stdout)) => {
-                        if code == Some(0) {
-                            update_str.push_str(&stdout);
-                        } else if code == Some(1) {
-                            error_msg = Some(String::from("Failed to retrieve pacman updates: checkupdates error"));
-                        }
+                    Ok((Some(0), stdout)) => {
+                        update_str.push_str(&stdout);
+                    },
+                    Ok((Some(1), _)) => {
+                        error_msg = Some(String::from("Failed to retrieve pacman updates: checkupdates error"));
                     },
                     Err(error) => {
                         error_msg = Some(format!("Failed to retrieve pacman updates: {error}"));
                     }
+                    _ => {}
                 }
 
                 // Get AUR update results
                 match aur_res {
-                    Ok((code, stdout)) => {
-                        if code == Some(0) {
-                            update_str.push_str(&stdout);
-                        }
+                    Ok((Some(0), stdout)) => {
+                        update_str.push_str(&stdout);
                     },
-                    Err(error) => {
-                        if error_msg.is_none() {
-                            error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
-                        }
-                    }
+                    Err(error) if error_msg.is_none() => {
+                        error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
+                    },
+                    _ => {}
                 }
 
                 // Create map with updates (name, version)
