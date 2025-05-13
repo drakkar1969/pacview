@@ -466,14 +466,16 @@ impl TextWidget {
     // Pango color helper function
     //---------------------------------------
     fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
+        fn fc(color: f32) -> u16 {
+            (color * f32::from(u16::MAX)) as u16
+        }
+
         let label = gtk::Label::builder()
             .css_name("texttag")
             .css_classes([style])
             .build();
 
         let color = label.color();
-
-        let fc = |color: f32| -> u16 { (color * f32::from(u16::MAX)) as u16 };
 
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
@@ -482,6 +484,10 @@ impl TextWidget {
     // Setup widget
     //---------------------------------------
     fn setup_widget(&self) {
+        fn fc(color: u16) -> f64 {
+            f64::from(color)/f64::from(u16::MAX)
+        }
+
         let imp = self.imp();
 
         // Reset selection
@@ -498,8 +504,6 @@ impl TextWidget {
         imp.error_fg_color.set((red, green, blue, alpha));
 
         // Initialize cairo error color
-        let fc = |color: u16| -> f64 { f64::from(color)/f64::from(u16::MAX) };
-
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
     }
 
@@ -761,6 +765,10 @@ impl TextWidget {
     // Update pango colors helper function
     //---------------------------------------
     fn update_pango_colors(&self) {
+        fn fc(color: u16) -> f64 {
+            f64::from(color)/f64::from(u16::MAX)
+        }
+
         let imp = self.imp();
 
         // Update pango color variables
@@ -773,8 +781,6 @@ impl TextWidget {
         imp.error_fg_color.set((red, green, blue, alpha));
 
         // Initialize cairo error color
-        let fc = |color: u16| -> f64 { f64::from(color)/f64::from(u16::MAX) };
-
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
 
         // Format pango layout text
