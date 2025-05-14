@@ -1247,7 +1247,7 @@ impl PacViewWindow {
 
                 // Create map with updates (name, version)
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"([a-zA-Z0-9@._+-]+?)[ \t]+?[a-zA-Z0-9@._+-:]+?[ \t]+?->[ \t]+?([a-zA-Z0-9@._+-:]+)")
+                    Regex::new(r"([a-zA-Z0-9@._+-]+)[ \t]+[a-zA-Z0-9@._+-:]+[ \t]+->[ \t]+([a-zA-Z0-9@._+-:]+)")
                         .expect("Regex error")
                 });
 
