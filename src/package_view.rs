@@ -328,14 +328,10 @@ impl PackageView {
                         search_props.iter().any(|s| s.eq(&term))
                     },
                     SearchMode::All => {
-                        term.split_whitespace().all(|t|
-                            search_props.iter().any(|s| s.contains(t))
-                        )
+                        term.split_whitespace().all(|t| search_props.iter().any(|s| s.contains(t)))
                     },
                     SearchMode::Any => {
-                        term.split_whitespace().any(|t|
-                            search_props.iter().any(|s| s.contains(t))
-                        )
+                        term.split_whitespace().any(|t| search_props.iter().any(|s| s.contains(t)))
                     },
                 }
             });
