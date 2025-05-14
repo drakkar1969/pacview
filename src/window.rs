@@ -837,7 +837,7 @@ impl PacViewWindow {
 
         let aur_file = aur_file.to_owned();
 
-        tokio_runtime::runtime().spawn(clone!(
+        tokio_runtime::runtime().spawn(
             async move {
                 let url = "https://aur.archlinux.org/packages.gz";
 
@@ -857,15 +857,15 @@ impl PacViewWindow {
 
                 Ok::<(), reqwest::Error>(())
             }
-        ));
+        );
 
-        glib::spawn_future_local(clone!(
+        glib::spawn_future_local(
             async move {
                 while receiver.recv().await == Ok(()) {
                     f();
                 }
             }
-        ));
+        );
     }
 
     //---------------------------------------
@@ -1082,7 +1082,7 @@ impl PacViewWindow {
         // Spawn task to load packages
         let (sender, receiver) = async_channel::bounded(1);
 
-        gio::spawn_blocking(move ||{
+        gio::spawn_blocking(move || {
             match alpm_utils::alpm_with_conf(pacman_config) {
                 Ok(handle) => {
                     let localdb = handle.localdb();
