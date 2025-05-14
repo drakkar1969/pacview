@@ -447,6 +447,9 @@ impl PkgObject {
         } else {
             let pkg_name = self.name();
 
+            let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
+                .expect("Regex error");
+
             let (sender, receiver) = async_channel::bounded(1);
 
             PACMAN_LOG.with_borrow(|pacman_log| {
@@ -454,12 +457,9 @@ impl PkgObject {
                     #[strong] pacman_log,
                     move || {
                         let log: Vec<String> = pacman_log.map_or(vec![], |pacman_log| {
-                            let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
-                                .expect("Regex error");
-
                             pacman_log.lines().rev()
-                                .filter(|&s| s.contains(&pkg_name) && expr.is_match(s))
-                                .map(|s| expr.replace(s, "[$1  $2] : $3 $4 $5").into_owned())
+                                .filter(|&line| line.contains(&pkg_name) && expr.is_match(line))
+                                .map(|line| expr.replace(line, "[$1  $2] : $3 $4 $5").into_owned())
                                 .collect()
                         });
 
@@ -500,8 +500,8 @@ impl PkgObject {
                             .filter_map(|path|
                                 path.file_name()
                                     .and_then(|filename| filename.to_str())
-                                    .filter(|filename| filename.ends_with(".pkg.tar.zst"))
-                                    .filter(|filename| 
+                                    .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
+                                    .filter(|&filename| 
                                         filename.rsplitn(4, '-').last()
                                             .is_some_and(|name| name == pkg_name)
                                     )
