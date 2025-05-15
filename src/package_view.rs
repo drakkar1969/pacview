@@ -429,7 +429,7 @@ impl PackageView {
         INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
             let installed_pkg_names = Arc::clone(installed_pkg_names);
 
-            tokio_runtime::runtime().spawn(clone!(
+            tokio_runtime::runtime().spawn(
                 async move {
                     let result = tokio::select! {
                         () = cancel_token_clone.cancelled() => { Ok(vec![]) },
@@ -444,7 +444,7 @@ impl PackageView {
                         .await
                         .expect("Failed to send through channel");
                 }
-            ));
+            );
         });
 
         // Attach channel receiver
