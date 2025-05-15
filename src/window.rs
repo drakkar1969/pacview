@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::{OnceLock, LazyLock, Mutex};
+use std::sync::{OnceLock, LazyLock, Arc, Mutex};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -44,7 +44,7 @@ use crate::enum_traits::EnumExt;
 thread_local! {
     pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
-    pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
+    pub static INSTALLED_PKG_NAMES: RefCell<Arc<HashSet<String>>> = RefCell::new(Arc::new(HashSet::new()));
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
@@ -1154,7 +1154,7 @@ impl PacViewWindow {
                             // Store package lists
                             PKGS.replace(pkgs);
                             INSTALLED_PKGS.replace(installed_pkgs);
-                            INSTALLED_PKG_NAMES.replace(installed_pkg_names);
+                            INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkg_names));
 
                             // Get package updates
                             window.get_package_updates();
