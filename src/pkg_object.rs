@@ -437,9 +437,9 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public future functions
+    // Public async functions
     //---------------------------------------
-    pub async fn log_future(&self) -> &[String] {
+    pub async fn log_async(&self) -> &[String] {
         let imp = self.imp();
 
         imp.log.get_or_init(async || {
@@ -464,7 +464,7 @@ impl PkgObject {
         .await
     }
 
-    pub async fn cache_future(&self) -> &[String] {
+    pub async fn cache_async(&self) -> &[String] {
         let imp = self.imp();
 
         imp.cache.get_or_init(async || {
