@@ -148,6 +148,24 @@ impl LogWindow {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
+        // Set package filter function
+        imp.package_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                if imp.package_button.is_active() {
+                    let msg = item
+                        .downcast_ref::<LogObject>()
+                        .expect("Failed to downcast to 'LogObject'")
+                        .message();
+
+                    msg.starts_with("installed ") || msg.starts_with("removed ") || msg.starts_with("upgraded ") || msg.starts_with("downgraded ")
+                } else {
+                    true
+                }
+            }
+        ));
+
         // Set initial focus on view
         imp.view.grab_focus();
     }
@@ -194,19 +212,8 @@ impl LogWindow {
         // Package button toggled signal
         imp.package_button.connect_toggled(clone!(
             #[weak] imp,
-            move |package_button| {
-                if package_button.is_active() {
-                    imp.package_filter.set_filter_func(move |item| {
-                        let msg = item
-                            .downcast_ref::<LogObject>()
-                            .expect("Failed to downcast to 'LogObject'")
-                            .message();
-
-                        msg.starts_with("installed ") || msg.starts_with("removed ") || msg.starts_with("upgraded ") || msg.starts_with("downgraded ")
-                    });
-                } else {
-                    imp.package_filter.unset_filter_func();
-                }
+            move |_| {
+                imp.package_filter.changed(gtk::FilterChange::Different);
             }
         ));
 

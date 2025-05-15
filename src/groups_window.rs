@@ -171,6 +171,54 @@ impl GroupsWindow {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
+        // Set search filter function
+        imp.search_filter.set_filter_func(clone!(
+            #[weak(rename_to = window)] self,
+            #[upgrade_or] false,
+            move |item| {
+                let obj = item
+                    .downcast_ref::<GroupsObject>()
+                    .expect("Failed to downcast to 'GroupsObject'");
+
+                let search_term = window.imp().search_entry.text().to_lowercase();
+
+                if search_term.is_empty() {
+                    true
+                } else {
+                    match window.search_mode() {
+                        GroupsSearchMode::All => {
+                            obj.package().to_lowercase().contains(&search_term) ||
+                                obj.groups().to_lowercase().contains(&search_term)
+                        },
+                        GroupsSearchMode::Groups => {
+                            obj.groups().to_lowercase().contains(&search_term)
+                        },
+                        GroupsSearchMode::Packages => {
+                            obj.package().to_lowercase().contains(&search_term)
+                        },
+                    }
+                }
+            }
+        ));
+
+        // Set installed filter function
+        imp.installed_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                if imp.installed_button.is_active() {
+                    let status = item
+                        .downcast_ref::<GroupsObject>()
+                        .expect("Failed to downcast to 'GroupsObject'")
+                        .status();
+
+                    status != "not installed"
+                } else {
+                    true
+                }
+            }
+        ));
+
         // Set initial focus on view
         imp.view.grab_focus();
     }
@@ -221,37 +269,9 @@ impl GroupsWindow {
 
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
-            #[weak(rename_to = window)] self,
             #[weak] imp,
-            move |entry| {
-                let search_term = entry.text().to_lowercase();
-
-                if search_term.is_empty() {
-                    imp.search_filter.unset_filter_func();
-                } else {
-                    imp.search_filter.set_filter_func(clone!(
-                        #[weak] window,
-                        #[upgrade_or] false,
-                        move |item| {
-                            let obj = item
-                                .downcast_ref::<GroupsObject>()
-                                .expect("Failed to downcast to 'GroupsObject'");
-
-                            match window.search_mode() {
-                                GroupsSearchMode::All => {
-                                    obj.package().to_lowercase().contains(&search_term) ||
-                                        obj.groups().to_lowercase().contains(&search_term)
-                                },
-                                GroupsSearchMode::Groups => {
-                                    obj.groups().to_lowercase().contains(&search_term)
-                                },
-                                GroupsSearchMode::Packages => {
-                                    obj.package().to_lowercase().contains(&search_term)
-                                },
-                            }
-                        }
-                    ));
-                }
+            move |_| {
+                imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
@@ -273,19 +293,8 @@ impl GroupsWindow {
         // Installed button toggled signal
         imp.installed_button.connect_toggled(clone!(
             #[weak] imp,
-            move |installed_button| {
-                if installed_button.is_active() {
-                    imp.installed_filter.set_filter_func(move |item| {
-                        let status = item
-                            .downcast_ref::<GroupsObject>()
-                            .expect("Failed to downcast to 'GroupsObject'")
-                            .status();
-
-                        status != "not installed"
-                    });
-                } else {
-                    imp.installed_filter.unset_filter_func();
-                }
+            move |_| {
+                imp.installed_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
