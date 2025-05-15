@@ -820,10 +820,11 @@ impl InfoPane {
         let imp = self.imp();
 
         // Populate log view
-        pkg.log_async(clone!(
+        glib::spawn_future_local(clone!(
             #[weak] imp,
-            move |log| {
-                let log_lines: Vec<gtk::StringObject> = log.iter()
+            #[weak] pkg,
+            async move {
+                let log_lines: Vec<gtk::StringObject> = pkg.log_future().await.iter()
                     .map(|line| gtk::StringObject::new(line))
                     .collect();
 
@@ -836,10 +837,11 @@ impl InfoPane {
         let imp = self.imp();
 
         // Populate cache view
-        pkg.cache_async(clone!(
+        glib::spawn_future_local(clone!(
             #[weak] imp,
-            move |cache| {
-                let cache_list: Vec<gtk::StringObject> = cache.iter()
+            #[weak] pkg,
+            async move {
+                let cache_list: Vec<gtk::StringObject> = pkg.cache_future().await.iter()
                     .map(|cache_file| gtk::StringObject::new(cache_file))
                     .collect();
 

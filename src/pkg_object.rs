@@ -5,12 +5,12 @@ use std::cmp::Ordering;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
-use glib::clone;
 
 use alpm_utils::DbListExt;
 use regex::Regex;
 use size::Size;
 use rayon::prelude::*;
+use tokio::sync::OnceCell as TokioOnceCell;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgFlags, PkgData};
@@ -102,9 +102,10 @@ mod imp {
         pub(super) optional_for: OnceCell<Vec<String>>,
 
         pub(super) files: OnceCell<Vec<String>>,
-        pub(super) log: OnceCell<Vec<String>>,
-        pub(super) cache: OnceCell<Vec<String>>,
         pub(super) backup: OnceCell<Vec<PkgBackup>>,
+
+        pub(super) log: TokioOnceCell<Vec<String>>,
+        pub(super) cache: TokioOnceCell<Vec<String>>,
     }
 
     //---------------------------------------
@@ -436,95 +437,59 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public async functions
+    // Public future functions
     //---------------------------------------
-    pub fn log_async<F>(&self, f: F)
-    where F: Fn(&[String]) + 'static {
+    pub async fn log_future(&self) -> &[String] {
         let imp = self.imp();
 
-        if let Some(log) = imp.log.get() {
-            f(log);
-        } else {
+        imp.log.get_or_init(async || {
             let pkg_name = self.name();
 
             let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
                 .expect("Regex error");
 
-            let (sender, receiver) = async_channel::bounded(1);
+            gio::spawn_blocking(move || {
+                let pacman_log = PACMAN_LOG.lock().unwrap();
 
-            PACMAN_LOG.with_borrow(|pacman_log| {
-                gio::spawn_blocking(clone!(
-                    #[strong] pacman_log,
-                    move || {
-                        let log: Vec<String> = pacman_log.map_or(vec![], |pacman_log| {
-                            pacman_log.lines().rev()
-                                .filter(|&line| line.contains(&pkg_name) && expr.is_match(line))
-                                .map(|line| expr.replace(line, "[$1  $2] : $3 $4 $5").into_owned())
-                                .collect()
-                        });
-
-                        sender.send_blocking(log).expect("Failed to send through channel");
-                    }
-                ));
-            });
-
-            glib::spawn_future_local(clone!(
-                #[weak] imp,
-                async move {
-                    while let Ok(log) = receiver.recv().await {
-                        f(&log);
-
-                        imp.log.set(log).unwrap();
-                    }
-                }
-            ));
-        }
+                pacman_log.as_ref().map_or(vec![], |log| {
+                    log.lines().rev()
+                        .filter(|&line| line.contains(&pkg_name) && expr.is_match(line))
+                        .map(|line| expr.replace(line, "[$1  $2] : $3 $4 $5").into_owned())
+                        .collect::<Vec<String>>()
+                })
+            })
+            .await
+            .expect("Failed to complete task")
+        })
+        .await
     }
 
-    pub fn cache_async<F>(&self, f: F)
-    where F: Fn(&[String]) + 'static {
+    pub async fn cache_future(&self) -> &[String] {
         let imp = self.imp();
 
-        if let Some(cache) = imp.cache.get() {
-            f(cache);
-        } else {
+        imp.cache.get_or_init(async || {
             let pkg_name = self.name();
 
-            let (sender, receiver) = async_channel::bounded(1);
+            gio::spawn_blocking(move || {
+                let pacman_cache = PACMAN_CACHE.lock().unwrap();
 
-            PACMAN_CACHE.with_borrow(|pacman_cache| {
-                gio::spawn_blocking(clone!(
-                    #[strong] pacman_cache,
-                    move || {
-                        let cache: Vec<String> = pacman_cache.iter()
-                            .filter_map(|path|
-                                path.file_name()
-                                    .and_then(|filename| filename.to_str())
-                                    .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
-                                    .filter(|&filename| 
-                                        filename.rsplitn(4, '-').last()
-                                            .is_some_and(|name| name == pkg_name)
-                                    )
-                                    .map(ToOwned::to_owned)
+                pacman_cache.iter()
+                    .filter_map(|path|
+                        path.file_name()
+                            .and_then(|filename| filename.to_str())
+                            .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
+                            .filter(|&filename| 
+                                filename.rsplitn(4, '-').last()
+                                    .is_some_and(|name| name == pkg_name)
                             )
-                            .collect();
-
-                        sender.send_blocking(cache).expect("Failed to send through channel");
-                    }
-                ));
-            });
-
-            glib::spawn_future_local(clone!(
-                #[weak] imp,
-                async move {
-                    while let Ok(cache) = receiver.recv().await {
-                        f(&cache);
-
-                        imp.cache.set(cache).unwrap();
-                    }
-                }
-            ));
-        }
+                            .map(ToOwned::to_owned)
+                    )
+                    .collect::<Vec<String>>()
+            })
+            .await
+            .expect("Failed to complete task")
+        })
+        .await
     }
 
     //---------------------------------------

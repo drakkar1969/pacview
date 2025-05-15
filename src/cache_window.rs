@@ -252,13 +252,12 @@ impl CacheWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get cache files
-            PACMAN_CACHE.with_borrow(|pacman_cache| {
-                imp.model.splice(0, 0, &pacman_cache.iter()
-                    .map(|file| CacheObject::new(&file.display().to_string()))
-                    .collect::<Vec<CacheObject>>()
-                );
+            let pacman_cache = PACMAN_CACHE.lock().unwrap();
 
-            });
+            imp.model.splice(0, 0, &pacman_cache.iter()
+                .map(|file| CacheObject::new(&file.display().to_string()))
+                .collect::<Vec<CacheObject>>()
+            );
         }
     }
 }

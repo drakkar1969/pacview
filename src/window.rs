@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::{OnceLock, LazyLock};
+use std::sync::{OnceLock, LazyLock, Mutex};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -42,14 +42,14 @@ use crate::enum_traits::EnumExt;
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
-    pub static PACMAN_LOG: RefCell<Option<String>> = const { RefCell::new(None) };
-    pub static PACMAN_CACHE: RefCell<Vec<PathBuf>> = const { RefCell::new(vec![]) };
     pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
 
 pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
+pub static PACMAN_LOG: LazyLock<Mutex<Option<String>>> = LazyLock::new(|| Mutex::new(None));
+pub static PACMAN_CACHE: LazyLock<Mutex<Vec<PathBuf>>> = LazyLock::new(|| Mutex::new(vec![]));
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -1045,7 +1045,7 @@ impl PacViewWindow {
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
         // Load pacman log
-        PACMAN_LOG.replace(fs::read_to_string(&pacman_config.log_file).ok());
+        *PACMAN_LOG.lock().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
 
         // Load pacman cache
         let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
@@ -1061,7 +1061,7 @@ impl PacViewWindow {
 
         cache_files.sort_unstable();
 
-        PACMAN_CACHE.replace(cache_files);
+        *PACMAN_CACHE.lock().unwrap() = cache_files;
 
         // Load AUR package names from file
         let aur_names: Vec<String> = imp.aur_file.get()
