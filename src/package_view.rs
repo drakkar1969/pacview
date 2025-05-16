@@ -294,18 +294,6 @@ impl PackageView {
         });
     }
 
-    fn get_search_props(prop: SearchProp, pkg: &PkgObject) -> Cow<'_, [String]> {
-        match prop {
-            SearchProp::Name => Cow::Owned(vec![pkg.name()]),
-            SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
-            SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
-            SearchProp::Deps => Cow::Borrowed(pkg.depends()),
-            SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
-            SearchProp::Provides => Cow::Borrowed(pkg.provides()),
-            SearchProp::Files => Cow::Borrowed(pkg.files()),
-        }
-    }
-
     pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
         let imp = self.imp();
 
@@ -319,9 +307,18 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Failed to downcast to 'PkgObject'");
 
-                let search_props: Vec<String> = Self::get_search_props(prop, pkg).iter()
-                    .map(|s| s.to_lowercase())
-                    .collect();
+                let search_props: Vec<String> = match prop {
+                    SearchProp::Name => Cow::Owned(vec![pkg.name()]),
+                    SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
+                    SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
+                    SearchProp::Deps => Cow::Borrowed(pkg.depends()),
+                    SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
+                    SearchProp::Provides => Cow::Borrowed(pkg.provides()),
+                    SearchProp::Files => Cow::Borrowed(pkg.files()),
+                }
+                .iter()
+                .map(|s| s.to_lowercase())
+                .collect();
 
                 match mode {
                     SearchMode::Exact => {
