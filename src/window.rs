@@ -1102,7 +1102,7 @@ impl PacViewWindow {
 
                     // Load pacman local packages not in sync databases
                     pkg_data.extend(localdb.pkgs().iter()
-                        .filter(|pkg| syncdbs.pkg(pkg.name()).is_err())
+                        .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
                         .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), &aur_names))
                     );
 

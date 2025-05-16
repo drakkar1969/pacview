@@ -186,7 +186,7 @@ impl StatsWindow {
                     .fold((0, 0, 0), |(tot_pkg_count, tot_install_count, tot_install_size), repo| {
                         // Iterate packages per repo
                         let (pkg_count, install_count, install_size) = pkgs.iter()
-                            .filter(|pkg| pkg.repository() == *repo)
+                            .filter(|&pkg| pkg.repository() == *repo)
                             .fold((0, 0, 0), |(mut pkg_count, mut install_count, mut install_size), pkg| {
                                 pkg_count += 1;
 

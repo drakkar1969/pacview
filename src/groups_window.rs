@@ -377,7 +377,7 @@ impl GroupsWindow {
             PKGS.with_borrow(|pkgs| {
                 // Get list of packages with groups
                 let pkg_list: Vec<GroupsObject> = pkgs.iter()
-                    .filter(|pkg| !pkg.groups().is_empty())
+                    .filter(|&pkg| !pkg.groups().is_empty())
                     .flat_map(|pkg|
                         pkg.groups().split(" | ")
                             .map(|group|

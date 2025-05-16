@@ -86,7 +86,7 @@ mod imp {
         fn can_select_next(&self) -> bool {
             let selected = self.selected.get();
 
-            selected.checked_add(1).filter(|i| *i < self.list.borrow().len() as u32).is_some()
+            selected.checked_add(1).filter(|&i| i < self.list.borrow().len() as u32).is_some()
         }
     }
 }
@@ -140,7 +140,7 @@ impl HistoryList {
             // If currently selected item is not the last one, truncate the list
             let selected = self.selected();
 
-            if let Some(i) = selected.checked_add(1).filter(|i| *i < list.len() as u32) {
+            if let Some(i) = selected.checked_add(1).filter(|&i| i < list.len() as u32) {
                 list.truncate(i as usize);
             }
 
