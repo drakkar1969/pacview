@@ -132,10 +132,9 @@ mod imp {
 
             // Cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, |bar| {
-                let mut mode_iter = SearchMode::iter().cycle();
-                mode_iter.find(|&mode| mode == bar.mode());
-
-                let new_mode = mode_iter.next()
+                let new_mode = SearchMode::iter().cycle()
+                    .skip_while(|&mode| mode != bar.mode())
+                    .nth(1)
                     .expect("Failed to get 'SearchMode'");
 
                 bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
@@ -145,10 +144,9 @@ mod imp {
 
             // Reverse cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
-                let mut mode_iter = SearchMode::iter().rev().cycle();
-                mode_iter.find(|&mode| mode == bar.mode());
-
-                let new_mode = mode_iter.next()
+                let new_mode = SearchMode::iter().rev().cycle()
+                    .skip_while(|&mode| mode != bar.mode())
+                    .nth(1)
                     .expect("Failed to get 'SearchMode'");
 
                 bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
@@ -177,10 +175,9 @@ mod imp {
 
             // Cycle search prop key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |bar| {
-                let mut prop_iter = SearchProp::iter().cycle();
-                prop_iter.find(|&prop| prop == bar.prop());
-
-                let new_prop = prop_iter.next()
+                let new_prop = SearchProp::iter().cycle()
+                    .skip_while(|&prop| prop != bar.prop())
+                    .nth(1)
                     .expect("Failed to get 'SearchProp'");
 
                 bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
@@ -190,10 +187,9 @@ mod imp {
 
             // Reverse cycle search prop key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
-                let mut prop_iter = SearchProp::iter().rev().cycle();
-                prop_iter.find(|&prop| prop == bar.prop());
-
-                let new_prop = prop_iter.next()
+                let new_prop = SearchProp::iter().rev().cycle()
+                    .skip_while(|&prop| prop != bar.prop())
+                    .nth(1)
                     .expect("Failed to get 'SearchProp'");
 
                 bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
