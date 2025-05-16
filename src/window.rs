@@ -943,20 +943,22 @@ impl PacViewWindow {
 
         let saved_repo_id = imp.saved_repo_id.take();
 
-        let row = FilterRow::new("repository-symbolic", "All", None, PkgFlags::empty());
+        let all_row = FilterRow::new("repository-symbolic", "All", None, PkgFlags::empty());
 
-        imp.repo_listbox.append(&row);
+        imp.repo_listbox.append(&all_row);
 
         if saved_repo_id.is_none() {
-            row.activate();
+            all_row.activate();
         }
 
-        imp.all_repo_row.replace(row);
+        imp.all_repo_row.replace(all_row);
 
-        for repo in imp.pacman_repos.get().unwrap() {
-            let display_label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+        let pacman_repos = imp.pacman_repos.get().unwrap();
 
-            let row = FilterRow::new("repository-symbolic", &display_label, Some(repo), PkgFlags::empty());
+        for repo in pacman_repos {
+            let label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+
+            let row = FilterRow::new("repository-symbolic", &label, Some(repo), PkgFlags::empty());
 
             imp.repo_listbox.append(&row);
 
@@ -975,29 +977,22 @@ impl PacViewWindow {
 
             for f in flags.values() {
                 let flag = PkgFlags::from_bits_truncate(f.value());
+                let nick = f.nick();
 
-                let row = FilterRow::new(
-                    &format!("status-{}-symbolic", f.nick()),
-                    f.name(),
-                    None,
-                    flag
-                );
+                let row = FilterRow::new(&format!("status-{nick}-symbolic"), f.name(), None, flag);
 
                 imp.status_listbox.append(&row);
 
-                if saved_status_id == PkgFlags::empty() {
-                    if flag == PkgFlags::INSTALLED {
-                        row.activate();
-                    }
-                } else if saved_status_id == flag {
+                if (saved_status_id == PkgFlags::empty() && flag == PkgFlags::INSTALLED) ||
+                    saved_status_id == flag
+                {
                     row.activate();
                 }
 
-                if flag == PkgFlags::ALL {
-                    imp.all_status_row.replace(row);
-                }
-                else if flag == PkgFlags::UPDATES {
-                    imp.update_row.replace(row);
+                match flag {
+                    PkgFlags::ALL => { imp.all_status_row.replace(row); },
+                    PkgFlags::UPDATES => { imp.update_row.replace(row); },
+                    _ => {}
                 }
             }
         }
