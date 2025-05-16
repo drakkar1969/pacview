@@ -521,12 +521,11 @@ impl PackageView {
     }
 
     pub fn show_updates(&self, update_map: &HashMap<String, String>) {
-        self.imp().pkg_model.iter::<PkgObject>()
-            .flatten()
-            .filter(|pkg| update_map.contains_key(&pkg.name()))
-            .for_each(|pkg|
-                pkg.set_update_version(Some(update_map[&pkg.name()].clone()))
-            );
+        for pkg in self.imp().pkg_model.iter::<PkgObject>().flatten() {
+            if let Some(new_version) = update_map.get(&pkg.name()) {
+                pkg.set_update_version(Some(new_version.to_owned()));
+            }
+        }
     }
 
     //---------------------------------------
