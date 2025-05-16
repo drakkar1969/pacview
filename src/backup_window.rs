@@ -333,12 +333,11 @@ impl BackupWindow {
         // Copy button clicked signal
         imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] imp,
             move |_| {
                 let mut package = String::new();
                 let mut body = String::new();
 
-                for item in imp.selection.iter::<glib::Object>().flatten() {
+                for item in window.imp().selection.iter::<glib::Object>().flatten() {
                     let backup = item
                         .downcast::<BackupObject>()
                         .expect("Failed to downcast to 'BackupObject'");

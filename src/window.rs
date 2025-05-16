@@ -548,9 +548,8 @@ impl PacViewWindow {
                     // Spawn tokio task to download AUR package names file
                     Self::download_aur_names_async(aur_file, clone!(
                         #[weak] window,
-                        #[weak] imp,
                         move || {
-                            imp.package_view.set_status(PackageViewStatus::Normal);
+                            window.imp().package_view.set_status(PackageViewStatus::Normal);
 
                             // Refresh packages
                             ActionGroupExt::activate_action(&window, "refresh", None);
@@ -893,9 +892,8 @@ impl PacViewWindow {
                 // Spawn tokio task to download AUR package names file
                 Self::download_aur_names_async(aur_file, clone!(
                     #[weak(rename_to = window)] self,
-                    #[weak] imp,
                     move || {
-                        imp.package_view.set_status(PackageViewStatus::Normal);
+                        window.imp().package_view.set_status(PackageViewStatus::Normal);
 
                         // Load packages, no AUR file age check
                         window.load_packages(false);
@@ -1315,10 +1313,9 @@ impl PacViewWindow {
             // Attach receiver for async channel
             glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,
-                #[weak] imp,
                 async move {
                     while receiver.recv().await == Ok(()) {
-                        if imp.prefs_dialog.auto_refresh() {
+                        if window.imp().prefs_dialog.auto_refresh() {
                             ActionGroupExt::activate_action(&window, "refresh", None);
                         }
                     }

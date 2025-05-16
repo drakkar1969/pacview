@@ -301,12 +301,11 @@ impl GroupsWindow {
         // Copy button clicked signal
         imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] imp,
             move |_| {
                 let mut groups = String::new();
                 let mut body = String::new();
 
-                for item in imp.selection.iter::<glib::Object>().flatten() {
+                for item in window.imp().selection.iter::<glib::Object>().flatten() {
                     let pkg = item
                         .downcast::<GroupsObject>()
                         .expect("Failed to downcast to 'GroupsObject'");

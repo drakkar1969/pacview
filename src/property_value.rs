@@ -284,8 +284,6 @@ impl PropertyValue {
     // Setup controllers
     //---------------------------------------
     fn setup_controllers(&self) {
-        let imp = self.imp();
-
         // Mouse drag controller
         let drag_controller = gtk::GestureDrag::new();
 
@@ -307,8 +305,9 @@ impl PropertyValue {
 
         popup_gesture.connect_pressed(clone!(
             #[weak(rename_to = property)] self,
-            #[weak] imp,
             move |_, _, x, y| {
+                let imp = property.imp();
+
                 if let Some(point) = property.compute_point(&imp.text_widget.get(), &graphene::Point::new(x as f32, y as f32)) {
                     imp.text_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
                 }

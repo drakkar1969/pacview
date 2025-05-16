@@ -444,12 +444,11 @@ impl InfoPane {
         // Info copy button clicked signal
         imp.info_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
-            #[weak] imp,
             move |_| {
                 let body = {
                     let mut properties: Vec<String> = vec![];
 
-                    let mut child = imp.info_listbox.first_child();
+                    let mut child = infopane.imp().info_listbox.first_child();
 
                     while let Some(row) = child.and_downcast::<PropertyValue>() {
                         if !(row.label().is_empty() || row.value().is_empty()) {
@@ -496,9 +495,8 @@ impl InfoPane {
         // Files copy button clicked signal
         imp.files_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
-            #[weak] imp,
             move |_| {
-                let body = imp.files_selection.iter::<glib::Object>().flatten()
+                let body = infopane.imp().files_selection.iter::<glib::Object>().flatten()
                     .map(|item|
                         item
                             .downcast::<gtk::StringObject>()
@@ -527,9 +525,8 @@ impl InfoPane {
         // Log copy button clicked signal
         imp.log_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
-            #[weak] imp,
             move |_| {
-                let body = imp.log_model.iter::<gtk::StringObject>().flatten()
+                let body = infopane.imp().log_model.iter::<gtk::StringObject>().flatten()
                     .map(|item| item.string())
                     .collect::<Vec<glib::GString>>()
                     .join("\n");
@@ -555,9 +552,8 @@ impl InfoPane {
         // Cache copy button clicked signal
         imp.cache_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
-            #[weak] imp,
             move |_| {
-                let body = imp.cache_model.iter::<gtk::StringObject>().flatten()
+                let body = infopane.imp().cache_model.iter::<gtk::StringObject>().flatten()
                     .map(|item| item.string())
                     .collect::<Vec<glib::GString>>()
                     .join("\n");
@@ -593,9 +589,8 @@ impl InfoPane {
         // Backup copy button clicked signal
         imp.backup_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
-            #[weak] imp,
             move |_| {
-                let body = imp.backup_model.iter::<BackupObject>().flatten()
+                let body = infopane.imp().backup_model.iter::<BackupObject>().flatten()
                     .map(|item| format!("{}|{}", item.filename(), item.status_text()))
                     .collect::<Vec<String>>()
                     .join("\n");

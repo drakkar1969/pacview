@@ -200,9 +200,8 @@ impl CacheWindow {
         // Copy button clicked signal
         imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] imp,
             move |_| {
-                let body = imp.selection.iter::<glib::Object>().flatten()
+                let body = window.imp().selection.iter::<glib::Object>().flatten()
                     .map(|item| {
                         let cache = item
                             .downcast::<CacheObject>()
