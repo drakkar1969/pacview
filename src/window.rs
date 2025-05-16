@@ -1193,13 +1193,12 @@ impl PacViewWindow {
     fn get_package_updates(&self) {
         let imp = self.imp();
 
-        let update_row = &*imp.update_row.borrow();
+        let update_row = imp.update_row.borrow().clone();
         update_row.set_updating(true);
 
         // Spawn async process to check for updates
         glib::spawn_future_local(clone!(
             #[weak] imp,
-            #[weak] update_row,
             async move {
                 let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;

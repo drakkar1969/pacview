@@ -261,7 +261,9 @@ mod imp {
 
             let (red, green, blue, alpha) = self.link_fg_color.get();
 
-            for link in &*self.link_list.borrow() {
+            let link_list = self.link_list.borrow();
+
+            for link in link_list.as_slice() {
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
                 attr.set_start_index(link.start);
                 attr.set_end_index(link.end);
@@ -289,7 +291,9 @@ mod imp {
 
             let (red, green, blue, alpha) = self.comment_fg_color.get();
 
-            for comment in &*self.comment_list.borrow() {
+            let comment_list = self.comment_list.borrow();
+
+            for comment in comment_list.as_slice() {
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
                 attr.set_start_index(comment.start);
                 attr.set_end_index(comment.end);
