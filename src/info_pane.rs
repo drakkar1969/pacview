@@ -879,7 +879,7 @@ impl InfoPane {
             let pkg_history = imp.pkg_history.borrow();
 
             let title = if pkg_history.n_items() > 1 {
-                format!("{}/{}  |  {}", pkg_history.selected() + 1, pkg_history.n_items(), pkg.name())
+                format!("{}  \u{2022}  {}/{}", pkg.name(), pkg_history.selected() + 1, pkg_history.n_items())
             } else {
                 pkg.name()
             };
