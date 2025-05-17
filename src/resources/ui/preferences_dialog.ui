@@ -21,10 +21,6 @@
                 </property>
               </object>
             </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwPreferencesGroup">
             <child>
               <object class="AdwSpinRow" id="sidebar_width_row">
                 <property name="title">Side_bar Width</property>
@@ -179,7 +175,7 @@
             <child>
               <object class="AdwSpinRow" id="property_max_lines_row">
                 <property name="title">Ma_ximum Lines</property>
-                <property name="subtitle">Maximum number of text lines before properties are collapsed</property>
+                <property name="subtitle">Maximum number of text lines for collapsed properties</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>
                 <property name="snap-to-ticks">true</property>
