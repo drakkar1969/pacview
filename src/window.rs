@@ -1037,6 +1037,9 @@ impl PacViewWindow {
     fn load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
 
+        // Hide update count in sidebar
+        imp.update_row.borrow().set_count(0);
+
         // Reset AUR search
         imp.package_view.reset_aur_search();
 

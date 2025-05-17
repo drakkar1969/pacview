@@ -53,7 +53,7 @@ label.count-indicator {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
 	border-radius: 9999px;
-	padding: 2px 6px;
+	padding: 1px 5px;
 }
 
 /* Info pane scrolled windows */
