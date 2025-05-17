@@ -454,7 +454,7 @@ impl PkgObject {
                 pacman_log.as_ref().map_or(vec![], |log| {
                     log.lines().rev()
                         .filter(|&line| line.contains(&pkg_name) && expr.is_match(line))
-                        .map(|line| expr.replace(line, "[$1  $2] : $3 $4 $5").into_owned())
+                        .map(|line| expr.replace(line, "[$1  $2]  $3 $4 $5").into_owned())
                         .collect::<Vec<String>>()
                 })
             })
