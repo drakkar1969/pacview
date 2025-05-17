@@ -28,7 +28,7 @@ use crate::pkg_object::{ALPM_HANDLE, PkgObject};
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::package_view::{PackageView, PackageViewStatus, SortProp};
 use crate::info_pane::InfoPane;
-use crate::filter_row::FilterRow;
+use crate::filter_row::{FilterRow, Updates};
 use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
 use crate::groups_window::GroupsWindow;
@@ -544,7 +544,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(aur_file) = imp.aur_file.get() {
-                    imp.update_row.borrow().set_count(0);
+                    imp.update_row.borrow().set_status(Updates::Output(None, 0));
                     imp.package_view.set_status(PackageViewStatus::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
@@ -1039,7 +1039,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Hide update count in sidebar
-        imp.update_row.borrow().set_count(0);
+        imp.update_row.borrow().set_status(Updates::Output(None, 0));
 
         // Reset AUR search
         imp.package_view.reset_aur_search();
@@ -1208,7 +1208,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         let update_row = imp.update_row.borrow().clone();
-        update_row.set_updating(true);
+        update_row.set_status(Updates::Checking);
 
         // Spawn async process to check for updates
         glib::spawn_future_local(clone!(
@@ -1280,7 +1280,7 @@ impl PacViewWindow {
                 }
 
                 // Show update status/count in sidebar
-                update_row.set_update_status(error_msg.as_deref(), update_map.len() as u64);
+                update_row.set_status(Updates::Output(error_msg, update_map.len() as u32));
 
                 // If update row is selected, refresh package status filter
                 if update_row.is_selected() {

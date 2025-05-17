@@ -33,19 +33,9 @@ searchtag label {
 }
 
 /* Sidebar error button */
-.filter-row menubutton {
-	margin: 0;
-}
-
-.filter-row button {
-	margin: 0;
-}
-
 .filter-row menubutton > button {
 	min-height: 28px;
 	min-width: 28px;
-	margin: 3px 0;
-	padding: 0;
 }
 
 /* Sidebar list count indicator */

@@ -7,6 +7,22 @@ use gtk::prelude::*;
 use crate::pkg_data::PkgFlags;
 
 //------------------------------------------------------------------------------
+// ENUM: Updates
+//------------------------------------------------------------------------------
+#[derive(Debug, Eq, PartialEq)]
+#[repr(u32)]
+pub enum Updates {
+    Output(Option<String>, u32),
+    Checking,
+}
+
+impl Default for Updates {
+    fn default() -> Self {
+        Self::Output(None, 0)
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: FilterRow
 //------------------------------------------------------------------------------
 mod imp {
@@ -20,13 +36,13 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/filter_row.ui")]
     pub struct FilterRow {
         #[template_child]
-        pub(super) stack: TemplateChild<gtk::Stack>,
-        #[template_child]
         pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) text_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
+        #[template_child]
+        pub(super) spinner: TemplateChild<adw::Spinner>,
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
 
@@ -37,10 +53,6 @@ mod imp {
         icon: RefCell<String>,
         #[property(get, set)]
         text: RefCell<String>,
-        #[property(get, set)]
-        count: Cell<u64>,
-        #[property(get, set)]
-        updating: Cell<bool>,
 
         #[property(get, set, nullable)]
         repo_id: RefCell<Option<String>>,
@@ -111,45 +123,39 @@ impl FilterRow {
         let imp = self.imp();
 
         // Bind properties to widgets
-        self.bind_property("updating", &imp.stack.get(), "visible_child_name")
-            .transform_to(|_, updating: bool| Some(if updating { "spinner" } else { "icon" }))
-            .sync_create()
-            .build();
         self.bind_property("icon", &imp.image.get(), "icon-name")
             .sync_create()
             .build();
         self.bind_property("text", &imp.text_label.get(), "label")
             .sync_create()
             .build();
-        self.bind_property("count", &imp.count_label.get(), "label")
-            .transform_to(|_, count: u64| Some(count.to_string()))
-            .sync_create()
-            .build();
-        self.bind_property("count", &imp.count_label.get(), "visible")
-            .transform_to(|_, count: u64| Some(count > 0))
-            .sync_create()
-            .build();
     }
 
     //---------------------------------------
-    // Public set update status function
+    // Public set status function
     //---------------------------------------
-    pub fn set_update_status(&self, error_msg: Option<&str>, n_updates: u64) {
+    pub fn set_status(&self, status: Updates) {
         let imp = self.imp();
 
-        self.set_updating(false);
-        self.set_count(n_updates);
+        match status {
+            Updates::Output(error, count) => {
+                imp.spinner.set_visible(false);
 
-        if let Some(error_msg) = error_msg {
-            self.add_css_class("error");
+                imp.count_label.set_visible(count != 0);
+                imp.count_label.set_label(&count.to_string());
 
-            imp.error_label.set_label(error_msg);
-            imp.error_button.set_visible(true);
-        } else {
-            self.remove_css_class("error");
-
-            imp.error_label.set_label("");
-            imp.error_button.set_visible(false);
+                if let Some(error) = error {
+                    imp.error_label.set_label(&error);
+                    imp.error_button.set_visible(true);
+                } else {
+                    imp.error_button.set_visible(false);
+                }
+            },
+            Updates::Checking => {
+                imp.error_button.set_visible(false);
+                imp.count_label.set_visible(false);
+                imp.spinner.set_visible(true);
+            }
         }
     }
 }
