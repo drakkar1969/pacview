@@ -34,6 +34,8 @@
         </child>
         <child>
           <object class="GtkLabel" id="text_label">
+            <property name="margin-top">2</property>
+            <property name="margin-bottom">2</property>
             <property name="hexpand">true</property>
             <property name="xalign">0</property>
           </object>
