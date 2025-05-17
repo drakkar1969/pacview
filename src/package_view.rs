@@ -418,18 +418,37 @@ impl PackageView {
     }
 
     //---------------------------------------
+    // Public reset AUR search function
+    //---------------------------------------
+    pub fn reset_aur_search(&self) {
+        // Cancel ongoing AUR search if any
+        self.cancel_aur_search();
+
+        // Clear AUR search results
+        self.imp().aur_model.remove_all();
+
+        AUR_PKGS.replace(vec![]);
+    }
+
+    //---------------------------------------
+    // Public cancel AUR search function
+    //---------------------------------------
+    pub fn cancel_aur_search(&self) {
+        let imp = self.imp();
+
+        if let Some(token) = imp.search_cancel_token.take() {
+            token.cancel();
+        }
+    }
+
+    //---------------------------------------
     // Public search in AUR function
     //---------------------------------------
     pub fn search_in_aur(&self, search_bar: &SearchBar, search_term: &str, prop: SearchProp) {
         let imp = self.imp();
 
-        // Cancel ongoing AUR search if any
-        self.cancel_aur_search();
-
-        // Clear AUR search results
-        imp.aur_model.remove_all();
-
-        AUR_PKGS.replace(vec![]);
+        // Reset AUR search
+        self.reset_aur_search();
 
         // Return if search term is empty
         let term = search_term.trim().to_lowercase();
@@ -509,17 +528,6 @@ impl PackageView {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Public cancel AUR search function
-    //---------------------------------------
-    pub fn cancel_aur_search(&self) {
-        let imp = self.imp();
-
-        if let Some(token) = imp.search_cancel_token.take() {
-            token.cancel();
-        }
     }
 
     //---------------------------------------

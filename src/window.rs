@@ -1037,6 +1037,9 @@ impl PacViewWindow {
     fn load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
 
+        // Reset AUR search
+        imp.package_view.reset_aur_search();
+
         // Clear windows
         imp.backup_window.remove_all();
         imp.log_window.remove_all();
