@@ -11,6 +11,9 @@
           </lookup>
         </binding>
         <property name="xalign">0</property>
+        <style>
+          <class name="numeric"/>
+        </style>
       </object>
     </property>
   </template>
