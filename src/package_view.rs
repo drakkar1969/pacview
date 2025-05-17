@@ -315,10 +315,10 @@ impl PackageView {
         imp.selection.connect_selected_item_notify(clone!(
             #[weak(rename_to = view)] self,
             move |selection| {
-                let selected_item = selection.selected_item()
+                let item = selection.selected_item()
                     .and_downcast::<PkgObject>();
 
-                view.emit_by_name::<()>("selected", &[&selected_item]);
+                view.emit_by_name::<()>("selected", &[&item]);
             }
         ));
 
