@@ -114,6 +114,15 @@ mod imp {
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
 
+        #[property(get, set)]
+        status_id: Cell<PkgFlags>,
+        #[property(get, set)]
+        search_text: RefCell<String>,
+        #[property(get, set, builder(SearchMode::default()))]
+        search_mode: Cell<SearchMode>,
+        #[property(get, set, builder(SearchProp::default()))]
+        search_prop: Cell<SearchProp>,
+
         pub(super) aur_cache: Arc<TokioMutex<HashSet<ArcPackage>>>,
         pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
     }
@@ -236,6 +245,64 @@ impl PackageView {
                 }.into()
             }
         ));
+
+        // Set status filter function
+        imp.status_filter.set_filter_func(clone!(
+            #[weak(rename_to = view)] self,
+            #[upgrade_or] false,
+            move |item| {
+                let pkg: &PkgObject = item
+                    .downcast_ref::<PkgObject>()
+                    .expect("Failed to downcast to 'PkgObject'");
+
+                pkg.flags().intersects(view.status_id())
+            }
+        ));
+
+        // Set search filter function
+        imp.search_filter.set_filter_func(clone!(
+            #[weak(rename_to = view)] self,
+            #[upgrade_or] false,
+            move |item| {
+                let term = view.search_text().to_lowercase();
+
+                if term.is_empty() {
+                    true
+                } else {
+                    let mode = view.search_mode();
+                    let prop = view.search_prop();
+
+                    let pkg: &PkgObject = item
+                        .downcast_ref::<PkgObject>()
+                        .expect("Failed to downcast to 'PkgObject'");
+
+                    let search_props: Vec<String> = match prop {
+                        SearchProp::Name => Cow::Owned(vec![pkg.name()]),
+                        SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
+                        SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
+                        SearchProp::Deps => Cow::Borrowed(pkg.depends()),
+                        SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
+                        SearchProp::Provides => Cow::Borrowed(pkg.provides()),
+                        SearchProp::Files => Cow::Borrowed(pkg.files()),
+                    }
+                    .iter()
+                    .map(|s| s.to_lowercase())
+                    .collect();
+
+                    match mode {
+                        SearchMode::Exact => {
+                            search_props.iter().any(|s| s.eq(&term))
+                        },
+                        SearchMode::All => {
+                            term.split_whitespace().all(|t| search_props.iter().any(|s| s.contains(t)))
+                        },
+                        SearchMode::Any => {
+                            term.split_whitespace().any(|t| search_props.iter().any(|s| s.contains(t)))
+                        },
+                    }
+                }
+            }
+        ));
     }
 
     //---------------------------------------
@@ -280,59 +347,22 @@ impl PackageView {
     //---------------------------------------
     // Public filter functions
     //---------------------------------------
-    pub fn set_repo_filter(&self, repo_id: Option<&str>) {
+    pub fn repo_filter_changed(&self, repo_id: Option<&str>) {
         self.imp().repo_filter.set_search(repo_id);
     }
 
-    pub fn set_status_filter(&self, status_id: PkgFlags) {
-        self.imp().status_filter.set_filter_func(move |item| {
-            let pkg: &PkgObject = item
-                .downcast_ref::<PkgObject>()
-                .expect("Failed to downcast to 'PkgObject'");
+    pub fn status_filter_changed(&self, status_id: PkgFlags) {
+        self.set_status_id(status_id);
 
-            pkg.flags().intersects(status_id)
-        });
+        self.imp().status_filter.changed(gtk::FilterChange::Different);
     }
 
-    pub fn set_search_filter(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
-        let imp = self.imp();
+    pub fn search_filter_changed(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
+        self.set_search_text(search_term);
+        self.set_search_mode(mode);
+        self.set_search_prop(prop);
 
-        if search_term.is_empty() {
-            imp.search_filter.unset_filter_func();
-        } else {
-            let term = search_term.to_lowercase();
-
-            imp.search_filter.set_filter_func(move |item| {
-                let pkg: &PkgObject = item
-                    .downcast_ref::<PkgObject>()
-                    .expect("Failed to downcast to 'PkgObject'");
-
-                let search_props: Vec<String> = match prop {
-                    SearchProp::Name => Cow::Owned(vec![pkg.name()]),
-                    SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
-                    SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
-                    SearchProp::Deps => Cow::Borrowed(pkg.depends()),
-                    SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
-                    SearchProp::Provides => Cow::Borrowed(pkg.provides()),
-                    SearchProp::Files => Cow::Borrowed(pkg.files()),
-                }
-                .iter()
-                .map(|s| s.to_lowercase())
-                .collect();
-
-                match mode {
-                    SearchMode::Exact => {
-                        search_props.iter().any(|s| s.eq(&term))
-                    },
-                    SearchMode::All => {
-                        term.split_whitespace().all(|t| search_props.iter().any(|s| s.contains(t)))
-                    },
-                    SearchMode::Any => {
-                        term.split_whitespace().any(|t| search_props.iter().any(|s| s.contains(t)))
-                    },
-                }
-            });
-        }
+        self.imp().search_filter.changed(gtk::FilterChange::Different);
     }
 
     //---------------------------------------
@@ -389,7 +419,7 @@ impl PackageView {
     //---------------------------------------
     // Public search in AUR function
     //---------------------------------------
-    pub fn search_in_aur(&self, search_bar: SearchBar, search_term: &str, prop: SearchProp) {
+    pub fn search_in_aur(&self, search_bar: &SearchBar, search_term: &str, prop: SearchProp) {
         let imp = self.imp();
 
         // Cancel ongoing AUR search if any
@@ -447,6 +477,7 @@ impl PackageView {
         // Attach channel receiver
         glib::spawn_future_local(clone!(
             #[weak] imp,
+            #[weak] search_bar,
             async move {
                 while let Ok(result) = receiver.recv().await {
                     match result {

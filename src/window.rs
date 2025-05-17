@@ -698,7 +698,7 @@ impl PacViewWindow {
                     .expect("Failed to downcast to 'FilterRow'")
                     .repo_id();
 
-                imp.package_view.set_repo_filter(repo_id.as_deref());
+                imp.package_view.repo_filter_changed(repo_id.as_deref());
 
                 if imp.sidebar_split_view.is_collapsed() {
                     imp.sidebar_split_view.set_show_sidebar(false);
@@ -717,7 +717,7 @@ impl PacViewWindow {
                     .expect("Failed to downcast to 'FilterRow'")
                     .status_id();
 
-                imp.package_view.set_status_filter(status_id);
+                imp.package_view.status_filter_changed(status_id);
 
                 if imp.sidebar_split_view.is_collapsed() {
                     imp.sidebar_split_view.set_show_sidebar(false);
@@ -743,14 +743,14 @@ impl PacViewWindow {
         imp.search_bar.connect_closure("changed", false, closure_local!(
             #[watch(rename_to = window)] self,
             move |_: SearchBar, search_term: &str, mode: SearchMode, prop: SearchProp| {
-                window.imp().package_view.set_search_filter(search_term, mode, prop);
+                window.imp().package_view.search_filter_changed(search_term, mode, prop);
             }
         ));
 
         // Search bar AUR Search signal
         imp.search_bar.connect_closure("aur-search", false, closure_local!(
             #[watch(rename_to = window)] self,
-            move |search_bar: SearchBar, search_term: &str, prop: SearchProp| {
+            move |search_bar: &SearchBar, search_term: &str, prop: SearchProp| {
                 window.imp().package_view.search_in_aur(search_bar, search_term, prop);
             }
         ));
@@ -1265,7 +1265,7 @@ impl PacViewWindow {
 
                 // If update row is selected, refresh package status filter
                 if update_row.is_selected() {
-                    imp.package_view.set_status_filter(update_row.status_id());
+                    imp.package_view.status_filter_changed(update_row.status_id());
                 }
             }
         ));
