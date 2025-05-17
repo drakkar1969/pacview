@@ -398,10 +398,10 @@ impl PackageView {
         )
         .await;
 
-        let mut aur_names: HashSet<String> = HashSet::new();
+        let mut search_names: HashSet<String> = HashSet::new();
 
         for result in search_results {
-            aur_names.extend(result?.into_iter()
+            search_names.extend(result?.into_iter()
                 .filter(|pkg| !installed_pkg_names.contains(&pkg.name))
                 .map(|pkg| pkg.name)
             );
@@ -410,10 +410,11 @@ impl PackageView {
         // Get AUR package info using cache
         let mut cache = aur_cache.lock().await;
 
-        let aur_list = handle.cache_info(&mut cache, &aur_names.iter().collect::<Vec<&String>>())
+        let aur_pkg_list = handle.cache_info(&mut cache, &search_names.iter()
+            .collect::<Vec<&String>>())
             .await?;
 
-        Ok(aur_list)
+        Ok(aur_pkg_list)
     }
 
     //---------------------------------------
