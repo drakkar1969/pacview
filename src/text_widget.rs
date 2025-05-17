@@ -369,7 +369,7 @@ mod imp {
                 PropType::Packager => {
                     static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                         Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}")
-                            .expect("Regex error")
+                            .expect("Failed to compile Regex")
                     });
 
                     if let Some(m) = EXPR.find(text) {
@@ -387,7 +387,7 @@ mod imp {
                     } else {
                         static EXPR: LazyLock<FancyRegex> = LazyLock::new(|| {
                             FancyRegex::new(&format!(r"(?<=^|{spacer})([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|{spacer}|$)", spacer=regex::escape(LINK_SPACER)))
-                                .expect("Regex error")
+                                .expect("Failed to compile Regex")
                         });
 
                         link_list.extend(EXPR.captures_iter(text)

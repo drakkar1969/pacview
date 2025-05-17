@@ -1255,7 +1255,7 @@ impl PacViewWindow {
                 // Create map with updates (name, version)
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                     Regex::new(r"([a-zA-Z0-9@._+-]+)[ \t]+[a-zA-Z0-9@._+-:]+[ \t]+->[ \t]+([a-zA-Z0-9@._+-:]+)")
-                        .expect("Regex error")
+                        .expect("Failed to compile Regex")
                 });
 
                 let update_map: HashMap<String, String> = update_str.lines()

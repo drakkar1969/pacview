@@ -286,14 +286,14 @@ impl LogWindow {
             let log_lines: Vec<LogLine> = PACMAN_LOG.lock().unwrap().as_ref().map_or(vec![], |log| {
                 // Strip ANSI control sequences from log
                 static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Regex error")
+                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
                 });
 
                 let log = ANSI_EXPR.replace_all(log, "");
 
                 // Parse log lines
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Regex error")
+                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Failed to compile Regex")
                 });
 
                 log.par_lines()

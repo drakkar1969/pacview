@@ -446,7 +446,7 @@ impl PkgObject {
             let pkg_name = self.name();
 
             let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
-                .expect("Regex error");
+                .expect("Failed to compile Regex");
 
             gio::spawn_blocking(move || {
                 let pacman_log = PACMAN_LOG.lock().unwrap();
@@ -501,7 +501,7 @@ impl PkgObject {
         } else {
             glib::DateTime::from_unix_local(date)
                 .and_then(|datetime| datetime.format(format))
-                .expect("Datetime error")
+                .expect("Failed to format DateTime")
                 .to_string()
         }
     }
