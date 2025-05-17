@@ -10,6 +10,9 @@
         </binding>
         <property name="xalign">1</property>
         <property name="use-markup">true</property>
+        <style>
+          <class name="numeric"/>
+        </style>
       </object>
     </property>
   </template>
