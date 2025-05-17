@@ -33,34 +33,6 @@
               </object>
             </child>
             <child>
-              <object class="AdwEntryRow" id="aur_command_row">
-                <property name="title">Command to check for _AUR updates (optional)</property>
-                <property name="use-underline">true</property>
-                <child type="suffix">
-                  <object class="GtkMenuButton" id="aur_menubutton">
-                    <property name="valign">center</property>
-                    <property name="icon-name">view-more-symbolic</property>
-                    <property name="menu-model">aur_helper_menu</property>
-                    <style>
-                      <class name="flat"/>
-                      <class name="circular"/>
-                    </style>
-                  </object>
-                </child>
-                <child type="suffix">
-                  <object class="GtkMenuButton" id="aur_infobutton">
-                    <property name="valign">center</property>
-                    <property name="icon-name">info-outline-symbolic</property>
-                    <property name="popover">aur_info_popover</property>
-                    <style>
-                      <class name="flat"/>
-                      <class name="circular"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
               <object class="AdwSpinRow" id="sidebar_width_row">
                 <property name="title">Side_bar Width</property>
                 <property name="use-underline">true</property>
@@ -92,6 +64,39 @@
                     <property name="value">625</property>
                   </object>
                 </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Arch User Repository</property>
+            <child>
+              <object class="AdwEntryRow" id="aur_command_row">
+                <property name="title">Command to check for _AUR updates (optional)</property>
+                <property name="use-underline">true</property>
+                <child type="suffix">
+                  <object class="GtkMenuButton" id="aur_menubutton">
+                    <property name="valign">center</property>
+                    <property name="icon-name">view-more-symbolic</property>
+                    <property name="menu-model">aur_helper_menu</property>
+                    <style>
+                      <class name="flat"/>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
+                <child type="suffix">
+                  <object class="GtkMenuButton" id="aur_infobutton">
+                    <property name="valign">center</property>
+                    <property name="icon-name">info-outline-symbolic</property>
+                    <property name="popover">aur_info_popover</property>
+                    <style>
+                      <class name="flat"/>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
