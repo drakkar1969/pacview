@@ -61,7 +61,7 @@ impl PkgData {
     //---------------------------------------
     // Alpm constructor
     //---------------------------------------
-    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: &[String]) -> Self {
+    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: Option<&[String]>) -> Self {
         // Helper functions
         fn alpm_list_to_string(list: alpm::AlpmList<&str>) -> String {
             list.iter().sorted_unstable().join(" | ")
@@ -92,7 +92,9 @@ impl PkgData {
             .map_or("", |db| {
                 let repo = db.name();
 
-                if repo == "local" && aur_names.iter().any(|name| name == sync_name) {
+                if repo == "local" &&
+                    aur_names.is_some_and(|names| names.iter().any(|name| name == sync_name))
+                {
                     "aur"
                 } else {
                     repo

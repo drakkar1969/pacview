@@ -47,6 +47,8 @@ mod imp {
         #[template_child]
         pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
+        pub(super) aur_check_row: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) sidebar_width_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) infopane_width_row: TemplateChild<adw::SpinRow>,
@@ -71,6 +73,8 @@ mod imp {
         auto_refresh: Cell<bool>,
         #[property(get, set)]
         aur_command: RefCell<String>,
+        #[property(get, set)]
+        aur_check: Cell<bool>,
         #[property(get, set)]
         sidebar_width: Cell<f64>,
         #[property(get, set)]
@@ -167,6 +171,11 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("aur-command", &imp.aur_command_row.get(), "text")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("aur-check", &imp.aur_check_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();
@@ -303,6 +312,7 @@ impl PreferencesDialog {
                                 dialog.set_color_scheme(ColorScheme::default());
                                 dialog.set_auto_refresh(true);
                                 dialog.set_aur_command("");
+                                dialog.set_aur_check(true);
                                 dialog.set_sidebar_width(240.0);
                                 dialog.set_infopane_width(625.0);
                                 dialog.set_search_mode(SearchMode::default());

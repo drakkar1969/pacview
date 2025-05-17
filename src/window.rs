@@ -336,6 +336,7 @@ impl PacViewWindow {
 
         imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
         imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
+        imp.prefs_dialog.set_aur_check(gsettings.boolean("aur-package-check"));
         imp.prefs_dialog.set_sidebar_width(gsettings.double("sidebar-width"));
         imp.prefs_dialog.set_infopane_width(gsettings.double("infopane-width"));
 
@@ -394,6 +395,7 @@ impl PacViewWindow {
         Self::set_gsetting(gsettings, "color-scheme", &imp.prefs_dialog.color_scheme().nick());
         Self::set_gsetting(gsettings, "auto-refresh", &imp.prefs_dialog.auto_refresh());
         Self::set_gsetting(gsettings, "aur-update-command", &imp.prefs_dialog.aur_command());
+        Self::set_gsetting(gsettings, "aur-package-check", &imp.prefs_dialog.aur_check());
         Self::set_gsetting(gsettings, "sidebar-width", &imp.prefs_dialog.sidebar_width());
         Self::set_gsetting(gsettings, "infopane-width", &imp.prefs_dialog.infopane_width());
         Self::set_gsetting(gsettings, "search-mode", &imp.prefs_dialog.search_mode().nick());
@@ -775,6 +777,14 @@ impl PacViewWindow {
             }
         ));
 
+        // Preferences aur check property notify signal
+        imp.prefs_dialog.connect_aur_check_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                ActionGroupExt::activate_action(&window, "refresh", None);
+            }
+        ));
+
         // Preferences sidebar width property notify signal
         imp.prefs_dialog.connect_sidebar_width_notify(clone!(
             #[weak(rename_to = window)] self,
@@ -1056,15 +1066,17 @@ impl PacViewWindow {
 
         *PACMAN_CACHE.lock().unwrap() = cache_files;
 
-        // Load AUR package names from file
-        let aur_names: Vec<String> = imp.aur_file.get()
-            .and_then(|aur_file| fs::read(aur_file).ok())
-            .map(|bytes|
-                String::from_utf8_lossy(&bytes).lines()
-                    .map(String::from)
-                    .collect()
-            )
-            .unwrap_or_default();
+        // Load AUR package names from file if AUR check is enabled in preferences
+        let aur_names: Option<Vec<String>> = imp.prefs_dialog.aur_check().then(|| {
+            imp.aur_file.get()
+                .and_then(|aur_file| fs::read(aur_file).ok())
+                .map(|bytes|
+                    String::from_utf8_lossy(&bytes).lines()
+                        .map(String::from)
+                        .collect()
+                )
+                .unwrap_or_default()
+        });
 
         // Show loading spinner
         imp.package_view.set_status(PackageViewStatus::PackageLoad);
@@ -1088,7 +1100,7 @@ impl PacViewWindow {
                                 .map(|sync_pkg| {
                                     let local_pkg = localdb.pkg(sync_pkg.name()).ok();
 
-                                    PkgData::from_alpm(sync_pkg, local_pkg, &aur_names)
+                                    PkgData::from_alpm(sync_pkg, local_pkg, aur_names.as_deref())
                                 })
                         )
                         .collect();
@@ -1096,7 +1108,7 @@ impl PacViewWindow {
                     // Load pacman local packages not in sync databases
                     pkg_data.extend(localdb.pkgs().iter()
                         .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
-                        .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), &aur_names))
+                        .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), aur_names.as_deref()))
                     );
 
                     sender.send_blocking(Ok(pkg_data)).expect("Failed to send through channel");
