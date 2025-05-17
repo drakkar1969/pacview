@@ -264,7 +264,7 @@ impl PackageView {
             #[weak(rename_to = view)] self,
             #[upgrade_or] false,
             move |item| {
-                let term = view.search_text().to_lowercase();
+                let term = view.search_text().trim().to_lowercase();
 
                 if term.is_empty() {
                     true
@@ -431,11 +431,11 @@ impl PackageView {
         AUR_PKGS.replace(vec![]);
 
         // Return if search term is empty
-        if search_term.is_empty() {
+        let term = search_term.trim().to_lowercase();
+
+        if term.is_empty() {
             return
         }
-
-        let term = search_term.to_lowercase();
 
         // Show search spinner
         search_bar.set_searching(true);
