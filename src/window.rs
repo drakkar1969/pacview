@@ -1311,9 +1311,9 @@ impl PacViewWindow {
         .expect("Failed to create debouncer");
 
         // Watch pacman local db path
-        let pacman_config = PACMAN_CONFIG.get().unwrap();
+        let db_path = &PACMAN_CONFIG.get().unwrap().db_path;
 
-        let path = Path::new(&pacman_config.db_path).join("local");
+        let path = Path::new(db_path).join("local");
 
         if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
             // Store watcher
