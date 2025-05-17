@@ -41,6 +41,7 @@ glib-build-tools = "0.20"
 # NURSERY
 # nursery = { level = "warn", priority = -1 }
 
+# future_not_send = "allow"
 # missing_const_for_fn = "allow"
 
 # PEDANTIC
@@ -83,7 +84,6 @@ glib-build-tools = "0.20"
 # redundant_type_annotations = "warn"
 # return_and_then = "warn"
 # semicolon_inside_block = "warn"
-# single_call_fn = "warn"
 # str_to_string = "warn"
 # string_add = "warn"
 # string_slice = "warn"
