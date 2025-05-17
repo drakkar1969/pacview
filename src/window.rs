@@ -352,6 +352,7 @@ impl PacViewWindow {
         imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
         imp.prefs_dialog.set_property_max_lines(gsettings.double("property-max-lines"));
         imp.prefs_dialog.set_property_line_spacing(gsettings.double("property-line-spacing"));
+        imp.prefs_dialog.set_underline_links(gsettings.boolean("underline-links"));
 
         // Load package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -404,6 +405,7 @@ impl PacViewWindow {
         Self::set_gsetting(gsettings, "remember-sorting", &imp.prefs_dialog.remember_sort());
         Self::set_gsetting(gsettings, "property-max-lines", &imp.prefs_dialog.property_max_lines());
         Self::set_gsetting(gsettings, "property-line-spacing", &imp.prefs_dialog.property_line_spacing());
+        Self::set_gsetting(gsettings, "underline-links", &imp.prefs_dialog.underline_links());
 
         // Save package view sort prop/order
         if imp.prefs_dialog.remember_sort() {
@@ -495,6 +497,10 @@ impl PacViewWindow {
             .build();
 
         imp.prefs_dialog.bind_property("property-line-spacing", &imp.info_pane.get(), "property-line-spacing")
+            .sync_create()
+            .build();
+
+        imp.prefs_dialog.bind_property("underline-links", &imp.info_pane.get(), "underline-links")
             .sync_create()
             .build();
 

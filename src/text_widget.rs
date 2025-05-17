@@ -87,6 +87,8 @@ mod imp {
         #[property(get, set)]
         line_spacing: Cell<f64>,
         #[property(get, set)]
+        underline_links: Cell<bool>,
+        #[property(get, set)]
         focused: Cell<bool>,
 
         pub(super) layout: OnceCell<pango::Layout>,
@@ -276,11 +278,13 @@ mod imp {
 
                 attr_list.insert(attr);
 
-                let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                attr.set_start_index(link.start);
-                attr.set_end_index(link.end);
+                if self.obj().underline_links() {
+                    let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
+                    attr.set_start_index(link.start);
+                    attr.set_end_index(link.end);
 
-                attr_list.insert(attr);
+                    attr_list.insert(attr);
+                }
             }
 
             attr_list
@@ -556,7 +560,13 @@ impl TextWidget {
 
             attr_list.insert(attr);
 
-            let mut attr = pango::AttrInt::new_underline(pango::Underline::Double);
+            let underline = if self.underline_links() {
+                pango::Underline::Double
+            } else {
+                pango::Underline::Single
+            };
+
+            let mut attr = pango::AttrInt::new_underline(underline);
             attr.set_start_index(link.start);
             attr.set_end_index(link.end);
 
@@ -823,6 +833,14 @@ impl TextWidget {
 
                 imp.draw_area.queue_resize();
             }
+        });
+
+        // Underline links property notify signal
+        self.connect_underline_links_notify(|widget| {
+            let imp = widget.imp();
+
+            imp.set_layout_attributes();
+            imp.draw_area.queue_draw();
         });
 
         // Focused property notify signal

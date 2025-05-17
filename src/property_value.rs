@@ -55,6 +55,8 @@ mod imp {
         max_lines: Cell<i32>,
         #[property(get, set)]
         line_spacing: Cell<f64>,
+        #[property(get, set)]
+        underline_links: Cell<bool>,
     }
 
     //---------------------------------------
@@ -244,6 +246,10 @@ impl PropertyValue {
             .build();
 
         self.bind_property("line-spacing", &imp.text_widget.get(), "line-spacing")
+            .sync_create()
+            .build();
+
+        self.bind_property("underline-links", &imp.text_widget.get(), "underline-links")
             .sync_create()
             .build();
 

@@ -209,6 +209,13 @@
                 </property>
               </object>
             </child>
+            <child>
+              <object class="AdwSwitchRow" id="underline_links_row">
+                <property name="title">_Underline Links</property>
+                <property name="subtitle">Underline links in properties</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>

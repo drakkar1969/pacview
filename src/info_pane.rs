@@ -181,6 +181,8 @@ mod imp {
         property_max_lines: Cell<i32>,
         #[property(get, set)]
         property_line_spacing: Cell<f64>,
+        #[property(get, set)]
+        underline_links: Cell<bool>,
 
         pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
 
@@ -637,6 +639,10 @@ impl InfoPane {
             .build();
 
         self.bind_property("property-line-spacing", &property, "line-spacing")
+            .sync_create()
+            .build();
+
+        self.bind_property("underline-links", &property, "underline-links")
             .sync_create()
             .build();
 

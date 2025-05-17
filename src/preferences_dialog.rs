@@ -65,6 +65,8 @@ mod imp {
         #[template_child]
         pub(super) property_line_spacing_row: TemplateChild<adw::SpinRow>,
         #[template_child]
+        pub(super) underline_links_row: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
         #[property(get, set, builder(ColorScheme::default()))]
@@ -91,6 +93,8 @@ mod imp {
         property_line_spacing: Cell<f64>,
         #[property(get, set)]
         property_max_lines: Cell<f64>,
+        #[property(get, set)]
+        underline_links: Cell<bool>,
     }
 
     //---------------------------------------
@@ -227,6 +231,11 @@ impl PreferencesDialog {
             .sync_create()
             .bidirectional()
             .build();
+
+        self.bind_property("underline-links", &imp.underline_links_row.get(), "active")
+            .sync_create()
+            .bidirectional()
+            .build();
     }
 
     //---------------------------------------
@@ -321,6 +330,7 @@ impl PreferencesDialog {
                                 dialog.set_search_delay(150.0);
                                 dialog.set_property_max_lines(3.0);
                                 dialog.set_property_line_spacing(1.3);
+                                dialog.set_underline_links(true);
                             }
                         }
                     )
