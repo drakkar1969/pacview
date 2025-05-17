@@ -340,16 +340,24 @@ impl SearchBar {
 
         // Search mode property notify signal
         self.connect_mode_notify(|bar| {
-            bar.imp().tag_mode.set_text(Some(bar.mode().nick()));
+            let imp = bar.imp();
 
-            bar.emit_changed_signal();
+            imp.tag_mode.set_text(Some(bar.mode().nick()));
+
+            if !imp.search_text.text().is_empty() {
+                bar.emit_changed_signal();
+            }
         });
 
         // Search prop property notify signal
         self.connect_prop_notify(|bar| {
-            bar.imp().tag_prop.set_text(Some(bar.prop().nick()));
+            let imp = bar.imp();
 
-            bar.emit_changed_signal();
+            imp.tag_prop.set_text(Some(bar.prop().nick()));
+
+            if !imp.search_text.text().is_empty() {
+                bar.emit_changed_signal();
+            }
         });
 
         // Search text changed signal
