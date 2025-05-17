@@ -26,13 +26,6 @@
         <child>
           <object class="AdwPreferencesGroup">
             <child>
-              <object class="AdwSwitchRow" id="auto_refresh_row">
-                <property name="title">Auto _Refresh</property>
-                <property name="subtitle">Refresh window when local pacman database changes</property>
-                <property name="use-underline">true</property>
-              </object>
-            </child>
-            <child>
               <object class="AdwSpinRow" id="sidebar_width_row">
                 <property name="title">Side_bar Width</property>
                 <property name="use-underline">true</property>
@@ -110,6 +103,25 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title">Package List</property>
+            <child>
+              <object class="AdwSwitchRow" id="auto_refresh_row">
+                <property name="title">Auto _Refresh</property>
+                <property name="subtitle">Refresh window when local pacman database changes</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSwitchRow" id="remember_sort_row">
+                <property name="title">Remember _Sorting</property>
+                <property name="subtitle">Save package list sort order</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
             <property name="title">Search</property>
             <child>
               <object class="AdwComboRow" id="search_mode_row">
@@ -157,18 +169,6 @@
                     <property name="value">150</property>
                   </object>
                 </property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwPreferencesGroup">
-            <property name="title">Package List</property>
-            <child>
-              <object class="AdwSwitchRow" id="remember_sort_row">
-                <property name="title">Remember _Sorting</property>
-                <property name="subtitle">Save package list sort order</property>
-                <property name="use-underline">true</property>
               </object>
             </child>
           </object>
