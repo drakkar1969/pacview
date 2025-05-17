@@ -20,7 +20,7 @@
     </key>
     <key name="infopane-width" type="d">
       <range min="400" max="1000"/>
-      <default>625</default>
+      <default>650</default>
     </key>
     <key name="property-line-spacing" type="d">
       <range min="1.0" max="2.0"/>
@@ -83,7 +83,7 @@
       <default>false</default>
     </key>
     <key name="window-width" type="i">
-      <default>1420</default>
+      <default>1450</default>
     </key>
   </schema>
 </schemalist>
