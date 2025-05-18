@@ -986,8 +986,6 @@ impl PacViewWindow {
 
         // If first load, add package status rows (enumerate PkgStatusFlags)
         if first_load {
-            imp.status_listbox.remove_all();
-
             let saved_status_id = imp.saved_status_id.replace(PkgFlags::empty());
 
             let flags = glib::FlagsClass::new::<PkgFlags>();
