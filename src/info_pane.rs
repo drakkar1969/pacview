@@ -234,6 +234,12 @@ mod imp {
         fn set_pkg(&self, pkg: Option<&PkgObject>) {
             self.pkg_history.borrow().init(pkg);
 
+            self.main_stack.set_visible_child_name(
+                if pkg.is_some() { "properties" } else { "empty" }
+            );
+
+            self.tab_switcher.set_sensitive(pkg.is_some());
+
             self.obj().update_display();
         }
     }
@@ -328,19 +334,6 @@ impl InfoPane {
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
-        // Bind pkg property to widgets
-        self.bind_property("pkg", &imp.main_stack.get(), "visible-child-name")
-            .transform_to(move |_, pkg: Option<PkgObject>| {
-                Some(if pkg.is_some() { "properties" } else { "empty" })
-            })
-            .sync_create()
-            .build();
-
-        self.bind_property("pkg", &imp.tab_switcher.get(), "sensitive")
-            .transform_to(move |_, pkg: Option<PkgObject>| Some(pkg.is_some()))
-            .sync_create()
-            .build();
-
         // Bind history list properties to widgets
         let pkg_history = imp.pkg_history.borrow();
 
@@ -349,71 +342,6 @@ impl InfoPane {
             .build();
 
         pkg_history.bind_property("can-select-next", &imp.next_button.get(), "sensitive")
-            .sync_create()
-            .build();
-
-        // Bind files count to files count label
-        imp.files_selection.bind_property("n-items", &imp.files_count_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(n_items.to_string()))
-            .sync_create()
-            .build();
-
-        // Bind files count to files open/copy button states
-        imp.files_selection.bind_property("n-items", &imp.files_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
-        imp.files_selection.bind_property("n-items", &imp.files_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
-        // Bind log count to log copy button state
-        imp.log_selection.bind_property("n-items", &imp.log_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
-        // Bind cache count to cache header label
-        imp.cache_selection.bind_property("n-items", &imp.cache_count_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(n_items.to_string()))
-            .sync_create()
-            .build();
-
-        // Bind cache count to cache open/copy button states
-        imp.cache_selection.bind_property("n-items", &imp.cache_open_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
-        imp.cache_selection.bind_property("n-items", &imp.cache_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
-        // Bind backup count to backup header label
-        imp.backup_selection.bind_property("n-items", &imp.backup_count_label.get(), "label")
-            .transform_to(move |_, n_items: u32| Some(n_items.to_string()))
-            .sync_create()
-            .build();
-
-        // Bind selected backup item to backup open button state
-        imp.backup_selection.bind_property("selected-item", &imp.backup_open_button.get(), "sensitive")
-            .transform_to(|_, item: Option<glib::Object>| {
-                item.and_downcast::<BackupObject>()
-                    .map_or(Some(false), |object| {
-                        let status = object.status();
-
-                        Some(status != BackupStatus::Locked && status != BackupStatus::All)
-                    })
-            })
-            .sync_create()
-            .build();
-
-        // Bind backup count to backup copy button state
-        imp.backup_selection.bind_property("n-items", &imp.backup_copy_button.get(), "sensitive")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
             .sync_create()
             .build();
     }
@@ -523,6 +451,18 @@ impl InfoPane {
             }
         ));
 
+        // Files selection items changed signal
+        imp.files_selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                imp.files_count_label.set_label(&n_items.to_string());
+                imp.files_open_button.set_sensitive(n_items > 0);
+                imp.files_copy_button.set_sensitive(n_items > 0);
+            }
+        ));
+
         // Log copy button clicked signal
         imp.log_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
@@ -535,6 +475,16 @@ impl InfoPane {
                 infopane.clipboard().set_text(
                     &format!("## {}\n|Log Messages|\n|---|\n{body}", infopane.pkg().unwrap().name())
                 );
+            }
+        ));
+
+        // Log selection items changed signal
+        imp.log_selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                imp.log_copy_button.set_sensitive(n_items > 0);
             }
         ));
 
@@ -575,6 +525,18 @@ impl InfoPane {
             }
         ));
 
+        // Cache selection items changed signal
+        imp.cache_selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                imp.cache_count_label.set_label(&n_items.to_string());
+                imp.cache_open_button.set_sensitive(n_items > 0);
+                imp.cache_copy_button.set_sensitive(n_items > 0);
+            }
+        ));
+
         // Backup open button clicked signal
         imp.backup_open_button.connect_clicked(clone!(
             #[weak] imp,
@@ -609,6 +571,31 @@ impl InfoPane {
                 if imp.backup_open_button.is_sensitive() {
                     imp.backup_open_button.emit_clicked();
                 }
+            }
+        ));
+
+        // Backup selection items changed signal
+        imp.backup_selection.connect_items_changed(clone!(
+            #[weak] imp,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                imp.backup_count_label.set_label(&n_items.to_string());
+                imp.backup_copy_button.set_sensitive(n_items > 0);
+            }
+        ));
+
+        // Backup selection selected item property notify signal
+        imp.backup_selection.connect_selected_item_notify(clone!(
+            #[weak] imp,
+            move |selection| {
+                let status = selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .map_or(BackupStatus::Locked, |backup| backup.status());
+
+                imp.backup_open_button.set_sensitive(
+                    status != BackupStatus::Locked && status != BackupStatus::All
+                );
             }
         ));
     }
