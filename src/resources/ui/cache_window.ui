@@ -36,7 +36,6 @@
                     <property name="icon-name">info-cache-symbolic</property>
                     <style>
                       <class name="bubble"/>
-                      <class name="medium"/>
                     </style>
                   </object>
                 </child>

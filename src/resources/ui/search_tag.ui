@@ -4,8 +4,6 @@
   <template class="SearchTag" parent="AdwBin">
     <property name="child">
       <object class="GtkLabel" id="label">
-        <property name="margin-start">12</property>
-        <property name="margin-end">12</property>
         <style>
           <class name="caption-heading"/>
         </style>

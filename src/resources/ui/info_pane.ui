@@ -173,6 +173,7 @@
                                         <property name="label"></property>
                                         <style>
                                           <class name="count-superscript"/>
+                                          <class name="numeric"/>
                                         </style>
                                       </object>
                                     </child>
@@ -414,6 +415,7 @@
                                         <property name="label"></property>
                                         <style>
                                           <class name="count-superscript"/>
+                                          <class name="numeric"/>
                                         </style>
                                       </object>
                                     </child>
@@ -540,6 +542,7 @@
                                         <property name="label"></property>
                                         <style>
                                           <class name="count-superscript"/>
+                                          <class name="numeric"/>
                                         </style>
                                       </object>
                                     </child>

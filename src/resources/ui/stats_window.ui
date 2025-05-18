@@ -34,7 +34,6 @@
                     <property name="icon-name">stats-symbolic</property>
                     <style>
                       <class name="bubble"/>
-                      <class name="medium"/>
                     </style>
                   </object>
                 </child>

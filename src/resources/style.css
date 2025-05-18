@@ -28,8 +28,8 @@ searchtag {
 }
 
 searchtag label {
-	min-height: 22px;
-	min-width: 22px;
+	min-height: 1.6em;
+	margin: 0 1.2em;
 }
 
 /* Sidebar error button */
@@ -43,7 +43,8 @@ label.count-indicator {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
 	border-radius: 9999px;
-	padding: 2px 6px;
+	min-height: 1.6em;
+	padding: 0 0.5em;
 }
 
 /* Info pane scrolled windows */
@@ -55,11 +56,12 @@ scrolledwindow.no-undershoot > undershoot.bottom {
 
 /* Info pane file count indicator */
 label.count-superscript {
-	font-size: 70%;
-	font-weight: bold;
-	background: color-mix(in srgb, currentColor 15%, transparent);
+	font-size: 75%;
+	font-weight: 800;
+	background: color-mix(in srgb, currentColor 20%, transparent);
 	border-radius: 9999px;
-	padding: 2px 5px;
+	min-height: 1.6em;
+	padding: 0 0.5em;
 }
 
 /* Info pane property rows */
@@ -133,11 +135,8 @@ texttag.error {
 image.bubble {
 	border-radius: 50%;
 	background: color-mix(in srgb, currentColor 15%, transparent);
-}
-
-image.bubble.medium {
-	min-width: 44px;
-	min-height: 44px;
+	min-width: 3em;
+	min-height: 3em;
 }
 
 /* Round controls */

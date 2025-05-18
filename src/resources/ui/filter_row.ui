@@ -53,6 +53,7 @@
                 <style>
                   <class name="caption-heading"/>
                   <class name="count-indicator"/>
+                  <class name="numeric"/>
                 </style>
               </object>
             </child>

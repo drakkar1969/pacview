@@ -32,6 +32,7 @@
               <object class="GtkLabel">
                 <style>
                   <class name="count-superscript"/>
+                  <class name="numeric"/>
                 </style>
                 <binding name="label">
                   <lookup name="n-items">GtkListHeader</lookup>
