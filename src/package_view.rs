@@ -1,14 +1,13 @@
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
-use std::sync::{Arc, OnceLock};
+use std::sync::Arc;
 use std::cmp::Ordering;
 use std::borrow::Cow;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::subclass::Signal;
-use glib::clone;
+use glib::{clone, closure_local};
 
 use tokio::sync::Mutex as TokioMutex;
 use tokio_util::sync::CancellationToken;
@@ -21,6 +20,7 @@ use crate::window::INSTALLED_PKG_NAMES;
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
+use crate::info_pane::InfoPane;
 use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumExt;
 
@@ -107,6 +107,11 @@ mod imp {
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
 
+        #[property(get, set, construct)]
+        search_bar: RefCell<SearchBar>,
+        #[property(get, set, construct)]
+        info_pane: RefCell<InfoPane>,
+
         #[property(get, set)]
         n_items: Cell<u32>,
         #[property(get, set, builder(SortProp::default()))]
@@ -116,12 +121,6 @@ mod imp {
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
-        #[property(get, set)]
-        search_text: RefCell<String>,
-        #[property(get, set, builder(SearchMode::default()))]
-        search_mode: Cell<SearchMode>,
-        #[property(get, set, builder(SearchProp::default()))]
-        search_prop: Cell<SearchProp>,
 
         pub(super) aur_cache: Arc<TokioMutex<HashSet<ArcPackage>>>,
         pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
@@ -147,23 +146,6 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for PackageView {
-        //---------------------------------------
-        // Custom signals
-        //---------------------------------------
-        fn signals() -> &'static [Signal] {
-            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
-                vec![
-                    Signal::builder("selected")
-                        .param_types([Option::<PkgObject>::static_type()])
-                        .build(),
-                    Signal::builder("activated")
-                        .param_types([Option::<PkgObject>::static_type()])
-                        .build(),
-                ]
-            })
-        }
-
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -264,45 +246,50 @@ impl PackageView {
             #[weak(rename_to = view)] self,
             #[upgrade_or] false,
             move |item| {
-                let term = view.search_text().trim().to_lowercase();
+                let search_bar = view.search_bar();
+
+                let term = search_bar.text().trim().to_lowercase();
 
                 if term.is_empty() {
-                    true
-                } else {
-                    let mode = view.search_mode();
-                    let prop = view.search_prop();
+                    return true
+                };
+                
+                let mode = search_bar.mode();
+                let prop = search_bar.prop();
 
-                    let pkg: &PkgObject = item
-                        .downcast_ref::<PkgObject>()
-                        .expect("Failed to downcast to 'PkgObject'");
+                let pkg: &PkgObject = item
+                    .downcast_ref::<PkgObject>()
+                    .expect("Failed to downcast to 'PkgObject'");
 
-                    let search_props: Vec<String> = match prop {
-                        SearchProp::Name => Cow::Owned(vec![pkg.name()]),
-                        SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
-                        SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
-                        SearchProp::Deps => Cow::Borrowed(pkg.depends()),
-                        SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
-                        SearchProp::Provides => Cow::Borrowed(pkg.provides()),
-                        SearchProp::Files => Cow::Borrowed(pkg.files()),
-                    }
-                    .iter()
-                    .map(|s| s.to_lowercase())
-                    .collect();
+                let search_props: Vec<String> = match prop {
+                    SearchProp::Name => Cow::Owned(vec![pkg.name()]),
+                    SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
+                    SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
+                    SearchProp::Deps => Cow::Borrowed(pkg.depends()),
+                    SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
+                    SearchProp::Provides => Cow::Borrowed(pkg.provides()),
+                    SearchProp::Files => Cow::Borrowed(pkg.files()),
+                }
+                .iter()
+                .map(|s| s.to_lowercase())
+                .collect();
 
-                    match mode {
-                        SearchMode::Exact => {
-                            search_props.iter().any(|s| s.eq(&term))
-                        },
-                        SearchMode::All => {
-                            term.split_whitespace().all(|t| search_props.iter().any(|s| s.contains(t)))
-                        },
-                        SearchMode::Any => {
-                            term.split_whitespace().any(|t| search_props.iter().any(|s| s.contains(t)))
-                        },
-                    }
+                match mode {
+                    SearchMode::Exact => {
+                        search_props.iter().any(|s| s.eq(&term))
+                    },
+                    SearchMode::All => {
+                        term.split_whitespace().all(|t| search_props.iter().any(|s| s.contains(t)))
+                    },
+                    SearchMode::Any => {
+                        term.split_whitespace().any(|t| search_props.iter().any(|s| s.contains(t)))
+                    },
                 }
             }
         ));
+
+        // Set search bar key capture widget
+        self.search_bar().set_key_capture_widget(imp.view.upcast_ref());
     }
 
     //---------------------------------------
@@ -315,10 +302,10 @@ impl PackageView {
         imp.selection.connect_selected_item_notify(clone!(
             #[weak(rename_to = view)] self,
             move |selection| {
-                let item = selection.selected_item()
+                let pkg = selection.selected_item()
                     .and_downcast::<PkgObject>();
 
-                view.emit_by_name::<()>("selected", &[&item]);
+                view.info_pane().set_pkg(pkg.as_ref());
             }
         ));
 
@@ -326,10 +313,14 @@ impl PackageView {
         imp.view.connect_activate(clone!(
             #[weak(rename_to = view)] self,
             move |_, index| {
-                let item = view.imp().selection.item(index)
+                let pkg = view.imp().selection.item(index)
                     .and_downcast::<PkgObject>();
 
-                view.emit_by_name::<()>("activated", &[&item]);
+                let info_pane = view.info_pane();
+
+                if pkg != info_pane.pkg() {
+                    info_pane.set_pkg(pkg.as_ref());
+                }
             }
         ));
 
@@ -342,10 +333,38 @@ impl PackageView {
         self.connect_sort_ascending_notify(|view| {
             view.imp().sorter.changed(gtk::SorterChange::Inverted);
         });
+
+        // Search bar changed signal
+        self.search_bar().connect_closure("changed", false, closure_local!(
+            #[watch(rename_to = view)] self,
+            move |_: SearchBar| {
+                view.imp().search_filter.changed(gtk::FilterChange::Different);
+            }
+        ));
+
+        // Search bar AUR Search signal
+        self.search_bar().connect_closure("aur-search", false, closure_local!(
+            #[watch(rename_to = view)] self,
+            move |search_bar: &SearchBar| {
+                view.search_in_aur(search_bar);
+            }
+        ));
+
+        // Search bar enabled property notify signal
+        self.search_bar().connect_enabled_notify(clone!(
+            #[weak(rename_to = view)] self,
+            move |bar| {
+                if !bar.enabled() {
+                    view.cancel_aur_search();
+
+                    view.imp().view.grab_focus();
+                }
+            }
+        ));
     }
 
     //---------------------------------------
-    // Public filter functions
+    // Public sidebar filter functions
     //---------------------------------------
     pub fn repo_filter_changed(&self, repo_id: Option<&str>) {
         self.imp().repo_filter.set_search(repo_id);
@@ -355,14 +374,6 @@ impl PackageView {
         self.set_status_id(status_id);
 
         self.imp().status_filter.changed(gtk::FilterChange::Different);
-    }
-
-    pub fn search_filter_changed(&self, search_term: &str, mode: SearchMode, prop: SearchProp) {
-        self.set_search_text(search_term);
-        self.set_search_mode(mode);
-        self.set_search_prop(prop);
-
-        self.imp().search_filter.changed(gtk::FilterChange::Different);
     }
 
     //---------------------------------------
@@ -444,15 +455,16 @@ impl PackageView {
     //---------------------------------------
     // Public search in AUR function
     //---------------------------------------
-    pub fn search_in_aur(&self, search_bar: &SearchBar, search_term: &str, prop: SearchProp) {
+    pub fn search_in_aur(&self, search_bar: &SearchBar) {
         let imp = self.imp();
+
+        let term = search_bar.text().trim().to_lowercase();
+        let prop = search_bar.prop();
 
         // Reset AUR search
         self.reset_aur_search();
 
         // Return if search term is empty
-        let term = search_term.trim().to_lowercase();
-
         if term.is_empty() {
             return
         }

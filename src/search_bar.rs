@@ -99,6 +99,8 @@ mod imp {
         #[property(get, set)]
         enabled: Cell<bool>,
 
+        #[property(get = Self::text)]
+        _text: RefCell<String>,
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
@@ -225,17 +227,8 @@ mod imp {
             SIGNALS.get_or_init(|| {
                 vec![
                     Signal::builder("changed")
-                        .param_types([
-                            String::static_type(),
-                            SearchMode::static_type(),
-                            SearchProp::static_type()
-                        ])
                         .build(),
                     Signal::builder("aur-search")
-                        .param_types([
-                            String::static_type(),
-                            SearchProp::static_type()
-                        ])
                         .build(),
                 ]
             })
@@ -257,6 +250,12 @@ mod imp {
 
     impl WidgetImpl for SearchBar {}
     impl BinImpl for SearchBar {}
+
+    impl SearchBar {
+        fn text(&self) -> String {
+            self.search_text.text().to_string()
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -421,24 +420,11 @@ impl SearchBar {
     // Signal emit helper functions
     //---------------------------------------
     fn emit_changed_signal(&self) {
-        let imp = self.imp();
-
-        self.emit_by_name::<()>("changed",
-            &[
-                &imp.search_text.text(),
-                &self.mode(),
-                &self.prop()
-            ]);
+        self.emit_by_name::<()>("changed", &[]);
     }
 
     fn emit_aur_search_signal(&self) {
-        let imp = self.imp();
-
-        self.emit_by_name::<()>("aur-search",
-            &[
-                &imp.search_text.text(),
-                &self.prop()
-            ]);
+        self.emit_by_name::<()>("aur-search", &[]);
     }
 
     //---------------------------------------

@@ -179,6 +179,8 @@
                 <property name="content">
                   <object class="PackageView" id="package_view">
                     <property name="vexpand">true</property>
+                    <property name="search_bar">search_bar</property>
+                    <property name="info_pane">info_pane</property>
                   </object>
                 </property>
               </object>

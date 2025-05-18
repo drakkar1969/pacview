@@ -11,7 +11,7 @@ use std::fs;
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::{clone, closure_local};
+use glib::clone;
 
 use alpm_utils::DbListExt;
 use titlecase::titlecase;
@@ -479,9 +479,6 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
-        // Set search bar key capture widget
-        imp.search_bar.set_key_capture_widget(imp.package_view.view().upcast_ref());
-
         // Bind package view item count to status label text
         imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
             .transform_to(|_, n_items: u32| {
@@ -733,54 +730,6 @@ impl PacViewWindow {
                 }
 
                 imp.package_view.view().grab_focus();
-            }
-        ));
-
-        // Search bar enabled property notify signal
-        imp.search_bar.connect_enabled_notify(clone!(
-            #[weak] imp,
-            move |bar| {
-                if !bar.enabled() {
-                    imp.package_view.cancel_aur_search();
-
-                    imp.package_view.view().grab_focus();
-                }
-            }
-        ));
-
-        // Search bar changed signal
-        imp.search_bar.connect_closure("changed", false, closure_local!(
-            #[watch(rename_to = window)] self,
-            move |_: SearchBar, search_term: &str, mode: SearchMode, prop: SearchProp| {
-                window.imp().package_view.search_filter_changed(search_term, mode, prop);
-            }
-        ));
-
-        // Search bar AUR Search signal
-        imp.search_bar.connect_closure("aur-search", false, closure_local!(
-            #[watch(rename_to = window)] self,
-            move |search_bar: &SearchBar, search_term: &str, prop: SearchProp| {
-                window.imp().package_view.search_in_aur(search_bar, search_term, prop);
-            }
-        ));
-
-        // Package view selected signal
-        imp.package_view.connect_closure("selected", false, closure_local!(
-            #[watch(rename_to = window)] self,
-            move |_: PackageView, pkg: Option<PkgObject>| {
-                window.imp().info_pane.set_pkg(pkg.as_ref());
-            }
-        ));
-
-        // Package view activate signal
-        imp.package_view.connect_closure("activated", false, closure_local!(
-            #[watch(rename_to = window)] self,
-            move |_: PackageView, pkg: Option<PkgObject>| {
-                let imp = window.imp();
-
-                if pkg != imp.info_pane.pkg() {
-                    imp.info_pane.set_pkg(pkg.as_ref());
-                }
             }
         ));
 
