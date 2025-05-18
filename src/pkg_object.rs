@@ -338,10 +338,6 @@ impl PkgObject {
         &self.imp().data.get().unwrap().has_script
     }
 
-    pub fn sha256sum(&self) -> &str {
-        &self.imp().data.get().unwrap().sha256sum
-    }
-
     //---------------------------------------
     // Get alpm package helper function
     //---------------------------------------

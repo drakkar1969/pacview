@@ -50,7 +50,7 @@
                     <property name="page-increment">50</property>
                     <property name="step-increment">5</property>
                     <property name="upper">1000</property>
-                    <property name="value">625</property>
+                    <property name="value">600</property>
                   </object>
                 </property>
               </object>

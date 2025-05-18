@@ -77,8 +77,6 @@ enum PropID {
     InstalledSize,
     #[enum_value(name = "Install Script")]
     InstallScript,
-    #[enum_value(name = "SHA256 Sum")]
-    SHA256Sum,
 }
 
 impl EnumExt for PropID {}
@@ -326,7 +324,6 @@ impl InfoPane {
         self.add_info_row(PropID::DownloadSize, PropType::Text);
         self.add_info_row(PropID::InstalledSize, PropType::Text);
         self.add_info_row(PropID::InstallScript, PropType::Text);
-        self.add_info_row(PropID::SHA256Sum, PropType::Text);
 
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
@@ -806,9 +803,6 @@ impl InfoPane {
 
         // Has script
         self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
-
-        // SHA256 sum
-        self.set_info_row(PropID::SHA256Sum, ValueType::StrOpt(pkg.sha256sum()));
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {

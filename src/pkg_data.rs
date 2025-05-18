@@ -51,7 +51,6 @@ pub struct PkgData {
     pub download_size: i64,
     pub install_size: i64,
     pub has_script: String,
-    pub sha256sum: String,
 }
 
 //------------------------------------------------------------------------------
@@ -126,7 +125,6 @@ impl PkgData {
             download_size: sync_pkg.download_size(),
             install_size: sync_pkg.isize(),
             has_script: if sync_pkg.has_scriptlet() { "Yes" } else { "No" }.to_owned(),
-            sha256sum: sync_pkg.sha256sum().unwrap_or_default().to_owned(),
         }
     }
 
@@ -168,7 +166,6 @@ impl PkgData {
             download_size: 0,
             install_size: 0,
             has_script: String::new(),
-            sha256sum: String::new(),
         }
     }
 }

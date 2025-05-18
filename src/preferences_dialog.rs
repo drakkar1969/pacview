@@ -320,7 +320,7 @@ impl PreferencesDialog {
                             if response == "reset" {
                                 dialog.set_color_scheme(ColorScheme::default());
                                 dialog.set_sidebar_width(240.0);
-                                dialog.set_infopane_width(625.0);
+                                dialog.set_infopane_width(600.0);
                                 dialog.set_aur_command("");
                                 dialog.set_aur_check(true);
                                 dialog.set_auto_refresh(true);

@@ -4,7 +4,7 @@
   <template class="PacViewWindow" parent="AdwApplicationWindow">
     <property name="default-width">1420</property>
     <property name="default-height">840</property>
-    <property name="width-request">625</property>
+    <property name="width-request">600</property>
     <property name="title">PacView</property>
     <child>
       <object class="AdwBreakpoint" id="main_breakpoint">
@@ -121,7 +121,7 @@
         <property name="content">
           <object class="AdwOverlaySplitView" id="main_split_view">
             <property name="sidebar-position">end</property>
-            <property name="min-sidebar-width">625</property>
+            <property name="min-sidebar-width">600</property>
             <property name="sidebar">
               <object class="InfoPane" id="info_pane">
               </object>
