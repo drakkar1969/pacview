@@ -20,7 +20,7 @@ mod imp {
         #[template_child]
         pub(super) label: TemplateChild<gtk::Label>,
 
-        #[property(get, set, nullable)]
+        #[property(get, set = Self::set_text, nullable)]
         text: RefCell<String>,
     }
 
@@ -44,21 +44,16 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for SearchTag {
-        //---------------------------------------
-        // Constructor
-        //---------------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            let obj = self.obj();
-
-            obj.setup_widgets();
-        }
-    }
+    impl ObjectImpl for SearchTag {}
 
     impl WidgetImpl for SearchTag {}
     impl BinImpl for SearchTag {}
+
+    impl SearchTag {
+        fn set_text(&self, text: &str) {
+            self.label.set_label(text);
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -76,18 +71,6 @@ impl SearchTag {
     //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
-    }
-
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind properties to widgets
-        self.bind_property("text", &imp.label.get(), "label")
-            .sync_create()
-            .build();
     }
 }
 
