@@ -186,17 +186,6 @@ impl PackageView {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind item count to n_items property
-        imp.selection.bind_property("n-items", self, "n-items")
-            .sync_create()
-            .build();
-
-        // Bind item count to empty label visibility
-        imp.selection.bind_property("n-items", &imp.empty_status.get(), "visible")
-            .transform_to(|_, n_items: u32| Some(n_items == 0))
-            .sync_create()
-            .build();
-
         // Set list view sorter function
         imp.sorter.set_sort_func(clone!(
             #[weak(rename_to = view)] self,
@@ -297,6 +286,17 @@ impl PackageView {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // List view selection items changed signal
+        imp.selection.connect_items_changed(clone!(
+            #[weak(rename_to = view)] self,
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
+
+                view.set_n_items(n_items);
+                view.imp().empty_status.set_visible(n_items == 0);
+            }
+        ));
 
         // List view selected item property notify signal
         imp.selection.connect_selected_item_notify(clone!(
