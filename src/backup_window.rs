@@ -1,5 +1,4 @@
 use std::cell::Cell;
-use std::collections::HashSet;
 use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
@@ -367,21 +366,23 @@ impl BackupWindow {
             }
         ));
 
-        // Selection items changed signal
-        imp.selection.connect_items_changed(clone!(
+        // Section sort model items changed signal
+        imp.section_sort_model.connect_items_changed(clone!(
             #[weak] imp,
-            move |selection, _, _, _| {
-                let n_items = selection.n_items();
+            move |sort_model, _, _, _| {
+                let n_items = sort_model.n_items();
+                let mut n_sections = 0;
 
-                let n_sections = selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        item
-                            .downcast::<BackupObject>()
-                            .expect("Failed to downcast to 'BackupObject'")
-                            .package()
-                    })
-                    .collect::<HashSet<String>>()
-                    .len();
+                if n_items != 0 {
+                    let mut index = 0;
+
+                    while index < n_items {
+                        let (_, end) = sort_model.section(index);
+
+                        n_sections += 1;
+                        index = end;
+                    }
+                };
 
                 imp.empty_status.set_visible(n_items == 0);
 
