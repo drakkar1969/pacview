@@ -49,11 +49,6 @@ mod imp {
         #[template_child]
         pub(super) error_label: TemplateChild<gtk::Label>,
 
-        #[property(get, set)]
-        icon: RefCell<String>,
-        #[property(get, set)]
-        text: RefCell<String>,
-
         #[property(get, set, nullable)]
         repo_id: RefCell<Option<String>>,
         #[property(get, set)]
@@ -79,16 +74,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for FilterRow {
-        //---------------------------------------
-        // Constructor
-        //---------------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            self.obj().setup_widgets();
-        }
-    }
+    impl ObjectImpl for FilterRow {}
 
     impl WidgetImpl for FilterRow {}
     impl ListBoxRowImpl for FilterRow {}
@@ -108,27 +94,18 @@ impl FilterRow {
     // New function
     //---------------------------------------
     pub fn new(icon: &str, text: &str, repo_id: Option<&str>, status_id: PkgFlags) -> Self {
-        glib::Object::builder()
-            .property("icon", icon)
-            .property("text", text)
+        let obj: Self = glib::Object::builder()
             .property("repo-id", repo_id)
             .property("status-id", status_id)
-            .build()
-    }
-
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind properties to widgets
-        self.bind_property("icon", &imp.image.get(), "icon-name")
-            .sync_create()
             .build();
-        self.bind_property("text", &imp.text_label.get(), "label")
-            .sync_create()
-            .build();
+
+        let imp = obj.imp();
+
+        imp.image.set_icon_name(Some(icon));
+
+        imp.text_label.set_label(text);
+
+        obj
     }
 
     //---------------------------------------
