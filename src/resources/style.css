@@ -32,13 +32,19 @@ searchtag label {
 	margin: 0 1.2em;
 }
 
-/* Sidebar error button */
+/* Sidebar row error button */
 .filter-row menubutton > button {
 	min-height: 28px;
 	min-width: 28px;
 }
 
-/* Sidebar list count indicator */
+/* Sidebar row spinner */
+image.spinner.count-spinner {
+	min-height: 1.4em;
+	min-width: 1.4em;
+}
+
+/* Sidebar row count indicator */
 label.count-indicator {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
