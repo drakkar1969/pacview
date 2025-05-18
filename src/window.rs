@@ -441,17 +441,6 @@ impl PacViewWindow {
             .bidirectional()
             .build();
 
-        // Bind package view sort order to sort button icon/tooltip
-        imp.package_view.bind_property("sort-ascending", &imp.sort_button.get(), "icon-name")
-            .transform_to(|_, sort_asc: bool| Some(if sort_asc { "view-sort-ascending-symbolic" } else { "view-sort-descending-symbolic" }))
-            .sync_create()
-            .build();
-
-        imp.package_view.bind_property("sort-ascending", &imp.sort_button.get(), "tooltip-text")
-            .transform_to(|_, sort_asc: bool| Some(if sort_asc { "Descending" } else { "Ascending" }))
-            .sync_create()
-            .build();
-
         // Bind search button state to search bar enabled state
         imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
             .sync_create()
@@ -464,26 +453,16 @@ impl PacViewWindow {
             .bidirectional()
             .build();
 
-        // Bind search bar default search mode preference
+        // Bind search bar preferences
         imp.prefs_dialog.bind_property("search-mode", &imp.search_bar.get(), "default-mode")
             .sync_create()
             .build();
 
-        // Bind search bar default search prop preference
         imp.prefs_dialog.bind_property("search-prop", &imp.search_bar.get(), "default-prop")
             .sync_create()
             .build();
 
-        // Bind search bar delay preference
         imp.prefs_dialog.bind_property("search-delay", &imp.search_bar.get(), "delay")
-            .sync_create()
-            .build();
-
-        // Bind package view item count to status label text
-        imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
-            .transform_to(|_, n_items: u32| {
-                Some(format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" }))
-            })
             .sync_create()
             .build();
 
@@ -730,6 +709,38 @@ impl PacViewWindow {
                 }
 
                 imp.package_view.view().grab_focus();
+            }
+        ));
+
+        // Package view sort sort ascending property notify signal
+        imp.package_view.connect_sort_ascending_notify(clone!(
+            #[weak] imp,
+            move |view| {
+                let sort_asc = view.sort_ascending();
+
+                imp.sort_button.set_icon_name(
+                    if sort_asc {
+                        "view-sort-ascending-symbolic"
+                    } else {
+                        "view-sort-descending-symbolic"
+                    }
+                );
+
+                imp.sort_button.set_tooltip_text(
+                    Some(if sort_asc { "Descending" } else { "Ascending" })
+                );
+            }
+        ));
+
+        // Package view n_items property notify signal
+        imp.package_view.connect_n_items_notify(clone!(
+            #[weak] imp,
+            move |view| {
+                let n_items = view.n_items();
+
+                imp.status_label.set_label(
+                    &format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })
+                );
             }
         ));
 
