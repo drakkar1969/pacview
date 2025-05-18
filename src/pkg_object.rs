@@ -526,24 +526,23 @@ impl PkgObject {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
             let handle = alpm_handle.as_ref()?;
 
-            handle.localdb().pkgs().find_satisfier(search_term)
-                .and_then(|local_pkg|
-                    INSTALLED_PKGS.with_borrow(|installed_pkgs|
-                        installed_pkgs.iter()
-                            .find(|&pkg| pkg.name() == local_pkg.name())
-                            .cloned()
-                    )
-                )
-                .or_else(|| {
-                    handle.syncdbs().find_satisfier(search_term)
-                        .and_then(|sync_pkg|
-                            PKGS.with_borrow(|pkgs|
-                                pkgs.iter()
-                                    .find(|&pkg| pkg.name() == sync_pkg.name())
-                                    .cloned()
-                            )
-                        )
+            if let Some(local_pkg) = handle.localdb().pkgs().find_satisfier(search_term) {
+                return INSTALLED_PKGS.with_borrow(|installed_pkgs| {
+                    installed_pkgs.iter()
+                        .find(|&pkg| pkg.name() == local_pkg.name())
+                        .cloned()
                 })
+            }
+
+            if let Some(sync_pkg) = handle.syncdbs().find_satisfier(search_term) {
+                return PKGS.with_borrow(|pkgs| {
+                    pkgs.iter()
+                        .find(|&pkg| pkg.name() == sync_pkg.name())
+                        .cloned()
+                })
+            }
+
+            None
         })
     }
 }
