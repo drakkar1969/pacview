@@ -10,7 +10,7 @@ use glib::clone;
 
 use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
-use crate::property_value::{ValueType, PropertyValue};
+use crate::info_row::{ValueType, InfoRow};
 use crate::history_list::HistoryList;
 use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
@@ -184,7 +184,7 @@ mod imp {
         #[property(get, set)]
         underline_links: Cell<bool>,
 
-        pub(super) property_map: RefCell<HashMap<PropID, PropertyValue>>,
+        pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
 
         pub(super) pkg_history: RefCell<HistoryList>,
     }
@@ -259,7 +259,7 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // PropertyValue pkg link handler
+    // InfoRow pkg link handler
     //---------------------------------------
     fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
         AUR_PKGS.with_borrow(|aur_pkgs| {
@@ -299,34 +299,34 @@ impl InfoPane {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Add property rows
-        self.add_property(PropID::Name, PropType::Title);
-        self.add_property(PropID::Version, PropType::Text);
-        self.add_property(PropID::Description, PropType::Text);
-        self.add_property(PropID::Popularity, PropType::Text);
-        self.add_property(PropID::OutOfDate, PropType::Error);
-        self.add_property(PropID::PackageUrl, PropType::Link);
-        self.add_property(PropID::Url, PropType::Link);
-        self.add_property(PropID::Status, PropType::Text);
-        self.add_property(PropID::Repository, PropType::Text);
-        self.add_property(PropID::Groups, PropType::Text);
-        self.add_property(PropID::Dependencies, PropType::LinkList);
-        self.add_property(PropID::Optional, PropType::LinkList);
-        self.add_property(PropID::Make, PropType::LinkList);
-        self.add_property(PropID::RequiredBy, PropType::LinkList);
-        self.add_property(PropID::OptionalFor, PropType::LinkList);
-        self.add_property(PropID::Provides, PropType::Text);
-        self.add_property(PropID::ConflictsWith, PropType::LinkList);
-        self.add_property(PropID::Replaces, PropType::LinkList);
-        self.add_property(PropID::Licenses, PropType::Text);
-        self.add_property(PropID::Architecture, PropType::Text);
-        self.add_property(PropID::Packager, PropType::Packager);
-        self.add_property(PropID::BuildDate, PropType::Text);
-        self.add_property(PropID::InstallDate, PropType::Text);
-        self.add_property(PropID::DownloadSize, PropType::Text);
-        self.add_property(PropID::InstalledSize, PropType::Text);
-        self.add_property(PropID::InstallScript, PropType::Text);
-        self.add_property(PropID::SHA256Sum, PropType::Text);
+        // Add info rows
+        self.add_info_row(PropID::Name, PropType::Title);
+        self.add_info_row(PropID::Version, PropType::Text);
+        self.add_info_row(PropID::Description, PropType::Text);
+        self.add_info_row(PropID::Popularity, PropType::Text);
+        self.add_info_row(PropID::OutOfDate, PropType::Error);
+        self.add_info_row(PropID::PackageUrl, PropType::Link);
+        self.add_info_row(PropID::Url, PropType::Link);
+        self.add_info_row(PropID::Status, PropType::Text);
+        self.add_info_row(PropID::Repository, PropType::Text);
+        self.add_info_row(PropID::Groups, PropType::Text);
+        self.add_info_row(PropID::Dependencies, PropType::LinkList);
+        self.add_info_row(PropID::Optional, PropType::LinkList);
+        self.add_info_row(PropID::Make, PropType::LinkList);
+        self.add_info_row(PropID::RequiredBy, PropType::LinkList);
+        self.add_info_row(PropID::OptionalFor, PropType::LinkList);
+        self.add_info_row(PropID::Provides, PropType::Text);
+        self.add_info_row(PropID::ConflictsWith, PropType::LinkList);
+        self.add_info_row(PropID::Replaces, PropType::LinkList);
+        self.add_info_row(PropID::Licenses, PropType::Text);
+        self.add_info_row(PropID::Architecture, PropType::Text);
+        self.add_info_row(PropID::Packager, PropType::Packager);
+        self.add_info_row(PropID::BuildDate, PropType::Text);
+        self.add_info_row(PropID::InstallDate, PropType::Text);
+        self.add_info_row(PropID::DownloadSize, PropType::Text);
+        self.add_info_row(PropID::InstalledSize, PropType::Text);
+        self.add_info_row(PropID::InstallScript, PropType::Text);
+        self.add_info_row(PropID::SHA256Sum, PropType::Text);
 
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
@@ -452,7 +452,7 @@ impl InfoPane {
 
                     let mut child = infopane.imp().info_listbox.first_child();
 
-                    while let Some(row) = child.and_downcast::<PropertyValue>() {
+                    while let Some(row) = child.and_downcast::<InfoRow>() {
                         if !(row.label().is_empty() || row.value().is_empty()) {
                             properties.push(format!("- **{}** : {}", row.label(), row.value()));
                         }
@@ -615,47 +615,47 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Add property function
+    // Add info row function
     //---------------------------------------
-    fn add_property(&self, id: PropID, ptype: PropType) {
+    fn add_info_row(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let property = PropertyValue::new(ptype, &id.name());
-        property.add_css_class("property-value");
+        let row = InfoRow::new(ptype, &id.name());
+        row.add_css_class("info-row");
 
         if id == PropID::Version {
-            property.set_icon_css_class("success", true);
+            row.set_icon_css_class("success", true);
         }
 
-        property.set_pkg_link_handler(closure_local!(
+        row.set_pkg_link_handler(closure_local!(
             #[watch(rename_to = infopane)] self,
             move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
                 infopane.pkg_link_handler(pkg_name, pkg_version);
             }
         ));
 
-        self.bind_property("property-max-lines", &property, "max-lines")
+        self.bind_property("property-max-lines", &row, "max-lines")
             .sync_create()
             .build();
 
-        self.bind_property("property-line-spacing", &property, "line-spacing")
+        self.bind_property("property-line-spacing", &row, "line-spacing")
             .sync_create()
             .build();
 
-        self.bind_property("underline-links", &property, "underline-links")
+        self.bind_property("underline-links", &row, "underline-links")
             .sync_create()
             .build();
 
-        imp.info_listbox.append(&property);
+        imp.info_listbox.append(&row);
 
-        imp.property_map.borrow_mut().insert(id, property);
+        imp.info_row_map.borrow_mut().insert(id, row);
     }
 
     //---------------------------------------
-    // Set property function
+    // Set info row function
     //---------------------------------------
-    fn set_property(&self, id: PropID, value: ValueType) {
-        if let Some(property) = self.imp().property_map.borrow().get(&id) {
+    fn set_info_row(&self, id: PropID, value: ValueType) {
+        if let Some(row) = self.imp().info_row_map.borrow().get(&id) {
             let visible = match value {
                 ValueType::Str(_) | ValueType::StrIcon(_, _) | ValueType::Vec(_) => true,
                 ValueType::StrOpt(s) => !s.is_empty(),
@@ -663,25 +663,25 @@ impl InfoPane {
                 ValueType::VecOpt(v) => !v.is_empty(),
             };
 
-            property.set_visible(visible);
+            row.set_visible(visible);
 
             if visible {
                 match value {
                     ValueType::Str(s) | ValueType::StrOpt(s) | ValueType::StrOptNum(s, _) => {
-                        property.set_value(s);
+                        row.set_value(s);
                     },
                     ValueType::StrIcon(s, icon) => {
-                        property.set_value(s);
-                        property.set_icon(icon);
+                        row.set_value(s);
+                        row.set_icon(icon);
                     }
                     ValueType::Vec(v) | ValueType::VecOpt(v) => {
-                        property.set_value(v.join(LINK_SPACER));
+                        row.set_value(v.join(LINK_SPACER));
                     }
                 }
             }
 
             if id == PropID::Status {
-                property.set_icon_css_class("error", property.icon().unwrap_or_default() == "pkg-orphan");
+                row.set_icon_css_class("error", row.icon().unwrap_or_default() == "pkg-orphan");
             }
         }
     }
@@ -713,10 +713,10 @@ impl InfoPane {
     //---------------------------------------
     fn update_info_listbox(&self, pkg: &PkgObject) {
         // Name
-        self.set_property(PropID::Name, ValueType::Str(&pkg.name()));
+        self.set_info_row(PropID::Name, ValueType::Str(&pkg.name()));
 
         // Version
-        self.set_property(PropID::Version,
+        self.set_info_row(PropID::Version,
             ValueType::StrIcon(
                 &pkg.version(),
                 pkg.flags().intersects(PkgFlags::UPDATES).then_some("pkg-update")
@@ -724,27 +724,27 @@ impl InfoPane {
         );
 
         // Description
-        self.set_property(PropID::Description, ValueType::StrOpt(pkg.description()));
+        self.set_info_row(PropID::Description, ValueType::StrOpt(pkg.description()));
 
         // Popularity
-        self.set_property(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
+        self.set_info_row(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
         // Out of Date
-        self.set_property(PropID::OutOfDate, ValueType::StrOptNum(pkg.out_of_date_string(), pkg.out_of_date()));
+        self.set_info_row(PropID::OutOfDate, ValueType::StrOptNum(pkg.out_of_date_string(), pkg.out_of_date()));
 
         // Package URL
-        self.set_property(PropID::PackageUrl, ValueType::StrOpt(pkg.package_url()));
+        self.set_info_row(PropID::PackageUrl, ValueType::StrOpt(pkg.package_url()));
 
         // URL
-        self.set_property(PropID::Url, ValueType::StrOpt(pkg.url()));
+        self.set_info_row(PropID::Url, ValueType::StrOpt(pkg.url()));
 
         // Licenses
-        self.set_property(PropID::Licenses, ValueType::StrOpt(pkg.licenses()));
+        self.set_info_row(PropID::Licenses, ValueType::StrOpt(pkg.licenses()));
 
         // Status
         let status_icon = pkg.status_icon();
 
-        self.set_property(PropID::Status,
+        self.set_info_row(PropID::Status,
             ValueType::StrIcon(
                 &pkg.status(),
                 pkg.flags().intersects(PkgFlags::INSTALLED).then_some(&status_icon)
@@ -752,58 +752,58 @@ impl InfoPane {
         );
 
         // Repository
-        self.set_property(PropID::Repository, ValueType::Str(&pkg.repository()));
+        self.set_info_row(PropID::Repository, ValueType::Str(&pkg.repository()));
 
         // Groups
-        self.set_property(PropID::Groups, ValueType::StrOpt(&pkg.groups()));
+        self.set_info_row(PropID::Groups, ValueType::StrOpt(&pkg.groups()));
 
         // Depends
-        self.set_property(PropID::Dependencies, ValueType::Vec(pkg.depends()));
+        self.set_info_row(PropID::Dependencies, ValueType::Vec(pkg.depends()));
 
         // Optdepends
-        self.set_property(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(pkg.flags(), pkg.optdepends())));
+        self.set_info_row(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(pkg.flags(), pkg.optdepends())));
 
         // Makedepends
-        self.set_property(PropID::Make, ValueType::VecOpt(pkg.makedepends()));
+        self.set_info_row(PropID::Make, ValueType::VecOpt(pkg.makedepends()));
 
         // Required by
-        self.set_property(PropID::RequiredBy, ValueType::Vec(pkg.required_by()));
+        self.set_info_row(PropID::RequiredBy, ValueType::Vec(pkg.required_by()));
 
         // Optional for
-        self.set_property(PropID::OptionalFor, ValueType::VecOpt(pkg.optional_for()));
+        self.set_info_row(PropID::OptionalFor, ValueType::VecOpt(pkg.optional_for()));
 
         // Provides
-        self.set_property(PropID::Provides, ValueType::VecOpt(pkg.provides()));
+        self.set_info_row(PropID::Provides, ValueType::VecOpt(pkg.provides()));
 
         // Conflicts
-        self.set_property(PropID::ConflictsWith, ValueType::VecOpt(pkg.conflicts()));
+        self.set_info_row(PropID::ConflictsWith, ValueType::VecOpt(pkg.conflicts()));
 
         // Replaces
-        self.set_property(PropID::Replaces, ValueType::VecOpt(pkg.replaces()));
+        self.set_info_row(PropID::Replaces, ValueType::VecOpt(pkg.replaces()));
 
         // Architecture
-        self.set_property(PropID::Architecture, ValueType::StrOpt(pkg.architecture()));
+        self.set_info_row(PropID::Architecture, ValueType::StrOpt(pkg.architecture()));
 
         // Packager
-        self.set_property(PropID::Packager, ValueType::Str(pkg.packager()));
+        self.set_info_row(PropID::Packager, ValueType::Str(pkg.packager()));
 
         // Build date
-        self.set_property(PropID::BuildDate, ValueType::StrOptNum(pkg.build_date_string(), pkg.build_date()));
+        self.set_info_row(PropID::BuildDate, ValueType::StrOptNum(pkg.build_date_string(), pkg.build_date()));
 
         // Install date
-        self.set_property(PropID::InstallDate, ValueType::StrOptNum(pkg.install_date_string(), pkg.install_date()));
+        self.set_info_row(PropID::InstallDate, ValueType::StrOptNum(pkg.install_date_string(), pkg.install_date()));
 
         // Download size
-        self.set_property(PropID::DownloadSize, ValueType::StrOptNum(pkg.download_size_string(), pkg.download_size()));
+        self.set_info_row(PropID::DownloadSize, ValueType::StrOptNum(pkg.download_size_string(), pkg.download_size()));
 
         // Installed size
-        self.set_property(PropID::InstalledSize, ValueType::Str(&pkg.install_size_string()));
+        self.set_info_row(PropID::InstalledSize, ValueType::Str(&pkg.install_size_string()));
 
         // Has script
-        self.set_property(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
+        self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
 
         // SHA256 sum
-        self.set_property(PropID::SHA256Sum, ValueType::StrOpt(pkg.sha256sum()));
+        self.set_info_row(PropID::SHA256Sum, ValueType::StrOpt(pkg.sha256sum()));
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {

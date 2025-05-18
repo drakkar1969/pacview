@@ -65,7 +65,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/preferences_dialog.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/property_value.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/text_widget.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_bar.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>

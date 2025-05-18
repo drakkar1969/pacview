@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// PropertyValue template //-->
-  <template class="PropertyValue" parent="GtkListBoxRow">
+  <!--// InfoRow template //-->
+  <template class="InfoRow" parent="GtkListBoxRow">
     <property name="hexpand">true</property>
     <property name="child">
       <object class="GtkBox">

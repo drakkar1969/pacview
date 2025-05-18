@@ -22,7 +22,7 @@ pub enum ValueType<'a> {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: PropertyValue
+// MODULE: InfoRow
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -31,9 +31,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::PropertyValue)]
-    #[template(resource = "/com/github/PacView/ui/property_value.ui")]
-    pub struct PropertyValue {
+    #[properties(wrapper_type = super::InfoRow)]
+    #[template(resource = "/com/github/PacView/ui/info_row.ui")]
+    pub struct InfoRow {
         #[template_child]
         pub(super) prop_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -63,93 +63,93 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for PropertyValue {
-        const NAME: &'static str = "PropertyValue";
-        type Type = super::PropertyValue;
+    impl ObjectSubclass for InfoRow {
+        const NAME: &'static str = "InfoRow";
+        type Type = super::InfoRow;
         type ParentType = gtk::ListBoxRow;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
             // Select all/none key bindings
-            klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK, |property| {
-                property.imp().text_widget.activate_action("text.select-all", None).unwrap();
+            klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK, |row| {
+                row.imp().text_widget.activate_action("text.select-all", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |property| {
-                property.imp().text_widget.activate_action("text.select-none", None).unwrap();
+            klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |row| {
+                row.imp().text_widget.activate_action("text.select-none", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Copy key binding
-            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |property| {
-                property.imp().text_widget.activate_action("text.copy", None).unwrap();
+            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |row| {
+                row.imp().text_widget.activate_action("text.copy", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Expand/contract key bindings
-            klass.add_binding(gdk::Key::plus, gdk::ModifierType::CONTROL_MASK, |property| {
-                property.imp().text_widget.activate_action("text.expand", None).unwrap();
+            klass.add_binding(gdk::Key::plus, gdk::ModifierType::CONTROL_MASK, |row| {
+                row.imp().text_widget.activate_action("text.expand", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::KP_Add, gdk::ModifierType::CONTROL_MASK, |property| {
-                property.imp().text_widget.activate_action("text.expand", None).unwrap();
+            klass.add_binding(gdk::Key::KP_Add, gdk::ModifierType::CONTROL_MASK, |row| {
+                row.imp().text_widget.activate_action("text.expand", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::minus, gdk::ModifierType::CONTROL_MASK, |property| {
-                property.imp().text_widget.activate_action("text.contract", None).unwrap();
+            klass.add_binding(gdk::Key::minus, gdk::ModifierType::CONTROL_MASK, |row| {
+                row.imp().text_widget.activate_action("text.contract", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::KP_Subtract, gdk::ModifierType::CONTROL_MASK, |property| {
-                property.imp().text_widget.activate_action("text.contract", None).unwrap();
+            klass.add_binding(gdk::Key::KP_Subtract, gdk::ModifierType::CONTROL_MASK, |row| {
+                row.imp().text_widget.activate_action("text.contract", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Previous/next link key bindings
-            klass.add_binding(gdk::Key::Left, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
-                property.imp().text_widget.activate_action("text.previous-link", None).unwrap();
+            klass.add_binding(gdk::Key::Left, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
+                row.imp().text_widget.activate_action("text.previous-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::KP_Left, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
-                property.imp().text_widget.activate_action("text.previous-link", None).unwrap();
+            klass.add_binding(gdk::Key::KP_Left, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
+                row.imp().text_widget.activate_action("text.previous-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::Right, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
-                property.imp().text_widget.activate_action("text.next-link", None).unwrap();
+            klass.add_binding(gdk::Key::Right, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
+                row.imp().text_widget.activate_action("text.next-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::KP_Right, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
-                property.imp().text_widget.activate_action("text.next-link", None).unwrap();
+            klass.add_binding(gdk::Key::KP_Right, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
+                row.imp().text_widget.activate_action("text.next-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Activate link key bindings
-            klass.add_binding(gdk::Key::Return, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
-                property.imp().text_widget.activate_action("text.activate-link", None).unwrap();
+            klass.add_binding(gdk::Key::Return, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
+                row.imp().text_widget.activate_action("text.activate-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::KP_Enter, gdk::ModifierType::NO_MODIFIER_MASK, |property| {
-                property.imp().text_widget.activate_action("text.activate-link", None).unwrap();
+            klass.add_binding(gdk::Key::KP_Enter, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
+                row.imp().text_widget.activate_action("text.activate-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
@@ -161,7 +161,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for PropertyValue {
+    impl ObjectImpl for InfoRow {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -176,20 +176,20 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for PropertyValue {}
-    impl ListBoxRowImpl for PropertyValue {}
+    impl WidgetImpl for InfoRow {}
+    impl ListBoxRowImpl for InfoRow {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: PropertyValue
+// IMPLEMENTATION: InfoRow
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct PropertyValue(ObjectSubclass<imp::PropertyValue>)
+    pub struct InfoRow(ObjectSubclass<imp::InfoRow>)
     @extends gtk::ListBoxRow, gtk::Widget,
     @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
 }
 
-impl PropertyValue {
+impl InfoRow {
     //---------------------------------------
     // New function
     //---------------------------------------
@@ -294,10 +294,10 @@ impl PropertyValue {
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(
-            #[weak(rename_to = property)] self,
+            #[weak(rename_to = row)] self,
             move |_, _, _| {
-                if !property.has_focus() {
-                    property.grab_focus();
+                if !row.has_focus() {
+                    row.grab_focus();
                 }
             }
         ));
@@ -310,11 +310,11 @@ impl PropertyValue {
             .build();
 
         popup_gesture.connect_pressed(clone!(
-            #[weak(rename_to = property)] self,
+            #[weak(rename_to = row)] self,
             move |_, _, x, y| {
-                let imp = property.imp();
+                let imp = row.imp();
 
-                if let Some(point) = property.compute_point(&imp.text_widget.get(), &graphene::Point::new(x as f32, y as f32)) {
+                if let Some(point) = row.compute_point(&imp.text_widget.get(), &graphene::Point::new(x as f32, y as f32)) {
                     imp.text_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
                 }
             }
