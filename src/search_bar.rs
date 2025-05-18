@@ -242,7 +242,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
             obj.setup_actions();
         }
@@ -297,30 +296,6 @@ impl SearchBar {
     }
 
     //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind enabled property to revealer
-        self.bind_property("enabled", &imp.revealer.get(), "reveal-child")
-            .sync_create()
-            .build();
-
-        // Bind searching property to icon stack
-        self.bind_property("searching", &imp.icon_stack.get(), "visible-child-name")
-            .transform_to(|_, searching: bool| if searching { Some("spinner") } else { Some("icon") })
-            .sync_create()
-            .build();
-
-        // Bind search text to clear button visibility
-        imp.search_text.bind_property("text", &imp.clear_button.get(), "visible")
-            .transform_to(|_, text: &str| Some(!text.is_empty()))
-            .sync_create()
-            .build();
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -330,11 +305,22 @@ impl SearchBar {
         self.connect_enabled_notify(|bar| {
             let imp = bar.imp();
 
-            if bar.enabled() {
+            let enabled = bar.enabled();
+
+            imp.revealer.set_reveal_child(enabled);
+
+            if enabled {
                 imp.search_text.grab_focus_without_selecting();
             } else {
                 imp.search_text.set_text("");
             }
+        });
+
+        // Searching property notify signal
+        self.connect_searching_notify(|bar| {
+            bar.imp().icon_stack.set_visible_child_name(
+                if bar.searching() { "spinner" } else { "icon" }
+            );
         });
 
         // Search mode property notify signal
@@ -364,12 +350,16 @@ impl SearchBar {
             #[weak(rename_to = bar)] self,
             #[weak] imp,
             move |search_text| {
+                let text = search_text.text();
+
+                imp.clear_button.set_visible(!text.is_empty());
+
                 // Remove delay timer if present
                 if let Some(delay_id) = imp.delay_source_id.take() {
                     delay_id.remove();
                 }
 
-                if search_text.text().is_empty() {
+                if text.is_empty() {
                     bar.set_aur_error(None);
 
                     bar.emit_changed_signal();
