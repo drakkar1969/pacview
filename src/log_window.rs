@@ -297,7 +297,7 @@ impl LogWindow {
                 });
 
                 log.par_lines()
-                    .filter_map(|line|
+                    .filter_map(|line| {
                         EXPR.captures(line)
                             .map(|caps| LogLine {
                                 date: caps[1].to_string(),
@@ -305,7 +305,7 @@ impl LogWindow {
                                 category: caps[3].to_string(),
                                 message: caps[4].to_string()
                             })
-                    )
+                    })
                     .collect()
             });
 

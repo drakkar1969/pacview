@@ -481,9 +481,9 @@ impl PackageView {
                     let result = tokio::select! {
                         () = cancel_token_clone.cancelled() => { Ok(vec![]) },
                         res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => {
-                            res.map(|aur_list|
+                            res.map(|aur_list| {
                                 aur_list.iter().map(|pkg| PkgData::from_aur(pkg)).collect()
-                            )
+                            })
                         }
                     };
 

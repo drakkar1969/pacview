@@ -484,9 +484,9 @@ impl PacViewWindow {
 
         // Bind package view item count to status label text
         imp.package_view.bind_property("n-items", &imp.status_label.get(), "label")
-            .transform_to(|_, n_items: u32|
+            .transform_to(|_, n_items: u32| {
                 Some(format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" }))
-            )
+            })
             .sync_create()
             .build();
 
@@ -1083,11 +1083,11 @@ impl PacViewWindow {
         let aur_names: Option<Vec<String>> = imp.prefs_dialog.aur_check().then(|| {
             imp.aur_file.get()
                 .and_then(|aur_file| fs::read(aur_file).ok())
-                .map(|bytes|
+                .map(|bytes| {
                     String::from_utf8_lossy(&bytes).lines()
                         .map(String::from)
                         .collect()
-                )
+                })
                 .unwrap_or_default()
         });
 
@@ -1108,14 +1108,14 @@ impl PacViewWindow {
 
                     // Load pacman sync packages
                     let mut pkg_data: Vec<PkgData> = syncdbs.iter()
-                        .flat_map(|db|
+                        .flat_map(|db| {
                             db.pkgs().iter()
                                 .map(|sync_pkg| {
                                     let local_pkg = localdb.pkg(sync_pkg.name()).ok();
 
                                     PkgData::from_alpm(sync_pkg, local_pkg, aur_names.as_deref())
                                 })
-                        )
+                        })
                         .collect();
 
                     // Load pacman local packages not in sync databases
@@ -1269,10 +1269,10 @@ impl PacViewWindow {
                 });
 
                 let update_map: HashMap<String, String> = update_str.lines()
-                    .filter_map(|s|
+                    .filter_map(|s| {
                         EXPR.captures(s)
                             .map(|caps| (caps[1].to_string(), caps[2].to_string()))
-                    )
+                    })
                     .collect();
 
                 // Update status of packages with updates

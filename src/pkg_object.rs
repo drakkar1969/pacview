@@ -135,9 +135,9 @@ mod imp {
             let version = &self.data.get().unwrap().version;
 
             self.obj().update_version()
-                .map_or_else(|| version.to_string(), |update_version|
+                .map_or_else(|| version.to_string(), |update_version| {
                     version.to_string() + " \u{2192} " + &update_version
-                )
+                })
         }
 
         fn show_version_icon(&self) -> bool {
@@ -421,14 +421,14 @@ impl PkgObject {
                     let pkg_name = self.name();
 
                     let mut backup: Vec<PkgBackup> = pkg.backup().iter()
-                        .map(|backup|
+                        .map(|backup| {
                             PkgBackup::new(&(root_dir.to_string() + backup.name()), backup.hash(), &pkg_name)
-                        )
+                        })
                         .collect();
 
-                    backup.par_sort_unstable_by(|backup_a, backup_b|
+                    backup.par_sort_unstable_by(|backup_a, backup_b| {
                         backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
-                    );
+                    });
 
                     backup
                 })
@@ -474,7 +474,7 @@ impl PkgObject {
                 let pacman_cache = PACMAN_CACHE.lock().unwrap();
 
                 pacman_cache.iter()
-                    .filter_map(|path|
+                    .filter_map(|path| {
                         path.file_name()
                             .and_then(|filename| filename.to_str())
                             .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
@@ -483,7 +483,7 @@ impl PkgObject {
                                     .is_some_and(|name| name == pkg_name)
                             )
                             .map(ToOwned::to_owned)
-                    )
+                    })
                     .collect::<Vec<String>>()
             })
             .await
@@ -514,11 +514,11 @@ impl PkgObject {
             let handle = alpm_handle.as_ref()?;
 
             handle.localdb().pkgs().find_satisfier(search_term)
-                .map(|local_pkg|
-                    INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names|
+                .map(|local_pkg| {
+                    INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
                         installed_pkg_names.contains(local_pkg.name())
-                    )
-                )
+                    })
+                })
         })
     }
 

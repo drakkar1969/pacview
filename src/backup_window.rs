@@ -374,12 +374,12 @@ impl BackupWindow {
                 let n_items = selection.n_items();
 
                 let n_sections = selection.iter::<glib::Object>().flatten()
-                    .map(|item|
+                    .map(|item| {
                         item
                             .downcast::<BackupObject>()
                             .expect("Failed to downcast to 'BackupObject'")
                             .package()
-                    )
+                    })
                     .collect::<HashSet<String>>()
                     .len();
 
@@ -434,9 +434,9 @@ impl BackupWindow {
             INSTALLED_PKGS.with_borrow(|installed_pkgs| {
                 // Get backup list
                 let backup_list: Vec<BackupObject> = installed_pkgs.iter()
-                    .flat_map(|pkg|
+                    .flat_map(|pkg| {
                         pkg.backup().iter().map(BackupObject::new)
-                    )
+                    })
                     .collect();
 
                 // Populate column view

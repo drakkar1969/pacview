@@ -333,9 +333,9 @@ impl InfoPane {
 
         // Bind pkg property to widgets
         self.bind_property("pkg", &imp.main_stack.get(), "visible-child-name")
-            .transform_to(move |_, pkg: Option<PkgObject>|
+            .transform_to(move |_, pkg: Option<PkgObject>| {
                 Some(if pkg.is_some() { "properties" } else { "empty" })
-            )
+            })
             .sync_create()
             .build();
 
@@ -403,14 +403,14 @@ impl InfoPane {
 
         // Bind selected backup item to backup open button state
         imp.backup_selection.bind_property("selected-item", &imp.backup_open_button.get(), "sensitive")
-            .transform_to(|_, item: Option<glib::Object>|
+            .transform_to(|_, item: Option<glib::Object>| {
                 item.and_downcast::<BackupObject>()
                     .map_or(Some(false), |object| {
                         let status = object.status();
 
                         Some(status != BackupStatus::Locked && status != BackupStatus::All)
                     })
-            )
+            })
             .sync_create()
             .build();
 
@@ -501,12 +501,12 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             move |_| {
                 let body = infopane.imp().files_selection.iter::<glib::Object>().flatten()
-                    .map(|item|
+                    .map(|item| {
                         item
                             .downcast::<gtk::StringObject>()
                             .expect("Failed to downcast to 'StringObject'")
                             .string()
-                    )
+                    })
                     .collect::<Vec<glib::GString>>()
                     .join("\n");
 
@@ -697,7 +697,7 @@ impl InfoPane {
     fn installed_optdeps(flags: PkgFlags, optdepends: &[String]) -> Cow<'_, [String]> {
         if !optdepends.is_empty() && flags.intersects(PkgFlags::INSTALLED) {
             optdepends.iter()
-                .map(|dep|
+                .map(|dep| {
                     if dep.split_once([':'])
                         .and_then(|(name, _)| PkgObject::has_local_satisfier(name))
                         .unwrap_or_default()
@@ -706,7 +706,7 @@ impl InfoPane {
                     } else {
                         dep.to_string()
                     }
-                )
+                })
                 .collect()
         } else {
             Cow::Borrowed(optdepends)

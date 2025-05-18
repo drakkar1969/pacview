@@ -396,7 +396,7 @@ mod imp {
 
                         link_list.extend(EXPR.captures_iter(text)
                             .flatten()
-                            .filter_map(|caps|
+                            .filter_map(|caps| {
                                 if let Some((m1, m2)) = caps.get(1).zip(caps.get(2)) {
                                     Some(TextTag::new(
                                         &format!("pkg://{}", m1.as_str()),
@@ -407,20 +407,20 @@ mod imp {
                                 } else {
                                     None
                                 }
-                            )
+                            })
                         );
 
                         let comment_len = INSTALLED_LABEL.len();
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
-                            .map(|(i, s)|
+                            .map(|(i, s)| {
                                 TextTag::new(
                                     s,
                                     "",
                                     i as u32,
                                     i.checked_add(comment_len).map(|i| i as u32).unwrap_or_default()
                                 )
-                            )
+                            })
                         );
                     }
                 },
@@ -733,10 +733,10 @@ impl TextWidget {
 
                     if let Some(new_index) = imp.focus_link_index.get()
                         .and_then(|i| i.checked_add(1))
-                        .filter(|&i|
+                        .filter(|&i| {
                             link_list.get(i)
                                 .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
-                        )
+                        })
                     {
                         imp.focus_link_index.set(Some(new_index));
 
@@ -1031,19 +1031,23 @@ impl TextWidget {
                         let text = widget.text();
 
                         let start = text.get(..index)
-                            .and_then(|s|
+                            .and_then(|s| {
                                 s.bytes()
-                                    .rposition(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                    .rposition(|ch: u8| {
+                                        ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                                    })
                                     .and_then(|start| start.checked_add(1))
-                            )
+                            })
                             .unwrap_or(0);
 
                         let end = text.get(index..)
-                            .and_then(|s|
+                            .and_then(|s| {
                                 s.bytes()
-                                    .position(|ch: u8| ch.is_ascii_whitespace() || ch.is_ascii_punctuation())
+                                    .position(|ch: u8| {
+                                        ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                                    })
                                     .and_then(|end| end.checked_add(index))
-                            )
+                            })
                             .unwrap_or(text.len());
 
                         imp.selection_start.set(Some(start));

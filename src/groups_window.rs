@@ -338,12 +338,12 @@ impl GroupsWindow {
                 let n_items = selection.n_items();
 
                 let n_sections = selection.iter::<glib::Object>().flatten()
-                    .map(|item|
+                    .map(|item| {
                         item
                             .downcast::<GroupsObject>()
                             .expect("Failed to downcast to 'GroupsObject'")
                             .groups()
-                    )
+                    })
                     .collect::<HashSet<String>>()
                     .len();
 
@@ -377,13 +377,13 @@ impl GroupsWindow {
                 // Get list of packages with groups
                 let pkg_list: Vec<GroupsObject> = pkgs.iter()
                     .filter(|&pkg| !pkg.groups().is_empty())
-                    .flat_map(|pkg|
+                    .flat_map(|pkg| {
                         pkg.groups().split(" | ")
-                            .map(|group|
+                            .map(|group| {
                                 GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
-                            )
+                            })
                             .collect::<Vec<GroupsObject>>()
-                    )
+                    })
                     .collect();
 
                 // Populate column view
