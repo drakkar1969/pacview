@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 
 use gtk::{glib, gdk, graphene};
 use gtk::subclass::prelude::*;
@@ -39,24 +39,16 @@ mod imp {
         #[template_child]
         pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
-        pub(super) text_widget: TemplateChild<TextWidget>,
-        #[template_child]
         pub(super) expand_button: TemplateChild<gtk::Button>,
 
-        #[property(get, set, builder(PropType::default()))]
-        ptype: Cell<PropType>,
+        #[property(get)]
+        #[template_child]
+        pub(super) value_widget: TemplateChild<TextWidget>,
+
         #[property(get, set)]
         label: RefCell<String>,
         #[property(get, set, nullable)]
         icon: RefCell<Option<String>>,
-        #[property(get, set)]
-        value: RefCell<String>,
-        #[property(get, set)]
-        max_lines: Cell<i32>,
-        #[property(get, set)]
-        line_spacing: Cell<f64>,
-        #[property(get, set)]
-        underline_links: Cell<bool>,
     }
 
     //---------------------------------------
@@ -73,83 +65,83 @@ mod imp {
 
             // Select all/none key bindings
             klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK, |row| {
-                row.imp().text_widget.activate_action("text.select-all", None).unwrap();
+                row.imp().value_widget.activate_action("text.select-all", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |row| {
-                row.imp().text_widget.activate_action("text.select-none", None).unwrap();
+                row.imp().value_widget.activate_action("text.select-none", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Copy key binding
             klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |row| {
-                row.imp().text_widget.activate_action("text.copy", None).unwrap();
+                row.imp().value_widget.activate_action("text.copy", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Expand/contract key bindings
             klass.add_binding(gdk::Key::plus, gdk::ModifierType::CONTROL_MASK, |row| {
-                row.imp().text_widget.activate_action("text.expand", None).unwrap();
+                row.imp().value_widget.activate_action("text.expand", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::KP_Add, gdk::ModifierType::CONTROL_MASK, |row| {
-                row.imp().text_widget.activate_action("text.expand", None).unwrap();
+                row.imp().value_widget.activate_action("text.expand", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::minus, gdk::ModifierType::CONTROL_MASK, |row| {
-                row.imp().text_widget.activate_action("text.contract", None).unwrap();
+                row.imp().value_widget.activate_action("text.contract", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::KP_Subtract, gdk::ModifierType::CONTROL_MASK, |row| {
-                row.imp().text_widget.activate_action("text.contract", None).unwrap();
+                row.imp().value_widget.activate_action("text.contract", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Previous/next link key bindings
             klass.add_binding(gdk::Key::Left, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().text_widget.activate_action("text.previous-link", None).unwrap();
+                row.imp().value_widget.activate_action("text.previous-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::KP_Left, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().text_widget.activate_action("text.previous-link", None).unwrap();
+                row.imp().value_widget.activate_action("text.previous-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::Right, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().text_widget.activate_action("text.next-link", None).unwrap();
+                row.imp().value_widget.activate_action("text.next-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::KP_Right, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().text_widget.activate_action("text.next-link", None).unwrap();
+                row.imp().value_widget.activate_action("text.next-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             // Activate link key bindings
             klass.add_binding(gdk::Key::Return, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().text_widget.activate_action("text.activate-link", None).unwrap();
+                row.imp().value_widget.activate_action("text.activate-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::KP_Enter, gdk::ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().text_widget.activate_action("text.activate-link", None).unwrap();
+                row.imp().value_widget.activate_action("text.activate-link", None).unwrap();
 
                 glib::Propagation::Stop
             });
@@ -194,19 +186,22 @@ impl InfoRow {
     // New function
     //---------------------------------------
     pub fn new(ptype: PropType, label: &str) -> Self {
-        glib::Object::builder()
-            .property("ptype", ptype)
+        let obj:Self = glib::Object::builder()
             .property("label", label)
-            .build()
+            .build();
+
+        obj.add_css_class("info-row");
+
+        obj.imp().value_widget.set_ptype(ptype);
+
+        obj
     }
 
     //---------------------------------------
     // Set package link handler function
     //---------------------------------------
     pub fn set_pkg_link_handler(&self, handler: RustClosure) {
-        let imp = self.imp();
-
-        imp.text_widget.connect_closure("package-link", false, handler);
+        self.imp().value_widget.connect_closure("package-link", false, handler);
     }
 
     //---------------------------------------
@@ -229,32 +224,12 @@ impl InfoRow {
             .sync_create()
             .build();
 
-        self.bind_property("ptype", &imp.text_widget.get(), "ptype")
+        self.bind_property("has-focus", &self.value_widget(), "focused")
             .sync_create()
             .build();
 
-        self.bind_property("value", &imp.text_widget.get(), "text")
-            .sync_create()
-            .build();
-
-        self.bind_property("has-focus", &imp.text_widget.get(), "focused")
-            .sync_create()
-            .build();
-
-        self.bind_property("max-lines", &imp.text_widget.get(), "max-lines")
-            .sync_create()
-            .build();
-
-        self.bind_property("line-spacing", &imp.text_widget.get(), "line-spacing")
-            .sync_create()
-            .build();
-
-        self.bind_property("underline-links", &imp.text_widget.get(), "underline-links")
-            .sync_create()
-            .build();
-
-        // Bind text widget can expand property to expand button visibility
-        imp.text_widget.bind_property("can-expand", &imp.expand_button.get(), "visible")
+        // Bind value widget can expand property to expand button visibility
+        imp.value_widget.bind_property("can-expand", &imp.expand_button.get(), "visible")
             .sync_create()
             .build();
     }
@@ -269,12 +244,12 @@ impl InfoRow {
         imp.expand_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                imp.text_widget.set_expanded(!imp.text_widget.expanded());
+                imp.value_widget.set_expanded(!imp.value_widget.expanded());
             }
         ));
 
-        // Text widget expanded property notify
-        imp.text_widget.connect_expanded_notify(clone!(
+        // Value widget expanded property notify
+        imp.value_widget.connect_expanded_notify(clone!(
             #[weak] imp,
             move |widget| {
                 if widget.expanded() {
@@ -312,10 +287,8 @@ impl InfoRow {
         popup_gesture.connect_pressed(clone!(
             #[weak(rename_to = row)] self,
             move |_, _, x, y| {
-                let imp = row.imp();
-
-                if let Some(point) = row.compute_point(&imp.text_widget.get(), &graphene::Point::new(x as f32, y as f32)) {
-                    imp.text_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
+                if let Some(point) = row.compute_point(&row.value_widget(), &graphene::Point::new(x as f32, y as f32)) {
+                    row.imp().value_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
                 }
             }
         ));

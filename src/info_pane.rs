@@ -453,8 +453,10 @@ impl InfoPane {
                     let mut child = infopane.imp().info_listbox.first_child();
 
                     while let Some(row) = child.and_downcast::<InfoRow>() {
-                        if !(row.label().is_empty() || row.value().is_empty()) {
-                            properties.push(format!("- **{}** : {}", row.label(), row.value()));
+                        let value_widget = row.value_widget();
+
+                        if !(row.label().is_empty() || value_widget.text().is_empty()) {
+                            properties.push(format!("- **{}** : {}", row.label(), value_widget.text()));
                         }
 
                         child = row.next_sibling();
@@ -621,7 +623,6 @@ impl InfoPane {
         let imp = self.imp();
 
         let row = InfoRow::new(ptype, &id.name());
-        row.add_css_class("info-row");
 
         if id == PropID::Version {
             row.set_icon_css_class("success", true);
@@ -634,15 +635,17 @@ impl InfoPane {
             }
         ));
 
-        self.bind_property("property-max-lines", &row, "max-lines")
+        let value_widget = row.value_widget();
+
+        self.bind_property("property-max-lines", &value_widget, "max-lines")
             .sync_create()
             .build();
 
-        self.bind_property("property-line-spacing", &row, "line-spacing")
+        self.bind_property("property-line-spacing", &value_widget, "line-spacing")
             .sync_create()
             .build();
 
-        self.bind_property("underline-links", &row, "underline-links")
+        self.bind_property("underline-links", &value_widget, "underline-links")
             .sync_create()
             .build();
 
@@ -665,17 +668,19 @@ impl InfoPane {
 
             row.set_visible(visible);
 
+            let value_widget = row.value_widget();
+
             if visible {
                 match value {
                     ValueType::Str(s) | ValueType::StrOpt(s) | ValueType::StrOptNum(s, _) => {
-                        row.set_value(s);
+                        value_widget.set_text(s);
                     },
                     ValueType::StrIcon(s, icon) => {
-                        row.set_value(s);
                         row.set_icon(icon);
+                        value_widget.set_text(s);
                     }
                     ValueType::Vec(v) | ValueType::VecOpt(v) => {
-                        row.set_value(v.join(LINK_SPACER));
+                        value_widget.set_text(v.join(LINK_SPACER));
                     }
                 }
             }

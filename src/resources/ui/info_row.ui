@@ -54,7 +54,7 @@
               </object>
             </child>
             <child>
-              <object class="TextWidget" id="text_widget">
+              <object class="TextWidget" id="value_widget">
                 <property name="hexpand">true</property>
               </object>
             </child>
