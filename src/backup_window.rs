@@ -382,7 +382,7 @@ impl BackupWindow {
                         n_sections += 1;
                         index = end;
                     }
-                };
+                }
 
                 imp.empty_status.set_visible(n_items == 0);
 
