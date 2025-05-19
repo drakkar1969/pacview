@@ -11,27 +11,13 @@ use fancy_regex::Regex as FancyRegex;
 use regex::Regex;
 use url::Url;
 
+use crate::info_row::PropType;
+
 //------------------------------------------------------------------------------
 // CONST variables
 //------------------------------------------------------------------------------
 pub const INSTALLED_LABEL: &str = " [INSTALLED]";
 pub const LINK_SPACER: &str = "     ";
-
-//------------------------------------------------------------------------------
-// ENUM: PropType
-//------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
-#[repr(u32)]
-#[enum_type(name = "PropType")]
-pub enum PropType {
-    #[default]
-    Text,
-    Title,
-    Link,
-    Packager,
-    LinkList,
-    Error,
-}
 
 //------------------------------------------------------------------------------
 // STRUCT: Marker
@@ -83,9 +69,9 @@ mod imp {
         #[property(get, set)]
         expanded: Cell<bool>,
         #[property(get, set)]
-        max_lines: Cell<i32>,
+        property_max_lines: Cell<i32>,
         #[property(get, set)]
-        line_spacing: Cell<f64>,
+        property_line_spacing: Cell<f64>,
         #[property(get, set)]
         underline_links: Cell<bool>,
         #[property(get, set)]
@@ -204,7 +190,7 @@ mod imp {
 
                 let obj = self.obj();
 
-                let max_lines = obj.max_lines();
+                let max_lines = obj.property_max_lines();
                 let total_lines = measure_layout.line_count();
                 let layout_text_len = layout.text().len();
 
@@ -814,19 +800,19 @@ impl TextWidget {
         });
 
         // Max lines property notify signal
-        self.connect_max_lines_notify(|widget| {
+        self.connect_property_max_lines_notify(|widget| {
             if !widget.expanded() {
                 widget.imp().draw_area.queue_resize();
             }
         });
 
         // Line spacing property notify signal
-        self.connect_line_spacing_notify(|widget| {
+        self.connect_property_line_spacing_notify(|widget| {
             let imp = widget.imp();
 
             let layout = imp.layout.get().unwrap();
 
-            let line_spacing = widget.line_spacing() as f32;
+            let line_spacing = widget.property_line_spacing() as f32;
 
             if line_spacing != layout.line_spacing() {
                 layout.set_line_spacing(line_spacing);

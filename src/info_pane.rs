@@ -9,77 +9,13 @@ use glib::closure_local;
 use glib::clone;
 
 use crate::package_view::AUR_PKGS;
-use crate::text_widget::{TextWidget, PropType, INSTALLED_LABEL, LINK_SPACER};
-use crate::info_row::{ValueType, InfoRow};
+use crate::text_widget::{TextWidget, INSTALLED_LABEL};
+use crate::info_row::{PropID, PropType, ValueType, InfoRow};
 use crate::history_list::HistoryList;
 use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
-use crate::enum_traits::EnumExt;
 use crate::utils::app_info;
-
-//------------------------------------------------------------------------------
-// ENUM: PropID
-//------------------------------------------------------------------------------
-#[derive(Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum)]
-#[repr(u32)]
-#[enum_type(name = "PropID")]
-enum PropID {
-    #[enum_value(name = "Name")]
-    Name,
-    #[enum_value(name = "Version")]
-    Version,
-    #[enum_value(name = "Description")]
-    Description,
-    #[enum_value(name = "Popularity")]
-    Popularity,
-    #[enum_value(name = "Out of Date")]
-    OutOfDate,
-    #[enum_value(name = "Package URL")]
-    PackageUrl,
-    #[enum_value(name = "URL")]
-    Url,
-    #[enum_value(name = "Status")]
-    Status,
-    #[enum_value(name = "Repository")]
-    Repository,
-    #[enum_value(name = "Groups")]
-    Groups,
-    #[enum_value(name = "Dependencies")]
-    Dependencies,
-    #[enum_value(name = "Optional")]
-    Optional,
-    #[enum_value(name = "Make")]
-    Make,
-    #[enum_value(name = "Required By")]
-    RequiredBy,
-    #[enum_value(name = "Optional For")]
-    OptionalFor,
-    #[enum_value(name = "Provides")]
-    Provides,
-    #[enum_value(name = "Conflicts With")]
-    ConflictsWith,
-    #[enum_value(name = "Replaces")]
-    Replaces,
-    #[enum_value(name = "Licenses")]
-    Licenses,
-    #[enum_value(name = "Architecture")]
-    Architecture,
-    #[enum_value(name = "Packager")]
-    Packager,
-    #[enum_value(name = "Build Date")]
-    BuildDate,
-    #[enum_value(name = "Install Date")]
-    InstallDate,
-    #[enum_value(name = "Download Size")]
-    DownloadSize,
-    #[enum_value(name = "Installed Size")]
-    InstalledSize,
-    #[enum_value(name = "Install Script")]
-    InstallScript,
-}
-
-impl EnumExt for PropID {}
 
 //------------------------------------------------------------------------------
 // MODULE: InfoPane
@@ -378,10 +314,13 @@ impl InfoPane {
                     let mut child = infopane.imp().info_listbox.first_child();
 
                     while let Some(row) = child.and_downcast::<InfoRow>() {
-                        let value_widget = row.value_widget();
+                        if row.is_visible() {
+                            let label = row.label();
+                            let value = row.value();
 
-                        if !(row.label().is_empty() || value_widget.text().is_empty()) {
-                            properties.push(format!("- **{}** : {}", row.label(), value_widget.text()));
+                            if !(label.is_empty() || value.is_empty()) {
+                                properties.push(format!("- **{label}** : {value}"));
+                            }
                         }
 
                         child = row.next_sibling();
@@ -606,11 +545,7 @@ impl InfoPane {
     fn add_info_row(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let row = InfoRow::new(ptype, &id.name());
-
-        if id == PropID::Version {
-            row.set_icon_css_class("success", true);
-        }
+        let row = InfoRow::new(ptype, id);
 
         row.set_pkg_link_handler(closure_local!(
             #[watch(rename_to = infopane)] self,
@@ -619,19 +554,9 @@ impl InfoPane {
             }
         ));
 
-        let value_widget = row.value_widget();
-
-        self.bind_property("property-max-lines", &value_widget, "max-lines")
-            .sync_create()
-            .build();
-
-        self.bind_property("property-line-spacing", &value_widget, "line-spacing")
-            .sync_create()
-            .build();
-
-        self.bind_property("underline-links", &value_widget, "underline-links")
-            .sync_create()
-            .build();
+        row.bind_infopane_props(self,
+            &["property-max-lines", "property-line-spacing", "underline-links"]
+        );
 
         imp.info_listbox.append(&row);
 
@@ -643,35 +568,7 @@ impl InfoPane {
     //---------------------------------------
     fn set_info_row(&self, id: PropID, value: ValueType) {
         if let Some(row) = self.imp().info_row_map.borrow().get(&id) {
-            let visible = match value {
-                ValueType::Str(_) | ValueType::StrIcon(_, _) | ValueType::Vec(_) => true,
-                ValueType::StrOpt(s) => !s.is_empty(),
-                ValueType::StrOptNum(_, i) => i != 0,
-                ValueType::VecOpt(v) => !v.is_empty(),
-            };
-
-            row.set_visible(visible);
-
-            let value_widget = row.value_widget();
-
-            if visible {
-                match value {
-                    ValueType::Str(s) | ValueType::StrOpt(s) | ValueType::StrOptNum(s, _) => {
-                        value_widget.set_text(s);
-                    },
-                    ValueType::StrIcon(s, icon) => {
-                        row.set_icon(icon);
-                        value_widget.set_text(s);
-                    }
-                    ValueType::Vec(v) | ValueType::VecOpt(v) => {
-                        value_widget.set_text(v.join(LINK_SPACER));
-                    }
-                }
-            }
-
-            if id == PropID::Status {
-                row.set_icon_css_class("error", row.icon().unwrap_or_default() == "pkg-orphan");
-            }
+            row.set_value(value);
         }
     }
 

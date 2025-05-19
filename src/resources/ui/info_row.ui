@@ -2,6 +2,9 @@
 <interface>
   <!--// InfoRow template //-->
   <template class="InfoRow" parent="GtkListBoxRow">
+    <style>
+      <class name="info-row"/>
+    </style>
     <property name="hexpand">true</property>
     <property name="child">
       <object class="GtkBox">

@@ -1,4 +1,5 @@
-use std::cell::RefCell;
+use std::cell::Cell;
+use std::marker::PhantomData;
 
 use gtk::{glib, gdk, graphene};
 use gtk::subclass::prelude::*;
@@ -6,7 +7,89 @@ use gtk::prelude::*;
 use glib::clone;
 use glib::RustClosure;
 
-use crate::text_widget::{TextWidget, PropType};
+use crate::info_pane::InfoPane;
+use crate::text_widget::{TextWidget, LINK_SPACER};
+use crate::enum_traits::EnumExt;
+
+//------------------------------------------------------------------------------
+// ENUM: PropID
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "PropID")]
+pub enum PropID {
+    #[default]
+    #[enum_value(name = "Name")]
+    Name,
+    #[enum_value(name = "Version")]
+    Version,
+    #[enum_value(name = "Description")]
+    Description,
+    #[enum_value(name = "Popularity")]
+    Popularity,
+    #[enum_value(name = "Out of Date")]
+    OutOfDate,
+    #[enum_value(name = "Package URL")]
+    PackageUrl,
+    #[enum_value(name = "URL")]
+    Url,
+    #[enum_value(name = "Status")]
+    Status,
+    #[enum_value(name = "Repository")]
+    Repository,
+    #[enum_value(name = "Groups")]
+    Groups,
+    #[enum_value(name = "Dependencies")]
+    Dependencies,
+    #[enum_value(name = "Optional")]
+    Optional,
+    #[enum_value(name = "Make")]
+    Make,
+    #[enum_value(name = "Required By")]
+    RequiredBy,
+    #[enum_value(name = "Optional For")]
+    OptionalFor,
+    #[enum_value(name = "Provides")]
+    Provides,
+    #[enum_value(name = "Conflicts With")]
+    ConflictsWith,
+    #[enum_value(name = "Replaces")]
+    Replaces,
+    #[enum_value(name = "Licenses")]
+    Licenses,
+    #[enum_value(name = "Architecture")]
+    Architecture,
+    #[enum_value(name = "Packager")]
+    Packager,
+    #[enum_value(name = "Build Date")]
+    BuildDate,
+    #[enum_value(name = "Install Date")]
+    InstallDate,
+    #[enum_value(name = "Download Size")]
+    DownloadSize,
+    #[enum_value(name = "Installed Size")]
+    InstalledSize,
+    #[enum_value(name = "Install Script")]
+    InstallScript,
+}
+
+impl EnumExt for PropID {}
+
+//------------------------------------------------------------------------------
+// ENUM: PropType
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "PropType")]
+pub enum PropType {
+    #[default]
+    Text,
+    Title,
+    Link,
+    Packager,
+    LinkList,
+    Error,
+}
 
 //------------------------------------------------------------------------------
 // ENUM: ValueType
@@ -37,18 +120,18 @@ mod imp {
         #[template_child]
         pub(super) prop_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) image: TemplateChild<gtk::Image>,
-        #[template_child]
         pub(super) expand_button: TemplateChild<gtk::Button>,
-
-        #[property(get)]
+        #[template_child]
+        pub(super) image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) value_widget: TemplateChild<TextWidget>,
 
-        #[property(get, set)]
-        label: RefCell<String>,
-        #[property(get, set, nullable)]
-        icon: RefCell<Option<String>>,
+        #[property(get = Self::label)]
+        _label: PhantomData<String>,
+        #[property(get = Self::value)]
+        _value: PhantomData<String>,
+
+        pub(super) id: Cell<PropID>,
     }
 
     //---------------------------------------
@@ -162,7 +245,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
             obj.setup_controllers();
         }
@@ -170,6 +252,19 @@ mod imp {
 
     impl WidgetImpl for InfoRow {}
     impl ListBoxRowImpl for InfoRow {}
+
+    impl InfoRow {
+        //---------------------------------------
+        // Property getters
+        //---------------------------------------
+        fn label(&self) -> String {
+            self.prop_label.label().to_string()
+        }
+
+        fn value(&self) -> String {
+            self.value_widget.text()
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -185,53 +280,38 @@ impl InfoRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(ptype: PropType, label: &str) -> Self {
+    pub fn new(ptype: PropType, id: PropID) -> Self {
         let obj:Self = glib::Object::builder()
-            .property("label", label)
             .build();
 
-        obj.add_css_class("info-row");
+        let imp = obj.imp();
 
-        obj.imp().value_widget.set_ptype(ptype);
+        imp.id.set(id);
+
+        imp.prop_label.set_label(&id.name());
+        imp.value_widget.set_ptype(ptype);
 
         obj
     }
 
     //---------------------------------------
-    // Set package link handler function
+    // Public set package link handler function
     //---------------------------------------
     pub fn set_pkg_link_handler(&self, handler: RustClosure) {
         self.imp().value_widget.connect_closure("package-link", false, handler);
     }
 
     //---------------------------------------
-    // Setup widgets
+    // Public bind infopane properties function
     //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
+    pub fn bind_infopane_props(&self, infopane: &InfoPane, props: &[&str]) {
+        let value_widget = self.imp().value_widget.get();
 
-        // Bind properties to widgets
-        self.bind_property("label", &imp.prop_label.get(), "label")
-            .sync_create()
-            .build();
-
-        self.bind_property("icon", &imp.image.get(), "visible")
-            .transform_to(|_, icon: Option<String>| Some(icon.is_some()))
-            .sync_create()
-            .build();
-
-        self.bind_property("icon", &imp.image.get(), "icon-name")
-            .sync_create()
-            .build();
-
-        self.bind_property("has-focus", &self.value_widget(), "focused")
-            .sync_create()
-            .build();
-
-        // Bind value widget can expand property to expand button visibility
-        imp.value_widget.bind_property("can-expand", &imp.expand_button.get(), "visible")
-            .sync_create()
-            .build();
+        for prop in props {
+            infopane.bind_property(prop, &value_widget, prop)
+                .sync_create()
+                .build();
+        }
     }
 
     //---------------------------------------
@@ -240,11 +320,24 @@ impl InfoRow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Row has focus property notify
+        self.connect_has_focus_notify(|row| {
+            row.imp().value_widget.set_focused(row.has_focus());
+        });
+
         // Expand button clicked signal
         imp.expand_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
                 imp.value_widget.set_expanded(!imp.value_widget.expanded());
+            }
+        ));
+
+        // Value widget can expand property notify
+        imp.value_widget.connect_can_expand_notify(clone!(
+            #[weak] imp,
+            move |widget| {
+                imp.expand_button.set_visible(widget.can_expand());
             }
         ));
 
@@ -287,8 +380,11 @@ impl InfoRow {
         popup_gesture.connect_pressed(clone!(
             #[weak(rename_to = row)] self,
             move |_, _, x, y| {
-                if let Some(point) = row.compute_point(&row.value_widget(), &graphene::Point::new(x as f32, y as f32)) {
-                    row.imp().value_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
+                let value_widget = &row.imp().value_widget;
+
+                if let Some(point) = row.compute_point(&value_widget.get(), &graphene::Point::new(x as f32, y as f32))
+                {
+                    value_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
                 }
             }
         ));
@@ -297,7 +393,7 @@ impl InfoRow {
     }
 
     //---------------------------------------
-    // Public set icon css class
+    // Set icon css class helper function
     //---------------------------------------
     pub fn set_icon_css_class(&self, class: &str, add: bool) {
         let imp = self.imp();
@@ -306,6 +402,48 @@ impl InfoRow {
             imp.image.add_css_class(class);
         } else {
             imp.image.remove_css_class(class);
+        }
+    }
+
+    //---------------------------------------
+    // Public set value function
+    //---------------------------------------
+    pub fn set_value(&self, value: ValueType) {
+        let imp = self.imp();
+
+        let visible = match value {
+            ValueType::Str(_) | ValueType::StrIcon(_, _) | ValueType::Vec(_) => true,
+            ValueType::StrOpt(s) => !s.is_empty(),
+            ValueType::StrOptNum(_, i) => i != 0,
+            ValueType::VecOpt(v) => !v.is_empty(),
+        };
+
+        self.set_visible(visible);
+
+        if visible {
+            match value {
+                ValueType::Str(s) | ValueType::StrOpt(s) | ValueType::StrOptNum(s, _) => {
+                    imp.image.set_visible(false);
+                    imp.value_widget.set_text(s);
+                },
+                ValueType::StrIcon(s, icon) => {
+                    imp.image.set_visible(icon.is_some());
+                    imp.image.set_icon_name(icon);
+                    imp.value_widget.set_text(s);
+                }
+                ValueType::Vec(v) | ValueType::VecOpt(v) => {
+                    imp.image.set_visible(false);
+                    imp.value_widget.set_text(v.join(LINK_SPACER));
+                }
+            }
+
+            let id = imp.id.get();
+
+            if id == PropID::Version {
+                self.set_icon_css_class("success", true);
+            } else if id == PropID::Status {
+                self.set_icon_css_class("error", imp.image.icon_name().unwrap_or_default() == "pkg-orphan");
+            }
         }
     }
 }
