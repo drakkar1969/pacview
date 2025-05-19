@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::marker::PhantomData;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -19,15 +20,15 @@ mod imp {
     #[properties(wrapper_type = super::HistoryList)]
     pub struct HistoryList {
         #[property(get = Self::n_items)]
-        _n_items: Cell<u32>,
+        _n_items: PhantomData<u32>,
         #[property(get, set = Self::set_selected)]
         selected: Cell<u32>,
         #[property(get = Self::selected_item, nullable)]
-        _selected_item: RefCell<Option<PkgObject>>,
+        _selected_item: PhantomData<Option<PkgObject>>,
         #[property(get = Self::can_select_prev)]
-        _can_select_prev: Cell<bool>,
+        _can_select_prev: PhantomData<bool>,
         #[property(get = Self::can_select_next)]
-        _can_select_next: Cell<bool>,
+        _can_select_next: PhantomData<bool>,
 
         pub(super) list: RefCell<Vec<PkgObject>>,
     }

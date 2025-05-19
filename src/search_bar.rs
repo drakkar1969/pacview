@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::marker::PhantomData;
 use std::sync::OnceLock;
 use core::time::Duration;
 
@@ -100,7 +101,7 @@ mod imp {
         enabled: Cell<bool>,
 
         #[property(get = Self::text)]
-        _text: RefCell<String>,
+        _text: PhantomData<String>,
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]

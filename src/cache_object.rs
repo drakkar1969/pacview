@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::marker::PhantomData;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -19,7 +20,7 @@ mod imp {
         #[property(get, set)]
         filename: RefCell<String>,
         #[property(get = Self::get_icon)]
-        _icon: RefCell<String>,
+        _icon: PhantomData<String>,
     }
 
     //---------------------------------------

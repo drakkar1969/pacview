@@ -1,4 +1,5 @@
 use std::cell::{RefCell, OnceCell};
+use std::marker::PhantomData;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -51,11 +52,11 @@ mod imp {
         file_hash: OnceCell<Option<String>>,
 
         #[property(get = Self::status, builder(BackupStatus::default()))]
-        _status: RefCell<BackupStatus>,
+        _status: PhantomData<BackupStatus>,
         #[property(get = Self::status_icon)]
-        _status_icon: RefCell<String>,
+        _status_icon: PhantomData<String>,
         #[property(get = Self::status_text)]
-        _status_text: RefCell<String>,
+        _status_text: PhantomData<String>,
     }
 
     //---------------------------------------

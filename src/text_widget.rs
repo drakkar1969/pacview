@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
+use std::marker::PhantomData;
 use std::sync::{OnceLock, LazyLock};
 
 use gtk::{gio, glib, gdk, pango};
@@ -62,7 +63,7 @@ mod imp {
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
-        _text: RefCell<String>,
+        _text: PhantomData<String>,
 
         #[property(get, set)]
         can_expand: Cell<bool>,

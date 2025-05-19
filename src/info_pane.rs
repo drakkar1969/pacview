@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
 
@@ -110,7 +111,7 @@ mod imp {
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
-        _pkg: RefCell<Option<PkgObject>>,
+        _pkg: PhantomData<Option<PkgObject>>,
         #[property(get, set)]
         property_max_lines: Cell<i32>,
         #[property(get, set)]
