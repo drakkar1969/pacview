@@ -100,17 +100,6 @@ mod imp {
         #[template_child]
         pub(super) config_dialog: TemplateChild<ConfigDialog>,
 
-        #[template_child]
-        pub(super) backup_window: TemplateChild<BackupWindow>,
-        #[template_child]
-        pub(super) log_window: TemplateChild<LogWindow>,
-        #[template_child]
-        pub(super) cache_window: TemplateChild<CacheWindow>,
-        #[template_child]
-        pub(super) groups_window: TemplateChild<GroupsWindow>,
-        #[template_child]
-        pub(super) stats_window: TemplateChild<StatsWindow>,
-
         pub(super) gsettings: OnceCell<gio::Settings>,
 
         pub(super) aur_file: OnceCell<PathBuf>,
@@ -125,7 +114,13 @@ mod imp {
         pub(super) update_row: RefCell<FilterRow>,
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
-    }
+
+        pub(super) backup_window: RefCell<Option<BackupWindow>>,
+        pub(super) cache_window: RefCell<Option<CacheWindow>>,
+        pub(super) groups_window: RefCell<Option<GroupsWindow>>,
+        pub(super) log_window: RefCell<Option<LogWindow>>,
+        pub(super) stats_window: RefCell<Option<StatsWindow>>,
+     }
 
     //---------------------------------------
     // Subclass
@@ -478,6 +473,13 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
+        // Create windows
+        imp.backup_window.replace(Some(BackupWindow::new(self)));
+        imp.cache_window.replace(Some(CacheWindow::new(self)));
+        imp.groups_window.replace(Some(GroupsWindow::new(self)));
+        imp.log_window.replace(Some(LogWindow::new(self)));
+        imp.stats_window.replace(Some(StatsWindow::new(self)));
+
         self.resize_window();
     }
 
@@ -600,40 +602,40 @@ impl PacViewWindow {
         // Add info pane actions to window
         self.add_action_entries([visible_tab_action]);
 
-        // Show stats window action
-        let stats_action = gio::ActionEntry::builder("show-stats")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                imp.stats_window.show(imp.pacman_repos.get().unwrap());
-            })
-            .build();
-
         // Show backup files window action
         let backup_action = gio::ActionEntry::builder("show-backup-files")
             .activate(|window: &Self, _, _| {
-                window.imp().backup_window.show();
-            })
-            .build();
-
-        // Show pacman log window action
-        let log_action = gio::ActionEntry::builder("show-pacman-log")
-            .activate(|window: &Self, _, _| {
-                window.imp().log_window.show();
+                window.imp().backup_window.borrow().as_ref().unwrap().show();
             })
             .build();
 
         // Show pacman cache window action
         let cache_action = gio::ActionEntry::builder("show-pacman-cache")
             .activate(|window: &Self, _, _| {
-                window.imp().cache_window.show();
+                window.imp().cache_window.borrow().as_ref().unwrap().show();
             })
             .build();
 
         // Show pacman groups window action
         let groups_action = gio::ActionEntry::builder("show-pacman-groups")
             .activate(|window: &Self, _, _| {
-                window.imp().groups_window.show();
+                window.imp().groups_window.borrow().as_ref().unwrap().show();
+            })
+            .build();
+
+        // Show pacman log window action
+        let log_action = gio::ActionEntry::builder("show-pacman-log")
+            .activate(|window: &Self, _, _| {
+                window.imp().log_window.borrow().as_ref().unwrap().show();
+            })
+            .build();
+
+        // Show stats window action
+        let stats_action = gio::ActionEntry::builder("show-stats")
+            .activate(|window: &Self, _, _| {
+                let imp = window.imp();
+
+                imp.stats_window.borrow().as_ref().unwrap().show(imp.pacman_repos.get().unwrap());
             })
             .build();
 
@@ -945,11 +947,11 @@ impl PacViewWindow {
         imp.package_view.reset_aur_search();
 
         // Clear windows
-        imp.backup_window.remove_all();
-        imp.log_window.remove_all();
-        imp.cache_window.remove_all();
-        imp.groups_window.remove_all();
-        imp.stats_window.remove_all();
+        imp.backup_window.borrow().as_ref().unwrap().remove_all();
+        imp.log_window.borrow().as_ref().unwrap().remove_all();
+        imp.cache_window.borrow().as_ref().unwrap().remove_all();
+        imp.groups_window.borrow().as_ref().unwrap().remove_all();
+        imp.stats_window.borrow().as_ref().unwrap().remove_all();
 
         // Get pacman config
         let pacman_config = PACMAN_CONFIG.get().unwrap();
