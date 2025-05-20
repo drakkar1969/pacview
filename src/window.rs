@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-use std::io::Read;
 use std::str::FromStr;
 use std::fs;
 
@@ -17,10 +16,8 @@ use alpm_utils::DbListExt;
 use titlecase::titlecase;
 use regex::Regex;
 use futures::join;
-use flate2::read::GzDecoder;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 
-use crate::utils::{async_command, tokio_runtime};
 use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_data::{PkgFlags, PkgData};
@@ -37,6 +34,7 @@ use crate::cache_window::CacheWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::{PreferencesDialog, ColorScheme};
 use crate::enum_traits::EnumExt;
+use crate::utils::{async_command, aur_file};
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -531,7 +529,7 @@ impl PacViewWindow {
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
-                    Self::download_aur_names_async(aur_file, clone!(
+                    aur_file::download_async(aur_file, clone!(
                         #[weak] window,
                         move || {
                             window.imp().package_view.set_status(PackageViewStatus::Normal);
@@ -805,46 +803,6 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Download AUR names helper function
-    //---------------------------------------
-    fn download_aur_names_async<F>(aur_file: &PathBuf, f: F)
-    where F: Fn() + 'static {
-        let (sender, receiver) = async_channel::bounded(1);
-
-        let aur_file = aur_file.to_owned();
-
-        tokio_runtime::runtime().spawn(
-            async move {
-                let url = "https://aur.archlinux.org/packages.gz";
-
-                let response = reqwest::get(url).await?;
-
-                let bytes = response.bytes().await?;
-
-                let mut decoder = GzDecoder::new(&bytes[..]);
-
-                let mut gz_string = String::new();
-
-                if decoder.read_to_string(&mut gz_string).is_ok() {
-                    fs::write(&aur_file, gz_string).unwrap_or_default();
-                }
-
-                sender.send(()).await.expect("Failed to send through channel");
-
-                Ok::<(), reqwest::Error>(())
-            }
-        );
-
-        glib::spawn_future_local(
-            async move {
-                while receiver.recv().await == Ok(()) {
-                    f();
-                }
-            }
-        );
-    }
-
-    //---------------------------------------
     // Setup alpm
     //---------------------------------------
     fn setup_alpm(&self, first_load: bool) {
@@ -872,7 +830,7 @@ impl PacViewWindow {
             imp.package_view.set_status(PackageViewStatus::AURDownload);
             imp.info_pane.set_pkg(None::<PkgObject>);
 
-            Self::download_aur_names_async(aur_file, clone!(
+            aur_file::download_async(aur_file, clone!(
                 #[weak(rename_to = window)] self,
                 move || {
                     window.imp().package_view.set_status(PackageViewStatus::Normal);
@@ -970,29 +928,6 @@ impl PacViewWindow {
                     PkgFlags::UPDATES => { imp.update_row.replace(row); },
                     _ => {}
                 }
-            }
-        }
-    }
-
-    //---------------------------------------
-    // Check AUR file age helper function
-    //---------------------------------------
-    fn check_aur_file_age(&self) {
-        let imp = self.imp();
-
-        if let Some(aur_file) = imp.aur_file.get() {
-            // Get AUR package names file age
-            let file_time = fs::metadata(aur_file).ok()
-                .and_then(|metadata| metadata.modified().ok())
-                .and_then(|file_time| {
-                    let now = std::time::SystemTime::now();
-
-                    now.duration_since(file_time).ok()
-                });
-
-            // Spawn tokio task to download AUR package names file if does not exist or older than 1 day
-            if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(24 * 60 * 60) {
-                Self::download_aur_names_async(aur_file, || {});
             }
         }
     }
@@ -1138,7 +1073,9 @@ impl PacViewWindow {
 
                             // Check AUR package names file age
                             if check_aur_file {
-                                window.check_aur_file_age();
+                                let aur_file = imp.aur_file.get();
+
+                                aur_file::check_file_age(aur_file);
                             }
                         },
                         Err(error) => {

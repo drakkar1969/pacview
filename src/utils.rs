@@ -73,3 +73,78 @@ pub mod app_info {
         }
     }
 }
+
+//------------------------------------------------------------------------------
+// MODULE: AUR File
+//------------------------------------------------------------------------------
+pub mod aur_file {
+    use std::fs;
+    use std::path::PathBuf;
+    use std::time::Duration;
+	use std::io::Read;
+
+    use flate2::read::GzDecoder;
+
+    use crate::utils::tokio_runtime;
+
+    //---------------------------------------
+    // Check file age function
+    //---------------------------------------
+    pub fn check_file_age(aur_file: Option<&PathBuf>) {
+        if let Some(aur_file) = aur_file {
+            // Get AUR package names file age
+            let file_time = fs::metadata(aur_file).ok()
+                .and_then(|metadata| metadata.modified().ok())
+                .and_then(|file_time| {
+                    let now = std::time::SystemTime::now();
+
+                    now.duration_since(file_time).ok()
+                });
+
+            // Spawn tokio task to download AUR package names file if does not exist or older than 1 day
+            if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(24 * 60 * 60) {
+                download_async(aur_file, || {});
+            }
+        }
+    }
+
+    //---------------------------------------
+    // Download AUR names async function
+    //---------------------------------------
+    pub fn download_async<F>(aur_file: &PathBuf, f: F)
+    where F: Fn() + 'static {
+        let (sender, receiver) = async_channel::bounded(1);
+
+        let aur_file = aur_file.to_owned();
+
+        tokio_runtime::runtime().spawn(
+            async move {
+                let url = "https://aur.archlinux.org/packages.gz";
+
+                let response = reqwest::get(url).await?;
+
+                let bytes = response.bytes().await?;
+
+                let mut decoder = GzDecoder::new(&bytes[..]);
+
+                let mut gz_string = String::new();
+
+                if decoder.read_to_string(&mut gz_string).is_ok() {
+                    fs::write(&aur_file, gz_string).unwrap_or_default();
+                }
+
+                sender.send(()).await.expect("Failed to send through channel");
+
+                Ok::<(), reqwest::Error>(())
+            }
+        );
+
+        glib::spawn_future_local(
+            async move {
+                while receiver.recv().await == Ok(()) {
+                    f();
+                }
+            }
+        );
+    }
+}
