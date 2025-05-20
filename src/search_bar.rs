@@ -331,7 +331,7 @@ impl SearchBar {
             imp.tag_mode.set_text(Some(bar.mode().nick()));
 
             if !imp.search_text.text().is_empty() {
-                bar.emit_changed_signal();
+                bar.emit_by_name::<()>("changed", &[]);
             }
         });
 
@@ -342,7 +342,7 @@ impl SearchBar {
             imp.tag_prop.set_text(Some(bar.prop().nick()));
 
             if !imp.search_text.text().is_empty() {
-                bar.emit_changed_signal();
+                bar.emit_by_name::<()>("changed", &[]);
             }
         });
 
@@ -363,8 +363,8 @@ impl SearchBar {
                 if text.is_empty() {
                     bar.set_aur_error(None);
 
-                    bar.emit_changed_signal();
-                    bar.emit_aur_search_signal();
+                    bar.emit_by_name::<()>("changed", &[]);
+                    bar.emit_by_name::<()>("aur-search", &[]);
                 } else {
                     // Start delay timer
                     let delay_id = glib::timeout_add_local_once(
@@ -372,7 +372,7 @@ impl SearchBar {
                         clone!(
                             #[weak] imp,
                             move || {
-                                bar.emit_changed_signal();
+                                bar.emit_by_name::<()>("changed", &[]);
 
                                 imp.delay_source_id.take();
                             }
@@ -389,7 +389,7 @@ impl SearchBar {
             #[weak(rename_to = bar)] self,
             move |search_text| {
                 if !search_text.text().is_empty() {
-                    bar.emit_aur_search_signal();
+                    bar.emit_by_name::<()>("aur-search", &[]);
                 }
             }
         ));
@@ -405,17 +405,6 @@ impl SearchBar {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Signal emit helper functions
-    //---------------------------------------
-    fn emit_changed_signal(&self) {
-        self.emit_by_name::<()>("changed", &[]);
-    }
-
-    fn emit_aur_search_signal(&self) {
-        self.emit_by_name::<()>("aur-search", &[]);
     }
 
     //---------------------------------------
