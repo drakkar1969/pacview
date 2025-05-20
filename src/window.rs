@@ -856,30 +856,31 @@ impl PacViewWindow {
 
         self.populate_sidebar(first_load);
 
-        // If first load, check AUR file
-        if let Some(aur_file) = imp.aur_file.get().filter(|_| first_load) {
-            if fs::exists(aur_file).is_ok_and(|exists| exists) {
-                // AUR file exists: load packages and check AUR file age
-                self.load_packages(true);
-            } else {
-                // If AUR file does not exist, download it
-                imp.package_view.set_status(PackageViewStatus::AURDownload);
-                imp.info_pane.set_pkg(None::<PkgObject>);
-
-                // Spawn tokio task to download AUR package names file
-                Self::download_aur_names_async(aur_file, clone!(
-                    #[weak(rename_to = window)] self,
-                    move || {
-                        window.imp().package_view.set_status(PackageViewStatus::Normal);
-
-                        // Load packages, no AUR file age check
-                        window.load_packages(false);
-                    }
-                ));
-            }
-        } else {
-            // Not first load or path of AUR file is invalid: load packages, no AUR file age check
+        // If first load, get AUR file path
+        let Some(aur_file) = imp.aur_file.get().filter(|_| first_load) else {
+            // Not first load or invalid path: load packages (no AUR file age check) and return
             self.load_packages(false);
+
+            return
+        };
+
+        if fs::exists(aur_file).is_ok_and(|exists| exists) {
+            // AUR file exists: load packages and check AUR file age
+            self.load_packages(true);
+        } else {
+            // AUR file does not exist: spawn tokio task to download it
+            imp.package_view.set_status(PackageViewStatus::AURDownload);
+            imp.info_pane.set_pkg(None::<PkgObject>);
+
+            Self::download_aur_names_async(aur_file, clone!(
+                #[weak(rename_to = window)] self,
+                move || {
+                    window.imp().package_view.set_status(PackageViewStatus::Normal);
+
+                    // Load packages (no AUR file age check)
+                    window.load_packages(false);
+                }
+            ));
         }
     }
 
