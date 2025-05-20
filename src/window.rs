@@ -97,8 +97,6 @@ mod imp {
 
         #[template_child]
         pub(super) prefs_dialog: TemplateChild<PreferencesDialog>,
-        #[template_child]
-        pub(super) config_dialog: TemplateChild<ConfigDialog>,
 
         pub(super) gsettings: OnceCell<gio::Settings>,
 
@@ -120,6 +118,8 @@ mod imp {
         pub(super) groups_window: RefCell<Option<GroupsWindow>>,
         pub(super) log_window: RefCell<Option<LogWindow>>,
         pub(super) stats_window: RefCell<Option<StatsWindow>>,
+
+        pub(super) config_dialog: RefCell<Option<ConfigDialog>>,
      }
 
     //---------------------------------------
@@ -480,6 +480,9 @@ impl PacViewWindow {
         imp.log_window.replace(Some(LogWindow::new(self)));
         imp.stats_window.replace(Some(StatsWindow::new(self)));
 
+        // Create config dialog
+        imp.config_dialog.replace(Some(ConfigDialog::new()));
+
         self.resize_window();
     }
 
@@ -642,7 +645,7 @@ impl PacViewWindow {
         // Show pacman config window action
         let config_action = gio::ActionEntry::builder("show-pacman-config")
             .activate(|window: &Self, _, _| {
-                window.imp().config_dialog.present(Some(window));
+                window.imp().config_dialog.borrow().as_ref().unwrap().present(Some(window));
             })
             .build();
 
@@ -861,7 +864,7 @@ impl PacViewWindow {
             .collect();
 
         // Init config dialog
-        imp.config_dialog.init(&pacman_config);
+        imp.config_dialog.borrow().as_ref().unwrap().init(&pacman_config);
 
         // Store pacman config
         PACMAN_CONFIG.set(pacman_config).unwrap();
