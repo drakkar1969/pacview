@@ -286,7 +286,9 @@ impl PacViewWindow {
     // New function
     //---------------------------------------
     pub fn new(app: &PacViewApplication) -> Self {
-        glib::Object::builder().property("application", app).build()
+        glib::Object::builder()
+            .property("application", app)
+            .build()
     }
 
     //---------------------------------------

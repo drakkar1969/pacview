@@ -200,8 +200,7 @@ impl PkgObject {
     // New function
     //---------------------------------------
     pub fn new(data: PkgData, handle: Option<Rc<alpm::Alpm>>) -> Self {
-        let pkg: Self = glib::Object::builder()
-            .build();
+        let pkg: Self = glib::Object::builder().build();
 
         let imp = pkg.imp();
 
