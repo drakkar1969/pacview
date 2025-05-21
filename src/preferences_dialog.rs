@@ -7,6 +7,7 @@ use glib::clone;
 
 use strum::{EnumString, FromRepr};
 
+use crate::APP_ID;
 use crate::search_bar::{SearchMode, SearchProp};
 use crate::enum_traits::EnumExt;
 
@@ -314,26 +315,25 @@ impl PreferencesDialog {
                 reset_dialog.choose(
                     &dialog,
                     None::<&gio::Cancellable>,
-                    clone!(
-                        #[weak] dialog,
-                        move |response| {
-                            if response == "reset" {
-                                dialog.set_color_scheme(ColorScheme::default());
-                                dialog.set_sidebar_width(240.0);
-                                dialog.set_infopane_width(600.0);
-                                dialog.set_aur_update_command("");
-                                dialog.set_aur_package_check(true);
-                                dialog.set_auto_refresh(true);
-                                dialog.set_remember_sort(false);
-                                dialog.set_search_mode(SearchMode::default());
-                                dialog.set_search_prop(SearchProp::default());
-                                dialog.set_search_delay(150.0);
-                                dialog.set_property_max_lines(3.0);
-                                dialog.set_property_line_spacing(1.3);
-                                dialog.set_underline_links(true);
-                            }
+                    move |response| {
+                        if response == "reset" {
+                            let settings = gio::Settings::new(APP_ID);
+
+                            settings.reset("color-scheme");
+                            settings.reset("sidebar-width");
+                            settings.reset("infopane-width");
+                            settings.reset("aur-update-command");
+                            settings.reset("aur-package-check");
+                            settings.reset("auto-refresh");
+                            settings.reset("remember-sort");
+                            settings.reset("search-mode");
+                            settings.reset("search-prop");
+                            settings.reset("search-delay");
+                            settings.reset("property-max-lines");
+                            settings.reset("property-line-spacing");
+                            settings.reset("underline-links");
                         }
-                    )
+                    }
                 );
             }
         ));
