@@ -87,7 +87,6 @@ mod imp {
         pub(super) comment_fg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) sel_bg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) sel_focus_bg_color: Cell<(u16, u16, u16, u16)>,
-        pub(super) error_fg_color: Cell<(u16, u16, u16, u16)>,
 
         pub(super) cairo_error_color: Cell<(f64, f64, f64, f64)>,
 
@@ -516,10 +515,9 @@ impl TextWidget {
         imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
         imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
 
-        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
-        imp.error_fg_color.set((red, green, blue, alpha));
-
         // Initialize cairo error color
+        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
+
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
     }
 
@@ -799,10 +797,9 @@ impl TextWidget {
         imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
         imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
 
-        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
-        imp.error_fg_color.set((red, green, blue, alpha));
-
         // Initialize cairo error color
+        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
+
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
 
         // Format pango layout text
