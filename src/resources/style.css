@@ -113,7 +113,6 @@ button.property.active image {
 image.status-image {
 	border-radius: 50%;
 	background: var(--accent-bg-color);
-	-gtk-icon-size: 14px;
 }
 
 /* Text widget colors */
