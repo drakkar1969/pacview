@@ -113,11 +113,10 @@ pub mod aur_file {
     //---------------------------------------
     pub fn download_async<F>(aur_file: &PathBuf, f: F)
     where F: Fn() + 'static {
-        let (sender, receiver) = async_channel::bounded(1);
-
         let aur_file = aur_file.to_owned();
 
-        tokio_runtime::runtime().spawn(
+        // Spawn tokio task to download AUR file
+        let download_future = tokio_runtime::runtime().spawn(
             async move {
                 let url = "https://aur.archlinux.org/packages.gz";
 
@@ -133,17 +132,17 @@ pub mod aur_file {
                     fs::write(&aur_file, gz_string).unwrap_or_default();
                 }
 
-                sender.send(()).await.expect("Failed to send through channel");
-
                 Ok::<(), reqwest::Error>(())
             }
         );
 
+        // Await task
         glib::spawn_future_local(
             async move {
-                while receiver.recv().await == Ok(()) {
-                    f();
-                }
+                let _ = download_future.await
+                    .expect("Failed to complete tokio task");
+
+                f();
             }
         );
     }

@@ -483,61 +483,56 @@ impl PackageView {
         imp.search_cancel_token.replace(Some(cancel_token));
 
         // Spawn tokio task to search AUR
-        let (sender, receiver) = async_channel::bounded(1);
-
-        INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
+        let search_future = INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
             let installed_pkg_names = Arc::clone(installed_pkg_names);
 
             tokio_runtime::runtime().spawn(
                 async move {
-                    let result = tokio::select! {
+                    tokio::select! {
                         () = cancel_token_clone.cancelled() => { Ok(vec![]) },
                         res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => {
                             res.map(|aur_list| {
                                 aur_list.iter().map(|pkg| PkgData::from_aur(pkg)).collect()
                             })
                         }
-                    };
-
-                    sender.send(result)
-                        .await
-                        .expect("Failed to send through channel");
+                    }
                 }
-            );
+            )
         });
 
-        // Attach channel receiver
+        // Await task
         glib::spawn_future_local(clone!(
             #[weak] imp,
             #[weak] search_bar,
             async move {
-                while let Ok(result) = receiver.recv().await {
-                    match result {
-                        // Get AUR search results
-                        Ok(data_list) => {
-                            if search_bar.enabled() {
-                                let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                                    .map(|data| PkgObject::new(data, None))
-                                    .collect();
+                let result = search_future.await
+                    .expect("Failed to complete tokio task");
 
-                                imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
+                match result {
+                    // Get AUR search results
+                    Ok(data_list) => {
+                        if search_bar.enabled() {
+                            let pkg_list: Vec<PkgObject> = data_list.into_iter()
+                                .map(|data| PkgObject::new(data, None))
+                                .collect();
 
-                                AUR_PKGS.replace(pkg_list);
-                            }
+                            imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
 
-                            search_bar.set_aur_error(None);
-                        },
-                        Err(error) => {
-                            search_bar.set_aur_error(Some(error.to_string()));
+                            AUR_PKGS.replace(pkg_list);
                         }
+
+                        search_bar.set_aur_error(None);
+                    },
+                    Err(error) => {
+                        search_bar.set_aur_error(Some(error.to_string()));
                     }
-
-                    // Remove stored search cancel token
-                    imp.search_cancel_token.replace(None);
-
-                    // Hide search spinner
-                    search_bar.set_searching(false);
                 }
+
+                // Remove stored search cancel token
+                imp.search_cancel_token.replace(None);
+
+                // Hide search spinner
+                search_bar.set_searching(false);
             }
         ));
     }

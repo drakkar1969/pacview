@@ -923,9 +923,7 @@ impl PacViewWindow {
         imp.info_pane.set_pkg(None::<PkgObject>);
 
         // Spawn task to load packages
-        let (sender, receiver) = async_channel::bounded(1);
-
-        gio::spawn_blocking(move || {
+        let alpm_future = gio::spawn_blocking(move || {
             match alpm_utils::alpm_with_conf(pacman_config) {
                 Ok(handle) => {
                     let localdb = handle.localdb();
@@ -949,87 +947,88 @@ impl PacViewWindow {
                         .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), aur_names.as_deref()))
                     );
 
-                    sender.send_blocking(Ok(pkg_data)).expect("Failed to send through channel");
+                    Ok(pkg_data)
                 },
                 Err(error) => {
-                    sender.send_blocking(Err(error)).expect("Failed to send through channel");
+                    Err(error)
                 }
             }
         });
 
-        // Attach channel receiver
+        // Await task
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
             async move {
-                while let Ok(pkg_data) = receiver.recv().await {
-                    match pkg_data {
-                        Ok(pkg_data) => {
-                            // Get alpm handle
-                            let handle_ref = alpm_utils::alpm_with_conf(pacman_config)
-                                .map(Rc::new)
-                                .ok();
+                let result = alpm_future.await
+                    .expect("Failed to complete task");
 
-                            // Get package lists
-                            let len = pkg_data.len();
+                match result {
+                    Ok(pkg_data) => {
+                        // Get alpm handle
+                        let handle_ref = alpm_utils::alpm_with_conf(pacman_config)
+                            .map(Rc::new)
+                            .ok();
 
-                            let mut pkgs: Vec<PkgObject> = Vec::with_capacity(len);
-                            let mut installed_pkgs: Vec<PkgObject> = Vec::with_capacity(len/10);
-                            let mut installed_pkg_names: HashSet<String> = HashSet::with_capacity(len/10);
+                        // Get package lists
+                        let len = pkg_data.len();
 
-                            for data in pkg_data {
-                                let pkg = PkgObject::new(data,handle_ref.as_ref().map(Rc::clone));
+                        let mut pkgs: Vec<PkgObject> = Vec::with_capacity(len);
+                        let mut installed_pkgs: Vec<PkgObject> = Vec::with_capacity(len/10);
+                        let mut installed_pkg_names: HashSet<String> = HashSet::with_capacity(len/10);
 
-                                if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                                    installed_pkg_names.insert(pkg.name());
-                                    installed_pkgs.push(pkg.clone());
-                                }
+                        for data in pkg_data {
+                            let pkg = PkgObject::new(data,handle_ref.as_ref().map(Rc::clone));
 
-                                pkgs.push(pkg);
+                            if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                                installed_pkg_names.insert(pkg.name());
+                                installed_pkgs.push(pkg.clone());
                             }
 
-                            // Add packages to package view
-                            imp.package_view.splice_packages(&pkgs);
-
-                            // Store alpm handle
-                            ALPM_HANDLE.replace(handle_ref);
-
-                            // Store package lists
-                            PKGS.replace(pkgs);
-                            INSTALLED_PKGS.replace(installed_pkgs);
-                            INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkg_names));
-
-                            // Get package updates
-                            window.get_package_updates();
-
-                            // Check AUR package names file age
-                            if check_aur_file {
-                                let aur_file = imp.aur_file.get();
-
-                                aur_file::check_file_age(aur_file);
-                            }
-                        },
-                        Err(error) => {
-                            let mut error = error.to_string();
-
-                            let warning_dialog = adw::AlertDialog::builder()
-                                .heading("Alpm Error")
-                                .body(error.remove(0).to_uppercase().to_string() + &error)
-                                .default_response("ok")
-                                .build();
-
-                            warning_dialog.add_responses(&[("ok", "_Ok")]);
-
-                            warning_dialog.present(Some(&window));
+                            pkgs.push(pkg);
                         }
+
+                        // Add packages to package view
+                        imp.package_view.splice_packages(&pkgs);
+
+                        // Store alpm handle
+                        ALPM_HANDLE.replace(handle_ref);
+
+                        // Store package lists
+                        PKGS.replace(pkgs);
+                        INSTALLED_PKGS.replace(installed_pkgs);
+                        INSTALLED_PKG_NAMES.replace(Arc::new(installed_pkg_names));
+
+                        // Get package updates
+                        window.get_package_updates();
+
+                        // Check AUR package names file age
+                        if check_aur_file {
+                            let aur_file = imp.aur_file.get();
+
+                            aur_file::check_file_age(aur_file);
+                        }
+                    },
+                    Err(error) => {
+                        let mut error = error.to_string();
+
+                        let warning_dialog = adw::AlertDialog::builder()
+                            .heading("Alpm Error")
+                            .body(error.remove(0).to_uppercase().to_string() + &error)
+                            .default_response("ok")
+                            .build();
+
+                        warning_dialog.add_responses(&[("ok", "_Ok")]);
+
+                        warning_dialog.present(Some(&window));
                     }
-
-                    // Hide loading spinner
-                    imp.package_view.set_status(PackageViewStatus::Normal);
-
-                    // Set focus on package view
-                    imp.package_view.view().grab_focus();
                 }
+
+                // Hide loading spinner
+                imp.package_view.set_status(PackageViewStatus::Normal);
+
+                // Set focus on package view
+                imp.package_view.view().grab_focus();
             }
         ));
     }
