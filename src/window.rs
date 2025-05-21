@@ -307,6 +307,43 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Resize window helper function
+    //---------------------------------------
+    fn resize_window(&self) {
+        let imp = self.imp();
+
+        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+
+        let sidebar_width = prefs_dialog.sidebar_width();
+        let infopane_width = prefs_dialog.infopane_width();
+
+        let min_packageview_width = 500.0;
+
+        self.set_width_request(infopane_width as i32);
+
+        imp.sidebar_split_view.set_min_sidebar_width(sidebar_width);
+        imp.sidebar_split_view.set_max_sidebar_width(sidebar_width);
+
+        imp.main_split_view.set_min_sidebar_width(infopane_width);
+
+        imp.main_breakpoint.set_condition(Some(
+            &adw::BreakpointCondition::new_length(
+                adw::BreakpointConditionLengthType::MaxWidth,
+                sidebar_width + infopane_width + min_packageview_width,
+                adw::LengthUnit::Sp
+            )
+        ));
+
+        imp.sidebar_breakpoint.set_condition(Some(
+            &adw::BreakpointCondition::new_length(
+                adw::BreakpointConditionLengthType::MaxWidth,
+                sidebar_width + infopane_width,
+                adw::LengthUnit::Sp
+            )
+        ));
+    }
+
+    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -712,43 +749,6 @@ impl PacViewWindow {
 
         // Add preference actions to window
         self.add_action_entries([prefs_action]);
-    }
-
-    //---------------------------------------
-    // Resize window helper function
-    //---------------------------------------
-    fn resize_window(&self) {
-        let imp = self.imp();
-
-        let prefs_dialog = imp.prefs_dialog.get().unwrap();
-
-        let sidebar_width = prefs_dialog.sidebar_width();
-        let infopane_width = prefs_dialog.infopane_width();
-
-        let min_packageview_width = 500.0;
-
-        self.set_width_request(infopane_width as i32);
-
-        imp.sidebar_split_view.set_min_sidebar_width(sidebar_width);
-        imp.sidebar_split_view.set_max_sidebar_width(sidebar_width);
-
-        imp.main_split_view.set_min_sidebar_width(infopane_width);
-
-        imp.main_breakpoint.set_condition(Some(
-            &adw::BreakpointCondition::new_length(
-                adw::BreakpointConditionLengthType::MaxWidth,
-                sidebar_width + infopane_width + min_packageview_width,
-                adw::LengthUnit::Sp
-            )
-        ));
-
-        imp.sidebar_breakpoint.set_condition(Some(
-            &adw::BreakpointCondition::new_length(
-                adw::BreakpointConditionLengthType::MaxWidth,
-                sidebar_width + infopane_width,
-                adw::LengthUnit::Sp
-            )
-        ));
     }
 
     //---------------------------------------
