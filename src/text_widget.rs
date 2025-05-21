@@ -452,13 +452,6 @@ glib::wrapper! {
 
 impl TextWidget {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
-    }
-
-    //---------------------------------------
     // Bind gsettings
     //---------------------------------------
     fn bind_gsettings(&self) {
@@ -1108,6 +1101,6 @@ impl Default for TextWidget {
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        Self::new()
+        glib::Object::builder().build()
     }
 }

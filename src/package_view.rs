@@ -202,13 +202,6 @@ glib::wrapper! {
 
 impl PackageView {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
-    }
-
-    //---------------------------------------
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
@@ -614,6 +607,6 @@ impl Default for PackageView {
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        Self::new()
+        glib::Object::builder().build()
     }
 }

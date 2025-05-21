@@ -296,7 +296,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Create preferences dialog
-        imp.prefs_dialog.set(PreferencesDialog::new()).unwrap();
+        imp.prefs_dialog.set(PreferencesDialog::default()).unwrap();
 
         // Create windows
         imp.backup_window.set(BackupWindow::new(self)).unwrap();
@@ -306,7 +306,7 @@ impl PacViewWindow {
         imp.stats_window.set(StatsWindow::new(self)).unwrap();
 
         // Create config dialog
-        imp.config_dialog.set(ConfigDialog::new()).unwrap();
+        imp.config_dialog.set(ConfigDialog::default()).unwrap();
     }
 
     //---------------------------------------

@@ -135,14 +135,6 @@ glib::wrapper! {
 
 impl ConfigDialog {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder()
-            .build()
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -254,6 +246,6 @@ impl Default for ConfigDialog {
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        Self::new()
+        glib::Object::builder().build()
     }
 }

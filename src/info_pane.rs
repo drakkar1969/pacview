@@ -187,13 +187,6 @@ glib::wrapper! {
 
 impl InfoPane {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
-    }
-
-    //---------------------------------------
     // InfoRow pkg link handler
     //---------------------------------------
     fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
@@ -804,6 +797,6 @@ impl Default for InfoPane {
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        Self::new()
+        glib::Object::builder().build()
     }
 }

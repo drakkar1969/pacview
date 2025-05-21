@@ -269,13 +269,6 @@ glib::wrapper! {
 
 impl SearchBar {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new() -> Self {
-        glib::Object::builder().build()
-    }
-
-    //---------------------------------------
     // Public set AUR error function
     //---------------------------------------
     pub fn set_aur_error(&self, aur_error: Option<String>) {
@@ -475,6 +468,6 @@ impl Default for SearchBar {
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        Self::new()
+        glib::Object::builder().build()
     }
 }
