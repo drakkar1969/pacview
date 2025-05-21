@@ -70,22 +70,6 @@ label.count-superscript {
 	padding: 0 0.5em;
 }
 
-/* Info pane property rows */
-.info-row:focus-within {
-	outline: 2px solid color-mix(in srgb, var(--accent-color) 50%, transparent);
-	outline-offset: -2px;
-}
-
-.info-row:focus-within:first-child {
-	border-top-left-radius: var(--window-radius);
-	border-top-right-radius: var(--window-radius);
-}
-
-.info-row:focus-within:last-child {
-	border-bottom-left-radius: var(--window-radius);
-	border-bottom-right-radius: var(--window-radius);
-}
-
 /* Info pane property row box */
 box.property {
 	min-height: 1.4em;

@@ -344,20 +344,6 @@ impl InfoRow {
     // Setup controllers
     //---------------------------------------
     fn setup_controllers(&self) {
-        // Mouse drag controller
-        let drag_controller = gtk::GestureDrag::new();
-
-        drag_controller.connect_drag_begin(clone!(
-            #[weak(rename_to = row)] self,
-            move |_, _, _| {
-                if !row.has_focus() {
-                    row.grab_focus();
-                }
-            }
-        ));
-
-        self.add_controller(drag_controller);
-
         // Popup menu controller
         let popup_gesture = gtk::GestureClick::builder()
             .button(gdk::BUTTON_SECONDARY)
