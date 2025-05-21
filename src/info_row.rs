@@ -381,7 +381,7 @@ impl InfoRow {
     //---------------------------------------
     // Set icon css class helper function
     //---------------------------------------
-    pub fn set_icon_css_class(&self, class: &str, add: bool) {
+    fn set_icon_css_class(&self, class: &str, add: bool) {
         let imp = self.imp();
 
         if add {
