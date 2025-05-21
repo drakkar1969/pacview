@@ -160,6 +160,9 @@ mod imp {
             // View refresh key binding
             klass.add_binding_action(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh");
 
+            // View check updates binding
+            klass.add_binding_action(gdk::Key::F9, gdk::ModifierType::NO_MODIFIER_MASK, "win.check-updates");
+
             // View update AUR database key binding
             klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
@@ -617,6 +620,13 @@ impl PacViewWindow {
             })
             .build();
 
+        // Package view check updates action
+        let update_action = gio::ActionEntry::builder("check-updates")
+            .activate(|window: &Self, _, _| {
+                window.get_package_updates();
+            })
+            .build();
+
         // Package view update AUR database action
         let aur_action = gio::ActionEntry::builder("update-aur-database")
             .activate(|window: &Self, _, _| {
@@ -672,7 +682,7 @@ impl PacViewWindow {
         let sort_prop_action = gio::PropertyAction::new("set-sort-prop", &imp.package_view.get(), "sort-prop");
 
         // Add package view actions to window
-        self.add_action_entries([refresh_action, aur_action, copy_action, all_pkgs_action, reset_sort_action]);
+        self.add_action_entries([refresh_action, update_action, aur_action, copy_action, all_pkgs_action, reset_sort_action]);
         self.add_action(&sort_prop_action);
 
         // Info pane set tab action with parameter

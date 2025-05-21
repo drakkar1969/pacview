@@ -199,6 +199,12 @@
             </child>
             <child>
               <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F9</property>
+                <property name="title">Check for Updates</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
                 <property name="accelerator">F7</property>
                 <property name="title">Update AUR Database</property>
               </object>
