@@ -540,7 +540,7 @@ impl InfoPane {
     fn add_info_row(&self, id: PropID, ptype: PropType) {
         let imp = self.imp();
 
-        let row = InfoRow::new(ptype, id);
+        let row = InfoRow::new(id, ptype);
 
         row.set_pkg_link_handler(closure_local!(
             #[weak(rename_to = infopane)] self,

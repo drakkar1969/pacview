@@ -279,7 +279,7 @@ impl InfoRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(ptype: PropType, id: PropID) -> Self {
+    pub fn new(id: PropID, ptype: PropType) -> Self {
         let obj:Self = glib::Object::builder()
             .build();
 
