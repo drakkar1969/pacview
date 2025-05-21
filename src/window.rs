@@ -578,8 +578,6 @@ impl PacViewWindow {
             .sync_create()
             .bidirectional()
             .build();
-
-        self.resize_window();
     }
 
     //---------------------------------------
