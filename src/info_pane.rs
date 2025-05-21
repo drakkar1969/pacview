@@ -543,7 +543,7 @@ impl InfoPane {
         let row = InfoRow::new(ptype, id);
 
         row.set_pkg_link_handler(closure_local!(
-            #[watch(rename_to = infopane)] self,
+            #[weak(rename_to = infopane)] self,
             move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
                 infopane.pkg_link_handler(pkg_name, pkg_version);
             }

@@ -364,7 +364,7 @@ impl PackageView {
 
         // Search bar changed signal
         self.search_bar().connect_closure("changed", false, closure_local!(
-            #[watch(rename_to = view)] self,
+            #[weak(rename_to = view)] self,
             move |_: SearchBar| {
                 view.imp().search_filter.changed(gtk::FilterChange::Different);
             }
@@ -372,7 +372,7 @@ impl PackageView {
 
         // Search bar AUR Search signal
         self.search_bar().connect_closure("aur-search", false, closure_local!(
-            #[watch(rename_to = view)] self,
+            #[weak(rename_to = view)] self,
             move |search_bar: &SearchBar| {
                 view.search_in_aur(search_bar);
             }
