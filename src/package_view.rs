@@ -39,6 +39,7 @@ thread_local! {
 #[enum_type(name = "PackageViewStatus")]
 pub enum PackageViewStatus {
     #[default]
+    Init,
     Normal,
     PackageLoad,
     AURDownload,
@@ -181,7 +182,8 @@ mod imp {
                 PackageViewStatus::AURDownload => {
                     self.loading_status.set_title("Updating AUR Database");
                     self.stack.set_visible_child_name("spinner");
-                }
+                },
+                _ => {}
             }
 
             self.status.set(status);

@@ -412,7 +412,9 @@ impl PacViewWindow {
         prefs_dialog.connect_aur_check_notify(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
-                ActionGroupExt::activate_action(&window, "refresh", None);
+                if window.imp().package_view.status() != PackageViewStatus::Init {
+                    ActionGroupExt::activate_action(&window, "refresh", None);
+                }
             }
         ));
 
