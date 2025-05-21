@@ -1034,25 +1034,20 @@ impl TextWidget {
                         let index = index as usize;
 
                         let text = widget.text();
+                        let bytes = text.as_bytes();
 
-                        let start = text.get(..index)
-                            .and_then(|s| {
-                                s.bytes()
-                                    .rposition(|ch: u8| {
-                                        ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
-                                    })
-                                    .and_then(|start| start.checked_add(1))
+                        let start = bytes[..index].iter()
+                            .rposition(|&ch| {
+                                ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
                             })
+                            .and_then(|start| start.checked_add(1))
                             .unwrap_or(0);
 
-                        let end = text.get(index..)
-                            .and_then(|s| {
-                                s.bytes()
-                                    .position(|ch: u8| {
-                                        ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
-                                    })
-                                    .and_then(|end| end.checked_add(index))
+                        let end = bytes[index..].iter()
+                            .position(|&ch| {
+                                ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
                             })
+                            .and_then(|end| end.checked_add(index))
                             .unwrap_or(text.len());
 
                         imp.selection_start.set(Some(start));
