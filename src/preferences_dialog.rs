@@ -76,9 +76,9 @@ mod imp {
         #[property(get, set)]
         infopane_width: Cell<f64>,
         #[property(get, set)]
-        aur_command: RefCell<String>,
+        aur_update_command: RefCell<String>,
         #[property(get, set)]
-        aur_check: Cell<bool>,
+        aur_package_check: Cell<bool>,
         #[property(get, set)]
         auto_refresh: Cell<bool>,
         #[property(get, set)]
@@ -179,12 +179,12 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
-        self.bind_property("aur-command", &imp.aur_command_row.get(), "text")
+        self.bind_property("aur-update-command", &imp.aur_command_row.get(), "text")
             .sync_create()
             .bidirectional()
             .build();
 
-        self.bind_property("aur-check", &imp.aur_check_row.get(), "active")
+        self.bind_property("aur-package-check", &imp.aur_check_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();
@@ -261,7 +261,7 @@ impl PreferencesDialog {
                         _ => unreachable!()
                     };
 
-                    dialog.set_aur_command(cmd);
+                    dialog.set_aur_update_command(cmd);
                 }
             ))
             .build();
@@ -321,8 +321,8 @@ impl PreferencesDialog {
                                 dialog.set_color_scheme(ColorScheme::default());
                                 dialog.set_sidebar_width(240.0);
                                 dialog.set_infopane_width(600.0);
-                                dialog.set_aur_command("");
-                                dialog.set_aur_check(true);
+                                dialog.set_aur_update_command("");
+                                dialog.set_aur_package_check(true);
                                 dialog.set_auto_refresh(true);
                                 dialog.set_remember_sort(false);
                                 dialog.set_search_mode(SearchMode::default());

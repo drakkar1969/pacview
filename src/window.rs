@@ -409,7 +409,7 @@ impl PacViewWindow {
         ));
 
         // Preferences aur check property notify signal
-        prefs_dialog.connect_aur_check_notify(clone!(
+        prefs_dialog.connect_aur_package_check_notify(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
                 if window.imp().package_view.status() != PackageViewStatus::Init {
@@ -473,10 +473,10 @@ impl PacViewWindow {
         settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
         settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
         settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
-        settings.bind("aur-update-command", prefs_dialog, "aur-command").build();
-        settings.bind("aur-package-check", prefs_dialog, "aur-check").build();
+        settings.bind("aur-update-command", prefs_dialog, "aur-update-command").build();
+        settings.bind("aur-package-check", prefs_dialog, "aur-package-check").build();
         settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
-        settings.bind("remember-sorting", prefs_dialog, "remember-sort").build();
+        settings.bind("remember-sort", prefs_dialog, "remember-sort").build();
         settings.bind("search-mode", prefs_dialog, "search-mode").build();
         settings.bind("search-prop", prefs_dialog, "search-prop").build();
         settings.bind("search-delay", prefs_dialog, "search-delay").build();
@@ -923,16 +923,18 @@ impl PacViewWindow {
         *PACMAN_CACHE.lock().unwrap() = cache_files;
 
         // Load AUR package names from file if AUR check is enabled in preferences
-        let aur_names: Option<Vec<String>> = imp.prefs_dialog.get().unwrap().aur_check().then(|| {
-            imp.aur_file.get()
-                .and_then(|aur_file| fs::read(aur_file).ok())
-                .map(|bytes| {
-                    String::from_utf8_lossy(&bytes).lines()
-                        .map(String::from)
-                        .collect()
-                })
-                .unwrap_or_default()
-        });
+        let aur_names: Option<Vec<String>> = imp.prefs_dialog.get().unwrap().aur_package_check()
+            .then(|| {
+                imp.aur_file.get()
+                    .and_then(|aur_file| fs::read(aur_file).ok())
+                    .map(|bytes| {
+                        String::from_utf8_lossy(&bytes).lines()
+                            .map(String::from)
+                            .collect()
+                    })
+                    .unwrap_or_default()
+            }
+        );
 
         // Show loading spinner
         imp.package_view.set_status(PackageViewStatus::PackageLoad);
@@ -1067,7 +1069,7 @@ impl PacViewWindow {
                 let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;
 
-                let aur_command = imp.prefs_dialog.get().unwrap().aur_command();
+                let aur_command = imp.prefs_dialog.get().unwrap().aur_update_command();
 
                 // Check for pacman updates async
                 let pacman_handle = async_command::run("/usr/bin/checkupdates");

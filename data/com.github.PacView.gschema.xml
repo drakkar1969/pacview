@@ -30,7 +30,7 @@
       <range min="1" max="10"/>
       <default>3</default>
     </key>
-    <key name="remember-sorting" type="b">
+    <key name="remember-sort" type="b">
       <default>false</default>
     </key>
     <key name="search-delay" type="d">
