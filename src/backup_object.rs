@@ -73,7 +73,7 @@ mod imp {
 
     impl BackupObject {
         //---------------------------------------
-        // Custom property getters
+        // Property getters
         //---------------------------------------
         fn file_hash(&self) -> Option<String> {
             self.file_hash.get_or_init(|| {

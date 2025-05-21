@@ -221,7 +221,7 @@ mod imp {
     #[glib::derived_properties]
     impl ObjectImpl for SearchBar {
         //---------------------------------------
-        // Custom signals
+        // Signals
         //---------------------------------------
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();

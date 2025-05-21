@@ -126,7 +126,7 @@ mod imp {
     #[glib::derived_properties]
     impl ObjectImpl for TextWidget {
         //---------------------------------------
-        // Custom signals
+        // Signals
         //---------------------------------------
         fn signals() -> &'static [Signal] {
             static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
@@ -340,7 +340,7 @@ mod imp {
         }
 
         //---------------------------------------
-        // Text property custom getter/setter
+        // Text property getter/setter
         //---------------------------------------
         fn text(&self) -> String {
             self.layout.get().unwrap().text().to_string()

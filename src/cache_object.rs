@@ -37,7 +37,7 @@ mod imp {
 
     impl CacheObject {
         //---------------------------------------
-        // Custom property getter
+        // Property getter
         //---------------------------------------
         fn get_icon(&self) -> String {
             if self.filename.borrow().ends_with(".sig") {

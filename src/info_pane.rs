@@ -156,7 +156,7 @@ mod imp {
     impl BinImpl for InfoPane {}
     impl InfoPane {
         //---------------------------------------
-        // Custom property getters/setters
+        // Property getter/setter
         //---------------------------------------
         fn pkg(&self) -> Option<PkgObject> {
             self.pkg_history.borrow().selected_item()

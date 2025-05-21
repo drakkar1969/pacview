@@ -73,7 +73,7 @@ mod imp {
         #[property(get, set, nullable)]
         update_version: RefCell<Option<String>>,
 
-        // Read-only properties with custom getter
+        // Read-only properties with getter
         #[property(name = "flags", get = Self::flags, type = PkgFlags)]
         #[property(name = "version", get = Self::version, type = String)]
         #[property(name = "show-version-icon", get = Self::show_version_icon, type = bool)]
