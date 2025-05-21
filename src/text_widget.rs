@@ -875,7 +875,7 @@ impl TextWidget {
     //---------------------------------------
     // Controller helper functions
     //---------------------------------------
-    fn index_at_xy(&self, x: f64, y: f64) -> (bool, i32) {
+    fn index_at_xy(&self, x: f64, y: f64) -> (bool, usize) {
         let layout = self.imp().layout.get().unwrap();
 
         let (inside, mut index, trailing) = layout.xy_to_index(pango::units_from_double(x), pango::units_from_double(y));
@@ -884,13 +884,13 @@ impl TextWidget {
             index += 1;
         }
 
-        (inside, index)
+        (inside, index as usize)
     }
 
     fn link_at_xy(&self, x: f64, y: f64) -> Option<TextTag> {
         let (inside, index) = self.index_at_xy(x, y);
 
-        if inside && index >= 0 {
+        if inside {
             return self.imp().link_list.borrow().iter()
                 .find(|&link| link.start <= index as u32 && link.end > index as u32)
                 .cloned()
@@ -971,7 +971,7 @@ impl TextWidget {
                     if !imp.is_clicked.get() {
                         let (_, index) = widget.index_at_xy(x, y);
 
-                        imp.selection_start.set(Some(index as usize));
+                        imp.selection_start.set(Some(index));
                         imp.selection_end.set(None);
                     }
 
@@ -987,7 +987,7 @@ impl TextWidget {
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let (_, index) = widget.index_at_xy(start_x + x, start_y + y);
 
-                    imp.selection_end.set(Some(index as usize));
+                    imp.selection_end.set(Some(index));
 
                     imp.draw_area.queue_draw();
                 }
@@ -1031,7 +1031,6 @@ impl TextWidget {
                         imp.is_clicked.set(true);
 
                         let (_, index) = widget.index_at_xy(x, y);
-                        let index = index as usize;
 
                         let text = widget.text();
                         let bytes = text.as_bytes();
