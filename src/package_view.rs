@@ -34,8 +34,9 @@ thread_local! {
 //------------------------------------------------------------------------------
 // ENUM: PackageViewStatus
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
+#[enum_type(name = "PackageViewStatus")]
 pub enum PackageViewStatus {
     #[default]
     Normal,
@@ -118,6 +119,8 @@ mod imp {
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
+        #[property(get, set = Self::set_status, builder(PackageViewStatus::default()))]
+        status: Cell<PackageViewStatus>,
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
@@ -161,6 +164,29 @@ mod imp {
 
     impl WidgetImpl for PackageView {}
     impl BinImpl for PackageView {}
+
+    impl PackageView{
+        //---------------------------------------
+        // Property setter
+        //---------------------------------------
+        pub fn set_status(&self, status: PackageViewStatus) {
+            match status {
+                PackageViewStatus::Normal => {
+                    self.stack.set_visible_child_name("view");
+                },
+                PackageViewStatus::PackageLoad => {
+                    self.loading_status.set_title("Loading Pacman Databases");
+                    self.stack.set_visible_child_name("spinner");
+                },
+                PackageViewStatus::AURDownload => {
+                    self.loading_status.set_title("Updating AUR Database");
+                    self.stack.set_visible_child_name("spinner");
+                }
+            }
+
+            self.status.set(status);
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -535,27 +561,6 @@ impl PackageView {
                 search_bar.set_searching(false);
             }
         ));
-    }
-
-    //---------------------------------------
-    // Public set status function
-    //---------------------------------------
-    pub fn set_status(&self, status: PackageViewStatus) {
-        let imp = self.imp();
-
-        match status {
-            PackageViewStatus::Normal => {
-                imp.stack.set_visible_child_name("view");
-            },
-            PackageViewStatus::PackageLoad => {
-                imp.loading_status.set_title("Loading Pacman Databases");
-                imp.stack.set_visible_child_name("spinner");
-            },
-            PackageViewStatus::AURDownload => {
-                imp.loading_status.set_title("Updating AUR Database");
-                imp.stack.set_visible_child_name("spinner");
-            }
-        }
     }
 
     //---------------------------------------
