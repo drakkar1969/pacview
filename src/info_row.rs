@@ -7,7 +7,6 @@ use gtk::prelude::*;
 use glib::clone;
 use glib::RustClosure;
 
-use crate::info_pane::InfoPane;
 use crate::text_widget::{TextWidget, LINK_SPACER};
 use crate::enum_traits::EnumExt;
 
@@ -299,19 +298,6 @@ impl InfoRow {
     //---------------------------------------
     pub fn set_pkg_link_handler(&self, handler: RustClosure) {
         self.imp().value_widget.connect_closure("package-link", false, handler);
-    }
-
-    //---------------------------------------
-    // Public bind infopane properties function
-    //---------------------------------------
-    pub fn bind_infopane_props(&self, infopane: &InfoPane, props: &[&str]) {
-        let value_widget = self.imp().value_widget.get();
-
-        for prop in props {
-            infopane.bind_property(prop, &value_widget, prop)
-                .sync_create()
-                .build();
-        }
     }
 
     //---------------------------------------

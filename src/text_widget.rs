@@ -12,6 +12,7 @@ use fancy_regex::Regex as FancyRegex;
 use regex::Regex;
 use url::Url;
 
+use crate::APP_ID;
 use crate::info_row::PropType;
 
 //------------------------------------------------------------------------------
@@ -149,6 +150,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.bind_gsettings();
             obj.setup_widget();
             obj.setup_layout();
             obj.setup_actions();
@@ -455,6 +457,25 @@ impl TextWidget {
     //---------------------------------------
     pub fn new() -> Self {
         glib::Object::builder().build()
+    }
+
+    //---------------------------------------
+    // Bind gsettings
+    //---------------------------------------
+    fn bind_gsettings(&self) {
+        let settings = gio::Settings::new(APP_ID);
+
+        settings.bind("property-max-lines", self, "property-max-lines")
+            .get()
+            .build();
+
+        settings.bind("property-line-spacing", self, "property-line-spacing")
+            .get()
+            .build();
+
+        settings.bind("underline-links", self, "underline-links")
+            .get()
+            .build();
     }
 
     //---------------------------------------

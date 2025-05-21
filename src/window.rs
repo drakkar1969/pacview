@@ -4,7 +4,6 @@ use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-use std::str::FromStr;
 use std::fs;
 
 use gtk::{gio, glib, gdk};
@@ -22,7 +21,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::{ALPM_HANDLE, PkgObject};
-use crate::search_bar::{SearchBar, SearchMode, SearchProp};
+use crate::search_bar::SearchBar;
 use crate::package_view::{PackageView, PackageViewStatus, SortProp};
 use crate::info_pane::InfoPane;
 use crate::filter_row::{FilterRow, Updates};
@@ -32,8 +31,7 @@ use crate::groups_window::GroupsWindow;
 use crate::log_window::LogWindow;
 use crate::cache_window::CacheWindow;
 use crate::config_dialog::ConfigDialog;
-use crate::preferences_dialog::{PreferencesDialog, ColorScheme};
-use crate::enum_traits::EnumExt;
+use crate::preferences_dialog::PreferencesDialog;
 use crate::utils::{async_command, aur_file};
 
 //------------------------------------------------------------------------------
@@ -97,8 +95,6 @@ mod imp {
 
         #[template_child]
         pub(super) prefs_dialog: TemplateChild<PreferencesDialog>,
-
-        pub(super) gsettings: OnceCell<gio::Settings>,
 
         pub(super) aur_file: OnceCell<PathBuf>,
 
@@ -251,14 +247,14 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.init_gsettings();
-            obj.load_gsettings();
+            obj.setup_signals();
+
+            obj.bind_gsettings();
 
             obj.init_cache_dir();
 
             obj.setup_widgets();
             obj.setup_actions();
-            obj.setup_signals();
 
             obj.setup_alpm(true);
 
@@ -267,18 +263,7 @@ mod imp {
     }
 
     impl WidgetImpl for PacViewWindow {}
-
-    impl WindowImpl for PacViewWindow {
-        //---------------------------------------
-        // Window close handler
-        //---------------------------------------
-        fn close_request(&self) -> glib::Propagation {
-            self.obj().save_gsettings();
-
-            glib::Propagation::Proceed
-        }
-    }
-
+    impl WindowImpl for PacViewWindow {}
     impl ApplicationWindowImpl for PacViewWindow {}
     impl AdwApplicationWindowImpl for PacViewWindow {}
 }
@@ -302,112 +287,197 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Init gsettings
+    // Setup signals
     //---------------------------------------
-    fn init_gsettings(&self) {
-        let gsettings = gio::Settings::new(APP_ID);
-
-        self.imp().gsettings.set(gsettings).unwrap();
-    }
-
-    //---------------------------------------
-    // Load gsettings
-    //---------------------------------------
-    fn load_gsettings(&self) {
+    fn setup_signals(&self) {
         let imp = self.imp();
 
-        let gsettings = imp.gsettings.get().unwrap();
+        // Header sort button clicked signal
+        imp.sort_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.package_view.set_sort_ascending(!imp.package_view.sort_ascending());
+            }
+        ));
 
-        // Load window settings
-        self.set_default_width(gsettings.int("window-width"));
-        self.set_default_height(gsettings.int("window-height"));
-        self.set_maximized(gsettings.boolean("window-maximized"));
+        // Repo listbox row activated signal
+        imp.repo_listbox.connect_row_activated(clone!(
+            #[weak] imp,
+            move |_, row| {
+                let repo_id = row
+                    .downcast_ref::<FilterRow>()
+                    .expect("Failed to downcast to 'FilterRow'")
+                    .repo_id();
 
-        // Load preferences
-        let color_scheme = ColorScheme::from_str(&gsettings.string("color-scheme")).unwrap();
-        imp.prefs_dialog.set_color_scheme(color_scheme);
+                imp.package_view.repo_filter_changed(repo_id.as_deref());
 
-        imp.prefs_dialog.set_auto_refresh(gsettings.boolean("auto-refresh"));
-        imp.prefs_dialog.set_aur_command(gsettings.string("aur-update-command"));
-        imp.prefs_dialog.set_aur_check(gsettings.boolean("aur-package-check"));
-        imp.prefs_dialog.set_sidebar_width(gsettings.double("sidebar-width"));
-        imp.prefs_dialog.set_infopane_width(gsettings.double("infopane-width"));
+                if imp.sidebar_split_view.is_collapsed() {
+                    imp.sidebar_split_view.set_show_sidebar(false);
+                }
 
-        let search_mode = SearchMode::from_str(&gsettings.string("search-mode")).unwrap();
-        imp.prefs_dialog.set_search_mode(search_mode);
-        imp.search_bar.set_mode(search_mode);
+                imp.package_view.view().grab_focus();
+            }
+        ));
 
-        let search_prop = SearchProp::from_str(&gsettings.string("search-prop")).unwrap();
-        imp.prefs_dialog.set_search_prop(search_prop);
-        imp.search_bar.set_prop(search_prop);
+        // Status listbox row activated signal
+        imp.status_listbox.connect_row_activated(clone!(
+            #[weak] imp,
+            move |_, row| {
+                let status_id = row
+                    .downcast_ref::<FilterRow>()
+                    .expect("Failed to downcast to 'FilterRow'")
+                    .status_id();
 
-        imp.prefs_dialog.set_search_delay(gsettings.double("search-delay"));
-        imp.prefs_dialog.set_remember_sort(gsettings.boolean("remember-sorting"));
-        imp.prefs_dialog.set_property_max_lines(gsettings.double("property-max-lines"));
-        imp.prefs_dialog.set_property_line_spacing(gsettings.double("property-line-spacing"));
-        imp.prefs_dialog.set_underline_links(gsettings.boolean("underline-links"));
+                imp.package_view.status_filter_changed(status_id);
 
-        // Load package view sort prop/order
-        if imp.prefs_dialog.remember_sort() {
-            let sort_prop = SortProp::from_str(&gsettings.string("sort-prop")).unwrap();
-            imp.package_view.set_sort_prop(sort_prop);
+                if imp.sidebar_split_view.is_collapsed() {
+                    imp.sidebar_split_view.set_show_sidebar(false);
+                }
 
-            imp.package_view.set_sort_ascending(gsettings.boolean("sort-ascending"));
-        }
+                imp.package_view.view().grab_focus();
+            }
+        ));
+
+        // Package view sort sort ascending property notify signal
+        imp.package_view.connect_sort_ascending_notify(clone!(
+            #[weak] imp,
+            move |view| {
+                let sort_asc = view.sort_ascending();
+
+                imp.sort_button.set_icon_name(
+                    if sort_asc {
+                        "view-sort-ascending-symbolic"
+                    } else {
+                        "view-sort-descending-symbolic"
+                    }
+                );
+
+                imp.sort_button.set_tooltip_text(
+                    Some(if sort_asc { "Descending" } else { "Ascending" })
+                );
+            }
+        ));
+
+        // Package view n_items property notify signal
+        imp.package_view.connect_n_items_notify(clone!(
+            #[weak] imp,
+            move |view| {
+                let n_items = view.n_items();
+
+                imp.status_label.set_label(
+                    &format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })
+                );
+            }
+        ));
+
+        // Preferences sidebar width property notify signal
+        imp.prefs_dialog.connect_sidebar_width_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                window.resize_window();
+            }
+        ));
+
+        // Preferences infopane width property notify signal
+        imp.prefs_dialog.connect_infopane_width_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                window.resize_window();
+            }
+        ));
+
+        // Preferences aur check property notify signal
+        imp.prefs_dialog.connect_aur_check_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                ActionGroupExt::activate_action(&window, "refresh", None);
+            }
+        ));
+
+        // Preferences search mode property notify signal
+        imp.prefs_dialog.connect_search_mode_notify(clone!(
+            #[weak] imp,
+            move |prefs_dialog| {
+                imp.search_bar.set_default_mode(prefs_dialog.search_mode());
+            }
+        ));
+
+        // Preferences search prop property notify signal
+        imp.prefs_dialog.connect_search_prop_notify(clone!(
+            #[weak] imp,
+            move |prefs_dialog| {
+                imp.search_bar.set_default_prop(prefs_dialog.search_prop());
+            }
+        ));
+
+        // Preferences search delay property notify signal
+        imp.prefs_dialog.connect_search_delay_notify(clone!(
+            #[weak] imp,
+            move |prefs_dialog| {
+                imp.search_bar.set_delay(prefs_dialog.search_delay() as u64);
+            }
+        ));
     }
 
     //---------------------------------------
-    // Set gsetting helper function
+    // Bind gsettings
     //---------------------------------------
-    fn set_gsetting<T: FromVariant + ToVariant + PartialEq>(gsettings: &gio::Settings, key: &str, value: &T) {
-        let default: T = gsettings.default_value(key)
-            .expect("Failed to get gsettings default value")
-            .get::<T>()
-            .expect("Failed to retrieve value from variant");
-
-        if !(default == *value && default == gsettings.get(key)) {
-            gsettings.set(key, value.to_variant()).unwrap();
-        }
-    }
-
-    //---------------------------------------
-    // Save gsettings
-    //---------------------------------------
-    fn save_gsettings(&self) {
+    fn bind_gsettings(&self) {
         let imp = self.imp();
 
-        let gsettings = imp.gsettings.get().unwrap();
+        let settings = gio::Settings::new(APP_ID);
 
-        // Save window settings
-        let (width, height) = self.default_size();
+        // Bind window settings
+        settings.bind("window-width", self, "default-width").build();
+        settings.bind("window-height", self, "default-height").build();
+        settings.bind("window-maximized", self, "maximized").build();
 
-        Self::set_gsetting(gsettings, "window-width", &width);
-        Self::set_gsetting(gsettings, "window-height", &height);
-        Self::set_gsetting(gsettings, "window-maximized", &self.is_maximized());
+        // Load initial search bar settings
+        settings.bind("search-mode", &imp.search_bar.get(), "mode")
+            .get()
+            .get_no_changes()
+            .build();
 
-        // Save preferences
-        Self::set_gsetting(gsettings, "color-scheme", &imp.prefs_dialog.color_scheme().nick());
-        Self::set_gsetting(gsettings, "auto-refresh", &imp.prefs_dialog.auto_refresh());
-        Self::set_gsetting(gsettings, "aur-update-command", &imp.prefs_dialog.aur_command());
-        Self::set_gsetting(gsettings, "aur-package-check", &imp.prefs_dialog.aur_check());
-        Self::set_gsetting(gsettings, "sidebar-width", &imp.prefs_dialog.sidebar_width());
-        Self::set_gsetting(gsettings, "infopane-width", &imp.prefs_dialog.infopane_width());
-        Self::set_gsetting(gsettings, "search-mode", &imp.prefs_dialog.search_mode().nick());
-        Self::set_gsetting(gsettings, "search-prop", &imp.prefs_dialog.search_prop().nick());
-        Self::set_gsetting(gsettings, "search-delay", &imp.prefs_dialog.search_delay());
-        Self::set_gsetting(gsettings, "remember-sorting", &imp.prefs_dialog.remember_sort());
-        Self::set_gsetting(gsettings, "property-max-lines", &imp.prefs_dialog.property_max_lines());
-        Self::set_gsetting(gsettings, "property-line-spacing", &imp.prefs_dialog.property_line_spacing());
-        Self::set_gsetting(gsettings, "underline-links", &imp.prefs_dialog.underline_links());
+        settings.bind("search-prop", &imp.search_bar.get(), "prop")
+            .get()
+            .get_no_changes()
+            .build();
 
-        // Save package view sort prop/order
+        // Bind preferences
+        settings.bind("color-scheme", &imp.prefs_dialog.get(), "color-scheme").build();
+        settings.bind("sidebar-width", &imp.prefs_dialog.get(), "sidebar-width").build();
+        settings.bind("infopane-width", &imp.prefs_dialog.get(), "infopane-width").build();
+        settings.bind("aur-update-command", &imp.prefs_dialog.get(), "aur-command").build();
+        settings.bind("aur-package-check", &imp.prefs_dialog.get(), "aur-check").build();
+        settings.bind("auto-refresh", &imp.prefs_dialog.get(), "auto-refresh").build();
+        settings.bind("remember-sorting", &imp.prefs_dialog.get(), "remember-sort").build();
+        settings.bind("search-mode", &imp.prefs_dialog.get(), "search-mode").build();
+        settings.bind("search-prop", &imp.prefs_dialog.get(), "search-prop").build();
+        settings.bind("search-delay", &imp.prefs_dialog.get(), "search-delay").build();
+        settings.bind("property-max-lines", &imp.prefs_dialog.get(), "property-max-lines").build();
+        settings.bind("property-line-spacing", &imp.prefs_dialog.get(), "property-line-spacing").build();
+        settings.bind("underline-links", &imp.prefs_dialog.get(), "underline-links").build();
+
+        // Load/save package view sort properties
         if imp.prefs_dialog.remember_sort() {
-            Self::set_gsetting(gsettings, "sort-prop", &imp.package_view.sort_prop().nick());
-            Self::set_gsetting(gsettings, "sort-ascending", &imp.package_view.sort_ascending());
-        } else {
-            Self::set_gsetting(gsettings, "sort-prop", &SortProp::default().nick());
-            Self::set_gsetting(gsettings, "sort-ascending", &true);
+            settings.bind("sort-prop", &imp.package_view.get(), "sort-prop")
+                .get()
+                .get_no_changes()
+                .build();
+
+            settings.bind("sort-ascending", &imp.package_view.get(), "sort-ascending")
+                .get()
+                .get_no_changes()
+                .build();
         }
+
+        settings.bind("sort-prop", &imp.package_view.get(), "sort-prop")
+            .set()
+            .build();
+
+        settings.bind("sort-ascending", &imp.package_view.get(), "sort-ascending")
+            .set()
+            .build();
     }
 
     //---------------------------------------
@@ -444,33 +514,6 @@ impl PacViewWindow {
         imp.infopane_button.bind_property("active", &imp.main_split_view.get(), "show-sidebar")
             .sync_create()
             .bidirectional()
-            .build();
-
-        // Bind search bar preferences
-        imp.prefs_dialog.bind_property("search-mode", &imp.search_bar.get(), "default-mode")
-            .sync_create()
-            .build();
-
-        imp.prefs_dialog.bind_property("search-prop", &imp.search_bar.get(), "default-prop")
-            .sync_create()
-            .build();
-
-        imp.prefs_dialog.bind_property("search-delay", &imp.search_bar.get(), "delay")
-            .sync_create()
-            .build();
-
-        // Bind info pane property preferences
-        imp.prefs_dialog.bind_property("property-max-lines", &imp.info_pane.get(), "property-max-lines")
-            .transform_to(|_, lines: f64| Some(lines as i32))
-            .sync_create()
-            .build();
-
-        imp.prefs_dialog.bind_property("property-line-spacing", &imp.info_pane.get(), "property-line-spacing")
-            .sync_create()
-            .build();
-
-        imp.prefs_dialog.bind_property("underline-links", &imp.info_pane.get(), "underline-links")
-            .sync_create()
             .build();
 
         // Create windows
@@ -581,14 +624,6 @@ impl PacViewWindow {
         self.add_action_entries([refresh_action, aur_action, copy_action, all_pkgs_action, reset_sort_action]);
         self.add_action(&sort_prop_action);
 
-        // Bind package view item count to copy list action enabled state
-        let copy_action = self.lookup_action("copy-package-list").unwrap();
-
-        imp.package_view.bind_property("n-items", &copy_action, "enabled")
-            .transform_to(|_, n_items: u32| Some(n_items > 0))
-            .sync_create()
-            .build();
-
         // Info pane set tab action with parameter
         let visible_tab_action = gio::ActionEntry::builder("infopane-set-tab", )
             .parameter_type(Some(&String::static_variant_type()))
@@ -661,115 +696,6 @@ impl PacViewWindow {
 
         // Add preference actions to window
         self.add_action_entries([prefs_action]);
-    }
-
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
-
-        // Header sort button clicked signal
-        imp.sort_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.package_view.set_sort_ascending(!imp.package_view.sort_ascending());
-            }
-        ));
-
-        // Repo listbox row activated signal
-        imp.repo_listbox.connect_row_activated(clone!(
-            #[weak] imp,
-            move |_, row| {
-                let repo_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Failed to downcast to 'FilterRow'")
-                    .repo_id();
-
-                imp.package_view.repo_filter_changed(repo_id.as_deref());
-
-                if imp.sidebar_split_view.is_collapsed() {
-                    imp.sidebar_split_view.set_show_sidebar(false);
-                }
-
-                imp.package_view.view().grab_focus();
-            }
-        ));
-
-        // Status listbox row activated signal
-        imp.status_listbox.connect_row_activated(clone!(
-            #[weak] imp,
-            move |_, row| {
-                let status_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Failed to downcast to 'FilterRow'")
-                    .status_id();
-
-                imp.package_view.status_filter_changed(status_id);
-
-                if imp.sidebar_split_view.is_collapsed() {
-                    imp.sidebar_split_view.set_show_sidebar(false);
-                }
-
-                imp.package_view.view().grab_focus();
-            }
-        ));
-
-        // Package view sort sort ascending property notify signal
-        imp.package_view.connect_sort_ascending_notify(clone!(
-            #[weak] imp,
-            move |view| {
-                let sort_asc = view.sort_ascending();
-
-                imp.sort_button.set_icon_name(
-                    if sort_asc {
-                        "view-sort-ascending-symbolic"
-                    } else {
-                        "view-sort-descending-symbolic"
-                    }
-                );
-
-                imp.sort_button.set_tooltip_text(
-                    Some(if sort_asc { "Descending" } else { "Ascending" })
-                );
-            }
-        ));
-
-        // Package view n_items property notify signal
-        imp.package_view.connect_n_items_notify(clone!(
-            #[weak] imp,
-            move |view| {
-                let n_items = view.n_items();
-
-                imp.status_label.set_label(
-                    &format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })
-                );
-            }
-        ));
-
-        // Preferences aur check property notify signal
-        imp.prefs_dialog.connect_aur_check_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                ActionGroupExt::activate_action(&window, "refresh", None);
-            }
-        ));
-
-        // Preferences sidebar width property notify signal
-        imp.prefs_dialog.connect_sidebar_width_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                window.resize_window();
-            }
-        ));
-
-        // Preferences infopane width property notify signal
-        imp.prefs_dialog.connect_infopane_width_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                window.resize_window();
-            }
-        ));
     }
 
     //---------------------------------------

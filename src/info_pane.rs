@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
@@ -112,12 +112,6 @@ mod imp {
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         _pkg: PhantomData<Option<PkgObject>>,
-        #[property(get, set)]
-        property_max_lines: Cell<i32>,
-        #[property(get, set)]
-        property_line_spacing: Cell<f64>,
-        #[property(get, set)]
-        underline_links: Cell<bool>,
 
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
 
@@ -554,10 +548,6 @@ impl InfoPane {
                 infopane.pkg_link_handler(pkg_name, pkg_version);
             }
         ));
-
-        row.bind_infopane_props(self,
-            &["property-max-lines", "property-line-spacing", "underline-links"]
-        );
 
         imp.info_listbox.append(&row);
 
