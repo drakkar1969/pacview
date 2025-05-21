@@ -93,9 +93,6 @@ mod imp {
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
 
-        #[template_child]
-        pub(super) prefs_dialog: TemplateChild<PreferencesDialog>,
-
         pub(super) aur_file: OnceCell<PathBuf>,
 
         pub(super) pacman_repos: OnceCell<Vec<String>>,
@@ -108,6 +105,8 @@ mod imp {
         pub(super) update_row: RefCell<FilterRow>,
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
+
+        pub(super) prefs_dialog: OnceCell<PreferencesDialog>,
 
         pub(super) backup_window: RefCell<Option<BackupWindow>>,
         pub(super) cache_window: RefCell<Option<CacheWindow>>,
@@ -247,6 +246,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_dialogs();
             obj.setup_signals();
 
             obj.bind_gsettings();
@@ -284,6 +284,26 @@ impl PacViewWindow {
     //---------------------------------------
     pub fn new(app: &PacViewApplication) -> Self {
         glib::Object::builder().property("application", app).build()
+    }
+
+    //---------------------------------------
+    // Setup dialogs
+    //---------------------------------------
+    fn setup_dialogs(&self) {
+        let imp = self.imp();
+
+        // Create preferences dialog
+        imp.prefs_dialog.set(PreferencesDialog::new()).unwrap();
+
+        // Create windows
+        imp.backup_window.replace(Some(BackupWindow::new(self)));
+        imp.cache_window.replace(Some(CacheWindow::new(self)));
+        imp.groups_window.replace(Some(GroupsWindow::new(self)));
+        imp.log_window.replace(Some(LogWindow::new(self)));
+        imp.stats_window.replace(Some(StatsWindow::new(self)));
+
+        // Create config dialog
+        imp.config_dialog.replace(Some(ConfigDialog::new()));
     }
 
     //---------------------------------------
@@ -370,8 +390,10 @@ impl PacViewWindow {
             }
         ));
 
+        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+
         // Preferences sidebar width property notify signal
-        imp.prefs_dialog.connect_sidebar_width_notify(clone!(
+        prefs_dialog.connect_sidebar_width_notify(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
                 window.resize_window();
@@ -379,7 +401,7 @@ impl PacViewWindow {
         ));
 
         // Preferences infopane width property notify signal
-        imp.prefs_dialog.connect_infopane_width_notify(clone!(
+        prefs_dialog.connect_infopane_width_notify(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
                 window.resize_window();
@@ -387,7 +409,7 @@ impl PacViewWindow {
         ));
 
         // Preferences aur check property notify signal
-        imp.prefs_dialog.connect_aur_check_notify(clone!(
+        prefs_dialog.connect_aur_check_notify(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
                 ActionGroupExt::activate_action(&window, "refresh", None);
@@ -395,7 +417,7 @@ impl PacViewWindow {
         ));
 
         // Preferences search mode property notify signal
-        imp.prefs_dialog.connect_search_mode_notify(clone!(
+        prefs_dialog.connect_search_mode_notify(clone!(
             #[weak] imp,
             move |prefs_dialog| {
                 imp.search_bar.set_default_mode(prefs_dialog.search_mode());
@@ -403,7 +425,7 @@ impl PacViewWindow {
         ));
 
         // Preferences search prop property notify signal
-        imp.prefs_dialog.connect_search_prop_notify(clone!(
+        prefs_dialog.connect_search_prop_notify(clone!(
             #[weak] imp,
             move |prefs_dialog| {
                 imp.search_bar.set_default_prop(prefs_dialog.search_prop());
@@ -411,7 +433,7 @@ impl PacViewWindow {
         ));
 
         // Preferences search delay property notify signal
-        imp.prefs_dialog.connect_search_delay_notify(clone!(
+        prefs_dialog.connect_search_delay_notify(clone!(
             #[weak] imp,
             move |prefs_dialog| {
                 imp.search_bar.set_delay(prefs_dialog.search_delay() as u64);
@@ -444,22 +466,24 @@ impl PacViewWindow {
             .build();
 
         // Bind preferences
-        settings.bind("color-scheme", &imp.prefs_dialog.get(), "color-scheme").build();
-        settings.bind("sidebar-width", &imp.prefs_dialog.get(), "sidebar-width").build();
-        settings.bind("infopane-width", &imp.prefs_dialog.get(), "infopane-width").build();
-        settings.bind("aur-update-command", &imp.prefs_dialog.get(), "aur-command").build();
-        settings.bind("aur-package-check", &imp.prefs_dialog.get(), "aur-check").build();
-        settings.bind("auto-refresh", &imp.prefs_dialog.get(), "auto-refresh").build();
-        settings.bind("remember-sorting", &imp.prefs_dialog.get(), "remember-sort").build();
-        settings.bind("search-mode", &imp.prefs_dialog.get(), "search-mode").build();
-        settings.bind("search-prop", &imp.prefs_dialog.get(), "search-prop").build();
-        settings.bind("search-delay", &imp.prefs_dialog.get(), "search-delay").build();
-        settings.bind("property-max-lines", &imp.prefs_dialog.get(), "property-max-lines").build();
-        settings.bind("property-line-spacing", &imp.prefs_dialog.get(), "property-line-spacing").build();
-        settings.bind("underline-links", &imp.prefs_dialog.get(), "underline-links").build();
+        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+
+        settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
+        settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
+        settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
+        settings.bind("aur-update-command", prefs_dialog, "aur-command").build();
+        settings.bind("aur-package-check", prefs_dialog, "aur-check").build();
+        settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
+        settings.bind("remember-sorting", prefs_dialog, "remember-sort").build();
+        settings.bind("search-mode", prefs_dialog, "search-mode").build();
+        settings.bind("search-prop", prefs_dialog, "search-prop").build();
+        settings.bind("search-delay", prefs_dialog, "search-delay").build();
+        settings.bind("property-max-lines", prefs_dialog, "property-max-lines").build();
+        settings.bind("property-line-spacing", prefs_dialog, "property-line-spacing").build();
+        settings.bind("underline-links", prefs_dialog, "underline-links").build();
 
         // Load/save package view sort properties
-        if imp.prefs_dialog.remember_sort() {
+        if prefs_dialog.remember_sort() {
             settings.bind("sort-prop", &imp.package_view.get(), "sort-prop")
                 .get()
                 .get_no_changes()
@@ -515,16 +539,6 @@ impl PacViewWindow {
             .sync_create()
             .bidirectional()
             .build();
-
-        // Create windows
-        imp.backup_window.replace(Some(BackupWindow::new(self)));
-        imp.cache_window.replace(Some(CacheWindow::new(self)));
-        imp.groups_window.replace(Some(GroupsWindow::new(self)));
-        imp.log_window.replace(Some(LogWindow::new(self)));
-        imp.stats_window.replace(Some(StatsWindow::new(self)));
-
-        // Create config dialog
-        imp.config_dialog.replace(Some(ConfigDialog::new()));
 
         self.resize_window();
     }
@@ -690,7 +704,7 @@ impl PacViewWindow {
         // Show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
             .activate(|window: &Self, _, _| {
-                window.imp().prefs_dialog.present(Some(window));
+                window.imp().prefs_dialog.get().unwrap().present(Some(window));
             })
             .build();
 
@@ -704,8 +718,10 @@ impl PacViewWindow {
     fn resize_window(&self) {
         let imp = self.imp();
 
-        let sidebar_width = imp.prefs_dialog.sidebar_width();
-        let infopane_width = imp.prefs_dialog.infopane_width();
+        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+
+        let sidebar_width = prefs_dialog.sidebar_width();
+        let infopane_width = prefs_dialog.infopane_width();
 
         let min_packageview_width = 500.0;
 
@@ -905,7 +921,7 @@ impl PacViewWindow {
         *PACMAN_CACHE.lock().unwrap() = cache_files;
 
         // Load AUR package names from file if AUR check is enabled in preferences
-        let aur_names: Option<Vec<String>> = imp.prefs_dialog.aur_check().then(|| {
+        let aur_names: Option<Vec<String>> = imp.prefs_dialog.get().unwrap().aur_check().then(|| {
             imp.aur_file.get()
                 .and_then(|aur_file| fs::read(aur_file).ok())
                 .map(|bytes| {
@@ -1049,7 +1065,7 @@ impl PacViewWindow {
                 let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;
 
-                let aur_command = imp.prefs_dialog.aur_command();
+                let aur_command = imp.prefs_dialog.get().unwrap().aur_command();
 
                 // Check for pacman updates async
                 let pacman_handle = async_command::run("/usr/bin/checkupdates");
@@ -1160,7 +1176,7 @@ impl PacViewWindow {
                 #[weak(rename_to = window)] self,
                 async move {
                     while receiver.recv().await == Ok(()) {
-                        if window.imp().prefs_dialog.auto_refresh() {
+                        if window.imp().prefs_dialog.get().unwrap().auto_refresh() {
                             ActionGroupExt::activate_action(&window, "refresh", None);
                         }
                     }

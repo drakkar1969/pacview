@@ -189,9 +189,6 @@
         </property>
       </object>
     </property>
-
-    <object class="PreferencesDialog" id="prefs_dialog">
-    </object>
   </template>
 
   <!--// Primary menu //-->
