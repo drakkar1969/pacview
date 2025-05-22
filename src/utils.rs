@@ -84,6 +84,7 @@ pub mod aur_file {
 	use std::io::Read;
 
     use flate2::read::GzDecoder;
+    use tokio::task::JoinHandle as TokioJoinHandle;
 
     use crate::utils::tokio_runtime;
 
@@ -114,7 +115,7 @@ pub mod aur_file {
     //---------------------------------------
     // Download AUR names async function
     //---------------------------------------
-    pub fn download_future(aur_file: &PathBuf) -> tokio::task::JoinHandle<Result<(), reqwest::Error>> {
+    pub fn download_future(aur_file: &PathBuf) -> TokioJoinHandle<Result<(), reqwest::Error>> {
         let aur_file = aur_file.to_owned();
 
         // Spawn tokio task to download AUR file

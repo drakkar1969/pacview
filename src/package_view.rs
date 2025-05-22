@@ -398,7 +398,12 @@ impl PackageView {
     //---------------------------------------
     // Do search async helper function
     //---------------------------------------
-    async fn do_search_async(term: &str, prop: SearchProp, installed_pkg_names: &HashSet<String>, aur_cache: &Arc<TokioMutex<HashSet<raur::ArcPackage>>>) -> Result<Vec<raur::ArcPackage>, raur::Error> {
+    async fn do_search_async(
+        term: &str,
+        prop: SearchProp,
+        installed_pkg_names: &HashSet<String>,
+        aur_cache: &Arc<TokioMutex<HashSet<raur::ArcPackage>>>
+    ) -> Result<Vec<raur::ArcPackage>, raur::Error> {
         let handle = raur::Handle::new();
 
         // Return if query arg too small
