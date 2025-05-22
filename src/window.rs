@@ -106,7 +106,7 @@ mod imp {
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
 
-        pub(super) prefs_dialog: OnceCell<PreferencesDialog>,
+        pub(super) prefs_dialog: RefCell<PreferencesDialog>,
 
         pub(super) backup_window: OnceCell<BackupWindow>,
         pub(super) cache_window: OnceCell<CacheWindow>,
@@ -114,7 +114,7 @@ mod imp {
         pub(super) log_window: OnceCell<LogWindow>,
         pub(super) stats_window: OnceCell<StatsWindow>,
 
-        pub(super) config_dialog: OnceCell<ConfigDialog>,
+        pub(super) config_dialog: RefCell<ConfigDialog>,
      }
 
     //---------------------------------------
@@ -298,7 +298,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Create preferences dialog
-        imp.prefs_dialog.set(PreferencesDialog::default()).unwrap();
+        imp.prefs_dialog.replace(PreferencesDialog::default());
 
         // Create windows
         imp.backup_window.set(BackupWindow::new(self)).unwrap();
@@ -308,7 +308,7 @@ impl PacViewWindow {
         imp.stats_window.set(StatsWindow::new(self)).unwrap();
 
         // Create config dialog
-        imp.config_dialog.set(ConfigDialog::default()).unwrap();
+        imp.config_dialog.replace(ConfigDialog::default());
     }
 
     //---------------------------------------
@@ -317,7 +317,7 @@ impl PacViewWindow {
     fn resize_window(&self) {
         let imp = self.imp();
 
-        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+        let prefs_dialog = imp.prefs_dialog.borrow();
 
         let sidebar_width = prefs_dialog.sidebar_width();
         let infopane_width = prefs_dialog.infopane_width();
@@ -432,7 +432,7 @@ impl PacViewWindow {
             }
         ));
 
-        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+        let prefs_dialog = imp.prefs_dialog.borrow();
 
         // Preferences sidebar width property notify signal
         prefs_dialog.connect_sidebar_width_notify(clone!(
@@ -510,21 +510,21 @@ impl PacViewWindow {
             .build();
 
         // Bind preferences
-        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+        let prefs_dialog = imp.prefs_dialog.borrow();
 
-        settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
-        settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
-        settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
-        settings.bind("aur-update-command", prefs_dialog, "aur-update-command").build();
-        settings.bind("aur-package-check", prefs_dialog, "aur-package-check").build();
-        settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
-        settings.bind("remember-sort", prefs_dialog, "remember-sort").build();
-        settings.bind("search-mode", prefs_dialog, "search-mode").build();
-        settings.bind("search-prop", prefs_dialog, "search-prop").build();
-        settings.bind("search-delay", prefs_dialog, "search-delay").build();
-        settings.bind("property-max-lines", prefs_dialog, "property-max-lines").build();
-        settings.bind("property-line-spacing", prefs_dialog, "property-line-spacing").build();
-        settings.bind("underline-links", prefs_dialog, "underline-links").build();
+        settings.bind("color-scheme", &*prefs_dialog, "color-scheme").build();
+        settings.bind("sidebar-width", &*prefs_dialog, "sidebar-width").build();
+        settings.bind("infopane-width", &*prefs_dialog, "infopane-width").build();
+        settings.bind("aur-update-command", &*prefs_dialog, "aur-update-command").build();
+        settings.bind("aur-package-check", &*prefs_dialog, "aur-package-check").build();
+        settings.bind("auto-refresh", &*prefs_dialog, "auto-refresh").build();
+        settings.bind("remember-sort", &*prefs_dialog, "remember-sort").build();
+        settings.bind("search-mode", &*prefs_dialog, "search-mode").build();
+        settings.bind("search-prop", &*prefs_dialog, "search-prop").build();
+        settings.bind("search-delay", &*prefs_dialog, "search-delay").build();
+        settings.bind("property-max-lines", &*prefs_dialog, "property-max-lines").build();
+        settings.bind("property-line-spacing", &*prefs_dialog, "property-line-spacing").build();
+        settings.bind("underline-links", &*prefs_dialog, "underline-links").build();
 
         // Load/save package view sort properties
         if prefs_dialog.remember_sort() {
@@ -641,12 +641,12 @@ impl PacViewWindow {
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
-                    let aur_file = aur_file.to_owned();
+                    let aur_file_owned = aur_file.to_owned();
 
                     glib::spawn_future_local(clone!(
                         #[weak] window,
                         async move {
-                            let _ = aur_file::download_future(&aur_file).await
+                            let _ = aur_file::download_future(&aur_file_owned).await
                                 .expect("Failed to complete tokio task");
 
                             // Refresh packages
@@ -747,7 +747,7 @@ impl PacViewWindow {
         // Show pacman config window action
         let config_action = gio::ActionEntry::builder("show-pacman-config")
             .activate(|window: &Self, _, _| {
-                window.imp().config_dialog.get().unwrap().present(Some(window));
+                window.imp().config_dialog.borrow().present(Some(window));
             })
             .build();
 
@@ -757,7 +757,7 @@ impl PacViewWindow {
         // Show preferences action
         let prefs_action = gio::ActionEntry::builder("show-preferences")
             .activate(|window: &Self, _, _| {
-                window.imp().prefs_dialog.get().unwrap().present(Some(window));
+                window.imp().prefs_dialog.borrow().present(Some(window));
             })
             .build();
 
@@ -814,7 +814,7 @@ impl PacViewWindow {
             let (pacman_config, pacman_repos) = Self::pacman_config();
 
             // Init config dialog
-            imp.config_dialog.get().unwrap().init(&pacman_config);
+            imp.config_dialog.borrow().init(&pacman_config);
 
             // Store pacman repos
             imp.pacman_repos.set(pacman_repos).unwrap();
@@ -854,12 +854,12 @@ impl PacViewWindow {
             imp.package_view.set_status(PackageViewStatus::AURDownload);
             imp.info_pane.set_pkg(None::<PkgObject>);
 
-            let aur_file = aur_file.to_owned();
+            let aur_file_owned = aur_file.to_owned();
 
             glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,
                 async move {
-                    let _ = aur_file::download_future(&aur_file).await
+                    let _ = aur_file::download_future(&aur_file_owned).await
                         .expect("Failed to complete tokio task");
 
                     // Load packages (no AUR file age check)
@@ -943,7 +943,7 @@ impl PacViewWindow {
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
         // Get AUR package names file
-        let aur_package_check = imp.prefs_dialog.get().unwrap().aur_package_check();
+        let aur_check = imp.prefs_dialog.borrow().aur_package_check();
         let aur_file = imp.aur_file.get().map(ToOwned::to_owned);
 
         // Create task to load package data
@@ -953,10 +953,10 @@ impl PacViewWindow {
 
             // Load AUR package names from file if AUR check is enabled in preferences
             let aur_names: Option<Vec<String>> = aur_file
-                .filter(|_| aur_package_check)
+                .filter(|_| aur_check)
                 .and_then(|aur_file| fs::read(aur_file).ok())
                 .map(|bytes| {
-                    String::from_utf8_lossy(&bytes).lines().map(String::from).collect()
+                    String::from_utf8_lossy(&bytes).lines().map(ToOwned::to_owned).collect()
                 });
 
             let syncdbs = handle.syncdbs();
@@ -1089,7 +1089,7 @@ impl PacViewWindow {
                 let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;
 
-                let aur_command = imp.prefs_dialog.get().unwrap().aur_update_command();
+                let aur_command = imp.prefs_dialog.borrow().aur_update_command();
 
                 // Check for pacman updates async
                 let pacman_handle = async_command::run("/usr/bin/checkupdates");
@@ -1200,7 +1200,7 @@ impl PacViewWindow {
                 #[weak(rename_to = window)] self,
                 async move {
                     while receiver.recv().await == Ok(()) {
-                        if window.imp().prefs_dialog.get().unwrap().auto_refresh() {
+                        if window.imp().prefs_dialog.borrow().auto_refresh() {
                             ActionGroupExt::activate_action(&window, "refresh", None);
                         }
                     }
