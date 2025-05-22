@@ -552,8 +552,9 @@ impl PacViewWindow {
     // Init cache dir
     //---------------------------------------
     fn init_cache_dir(&self) {
-        if let Some(aur_file) = xdg::BaseDirectories::new().ok()
-            .and_then(|xdg_dirs| xdg_dirs.create_cache_directory("pacview").ok())
+        let xdg_dirs = xdg::BaseDirectories::new();
+
+        if let Ok(aur_file) = xdg_dirs.create_cache_directory("pacview")
             .map(|cache_dir| cache_dir.join("aur_packages"))
         {
             self.imp().aur_file.set(aur_file).unwrap();

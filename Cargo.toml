@@ -32,7 +32,7 @@ strum = { version = "0.27", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 tokio-util = "0.7"
 url = "2"
-xdg = "2.5"
+xdg = "3"
 
 [build-dependencies]
 glib-build-tools = "0.20"
