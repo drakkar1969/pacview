@@ -90,33 +90,35 @@ pub mod aur_file {
     //---------------------------------------
     // Check file age function
     //---------------------------------------
-    pub fn check_file_age(aur_file: Option<&PathBuf>) {
-        if let Some(aur_file) = aur_file {
-            // Get AUR package names file age
-            let file_time = fs::metadata(aur_file).ok()
-                .and_then(|metadata| metadata.modified().ok())
-                .and_then(|file_time| {
-                    let now = std::time::SystemTime::now();
+    pub fn check_file_age(aur_file: &PathBuf) {
+        // Get AUR package names file age
+        let file_time = fs::metadata(aur_file).ok()
+            .and_then(|metadata| metadata.modified().ok())
+            .and_then(|file_time| {
+                let now = std::time::SystemTime::now();
 
-                    now.duration_since(file_time).ok()
-                });
+                now.duration_since(file_time).ok()
+            });
 
-            // Spawn tokio task to download AUR package names file if does not exist or older than 1 day
-            if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(24 * 60 * 60) {
-                download_async(aur_file, || {});
-            }
+        // Spawn tokio task to download AUR package names file if does not exist or older than 1 day
+        if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(24 * 60 * 60) {
+            let aur_file = aur_file.to_owned();
+
+            glib::spawn_future_local(async move {
+                let _ = download_future(&aur_file).await
+                    .expect("Failed to complete tokio task");
+            });
         }
     }
 
     //---------------------------------------
     // Download AUR names async function
     //---------------------------------------
-    pub fn download_async<F>(aur_file: &PathBuf, f: F)
-    where F: Fn() + 'static {
+    pub fn download_future(aur_file: &PathBuf) -> tokio::task::JoinHandle<Result<(), reqwest::Error>> {
         let aur_file = aur_file.to_owned();
 
         // Spawn tokio task to download AUR file
-        let download_future = tokio_runtime::runtime().spawn(
+        tokio_runtime::runtime().spawn(
             async move {
                 let url = "https://aur.archlinux.org/packages.gz";
 
@@ -134,16 +136,6 @@ pub mod aur_file {
 
                 Ok::<(), reqwest::Error>(())
             }
-        );
-
-        // Await task
-        glib::spawn_future_local(
-            async move {
-                let _ = download_future.await
-                    .expect("Failed to complete tokio task");
-
-                f();
-            }
-        );
+        )
     }
 }

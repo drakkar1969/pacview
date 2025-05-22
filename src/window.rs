@@ -640,10 +640,13 @@ impl PacViewWindow {
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
-                    aur_file::download_async(aur_file, clone!(
+                    let aur_file = aur_file.to_owned();
+
+                    glib::spawn_future_local(clone!(
                         #[weak] window,
-                        move || {
-                            window.imp().package_view.set_status(PackageViewStatus::Normal);
+                        async move {
+                            let _ = aur_file::download_future(&aur_file).await
+                                .expect("Failed to complete tokio task");
 
                             // Refresh packages
                             ActionGroupExt::activate_action(&window, "refresh", None);
@@ -762,75 +765,113 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Setup alpm associated helper functions
+    //---------------------------------------
+    fn pacman_config() -> (pacmanconf::Config, Vec<String>) {
+        let config = pacmanconf::Config::new()
+            .expect("Failed to get pacman config");
+
+        // Get pacman repositories
+        let repos: Vec<String> = config.repos.iter()
+            .map(|r| r.name.clone())
+            .chain([String::from("aur"), String::from("local")])
+            .collect();
+
+        (config, repos)
+    }
+
+    fn pacman_log(pacman_config: &pacmanconf::Config) -> Option<String>{
+        fs::read_to_string(&pacman_config.log_file).ok()
+    }
+
+    fn pacman_cache(pacman_config: &pacmanconf::Config) -> Vec<PathBuf> {
+        let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
+            .flat_map(|dir| {
+                fs::read_dir(dir).map_or(vec![], |read_dir| {
+                    read_dir.into_iter()
+                        .flatten()
+                        .map(|entry| entry.path())
+                        .collect()
+                })
+            })
+            .collect();
+
+        cache_files.sort_unstable();
+
+        cache_files
+    }
+
+    //---------------------------------------
     // Setup alpm
     //---------------------------------------
     fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
-        if first_load {
-            self.get_pacman_config();
-        }
+        // Init pacman config if necessary
+        let pacman_config = PACMAN_CONFIG.get_or_init(|| {
+            // Get pacman config
+            let (pacman_config, pacman_repos) = Self::pacman_config();
 
-        self.populate_sidebar(first_load);
+            // Init config dialog
+            imp.config_dialog.get().unwrap().init(&pacman_config);
+
+            // Store pacman repos
+            imp.pacman_repos.set(pacman_repos).unwrap();
+
+            pacman_config
+        });
+
+        // Load pacman log
+        *PACMAN_LOG.lock().unwrap() = Self::pacman_log(pacman_config);
+
+        // Load pacman cache
+        *PACMAN_CACHE.lock().unwrap() = Self::pacman_cache(pacman_config);
+
+        // Clear windows
+        imp.backup_window.get().unwrap().remove_all();
+        imp.log_window.get().unwrap().remove_all();
+        imp.cache_window.get().unwrap().remove_all();
+        imp.groups_window.get().unwrap().remove_all();
+        imp.stats_window.get().unwrap().remove_all();
+
+        // Populate sidebar
+        self.alpm_populate_sidebar(first_load);
 
         // If first load, get AUR file path
         let Some(aur_file) = imp.aur_file.get().filter(|_| first_load) else {
             // Not first load or invalid path: load packages (no AUR file age check) and return
-            self.load_packages(false);
+            self.alpm_load_packages(false);
 
             return
         };
 
-        if fs::exists(aur_file).is_ok_and(|exists| exists) {
+        if fs::metadata(aur_file).is_ok() {
             // AUR file exists: load packages and check AUR file age
-            self.load_packages(true);
+            self.alpm_load_packages(true);
         } else {
             // AUR file does not exist: spawn tokio task to download it
             imp.package_view.set_status(PackageViewStatus::AURDownload);
             imp.info_pane.set_pkg(None::<PkgObject>);
 
-            aur_file::download_async(aur_file, clone!(
+            let aur_file = aur_file.to_owned();
+
+            glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,
-                move || {
-                    window.imp().package_view.set_status(PackageViewStatus::Normal);
+                async move {
+                    let _ = aur_file::download_future(&aur_file).await
+                        .expect("Failed to complete tokio task");
 
                     // Load packages (no AUR file age check)
-                    window.load_packages(false);
+                    window.alpm_load_packages(false);
                 }
             ));
         }
     }
 
     //---------------------------------------
-    // Setup alpm: get pacman config
-    //---------------------------------------
-    fn get_pacman_config(&self) {
-        let imp = self.imp();
-
-        // Get pacman config
-        let pacman_config = pacmanconf::Config::new()
-            .expect("Failed to get pacman config");
-
-        // Get pacman repositories
-        let pacman_repos: Vec<String> = pacman_config.repos.iter()
-            .map(|r| r.name.clone())
-            .chain([String::from("aur"), String::from("local")])
-            .collect();
-
-        // Init config dialog
-        imp.config_dialog.get().unwrap().init(&pacman_config);
-
-        // Store pacman config
-        PACMAN_CONFIG.set(pacman_config).unwrap();
-
-        // Store pacman repos
-        imp.pacman_repos.set(pacman_repos).unwrap();
-    }
-
-    //---------------------------------------
     // Setup alpm: populate sidebar
     //---------------------------------------
-    fn populate_sidebar(&self, first_load: bool) {
+    fn alpm_populate_sidebar(&self, first_load: bool) {
         let imp = self.imp();
 
         // Add repository rows (enumerate pacman repositories)
@@ -894,103 +935,71 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn load_packages(&self, check_aur_file: bool) {
+    fn alpm_load_packages(&self, check_aur_file: bool) {
         let imp = self.imp();
-
-        // Hide update count in sidebar
-        imp.update_row.borrow().set_status(Updates::Output(None, 0));
-
-        // Reset AUR search
-        imp.package_view.reset_aur_search();
-
-        // Clear windows
-        imp.backup_window.get().unwrap().remove_all();
-        imp.log_window.get().unwrap().remove_all();
-        imp.cache_window.get().unwrap().remove_all();
-        imp.groups_window.get().unwrap().remove_all();
-        imp.stats_window.get().unwrap().remove_all();
 
         // Get pacman config
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
-        // Load pacman log
-        *PACMAN_LOG.lock().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
+        // Get AUR package names file
+        let aur_package_check = imp.prefs_dialog.get().unwrap().aur_package_check();
+        let aur_file = imp.aur_file.get().map(ToOwned::to_owned);
 
-        // Load pacman cache
-        let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
-            .flat_map(|dir| {
-                fs::read_dir(dir).map_or(vec![], |read_dir| {
-                    read_dir.into_iter()
-                        .flatten()
-                        .map(|entry| entry.path())
-                        .collect()
-                })
-            })
-            .collect();
-
-        cache_files.sort_unstable();
-
-        *PACMAN_CACHE.lock().unwrap() = cache_files;
-
-        // Load AUR package names from file if AUR check is enabled in preferences
-        let aur_names: Option<Vec<String>> = imp.prefs_dialog.get().unwrap().aur_package_check()
-            .then(|| {
-                imp.aur_file.get()
-                    .and_then(|aur_file| fs::read(aur_file).ok())
-                    .map(|bytes| {
-                        String::from_utf8_lossy(&bytes).lines()
-                            .map(String::from)
-                            .collect()
-                    })
-                    .unwrap_or_default()
-            }
-        );
-
-        // Show loading spinner
-        imp.package_view.set_status(PackageViewStatus::PackageLoad);
-
-        // Clear info pane package
-        imp.info_pane.set_pkg(None::<PkgObject>);
-
-        // Spawn task to load packages
+        // Create task to load packages
         let alpm_future = gio::spawn_blocking(move || {
-            match alpm_utils::alpm_with_conf(pacman_config) {
-                Ok(handle) => {
-                    let localdb = handle.localdb();
-                    let syncdbs = handle.syncdbs();
+            // Get alpm handle
+            let handle = alpm_utils::alpm_with_conf(pacman_config)?;
 
-                    // Load pacman sync packages
-                    let mut pkg_data: Vec<PkgData> = syncdbs.iter()
-                        .flat_map(|db| {
-                            db.pkgs().iter()
-                                .map(|sync_pkg| {
-                                    let local_pkg = localdb.pkg(sync_pkg.name()).ok();
+            // Load AUR package names from file if AUR check is enabled in preferences
+            let aur_names: Option<Vec<String>> = aur_file
+                .filter(|_| aur_package_check)
+                .and_then(|aur_file| fs::read(aur_file).ok())
+                .map(|bytes| {
+                    String::from_utf8_lossy(&bytes).lines().map(String::from).collect()
+                });
 
-                                    PkgData::from_alpm(sync_pkg, local_pkg, aur_names.as_deref())
-                                })
+            let syncdbs = handle.syncdbs();
+            let localdb = handle.localdb();
+
+            // Load pacman sync packages
+            let mut pkg_data: Vec<PkgData> = syncdbs.iter()
+                .flat_map(|db| {
+                    db.pkgs().iter()
+                        .map(|sync_pkg| {
+                            let local_pkg = localdb.pkg(sync_pkg.name()).ok();
+
+                            PkgData::from_alpm(sync_pkg, local_pkg, aur_names.as_deref())
                         })
-                        .collect();
+                })
+                .collect();
 
-                    // Load pacman local packages not in sync databases
-                    pkg_data.extend(localdb.pkgs().iter()
-                        .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
-                        .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), aur_names.as_deref()))
-                    );
+            // Load pacman local packages not in sync databases
+            pkg_data.extend(localdb.pkgs().iter()
+                .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
+                .map(|pkg| PkgData::from_alpm(pkg, Some(pkg), aur_names.as_deref()))
+            );
 
-                    Ok(pkg_data)
-                },
-                Err(error) => {
-                    Err(error)
-                }
-            }
+            Ok(pkg_data)
         });
 
-        // Await task
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
             #[weak] imp,
             async move {
-                let result = alpm_future.await
+                // Hide update count in sidebar
+                imp.update_row.borrow().set_status(Updates::Output(None, 0));
+
+                // Show package view loading spinner
+                imp.package_view.set_status(PackageViewStatus::PackageLoad);
+
+                // Clear info pane package
+                imp.info_pane.set_pkg(None::<PkgObject>);
+
+                // Reset AUR search
+                imp.package_view.reset_aur_search();
+
+                // Get alpm package data (await task)
+                let result: alpm::Result<Vec<PkgData>> = alpm_future.await
                     .expect("Failed to complete task");
 
                 match result {
@@ -1034,9 +1043,9 @@ impl PacViewWindow {
 
                         // Check AUR package names file age
                         if check_aur_file {
-                            let aur_file = imp.aur_file.get();
-
-                            aur_file::check_file_age(aur_file);
+                            if let Some(aur_file) = imp.aur_file.get() {
+                                aur_file::check_file_age(aur_file);
+                            }
                         }
                     },
                     Err(error) => {
