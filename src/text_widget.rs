@@ -24,7 +24,7 @@ pub const LINK_SPACER: &str = "     ";
 //------------------------------------------------------------------------------
 // STRUCT: Marker
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 struct TextTag {
     text: String,
     version: String,

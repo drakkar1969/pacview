@@ -9,7 +9,7 @@ use crate::pkg_data::PkgFlags;
 //------------------------------------------------------------------------------
 // ENUM: Updates
 //------------------------------------------------------------------------------
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 #[repr(u32)]
 pub enum Updates {
     Output(Option<String>, u32),

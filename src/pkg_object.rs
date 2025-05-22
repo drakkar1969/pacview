@@ -25,7 +25,7 @@ thread_local! {
 //------------------------------------------------------------------------------
 // STRUCT: PkgBackup
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Clone)]
+#[derive(Debug)]
 pub struct PkgBackup {
     filename: String,
     hash: String,
