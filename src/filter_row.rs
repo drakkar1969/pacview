@@ -13,6 +13,7 @@ use crate::pkg_data::PkgFlags;
 #[repr(u32)]
 pub enum Updates {
     Output(Option<String>, u32),
+    Reset,
     Checking,
 }
 
@@ -128,6 +129,11 @@ impl FilterRow {
                     imp.error_button.set_visible(false);
                 }
             },
+            Updates::Reset => {
+                imp.spinner.set_visible(false);
+                imp.count_label.set_visible(false);
+                imp.error_button.set_visible(false);
+            }
             Updates::Checking => {
                 imp.error_button.set_visible(false);
                 imp.count_label.set_visible(false);

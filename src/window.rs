@@ -636,7 +636,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 if let Some(aur_file) = imp.aur_file.get() {
-                    imp.update_row.borrow().set_status(Updates::Output(None, 0));
+                    imp.update_row.borrow().set_status(Updates::Reset);
                     imp.package_view.set_status(PackageViewStatus::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
@@ -988,7 +988,7 @@ impl PacViewWindow {
             #[weak] imp,
             async move {
                 // Hide update count in sidebar
-                imp.update_row.borrow().set_status(Updates::Output(None, 0));
+                imp.update_row.borrow().set_status(Updates::Reset);
 
                 // Show package view loading spinner
                 imp.package_view.set_status(PackageViewStatus::PackageLoad);
