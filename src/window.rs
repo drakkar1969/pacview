@@ -12,7 +12,7 @@ use adw::prelude::*;
 use glib::clone;
 
 use alpm_utils::DbListExt;
-use titlecase::titlecase;
+use heck::ToTitleCase;
 use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
@@ -892,7 +892,7 @@ impl PacViewWindow {
         let pacman_repos = imp.pacman_repos.get().unwrap();
 
         for repo in pacman_repos {
-            let label = if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) };
+            let label = if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() };
 
             let row = FilterRow::new("repository-symbolic", &label, Some(repo), PkgFlags::empty());
 

@@ -17,6 +17,7 @@ futures = "0.3"
 gio = { version = "0.20", features = ["v2_84"] }
 glib = "0.20"
 gtk = { version = "0.9", package = "gtk4", features = ["v4_18"] }
+heck = "0.5"
 itertools = "0.14.0"
 notify-debouncer-full = "0.5"
 pacmanconf = "3"
@@ -28,7 +29,6 @@ reqwest = { version = "0.12", features = ["json"] }
 shlex = "1"
 size = "0.5"
 strum = { version = "0.27", features = ["derive"] }
-titlecase = "3"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 tokio-util = "0.7"
 url = "2"

@@ -1577,6 +1577,7 @@ dependencies = [
  "glib",
  "glib-build-tools",
  "gtk4",
+ "heck",
  "itertools",
  "libadwaita",
  "notify-debouncer-full",
@@ -1589,7 +1590,6 @@ dependencies = [
  "shlex",
  "size",
  "strum",
- "titlecase",
  "tokio",
  "tokio-util",
  "url",
@@ -2315,15 +2315,6 @@ checksum = "5d4f6d1145dcb577acf783d4e601bc1d76a13337bb54e6233add580b07344c8b"
 dependencies = [
  "displaydoc",
  "zerovec",
-]
-
-[[package]]
-name = "titlecase"
-version = "3.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1fad07d425f7245932d6deb5009e2c83d9642617b47750ffc3363815e269435"
-dependencies = [
- "regex",
 ]
 
 [[package]]

@@ -4,7 +4,7 @@ use gtk::prelude::*;
 use glib::clone;
 
 use size::Size;
-use titlecase::titlecase;
+use heck::ToTitleCase;
 
 use crate::window::PKGS;
 use crate::pkg_data::PkgFlags;
@@ -206,7 +206,7 @@ impl StatsWindow {
 
                     // Add repo item to stats view
                     stats_items.push(StatsObject::new(
-                        &(if repo == "aur" { repo.to_uppercase() } else { titlecase(repo) }),
+                        &(if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
                         &pkg_count.to_string(),
                         &install_count.to_string(),
                         &Size::from_bytes(install_size).to_string()
