@@ -9,7 +9,7 @@ use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::clone;
 
-use strum::{EnumString, FromRepr, EnumIter, IntoEnumIterator};
+use strum::{FromRepr, EnumIter, IntoEnumIterator};
 
 use crate::search_tag::SearchTag;
 use crate::enum_traits::EnumExt;
@@ -17,8 +17,7 @@ use crate::enum_traits::EnumExt;
 //------------------------------------------------------------------------------
 // ENUM: SearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr, EnumIter)]
-#[strum(serialize_all = "kebab-case")]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter)]
 #[repr(u32)]
 #[enum_type(name = "SearchMode")]
 pub enum SearchMode {
@@ -36,8 +35,7 @@ impl EnumExt for SearchMode {}
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr, EnumIter)]
-#[strum(serialize_all = "kebab-case")]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter)]
 #[repr(u32)]
 #[enum_type(name = "SearchProp")]
 pub enum SearchProp {

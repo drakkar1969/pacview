@@ -5,7 +5,7 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
-use strum::{EnumString, FromRepr};
+use strum::FromRepr;
 
 use crate::APP_ID;
 use crate::search_bar::{SearchMode, SearchProp};
@@ -14,8 +14,7 @@ use crate::enum_traits::EnumExt;
 //------------------------------------------------------------------------------
 // ENUM: ColorScheme
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString, FromRepr)]
-#[strum(serialize_all = "kebab-case")]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr)]
 #[repr(u32)]
 #[enum_type(name = "ColorScheme")]
 pub enum ColorScheme {

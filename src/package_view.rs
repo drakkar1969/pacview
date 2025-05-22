@@ -14,7 +14,6 @@ use tokio_util::sync::CancellationToken;
 use raur::Raur;
 use raur::ArcPackage;
 use futures::future;
-use strum::EnumString;
 
 use crate::window::INSTALLED_PKG_NAMES;
 use crate::pkg_data::{PkgFlags, PkgData};
@@ -48,8 +47,7 @@ pub enum PackageViewStatus {
 //------------------------------------------------------------------------------
 // ENUM: SortProp
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumString)]
-#[strum(serialize_all = "kebab-case")]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
 #[enum_type(name = "SortProp")]
 pub enum SortProp {
