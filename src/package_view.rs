@@ -501,7 +501,7 @@ impl PackageView {
 
         imp.search_cancel_token.replace(Some(cancel_token));
 
-        // Spawn tokio task to search AUR
+        // Create tokio task to search AUR
         let search_future = INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
             let installed_pkg_names = Arc::clone(installed_pkg_names);
 
@@ -524,6 +524,7 @@ impl PackageView {
             #[weak] imp,
             #[weak] search_bar,
             async move {
+                // Spawn tokio task to search AUR
                 let result = search_future.await
                     .expect("Failed to complete tokio task");
 

@@ -945,7 +945,7 @@ impl PacViewWindow {
         let aur_package_check = imp.prefs_dialog.get().unwrap().aur_package_check();
         let aur_file = imp.aur_file.get().map(ToOwned::to_owned);
 
-        // Create task to load packages
+        // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
             let handle = alpm_utils::alpm_with_conf(pacman_config)?;
@@ -998,7 +998,7 @@ impl PacViewWindow {
                 // Reset AUR search
                 imp.package_view.reset_aur_search();
 
-                // Get alpm package data (await task)
+                // Spawn task to load package data
                 let result: alpm::Result<Vec<PkgData>> = alpm_future.await
                     .expect("Failed to complete task");
 
