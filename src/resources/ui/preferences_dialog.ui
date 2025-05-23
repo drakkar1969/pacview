@@ -91,7 +91,7 @@
             <child>
               <object class="AdwSwitchRow" id="aur_check_row">
                 <property name="title">C_heck AUR Packages</property>
-                <property name="subtitle">Check if local packages are present in AUR</property>
+                <property name="subtitle">Check if local packages are present in AUR (implies refresh)</property>
                 <property name="use-underline">true</property>
               </object>
             </child>
