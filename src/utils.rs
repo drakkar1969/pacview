@@ -91,7 +91,7 @@ pub mod aur_file {
     //---------------------------------------
     // Check file age function
     //---------------------------------------
-    pub fn check_file_age(aur_file: &PathBuf) {
+    pub fn check_file_age(aur_file: &PathBuf, update_interval: u64) {
         // Get AUR package names file age
         let file_time = fs::metadata(aur_file).ok()
             .and_then(|metadata| metadata.modified().ok())
@@ -101,8 +101,8 @@ pub mod aur_file {
                 now.duration_since(file_time).ok()
             });
 
-        // Spawn tokio task to download AUR package names file if does not exist or older than 1 day
-        if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(24 * 60 * 60) {
+        // Spawn tokio task to download AUR package names file if does not exist or older than x hours
+        if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(update_interval * 60 * 60) {
             let aur_file = aur_file.to_owned();
 
             glib::spawn_future_local(async move {

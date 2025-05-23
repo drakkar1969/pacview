@@ -517,6 +517,7 @@ impl PacViewWindow {
         settings.bind("infopane-width", &*prefs_dialog, "infopane-width").build();
         settings.bind("aur-update-command", &*prefs_dialog, "aur-update-command").build();
         settings.bind("aur-package-check", &*prefs_dialog, "aur-package-check").build();
+        settings.bind("aur-database-age", &*prefs_dialog, "aur-database-age").build();
         settings.bind("auto-refresh", &*prefs_dialog, "auto-refresh").build();
         settings.bind("remember-sort", &*prefs_dialog, "remember-sort").build();
         settings.bind("search-mode", &*prefs_dialog, "search-mode").build();
@@ -1045,7 +1046,10 @@ impl PacViewWindow {
                         // Check AUR package names file age
                         if check_aur_file {
                             if let Some(aur_file) = imp.aur_file.get() {
-                                aur_file::check_file_age(aur_file);
+                                aur_file::check_file_age(
+                                    aur_file,
+                                    imp.prefs_dialog.borrow().aur_database_age() as u64
+                                );
                             }
                         }
                     },

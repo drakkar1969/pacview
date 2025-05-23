@@ -95,6 +95,24 @@
                 <property name="use-underline">true</property>
               </object>
             </child>
+            <child>
+              <object class="AdwSpinRow" id="aur_database_age_row">
+                <property name="title">AUR Database Update _Interval</property>
+                <property name="subtitle">Interval between AUR database updates (hours)</property>
+                <property name="use-underline">true</property>
+                <property name="numeric">true</property>
+                <property name="snap-to-ticks">true</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">3</property>
+                    <property name="page-increment">24</property>
+                    <property name="step-increment">3</property>
+                    <property name="upper">168</property>
+                    <property name="value">24</property>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </child>
         <child>

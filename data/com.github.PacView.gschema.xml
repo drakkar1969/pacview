@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="com.github.PacView" path="/com/github/PacView/">
+    <key name="aur-database-age" type="d">
+      <range min="3" max="168"/>
+      <default>24</default>
+    </key>
     <key name="aur-package-check" type="b">
       <default>true</default>
     </key>
