@@ -244,12 +244,6 @@
             </child>
           </object>
         </child>
-      </object>
-    </child>
-    <child>
-      <object class="AdwPreferencesPage">
-        <property name="title">Reset</property>
-        <property name="icon-name">edit-undo-symbolic</property>
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Preferences</property>
