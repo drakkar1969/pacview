@@ -142,7 +142,7 @@
                         <child>
                           <object class="GtkToggleButton" id="sidebar_button">
                             <property name="active">true</property>
-                            <property name="icon-name">view-sidebar-symbolic</property>
+                            <property name="icon-name">sidebar-show-symbolic</property>
                             <property name="tooltip-text">Toggle Sidebar</property>
                           </object>
                         </child>
@@ -156,7 +156,7 @@
                         <child type="end">
                           <object class="GtkToggleButton" id="infopane_button">
                             <property name="active">true</property>
-                            <property name="icon-name">view-infopane-symbolic</property>
+                            <property name="icon-name">sidebar-show-right-symbolic</property>
                             <property name="tooltip-text">Toggle Info Pane</property>
                           </object>
                         </child>

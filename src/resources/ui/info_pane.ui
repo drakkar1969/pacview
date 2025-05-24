@@ -67,7 +67,7 @@
                       <object class="AdwViewStackPage">
                         <property name="name">info</property>
                         <property name="title">Info</property>
-                        <property name="icon-name">dialog-information-symbolic</property>
+                        <property name="icon-name">info-outline-symbolic</property>
                         <property name="child">
                           <object class="GtkBox" id="info_box">
                             <property name="orientation">vertical</property>
