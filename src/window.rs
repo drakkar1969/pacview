@@ -450,16 +450,6 @@ impl PacViewWindow {
             }
         ));
 
-        // Preferences aur check property notify signal
-        prefs_dialog.connect_aur_package_check_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                if window.imp().package_view.status() != PackageViewStatus::Init {
-                    ActionGroupExt::activate_action(&window, "refresh", None);
-                }
-            }
-        ));
-
         // Preferences search mode property notify signal
         prefs_dialog.connect_search_mode_notify(clone!(
             #[weak] imp,
