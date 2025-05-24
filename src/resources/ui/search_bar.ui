@@ -20,7 +20,7 @@
                     <property name="name">icon</property>
                     <property name="child">
                       <object class="GtkImage" id="image">
-                        <property name="icon-name">search-symbolic</property>
+                        <property name="icon-name">edit-find-symbolic</property>
                       </object>
                     </property>
                   </object>
