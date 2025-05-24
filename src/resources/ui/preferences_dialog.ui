@@ -4,6 +4,8 @@
   <template class="PreferencesDialog" parent="AdwPreferencesDialog">
     <child>
       <object class="AdwPreferencesPage">
+        <property name="title">General</property>
+        <property name="icon-name">org.gnome.Settings-symbolic</property>
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Application</property>
@@ -53,6 +55,25 @@
                     <property name="value">600</property>
                   </object>
                 </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Package List</property>
+            <child>
+              <object class="AdwSwitchRow" id="auto_refresh_row">
+                <property name="title">Auto _Refresh</property>
+                <property name="subtitle">Refresh window when local pacman database changes</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSwitchRow" id="remember_sort_row">
+                <property name="title">Remember _Sorting</property>
+                <property name="subtitle">Save package list sort order</property>
+                <property name="use-underline">true</property>
               </object>
             </child>
           </object>
@@ -115,25 +136,12 @@
             </child>
           </object>
         </child>
-        <child>
-          <object class="AdwPreferencesGroup">
-            <property name="title">Package List</property>
-            <child>
-              <object class="AdwSwitchRow" id="auto_refresh_row">
-                <property name="title">Auto _Refresh</property>
-                <property name="subtitle">Refresh window when local pacman database changes</property>
-                <property name="use-underline">true</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwSwitchRow" id="remember_sort_row">
-                <property name="title">Remember _Sorting</property>
-                <property name="subtitle">Save package list sort order</property>
-                <property name="use-underline">true</property>
-              </object>
-            </child>
-          </object>
-        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="title">Advanced</property>
+        <property name="icon-name">filter-symbolic</property>
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Search</property>
@@ -236,6 +244,12 @@
             </child>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="title">Reset</property>
+        <property name="icon-name">edit-undo-symbolic</property>
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Preferences</property>
