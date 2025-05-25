@@ -70,6 +70,8 @@ pub enum PropID {
     InstalledSize,
     #[enum_value(name = "Install Script")]
     InstallScript,
+    #[enum_value(name = "Validation")]
+    Validation,
 }
 
 impl EnumExt for PropID {}

@@ -13,7 +13,7 @@ use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
-use crate::pkg_data::{PkgFlags, PkgData};
+use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -368,6 +368,10 @@ impl PkgObject {
 
     pub fn has_script(&self) -> &str {
         &self.imp().data.get().unwrap().has_script
+    }
+
+    pub fn validation(&self) -> PkgValidation {
+        self.imp().data.get().unwrap().validation
     }
 
     //---------------------------------------

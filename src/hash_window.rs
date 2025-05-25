@@ -2,6 +2,7 @@ use gtk::{glib, gdk};
 use adw::{prelude::ActionRowExt, subclass::prelude::*};
 use gtk::prelude::*;
 
+use crate::pkg_data::PkgValidation;
 use crate::pkg_object::PkgObject;
 
 //------------------------------------------------------------------------------
@@ -17,11 +18,11 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/hash_window.ui")]
     pub struct HashWindow {
         #[template_child]
-        pub(super) base64_row: TemplateChild<adw::ActionRow>,
+        pub(super) md5_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) sha256_row: TemplateChild<adw::ActionRow>,
         #[template_child]
-        pub(super) md5_row: TemplateChild<adw::ActionRow>,
+        pub(super) base64_row: TemplateChild<adw::ActionRow>,
     }
 
     //---------------------------------------
@@ -73,16 +74,34 @@ impl HashWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, pkg: Option<&PkgObject>) {
+    pub fn show(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        self.set_title(pkg.map(|pkg| pkg.name()).as_deref());
+        self.set_title(Some(&pkg.name()));
 
-        let hashes = pkg.map(|pkg| pkg.hashes());
+        let validation = pkg.validation();
+        let hashes = pkg.hashes();
 
-        imp.base64_row.set_subtitle(hashes.and_then(|hashes| hashes.base64_sig()).unwrap_or("(None)"));
-        imp.sha256_row.set_subtitle(hashes.and_then(|hashes| hashes.sha256sum()).unwrap_or("(None)"));
-        imp.md5_row.set_subtitle(hashes.and_then(|hashes| hashes.md5sum()).unwrap_or("(None)"));
+        if validation.intersects(PkgValidation::MD5SUM) {
+            imp.md5_row.set_visible(true);
+            imp.md5_row.set_subtitle(hashes.md5sum().unwrap_or("(None)"));
+        } else {
+            imp.md5_row.set_visible(false);
+        }
+
+        if validation.intersects(PkgValidation::SHA256SUM) {
+            imp.sha256_row.set_visible(true);
+            imp.sha256_row.set_subtitle(hashes.sha256sum().unwrap_or("(None)"));
+        } else {
+            imp.sha256_row.set_visible(false);
+        }
+
+        if validation.intersects(PkgValidation::SIGNATURE) {
+            imp.base64_row.set_visible(true);
+            imp.base64_row.set_subtitle(hashes.base64_sig().unwrap_or("(None)"));
+        } else {
+            imp.base64_row.set_visible(false);
+        }
 
         self.present();
     }

@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
@@ -13,7 +13,7 @@ use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, INSTALLED_LABEL};
 use crate::info_row::{PropID, PropType, ValueType, InfoRow};
 use crate::history_list::HistoryList;
-use crate::pkg_data::PkgFlags;
+use crate::pkg_data::{PkgFlags, PkgValidation};
 use crate::pkg_object::PkgObject;
 use crate::hash_window::HashWindow;
 use crate::backup_object::{BackupObject, BackupStatus};
@@ -119,6 +119,8 @@ mod imp {
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
 
         pub(super) pkg_history: RefCell<HistoryList>,
+
+        pub(super) validation_flags_class: OnceCell<glib::FlagsClass>,
     }
 
     //---------------------------------------
@@ -173,6 +175,15 @@ mod imp {
             );
 
             self.tab_switcher.set_sensitive(pkg.is_some());
+
+            self.info_hashes_button.set_sensitive(
+                pkg.is_some_and(|pkg| {
+                    let validation = pkg.validation();
+
+                    !(validation.intersects(PkgValidation::UNKNOWN) ||
+                    validation.intersects(PkgValidation::NONE))
+                })
+            );
 
             self.obj().update_display();
         }
@@ -257,6 +268,7 @@ impl InfoPane {
         self.add_info_row(PropID::DownloadSize, PropType::Text);
         self.add_info_row(PropID::InstalledSize, PropType::Text);
         self.add_info_row(PropID::InstallScript, PropType::Text);
+        self.add_info_row(PropID::Validation, PropType::Text);
 
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
@@ -271,6 +283,9 @@ impl InfoPane {
         pkg_history.bind_property("can-select-next", &imp.next_button.get(), "sensitive")
             .sync_create()
             .build();
+
+        // Create validation flags class
+        imp.validation_flags_class.set(glib::FlagsClass::new::<PkgValidation>()).unwrap();
     }
 
     //---------------------------------------
@@ -299,13 +314,15 @@ impl InfoPane {
         imp.info_hashes_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                let parent = infopane.root()
-                    .and_downcast::<gtk::Window>()
-                    .expect("Failed to downcast to 'GtkWindow'");
+                if let Some(pkg) = infopane.pkg() {
+                    let parent = infopane.root()
+                        .and_downcast::<gtk::Window>()
+                        .expect("Failed to downcast to 'GtkWindow'");
 
-                let hash_window = HashWindow::new(&parent);
+                    let hash_window = HashWindow::new(&parent);
 
-                hash_window.show(infopane.pkg().as_ref());
+                    hash_window.show(&pkg);
+                }
             }
         ));
 
@@ -574,7 +591,7 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Get installed optdeps function
+    // Installed optdeps function
     //---------------------------------------
     fn installed_optdeps(flags: PkgFlags, optdepends: &[String]) -> Cow<'_, [String]> {
         if !optdepends.is_empty() && flags.intersects(PkgFlags::INSTALLED) {
@@ -593,6 +610,21 @@ impl InfoPane {
         } else {
             Cow::Borrowed(optdepends)
         }
+    }
+
+    //---------------------------------------
+    // Pkg validation function
+    //---------------------------------------
+    fn pkg_validation(&self, flags: PkgValidation) -> String {
+        flags.iter()
+            .map(|flag| {
+                self.imp().validation_flags_class.get().unwrap()
+                    .value(flag.bits())
+                    .map(|value| value.name())
+                    .unwrap_or("NONE")
+            })
+            .collect::<Vec<&str>>()
+            .join(" | ")
     }
 
     //---------------------------------------
@@ -688,6 +720,9 @@ impl InfoPane {
 
         // Has script
         self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
+
+        // Validation
+        self.set_info_row(PropID::Validation, ValueType::Str(&self.pkg_validation(pkg.validation())));
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {

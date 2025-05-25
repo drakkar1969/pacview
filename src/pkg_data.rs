@@ -24,6 +24,26 @@ impl Default for PkgFlags {
 }
 
 //------------------------------------------------------------------------------
+// FLAGS: PkgValidation
+//------------------------------------------------------------------------------
+#[glib::flags(name = "PkgValidation")]
+pub enum PkgValidation {
+    UNKNOWN   = 0,
+    NONE      = 1 << 0,
+    #[flags_value(name = "MD5Sum")]
+    MD5SUM    = 1 << 1,
+    #[flags_value(name = "SHA256Sum")]
+    SHA256SUM = 1 << 2,
+    SIGNATURE = 1 << 3,
+}
+
+impl Default for PkgValidation {
+    fn default() -> Self {
+        Self::NONE
+    }
+}
+
+//------------------------------------------------------------------------------
 // STRUCT: PkgData
 //------------------------------------------------------------------------------
 #[derive(Default, Debug)]
@@ -51,6 +71,7 @@ pub struct PkgData {
     pub download_size: i64,
     pub install_size: i64,
     pub has_script: String,
+    pub validation: PkgValidation,
 }
 
 //------------------------------------------------------------------------------
@@ -125,6 +146,7 @@ impl PkgData {
             download_size: sync_pkg.download_size(),
             install_size: sync_pkg.isize(),
             has_script: if sync_pkg.has_scriptlet() { "Yes" } else { "No" }.to_owned(),
+            validation: PkgValidation::from_bits_truncate(sync_pkg.validation().bits()),
         }
     }
 
@@ -166,6 +188,7 @@ impl PkgData {
             download_size: 0,
             install_size: 0,
             has_script: String::new(),
+            validation: PkgValidation::NONE,
         }
     }
 }
