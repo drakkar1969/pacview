@@ -553,12 +553,6 @@ impl TextWidget {
         let focus_index = imp.focus_link_index.get();
 
         if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
-            let mut attr = pango::AttrInt::new_overline(pango::Overline::Single);
-            attr.set_start_index(link.start);
-            attr.set_end_index(link.end);
-
-            attr_list.insert(attr);
-
             let underline = if self.underline_links() {
                 pango::Underline::Double
             } else {
