@@ -599,7 +599,7 @@ impl TextWidget {
                 }
 
                 // Update pango layout focus link attributes
-                if widget.focused() && ![PropType::Title, PropType::Text, PropType::Error].contains(&widget.ptype()) {
+                if widget.focused() && [PropType::Link, PropType::LinkList, PropType::Packager].contains(&widget.ptype()) {
                     attr_list.splice(&widget.focus_link_attributes(), 0, 0);
                 }
 
