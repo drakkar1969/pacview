@@ -5,6 +5,7 @@ mod search_tag;
 mod filter_row;
 mod package_view;
 mod info_pane;
+mod hash_window;
 mod info_row;
 mod history_list;
 mod text_widget;

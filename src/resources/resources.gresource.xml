@@ -59,6 +59,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/config_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/hash_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view.ui</file>

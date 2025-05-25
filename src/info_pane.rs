@@ -15,6 +15,7 @@ use crate::info_row::{PropID, PropType, ValueType, InfoRow};
 use crate::history_list::HistoryList;
 use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
+use crate::hash_window::HashWindow;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::utils::app_info;
 
@@ -47,6 +48,8 @@ mod imp {
 
         #[template_child]
         pub(super) info_listbox: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub(super) info_hashes_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) info_copy_button: TemplateChild<gtk::Button>,
 
@@ -289,6 +292,20 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             move |_| {
                 infopane.display_next();
+            }
+        ));
+
+        // Info hashes button clicked signal
+        imp.info_hashes_button.connect_clicked(clone!(
+            #[weak(rename_to = infopane)] self,
+            move |_| {
+                let parent = infopane.root()
+                    .and_downcast::<gtk::Window>()
+                    .expect("Failed to downcast to 'GtkWindow'");
+
+                let hash_window = HashWindow::new(&parent);
+
+                hash_window.show(infopane.pkg().as_ref());
             }
         ));
 

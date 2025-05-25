@@ -55,6 +55,38 @@ impl PkgBackup {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: PkgHashes
+//------------------------------------------------------------------------------
+#[derive(Default, Debug)]
+pub struct PkgHashes {
+    base64_sig: Option<String>,
+    sha256sum: Option<String>,
+    md5sum: Option<String>
+}
+
+impl PkgHashes {
+    fn new(base64_sig: Option<&str>, sha256sum: Option<&str>, md5sum: Option<&str>) -> Self {
+        Self {
+            base64_sig: base64_sig.map(ToOwned::to_owned),
+            sha256sum: sha256sum.map(ToOwned::to_owned),
+            md5sum: md5sum.map(ToOwned::to_owned)
+        }
+    }
+
+    pub fn base64_sig(&self) -> Option<&str> {
+        self.base64_sig.as_deref()
+    }
+
+    pub fn sha256sum(&self) -> Option<&str> {
+        self.sha256sum.as_deref()
+    }
+
+    pub fn md5sum(&self) -> Option<&str> {
+        self.md5sum.as_deref()
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: PkgObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -103,6 +135,7 @@ mod imp {
 
         pub(super) files: OnceCell<Vec<String>>,
         pub(super) backup: OnceCell<Vec<PkgBackup>>,
+        pub(super) hashes: OnceCell<PkgHashes>,
 
         pub(super) log: TokioOnceCell<Vec<String>>,
         pub(super) cache: TokioOnceCell<Vec<String>>,
@@ -338,7 +371,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Get alpm package helper function
+    // Get alpm package helper functions
     //---------------------------------------
     fn pkg(&self) -> Option<&alpm::Package> {
         let imp = self.imp();
@@ -351,6 +384,15 @@ impl PkgObject {
         } else {
             handle.syncdbs().pkg(data.name.as_str()).ok()
         }
+    }
+
+    fn sync_pkg(&self) -> Option<&alpm::Package> {
+        let imp = self.imp();
+
+        let handle = imp.handle.get()?;
+        let data = imp.data.get().unwrap();
+
+        handle.syncdbs().pkg(data.name.as_str()).ok()
     }
 
     //---------------------------------------
@@ -427,6 +469,16 @@ impl PkgObject {
 
                     backup
                 })
+                .unwrap_or_default()
+        })
+    }
+
+    pub fn hashes(&self) -> &PkgHashes {
+        let imp = self.imp();
+
+        imp.hashes.get_or_init(|| {
+            self.sync_pkg()
+                .map(|pkg| PkgHashes::new(pkg.base64_sig(), pkg.sha256sum(), pkg.md5sum()))
                 .unwrap_or_default()
         })
     }

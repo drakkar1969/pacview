@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// HashWindow template //-->
+  <template class="HashWindow" parent="AdwWindow">
+    <property name="default-width">700</property>
+    <property name="modal">true</property>
+    <property name="hide-on-close">true</property>
+    <property name="title"></property>
+    <property name="content">
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+          </object>
+        </child>
+        <property name="content">
+          <object class="GtkListBox">
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="margin-top">24</property>
+            <property name="margin-bottom">24</property>
+            <property name="selection-mode">none</property>
+            <style>
+              <class name="boxed-list"/>
+            </style>
+            <child>
+              <object class="AdwActionRow" id="base64_row">
+                <property name="title">Base64 Signature</property>
+                <property name="subtitle-selectable">true</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="sha256_row">
+                <property name="title">SHA256 Sum</property>
+                <property name="subtitle-selectable">true</property>
+                <property name="subtitle-lines">1</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="md5_row">
+                <property name="title">MD5 Sum</property>
+                <property name="subtitle-selectable">true</property>
+                <property name="subtitle-lines">1</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+</interface>
