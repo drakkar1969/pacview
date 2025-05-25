@@ -127,16 +127,16 @@ mod imp {
         fn flags(&self) -> PkgFlags {
             let flags = self.data.get().unwrap().flags;
 
-            self.obj().update_version()
+            self.update_version.borrow().as_ref()
                 .map_or_else(|| flags, |_| flags | PkgFlags::UPDATES)
         }
 
         fn version(&self) -> String {
             let version = &self.data.get().unwrap().version;
 
-            self.obj().update_version()
+            self.update_version.borrow().as_ref()
                 .map_or_else(|| version.to_string(), |update_version| {
-                    version.to_string() + " \u{2192} " + &update_version
+                    version.to_string() + " \u{2192} " + update_version
                 })
         }
 
@@ -432,7 +432,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public async functions
+    // Public async getters from alpm package
     //---------------------------------------
     pub async fn log_async(&self) -> &[String] {
         let imp = self.imp();
