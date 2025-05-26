@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::cmp::Ordering;
 use std::borrow::Cow;
+use std::marker::PhantomData;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -117,8 +118,8 @@ mod imp {
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
-        #[property(get, set = Self::set_status, builder(PackageViewStatus::default()))]
-        status: Cell<PackageViewStatus>,
+        #[property(set = Self::set_status, builder(PackageViewStatus::default()))]
+        status: PhantomData<PackageViewStatus>,
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
@@ -181,8 +182,6 @@ mod imp {
                     self.stack.set_visible_child_name("spinner");
                 }
             }
-
-            self.status.set(status);
         }
     }
 }

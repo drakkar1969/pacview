@@ -529,10 +529,10 @@ impl PkgObject {
                         path.file_name()
                             .and_then(|filename| filename.to_str())
                             .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
-                            .filter(|&filename| 
+                            .filter(|&filename| {
                                 filename.rsplitn(4, '-').last()
                                     .is_some_and(|name| name == pkg_name)
-                            )
+                            })
                             .map(ToOwned::to_owned)
                     })
                     .collect::<Vec<String>>()

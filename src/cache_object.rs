@@ -20,7 +20,7 @@ mod imp {
         #[property(get, set)]
         filename: RefCell<String>,
         #[property(get = Self::get_icon)]
-        _icon: PhantomData<String>,
+        icon: PhantomData<String>,
     }
 
     //---------------------------------------

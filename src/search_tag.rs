@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::marker::PhantomData;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
@@ -20,8 +20,8 @@ mod imp {
         #[template_child]
         pub(super) label: TemplateChild<gtk::Label>,
 
-        #[property(get, set = Self::set_text, nullable)]
-        text: RefCell<String>,
+        #[property(set = Self::set_text)]
+        text: PhantomData<String>,
     }
 
     //---------------------------------------

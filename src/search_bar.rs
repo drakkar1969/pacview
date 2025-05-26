@@ -99,7 +99,7 @@ mod imp {
         enabled: Cell<bool>,
 
         #[property(get = Self::text)]
-        _text: PhantomData<String>,
+        text: PhantomData<String>,
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
@@ -250,6 +250,9 @@ mod imp {
     impl BinImpl for SearchBar {}
 
     impl SearchBar {
+        //---------------------------------------
+        // Property getter
+        //---------------------------------------
         fn text(&self) -> String {
             self.search_text.text().to_string()
         }
@@ -319,7 +322,7 @@ impl SearchBar {
         self.connect_mode_notify(|bar| {
             let imp = bar.imp();
 
-            imp.tag_mode.set_text(Some(bar.mode().nick()));
+            imp.tag_mode.set_text(bar.mode().nick());
 
             if !imp.search_text.text().is_empty() {
                 bar.emit_by_name::<()>("changed", &[]);
@@ -330,7 +333,7 @@ impl SearchBar {
         self.connect_prop_notify(|bar| {
             let imp = bar.imp();
 
-            imp.tag_prop.set_text(Some(bar.prop().nick()));
+            imp.tag_prop.set_text(bar.prop().nick());
 
             if !imp.search_text.text().is_empty() {
                 bar.emit_by_name::<()>("changed", &[]);

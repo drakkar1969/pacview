@@ -64,7 +64,7 @@ mod imp {
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
-        _text: PhantomData<String>,
+        text: PhantomData<String>,
 
         #[property(get, set)]
         can_expand: Cell<bool>,

@@ -114,7 +114,7 @@ mod imp {
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
-        _pkg: PhantomData<Option<PkgObject>>,
+        pkg: PhantomData<Option<PkgObject>>,
 
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
 

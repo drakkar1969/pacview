@@ -389,7 +389,6 @@ impl GroupsWindow {
 
                 // Populate column view
                 imp.model.splice(0, 0, &pkg_list);
-
             });
         }
     }

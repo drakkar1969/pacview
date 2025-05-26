@@ -90,7 +90,7 @@ impl PkgData {
         fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
             list.iter().map(ToString::to_string).sorted_unstable().collect()
         }
-        
+
         // Build PkgData
         let (flags, version, install_date) = local_pkg.map_or_else(
             || (PkgFlags::NONE, sync_pkg.version(), 0),
@@ -158,7 +158,7 @@ impl PkgData {
         fn aur_vec_to_string(slice: &[String]) -> String {
             slice.iter().sorted_unstable().join(" | ")
         }
-        
+
         fn aur_sorted_vec(slice: &[String]) -> Vec<String> {
             slice.iter().map(String::from).sorted_unstable().collect()
         }

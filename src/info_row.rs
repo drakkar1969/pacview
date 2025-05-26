@@ -128,9 +128,9 @@ mod imp {
         pub(super) value_widget: TemplateChild<TextWidget>,
 
         #[property(get = Self::label)]
-        _label: PhantomData<String>,
+        label: PhantomData<String>,
         #[property(get = Self::value)]
-        _value: PhantomData<String>,
+        value: PhantomData<String>,
 
         pub(super) id: Cell<PropID>,
     }
