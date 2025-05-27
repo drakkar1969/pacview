@@ -488,9 +488,9 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public async getters from alpm package
+    // Public future getters from alpm package
     //---------------------------------------
-    pub async fn log_async(&self) -> &[String] {
+    pub fn log_future<'a>(&'a self) -> impl Future<Output = &'a Vec<String>> + 'a {
         let imp = self.imp();
 
         imp.log.get_or_init(async || {
@@ -512,10 +512,9 @@ impl PkgObject {
             .await
             .expect("Failed to complete task")
         })
-        .await
     }
 
-    pub async fn cache_async(&self) -> &[String] {
+    pub fn cache_future<'a>(&'a self) -> impl Future<Output = &'a Vec<String>> + 'a {
         let imp = self.imp();
 
         imp.cache.get_or_init(async || {
@@ -540,7 +539,6 @@ impl PkgObject {
             .await
             .expect("Failed to complete task")
         })
-        .await
     }
 
     //---------------------------------------
