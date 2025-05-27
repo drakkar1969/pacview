@@ -73,7 +73,7 @@ impl HashWindow {
             .property("transient-for", parent)
             .build()
     }
-
+    
     //---------------------------------------
     // Show window
     //---------------------------------------
@@ -85,26 +85,19 @@ impl HashWindow {
         let validation = pkg.validation();
         let hashes = pkg.hashes();
 
-        if validation.intersects(PkgValidation::MD5SUM) {
-            imp.md5_row.set_visible(true);
-            imp.md5_row.set_subtitle(hashes.md5sum().unwrap_or("(None)"));
-        } else {
-            imp.md5_row.set_visible(false);
-        }
+        // Helper closure
+        let update_row = |row: &adw::ActionRow, flag: PkgValidation, subtitle: Option<&str>| {
+            if validation.intersects(flag) {
+                row.set_visible(true);
+                row.set_subtitle(subtitle.unwrap_or("(None)"));
+            } else {
+                row.set_visible(false);
+            }
+        };
 
-        if validation.intersects(PkgValidation::SHA256SUM) {
-            imp.sha256_row.set_visible(true);
-            imp.sha256_row.set_subtitle(hashes.sha256sum().unwrap_or("(None)"));
-        } else {
-            imp.sha256_row.set_visible(false);
-        }
-
-        if validation.intersects(PkgValidation::SIGNATURE) {
-            imp.base64_row.set_visible(true);
-            imp.base64_row.set_subtitle(hashes.base64_sig().unwrap_or("(None)"));
-        } else {
-            imp.base64_row.set_visible(false);
-        }
+        update_row(&imp.md5_row, PkgValidation::MD5SUM, hashes.md5sum());
+        update_row(&imp.sha256_row, PkgValidation::SHA256SUM, hashes.sha256sum());
+        update_row(&imp.base64_row, PkgValidation::SIGNATURE, hashes.base64_sig());
 
         self.present();
     }
