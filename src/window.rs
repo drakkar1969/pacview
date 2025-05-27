@@ -194,35 +194,40 @@ mod imp {
             klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-config");
 
             // Infopane set tab shortcuts
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<alt>I"),
-                Some(gtk::NamedAction::new("win.infopane-set-tab")),
-                &"info".to_variant()
-            ));
+            klass.add_binding(gdk::Key::I, gdk::ModifierType::ALT_MASK, |bar| {
+                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                    Some(&"info".to_variant())).unwrap();
 
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<alt>F"),
-                Some(gtk::NamedAction::new("win.infopane-set-tab")),
-                &"files".to_variant()
-            ));
+                glib::Propagation::Stop
+            });
 
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<alt>L"),
-                Some(gtk::NamedAction::new("win.infopane-set-tab")),
-                &"log".to_variant()
-            ));
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::ALT_MASK, |bar| {
+                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                    Some(&"files".to_variant())).unwrap();
 
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<alt>C"),
-                Some(gtk::NamedAction::new("win.infopane-set-tab")),
-                &"cache".to_variant()
-            ));
+                glib::Propagation::Stop
+            });
 
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<alt>B"),
-                Some(gtk::NamedAction::new("win.infopane-set-tab")),
-                &"backup".to_variant()
-            ));
+            klass.add_binding(gdk::Key::L, gdk::ModifierType::ALT_MASK, |bar| {
+                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                    Some(&"log".to_variant())).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::C, gdk::ModifierType::ALT_MASK, |bar| {
+                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                    Some(&"cache".to_variant())).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::B, gdk::ModifierType::ALT_MASK, |bar| {
+                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                    Some(&"backup".to_variant())).unwrap();
+
+                glib::Propagation::Stop
+            });
 
             // Infopane previous/next key bindings
             klass.add_binding(gdk::Key::Left, gdk::ModifierType::ALT_MASK, |window| {

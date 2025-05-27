@@ -176,23 +176,24 @@ mod imp {
             });
 
             // Search mode letter shortcuts
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<ctrl>L"),
-                Some(gtk::NamedAction::new("search.set-mode")),
-                &SearchMode::All.nick_variant()
-            ));
+            klass.add_binding(gdk::Key::L, gdk::ModifierType::CONTROL_MASK, |bar| {
+                bar.activate_action("search.set-mode", Some(&SearchMode::All.nick_variant())).unwrap();
 
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<ctrl>N"),
-                Some(gtk::NamedAction::new("search.set-mode")),
-                &SearchMode::Any.nick_variant()
-            ));
+                glib::Propagation::Stop
+            });
 
-            klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                gtk::ShortcutTrigger::parse_string("<ctrl>E"),
-                Some(gtk::NamedAction::new("search.set-mode")),
-                &SearchMode::Exact.nick_variant()
-            ));
+            klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |bar| {
+                bar.activate_action("search.set-mode", Some(&SearchMode::Any.nick_variant())).unwrap();
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(gdk::Key::E, gdk::ModifierType::CONTROL_MASK, |bar| {
+                bar.activate_action("search.set-mode", Some(&SearchMode::Exact.nick_variant()))
+                    .unwrap();
+
+                    glib::Propagation::Stop
+            });
 
             // Cycle search prop key binding
             klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |bar| {
@@ -219,12 +220,14 @@ mod imp {
             });
 
             // Search prop numbered shortcuts
-            for (i, value) in SearchProp::iter().enumerate() {
-                klass.add_shortcut(&gtk::Shortcut::with_arguments(
-                    gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
-                    Some(gtk::NamedAction::new("search.set-prop")),
-                    &value.nick_variant()
-                ));
+            for (i, prop) in SearchProp::iter().enumerate() {
+                let key = gdk::Key::from_name((i+1).to_string()).unwrap();
+                
+                klass.add_binding(key, gdk::ModifierType::CONTROL_MASK, move |bar| {
+                    bar.activate_action("search.set-prop", Some(&prop.nick_variant())).unwrap();
+
+                    glib::Propagation::Stop
+                });
             }
 
             // Reset search params key binding
