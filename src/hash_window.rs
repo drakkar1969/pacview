@@ -40,7 +40,7 @@ mod imp {
             //---------------------------------------
             // Add class key bindings
             //---------------------------------------
-            // Show sidebar key binding
+            // Close window binding
             klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
         }
 
