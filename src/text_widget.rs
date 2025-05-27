@@ -562,9 +562,9 @@ impl TextWidget {
     // Pango color helper function
     //---------------------------------------
     fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
-        fn fc(color: f32) -> u16 {
+        let fc = |color: f32| -> u16 {
             (color * f32::from(u16::MAX)) as u16
-        }
+        };
 
         let label = gtk::Label::builder()
             .css_name("texttag")
@@ -580,9 +580,9 @@ impl TextWidget {
     // Setup widget
     //---------------------------------------
     fn setup_widget(&self) {
-        fn fc(color: u16) -> f64 {
+        let fc = |color: u16| -> f64 {
             f64::from(color)/f64::from(u16::MAX)
-        }
+        };
 
         let imp = self.imp();
 
@@ -727,9 +727,9 @@ impl TextWidget {
     // Update pango colors helper function
     //---------------------------------------
     fn update_pango_colors(&self) {
-        fn fc(color: u16) -> f64 {
+        let fc = |color: u16| -> f64 {
             f64::from(color)/f64::from(u16::MAX)
-        }
+        };
 
         let imp = self.imp();
 
