@@ -112,6 +112,30 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            //---------------------------------------
+            // Add class actions
+            //---------------------------------------
+            // AUR helper command action with parameter
+            klass.install_action("prefs.aur-cmd",
+                Some(&String::static_variant_type()),
+                |dialog, _, param| {
+                    let param = param
+                        .expect("Failed to retrieve Variant")
+                        .get::<String>()
+                        .expect("Failed to retrieve String from variant");
+
+                    let cmd = match param.as_str() {
+                        "paru" => "/usr/bin/paru -Qu --mode=ap",
+                        "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
+                        "trizen" => "/usr/bin/trizen -Qua --devel",
+                        "yay" => "/usr/bin/yay -Qua",
+                        _ => unreachable!()
+                    };
+
+                    dialog.set_aur_update_command(cmd);
+                }
+            );
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -130,7 +154,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_widgets();
-            obj.setup_actions();
             obj.setup_signals();
         }
     }
@@ -238,42 +261,6 @@ impl PreferencesDialog {
             .sync_create()
             .bidirectional()
             .build();
-    }
-
-    //---------------------------------------
-    // Setup actions
-    //---------------------------------------
-    fn setup_actions(&self) {
-        // AUR helper command action with parameter
-        let aur_action = gio::ActionEntry::builder("aur-cmd", )
-            .parameter_type(Some(&String::static_variant_type()))
-            .activate(clone!(
-                #[weak(rename_to = dialog)] self,
-                move |_, _, param| {
-                    let param = param
-                        .expect("Failed to retrieve Variant")
-                        .get::<String>()
-                        .expect("Failed to retrieve String from variant");
-
-                    let cmd = match param.as_str() {
-                        "paru" => "/usr/bin/paru -Qu --mode=ap",
-                        "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
-                        "trizen" => "/usr/bin/trizen -Qua --devel",
-                        "yay" => "/usr/bin/yay -Qua",
-                        _ => unreachable!()
-                    };
-
-                    dialog.set_aur_update_command(cmd);
-                }
-            ))
-            .build();
-
-        // Add action to prefs group
-        let prefs_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("prefs", Some(&prefs_group));
-
-        prefs_group.add_action_entries([aur_action]);
     }
 
     //---------------------------------------

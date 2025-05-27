@@ -55,6 +55,9 @@ mod imp {
 
             klass.bind_template();
 
+            //---------------------------------------
+            // Add class key bindings
+            //---------------------------------------
             // Find key binding
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();

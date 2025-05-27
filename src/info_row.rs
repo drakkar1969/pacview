@@ -147,6 +147,9 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
+            //---------------------------------------
+            // Add class key bindings
+            //---------------------------------------
             // Select all/none key bindings
             klass.add_binding(gdk::Key::A, gdk::ModifierType::CONTROL_MASK, |row| {
                 row.imp().value_widget.activate_action("text.select-all", None).unwrap();

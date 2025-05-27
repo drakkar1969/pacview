@@ -115,6 +115,95 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            //---------------------------------------
+            // Add class actions
+            //---------------------------------------
+            // Selection actions
+            klass.install_action("text.select-all", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                imp.selection_start.set(Some(0));
+                imp.selection_end.set(Some(widget.text().len()));
+
+                imp.draw_area.queue_draw();
+            });
+
+            klass.install_action("text.select-none", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                imp.selection_start.set(None);
+                imp.selection_end.set(None);
+
+                imp.draw_area.queue_draw();
+            });
+
+            // Copy action
+            klass.install_action("text.copy", None, |widget, _, _| {
+                if let Some(text) = widget.selected_text() {
+                    widget.clipboard().set_text(&text);
+                }
+            });
+
+            // Expand/contract actions
+            klass.install_action("text.expand", None, |widget, _, _| {
+                if widget.can_expand() && !widget.expanded() {
+                    widget.set_expanded(true);
+                }
+            });
+
+            klass.install_action("text.contract", None, |widget, _, _| {
+                if widget.can_expand() && widget.expanded() {
+                    widget.set_expanded(false);
+                }
+            });
+
+            // Link actions
+            klass.install_action("text.previous-link", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                if let Some(new_index) = imp.focus_link_index.get()
+                    .and_then(|i| i.checked_sub(1))
+                {
+                    imp.focus_link_index.set(Some(new_index));
+
+                    imp.draw_area.queue_draw();
+                }
+            });
+
+            klass.install_action("text.next-link", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                let link_list = imp.link_list.borrow();
+
+                if let Some(new_index) = imp.focus_link_index.get()
+                    .and_then(|i| i.checked_add(1))
+                    .filter(|&i| link_list.get(i)
+                        .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
+                    )
+                {
+                    imp.focus_link_index.set(Some(new_index));
+
+                    imp.draw_area.queue_draw();
+                }
+            });
+
+            klass.install_action("text.activate-link", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                let link_list = imp.link_list.borrow();
+
+                if let Some(focus_link) = imp.focus_link_index.get()
+                    .and_then(|i| link_list.get(i))
+                {
+                    let link_url = focus_link.clone();
+
+                    // Need to drop to avoid panic
+                    drop(link_list);
+
+                    widget.handle_link(&link_url);
+                }
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -152,7 +241,6 @@ mod imp {
             obj.bind_gsettings();
             obj.setup_widget();
             obj.setup_layout();
-            obj.setup_actions();
             obj.setup_signals();
             obj.setup_controllers();
         }
@@ -633,139 +721,6 @@ impl TextWidget {
         } else {
             None
         }
-    }
-
-    //---------------------------------------
-    // Setup actions
-    //---------------------------------------
-    fn setup_actions(&self) {
-        let imp = self.imp();
-
-        // Selection actions
-        let select_all_action = gio::ActionEntry::builder("select-all")
-            .activate(clone!(
-                #[weak(rename_to = widget)] self,
-                #[weak] imp,
-                move |_, _, _| {
-                    imp.selection_start.set(Some(0));
-                    imp.selection_end.set(Some(widget.text().len()));
-
-                    imp.draw_area.queue_draw();
-                }
-            ))
-            .build();
-
-        let select_none_action = gio::ActionEntry::builder("select-none")
-            .activate(clone!(
-                #[weak] imp,
-                move |_, _, _| {
-                    imp.selection_start.set(None);
-                    imp.selection_end.set(None);
-
-                    imp.draw_area.queue_draw();
-                }
-            ))
-            .build();
-
-        // Copy action
-        let copy_action = gio::ActionEntry::builder("copy")
-            .activate(clone!(
-                #[weak(rename_to = widget)] self,
-                move |_, _, _| {
-                    if let Some(text) = widget.selected_text() {
-                        widget.clipboard().set_text(&text);
-                    }
-                }
-            ))
-            .build();
-
-        // Expand/contract actions
-        let expand_action = gio::ActionEntry::builder("expand")
-            .activate(clone!(
-                #[weak(rename_to = widget)] self,
-                move |_, _, _| {
-                    if widget.can_expand() && !widget.expanded() {
-                        widget.set_expanded(true);
-                    }
-                }
-            ))
-            .build();
-
-        let contract_action = gio::ActionEntry::builder("contract")
-            .activate(clone!(
-                #[weak(rename_to = widget)] self,
-                move |_, _, _| {
-                    if widget.can_expand() && widget.expanded() {
-                        widget.set_expanded(false);
-                    }
-                }
-            ))
-            .build();
-
-        // Link actions
-        let prev_link_action = gio::ActionEntry::builder("previous-link")
-            .activate(clone!(
-                #[weak] imp,
-                move |_, _, _| {
-                    if let Some(new_index) = imp.focus_link_index.get()
-                        .and_then(|i| i.checked_sub(1))
-                    {
-                        imp.focus_link_index.set(Some(new_index));
-
-                        imp.draw_area.queue_draw();
-                    }
-                }
-            ))
-            .build();
-
-        let next_link_action = gio::ActionEntry::builder("next-link")
-            .activate(clone!(
-                #[weak] imp,
-                move |_, _, _| {
-                    let link_list = imp.link_list.borrow();
-
-                    if let Some(new_index) = imp.focus_link_index.get()
-                        .and_then(|i| i.checked_add(1))
-                        .filter(|&i| {
-                            link_list.get(i)
-                                .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
-                        })
-                    {
-                        imp.focus_link_index.set(Some(new_index));
-
-                        imp.draw_area.queue_draw();
-                    }
-                }
-            ))
-            .build();
-
-        let activate_link_action = gio::ActionEntry::builder("activate-link")
-            .activate(clone!(
-                #[weak(rename_to = widget)] self,
-                #[weak] imp,
-                move |_, _, _| {
-                    let link_list = imp.link_list.borrow();
-
-                    if let Some(focus_link) = imp.focus_link_index.get()
-                        .and_then(|i| link_list.get(i))
-                    {
-                        let link_url = focus_link.clone();
-
-                        // Need to drop to avoid panic
-                        drop(link_list);
-
-                        widget.handle_link(&link_url);
-                    }
-                }
-            ))
-            .build();
-
-        // Add actions to text action group
-        let text_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("text", Some(&text_group));
-
-        text_group.add_action_entries([select_all_action, select_none_action,copy_action, expand_action, contract_action, prev_link_action, next_link_action, activate_link_action]);
     }
 
     //---------------------------------------

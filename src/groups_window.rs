@@ -83,6 +83,15 @@ mod imp {
 
             klass.bind_template();
 
+            //---------------------------------------
+            // Add class actions
+            //---------------------------------------
+            // Search mode property action
+            klass.install_property_action("search.set-mode", "search-mode");
+
+            //---------------------------------------
+            // Add class key bindings
+            //---------------------------------------
             // Find key binding
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
@@ -132,7 +141,6 @@ mod imp {
 
             obj.setup_widgets();
             obj.setup_controllers();
-            obj.setup_actions();
             obj.setup_signals();
         }
     }
@@ -238,19 +246,6 @@ impl GroupsWindow {
 
         // Add shortcut controller to window
         self.add_controller(controller);
-    }
-
-    //---------------------------------------
-    // Setup actions
-    //---------------------------------------
-    fn setup_actions(&self) {
-        let search_action = gio::PropertyAction::new("set-mode", self, "search-mode");
-
-        let search_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("search", Some(&search_group));
-
-        search_group.add_action(&search_action);
     }
 
     //---------------------------------------

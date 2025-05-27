@@ -37,6 +37,9 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
+            //---------------------------------------
+            // Add class key bindings
+            //---------------------------------------
             // Show sidebar key binding
             klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
         }

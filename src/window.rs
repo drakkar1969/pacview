@@ -129,6 +129,9 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
+            //---------------------------------------
+            // Add class key bindings
+            //---------------------------------------
             // Search start/stop key bindings
             klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
                 window.imp().search_bar.set_enabled(true);

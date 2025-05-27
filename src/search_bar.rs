@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use std::sync::OnceLock;
 use core::time::Duration;
 
-use gtk::{glib, gio, gdk};
+use gtk::{glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
@@ -131,6 +131,26 @@ mod imp {
             klass.bind_template();
             klass.set_css_name("searchbar");
 
+            //---------------------------------------
+            // Add class actions
+            //---------------------------------------
+            // Search mode property action
+            klass.install_property_action("search.set-mode", "mode");
+
+            // Search prop property action
+            klass.install_property_action("search.set-prop", "prop");
+
+            // Reset search params action
+            klass.install_action("search.reset-params", None, |bar, _, _| {
+                bar.activate_action("search.set-mode", Some(&bar.default_mode().nick_variant()))
+                    .unwrap();
+                bar.activate_action("search.set-prop", Some(&bar.default_prop().nick_variant()))
+                    .unwrap();
+            });
+
+            //---------------------------------------
+            // Add class key bindings
+            //---------------------------------------
             // Cycle search mode key binding
             klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, |bar| {
                 let new_mode = SearchMode::iter().cycle()
@@ -242,7 +262,6 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
-            obj.setup_actions();
         }
     }
 
@@ -399,38 +418,6 @@ impl SearchBar {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Setup actions
-    //---------------------------------------
-    fn setup_actions(&self) {
-        // Search mode property action
-        let mode_action = gio::PropertyAction::new("set-mode", self, "mode");
-
-        // Search prop property action
-        let prop_action = gio::PropertyAction::new("set-prop", self, "prop");
-
-        // Reset search params action
-        let reset_params_action = gio::ActionEntry::builder("reset-params")
-            .activate(clone!(
-                #[weak(rename_to = bar)] self,
-                move |group: &gio::SimpleActionGroup, _, _| {
-                    group.activate_action("set-mode", Some(&bar.default_mode().nick_variant()));
-                    group.activate_action("set-prop", Some(&bar.default_prop().nick_variant()));
-                }
-            ))
-            .build();
-
-        // Add actions to search action group
-        let search_group = gio::SimpleActionGroup::new();
-
-        self.insert_action_group("search", Some(&search_group));
-
-        search_group.add_action(&mode_action);
-        search_group.add_action(&prop_action);
-
-        search_group.add_action_entries([reset_params_action]);
     }
 
     //---------------------------------------
