@@ -620,8 +620,7 @@ impl InfoPane {
             .map(|flag| {
                 self.imp().validation_flags_class.get().unwrap()
                     .value(flag.bits())
-                    .map(|value| value.name())
-                    .unwrap_or("NONE")
+                    .map_or("NONE", glib::FlagsValue::name)
             })
             .collect::<Vec<&str>>()
             .join(" | ")
