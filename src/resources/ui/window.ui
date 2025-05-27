@@ -214,7 +214,7 @@
     <section>
       <item>
         <attribute name="label">Copy Package List</attribute>
-        <attribute name="action">win.copy-package-list</attribute>
+        <attribute name="action">view.copy-list</attribute>
       </item>
     </section>
     <section>
@@ -280,44 +280,44 @@
       <attribute name="label">Sort Property</attribute>
       <item>
         <attribute name="label">Name</attribute>
-        <attribute name="action">win.set-sort-prop</attribute>
+        <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">name</attribute>
       </item>
       <item>
         <attribute name="label">Version</attribute>
-        <attribute name="action">win.set-sort-prop</attribute>
+        <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">version</attribute>
       </item>
       <item>
         <attribute name="label">Repository</attribute>
-        <attribute name="action">win.set-sort-prop</attribute>
+        <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">repository</attribute>
       </item>
       <item>
         <attribute name="label">Status</attribute>
-        <attribute name="action">win.set-sort-prop</attribute>
+        <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">status</attribute>
       </item>
       <item>
         <attribute name="label">Install Date</attribute>
-        <attribute name="action">win.set-sort-prop</attribute>
+        <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">install-date</attribute>
       </item>
       <item>
         <attribute name="label">Installed Size</attribute>
-        <attribute name="action">win.set-sort-prop</attribute>
+        <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">installed-size</attribute>
       </item>
       <item>
         <attribute name="label">Groups</attribute>
-        <attribute name="action">win.set-sort-prop</attribute>
+        <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">groups</attribute>
       </item>
     </section>
     <section>
       <item>
         <attribute name="label">Reset Sorting</attribute>
-        <attribute name="action">win.reset-package-sort</attribute>
+        <attribute name="action">view.reset-sort</attribute>
       </item>
     </section>
   </menu>

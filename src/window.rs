@@ -56,7 +56,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::SearchBar)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -93,6 +94,14 @@ mod imp {
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
 
+        #[property(get, set)]
+        show_sidebar: Cell<bool>,
+        #[property(get, set)]
+        show_infopane: Cell<bool>,
+
+        #[property(get, set, builder(SortProp::default()))]
+        package_sort_prop: Cell<SortProp>,
+
         pub(super) aur_file: OnceCell<PathBuf>,
 
         pub(super) pacman_repos: OnceCell<Vec<String>>,
@@ -128,6 +137,131 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            //---------------------------------------
+            // Add class actions
+            //---------------------------------------
+            // Pane visibility property actions
+            klass.install_property_action("win.show-sidebar", "show-sidebar");
+            klass.install_property_action("win.show-infopane", "show-infopane");
+
+            // Refresh action
+            klass.install_action("win.refresh", None, |window, _, _| {
+                let imp = window.imp();
+
+                let repo_id = imp.repo_listbox.selected_row()
+                    .and_downcast::<FilterRow>()
+                    .and_then(|row| row.repo_id());
+
+                imp.saved_repo_id.replace(repo_id);
+
+                let status_id = imp.status_listbox.selected_row()
+                    .and_downcast::<FilterRow>()
+                    .map(|row| row.status_id())
+                    .unwrap_or_default();
+
+                imp.saved_status_id.set(status_id);
+
+                window.setup_alpm(false);
+            });
+
+            // Check for updates action
+            klass.install_action("win.check-updates", None, |window, _, _| {
+                window.get_package_updates();
+            });
+
+            // Update AUR database action
+            klass.install_action("win.update-aur-database", None, |window, _, _| {
+                let imp = window.imp();
+
+                if let Some(aur_file) = imp.aur_file.get() {
+                    imp.update_row.borrow().set_status(Updates::Reset);
+                    imp.package_view.set_status(PackageViewStatus::AURDownload);
+                    imp.info_pane.set_pkg(None::<PkgObject>);
+
+                    // Spawn tokio task to download AUR package names file
+                    let aur_file_owned = aur_file.to_owned();
+
+                    glib::spawn_future_local(clone!(
+                        #[weak] window,
+                        async move {
+                            let _ = aur_file::download_future(&aur_file_owned).await
+                                .expect("Failed to complete tokio task");
+
+                            // Refresh packages
+                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                                .unwrap();
+                        }
+                    ));
+                }
+            });
+
+            // Package view copy list action
+            klass.install_action("view.copy-list", None, |window, _, _| {
+                 window.clipboard().set_text(&window.imp().package_view.copy_list());
+            });
+
+            // Package view all packages action
+            klass.install_action("view.show-all", None, |window, _, _| {
+                let imp = window.imp();
+
+                imp.all_repo_row.borrow().activate();
+                imp.all_status_row.borrow().activate();
+            });
+
+            // Package view sort prop property action
+            klass.install_property_action("view.set-sort-prop", "package-sort-prop");
+
+            // Package view reset sort action
+            klass.install_action("view.reset-sort", None, |window, _, _| {
+                let imp = window.imp();
+
+                imp.package_view.set_sort_prop(SortProp::default());
+                imp.package_view.set_sort_ascending(true);
+            });
+
+            // Info pane set tab action with parameter
+            klass.install_action("infopane.set-tab", Some(&String::static_variant_type()),
+                |window, _, param| {
+                    let tab = param
+                        .expect("Failed to retrieve Variant")
+                        .get::<String>()
+                        .expect("Failed to retrieve String from variant");
+
+                    window.imp().info_pane.set_visible_tab(&tab);
+                }
+            );
+
+            // Show window/dialog actions
+            klass.install_action("win.show-backup-files", None, |window, _, _| {
+                window.imp().backup_window.get().unwrap().show();
+            });
+
+            klass.install_action("win.show-pacman-cache", None, |window, _, _| {
+                window.imp().cache_window.get().unwrap().show();
+            });
+
+            klass.install_action("win.show-pacman-groups", None, |window, _, _| {
+                window.imp().groups_window.get().unwrap().show();
+            });
+
+            klass.install_action("win.show-pacman-log", None, |window, _, _| {
+                window.imp().log_window.get().unwrap().show();
+            });
+
+            klass.install_action("win.show-stats", None, |window, _, _| {
+                let imp = window.imp();
+
+                imp.stats_window.get().unwrap().show(imp.pacman_repos.get().unwrap());
+            });
+
+            klass.install_action("win.show-pacman-config", None, |window, _, _| {
+                window.imp().config_dialog.borrow().present(Some(window));
+            });
+
+            klass.install_action("win.show-preferences", None, |window, _, _| {
+                window.imp().prefs_dialog.borrow().present(Some(window));
+            });
 
             //---------------------------------------
             // Add class key bindings
@@ -170,10 +304,10 @@ mod imp {
             klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
             // View copy list key binding
-            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.copy-package-list");
+            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "view.copy-list");
 
             // View show all packages key binding
-            klass.add_binding_action(gdk::Key::A, gdk::ModifierType::ALT_MASK, "win.show-all-packages");
+            klass.add_binding_action(gdk::Key::A, gdk::ModifierType::ALT_MASK, "view.show-all");
 
             // Stats window key binding
             klass.add_binding_action(gdk::Key::S, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-stats");
@@ -195,35 +329,35 @@ mod imp {
 
             // Infopane set tab shortcuts
             klass.add_binding(gdk::Key::I, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
                     Some(&"info".to_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::F, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
                     Some(&"files".to_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::L, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
                     Some(&"log".to_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::C, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
                     Some(&"cache".to_variant())).unwrap();
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::B, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "win.infopane-set-tab",
+                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
                     Some(&"backup".to_variant())).unwrap();
 
                 glib::Propagation::Stop
@@ -248,6 +382,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for PacViewWindow {
         //---------------------------------------
         // Constructor
@@ -265,7 +400,6 @@ mod imp {
             obj.init_cache_dir();
 
             obj.setup_widgets();
-            obj.setup_actions();
 
             obj.setup_alpm(true);
 
@@ -566,6 +700,17 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
+        // Bind properties to pane visibility
+        self.bind_property("show-sidebar", &imp.sidebar_split_view.get(), "show-sidebar")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("show-infopane", &imp.main_split_view.get(), "show-sidebar")
+            .sync_create()
+            .bidirectional()
+            .build();
+
         // Bind sidebar button state to sidebar visibility
         imp.sidebar_button.bind_property("active", &imp.sidebar_split_view.get(), "show-sidebar")
             .sync_create()
@@ -583,185 +728,12 @@ impl PacViewWindow {
             .sync_create()
             .bidirectional()
             .build();
-    }
 
-    //---------------------------------------
-    // Setup actions
-    //---------------------------------------
-    fn setup_actions(&self) {
-        let imp = self.imp();
-
-        // Pane visibility property actions
-        let show_sidebar_action = gio::PropertyAction::new("show-sidebar", &imp.sidebar_split_view.get(), "show-sidebar");
-
-        let show_infopane_action = gio::PropertyAction::new("show-infopane", &imp.main_split_view.get(), "show-sidebar");
-
-        // Add pane visibility actions to window
-        self.add_action(&show_sidebar_action);
-        self.add_action(&show_infopane_action);
-
-        // Package view refresh action
-        let refresh_action = gio::ActionEntry::builder("refresh")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                let repo_id = imp.repo_listbox.selected_row()
-                    .and_downcast::<FilterRow>()
-                    .and_then(|row| row.repo_id());
-
-                imp.saved_repo_id.replace(repo_id);
-
-                let status_id = imp.status_listbox.selected_row()
-                    .and_downcast::<FilterRow>()
-                    .map(|row| row.status_id())
-                    .unwrap_or_default();
-
-                imp.saved_status_id.set(status_id);
-
-                window.setup_alpm(false);
-            })
+        // Bind property to package view sort prop
+        self.bind_property("package-sort-prop", &imp.package_view.get(), "sort-prop")
+            .sync_create()
+            .bidirectional()
             .build();
-
-        // Package view check updates action
-        let update_action = gio::ActionEntry::builder("check-updates")
-            .activate(|window: &Self, _, _| {
-                window.get_package_updates();
-            })
-            .build();
-
-        // Package view update AUR database action
-        let aur_action = gio::ActionEntry::builder("update-aur-database")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                if let Some(aur_file) = imp.aur_file.get() {
-                    imp.update_row.borrow().set_status(Updates::Reset);
-                    imp.package_view.set_status(PackageViewStatus::AURDownload);
-                    imp.info_pane.set_pkg(None::<PkgObject>);
-
-                    // Spawn tokio task to download AUR package names file
-                    let aur_file_owned = aur_file.to_owned();
-
-                    glib::spawn_future_local(clone!(
-                        #[weak] window,
-                        async move {
-                            let _ = aur_file::download_future(&aur_file_owned).await
-                                .expect("Failed to complete tokio task");
-
-                            // Refresh packages
-                            ActionGroupExt::activate_action(&window, "refresh", None);
-                        }
-                    ));
-                }
-            })
-            .build();
-
-        // Package view copy list action
-        let copy_action = gio::ActionEntry::builder("copy-package-list")
-            .activate(|window: &Self, _, _| {
-                window.clipboard().set_text(&window.imp().package_view.copy_list());
-            })
-            .build();
-
-        // Package view all packages action
-        let all_pkgs_action = gio::ActionEntry::builder("show-all-packages")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                imp.all_repo_row.borrow().activate();
-                imp.all_status_row.borrow().activate();
-            })
-            .build();
-
-        // Package view reset sort action
-        let reset_sort_action = gio::ActionEntry::builder("reset-package-sort")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                imp.package_view.set_sort_prop(SortProp::default());
-                imp.package_view.set_sort_ascending(true);
-            })
-            .build();
-
-        // Package view sort prop property action
-        let sort_prop_action = gio::PropertyAction::new("set-sort-prop", &imp.package_view.get(), "sort-prop");
-
-        // Add package view actions to window
-        self.add_action_entries([refresh_action, update_action, aur_action, copy_action, all_pkgs_action, reset_sort_action]);
-        self.add_action(&sort_prop_action);
-
-        // Info pane set tab action with parameter
-        let visible_tab_action = gio::ActionEntry::builder("infopane-set-tab", )
-            .parameter_type(Some(&String::static_variant_type()))
-            .activate(|window: &Self, _, param| {
-                let tab = param
-                    .expect("Failed to retrieve Variant")
-                    .get::<String>()
-                    .expect("Failed to retrieve String from variant");
-
-                window.imp().info_pane.set_visible_tab(&tab);
-            })
-            .build();
-
-        // Add info pane actions to window
-        self.add_action_entries([visible_tab_action]);
-
-        // Show backup files window action
-        let backup_action = gio::ActionEntry::builder("show-backup-files")
-            .activate(|window: &Self, _, _| {
-                window.imp().backup_window.get().unwrap().show();
-            })
-            .build();
-
-        // Show pacman cache window action
-        let cache_action = gio::ActionEntry::builder("show-pacman-cache")
-            .activate(|window: &Self, _, _| {
-                window.imp().cache_window.get().unwrap().show();
-            })
-            .build();
-
-        // Show pacman groups window action
-        let groups_action = gio::ActionEntry::builder("show-pacman-groups")
-            .activate(|window: &Self, _, _| {
-                window.imp().groups_window.get().unwrap().show();
-            })
-            .build();
-
-        // Show pacman log window action
-        let log_action = gio::ActionEntry::builder("show-pacman-log")
-            .activate(|window: &Self, _, _| {
-                window.imp().log_window.get().unwrap().show();
-            })
-            .build();
-
-        // Show stats window action
-        let stats_action = gio::ActionEntry::builder("show-stats")
-            .activate(|window: &Self, _, _| {
-                let imp = window.imp();
-
-                imp.stats_window.get().unwrap().show(imp.pacman_repos.get().unwrap());
-            })
-            .build();
-
-        // Show pacman config window action
-        let config_action = gio::ActionEntry::builder("show-pacman-config")
-            .activate(|window: &Self, _, _| {
-                window.imp().config_dialog.borrow().present(Some(window));
-            })
-            .build();
-
-        // Add window actions to window
-        self.add_action_entries([stats_action, backup_action, log_action, cache_action, groups_action, config_action]);
-
-        // Show preferences action
-        let prefs_action = gio::ActionEntry::builder("show-preferences")
-            .activate(|window: &Self, _, _| {
-                window.imp().prefs_dialog.borrow().present(Some(window));
-            })
-            .build();
-
-        // Add preference actions to window
-        self.add_action_entries([prefs_action]);
     }
 
     //---------------------------------------
@@ -1203,7 +1175,9 @@ impl PacViewWindow {
                 async move {
                     while receiver.recv().await == Ok(()) {
                         if window.imp().prefs_dialog.borrow().auto_refresh() {
-                            ActionGroupExt::activate_action(&window, "refresh", None);
+                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                                .unwrap();
+
                         }
                     }
                 }
