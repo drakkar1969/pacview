@@ -83,21 +83,20 @@ impl HashWindow {
         self.set_title(Some(&pkg.name()));
 
         let validation = pkg.validation();
-        let hashes = pkg.hashes();
 
         // Helper closure
-        let update_row = |row: &adw::ActionRow, flag: PkgValidation, subtitle: Option<&str>| {
+        let update_row = |row: &adw::ActionRow, flag: PkgValidation, subtitle: &str| {
             if validation.intersects(flag) {
                 row.set_visible(true);
-                row.set_subtitle(subtitle.unwrap_or("(None)"));
+                row.set_subtitle(subtitle);
             } else {
                 row.set_visible(false);
             }
         };
 
-        update_row(&imp.md5_row, PkgValidation::MD5SUM, hashes.md5sum());
-        update_row(&imp.sha256_row, PkgValidation::SHA256SUM, hashes.sha256sum());
-        update_row(&imp.base64_row, PkgValidation::SIGNATURE, hashes.base64_sig());
+        update_row(&imp.md5_row, PkgValidation::MD5SUM, pkg.md5sum());
+        update_row(&imp.sha256_row, PkgValidation::SHA256SUM, pkg.sha256sum());
+        update_row(&imp.base64_row, PkgValidation::SIGNATURE, pkg.base64_sig());
 
         self.present();
     }
