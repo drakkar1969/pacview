@@ -113,7 +113,7 @@ pub mod aur_file {
     }
 
     //---------------------------------------
-    // Download AUR names async function
+    // Download AUR names future function
     //---------------------------------------
     pub fn download_future(aur_file: &PathBuf) -> TokioJoinHandle<Result<(), reqwest::Error>> {
         let aur_file = aur_file.to_owned();
@@ -121,13 +121,15 @@ pub mod aur_file {
         // Spawn tokio task to download AUR file
         tokio_runtime::runtime().spawn(
             async move {
-                let url = "https://aur.archlinux.org/packages.gz";
-
-                let response = reqwest::get(url).await?;
+                let response = reqwest::Client::new()
+                    .get("https://aur.archlinux.org/packages.gz")
+                    .timeout(Duration::from_secs(5))
+                    .send()
+                    .await?;
 
                 let bytes = response.bytes().await?;
 
-                let mut decoder = GzDecoder::new(&bytes[..]);
+                let mut decoder = GzDecoder::new(bytes.as_ref());
 
                 let mut gz_string = String::new();
 
