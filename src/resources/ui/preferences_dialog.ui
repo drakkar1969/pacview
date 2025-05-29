@@ -42,7 +42,7 @@
             </child>
             <child>
               <object class="AdwSpinRow" id="infopane_width_row">
-                <property name="title">In_fo Pane Width</property>
+                <property name="title">_Info Pane Width</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>
                 <property name="snap-to-ticks">true</property>
@@ -118,7 +118,7 @@
             </child>
             <child>
               <object class="AdwSpinRow" id="aur_database_age_row">
-                <property name="title">AUR Database Update _Interval</property>
+                <property name="title">AUR Database _Update Interval</property>
                 <property name="subtitle">Interval between AUR database updates (hours)</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>
@@ -162,7 +162,7 @@
             </child>
             <child>
               <object class="AdwComboRow" id="search_prop_row">
-                <property name="title">Default Search Propert_y</property>
+                <property name="title">Default Search _Property</property>
                 <property name="subtitle">Default property for package search</property>
                 <property name="use-underline">true</property>
                 <property name="model">
@@ -218,7 +218,7 @@
             </child>
             <child>
               <object class="AdwSpinRow" id="property_line_spacing_row">
-                <property name="title">_Line Spacing</property>
+                <property name="title">Line _Spacing</property>
                 <property name="subtitle">Vertical spacing between property text lines</property>
                 <property name="use-underline">true</property>
                 <property name="numeric">true</property>
@@ -249,7 +249,7 @@
             <property name="title">Preferences</property>
             <child>
               <object class="AdwButtonRow" id="reset_button">
-                <property name="title">Reset _Preferences</property>
+                <property name="title">_Reset Preferences</property>
                 <property name="use-underline">true</property>
                 <style>
                   <class name="destructive-action"/>
