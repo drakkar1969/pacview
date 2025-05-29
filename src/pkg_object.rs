@@ -403,9 +403,7 @@ impl PkgObject {
     }
 
     pub fn files(&self) -> &[String] {
-        let imp = self.imp();
-
-        imp.files.get_or_init(|| {
+        self.imp().files.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
                     let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
@@ -423,9 +421,7 @@ impl PkgObject {
     }
 
     pub fn backup(&self) -> &[PkgBackup] {
-        let imp = self.imp();
-
-        imp.backup.get_or_init(|| {
+        self.imp().backup.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
                     let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
@@ -448,9 +444,7 @@ impl PkgObject {
     }
 
     pub fn base64_sig(&self) -> &str {
-        let imp = self.imp();
-
-        imp.base64_sig.get_or_init(|| {
+        self.imp().base64_sig.get_or_init(|| {
             self.sync_pkg()
                 .and_then(|pkg| pkg.base64_sig())
                 .unwrap_or_default()
@@ -459,9 +453,7 @@ impl PkgObject {
     }
 
     pub fn sha256sum(&self) -> &str {
-        let imp = self.imp();
-
-        imp.sha256sum.get_or_init(|| {
+        self.imp().sha256sum.get_or_init(|| {
             self.sync_pkg()
                 .and_then(|pkg| pkg.sha256sum())
                 .unwrap_or_default()
@@ -470,9 +462,7 @@ impl PkgObject {
     }
 
     pub fn md5sum(&self) -> &str {
-        let imp = self.imp();
-
-        imp.md5sum.get_or_init(|| {
+        self.imp().md5sum.get_or_init(|| {
             self.sync_pkg()
                 .and_then(|pkg| pkg.md5sum())
                 .unwrap_or_default()
@@ -484,9 +474,7 @@ impl PkgObject {
     // Public future getters from alpm package
     //---------------------------------------
     pub fn log_future<'a>(&'a self) -> impl Future<Output = &'a Vec<String>> + 'a {
-        let imp = self.imp();
-
-        imp.log.get_or_init(async || {
+        self.imp().log.get_or_init(async || {
             let pkg_name = self.name();
 
             let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
@@ -508,9 +496,7 @@ impl PkgObject {
     }
 
     pub fn cache_future<'a>(&'a self) -> impl Future<Output = &'a Vec<String>> + 'a {
-        let imp = self.imp();
-
-        imp.cache.get_or_init(async || {
+        self.imp().cache.get_or_init(async || {
             let pkg_name = self.name();
 
             gio::spawn_blocking(move || {
