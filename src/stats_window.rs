@@ -157,7 +157,7 @@ impl StatsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, repo_names: &[String]) {
+    pub fn show(&self, repo_names: &[&str]) {
         let imp = self.imp();
 
         self.present();
@@ -193,7 +193,7 @@ impl StatsWindow {
 
                     // Add repo item to stats view
                     stats_items.push(StatsObject::new(
-                        &(if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
+                        &(if *repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
                         &pkg_count.to_string(),
                         &install_count.to_string(),
                         &Size::from_bytes(install_size).to_string()

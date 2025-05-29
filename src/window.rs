@@ -104,8 +104,6 @@ mod imp {
 
         pub(super) aur_file: OnceCell<PathBuf>,
 
-        pub(super) pacman_repos: OnceCell<Vec<String>>,
-
         pub(super) saved_repo_id: RefCell<Option<String>>,
         pub(super) saved_status_id: Cell<PkgFlags>,
 
@@ -250,9 +248,12 @@ mod imp {
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
-                let imp = window.imp();
+                let pacman_repos: Vec<&str> = PACMAN_CONFIG.get().unwrap().repos.iter()
+                    .map(|r| r.name.as_str())
+                    .chain(["aur", "local"])
+                    .collect();
 
-                imp.stats_window.get().unwrap().show(imp.pacman_repos.get().unwrap());
+                window.imp().stats_window.get().unwrap().show(&pacman_repos);
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
@@ -739,17 +740,9 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm associated helper functions
     //---------------------------------------
-    fn pacman_config() -> (pacmanconf::Config, Vec<String>) {
-        let config = pacmanconf::Config::new()
-            .expect("Failed to get pacman config");
-
-        // Get pacman repositories
-        let repos: Vec<String> = config.repos.iter()
-            .map(|r| r.name.clone())
-            .chain([String::from("aur"), String::from("local")])
-            .collect();
-
-        (config, repos)
+    fn pacman_config() -> pacmanconf::Config {
+        pacmanconf::Config::new()
+            .expect("Failed to get pacman config")
     }
 
     fn pacman_log(pacman_config: &pacmanconf::Config) -> Option<String>{
@@ -782,13 +775,10 @@ impl PacViewWindow {
         // Init pacman config if necessary
         let pacman_config = PACMAN_CONFIG.get_or_init(|| {
             // Get pacman config
-            let (pacman_config, pacman_repos) = Self::pacman_config();
+            let pacman_config = Self::pacman_config();
 
             // Init config dialog
             imp.config_dialog.borrow().init(&pacman_config);
-
-            // Store pacman repos
-            imp.pacman_repos.set(pacman_repos).unwrap();
 
             pacman_config
         });
@@ -861,7 +851,10 @@ impl PacViewWindow {
 
         imp.all_repo_row.replace(all_row);
 
-        let pacman_repos = imp.pacman_repos.get().unwrap();
+        let pacman_repos: Vec<&str> = PACMAN_CONFIG.get().unwrap().repos.iter()
+            .map(|r| r.name.as_str())
+            .chain(["aur", "local"])
+            .collect();
 
         for repo in pacman_repos {
             let label = if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() };
@@ -870,7 +863,7 @@ impl PacViewWindow {
 
             imp.repo_listbox.append(&row);
 
-            if saved_repo_id.as_ref() == Some(repo) {
+            if saved_repo_id.as_deref() == Some(repo) {
                 row.activate();
             }
         }
