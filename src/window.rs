@@ -738,18 +738,21 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Setup alpm associated helper functions
+    // Setup alpm
     //---------------------------------------
-    fn pacman_config() -> pacmanconf::Config {
-        pacmanconf::Config::new()
-            .expect("Failed to get pacman config")
-    }
+    fn setup_alpm(&self, first_load: bool) {
+        let imp = self.imp();
 
-    fn pacman_log(pacman_config: &pacmanconf::Config) -> Option<String>{
-        fs::read_to_string(&pacman_config.log_file).ok()
-    }
+        // Init pacman config if necessary
+        let pacman_config = PACMAN_CONFIG.get_or_init(|| {
+            pacmanconf::Config::new()
+                .expect("Failed to get pacman config")
+        });
 
-    fn pacman_cache(pacman_config: &pacmanconf::Config) -> Vec<PathBuf> {
+        // Load pacman log
+        *PACMAN_LOG.lock().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
+
+        // Load pacman cache
         let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
             .flat_map(|dir| {
                 fs::read_dir(dir).map_or(vec![], |read_dir| {
@@ -763,31 +766,10 @@ impl PacViewWindow {
 
         cache_files.sort_unstable();
 
-        cache_files
-    }
+        *PACMAN_CACHE.lock().unwrap() = cache_files;
 
-    //---------------------------------------
-    // Setup alpm
-    //---------------------------------------
-    fn setup_alpm(&self, first_load: bool) {
-        let imp = self.imp();
-
-        // Init pacman config if necessary
-        let pacman_config = PACMAN_CONFIG.get_or_init(|| {
-            // Get pacman config
-            let pacman_config = Self::pacman_config();
-
-            // Init config dialog
-            imp.config_dialog.borrow().init(&pacman_config);
-
-            pacman_config
-        });
-
-        // Load pacman log
-        *PACMAN_LOG.lock().unwrap() = Self::pacman_log(pacman_config);
-
-        // Load pacman cache
-        *PACMAN_CACHE.lock().unwrap() = Self::pacman_cache(pacman_config);
+        // Init config dialog
+        imp.config_dialog.borrow().init(&pacman_config);
 
         // Clear windows
         imp.backup_window.get().unwrap().remove_all();
