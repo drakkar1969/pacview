@@ -645,20 +645,20 @@ impl PacViewWindow {
         // Bind preferences
         let prefs_dialog = imp.prefs_dialog.get().unwrap();
 
-        settings.bind("color-scheme", &*prefs_dialog, "color-scheme").build();
-        settings.bind("sidebar-width", &*prefs_dialog, "sidebar-width").build();
-        settings.bind("infopane-width", &*prefs_dialog, "infopane-width").build();
-        settings.bind("aur-update-command", &*prefs_dialog, "aur-update-command").build();
-        settings.bind("aur-package-check", &*prefs_dialog, "aur-package-check").build();
-        settings.bind("aur-database-age", &*prefs_dialog, "aur-database-age").build();
-        settings.bind("auto-refresh", &*prefs_dialog, "auto-refresh").build();
-        settings.bind("remember-sort", &*prefs_dialog, "remember-sort").build();
-        settings.bind("search-mode", &*prefs_dialog, "search-mode").build();
-        settings.bind("search-prop", &*prefs_dialog, "search-prop").build();
-        settings.bind("search-delay", &*prefs_dialog, "search-delay").build();
-        settings.bind("property-max-lines", &*prefs_dialog, "property-max-lines").build();
-        settings.bind("property-line-spacing", &*prefs_dialog, "property-line-spacing").build();
-        settings.bind("underline-links", &*prefs_dialog, "underline-links").build();
+        settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
+        settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
+        settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
+        settings.bind("aur-update-command", prefs_dialog, "aur-update-command").build();
+        settings.bind("aur-package-check", prefs_dialog, "aur-package-check").build();
+        settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
+        settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
+        settings.bind("remember-sort", prefs_dialog, "remember-sort").build();
+        settings.bind("search-mode", prefs_dialog, "search-mode").build();
+        settings.bind("search-prop", prefs_dialog, "search-prop").build();
+        settings.bind("search-delay", prefs_dialog, "search-delay").build();
+        settings.bind("property-max-lines", prefs_dialog, "property-max-lines").build();
+        settings.bind("property-line-spacing", prefs_dialog, "property-line-spacing").build();
+        settings.bind("underline-links", prefs_dialog, "underline-links").build();
 
         // Load/save package view sort properties
         if prefs_dialog.remember_sort() {
@@ -769,7 +769,7 @@ impl PacViewWindow {
         *PACMAN_CACHE.lock().unwrap() = cache_files;
 
         // Init config dialog
-        imp.config_dialog.get().unwrap().init(&pacman_config);
+        imp.config_dialog.get().unwrap().init(pacman_config);
 
         // Clear windows
         imp.backup_window.get().unwrap().remove_all();
