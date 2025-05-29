@@ -398,7 +398,7 @@ mod imp {
 
             obj.bind_gsettings();
 
-            obj.init_cache_dir();
+            obj.init_aur_file();
 
             obj.setup_widgets();
 
@@ -683,9 +683,9 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Init cache dir
+    // Init AUR file
     //---------------------------------------
-    fn init_cache_dir(&self) {
+    fn init_aur_file(&self) {
         let xdg_dirs = xdg::BaseDirectories::new();
 
         if let Ok(aur_file) = xdg_dirs.create_cache_directory("pacview")
