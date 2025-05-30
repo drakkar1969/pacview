@@ -5,7 +5,7 @@
       <range min="3" max="168"/>
       <default>24</default>
     </key>
-    <key name="aur-package-check" type="b">
+    <key name="aur-database-download" type="b">
       <default>true</default>
     </key>
     <key name="aur-update-command" type="s">

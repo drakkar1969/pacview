@@ -49,7 +49,7 @@ mod imp {
         #[template_child]
         pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
-        pub(super) aur_check_row: TemplateChild<adw::SwitchRow>,
+        pub(super) aur_database_download_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) aur_database_age_row: TemplateChild<adw::SpinRow>,
         #[template_child]
@@ -80,7 +80,7 @@ mod imp {
         #[property(get, set)]
         aur_update_command: RefCell<String>,
         #[property(get, set)]
-        aur_package_check: Cell<bool>,
+        aur_database_download: Cell<bool>,
         #[property(get, set)]
         aur_database_age: Cell<f64>,
         #[property(get, set)]
@@ -204,7 +204,12 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
-        self.bind_property("aur-package-check", &imp.aur_check_row.get(), "active")
+        self.bind_property("aur-database-download", &imp.aur_database_download_row.get(), "active")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("aur-database-download", &imp.aur_database_age_row.get(), "sensitive")
             .sync_create()
             .bidirectional()
             .build();
@@ -311,7 +316,7 @@ impl PreferencesDialog {
                             settings.reset("sidebar-width");
                             settings.reset("infopane-width");
                             settings.reset("aur-update-command");
-                            settings.reset("aur-package-check");
+                            settings.reset("aur-database-download");
                             settings.reset("aur-database-age");
                             settings.reset("auto-refresh");
                             settings.reset("remember-sort");

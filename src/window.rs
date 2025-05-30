@@ -102,7 +102,7 @@ mod imp {
         #[property(get, set, builder(SortProp::default()))]
         package_sort_prop: Cell<SortProp>,
 
-        pub(super) aur_file: OnceCell<PathBuf>,
+        pub(super) aur_file: RefCell<Option<PathBuf>>,
 
         pub(super) saved_repo_id: RefCell<Option<String>>,
         pub(super) saved_status_id: Cell<PkgFlags>,
@@ -172,18 +172,16 @@ mod imp {
             klass.install_action("win.update-aur-database", None, |window, _, _| {
                 let imp = window.imp();
 
-                if let Some(aur_file) = imp.aur_file.get() {
+                if let Some(aur_file) = imp.aur_file.borrow().to_owned() {
                     imp.update_row.borrow().set_status(Updates::Reset);
                     imp.package_view.set_status(PackageViewStatus::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
-                    let aur_file_owned = aur_file.to_owned();
-
                     glib::spawn_future_local(clone!(
                         #[weak] window,
                         async move {
-                            let _ = aur_file::download_future(&aur_file_owned).await
+                            let _ = aur_file::download_future(&aur_file).await
                                 .expect("Failed to complete tokio task");
 
                             // Refresh packages
@@ -398,8 +396,6 @@ mod imp {
 
             obj.bind_gsettings();
 
-            obj.init_aur_file();
-
             obj.setup_widgets();
 
             obj.setup_alpm(true);
@@ -593,6 +589,17 @@ impl PacViewWindow {
             }
         ));
 
+        // Preferences AUR database download property notify
+        prefs_dialog.connect_aur_database_download_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |prefs_dialog| {
+                window.action_set_enabled(
+                    "win.update-aur-database",
+                    prefs_dialog.aur_database_download()
+                );
+            }
+        ));
+
         // Preferences search mode property notify signal
         prefs_dialog.connect_search_mode_notify(clone!(
             #[weak] imp,
@@ -649,7 +656,7 @@ impl PacViewWindow {
         settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
         settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
         settings.bind("aur-update-command", prefs_dialog, "aur-update-command").build();
-        settings.bind("aur-package-check", prefs_dialog, "aur-package-check").build();
+        settings.bind("aur-database-download", prefs_dialog, "aur-database-download").build();
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
         settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
         settings.bind("remember-sort", prefs_dialog, "remember-sort").build();
@@ -680,19 +687,6 @@ impl PacViewWindow {
         settings.bind("sort-ascending", &imp.package_view.get(), "sort-ascending")
             .set()
             .build();
-    }
-
-    //---------------------------------------
-    // Init AUR file
-    //---------------------------------------
-    fn init_aur_file(&self) {
-        let xdg_dirs = xdg::BaseDirectories::new();
-
-        if let Ok(aur_file) = xdg_dirs.create_cache_directory("pacview")
-            .map(|cache_dir| cache_dir.join("aur_packages"))
-        {
-            self.imp().aur_file.set(aur_file).unwrap();
-        }
     }
 
     //---------------------------------------
@@ -781,34 +775,36 @@ impl PacViewWindow {
         // Populate sidebar
         self.alpm_populate_sidebar(first_load);
 
-        // If first load, get AUR file path
-        let Some(aur_file) = imp.aur_file.get().filter(|_| first_load) else {
-            // Not first load or invalid path: load packages (no AUR file age check) and return
-            self.alpm_load_packages(false);
+        // Get AUR file (create cache dir)
+        let xdg_dirs = xdg::BaseDirectories::new();
 
-            return
-        };
+        let aur_file = xdg_dirs.create_cache_directory("pacview")
+            .map(|cache_dir| cache_dir.join("aur_packages"))
+            .ok();
 
-        if fs::metadata(aur_file).is_ok() {
-            // AUR file exists: load packages and check AUR file age
-            self.alpm_load_packages(true);
-        } else {
-            // AUR file does not exist: spawn tokio task to download it
+        imp.aur_file.replace(aur_file.clone());
+
+        // If AUR database download is enabled and AUR file does not exist, download it
+        if let Some(file) = aur_file
+            .filter(|file| {
+                imp.prefs_dialog.get().unwrap().aur_database_download() && 
+                fs::metadata(file).is_err()
+            })
+        {
             imp.package_view.set_status(PackageViewStatus::AURDownload);
             imp.info_pane.set_pkg(None::<PkgObject>);
-
-            let aur_file_owned = aur_file.to_owned();
 
             glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,
                 async move {
-                    let _ = aur_file::download_future(&aur_file_owned).await
+                    let _ = aur_file::download_future(&file).await
                         .expect("Failed to complete tokio task");
 
-                    // Load packages (no AUR file age check)
-                    window.alpm_load_packages(false);
+                    window.alpm_load_packages();
                 }
             ));
+        } else {
+            self.alpm_load_packages();
         }
     }
 
@@ -882,24 +878,24 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, check_aur_file: bool) {
+    fn alpm_load_packages(&self) {
         let imp = self.imp();
 
         // Get pacman config
         let pacman_config = PACMAN_CONFIG.get().unwrap();
 
         // Get AUR package names file
-        let aur_check = imp.prefs_dialog.get().unwrap().aur_package_check();
-        let aur_file = imp.aur_file.get().map(ToOwned::to_owned);
+        let aur_download = imp.prefs_dialog.get().unwrap().aur_database_download();
+        let aur_file = imp.aur_file.borrow().as_ref().map(ToOwned::to_owned);
 
         // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
             let handle = alpm_utils::alpm_with_conf(pacman_config)?;
 
-            // Load AUR package names from file if AUR check is enabled in preferences
+            // Load AUR package names from file if AUR download is enabled in preferences
             let aur_names: Option<Vec<String>> = aur_file
-                .filter(|_| aur_check)
+                .filter(|_| aur_download)
                 .and_then(|aur_file| fs::read(aur_file).ok())
                 .map(|bytes| {
                     String::from_utf8_lossy(&bytes).lines().map(ToOwned::to_owned).collect()
@@ -989,11 +985,13 @@ impl PacViewWindow {
                         window.get_package_updates();
 
                         // Check AUR package names file age
-                        if check_aur_file {
-                            if let Some(aur_file) = imp.aur_file.get() {
+                        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+
+                        if prefs_dialog.aur_database_download() {
+                            if let Some(aur_file) = imp.aur_file.borrow().as_ref() {
                                 aur_file::check_file_age(
                                     aur_file,
-                                    imp.prefs_dialog.get().unwrap().aur_database_age() as u64
+                                    prefs_dialog.aur_database_age() as u64
                                 );
                             }
                         }
