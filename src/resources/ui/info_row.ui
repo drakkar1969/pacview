@@ -6,6 +6,7 @@
       <class name="info-row"/>
     </style>
     <property name="hexpand">true</property>
+    <property name="activatable">false</property>
     <property name="child">
       <object class="GtkBox">
         <property name="orientation">vertical</property>
