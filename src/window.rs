@@ -561,13 +561,15 @@ impl PacViewWindow {
 
         // Package view n_items property notify signal
         imp.package_view.connect_n_items_notify(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |view| {
                 let n_items = view.n_items();
 
-                imp.status_label.set_label(
+                window.imp().status_label.set_label(
                     &format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })
                 );
+
+                window.action_set_enabled("view.copy-list", n_items != 0);
             }
         ));
 
