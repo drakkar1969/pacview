@@ -1,4 +1,4 @@
-use std::cell::{RefCell, OnceCell};
+use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
@@ -119,8 +119,6 @@ mod imp {
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
 
         pub(super) pkg_history: RefCell<HistoryList>,
-
-        pub(super) validation_flags_class: OnceCell<glib::FlagsClass>,
     }
 
     //---------------------------------------
@@ -283,9 +281,6 @@ impl InfoPane {
         pkg_history.bind_property("can-select-next", &imp.next_button.get(), "sensitive")
             .sync_create()
             .build();
-
-        // Create validation flags class
-        imp.validation_flags_class.set(glib::FlagsClass::new::<PkgValidation>()).unwrap();
     }
 
     //---------------------------------------
@@ -613,12 +608,14 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Pkg validation function
+    // Package validation function
     //---------------------------------------
-    fn pkg_validation(&self, flags: PkgValidation) -> String {
+    fn validation(&self, flags: PkgValidation) -> String {
+        let validation_flags_class = glib::FlagsClass::new::<PkgValidation>();
+
         flags.iter()
             .map(|flag| {
-                self.imp().validation_flags_class.get().unwrap()
+                validation_flags_class
                     .value(flag.bits())
                     .map_or("NONE", glib::FlagsValue::name)
             })
@@ -721,7 +718,7 @@ impl InfoPane {
         self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
 
         // Validation
-        self.set_info_row(PropID::Validation, ValueType::Str(&self.pkg_validation(pkg.validation())));
+        self.set_info_row(PropID::Validation, ValueType::Str(&self.validation(pkg.validation())));
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {
