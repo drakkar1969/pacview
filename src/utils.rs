@@ -32,7 +32,7 @@ pub mod async_command {
 
         let (cmd, args) = params.as_ref()
             .and_then(|params| params.split_first())
-            .ok_or(io::Error::new(io::ErrorKind::InvalidInput, "Failed to parse command"))?;
+            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Failed to parse command"))?;
 
         // Run external command
         let output = async_process::Command::new(cmd).args(args).output().await?;

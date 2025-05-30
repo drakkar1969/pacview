@@ -610,7 +610,7 @@ impl InfoPane {
     //---------------------------------------
     // Package validation function
     //---------------------------------------
-    fn validation(&self, flags: PkgValidation) -> String {
+    fn validation(flags: PkgValidation) -> String {
         let validation_flags_class = glib::FlagsClass::new::<PkgValidation>();
 
         flags.iter()
@@ -718,7 +718,7 @@ impl InfoPane {
         self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
 
         // Validation
-        self.set_info_row(PropID::Validation, ValueType::Str(&self.validation(pkg.validation())));
+        self.set_info_row(PropID::Validation, ValueType::Str(&Self::validation(pkg.validation())));
     }
 
     fn update_files_view(&self, pkg: &PkgObject) {
