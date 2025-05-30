@@ -189,19 +189,8 @@ mod imp {
             });
 
             klass.install_action("text.activate-link", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                let link_list = imp.link_list.borrow();
-
-                if let Some(focus_link) = imp.focus_link_index.get()
-                    .and_then(|i| link_list.get(i))
-                {
-                    let link_url = focus_link.clone();
-
-                    // Need to drop to avoid panic
-                    drop(link_list);
-
-                    widget.handle_link(&link_url);
+                if let Some(focus_link) = widget.focus_link() {
+                    widget.handle_link(&focus_link);
                 }
             });
         }
@@ -605,6 +594,15 @@ impl TextWidget {
     //---------------------------------------
     // Layout format helper functions
     //---------------------------------------
+    fn focus_link(&self) -> Option<TextTag> {
+        let imp = self.imp();
+
+        let link_list = imp.link_list.borrow();
+        let focus_index = imp.focus_link_index.get();
+
+        focus_index.and_then(|index| link_list.get(index)).cloned()
+    }
+
     fn selection_attributes(&self, start: usize, end: usize) -> pango::AttrList {
         let imp = self.imp();
 
@@ -632,15 +630,9 @@ impl TextWidget {
     }
 
     fn focus_link_attributes(&self) -> pango::AttrList {
-        let imp = self.imp();
-
         let attr_list = pango::AttrList::new();
 
-        let link_list = imp.link_list.borrow();
-
-        let focus_index = imp.focus_link_index.get();
-
-        if let Some(link) = focus_index.and_then(|index| link_list.get(index)) {
+        if let Some(link) = self.focus_link() {
             let underline = if self.underline_links() {
                 pango::Underline::Double
             } else {
