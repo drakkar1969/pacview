@@ -977,16 +977,22 @@ impl TextWidget {
                         let text = widget.text();
                         let bytes = text.as_bytes();
 
-                        let start = bytes[..index].iter()
-                            .rposition(|&ch| {
-                                ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                        let (first, last) = bytes.split_at_checked(index).unzip();
+
+                        let start = first
+                            .and_then(|bytes| {
+                                bytes.iter().rposition(|&ch| {
+                                    ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                                })
                             })
                             .and_then(|start| start.checked_add(1))
                             .unwrap_or(0);
 
-                        let end = bytes[index..].iter()
-                            .position(|&ch| {
-                                ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                        let end = last
+                            .and_then(|bytes| {
+                                bytes.iter().position(|&ch| {
+                                    ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                                })
                             })
                             .and_then(|end| end.checked_add(index))
                             .unwrap_or(text.len());
