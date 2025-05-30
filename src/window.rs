@@ -888,7 +888,7 @@ impl PacViewWindow {
 
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.get().unwrap().aur_database_download();
-        let aur_file = imp.aur_file.borrow().as_ref().map(ToOwned::to_owned);
+        let aur_file = imp.aur_file.borrow().to_owned();
 
         // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {

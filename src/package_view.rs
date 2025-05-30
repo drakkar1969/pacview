@@ -322,7 +322,7 @@ impl PackageView {
                 let pkg = selection.selected_item()
                     .and_downcast::<PkgObject>();
 
-                view.info_pane().set_pkg(pkg.as_ref());
+                view.info_pane().set_pkg(pkg);
             }
         ));
 
@@ -336,7 +336,7 @@ impl PackageView {
                 let info_pane = view.info_pane();
 
                 if pkg != info_pane.pkg() {
-                    info_pane.set_pkg(pkg.as_ref());
+                    info_pane.set_pkg(pkg);
                 }
             }
         ));
