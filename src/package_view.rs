@@ -266,7 +266,7 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Failed to downcast to 'PkgObject'");
 
-                let search_props: Vec<String> = match prop {
+                let search_props: Cow<'_, [String]> = match prop {
                     SearchProp::Name => Cow::Owned(vec![pkg.name()]),
                     SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
                     SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
@@ -274,20 +274,21 @@ impl PackageView {
                     SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
                     SearchProp::Provides => Cow::Borrowed(pkg.provides()),
                     SearchProp::Files => Cow::Borrowed(pkg.files()),
-                }
-                .iter()
-                .map(|s| s.to_lowercase())
-                .collect();
+                };
 
                 match mode {
                     SearchMode::Exact => {
-                        search_props.iter().any(|s| s.eq(&term))
+                        search_props.iter().any(|s| s.to_lowercase().eq(&term))
                     },
                     SearchMode::All => {
-                        term.split_whitespace().all(|t| search_props.iter().any(|s| s.contains(t)))
+                        term.split_whitespace().all(|t| {
+                            search_props.iter().any(|s| s.to_lowercase().contains(t))
+                        })
                     },
                     SearchMode::Any => {
-                        term.split_whitespace().any(|t| search_props.iter().any(|s| s.contains(t)))
+                        term.split_whitespace().any(|t| {
+                            search_props.iter().any(|s| s.to_lowercase().contains(t))
+                        })
                     },
                 }
             }
