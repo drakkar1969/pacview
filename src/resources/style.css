@@ -166,3 +166,7 @@ columnview.card-list {
 textview.card-list {
 	background-color: transparent;
 }
+
+textview.card-list border {
+	background-color: transparent;
+}
