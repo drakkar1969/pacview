@@ -68,19 +68,14 @@ impl HashWindow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
-        glib::Object::builder()
+    pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject) -> Self {
+        let obj: Self = glib::Object::builder()
             .property("transient-for", parent)
-            .build()
-    }
-    
-    //---------------------------------------
-    // Show window
-    //---------------------------------------
-    pub fn show(&self, pkg: &PkgObject) {
-        let imp = self.imp();
+            .build();
 
-        self.set_title(Some(&pkg.name()));
+        let imp = obj.imp();
+
+        obj.set_title(Some(&pkg.name()));
 
         let validation = pkg.validation();
 
@@ -98,6 +93,6 @@ impl HashWindow {
         update_row(&imp.sha256_row, PkgValidation::SHA256SUM, pkg.sha256sum());
         update_row(&imp.base64_row, PkgValidation::SIGNATURE, pkg.base64_sig());
 
-        self.present();
+        obj
     }
 }

@@ -314,9 +314,9 @@ impl InfoPane {
                         .and_downcast::<gtk::Window>()
                         .expect("Failed to downcast to 'GtkWindow'");
 
-                    let hash_window = HashWindow::new(&parent);
+                    let hash_window = HashWindow::new(&parent, &pkg);
 
-                    hash_window.show(&pkg);
+                    hash_window.present();
                 }
             }
         ));
