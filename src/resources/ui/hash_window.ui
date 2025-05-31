@@ -4,8 +4,6 @@
   <template class="HashWindow" parent="AdwWindow">
     <property name="default-width">700</property>
     <property name="modal">true</property>
-    <property name="hide-on-close">true</property>
-    <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView">
         <child type="top">
