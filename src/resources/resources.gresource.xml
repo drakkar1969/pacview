@@ -8,6 +8,7 @@
     <file alias="expander-symbolic.svg">icons/expander-symbolic.svg</file>
     <file alias="info-item-symbolic.svg">icons/info-item-symbolic.svg</file>
     <file alias="info-archive-symbolic.svg">icons/info-archive-symbolic.svg</file>
+    <file alias="info-pkgbuild-symbolic.svg">icons/info-pkgbuild-symbolic.svg</file>
     <file alias="info-signed-symbolic.svg">icons/info-signed-symbolic.svg</file>
     <file alias="info-files-symbolic.svg">icons/info-files-symbolic.svg</file>
     <file alias="info-log-symbolic.svg">icons/info-log-symbolic.svg</file>
@@ -68,6 +69,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/text_widget.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_bar.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/source_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
   </gresource>

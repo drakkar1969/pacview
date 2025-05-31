@@ -16,6 +16,7 @@ mod log_window;
 mod cache_window;
 mod groups_window;
 mod config_dialog;
+mod source_window;
 mod pkg_data;
 mod pkg_object;
 mod stats_object;

@@ -15,6 +15,7 @@ use crate::info_row::{PropID, PropType, ValueType, InfoRow};
 use crate::history_list::HistoryList;
 use crate::pkg_data::{PkgFlags, PkgValidation};
 use crate::pkg_object::PkgObject;
+use crate::source_window::SourceWindow;
 use crate::hash_window::HashWindow;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::utils::app_info;
@@ -48,6 +49,8 @@ mod imp {
 
         #[template_child]
         pub(super) info_listbox: TemplateChild<gtk::ListBox>,
+        #[template_child]
+        pub(super) info_pkgbuild_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) info_hashes_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -173,6 +176,8 @@ mod imp {
             );
 
             self.tab_switcher.set_sensitive(pkg.is_some());
+
+            self.info_pkgbuild_button.set_sensitive(pkg.is_some());
 
             self.info_hashes_button.set_sensitive(
                 pkg.is_some_and(|pkg| {
@@ -302,6 +307,22 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             move |_| {
                 infopane.display_next();
+            }
+        ));
+
+        // Info PKGBUILD button clicked signal
+        imp.info_pkgbuild_button.connect_clicked(clone!(
+            #[weak(rename_to = infopane)] self,
+            move |_| {
+                if let Some(pkg) = infopane.pkg() {
+                    let parent = infopane.root()
+                        .and_downcast::<gtk::Window>()
+                        .expect("Failed to downcast to 'GtkWindow'");
+
+                    let source_window = SourceWindow::new(&parent, &pkg);
+
+                    source_window.present();
+                }
             }
         ));
 

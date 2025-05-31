@@ -1,7 +1,9 @@
 use std::cell::{RefCell, OnceCell};
 use std::rc::Rc;
 use std::cmp::Ordering;
+use std::time::Duration;
 
+use futures::TryFutureExt;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
@@ -11,9 +13,11 @@ use regex::Regex;
 use size::Size;
 use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
+use tokio::task::JoinHandle as TokioJoinHandle;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
+use crate::utils::tokio_runtime;
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -518,6 +522,42 @@ impl PkgObject {
             .await
             .expect("Failed to complete task")
         })
+    }
+
+    pub fn pkgbuild_future(&self) -> TokioJoinHandle<Result<String, String>> {
+        // Get PKGBUILD url
+        let default_repos = ["core", "extra", "multilib"];
+
+        let repo = self.repository();
+
+        let url = if default_repos.contains(&repo.as_str()) {
+            format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{}/-/raw/main/PKGBUILD", self.name())
+        } else if repo == "aur" {
+            format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={}", self.name())
+        } else {
+            String::new()
+        };
+
+        // Spawn tokio task to download PKGBUILD
+        tokio_runtime::runtime().spawn(
+            async move {
+                let response = reqwest::Client::new()
+                    .get(url)
+                    .timeout(Duration::from_secs(5))
+                    .send()
+                    .map_err(|error| error.to_string())
+                    .await?;
+
+                let status = response.status();
+                let pkgbuild = response.text().map_err(|error| error.to_string()).await?;
+
+                if status.is_success() {
+                    Ok(pkgbuild)
+                } else {
+                    Err(status.to_string())
+                }
+            }
+        )
     }
 
     //---------------------------------------
