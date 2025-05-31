@@ -162,7 +162,7 @@ mod imp {
         // Property getter/setter
         //---------------------------------------
         fn pkg(&self) -> Option<PkgObject> {
-            self.pkg_history.borrow().selected_item()
+            self.pkg_history.borrow().current_item()
         }
 
         fn set_pkg(&self, pkg: Option<&PkgObject>) {
@@ -225,7 +225,7 @@ impl InfoPane {
 
                 // If link package is in infopane history, select it
                 // Otherwise append it after current history package
-                pkg_history.select_or_make_last(pkg);
+                pkg_history.set_current_or_make_last(pkg);
 
                 // Display link package
                 self.update_display();
@@ -274,11 +274,11 @@ impl InfoPane {
         // Bind history list properties to widgets
         let pkg_history = imp.pkg_history.borrow();
 
-        pkg_history.bind_property("can-select-prev", &imp.prev_button.get(), "sensitive")
+        pkg_history.bind_property("peek-previous", &imp.prev_button.get(), "sensitive")
             .sync_create()
             .build();
 
-        pkg_history.bind_property("can-select-next", &imp.next_button.get(), "sensitive")
+        pkg_history.bind_property("peek-next", &imp.next_button.get(), "sensitive")
             .sync_create()
             .build();
     }
@@ -794,8 +794,8 @@ impl InfoPane {
             // Set header bar title
             let pkg_history = imp.pkg_history.borrow();
 
-            let title = if pkg_history.n_items() > 1 {
-                format!("{}  \u{2022}  {}/{}", pkg.name(), pkg_history.selected() + 1, pkg_history.n_items())
+            let title = if pkg_history.len() > 1 {
+                format!("{}  \u{2022}  {}/{}", pkg.name(), pkg_history.current() + 1, pkg_history.len())
             } else {
                 pkg.name()
             };
@@ -817,13 +817,13 @@ impl InfoPane {
     }
 
     pub fn display_prev(&self) {
-        self.imp().pkg_history.borrow().select_previous();
+        self.imp().pkg_history.borrow().move_previous();
 
         self.update_display();
     }
 
     pub fn display_next(&self) {
-        self.imp().pkg_history.borrow().select_next();
+        self.imp().pkg_history.borrow().move_next();
 
         self.update_display();
     }

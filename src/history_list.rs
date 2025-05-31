@@ -19,16 +19,16 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::HistoryList)]
     pub struct HistoryList {
-        #[property(get = Self::n_items)]
-        n_items: PhantomData<u32>,
-        #[property(get, set = Self::set_selected)]
-        selected: Cell<u32>,
-        #[property(get = Self::selected_item, nullable)]
-        selected_item: PhantomData<Option<PkgObject>>,
-        #[property(get = Self::can_select_prev)]
-        can_select_prev: PhantomData<bool>,
-        #[property(get = Self::can_select_next)]
-        can_select_next: PhantomData<bool>,
+        #[property(get = Self::len)]
+        len: PhantomData<u32>,
+        #[property(get, set = Self::set_current)]
+        current: Cell<u32>,
+        #[property(get = Self::current_item, nullable)]
+        current_item: PhantomData<Option<PkgObject>>,
+        #[property(get = Self::peek_previous)]
+        peek_previous: PhantomData<bool>,
+        #[property(get = Self::peek_next)]
+        peek_next: PhantomData<bool>,
 
         pub(super) list: RefCell<Vec<PkgObject>>,
     }
@@ -49,45 +49,45 @@ mod imp {
         //---------------------------------------
         // Property getters/setters
         //---------------------------------------
-        fn n_items(&self) -> u32 {
+        fn len(&self) -> u32 {
             self.list.borrow().len() as u32
         }
 
-        fn set_selected(&self, index: u32) {
+        fn set_current(&self, index: u32) {
             if index < self.list.borrow().len() as u32 {
-                self.selected.set(index);
+                self.current.set(index);
             } else {
-                self.selected.set(gtk::INVALID_LIST_POSITION);
+                self.current.set(gtk::INVALID_LIST_POSITION);
             }
 
             let obj = self.obj();
 
-            obj.notify_n_items();
-            obj.notify_can_select_prev();
-            obj.notify_can_select_next();
-            obj.notify_selected_item();
+            obj.notify_len();
+            obj.notify_peek_previous();
+            obj.notify_peek_next();
+            obj.notify_current_item();
         }
 
-        fn selected_item(&self) -> Option<PkgObject> {
-            let selected = self.selected.get();
+        fn current_item(&self) -> Option<PkgObject> {
+            let current = self.current.get();
 
-            if selected == gtk::INVALID_LIST_POSITION {
+            if current == gtk::INVALID_LIST_POSITION {
                 None
             } else {
-                self.list.borrow().get(selected as usize).cloned()
+                self.list.borrow().get(current as usize).cloned()
             }
         }
 
-        fn can_select_prev(&self) -> bool {
-            let selected = self.selected.get();
+        fn peek_previous(&self) -> bool {
+            let current = self.current.get();
 
-            selected != gtk::INVALID_LIST_POSITION && selected > 0
+            current != gtk::INVALID_LIST_POSITION && current > 0
         }
 
-        fn can_select_next(&self) -> bool {
-            let selected = self.selected.get();
+        fn peek_next(&self) -> bool {
+            let current = self.current.get();
 
-            selected.checked_add(1).filter(|&i| i < self.list.borrow().len() as u32).is_some()
+            current.checked_add(1).filter(|&i| i < self.list.borrow().len() as u32).is_some()
         }
     }
 }
@@ -109,7 +109,7 @@ impl HistoryList {
         // Clear history and append item
         list.clear();
 
-        let selected = item.map_or(gtk::INVALID_LIST_POSITION, |item| {
+        let current = item.map_or(gtk::INVALID_LIST_POSITION, |item| {
             list.push(item.clone());
 
             0
@@ -117,35 +117,35 @@ impl HistoryList {
 
         drop(list);
 
-        self.set_selected(selected);
+        self.set_current(current);
     }
 
-    pub fn select_previous(&self) {
-        if self.can_select_prev() {
-            self.set_selected(self.selected() - 1);
+    pub fn move_previous(&self) {
+        if self.peek_previous() {
+            self.set_current(self.current() - 1);
         }
     }
 
-    pub fn select_next(&self) {
-        if self.can_select_next() {
-            self.set_selected(self.selected() + 1);
+    pub fn move_next(&self) {
+        if self.peek_next() {
+            self.set_current(self.current() + 1);
         }
     }
 
-    pub fn select_or_make_last(&self, item: &PkgObject) {
+    pub fn set_current_or_make_last(&self, item: &PkgObject) {
         let imp = self.imp();
 
         let mut list = imp.list.borrow_mut();
 
-        let selected = list.iter().position(|pkg| pkg.name() == item.name()).map_or_else(|| {
-            // If currently selected item is not the last one, truncate the list
-            let selected = self.selected();
+        let current = list.iter().position(|pkg| pkg.name() == item.name()).map_or_else(|| {
+            // If current item is not the last one, truncate the list
+            let current = self.current();
 
-            if let Some(i) = selected.checked_add(1).filter(|&i| i < list.len() as u32) {
+            if let Some(i) = current.checked_add(1).filter(|&i| i < list.len() as u32) {
                 list.truncate(i as usize);
             }
 
-            // Append and select item
+            // Append item and make current
             list.push(item.clone());
 
             list.len() - 1
@@ -153,7 +153,7 @@ impl HistoryList {
 
         drop(list);
 
-        self.set_selected(selected as u32);
+        self.set_current(current as u32);
     }
 }
 
@@ -164,7 +164,7 @@ impl Default for HistoryList {
     fn default() -> Self {
         // Build HistoryList
         let history_list: Self = glib::Object::builder()
-            .property("selected", gtk::INVALID_LIST_POSITION)
+            .property("current", gtk::INVALID_LIST_POSITION)
             .build();
 
         history_list.imp().list.replace(vec![]);
