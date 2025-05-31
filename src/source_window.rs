@@ -1,3 +1,5 @@
+use std::cell::OnceCell;
+
 use gtk::{glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -14,15 +16,21 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::SourceWindow)]
     #[template(resource = "/com/github/PacView/ui/source_window.ui")]
     pub struct SourceWindow {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
+        pub(super) refresh_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) text_view: TemplateChild<gtk::TextView>,
         #[template_child]
         pub(super) error_status: TemplateChild<adw::StatusPage>,
+
+        #[property(get, set)]
+        pkg: OnceCell<PkgObject>,
     }
 
     //---------------------------------------
@@ -49,7 +57,15 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for SourceWindow {}
+    #[glib::derived_properties]
+    impl ObjectImpl for SourceWindow {
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            self.obj().setup_signals();
+        }
+    }
+
     impl WidgetImpl for SourceWindow {}
     impl WindowImpl for SourceWindow {}
     impl AdwWindowImpl for SourceWindow {}
@@ -71,17 +87,28 @@ impl SourceWindow {
     pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject) -> Self {
         let obj: Self = glib::Object::builder()
             .property("transient-for", parent)
+            .property("title", format!("{}  \u{2022}  PKGBUILD", &pkg.name()))
+            .property("pkg", pkg)
             .build();
 
-        obj.set_title(Some(&format!("{}  \u{2022}  PKGBUILD", &pkg.name())));
+        obj.download_pkgbuild();
+
+        obj
+    }
+
+    //---------------------------------------
+    // Download PKGBUILD function
+    //---------------------------------------
+    fn download_pkgbuild(&self) {
+        let imp = self.imp();
+
+        imp.stack.set_visible_child_name("loading");
 
         glib::spawn_future_local(clone!(
-            #[weak] obj,
-            #[weak] pkg,
+            #[weak(rename_to = window)] self,
+            #[weak] imp,
             async move {
-                let imp = obj.imp();
-
-                let result = pkg.pkgbuild_future().await
+                let result = window.pkg().pkgbuild_future().await
                     .expect("Failed to complete tokio task");
 
                 match result {
@@ -98,7 +125,18 @@ impl SourceWindow {
                 }
             }
         ));
+    }
 
-        obj
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        // Refresh button clicked signal
+        self.imp().refresh_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                window.download_pkgbuild();
+            }
+        ));
     }
 }
