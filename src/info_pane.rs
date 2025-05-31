@@ -220,12 +220,12 @@ impl InfoPane {
                 });
 
             // If link package found
-            if let Some(new_pkg) = new_pkg {
+            if let Some(pkg) = new_pkg {
                 let pkg_history = self.imp().pkg_history.borrow();
 
                 // If link package is in infopane history, select it
                 // Otherwise append it after current history package
-                pkg_history.select_or_append_next(new_pkg);
+                pkg_history.select_or_make_last(pkg);
 
                 // Display link package
                 self.update_display();

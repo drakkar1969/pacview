@@ -132,7 +132,7 @@ impl HistoryList {
         }
     }
 
-    pub fn select_or_append_next(&self, item: &PkgObject) {
+    pub fn select_or_make_last(&self, item: &PkgObject) {
         let imp = self.imp();
 
         let mut list = imp.list.borrow_mut();
