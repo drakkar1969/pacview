@@ -75,7 +75,7 @@ impl HashWindow {
 
         let imp = obj.imp();
 
-        obj.set_title(Some(&pkg.name()));
+        obj.set_title(Some(&format!("{}  \u{2022}  Hashes", &pkg.name())));
 
         let validation = pkg.validation();
 
