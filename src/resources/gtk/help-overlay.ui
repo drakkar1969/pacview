@@ -397,6 +397,17 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="GtkShortcutsGroup">
+            <property name="title">PKGBUILD Source Window</property>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">F5</property>
+                <property name="title">Refresh PKGBUILD</property>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </object>

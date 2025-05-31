@@ -56,6 +56,13 @@ mod imp {
             //---------------------------------------
             // Close window binding
             klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
+
+            // Refresh binding
+            klass.add_binding(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
+                window.imp().refresh_button.emit_clicked();
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
