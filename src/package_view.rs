@@ -441,11 +441,11 @@ impl PackageView {
         }
 
         // Get AUR package info using cache
-        let mut cache = aur_cache.lock().await;
-
-        let aur_pkg_list = handle.cache_info(&mut cache, &search_names.iter()
-            .collect::<Vec<&String>>())
-            .await?;
+        let aur_pkg_list = handle.cache_info(
+            &mut *aur_cache.lock().await,
+            &search_names.iter().collect::<Vec<&String>>()
+        )
+        .await?;
 
         Ok(aur_pkg_list)
     }
