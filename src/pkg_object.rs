@@ -541,6 +541,10 @@ impl PkgObject {
         // Spawn tokio task to download PKGBUILD
         tokio_runtime::runtime().spawn(
             async move {
+                if url.is_empty() {
+                    return Err(String::from("PKGBUILD not available"))
+                }
+
                 let response = reqwest::Client::new()
                     .get(url)
                     .timeout(Duration::from_secs(5))
