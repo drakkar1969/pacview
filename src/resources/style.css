@@ -154,11 +154,15 @@ dropdown.round > button.toggle {
 	padding-left: 20px;
 }
 
-/* Card lists */
+/* Card lists/views */
 listview.card-list {
 	background-color: transparent;
 }
 
 columnview.card-list {
+	background-color: transparent;
+}
+
+textview.card-list {
 	background-color: transparent;
 }

@@ -58,13 +58,22 @@
                         <property name="margin-top">16</property>
                         <property name="margin-bottom">16</property>
                         <property name="child">
-                          <object class="GtkTextView" id="text_view">
+                          <object class="GtkSourceView" id="source_view">
                             <property name="margin-start">24</property>
                             <property name="margin-end">24</property>
                             <property name="monospace">true</property>
                             <property name="editable">false</property>
+                            <property name="highlight-current-line">true</property>
+                            <property name="show-line-marks">true</property>
+                            <property name="show-line-numbers">true</property>
+                            <property name="buffer">
+                              <object class="GtkSourceBuffer" id="source_buffer">
+                                <property name="highlight-matching-brackets">true</property>
+                                <property name="highlight-syntax">true</property>
+                              </object>
+                            </property>
                             <style>
-                              <class name="inline"/>
+                              <class name="card-list"/>
                             </style>
                           </object>
                         </property>
@@ -81,7 +90,6 @@
                         <property name="title">Error</property>
                         <style>
                           <class name="compact"/>
-                          <class name="dimmed"/>
                           <class name="error"/>
                         </style>
                       </object>

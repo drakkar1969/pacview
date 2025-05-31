@@ -1,9 +1,13 @@
 use std::cell::OnceCell;
+use std::marker::PhantomData;
 
 use gtk::{glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+
+use sourceview5;
+use sourceview5::prelude::*;
 
 use crate::pkg_object::PkgObject;
 
@@ -25,10 +29,12 @@ mod imp {
         #[template_child]
         pub(super) refresh_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) text_view: TemplateChild<gtk::TextView>,
+        pub(super) source_view: TemplateChild<sourceview5::View>,
         #[template_child]
         pub(super) error_status: TemplateChild<adw::StatusPage>,
 
+        #[property(get = Self::buffer)]
+        buffer: PhantomData<sourceview5::Buffer>,
         #[property(get, set)]
         pkg: OnceCell<PkgObject>,
     }
@@ -69,6 +75,17 @@ mod imp {
     impl WidgetImpl for SourceWindow {}
     impl WindowImpl for SourceWindow {}
     impl AdwWindowImpl for SourceWindow {}
+
+    impl SourceWindow {
+        //---------------------------------------
+        // Property getter
+        //---------------------------------------
+        fn buffer(&self) -> sourceview5::Buffer {
+            self.source_view.buffer()
+                .downcast::<sourceview5::Buffer>()
+                .expect("Failed to downcast to 'SourceBuffer'")
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -91,6 +108,27 @@ impl SourceWindow {
             .property("pkg", pkg)
             .build();
 
+        // Set syntax highlighting language
+        let buffer = obj.buffer();
+
+        if let Some(language) = sourceview5::LanguageManager::default().language("pkgbuild") {
+            buffer.set_language(Some(&language));
+        }
+
+        // Set style scheme
+        let style_manager = adw::StyleManager::for_display(&gtk::prelude::WidgetExt::display(&obj));
+
+        let style = if style_manager.is_dark() {
+            "one-dark"
+        } else {
+            "one"
+        };
+
+        let scheme_manager = sourceview5::StyleSchemeManager::default();
+
+        buffer.set_style_scheme(scheme_manager.scheme(style).as_ref());
+
+        // Download PKGBUILD
         obj.download_pkgbuild();
 
         obj
@@ -113,7 +151,12 @@ impl SourceWindow {
 
                 match result {
                     Ok(pkgbuild) => {
-                        imp.text_view.buffer().set_text(&pkgbuild);
+                        let buffer = window.buffer();
+
+                        buffer.set_text(&pkgbuild);
+
+                        // Position cursor at start
+                        buffer.place_cursor(&window.buffer().iter_at_offset(0));
 
                         imp.stack.set_visible_child_name("text");
                     }
@@ -136,6 +179,24 @@ impl SourceWindow {
             #[weak(rename_to = window)] self,
             move |_| {
                 window.download_pkgbuild();
+            }
+        ));
+
+        // System color scheme signal
+        let style_manager = adw::StyleManager::for_display(&gtk::prelude::WidgetExt::display(self));
+
+        style_manager.connect_dark_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |style_manager| {
+                let style = if style_manager.is_dark() {
+                    "one-dark"
+                } else {
+                    "one"
+                };
+
+                let scheme_manager = sourceview5::StyleSchemeManager::default();
+
+                window.buffer().set_style_scheme(scheme_manager.scheme(style).as_ref());
             }
         ));
     }
