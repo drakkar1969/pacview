@@ -248,6 +248,20 @@
           <object class="AdwPreferencesGroup">
             <property name="title">PKGBUILD Window</property>
             <child>
+              <object class="AdwComboRow" id="pkgbuild_style_scheme_row">
+                <property name="title">Style Sc_heme</property>
+                <property name="use-underline">true</property>
+                <property name="model">
+                  <object class="GListStore" id="pkgbuild_style_scheme_model">
+                    <property name="item-type">StyleSchemeObject</property>
+                  </object>
+                </property>
+                <property name="expression">
+                  <lookup type="StyleSchemeObject" name="name"/>
+                </property>
+              </object>
+            </child>
+            <child>
               <object class="AdwExpanderRow" id="pkgbuild_use_system_font_row">
                 <property name="title">Use S_ystem Font</property>
                 <!-- <property name="subtitle">Underline links in properties</property> -->

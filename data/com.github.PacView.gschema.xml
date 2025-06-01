@@ -26,11 +26,14 @@
       <range min="400" max="1000"/>
       <default>600</default>
     </key>
-    <key name="pkgbuild-use-system-font" type="b">
-      <default>true</default>
-    </key>
     <key name="pkgbuild-custom-font" type="s">
       <default>''</default>
+    </key>
+    <key name="pkgbuild-style-scheme" type="s">
+      <default>''</default>
+    </key>
+    <key name="pkgbuild-use-system-font" type="b">
+      <default>true</default>
     </key>
     <key name="property-line-spacing" type="d">
       <range min="1.0" max="2.0"/>

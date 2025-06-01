@@ -6,10 +6,12 @@ use adw::prelude::*;
 use glib::clone;
 
 use strum::FromRepr;
+use sourceview5;
 
 use crate::APP_ID;
 use crate::window::PacViewWindow;
 use crate::search_bar::{SearchMode, SearchProp};
+use crate::stylescheme_object::StyleSchemeObject;
 use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
@@ -70,6 +72,10 @@ mod imp {
         #[template_child]
         pub(super) underline_links_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) pkgbuild_style_scheme_row: TemplateChild<adw::ComboRow>,
+        #[template_child]
+        pub(super) pkgbuild_style_scheme_model: TemplateChild<gio::ListStore>,
+        #[template_child]
         pub(super) pkgbuild_use_system_font_row: TemplateChild<adw::ExpanderRow>,
         #[template_child]
         pub(super) pkgbuild_use_system_font_switch: TemplateChild<gtk::Switch>,
@@ -107,6 +113,8 @@ mod imp {
         #[property(get, set)]
         underline_links: Cell<bool>,
         #[property(get, set)]
+        pkgbuild_style_scheme: RefCell<String>,
+        #[property(get, set)]
         pkgbuild_use_system_font: Cell<bool>,
         #[property(get, set)]
         pkgbuild_custom_font: RefCell<String>,
@@ -122,6 +130,7 @@ mod imp {
         type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
+            StyleSchemeObject::ensure_type();
             klass.bind_template();
 
             //---------------------------------------
@@ -189,6 +198,18 @@ impl PreferencesDialog {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Populate PKGBUILD style scheme combo row
+        let scheme_manager = sourceview5::StyleSchemeManager::default();
+
+        let schemes: Vec<StyleSchemeObject> = scheme_manager
+            .scheme_ids()
+            .iter()
+            .filter_map(|id| scheme_manager.scheme(id))
+            .map(|scheme| StyleSchemeObject::new(&scheme.id(), &scheme.name()))
+            .collect();
+
+        imp.pkgbuild_style_scheme_model.splice(0, 0, &schemes);
 
         // Bind properties to widgets
         self.bind_property("color-scheme", &imp.color_scheme_row.get(), "selected")
@@ -274,6 +295,36 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("underline-links", &imp.underline_links_row.get(), "active")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("pkgbuild-style-scheme", &imp.pkgbuild_style_scheme_row.get(), "selected")
+            .transform_to(|binding, id: String| {
+                let dialog = binding.source()
+                    .and_downcast::<PreferencesDialog>()
+                    .expect("Failed to downcase to 'PreferencesDialog'");
+
+                let model = dialog.imp().pkgbuild_style_scheme_model.get();
+
+                let index = model.iter::<StyleSchemeObject>()
+                    .flatten()
+                    .position(|scheme| scheme.id() == id)
+                    .unwrap_or_default();
+                
+                Some(index as u32)
+            })
+            .transform_from(|binding, _: u32| {
+                let dialog = binding.source()
+                    .and_downcast::<PreferencesDialog>()
+                    .expect("Failed to downcase to 'PreferencesDialog'");
+
+                let scheme = dialog.imp().pkgbuild_style_scheme_row.selected_item()
+                    .and_downcast::<StyleSchemeObject>()
+                    .expect("Failed to downcase to 'StyleSchemeObject'");
+
+                Some(scheme.id())
+            })
             .sync_create()
             .bidirectional()
             .build();
@@ -375,6 +426,7 @@ impl PreferencesDialog {
                             settings.reset("property-max-lines");
                             settings.reset("property-line-spacing");
                             settings.reset("underline-links");
+                            settings.reset("pkgbuild-style-scheme");
                             settings.reset("pkgbuild-use-system-font");
                             settings.reset("pkgbuild-custom-font");
                         }

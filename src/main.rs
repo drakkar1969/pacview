@@ -10,6 +10,7 @@ mod info_row;
 mod history_list;
 mod text_widget;
 mod preferences_dialog;
+mod stylescheme_object;
 mod stats_window;
 mod backup_window;
 mod log_window;

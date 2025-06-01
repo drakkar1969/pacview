@@ -118,6 +118,9 @@ impl SourceWindow {
             .property("pkg", pkg)
             .build();
 
+        // Get gsettings
+        let settings = gio::Settings::new(APP_ID);
+
         // Set syntax highlighting language
         let buffer = obj.buffer();
 
@@ -129,19 +132,13 @@ impl SourceWindow {
         let display = gtk::prelude::WidgetExt::display(&obj);
         let style_manager = adw::StyleManager::for_display(&display);
 
-        let style = if style_manager.is_dark() {
-            "one-dark"
-        } else {
-            "one"
-        };
+        let style = settings.string("pkgbuild-style-scheme");
 
         let scheme_manager = sourceview5::StyleSchemeManager::default();
 
-        buffer.set_style_scheme(scheme_manager.scheme(style).as_ref());
+        buffer.set_style_scheme(scheme_manager.scheme(&style).as_ref());
 
         // Set font
-        let settings = gio::Settings::new(APP_ID);
-
         let use_system_font = settings.boolean("pkgbuild-use-system-font");
         let mut custom_font = settings.string("pkgbuild-custom-font");
 
@@ -242,24 +239,6 @@ impl SourceWindow {
             #[weak(rename_to = window)] self,
             move |_| {
                 window.download_pkgbuild();
-            }
-        ));
-
-        // System color scheme signal
-        let style_manager = adw::StyleManager::for_display(&gtk::prelude::WidgetExt::display(self));
-
-        style_manager.connect_dark_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |style_manager| {
-                let style = if style_manager.is_dark() {
-                    "one-dark"
-                } else {
-                    "one"
-                };
-
-                let scheme_manager = sourceview5::StyleSchemeManager::default();
-
-                window.buffer().set_style_scheme(scheme_manager.scheme(style).as_ref());
             }
         ));
     }
