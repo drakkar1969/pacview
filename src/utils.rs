@@ -104,7 +104,7 @@ pub mod aur_file {
             });
 
         // Spawn tokio task to download AUR package names file if does not exist or older than x hours
-        if file_time.is_none() || file_time.unwrap() >= Duration::from_secs(update_interval * 60 * 60) {
+        if file_time.is_none_or(|time| time >= Duration::from_secs(update_interval * 60 * 60)) {
             let aur_file = aur_file.to_owned();
 
             glib::spawn_future_local(async move {
