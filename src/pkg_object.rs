@@ -3,7 +3,6 @@ use std::rc::Rc;
 use std::cmp::Ordering;
 use std::time::Duration;
 
-use futures::TryFutureExt;
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
@@ -14,6 +13,7 @@ use size::Size;
 use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
 use tokio::task::JoinHandle as TokioJoinHandle;
+use futures::TryFutureExt;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
