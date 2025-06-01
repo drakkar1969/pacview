@@ -71,7 +71,7 @@ impl HashWindow {
     pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject) -> Self {
         let obj: Self = glib::Object::builder()
             .property("transient-for", parent)
-            .property("title", &format!("{}  \u{2022}  Hashes", &pkg.name()))
+            .property("title", format!("{}  \u{2022}  Hashes", &pkg.name()))
             .build();
 
         let imp = obj.imp();
