@@ -11,6 +11,12 @@
         <child type="top">
           <object class="AdwHeaderBar">
             <child>
+              <object class="GtkButton" id="save_button">
+                <property name="label">_Save</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
+            <child type="end">
               <object class="GtkButton" id="refresh_button">
                 <property name="icon-name">view-refresh-symbolic</property>
                 <property name="tooltip-text">Refresh</property>

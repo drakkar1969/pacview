@@ -27,6 +27,8 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
+        pub(super) save_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) refresh_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) source_view: TemplateChild<sourceview5::View>,
@@ -181,8 +183,43 @@ impl SourceWindow {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Save button clicked signal
+        imp.save_button.connect_clicked(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                let file_dialog = gtk::FileDialog::builder()
+                    .modal(true)
+                    .title("Save PKGBUILD")
+                    .initial_name("PKGBUILD")
+                    .build();
+
+                file_dialog.save(Some(&window), None::<&gio::Cancellable>, clone!(
+                    #[weak] window,
+                    move |response| {
+                        if let Ok(file) = response {
+                            let source_file = sourceview5::File::new();
+                            source_file.set_location(Some(&file));
+
+                            let file_saver = sourceview5::FileSaver::builder()
+                                .buffer(&window.buffer())
+                                .file(&source_file)
+                                .build();
+
+                            file_saver.save_async(
+                                glib::Priority::DEFAULT,
+                                None::<&gio::Cancellable>,
+                                |_| {}
+                            );
+                        }
+                    }
+                ));
+            }
+        ));
+
         // Refresh button clicked signal
-        self.imp().refresh_button.connect_clicked(clone!(
+        imp.refresh_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
                 window.download_pkgbuild();
