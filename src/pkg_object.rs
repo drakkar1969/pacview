@@ -557,7 +557,12 @@ impl PkgObject {
                     return Err(String::from("PKGBUILD not available"))
                 }
 
-                let response = reqwest::Client::new()
+                let client = reqwest::Client::builder()
+                    .redirect(reqwest::redirect::Policy::none())
+                    .build()
+                    .map_err(|error| error.to_string())?;
+
+                let response = client
                     .get(url)
                     .timeout(Duration::from_secs(5))
                     .send()
