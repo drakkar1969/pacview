@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 
-use gtk::{glib, gio};
+use gtk::{gio, glib, pango};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
@@ -8,6 +8,7 @@ use glib::clone;
 use strum::FromRepr;
 
 use crate::APP_ID;
+use crate::window::PacViewWindow;
 use crate::search_bar::{SearchMode, SearchProp};
 use crate::enum_traits::EnumExt;
 
@@ -69,6 +70,12 @@ mod imp {
         #[template_child]
         pub(super) underline_links_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) pkgbuild_use_system_font_row: TemplateChild<adw::ExpanderRow>,
+        #[template_child]
+        pub(super) pkgbuild_use_system_font_switch: TemplateChild<gtk::Switch>,
+        #[template_child]
+        pub(super) pkgbuild_custom_font_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
         #[property(get, set, builder(ColorScheme::default()))]
@@ -99,6 +106,10 @@ mod imp {
         property_max_lines: Cell<f64>,
         #[property(get, set)]
         underline_links: Cell<bool>,
+        #[property(get, set)]
+        pkgbuild_use_system_font: Cell<bool>,
+        #[property(get, set)]
+        pkgbuild_custom_font: RefCell<String>,
     }
 
     //---------------------------------------
@@ -266,6 +277,22 @@ impl PreferencesDialog {
             .sync_create()
             .bidirectional()
             .build();
+
+        self.bind_property("pkgbuild-use-system-font", &imp.pkgbuild_use_system_font_row.get(), "expanded")
+            .invert_boolean()
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("pkgbuild-use-system-font", &imp.pkgbuild_use_system_font_switch.get(), "active")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("pkgbuild-custom-font", &imp.pkgbuild_custom_font_row.get(), "subtitle")
+            .sync_create()
+            .bidirectional()
+            .build();
     }
 
     //---------------------------------------
@@ -289,6 +316,28 @@ impl PreferencesDialog {
                 let style_manager = adw::StyleManager::for_display(&dialog.display());
 
                 style_manager.set_color_scheme(color_scheme);
+            }
+        ));
+
+        // PKGBUILD custom font row activated signal
+        imp.pkgbuild_custom_font_row.connect_activated(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |_| {
+                let font_dialog = gtk::FontDialog::builder()
+                    .modal(true)
+                    .title("Select Font")
+                    .build();
+
+                font_dialog.choose_font(
+                    dialog.root().and_downcast_ref::<PacViewWindow>(),
+                    Some(&pango::FontDescription::from_string(&dialog.pkgbuild_custom_font())),
+                    None::<&gio::Cancellable>,
+                    clone!(move |response| {
+                        if let Ok(font_desc) = response {
+                            dialog.set_pkgbuild_custom_font(font_desc.to_string());
+                        }
+                    })
+                );
             }
         ));
 
@@ -326,6 +375,8 @@ impl PreferencesDialog {
                             settings.reset("property-max-lines");
                             settings.reset("property-line-spacing");
                             settings.reset("underline-links");
+                            settings.reset("pkgbuild-use-system-font");
+                            settings.reset("pkgbuild-custom-font");
                         }
                     }
                 );

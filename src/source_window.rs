@@ -6,10 +6,11 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use sourceview5;
 use sourceview5::prelude::*;
 
+use crate::APP_ID;
 use crate::pkg_object::PkgObject;
+use crate::utils::pango_utils;
 
 //------------------------------------------------------------------------------
 // MODULE: SourceWindow
@@ -125,7 +126,8 @@ impl SourceWindow {
         }
 
         // Set style scheme
-        let style_manager = adw::StyleManager::for_display(&gtk::prelude::WidgetExt::display(&obj));
+        let display = gtk::prelude::WidgetExt::display(&obj);
+        let style_manager = adw::StyleManager::for_display(&display);
 
         let style = if style_manager.is_dark() {
             "one-dark"
@@ -136,6 +138,23 @@ impl SourceWindow {
         let scheme_manager = sourceview5::StyleSchemeManager::default();
 
         buffer.set_style_scheme(scheme_manager.scheme(style).as_ref());
+
+        // Set font
+        let settings = gio::Settings::new(APP_ID);
+
+        let use_system_font = settings.boolean("pkgbuild-use-system-font");
+        let mut custom_font = settings.string("pkgbuild-custom-font");
+
+        if use_system_font || custom_font.is_empty() {
+            custom_font = style_manager.monospace_font_name();
+        }
+
+        let css = pango_utils::font_str_to_css(&custom_font);
+
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_string(&format!("textview.card-list {{ {} }}", css));
+
+        gtk::style_context_add_provider_for_display(&display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
 
         // Download PKGBUILD
         obj.download_pkgbuild();

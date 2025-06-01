@@ -246,6 +246,38 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
+            <property name="title">PKGBUILD Window</property>
+            <child>
+              <object class="AdwExpanderRow" id="pkgbuild_use_system_font_row">
+                <property name="title">Use S_ystem Font</property>
+                <!-- <property name="subtitle">Underline links in properties</property> -->
+                <property name="use-underline">true</property>
+                <child type="suffix">
+                  <object class="GtkSwitch" id="pkgbuild_use_system_font_switch">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="pkgbuild_custom_font_row">
+                    <property name="title">Custom _Font</property>
+                    <property name="use-underline">true</property>
+                    <property name="activatable">true</property>
+                    <style>
+                      <class name="property"/>
+                    </style>
+                    <child type="suffix">
+                      <object class="GtkImage">
+                        <property name="icon-name">go-next-symbolic</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
             <property name="title">Preferences</property>
             <child>
               <object class="AdwButtonRow" id="reset_button">

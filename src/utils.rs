@@ -144,3 +144,62 @@ pub mod aur_file {
         )
     }
 }
+
+//------------------------------------------------------------------------------
+// MODULE: Pango Utils
+//------------------------------------------------------------------------------
+pub mod pango_utils {
+    use std::fmt::Write as _;
+
+    use gtk::pango;
+    use gtk::prelude::ToValue;
+
+    //-----------------------------------
+    // Pango font str to CSS function
+    //-----------------------------------
+    pub fn font_str_to_css(font_str: &str) -> String {
+        let mut css = String::new();
+        
+        let font_desc = pango::FontDescription::from_string(font_str);
+
+        let mask = font_desc.set_fields();
+
+        if mask.contains(pango::FontMask::FAMILY) {
+            if let Some(family) = font_desc.family() {
+                write!(css, "font-family: {family}; ").unwrap();
+            }
+        }
+
+        if mask.contains(pango::FontMask::SIZE) {
+            let font_size = font_desc.size()/pango::SCALE;
+
+            write!(css, "font-size: {}pt; ", font_size.max(0)).unwrap();
+        }
+
+        if mask.contains(pango::FontMask::WEIGHT) {
+            let weight = match font_desc.weight() {
+                pango::Weight::Normal => "normal",
+                pango::Weight::Bold => "bold",
+                pango::Weight::Thin => "100",
+                pango::Weight::Ultralight => "200",
+                pango::Weight::Light | pango::Weight::Semilight => "300",
+                pango::Weight::Book => "400",
+                pango::Weight::Medium => "500",
+                pango::Weight::Semibold => "600",
+                pango::Weight::Ultrabold => "800",
+                pango::Weight::Heavy | pango::Weight::Ultraheavy => "900",
+                _ => unreachable!()
+            };
+
+            write!(css, "font-weight: {weight}; ").unwrap();
+        }
+
+        if mask.contains(pango::FontMask::STYLE) {
+            if let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style().to_value()) {
+                write!(css, "font-style: {}; ", value.nick()).unwrap();
+            }
+        }
+
+        css
+    }
+}

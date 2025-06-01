@@ -668,6 +668,8 @@ impl PacViewWindow {
         settings.bind("property-max-lines", prefs_dialog, "property-max-lines").build();
         settings.bind("property-line-spacing", prefs_dialog, "property-line-spacing").build();
         settings.bind("underline-links", prefs_dialog, "underline-links").build();
+        settings.bind("pkgbuild-use-system-font", prefs_dialog, "pkgbuild-use-system-font").build();
+        settings.bind("pkgbuild-custom-font", prefs_dialog, "pkgbuild-custom-font").build();
 
         // Load/save package view sort properties
         if prefs_dialog.remember_sort() {
