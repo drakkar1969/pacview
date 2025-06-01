@@ -229,6 +229,10 @@ impl PkgObject {
     //---------------------------------------
     // Public data field getters
     //---------------------------------------
+    pub fn base(&self) -> &str {
+        &self.imp().data.get().unwrap().base
+    }
+
     pub fn description(&self) -> &str {
         &self.imp().data.get().unwrap().description
     }
@@ -526,14 +530,22 @@ impl PkgObject {
 
     pub fn pkgbuild_future(&self) -> TokioJoinHandle<Result<String, String>> {
         // Get PKGBUILD url
+        let base = self.base();
+
+        let name = if base.is_empty() {
+            self.name()
+        } else {
+            base.to_owned()
+        };
+
         let default_repos = ["core", "extra", "multilib"];
 
         let repo = self.repository();
 
         let url = if default_repos.contains(&repo.as_str()) {
-            format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{}/-/raw/main/PKGBUILD", self.name())
+            format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{}/-/raw/main/PKGBUILD", name)
         } else if repo == "aur" {
-            format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={}", self.name())
+            format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={}", name)
         } else {
             String::new()
         };

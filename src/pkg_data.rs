@@ -49,6 +49,7 @@ impl Default for PkgValidation {
 #[derive(Default, Debug)]
 pub struct PkgData {
     pub flags: PkgFlags,
+    pub base: String,
     pub name: String,
     pub version: String,
     pub description: String,
@@ -124,6 +125,7 @@ impl PkgData {
 
         Self {
             flags,
+            base: sync_pkg.base().unwrap_or_default().to_owned(),
             name: sync_name.to_owned(),
             version: version.to_string(),
             description: sync_pkg.desc().unwrap_or_default().to_owned(),
@@ -166,6 +168,7 @@ impl PkgData {
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,
+            base: pkg.name.clone(),
             name: pkg.name.clone(),
             version: pkg.version.clone(),
             description: pkg.description.clone().unwrap_or_default(),
