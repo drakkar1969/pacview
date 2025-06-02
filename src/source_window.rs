@@ -60,6 +60,13 @@ mod imp {
             // Close window binding
             klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
 
+            // Save binding
+            klass.add_binding(gdk::Key::S, gdk::ModifierType::CONTROL_MASK, |window| {
+                window.imp().save_button.emit_clicked();
+
+                glib::Propagation::Stop
+            });
+
             // Refresh binding
             klass.add_binding(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
                 window.imp().refresh_button.emit_clicked();
