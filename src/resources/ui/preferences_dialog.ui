@@ -136,6 +136,20 @@
             </child>
           </object>
         </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <!-- <property name="title">Preferences</property> -->
+            <child>
+              <object class="AdwButtonRow" id="reset_button">
+                <property name="title">_Reset Preferences</property>
+                <property name="use-underline">true</property>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
     <child>
@@ -286,20 +300,6 @@
                     </child>
                   </object>
                 </child>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwPreferencesGroup">
-            <property name="title">Preferences</property>
-            <child>
-              <object class="AdwButtonRow" id="reset_button">
-                <property name="title">_Reset Preferences</property>
-                <property name="use-underline">true</property>
-                <style>
-                  <class name="destructive-action"/>
-                </style>
               </object>
             </child>
           </object>
