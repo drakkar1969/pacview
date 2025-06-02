@@ -250,6 +250,7 @@
             <child>
               <object class="AdwComboRow" id="pkgbuild_style_scheme_row">
                 <property name="title">Style Sc_heme</property>
+                <property name="subtitle">Color scheme for syntax highlighting</property>
                 <property name="use-underline">true</property>
                 <property name="model">
                   <object class="GListStore" id="pkgbuild_style_scheme_model">
@@ -264,7 +265,6 @@
             <child>
               <object class="AdwExpanderRow" id="pkgbuild_use_system_font_row">
                 <property name="title">Use S_ystem Font</property>
-                <!-- <property name="subtitle">Underline links in properties</property> -->
                 <property name="use-underline">true</property>
                 <child type="suffix">
                   <object class="GtkSwitch" id="pkgbuild_use_system_font_switch">

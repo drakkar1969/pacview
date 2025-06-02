@@ -6,12 +6,12 @@ use adw::prelude::*;
 use glib::clone;
 
 use strum::FromRepr;
-use sourceview5;
 
 use crate::APP_ID;
 use crate::window::PacViewWindow;
 use crate::search_bar::{SearchMode, SearchProp};
 use crate::stylescheme_object::StyleSchemeObject;
+use crate::utils::style_schemes;
 use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
@@ -194,22 +194,31 @@ glib::wrapper! {
 
 impl PreferencesDialog {
     //---------------------------------------
+    // Populate style schemes helper function
+    //---------------------------------------
+    fn populate_style_schemes(&self, style_manager: &adw::StyleManager) {
+        let imp = self.imp();
+
+        let schemes = style_schemes::schemes(style_manager.is_dark());
+
+        imp.pkgbuild_style_scheme_model.splice(0, imp.pkgbuild_style_scheme_model.n_items(),
+            &schemes.iter()
+                .map(|scheme| StyleSchemeObject::new(&scheme.id(), &scheme.name()))
+                .collect::<Vec<StyleSchemeObject>>()
+        );
+
+        self.notify_pkgbuild_style_scheme();
+    }
+    //---------------------------------------
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
 
         // Populate PKGBUILD style scheme combo row
-        let scheme_manager = sourceview5::StyleSchemeManager::default();
+        let style_manager = adw::StyleManager::for_display(&self.display());
 
-        let schemes: Vec<StyleSchemeObject> = scheme_manager
-            .scheme_ids()
-            .iter()
-            .filter_map(|id| scheme_manager.scheme(id))
-            .map(|scheme| StyleSchemeObject::new(&scheme.id(), &scheme.name()))
-            .collect();
-
-        imp.pkgbuild_style_scheme_model.splice(0, 0, &schemes);
+        self.populate_style_schemes(&style_manager);
 
         // Bind properties to widgets
         self.bind_property("color-scheme", &imp.color_scheme_row.get(), "selected")
@@ -301,29 +310,30 @@ impl PreferencesDialog {
 
         self.bind_property("pkgbuild-style-scheme", &imp.pkgbuild_style_scheme_row.get(), "selected")
             .transform_to(|binding, id: String| {
-                let dialog = binding.source()
-                    .and_downcast::<PreferencesDialog>()
-                    .expect("Failed to downcase to 'PreferencesDialog'");
-
-                let model = dialog.imp().pkgbuild_style_scheme_model.get();
-
-                let index = model.iter::<StyleSchemeObject>()
-                    .flatten()
-                    .position(|scheme| scheme.id() == id)
+                let index = binding.target()
+                    .and_downcast::<adw::ComboRow>()
+                    .and_then(|row| row.model())
+                    .and_then(|model| {
+                        model.iter::<StyleSchemeObject>()
+                            .flatten()
+                            .position(|scheme| {
+                                scheme.id() == id ||
+                                style_schemes::variant_id(&scheme.id())
+                                    .is_some_and(|variant_id| variant_id == id)
+                            })
+                    })
                     .unwrap_or_default();
                 
                 Some(index as u32)
             })
             .transform_from(|binding, _: u32| {
-                let dialog = binding.source()
-                    .and_downcast::<PreferencesDialog>()
-                    .expect("Failed to downcase to 'PreferencesDialog'");
-
-                let scheme = dialog.imp().pkgbuild_style_scheme_row.selected_item()
+                let id = binding.target()
+                    .and_downcast::<adw::ComboRow>()
+                    .and_then(|row| row.selected_item())
                     .and_downcast::<StyleSchemeObject>()
-                    .expect("Failed to downcase to 'StyleSchemeObject'");
+                    .map_or_else(String::new, |scheme| scheme.id());
 
-                Some(scheme.id())
+                Some(id)
             })
             .sync_create()
             .bidirectional()
@@ -351,6 +361,16 @@ impl PreferencesDialog {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // System color scheme signal
+        let style_manager = adw::StyleManager::for_display(&self.display());
+
+        style_manager.connect_dark_notify(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |style_manager| {
+                dialog.populate_style_schemes(style_manager);
+            }
+        ));
 
         // Color scheme row selected property notify signal
         imp.color_scheme_row.connect_selected_notify(clone!(

@@ -203,3 +203,51 @@ pub mod pango_utils {
         css
     }
 }
+
+//------------------------------------------------------------------------------
+// MODULE: Style Schemes
+//------------------------------------------------------------------------------
+pub mod style_schemes {
+    //-----------------------------------
+    // Is variant dark function
+    //-----------------------------------
+    pub fn is_variant_dark(id: &str) -> bool {
+        let scheme_manager = sourceview5::StyleSchemeManager::default();
+
+        scheme_manager.scheme(id)
+            .and_then(|scheme| scheme.metadata("variant"))
+            .is_some_and(|variant| variant == "dark")
+    }
+
+    //-----------------------------------
+    // Variant function
+    //-----------------------------------
+    pub fn variant_id(id: &str) -> Option<glib::GString> {
+        let scheme_manager = sourceview5::StyleSchemeManager::default();
+
+        let scheme = scheme_manager.scheme(id)?;
+
+        scheme.metadata("variant")
+            .and_then(|variant| {
+                if variant == "dark" {
+                    scheme.metadata("light-variant")
+                } else {
+                    scheme.metadata("dark-variant")
+                }
+            })
+    }
+
+    //-----------------------------------
+    // Schemes function
+    //-----------------------------------
+    pub fn schemes(dark: bool) -> Vec<sourceview5::StyleScheme> {
+        let scheme_manager = sourceview5::StyleSchemeManager::default();
+
+        scheme_manager
+            .scheme_ids()
+            .iter()
+            .filter_map(|id| scheme_manager.scheme(id))
+            .filter(|scheme| is_variant_dark(&scheme.id()) == dark)
+            .collect::<Vec<sourceview5::StyleScheme>>()
+    }
+}

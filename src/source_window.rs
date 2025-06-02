@@ -10,7 +10,7 @@ use sourceview5::prelude::*;
 
 use crate::APP_ID;
 use crate::pkg_object::PkgObject;
-use crate::utils::pango_utils;
+use crate::utils::{pango_utils, style_schemes};
 
 //------------------------------------------------------------------------------
 // MODULE: SourceWindow
@@ -118,27 +118,22 @@ impl SourceWindow {
             .property("pkg", pkg)
             .build();
 
-        // Get gsettings
-        let settings = gio::Settings::new(APP_ID);
-
         // Set syntax highlighting language
         let buffer = obj.buffer();
 
-        if let Some(language) = sourceview5::LanguageManager::default().language("pkgbuild") {
-            buffer.set_language(Some(&language));
-        }
+        buffer.set_language(
+            sourceview5::LanguageManager::default().language("pkgbuild").as_ref()
+        );
 
         // Set style scheme
         let display = gtk::prelude::WidgetExt::display(&obj);
         let style_manager = adw::StyleManager::for_display(&display);
 
-        let style = settings.string("pkgbuild-style-scheme");
-
-        let scheme_manager = sourceview5::StyleSchemeManager::default();
-
-        buffer.set_style_scheme(scheme_manager.scheme(&style).as_ref());
+        obj.set_style_scheme(&style_manager);
 
         // Set font
+        let settings = gio::Settings::new(APP_ID);
+
         let use_system_font = settings.boolean("pkgbuild-use-system-font");
         let mut custom_font = settings.string("pkgbuild-custom-font");
 
@@ -157,6 +152,24 @@ impl SourceWindow {
         obj.download_pkgbuild();
 
         obj
+    }
+
+    //---------------------------------------
+    // Set style scheme helper function
+    //---------------------------------------
+    fn set_style_scheme(&self, style_manager: &adw::StyleManager) {
+        let settings = gio::Settings::new(APP_ID);
+
+        let id = settings.string("pkgbuild-style-scheme");
+
+        let style_id = (style_schemes::is_variant_dark(&id) == style_manager.is_dark())
+            .then_some(id.clone())
+            .or_else(|| style_schemes::variant_id(&id))
+            .unwrap_or_default();
+
+        let scheme_manager = sourceview5::StyleSchemeManager::default();
+
+        self.buffer().set_style_scheme(scheme_manager.scheme(&style_id).as_ref());
     }
 
     //---------------------------------------
@@ -200,6 +213,17 @@ impl SourceWindow {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // System color scheme signal
+        let display = gtk::prelude::WidgetExt::display(self);
+        let style_manager = adw::StyleManager::for_display(&display);
+
+        style_manager.connect_dark_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |style_manager| {
+                window.set_style_scheme(style_manager);
+            }
+        ));
 
         // Save button clicked signal
         imp.save_button.connect_clicked(clone!(

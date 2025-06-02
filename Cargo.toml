@@ -28,7 +28,7 @@ regex = "1"
 reqwest = { version = "0.12", features = ["json"] }
 shlex = "1"
 size = "0.5"
-sourceview5 = "0.9"
+sourceview5 = { version = "0.9", features = ["v5_12"] }
 strum = { version = "0.27", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 tokio-util = "0.7"
