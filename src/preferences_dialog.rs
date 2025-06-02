@@ -52,7 +52,9 @@ mod imp {
         #[template_child]
         pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
         #[template_child]
-        pub(super) aur_database_download_row: TemplateChild<adw::SwitchRow>,
+        pub(super) aur_database_download_row: TemplateChild<adw::ExpanderRow>,
+        #[template_child]
+        pub(super) aur_database_download_switch: TemplateChild<gtk::Switch>,
         #[template_child]
         pub(super) aur_database_age_row: TemplateChild<adw::SpinRow>,
         #[template_child]
@@ -245,12 +247,12 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
-        self.bind_property("aur-database-download", &imp.aur_database_download_row.get(), "active")
+        self.bind_property("aur-database-download", &imp.aur_database_download_row.get(), "expanded")
             .sync_create()
             .bidirectional()
             .build();
 
-        self.bind_property("aur-database-download", &imp.aur_database_age_row.get(), "sensitive")
+        self.bind_property("aur-database-download", &imp.aur_database_download_switch.get(), "active")
             .sync_create()
             .bidirectional()
             .build();
