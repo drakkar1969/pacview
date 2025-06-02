@@ -227,14 +227,13 @@ pub mod style_schemes {
 
         let scheme = scheme_manager.scheme(id)?;
 
-        scheme.metadata("variant")
-            .and_then(|variant| {
-                if variant == "dark" {
-                    scheme.metadata("light-variant")
-                } else {
-                    scheme.metadata("dark-variant")
-                }
-            })
+        let variant = scheme.metadata("variant")?;
+
+        if variant == "dark" {
+            scheme.metadata("light-variant")
+        } else {
+            scheme.metadata("dark-variant")
+        }
     }
 
     //-----------------------------------

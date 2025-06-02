@@ -543,9 +543,9 @@ impl PkgObject {
         let repo = self.repository();
 
         let url = if default_repos.contains(&repo.as_str()) {
-            format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{}/-/raw/main/PKGBUILD", name)
+            format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{name}/-/raw/main/PKGBUILD")
         } else if repo == "aur" {
-            format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={}", name)
+            format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={name}")
         } else {
             String::new()
         };
