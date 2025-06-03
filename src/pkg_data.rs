@@ -168,7 +168,7 @@ impl PkgData {
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,
-            base: pkg.name.clone(),
+            base: pkg.package_base.clone(),
             name: pkg.name.clone(),
             version: pkg.version.clone(),
             description: pkg.description.clone().unwrap_or_default(),
