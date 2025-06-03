@@ -137,7 +137,7 @@ impl SourceWindow {
 
         let id = settings.string("pkgbuild-style-scheme");
 
-        let style_id = (style_schemes::is_variant_dark(&id) == style_manager.is_dark())
+        let style_id = (style_schemes::is_variant_dark_by_id(&id) == style_manager.is_dark())
             .then_some(id.clone())
             .or_else(|| style_schemes::variant_id(&id))
             .unwrap_or_default();

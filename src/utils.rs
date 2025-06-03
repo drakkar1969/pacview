@@ -209,9 +209,13 @@ pub mod pango_utils {
 //------------------------------------------------------------------------------
 pub mod style_schemes {
     //-----------------------------------
-    // Is variant dark function
+    // Is variant dark functions
     //-----------------------------------
-    pub fn is_variant_dark(id: &str) -> bool {
+    pub fn is_variant_dark(scheme: &sourceview5::StyleScheme) -> bool {
+        scheme.metadata("variant").is_some_and(|variant| variant == "dark")
+    }
+
+    pub fn is_variant_dark_by_id(id: &str) -> bool {
         let scheme_manager = sourceview5::StyleSchemeManager::default();
 
         scheme_manager.scheme(id)
@@ -246,7 +250,7 @@ pub mod style_schemes {
             .scheme_ids()
             .iter()
             .filter_map(|id| scheme_manager.scheme(id))
-            .filter(|scheme| is_variant_dark(&scheme.id()) == dark)
+            .filter(|scheme| is_variant_dark(&scheme) == dark)
             .collect::<Vec<sourceview5::StyleScheme>>()
     }
 }
