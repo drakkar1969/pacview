@@ -450,7 +450,7 @@
                                     <child>
                                       <object class="GtkButton" id="cache_open_button">
                                         <property name="icon-name">folder-open-symbolic</property>
-                                        <property name="tooltip-text">Open Folder</property>
+                                        <property name="tooltip-text">Open Cache Folder</property>
                                         <style>
                                           <class name="flat"/>
                                           <class name="circular"/>
