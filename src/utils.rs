@@ -216,11 +216,9 @@ pub mod style_schemes {
     }
 
     pub fn is_variant_dark_by_id(id: &str) -> bool {
-        let scheme_manager = sourceview5::StyleSchemeManager::default();
-
-        scheme_manager.scheme(id)
-            .and_then(|scheme| scheme.metadata("variant"))
-            .is_some_and(|variant| variant == "dark")
+        sourceview5::StyleSchemeManager::default()
+            .scheme(id)
+            .is_some_and(|scheme| is_variant_dark(&scheme))
     }
 
     //-----------------------------------
