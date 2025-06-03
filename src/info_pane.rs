@@ -559,6 +559,7 @@ impl InfoPane {
 
                 imp.backup_count_label.set_label(&n_items.to_string());
                 imp.backup_copy_button.set_sensitive(n_items > 0);
+                imp.backup_open_button.set_sensitive(n_items > 0);
             }
         ));
 
