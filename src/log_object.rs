@@ -16,13 +16,13 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::LogObject)]
     pub struct LogObject {
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         date: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         time: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         category: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         message: RefCell<String>,
     }
 

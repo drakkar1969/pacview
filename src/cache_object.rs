@@ -17,7 +17,7 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::CacheObject)]
     pub struct CacheObject {
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         filename: RefCell<String>,
         #[property(get = Self::get_icon)]
         icon: PhantomData<String>,

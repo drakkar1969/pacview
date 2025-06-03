@@ -50,9 +50,9 @@ mod imp {
         #[template_child]
         pub(super) error_label: TemplateChild<gtk::Label>,
 
-        #[property(get, set, nullable)]
+        #[property(get, set, nullable, construct_only)]
         repo_id: RefCell<Option<String>>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         status_id: Cell<PkgFlags>,
     }
 

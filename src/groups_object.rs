@@ -16,13 +16,13 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::GroupsObject)]
     pub struct GroupsObject {
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         package: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         status: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         status_icon: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         groups: RefCell<String>,
     }
 

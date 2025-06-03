@@ -38,7 +38,7 @@ mod imp {
 
         #[property(get = Self::buffer)]
         buffer: PhantomData<sourceview5::Buffer>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         pkg: OnceCell<PkgObject>,
     }
 

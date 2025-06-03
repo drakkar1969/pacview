@@ -16,13 +16,13 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::StatsObject)]
     pub struct StatsObject {
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         repository: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         packages: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         installed: RefCell<String>,
-        #[property(get, set)]
+        #[property(get, set, construct_only)]
         size: RefCell<String>,
     }
 
