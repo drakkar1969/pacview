@@ -292,17 +292,17 @@ glib::wrapper! {
 
 impl SearchBar {
     //---------------------------------------
-    // Public set AUR error function
+    // Public set AUR status function
     //---------------------------------------
-    pub fn set_aur_error(&self, aur_error: Option<String>) {
+    pub fn set_aur_status(&self, status: Result<(), String>) {
         let imp = self.imp();
 
-        if let Some(mut error_msg) = aur_error {
+        if let Err(mut error) = status {
             self.add_css_class("error");
 
-            error_msg.pop();
+            error.pop();
 
-            imp.error_label.set_label(&error_msg);
+            imp.error_label.set_label(&error);
             imp.error_button.set_visible(true);
         } else {
             self.remove_css_class("error");
@@ -377,7 +377,7 @@ impl SearchBar {
                 }
 
                 if text.is_empty() {
-                    bar.set_aur_error(None);
+                    bar.set_aur_status(Ok(()));
 
                     bar.emit_by_name::<()>("changed", &[]);
                     bar.emit_by_name::<()>("aur-search", &[]);

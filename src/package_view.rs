@@ -544,10 +544,10 @@ impl PackageView {
                             AUR_PKGS.replace(pkg_list);
                         }
 
-                        search_bar.set_aur_error(None);
+                        search_bar.set_aur_status(Ok(()));
                     },
                     Err(error) => {
-                        search_bar.set_aur_error(Some(error.to_string()));
+                        search_bar.set_aur_status(Err(error.to_string()));
                     }
                 }
 
