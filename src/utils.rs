@@ -85,6 +85,8 @@ pub mod aur_file {
     use std::time::Duration;
 	use std::io::Read;
 
+    use gtk::glib;
+
     use flate2::read::GzDecoder;
     use tokio::task::JoinHandle as TokioJoinHandle;
 
@@ -151,7 +153,7 @@ pub mod aur_file {
 pub mod pango_utils {
     use std::fmt::Write as _;
 
-    use gtk::pango;
+    use gtk::{glib, pango};
     use gtk::prelude::ToValue;
 
     //-----------------------------------
@@ -208,6 +210,8 @@ pub mod pango_utils {
 // MODULE: StyleSchemes
 //------------------------------------------------------------------------------
 pub mod style_schemes {
+    use gtk::glib;
+
     //-----------------------------------
     // Is variant dark functions
     //-----------------------------------

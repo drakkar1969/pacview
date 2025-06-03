@@ -1,3 +1,4 @@
+use gtk::glib;
 use glib::types::StaticType;
 use glib::value::ToValue;
 use glib::variant::ToVariant;

@@ -3,7 +3,7 @@ use std::rc::Rc;
 use std::cmp::Ordering;
 use std::time::Duration;
 
-use gtk::glib;
+use gtk::{glib, gio};
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 

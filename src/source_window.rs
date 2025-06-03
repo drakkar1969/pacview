@@ -1,7 +1,7 @@
 use std::cell::OnceCell;
 use std::marker::PhantomData;
 
-use gtk::{glib, gdk};
+use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;

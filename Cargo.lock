@@ -1573,8 +1573,6 @@ dependencies = [
  "fancy-regex",
  "flate2",
  "futures",
- "gio",
- "glib",
  "glib-build-tools",
  "gtk4",
  "heck",

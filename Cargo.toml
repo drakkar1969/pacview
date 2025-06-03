@@ -14,8 +14,6 @@ async-process = "2"
 fancy-regex = "0.14"
 flate2 = "1"
 futures = "0.3"
-gio = { version = "0.20", features = ["v2_84"] }
-glib = "0.20"
 gtk = { version = "0.9", package = "gtk4", features = ["v4_18"] }
 heck = "0.5"
 itertools = "0.14.0"
@@ -25,7 +23,7 @@ pangocairo = "0.20"
 raur = "7"
 rayon = "1"
 regex = "1"
-reqwest = { version = "0.12", features = ["json"] }
+reqwest = "0.12"
 shlex = "1"
 size = "0.5"
 sourceview5 = { version = "0.9", features = ["v5_12"] }
