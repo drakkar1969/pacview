@@ -10,7 +10,6 @@ use strum::FromRepr;
 use crate::APP_ID;
 use crate::window::PacViewWindow;
 use crate::search_bar::{SearchMode, SearchProp};
-use crate::stylescheme_object::StyleSchemeObject;
 use crate::utils::style_schemes;
 use crate::enum_traits::EnumExt;
 
@@ -76,8 +75,6 @@ mod imp {
         #[template_child]
         pub(super) pkgbuild_style_scheme_row: TemplateChild<adw::ComboRow>,
         #[template_child]
-        pub(super) pkgbuild_style_scheme_model: TemplateChild<gio::ListStore>,
-        #[template_child]
         pub(super) pkgbuild_use_system_font_row: TemplateChild<adw::ExpanderRow>,
         #[template_child]
         pub(super) pkgbuild_use_system_font_switch: TemplateChild<gtk::Switch>,
@@ -132,7 +129,6 @@ mod imp {
         type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
-            StyleSchemeObject::ensure_type();
             klass.bind_template();
 
             //---------------------------------------
@@ -203,11 +199,11 @@ impl PreferencesDialog {
 
         let schemes = style_schemes::schemes(style_manager.is_dark());
 
-        imp.pkgbuild_style_scheme_model.splice(0, imp.pkgbuild_style_scheme_model.n_items(),
-            &schemes.iter()
-                .map(|scheme| StyleSchemeObject::new(&scheme.id(), &scheme.name()))
-                .collect::<Vec<StyleSchemeObject>>()
-        );
+        if let Some(model) = imp.pkgbuild_style_scheme_row.model()
+            .and_downcast_ref::<gio::ListStore>()
+        {
+            model.splice(0, model.n_items(), &schemes);
+        }
 
         self.notify_pkgbuild_style_scheme();
     }
@@ -216,6 +212,11 @@ impl PreferencesDialog {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Create style scheme combo row model
+        let scheme_model = gio::ListStore::new::<sourceview5::StyleScheme>();
+
+        imp.pkgbuild_style_scheme_row.set_model(Some(&scheme_model));
 
         // Populate PKGBUILD style scheme combo row
         let style_manager = adw::StyleManager::for_display(&self.display());
@@ -316,7 +317,7 @@ impl PreferencesDialog {
                     .and_downcast::<adw::ComboRow>()
                     .and_then(|row| row.model())
                     .and_then(|model| {
-                        model.iter::<StyleSchemeObject>()
+                        model.iter::<sourceview5::StyleScheme>()
                             .flatten()
                             .position(|scheme| {
                                 scheme.id() == id ||
@@ -332,8 +333,8 @@ impl PreferencesDialog {
                 let id = binding.target()
                     .and_downcast::<adw::ComboRow>()
                     .and_then(|row| row.selected_item())
-                    .and_downcast::<StyleSchemeObject>()
-                    .map_or_else(String::new, |scheme| scheme.id());
+                    .and_downcast::<sourceview5::StyleScheme>()
+                    .map_or_else(glib::GString::new, |scheme| scheme.id());
 
                 Some(id)
             })
