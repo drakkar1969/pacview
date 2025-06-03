@@ -247,8 +247,10 @@ pub mod style_schemes {
         scheme_manager
             .scheme_ids()
             .iter()
-            .filter_map(|id| scheme_manager.scheme(id))
-            .filter(|scheme| is_variant_dark(&scheme) == dark)
+            .filter_map(|id| {
+                scheme_manager.scheme(id)
+                    .filter(|scheme| is_variant_dark(scheme) == dark)
+            })
             .collect::<Vec<sourceview5::StyleScheme>>()
     }
 }
