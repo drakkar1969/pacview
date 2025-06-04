@@ -262,6 +262,18 @@
                 <property name="title">View Backup Tab</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;&lt;shift&gt;K</property>
+                <property name="title">Show PKGBUILD</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;alt&gt;&lt;shift&gt;H</property>
+                <property name="title">Show Package Hashes</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

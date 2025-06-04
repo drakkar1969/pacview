@@ -356,6 +356,20 @@ mod imp {
 
                 glib::Propagation::Stop
             });
+
+            // Infopane show PKGBUILD key bindings
+            klass.add_binding(gdk::Key::K, gdk::ModifierType::ALT_MASK | gdk::ModifierType::SHIFT_MASK, |window| {
+                window.imp().info_pane.show_pkgbuild();
+
+                glib::Propagation::Stop
+            });
+
+            // Infopane show hashes key bindings
+            klass.add_binding(gdk::Key::H, gdk::ModifierType::ALT_MASK | gdk::ModifierType::SHIFT_MASK, |window| {
+                window.imp().info_pane.show_hashes();
+
+                glib::Propagation::Stop
+            });
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {

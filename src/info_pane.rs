@@ -314,15 +314,7 @@ impl InfoPane {
         imp.info_pkgbuild_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                if let Some(pkg) = infopane.pkg() {
-                    let parent = infopane.root()
-                        .and_downcast::<gtk::Window>()
-                        .expect("Failed to downcast to 'GtkWindow'");
-
-                    let source_window = SourceWindow::new(&parent, &pkg);
-
-                    source_window.present();
-                }
+                infopane.show_pkgbuild();
             }
         ));
 
@@ -330,15 +322,7 @@ impl InfoPane {
         imp.info_hashes_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                if let Some(pkg) = infopane.pkg() {
-                    let parent = infopane.root()
-                        .and_downcast::<gtk::Window>()
-                        .expect("Failed to downcast to 'GtkWindow'");
-
-                    let hash_window = HashWindow::new(&parent, &pkg);
-
-                    hash_window.present();
-                }
+                infopane.show_hashes();
             }
         ));
 
@@ -851,13 +835,37 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Public display functions
+    // Other public functions
     //---------------------------------------
     pub fn set_visible_tab(&self, tab: &str) {
         let imp = self.imp();
 
         if imp.tab_switcher.is_sensitive() {
             imp.tab_stack.set_visible_child_name(tab);
+        }
+    }
+
+    pub fn show_pkgbuild(&self) {
+        if let Some(pkg) = self.pkg() {
+            let parent = self.root()
+                .and_downcast::<gtk::Window>()
+                .expect("Failed to downcast to 'GtkWindow'");
+
+            let source_window = SourceWindow::new(&parent, &pkg);
+
+            source_window.present();
+        }
+    }
+
+    pub fn show_hashes(&self) {
+        if let Some(pkg) = self.pkg() {
+            let parent = self.root()
+                .and_downcast::<gtk::Window>()
+                .expect("Failed to downcast to 'GtkWindow'");
+
+            let hash_window = HashWindow::new(&parent, &pkg);
+
+            hash_window.present();
         }
     }
 }
