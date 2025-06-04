@@ -197,14 +197,6 @@ mod imp {
                  window.clipboard().set_text(&window.imp().package_view.copy_list());
             });
 
-            // Package view all packages action
-            klass.install_action("view.show-all", None, |window, _, _| {
-                let imp = window.imp();
-
-                imp.all_repo_row.borrow().activate();
-                imp.all_status_row.borrow().activate();
-            });
-
             // Package view sort prop property action
             klass.install_property_action("view.set-sort-prop", "package-sort-prop");
 
@@ -215,18 +207,6 @@ mod imp {
                 imp.package_view.set_sort_prop(SortProp::default());
                 imp.package_view.set_sort_ascending(true);
             });
-
-            // Info pane set tab action with parameter
-            klass.install_action("infopane.set-tab", Some(&String::static_variant_type()),
-                |window, _, param| {
-                    let tab = param
-                        .expect("Failed to retrieve Variant")
-                        .get::<String>()
-                        .expect("Failed to retrieve String from variant");
-
-                    window.imp().info_pane.set_visible_tab(&tab);
-                }
-            );
 
             // Show window/dialog actions
             klass.install_action("win.show-backup-files", None, |window, _, _| {
@@ -306,7 +286,14 @@ mod imp {
             klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "view.copy-list");
 
             // View show all packages key binding
-            klass.add_binding_action(gdk::Key::A, gdk::ModifierType::ALT_MASK, "view.show-all");
+            klass.add_binding(gdk::Key::A, gdk::ModifierType::ALT_MASK, |window| {
+                let imp = window.imp();
+
+                imp.all_repo_row.borrow().activate();
+                imp.all_status_row.borrow().activate();
+
+                glib::Propagation::Stop
+            });
 
             // Stats window key binding
             klass.add_binding_action(gdk::Key::S, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-stats");
@@ -327,37 +314,32 @@ mod imp {
             klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-config");
 
             // Infopane set tab shortcuts
-            klass.add_binding(gdk::Key::I, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
-                    Some(&"info".to_variant())).unwrap();
+            klass.add_binding(gdk::Key::I, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().info_pane.set_visible_tab("info");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
-                    Some(&"files".to_variant())).unwrap();
+            klass.add_binding(gdk::Key::F, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().info_pane.set_visible_tab("files");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::L, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
-                    Some(&"log".to_variant())).unwrap();
+            klass.add_binding(gdk::Key::L, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().info_pane.set_visible_tab("log");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::C, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
-                    Some(&"cache".to_variant())).unwrap();
+            klass.add_binding(gdk::Key::C, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().info_pane.set_visible_tab("cache");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::B, gdk::ModifierType::ALT_MASK, |bar| {
-                gtk::prelude::WidgetExt::activate_action(bar, "infopane.set-tab",
-                    Some(&"backup".to_variant())).unwrap();
+            klass.add_binding(gdk::Key::B, gdk::ModifierType::ALT_MASK, |window| {
+                window.imp().info_pane.set_visible_tab("backup");
 
                 glib::Propagation::Stop
             });
