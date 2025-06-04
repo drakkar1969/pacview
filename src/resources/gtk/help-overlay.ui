@@ -418,6 +418,12 @@
                 <property name="title">Refresh PKGBUILD</property>
               </object>
             </child>
+            <child>
+              <object class="GtkShortcutsShortcut">
+                <property name="accelerator">&lt;ctrl&gt;S</property>
+                <property name="title">Save PKGBUILD</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
