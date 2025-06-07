@@ -99,7 +99,7 @@ mod imp {
         enabled: Cell<bool>,
 
         #[property(get = Self::text)]
-        text: PhantomData<String>,
+        text: PhantomData<glib::GString>,
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
@@ -275,8 +275,8 @@ mod imp {
         //---------------------------------------
         // Property getter
         //---------------------------------------
-        fn text(&self) -> String {
-            self.search_text.text().to_string()
+        fn text(&self) -> glib::GString {
+            self.search_text.text()
         }
     }
 }

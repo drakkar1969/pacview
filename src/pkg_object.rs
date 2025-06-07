@@ -417,7 +417,7 @@ impl PkgObject {
                     let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
 
                     let mut files: Vec<String> = pkg.files().files().iter()
-                        .map(|file| root_dir.to_string() + file.name())
+                        .map(|file| root_dir.to_owned() + file.name())
                         .collect();
 
                     files.par_sort_unstable();
@@ -437,7 +437,7 @@ impl PkgObject {
 
                     let mut backup: Vec<PkgBackup> = pkg.backup().iter()
                         .map(|backup| {
-                            PkgBackup::new(&(root_dir.to_string() + backup.name()), backup.hash(), &pkg_name)
+                            PkgBackup::new(&(root_dir.to_owned() + backup.name()), backup.hash(), &pkg_name)
                         })
                         .collect();
 

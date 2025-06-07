@@ -128,9 +128,9 @@ mod imp {
         pub(super) value_widget: TemplateChild<TextWidget>,
 
         #[property(get = Self::label)]
-        label: PhantomData<String>,
+        label: PhantomData<glib::GString>,
         #[property(get = Self::value)]
-        value: PhantomData<String>,
+        value: PhantomData<glib::GString>,
 
         pub(super) id: Cell<PropID>,
     }
@@ -261,11 +261,11 @@ mod imp {
         //---------------------------------------
         // Property getters
         //---------------------------------------
-        fn label(&self) -> String {
-            self.prop_label.label().to_string()
+        fn label(&self) -> glib::GString {
+            self.prop_label.label()
         }
 
-        fn value(&self) -> String {
+        fn value(&self) -> glib::GString {
             self.value_widget.text()
         }
     }

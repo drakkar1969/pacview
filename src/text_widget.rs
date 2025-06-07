@@ -64,7 +64,7 @@ mod imp {
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
-        text: PhantomData<String>,
+        text: PhantomData<glib::GString>,
 
         #[property(get, set)]
         can_expand: Cell<bool>,
@@ -418,8 +418,8 @@ mod imp {
         //---------------------------------------
         // Text property getter/setter
         //---------------------------------------
-        fn text(&self) -> String {
-            self.layout.get().unwrap().text().to_string()
+        fn text(&self) -> glib::GString {
+            self.layout.get().unwrap().text()
         }
 
         fn set_text(&self, text: &str) {
