@@ -2,7 +2,7 @@
 <interface>
   <!--// StatsWindow template //-->
   <template class="StatsWindow" parent="AdwWindow">
-    <property name="default-width">520</property>
+    <property name="default-width">580</property>
     <property name="modal">true</property>
     <property name="hide-on-close">true</property>
     <property name="title"></property>
@@ -77,6 +77,7 @@
                 <property name="margin-end">16</property>
                 <property name="margin-bottom">16</property>
                 <property name="reorderable">false</property>
+                <property name="show-column-separators">true</property>
                 <property name="model">
                   <object class="GtkNoSelection" id="selection">
                     <property name="model">
@@ -113,6 +114,16 @@
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
                         <property name="resource">/com/github/PacView/ui/stats_window/installed_item.ui</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="explicit_column">
+                    <property name="title">Explicit</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/stats_window/explicit_item.ui</property>
                       </object>
                     </property>
                   </object>

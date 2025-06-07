@@ -28,6 +28,8 @@ mod imp {
         #[property(get, set, construct_only)]
         installed: RefCell<String>,
         #[property(get, set, construct_only)]
+        explicit: RefCell<String>,
+        #[property(get, set, construct_only)]
         size: RefCell<String>,
     }
 
@@ -64,13 +66,14 @@ impl StatsObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(icon: Option<&str>, repository: &str, packages: &str, installed: &str, size: &str) -> Self {
+    pub fn new(icon: Option<&str>, repository: &str, packages: &str, installed: &str, explicit: &str, size: &str) -> Self {
         // Build StatsObject
         glib::Object::builder()
             .property("icon", icon)
             .property("repository", repository)
             .property("packages", packages)
             .property("installed", installed)
+            .property("explicit", explicit)
             .property("size", size)
             .build()
     }

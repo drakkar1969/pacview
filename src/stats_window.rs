@@ -131,17 +131,18 @@ impl StatsWindow {
                             .downcast::<StatsObject>()
                             .expect("Failed to downcast to 'StatsObject'");
 
-                        format!("|{repository}|{packages}|{installed}|{size}|",
+                        format!("|{repository}|{packages}|{installed}|{explicit}|{size}|",
                             repository=stat.repository(),
                             packages=stat.packages(),
                             installed=stat.installed(),
+                            explicit=stat.explicit(),
                             size=stat.size())
                     })
                     .collect::<Vec<String>>()
                     .join("\n");
 
                 window.clipboard().set_text(
-                    &format!("## Package Statistics\n|Repository|Packages|Installed|Installed Size|\n|---|---|---|---|\n{body}")
+                    &format!("## Package Statistics\n|Repository|Packages|Installed|Explicit|Installed Size|\n|---|---|---|---|---|\n{body}")
                 );
             }
         ));
@@ -170,12 +171,14 @@ impl StatsWindow {
                 let mut pkg_count_total = 0;
                 let mut install_count_total = 0;
                 let mut install_size_total = 0;
+                let mut explicit_count_total = 0;
 
                 // Iterate repos
                 for repo in repos {
                     let mut pkg_count = 0;
                     let mut install_count = 0;
                     let mut install_size = 0;
+                    let mut explicit_count = 0;
 
                     // Iterate packages in repo
                     for pkg in pkgs.iter().filter(|pkg| &pkg.repository() == repo) {
@@ -185,11 +188,16 @@ impl StatsWindow {
                             install_count += 1;
                             install_size += pkg.install_size();
                         }
+
+                        if pkg.flags().intersects(PkgFlags::EXPLICIT) {
+                            explicit_count += 1;
+                        }
                     }
 
                     pkg_count_total += pkg_count;
                     install_count_total += install_count;
                     install_size_total += install_size;
+                    explicit_count_total += explicit_count;
 
                     // Add repo item to stats view
                     stats_items.push(StatsObject::new(
@@ -197,6 +205,7 @@ impl StatsWindow {
                         &(if *repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
                         &pkg_count.to_string(),
                         &install_count.to_string(),
+                        &explicit_count.to_string(),
                         &Size::from_bytes(install_size).to_string()
                     ));
                 }
@@ -207,6 +216,7 @@ impl StatsWindow {
                     "<b>Total</b>",
                     &format!("<b>{pkg_count_total}</b>"),
                     &format!("<b>{install_count_total}</b>"),
+                    &format!("<b>{explicit_count_total}</b>"),
                     &format!("<b>{}</b>", &Size::from_bytes(install_size_total).to_string())
                 ));
 

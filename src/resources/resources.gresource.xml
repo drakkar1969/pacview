@@ -54,6 +54,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/repository_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/packages_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/explicit_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/cache_window.ui</file>
