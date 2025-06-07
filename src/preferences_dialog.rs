@@ -49,8 +49,6 @@ mod imp {
         #[template_child]
         pub(super) infopane_width_row: TemplateChild<adw::SpinRow>,
         #[template_child]
-        pub(super) aur_command_row: TemplateChild<adw::EntryRow>,
-        #[template_child]
         pub(super) aur_database_download_row: TemplateChild<adw::ExpanderRow>,
         #[template_child]
         pub(super) aur_database_download_switch: TemplateChild<gtk::Switch>,
@@ -90,8 +88,6 @@ mod imp {
         #[property(get, set)]
         infopane_width: Cell<f64>,
         #[property(get, set)]
-        aur_update_command: RefCell<String>,
-        #[property(get, set)]
         aur_database_download: Cell<bool>,
         #[property(get, set)]
         aur_database_age: Cell<f64>,
@@ -130,30 +126,6 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-
-            //---------------------------------------
-            // Add class actions
-            //---------------------------------------
-            // AUR helper command action with parameter
-            klass.install_action("prefs.aur-cmd",
-                Some(&String::static_variant_type()),
-                |dialog, _, param| {
-                    let param = param
-                        .expect("Failed to retrieve Variant")
-                        .get::<String>()
-                        .expect("Failed to retrieve String from variant");
-
-                    let cmd = match param.as_str() {
-                        "paru" => "/usr/bin/paru -Qu --mode=ap",
-                        "pikaur" => "/usr/bin/pikaur -Qua 2>/dev/null",
-                        "trizen" => "/usr/bin/trizen -Qua --devel",
-                        "yay" => "/usr/bin/yay -Qua",
-                        _ => unreachable!()
-                    };
-
-                    dialog.set_aur_update_command(cmd);
-                }
-            );
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -239,11 +211,6 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("infopane-width", &imp.infopane_width_row.get(), "value")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        self.bind_property("aur-update-command", &imp.aur_command_row.get(), "text")
             .sync_create()
             .bidirectional()
             .build();
@@ -438,7 +405,6 @@ impl PreferencesDialog {
                             settings.reset("color-scheme");
                             settings.reset("sidebar-width");
                             settings.reset("infopane-width");
-                            settings.reset("aur-update-command");
                             settings.reset("aur-database-download");
                             settings.reset("aur-database-age");
                             settings.reset("auto-refresh");

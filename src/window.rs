@@ -16,6 +16,7 @@ use heck::ToTitleCase;
 use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
+use which::which_global;
 
 use crate::APP_ID;
 use crate::PacViewApplication;
@@ -654,7 +655,6 @@ impl PacViewWindow {
         settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
         settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
         settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
-        settings.bind("aur-update-command", prefs_dialog, "aur-update-command").build();
         settings.bind("aur-database-download", prefs_dialog, "aur-database-download").build();
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
         settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
@@ -1083,18 +1083,19 @@ impl PacViewWindow {
                 let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;
 
-                let aur_command = imp.prefs_dialog.get().unwrap().aur_update_command();
+                let aur_command = which_global("paru")
+                    .map(|path| path.display().to_string() + " -Qu --mode=ap");
 
                 // Check for pacman updates async
                 let pacman_handle = async_command::run("/usr/bin/checkupdates");
 
-                let (pacman_res, aur_res) = if aur_command.is_empty() {
-                    (pacman_handle.await, Ok((None, String::new())))
-                } else {
+                let (pacman_res, aur_res) = if let Ok(aur_command) = aur_command {
                     // Check for AUR updates async
                     let aur_handle = async_command::run(&aur_command);
 
                     join!(pacman_handle, aur_handle)
+                } else {
+                    (pacman_handle.await, Ok((None, String::new())))
                 };
 
                 // Get pacman update results

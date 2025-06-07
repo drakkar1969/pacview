@@ -82,34 +82,6 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Arch User Repository</property>
             <child>
-              <object class="AdwEntryRow" id="aur_command_row">
-                <property name="title">Command to check for _AUR updates (optional)</property>
-                <property name="use-underline">true</property>
-                <child type="suffix">
-                  <object class="GtkMenuButton" id="aur_menubutton">
-                    <property name="valign">center</property>
-                    <property name="icon-name">view-more-symbolic</property>
-                    <property name="menu-model">aur_helper_menu</property>
-                    <style>
-                      <class name="flat"/>
-                      <class name="circular"/>
-                    </style>
-                  </object>
-                </child>
-                <child type="suffix">
-                  <object class="GtkMenuButton" id="aur_infobutton">
-                    <property name="valign">center</property>
-                    <property name="icon-name">info-outline-symbolic</property>
-                    <property name="popover">aur_info_popover</property>
-                    <style>
-                      <class name="flat"/>
-                      <class name="circular"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
               <object class="AdwExpanderRow" id="aur_database_download_row">
                 <property name="title">_Download AUR Database</property>
                 <property name="subtitle">Download database to check if local packages are present in AUR</property>
@@ -143,7 +115,7 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
-            <!-- <property name="title">Preferences</property> -->
+            <property name="title">Danger Zone</property>
             <child>
               <object class="AdwButtonRow" id="reset_button">
                 <property name="title">_Reset Preferences</property>
@@ -307,58 +279,4 @@
       </object>
     </child>
   </template>
-
-  <!--// AUR helper menu //-->
-  <menu id="aur_helper_menu">
-    <section>
-      <attribute name="label">AUR Helpers</attribute>
-      <item>
-        <attribute name="label">Paru</attribute>
-        <attribute name="action">prefs.aur-cmd</attribute>
-        <attribute name="target">paru</attribute>
-      </item>
-      <item>
-        <attribute name="label">Pikaur</attribute>
-        <attribute name="action">prefs.aur-cmd</attribute>
-        <attribute name="target">pikaur</attribute>
-      </item>
-      <item>
-        <attribute name="label">Trizen</attribute>
-        <attribute name="action">prefs.aur-cmd</attribute>
-        <attribute name="target">trizen</attribute>
-      </item>
-      <item>
-        <attribute name="label">Yay</attribute>
-        <attribute name="action">prefs.aur-cmd</attribute>
-        <attribute name="target">yay</attribute>
-      </item>
-    </section>
-  </menu>
-
-  <!--// AUR info popover //-->
-  <object class="GtkPopover" id="aur_info_popover">
-    <property name="child">
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="margin-start">16</property>
-        <property name="margin-end">16</property>
-        <property name="margin-top">16</property>
-        <property name="margin-bottom">16</property>
-        <property name="spacing">16</property>
-        <child>
-          <object class="GtkLabel">
-            <property name="label">The command must return a list of AUR updates in the format:</property>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="aur_info_label">
-            <property name="label">package_name current_version -> new_version</property>
-            <style>
-              <class name="monospace"/>
-            </style>
-          </object>
-        </child>
-      </object>
-    </property>
-  </object>
 </interface>
