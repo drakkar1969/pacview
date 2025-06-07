@@ -784,7 +784,8 @@ impl PacViewWindow {
         imp.aur_file.replace(aur_file.clone());
 
         // Get paru repos
-        let paru_repos: Vec<PathBuf> = xdg_dirs.get_cache_home()
+        let paru_repos: Vec<PathBuf> = which_global("paru").ok()
+            .and_then(|_| xdg_dirs.get_cache_home())
             .and_then(|cache_dir| {
                 fs::read_dir(cache_dir.join("paru/clone/repo")).ok()
                     .map(|read_dir| {
