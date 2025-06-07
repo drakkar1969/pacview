@@ -157,7 +157,7 @@ impl StatsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, repo_names: &[&str]) {
+    pub fn show(&self, repos: &[String]) {
         let imp = self.imp();
 
         self.present();
@@ -165,14 +165,14 @@ impl StatsWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             PKGS.with_borrow(|pkgs| {
-                let mut stats_items: Vec<StatsObject> = Vec::with_capacity(repo_names.len() + 1);
+                let mut stats_items: Vec<StatsObject> = Vec::with_capacity(repos.len() + 1);
 
                 let mut pkg_count_total = 0;
                 let mut install_count_total = 0;
                 let mut install_size_total = 0;
 
                 // Iterate repos
-                for repo in repo_names {
+                for repo in repos {
                     let mut pkg_count = 0;
                     let mut install_count = 0;
                     let mut install_size = 0;

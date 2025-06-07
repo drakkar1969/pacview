@@ -228,12 +228,9 @@ mod imp {
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
-                let pacman_repos: Vec<&str> = PACMAN_CONFIG.get().unwrap().repos.iter()
-                    .map(|r| r.name.as_str())
-                    .chain(["aur", "local"])
-                    .collect();
+                let repos = window.repos();
 
-                window.imp().stats_window.get().unwrap().show(&pacman_repos);
+                window.imp().stats_window.get().unwrap().show(&repos);
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
@@ -827,6 +824,24 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Repos helper function
+    //---------------------------------------
+    fn repos(&self) -> Vec<String> {
+        let paru_repos = self.imp().paru_repos.borrow();
+
+        let paru_repo_iter = paru_repos.iter()
+            .map(|repo| repo.file_name().and_then(|s| s.to_str()).unwrap_or_default());
+
+        PACMAN_CONFIG.get().unwrap().repos.iter()
+            .map(|r| r.name.as_str())
+            .chain(["aur"])
+            .chain(paru_repo_iter)
+            .chain(["local"])
+            .map(ToOwned::to_owned)
+            .collect()
+    }
+
+    //---------------------------------------
     // Setup alpm: populate sidebar
     //---------------------------------------
     fn alpm_populate_sidebar(&self, first_load: bool) {
@@ -847,26 +862,14 @@ impl PacViewWindow {
 
         imp.all_repo_row.replace(all_row);
 
-        let paru_repos = imp.paru_repos.borrow();
-
-        let paru_repo_iter = paru_repos.iter()
-            .map(|repo| repo.file_name().and_then(|s| s.to_str()).unwrap_or_default());
-
-        let repos: Vec<&str> = PACMAN_CONFIG.get().unwrap().repos.iter()
-            .map(|r| r.name.as_str())
-            .chain(["aur"])
-            .chain(paru_repo_iter)
-            .chain(["local"])
-            .collect();
-
-        for repo in repos {
+        for repo in self.repos() {
             let label = if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() };
 
-            let row = FilterRow::new("repository-symbolic", &label, Some(repo), PkgFlags::empty());
+            let row = FilterRow::new("repository-symbolic", &label, Some(&repo), PkgFlags::empty());
 
             imp.repo_listbox.append(&row);
 
-            if saved_repo_id.as_deref() == Some(repo) {
+            if saved_repo_id == Some(repo) {
                 row.activate();
             }
         }
