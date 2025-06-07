@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use gtk::glib;
 
 use itertools::Itertools;
@@ -82,7 +84,7 @@ impl PkgData {
     //---------------------------------------
     // Alpm constructor
     //---------------------------------------
-    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: Option<&[String]>) -> Self {
+    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: Option<&[String]>, paru_map: Option<&HashMap<String, &str>>) -> Self {
         // Helper closures
         let alpm_list_to_string = |list: alpm::AlpmList<&str>| -> String {
             list.iter().sorted_unstable().join(" | ")
@@ -111,15 +113,19 @@ impl PkgData {
 
         let repository = sync_pkg.db()
             .map_or("", |db| {
-                let repo = db.name();
+                let mut repo = db.name();
 
-                if repo == "local" &&
-                    aur_names.is_some_and(|names| names.iter().any(|name| name == sync_name))
-                {
-                    "aur"
-                } else {
-                    repo
+                if repo == "local" {
+                    if let Some(paru_repo) = paru_map.and_then(|map| map.get(sync_name)) {
+                        repo = paru_repo;
+                    } else if aur_names
+                        .is_some_and(|names| names.iter().any(|name| name == sync_name))
+                    {
+                        repo = "aur";
+                    }
                 }
+
+                repo
             })
             .to_owned();
 
