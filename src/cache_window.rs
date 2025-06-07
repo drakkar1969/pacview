@@ -3,7 +3,10 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::window::PACMAN_CACHE;
+use fs_extra::dir;
+use size::Size;
+
+use crate::window::{PACMAN_CACHE, PACMAN_CONFIG};
 use crate::cache_object::CacheObject;
 use crate::utils::app_info;
 
@@ -19,6 +22,8 @@ mod imp {
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/cache_window.ui")]
     pub struct CacheWindow {
+        #[template_child]
+        pub(super) header_size_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -244,6 +249,17 @@ impl CacheWindow {
                 .map(|file| CacheObject::new(&file.display().to_string()))
                 .collect::<Vec<CacheObject>>()
             );
+
+            // Get cache size
+            let cache_dirs = &PACMAN_CONFIG.get().unwrap().cache_dir;
+
+            let mut cache_size = 0;
+
+            for dir in cache_dirs {
+                cache_size += dir::get_size(dir).unwrap_or_default();
+            }
+
+            imp.header_size_label.set_label(&Size::from_bytes(cache_size).to_string());
         }
     }
 }

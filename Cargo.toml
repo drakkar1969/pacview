@@ -13,6 +13,7 @@ async-channel = "2"
 async-process = "2"
 fancy-regex = "0.14"
 flate2 = "1"
+fs_extra = "1.3"
 futures = "0.3"
 gtk = { version = "0.9", package = "gtk4", features = ["v4_18"] }
 heck = "0.5"
