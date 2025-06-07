@@ -193,6 +193,7 @@ impl StatsWindow {
 
                     // Add repo item to stats view
                     stats_items.push(StatsObject::new(
+                        Some("repository-symbolic"),
                         &(if *repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
                         &pkg_count.to_string(),
                         &install_count.to_string(),
@@ -202,6 +203,7 @@ impl StatsWindow {
 
                 // Add item with totals to stats view
                 stats_items.push(StatsObject::new(
+                    None,
                     "<b>Total</b>",
                     &format!("<b>{pkg_count_total}</b>"),
                     &format!("<b>{install_count_total}</b>"),

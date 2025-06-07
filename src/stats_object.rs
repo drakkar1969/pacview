@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::marker::PhantomData;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -16,6 +17,10 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::StatsObject)]
     pub struct StatsObject {
+        #[property(get, set, nullable, construct_only)]
+        icon: RefCell<Option<String>>,
+        #[property(get = Self::icon_visible)]
+        icon_visible: PhantomData<bool>,
         #[property(get, set, construct_only)]
         repository: RefCell<String>,
         #[property(get, set, construct_only)]
@@ -37,6 +42,15 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for StatsObject {}
+
+    impl StatsObject {
+        //---------------------------------------
+        // Property getter
+        //---------------------------------------
+        fn icon_visible(&self) -> bool {
+            self.icon.borrow().is_some()
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -50,9 +64,10 @@ impl StatsObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(repository: &str, packages: &str, installed: &str, size: &str) -> Self {
+    pub fn new(icon: Option<&str>, repository: &str, packages: &str, installed: &str, size: &str) -> Self {
         // Build StatsObject
         glib::Object::builder()
+            .property("icon", icon)
             .property("repository", repository)
             .property("packages", packages)
             .property("installed", installed)

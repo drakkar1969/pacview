@@ -834,9 +834,8 @@ impl PacViewWindow {
 
         PACMAN_CONFIG.get().unwrap().repos.iter()
             .map(|r| r.name.as_str())
-            .chain(["aur"])
             .chain(paru_repo_iter)
-            .chain(["local"])
+            .chain(["aur", "local"])
             .map(ToOwned::to_owned)
             .collect()
     }

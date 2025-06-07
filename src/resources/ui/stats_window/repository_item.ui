@@ -2,14 +2,33 @@
 <interface>
   <template class="GtkColumnViewCell">
     <property name="child">
-      <object class="GtkLabel">
-        <binding name="label">
-          <lookup name="repository" type="StatsObject">
-            <lookup name="item">GtkColumnViewCell</lookup>
-          </lookup>
-        </binding>
-        <property name="xalign">0</property>
-        <property name="use-markup">true</property>
+      <object class="GtkBox">
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkImage">
+            <binding name="icon-name">
+              <lookup name="icon" type="StatsObject">
+                <lookup name="item">GtkColumnViewCell</lookup>
+              </lookup>
+            </binding>
+            <binding name="visible">
+              <lookup name="icon-visible" type="StatsObject">
+                <lookup name="item">GtkColumnViewCell</lookup>
+              </lookup>
+            </binding>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel">
+            <binding name="label">
+              <lookup name="repository" type="StatsObject">
+                <lookup name="item">GtkColumnViewCell</lookup>
+              </lookup>
+            </binding>
+            <property name="xalign">0</property>
+            <property name="use-markup">true</property>
+          </object>
+        </child>
       </object>
     </property>
   </template>
