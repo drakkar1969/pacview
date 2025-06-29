@@ -986,9 +986,6 @@ impl PacViewWindow {
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
-                // Reset AUR search
-                imp.package_view.reset_aur_search();
-
                 // Spawn task to load package data
                 let result: alpm::Result<Vec<PkgData>> = alpm_future.await
                     .expect("Failed to complete task");
