@@ -16,7 +16,6 @@ use raur::Raur;
 use raur::ArcPackage;
 use futures::future;
 
-use crate::window::INSTALLED_PKG_NAMES;
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
@@ -399,7 +398,6 @@ impl PackageView {
     async fn do_search_async(
         term: &str,
         prop: SearchProp,
-        installed_pkg_names: &HashSet<String>,
         aur_cache: &Arc<TokioMutex<HashSet<raur::ArcPackage>>>
     ) -> Result<Vec<raur::ArcPackage>, raur::Error> {
         let handle = raur::Handle::new();
@@ -434,10 +432,7 @@ impl PackageView {
         let mut search_names: HashSet<String> = HashSet::new();
 
         for result in search_results {
-            search_names.extend(result?.into_iter()
-                .filter(|pkg| !installed_pkg_names.contains(&pkg.name))
-                .map(|pkg| pkg.name)
-            );
+            search_names.extend(result?.into_iter().map(|pkg| pkg.name));
         }
 
         // Get AUR package info using cache
@@ -505,22 +500,18 @@ impl PackageView {
         imp.search_cancel_token.replace(Some(cancel_token));
 
         // Create tokio task to search AUR
-        let search_future = INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-            let installed_pkg_names = Arc::clone(installed_pkg_names);
-
-            tokio_runtime::runtime().spawn(
-                async move {
-                    tokio::select! {
-                        () = cancel_token_clone.cancelled() => { Ok(vec![]) },
-                        res = Self::do_search_async(&term, prop, &installed_pkg_names, &aur_cache) => {
-                            res.map(|aur_list| {
-                                aur_list.iter().map(|pkg| PkgData::from_aur(pkg)).collect()
-                            })
-                        }
+        let search_future = tokio_runtime::runtime().spawn(
+            async move {
+                tokio::select! {
+                    () = cancel_token_clone.cancelled() => { Ok(vec![]) },
+                    res = Self::do_search_async(&term, prop, &aur_cache) => {
+                        res.map(|aur_list| {
+                            aur_list.iter().map(|pkg| PkgData::from_aur(pkg)).collect()
+                        })
                     }
                 }
-            )
-        });
+            }
+        );
 
         // Await task
         glib::spawn_future_local(clone!(
