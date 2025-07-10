@@ -862,7 +862,7 @@ impl PacViewWindow {
         for repo in &*imp.repo_names.borrow() {
             let label = if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() };
 
-            let row = FilterRow::new("repository-symbolic", &label, Some(&repo), PkgFlags::empty());
+            let row = FilterRow::new("repository-symbolic", &label, Some(repo), PkgFlags::empty());
 
             imp.repo_listbox.append(&row);
 

@@ -243,9 +243,7 @@ impl CacheWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get cache files
-            let pacman_cache = PACMAN_CACHE.lock().unwrap();
-
-            imp.model.splice(0, 0, &pacman_cache.iter()
+            imp.model.splice(0, 0, &PACMAN_CACHE.lock().unwrap().iter()
                 .map(|file| CacheObject::new(&file.display().to_string()))
                 .collect::<Vec<CacheObject>>()
             );
