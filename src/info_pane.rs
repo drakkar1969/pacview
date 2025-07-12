@@ -120,6 +120,7 @@ mod imp {
         pkg: PhantomData<Option<PkgObject>>,
 
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
+        pub(super) selection_widget: RefCell<Option<TextWidget>>,
 
         pub(super) pkg_history: RefCell<HistoryList>,
     }
@@ -574,6 +575,25 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
                 infopane.pkg_link_handler(pkg_name, pkg_version);
+            }
+        ));
+
+        row.connect_closure("selection-widget", false, closure_local!(
+            #[weak] imp,
+            move |_: InfoRow, widget: TextWidget| {
+                if widget.has_selection() {
+                    if imp.selection_widget.borrow().as_ref()
+                        .is_none_or(|selection_widget| selection_widget != &widget)
+                    {
+                        if let Some(selection_widget) = imp.selection_widget.replace(Some(widget)) {
+                            selection_widget.activate_action("text.select-none", None).unwrap();
+                        }
+                    }
+                } else if imp.selection_widget.borrow().as_ref()
+                    .is_some_and(|selection_widget| selection_widget == &widget)
+                {
+                    imp.selection_widget.replace(None);
+                }
             }
         ));
 

@@ -78,6 +78,8 @@ mod imp {
         underline_links: Cell<bool>,
         #[property(get, set)]
         focused: Cell<bool>,
+        #[property(get, set)]
+        has_selection: Cell<bool>,
 
         pub(super) layout: OnceCell<pango::Layout>,
         pub(super) layout_attributes: RefCell<pango::AttrList>,
@@ -126,6 +128,8 @@ mod imp {
                 imp.selection_start.set(Some(0));
                 imp.selection_end.set(Some(widget.text().len()));
 
+                widget.set_has_selection(true);
+
                 imp.draw_area.queue_draw();
             });
 
@@ -134,6 +138,8 @@ mod imp {
 
                 imp.selection_start.set(None);
                 imp.selection_end.set(None);
+
+                widget.set_has_selection(false);
 
                 imp.draw_area.queue_draw();
             });
@@ -512,6 +518,8 @@ mod imp {
             // Reset selection
             self.selection_start.set(None);
             self.selection_end.set(None);
+
+            obj.set_has_selection(false);
 
             obj.set_expanded(false);
         }
@@ -923,14 +931,18 @@ impl TextWidget {
 
                     imp.selection_end.set(Some(index));
 
+                    widget.set_has_selection(true);
+
                     imp.draw_area.queue_draw();
                 }
             }
         ));
 
         drag_controller.connect_drag_end(clone!(
-            #[weak] imp,
+            #[weak(rename_to = widget)] self,
             move |_, _, _| {
+                let imp = widget.imp();
+
                 // Redraw if necessary to hide selection
                 let start = imp.selection_start.get();
                 let end = imp.selection_end.get();
@@ -939,7 +951,11 @@ impl TextWidget {
                     imp.selection_start.set(None);
                     imp.selection_end.set(None);
 
+                    widget.set_has_selection(false);
+
                     imp.draw_area.queue_draw();
+                } else {
+                    widget.set_has_selection(true);
                 }
 
                 imp.is_selecting.set(false);
@@ -992,6 +1008,8 @@ impl TextWidget {
                         imp.selection_start.set(Some(start));
                         imp.selection_end.set(Some(end));
 
+                        widget.set_has_selection(true);
+
                         imp.draw_area.queue_draw();
                     } else if n == 3 {
                         // Triple click: select all text and redraw widget
@@ -999,6 +1017,8 @@ impl TextWidget {
 
                         imp.selection_start.set(Some(0));
                         imp.selection_end.set(Some(widget.text().len()));
+
+                        widget.set_has_selection(true);
 
                         imp.draw_area.queue_draw();
                     }

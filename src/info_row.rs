@@ -1,4 +1,5 @@
 use std::cell::Cell;
+use std::sync::OnceLock;
 use std::marker::PhantomData;
 
 use gtk::{glib, gdk, graphene};
@@ -6,6 +7,7 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 use glib::RustClosure;
+use glib::subclass::Signal;
 
 use crate::text_widget::{TextWidget, LINK_SPACER};
 use crate::enum_traits::EnumExt;
@@ -242,6 +244,20 @@ mod imp {
     #[glib::derived_properties]
     impl ObjectImpl for InfoRow {
         //---------------------------------------
+        // Signals
+        //---------------------------------------
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
+            SIGNALS.get_or_init(|| {
+                vec![
+                    Signal::builder("selection-widget")
+                        .param_types([TextWidget::static_type()])
+                        .build(),
+                ]
+            })
+        }
+
+        //---------------------------------------
         // Constructor
         //---------------------------------------
         fn constructed(&self) {
@@ -342,6 +358,13 @@ impl InfoRow {
                 }
             }
         ));
+
+        imp.value_widget.connect_has_selection_notify(clone!(
+            #[weak(rename_to = row)] self,
+            move |widget| {
+                row.emit_by_name::<()>("selection-widget", &[&widget]);
+            }
+        ));
     }
 
     //---------------------------------------
@@ -352,9 +375,9 @@ impl InfoRow {
         let drag_controller = gtk::GestureDrag::new();
 
         drag_controller.connect_drag_begin(clone!(
-            #[weak(rename_to = widget)] self,
+            #[weak(rename_to = row)] self,
             move |_, _, _| {
-                widget.grab_focus();
+                row.grab_focus();
             }
         ));
 
