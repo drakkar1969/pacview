@@ -1,4 +1,5 @@
 use std::cell::{RefCell, OnceCell};
+use std::fs;
 use std::rc::Rc;
 use std::cmp::Ordering;
 use std::time::Duration;
@@ -14,6 +15,7 @@ use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
 use tokio::task::JoinHandle as TokioJoinHandle;
 use futures::TryFutureExt;
+use which::which_global;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
@@ -546,6 +548,12 @@ impl PkgObject {
             format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{name}/-/raw/main/PKGBUILD")
         } else if repo == "aur" {
             format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={name}")
+        } else if repo != "local" {
+            which_global("paru").ok()
+                .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
+                .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
+                .map(|path| path.display().to_string())
+                .unwrap_or_default()
         } else {
             String::new()
         };
@@ -557,25 +565,30 @@ impl PkgObject {
                     return Err(String::from("PKGBUILD not available"))
                 }
 
-                let client = reqwest::Client::builder()
-                    .redirect(reqwest::redirect::Policy::none())
-                    .build()
-                    .map_err(|error| error.to_string())?;
+                if url.starts_with("https://") {
+                    let client = reqwest::Client::builder()
+                        .redirect(reqwest::redirect::Policy::none())
+                        .build()
+                        .map_err(|error| error.to_string())?;
 
-                let response = client
-                    .get(url)
-                    .timeout(Duration::from_secs(5))
-                    .send()
-                    .map_err(|error| error.to_string())
-                    .await?;
+                    let response = client
+                        .get(url)
+                        .timeout(Duration::from_secs(5))
+                        .send()
+                        .map_err(|error| error.to_string())
+                        .await?;
 
-                let status = response.status();
-                let pkgbuild = response.text().map_err(|error| error.to_string()).await?;
+                    let status = response.status();
+                    let pkgbuild = response.text().map_err(|error| error.to_string()).await?;
 
-                if status.is_success() {
-                    Ok(pkgbuild)
+                    if status.is_success() {
+                        Ok(pkgbuild)
+                    } else {
+                        Err(status.to_string())
+                    }
                 } else {
-                    Err(status.to_string())
+                    fs::read_to_string(url)
+                        .map_err(|error| error.to_string())
                 }
             }
         )
