@@ -975,8 +975,9 @@ impl PacViewWindow {
 
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] imp,
             async move {
+                let imp = window.imp();
+
                 // Hide update count in sidebar
                 imp.update_row.borrow().set_status(Updates::Reset);
 

@@ -673,8 +673,9 @@ impl TextWidget {
         // Connect drawing area draw function
         imp.draw_area.set_draw_func(clone!(
             #[weak(rename_to = widget)] self,
-            #[weak] imp,
             move |_, context, _, _| {
+                let imp = widget.imp();
+
                 let layout = imp.layout.get().unwrap();
                 let attr_list = imp.layout_attributes.borrow().copy().unwrap();
 
@@ -907,8 +908,9 @@ impl TextWidget {
 
         drag_controller.connect_drag_begin(clone!(
             #[weak(rename_to = widget)] self,
-            #[weak] imp,
             move |_, x, y| {
+                let imp = widget.imp();
+
                 if widget.link_at_xy(x, y).is_none() {
                     if !imp.is_clicked.get() {
                         let (_, index) = widget.index_at_xy(x, y);
@@ -924,8 +926,9 @@ impl TextWidget {
 
         drag_controller.connect_drag_update(clone!(
             #[weak(rename_to = widget)] self,
-            #[weak] imp,
             move |controller, x, y| {
+                let imp = widget.imp();
+
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let (_, index) = widget.index_at_xy(start_x + x, start_y + y);
 
@@ -971,8 +974,9 @@ impl TextWidget {
 
         click_gesture.connect_pressed(clone!(
             #[weak(rename_to = widget)] self,
-            #[weak] imp,
             move |_, n, x, y| {
+                let imp = widget.imp();
+
                 let link = widget.link_at_xy(x, y);
 
                 if link.is_none() {
@@ -1030,8 +1034,9 @@ impl TextWidget {
 
         click_gesture.connect_released(clone!(
             #[weak(rename_to = widget)] self,
-            #[weak] imp,
             move |_, _, x, y| {
+                let imp = widget.imp();
+
                 imp.is_clicked.set(false);
 
                 // Launch link if any

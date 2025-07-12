@@ -157,8 +157,9 @@ impl SourceWindow {
 
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
-            #[weak] imp,
             async move {
+                let imp = window.imp();
+
                 let result = window.pkg().pkgbuild_future().await
                     .expect("Failed to complete tokio task");
 
