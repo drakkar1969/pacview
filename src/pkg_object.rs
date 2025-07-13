@@ -513,16 +513,17 @@ impl PkgObject {
                 let pacman_cache = PACMAN_CACHE.lock().unwrap();
 
                 pacman_cache.iter()
-                    .filter_map(|path| {
+                    .filter(|&path| {
                         path.file_name()
                             .and_then(|filename| filename.to_str())
-                            .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
                             .filter(|&filename| {
                                 filename.rsplitn(4, '-').last()
                                     .is_some_and(|name| name == pkg_name)
                             })
-                            .map(ToOwned::to_owned)
+                            .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
+                            .is_some()
                     })
+                    .map(|path| path.display().to_string())
                     .collect::<Vec<String>>()
             })
             .await
