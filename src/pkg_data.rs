@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use gtk::glib;
 
 use itertools::Itertools;
@@ -84,7 +82,7 @@ impl PkgData {
     //---------------------------------------
     // Alpm constructor
     //---------------------------------------
-    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, aur_names: Option<&[String]>, paru_map: Option<&HashMap<String, &str>>) -> Self {
+    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, repository: &str) -> Self {
         // Helper closures
         let alpm_list_to_string = |list: alpm::AlpmList<&str>| -> String {
             list.iter().sorted_unstable().join(" | ")
@@ -109,37 +107,17 @@ impl PkgData {
             }
         );
 
-        let sync_name = sync_pkg.name();
-
-        let repository = sync_pkg.db()
-            .map_or("", |db| {
-                let mut repo = db.name();
-
-                if repo == "local" {
-                    if let Some(paru_repo) = paru_map.and_then(|map| map.get(sync_name)) {
-                        repo = paru_repo;
-                    } else if aur_names
-                        .is_some_and(|names| names.iter().any(|name| name == sync_name))
-                    {
-                        repo = "aur";
-                    }
-                }
-
-                repo
-            })
-            .to_owned();
-
         Self {
             flags,
             base: sync_pkg.base().unwrap_or_default().to_owned(),
-            name: sync_name.to_owned(),
+            name: sync_pkg.name().to_owned(),
             version: version.to_string(),
             description: sync_pkg.desc().unwrap_or_default().to_owned(),
             popularity: String::new(),
             out_of_date: 0,
             url: sync_pkg.url().unwrap_or_default().to_owned(),
             licenses: alpm_list_to_string(sync_pkg.licenses()),
-            repository,
+            repository: repository.to_owned(),
             groups: alpm_list_to_string(sync_pkg.groups()),
             depends: alpm_deplist_to_vec(sync_pkg.depends()),
             optdepends: alpm_deplist_to_vec(sync_pkg.optdepends()),
