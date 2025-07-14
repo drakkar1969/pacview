@@ -955,7 +955,7 @@ impl PacViewWindow {
                         .map(|sync_pkg| {
                             let local_pkg = localdb.pkg(sync_pkg.name()).ok();
 
-                            let repository = sync_pkg.db().map(|db| db.name()).unwrap_or_default();
+                            let repository = sync_pkg.db().map(alpm::Db::name).unwrap_or_default();
 
                             PkgData::from_alpm(sync_pkg, local_pkg, repository)
                         })
@@ -966,17 +966,17 @@ impl PacViewWindow {
             pkg_data.extend(localdb.pkgs().iter()
                 .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
                 .map(|pkg| {
-                    let repository = if let Some(paru_repo) = paru_map.as_ref()
+                    let repository = paru_map.as_ref()
                         .and_then(|map| map.get(pkg.name()))
-                    {
-                        paru_repo
-                    } else if aur_names.as_ref()
-                        .is_some_and(|names| names.iter().any(|name| name == pkg.name()))
-                    {
-                        "aur"
-                    } else {
-                        "local"
-                    };
+                        .map_or_else(|| {
+                            if aur_names.as_ref()
+                                .is_some_and(|names| names.iter().any(|name| name == pkg.name()))
+                            {
+                                "aur"
+                            } else {
+                                "local"
+                            }
+                        }, |paru_repo| paru_repo);
 
                     PkgData::from_alpm(pkg, Some(pkg), repository)
                 })
