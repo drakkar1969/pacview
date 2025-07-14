@@ -104,7 +104,6 @@ mod imp {
         package_sort_prop: Cell<SortProp>,
 
         pub(super) aur_file: RefCell<Option<PathBuf>>,
-        pub(super) paru_repo_files: RefCell<Vec<PathBuf>>,
 
         pub(super) repo_names: RefCell<Vec<String>>,
 
@@ -782,8 +781,8 @@ impl PacViewWindow {
 
         imp.aur_file.replace(aur_file.clone());
 
-        // Get paru repos
-        let paru_repo_files: Vec<PathBuf> = which_global("paru").ok()
+        // Get paru repo paths
+        let paru_repo_paths: Vec<PathBuf> = which_global("paru").ok()
             .and_then(|_| xdg_dirs.get_cache_home())
             .and_then(|cache_dir| {
                 fs::read_dir(cache_dir.join("paru/clone/repo")).ok()
@@ -799,7 +798,7 @@ impl PacViewWindow {
         // Create repo names list
         let repo_names: Vec<String> = PACMAN_CONFIG.get().unwrap().repos.iter()
             .map(|r| r.name.clone())
-            .chain(paru_repo_files.iter()
+            .chain(paru_repo_paths.iter()
                 .map(|repo| repo.file_name()
                     .and_then(|s| s.to_str().map(ToOwned::to_owned))
                     .unwrap_or_default()
@@ -809,7 +808,6 @@ impl PacViewWindow {
             .collect();
 
         imp.repo_names.replace(repo_names);
-        imp.paru_repo_files.replace(paru_repo_files);
 
         // Populate sidebar
         self.alpm_populate_sidebar(first_load);
@@ -830,11 +828,11 @@ impl PacViewWindow {
                     let _ = aur_file::download_future(&file).await
                         .expect("Failed to complete tokio task");
 
-                    window.alpm_load_packages();
+                    window.alpm_load_packages(&paru_repo_paths);
                 }
             ));
         } else {
-            self.alpm_load_packages();
+            self.alpm_load_packages(&paru_repo_paths);
         }
     }
 
@@ -903,7 +901,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self) {
+    fn alpm_load_packages(&self, paru_repo_paths: &[PathBuf]) {
         let imp = self.imp();
 
         // Get pacman config
@@ -912,7 +910,7 @@ impl PacViewWindow {
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.get().unwrap().aur_database_download();
         let aur_file = imp.aur_file.borrow().to_owned();
-        let paru_repos = imp.paru_repo_files.borrow().to_owned();
+        let paru_repo_paths = paru_repo_paths.to_owned();
 
         // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
@@ -928,8 +926,8 @@ impl PacViewWindow {
                 });
 
             // Get custom paru repo package map
-            let paru_map: Option<HashMap<String, &str>> = (!paru_repos.is_empty()).then(|| {
-                paru_repos.iter()
+            let paru_map: Option<HashMap<String, &str>> = (!paru_repo_paths.is_empty()).then(|| {
+                paru_repo_paths.iter()
                     .flat_map(|repo| {
                         fs::read_dir(repo).ok()
                             .map_or_else(HashMap::default, |read_dir| {
