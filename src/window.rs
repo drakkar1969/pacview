@@ -794,7 +794,7 @@ impl PacViewWindow {
             .unwrap_or_default();
 
         // Create repo names list
-        let repo_names: Vec<String> = PACMAN_CONFIG.repos.iter()
+        let repo_names: Vec<String> = pacman_config.repos.iter()
             .map(|r| r.name.clone())
             .chain(paru_repo_paths.iter()
                 .map(|repo| repo.file_name()

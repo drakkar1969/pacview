@@ -249,11 +249,9 @@ impl CacheWindow {
             );
 
             // Get cache size
-            let cache_dirs = &PACMAN_CONFIG.cache_dir;
-
             let mut cache_size = 0;
 
-            for dir in cache_dirs {
+            for dir in &PACMAN_CONFIG.cache_dir {
                 cache_size += dir::get_size(dir).unwrap_or_default();
             }
 
