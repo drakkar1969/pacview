@@ -487,10 +487,10 @@ impl PkgObject {
         self.imp().log.get_or_init(async || {
             let pkg_name = self.name();
 
-            let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
-                .expect("Failed to compile Regex");
-
             gio::spawn_blocking(move || {
+                let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
+                    .expect("Failed to compile Regex");
+
                 let pacman_log = PACMAN_LOG.lock().unwrap();
 
                 pacman_log.as_ref().map_or(vec![], |log| {
@@ -580,9 +580,12 @@ impl PkgObject {
                         .await?;
 
                     let status = response.status();
-                    let pkgbuild = response.text().map_err(|error| error.to_string()).await?;
 
                     if status.is_success() {
+                        let pkgbuild = response.text()
+                            .map_err(|error| error.to_string())
+                            .await?;
+
                         Ok(pkgbuild)
                     } else {
                         Err(status.to_string())
