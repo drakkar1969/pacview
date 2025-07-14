@@ -249,7 +249,7 @@ impl CacheWindow {
             );
 
             // Get cache size
-            let cache_dirs = &PACMAN_CONFIG.get().unwrap().cache_dir;
+            let cache_dirs = &PACMAN_CONFIG.cache_dir;
 
             let mut cache_size = 0;
 

@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::{OnceLock, LazyLock, Mutex};
+use std::sync::{LazyLock, Mutex};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -44,7 +44,9 @@ thread_local! {
     pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
 
-pub static PACMAN_CONFIG: OnceLock<pacmanconf::Config> = OnceLock::new();
+pub static PACMAN_CONFIG: LazyLock<pacmanconf::Config> = LazyLock::new(|| {
+    pacmanconf::Config::new().expect("Failed to get pacman config")
+});
 pub static PACMAN_LOG: LazyLock<Mutex<Option<String>>> = LazyLock::new(|| Mutex::new(None));
 pub static PACMAN_CACHE: LazyLock<Mutex<Vec<PathBuf>>> = LazyLock::new(|| Mutex::new(vec![]));
 
@@ -737,11 +739,7 @@ impl PacViewWindow {
     fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
-        // Init pacman config if necessary
-        let pacman_config = PACMAN_CONFIG.get_or_init(|| {
-            pacmanconf::Config::new()
-                .expect("Failed to get pacman config")
-        });
+        let pacman_config = &PACMAN_CONFIG;
 
         // Load pacman log
         *PACMAN_LOG.lock().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
@@ -796,7 +794,7 @@ impl PacViewWindow {
             .unwrap_or_default();
 
         // Create repo names list
-        let repo_names: Vec<String> = PACMAN_CONFIG.get().unwrap().repos.iter()
+        let repo_names: Vec<String> = PACMAN_CONFIG.repos.iter()
             .map(|r| r.name.clone())
             .chain(paru_repo_paths.iter()
                 .map(|repo| repo.file_name()
@@ -905,7 +903,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Get pacman config
-        let pacman_config = PACMAN_CONFIG.get().unwrap();
+        let pacman_config = &PACMAN_CONFIG;
 
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.get().unwrap().aur_database_download();
@@ -1195,9 +1193,7 @@ impl PacViewWindow {
         .expect("Failed to create debouncer");
 
         // Watch pacman local db path
-        let db_path = &PACMAN_CONFIG.get().unwrap().db_path;
-
-        let path = Path::new(db_path).join("local");
+        let path = Path::new(&PACMAN_CONFIG.db_path).join("local");
 
         if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
             // Store watcher

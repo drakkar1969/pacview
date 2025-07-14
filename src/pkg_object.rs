@@ -416,7 +416,7 @@ impl PkgObject {
         self.imp().files.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
-                    let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
+                    let root_dir = &PACMAN_CONFIG.root_dir;
 
                     let mut files: Vec<String> = pkg.files().files().iter()
                         .map(|file| root_dir.to_owned() + file.name())
@@ -434,7 +434,7 @@ impl PkgObject {
         self.imp().backup.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
-                    let root_dir = &PACMAN_CONFIG.get().unwrap().root_dir;
+                    let root_dir = &PACMAN_CONFIG.root_dir;
                     let pkg_name = self.name();
 
                     let mut backup: Vec<PkgBackup> = pkg.backup().iter()
