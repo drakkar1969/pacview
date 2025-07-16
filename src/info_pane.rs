@@ -878,7 +878,14 @@ impl InfoPane {
     }
 
     pub fn show_hashes(&self) {
-        if let Some(pkg) = self.pkg() {
+        if let Some(pkg) = self.pkg()
+            .filter(|pkg| {
+                let validation = pkg.validation();
+
+                !(validation.intersects(PkgValidation::UNKNOWN) ||
+                validation.intersects(PkgValidation::NONE))                
+            })
+        {
             let parent = self.root()
                 .and_downcast::<gtk::Window>()
                 .expect("Failed to downcast to 'GtkWindow'");
