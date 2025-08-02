@@ -368,7 +368,12 @@ impl BackupWindow {
                 imp.header_sub_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
-                imp.open_button.set_sensitive(n_items > 0);
+
+                let status = imp.selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .map_or(BackupStatus::All, |object| object.status());
+
+                imp.open_button.set_sensitive(status != BackupStatus::Locked && status != BackupStatus::All);
             }
         ));
 
