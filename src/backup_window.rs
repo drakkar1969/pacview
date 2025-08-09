@@ -240,6 +240,26 @@ impl BackupWindow {
             }
         ));
 
+        // Add keyboard shortcut to cancel search
+        let shortcut = gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(
+                #[weak] imp,
+                #[upgrade_or] glib::Propagation::Proceed,
+                move |_, _| {
+                    imp.search_entry.set_text("");
+                    imp.view.grab_focus();
+
+                    glib::Propagation::Stop
+                }
+            )))
+        );
+
+        let controller = gtk::ShortcutController::new();
+        controller.add_shortcut(shortcut);
+
+        imp.search_entry.add_controller(controller);
+
         // Set initial focus on view
         imp.view.grab_focus();
     }
