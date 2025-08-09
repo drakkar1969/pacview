@@ -24,7 +24,7 @@
       <default>600</default>
     </key>
     <key name="pkgbuild-custom-font" type="s">
-      <default>''</default>
+      <default>'Adwaita Mono 11'</default>
     </key>
     <key name="pkgbuild-style-scheme" type="s">
       <default>''</default>
