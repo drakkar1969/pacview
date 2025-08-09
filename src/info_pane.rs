@@ -277,6 +277,26 @@ impl InfoPane {
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
+        // Add keyboard shortcut to cancel files search
+        let shortcut = gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(
+                #[weak] imp,
+                #[upgrade_or] glib::Propagation::Proceed,
+                move |_, _| {
+                    imp.files_search_entry.set_text("");
+                    imp.files_view.grab_focus();
+
+                    glib::Propagation::Stop
+                }
+            )))
+        );
+
+        let controller = gtk::ShortcutController::new();
+        controller.add_shortcut(shortcut);
+
+        imp.files_search_entry.add_controller(controller);
+
         // Bind history list properties to widgets
         let pkg_history = imp.pkg_history.borrow();
 
