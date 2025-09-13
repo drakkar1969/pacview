@@ -95,7 +95,7 @@ impl PacViewApplication {
 
                 let about_dialog = adw::AboutDialog::builder()
                     .application_name("PacView")
-                    .application_icon("software-properties")
+                    .application_icon("pacview")
                     .developer_name("draKKar1969")
                     .version(env!("CARGO_PKG_VERSION"))
                     .website("https://github.com/drakkar1969/pacview")

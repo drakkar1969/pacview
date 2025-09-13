@@ -5,6 +5,6 @@ Comment=An application for browsing pacman databases and the AUR
 Exec=/usr/bin/pacview
 Terminal=false
 Type=Application
-Icon=software-properties
+Icon=pacview
 StartupNotify=false
 Categories=GTK;GNOME;System;
