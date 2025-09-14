@@ -71,6 +71,8 @@ mod imp {
         #[template_child]
         pub(super) underline_links_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) infopane_show_directories_row: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) pkgbuild_style_scheme_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) pkgbuild_use_system_font_row: TemplateChild<adw::ExpanderRow>,
@@ -107,6 +109,8 @@ mod imp {
         property_max_lines: Cell<f64>,
         #[property(get, set)]
         underline_links: Cell<bool>,
+        #[property(get, set)]
+        infopane_show_directories: Cell<bool>,
         #[property(get, set)]
         pkgbuild_style_scheme: RefCell<String>,
         #[property(get, set)]
@@ -278,6 +282,11 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
+        self.bind_property("infopane-show-directories", &imp.infopane_show_directories_row.get(), "active")
+            .sync_create()
+            .bidirectional()
+            .build();
+
         self.bind_property("pkgbuild-style-scheme", &imp.pkgbuild_style_scheme_row.get(), "selected")
             .transform_to(|binding, id: String| {
                 let index = binding.target()
@@ -415,6 +424,7 @@ impl PreferencesDialog {
                             settings.reset("property-max-lines");
                             settings.reset("property-line-spacing");
                             settings.reset("underline-links");
+                            settings.reset("infopane-show-directories");
                             settings.reset("pkgbuild-style-scheme");
                             settings.reset("pkgbuild-use-system-font");
                             settings.reset("pkgbuild-custom-font");

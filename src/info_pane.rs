@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
@@ -9,6 +9,7 @@ use gtk::prelude::*;
 use glib::closure_local;
 use glib::clone;
 
+use crate::APP_ID;
 use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, INSTALLED_LABEL};
 use crate::info_row::{PropID, PropType, ValueType, InfoRow};
@@ -122,6 +123,8 @@ mod imp {
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         pkg: PhantomData<Option<PkgObject>>,
+        #[property(get, set)]
+        show_directories: Cell<bool>,
 
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
         pub(super) selection_widget: RefCell<Option<TextWidget>>,
@@ -158,6 +161,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.bind_gsettings();
             obj.setup_widgets();
             obj.setup_signals();
         }
@@ -241,6 +245,17 @@ impl InfoPane {
                 self.update_display();
             }
         });
+    }
+
+    //---------------------------------------
+    // Bind gsettings
+    //---------------------------------------
+    fn bind_gsettings(&self) {
+        let settings = gio::Settings::new(APP_ID);
+
+        settings.bind("infopane-show-directories", self, "show-directories")
+            .get()
+            .build();
     }
 
     //---------------------------------------
@@ -335,6 +350,11 @@ impl InfoPane {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Show directories property notify signal
+        self.connect_show_directories_notify(|infopane| {
+            infopane.imp().files_filter_button.set_active(infopane.show_directories());
+        });
 
         // Previous button clicked signal
         imp.prev_button.connect_clicked(clone!(

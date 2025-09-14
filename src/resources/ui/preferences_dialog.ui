@@ -233,6 +233,13 @@
                 <property name="use-underline">true</property>
               </object>
             </child>
+            <child>
+              <object class="AdwSwitchRow" id="infopane_show_directories_row">
+                <property name="title">_Show Directories</property>
+                <property name="subtitle">Show directories by default in files tab</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
