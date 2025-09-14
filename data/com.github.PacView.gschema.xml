@@ -24,7 +24,7 @@
     </key>
     <key name="infopane-width" type="d">
       <range min="400" max="1000"/>
-      <default>600</default>
+      <default>560</default>
     </key>
     <key name="pkgbuild-custom-font" type="s">
       <default>'Adwaita Mono 11'</default>
@@ -99,7 +99,7 @@
       <default>false</default>
     </key>
     <key name="window-width" type="i">
-      <default>1420</default>
+      <default>1380</default>
     </key>
   </schema>
 </schemalist>
