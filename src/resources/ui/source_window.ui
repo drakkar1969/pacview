@@ -113,17 +113,34 @@
           </object>
         </property>
         <child type="bottom">
-          <object class="GtkLabel" id="url_label">
-            <property name="margin-start">12</property>
-            <property name="margin-end">12</property>
-            <property name="margin-top">10</property>
-            <property name="margin-bottom">8</property>
-            <property name="selectable">true</property>
-            <property name="use-markup">true</property>
-            <style>
-              <class name="caption"/>
-              <class name="dimmed"/>
-            </style>
+          <object class="GtkBox">
+            <property name="halign">start</property>
+            <property name="spacing">16</property>
+            <child>
+              <object class="GtkLabel">
+                <property name="margin-start">16</property>
+                <property name="margin-top">10</property>
+                <property name="margin-bottom">8</property>
+                <property name="label">Source</property>
+                <style>
+                  <class name="caption"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator"/>
+            </child>
+            <child>
+              <object class="GtkLabel" id="url_label">
+                <property name="margin-end">16</property>
+                <property name="margin-top">10</property>
+                <property name="margin-bottom">8</property>
+                <property name="use-markup">true</property>
+                <style>
+                  <class name="caption"/>
+                </style>
+              </object>
+            </child>
           </object>
         </child>
       </object>

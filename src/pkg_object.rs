@@ -307,7 +307,7 @@ impl PkgObject {
                     .map(|path| path.display().to_string())
                     .unwrap_or_default();
 
-                let url = format!("file:://{raw_url}");
+                let url = format!("file://{raw_url}");
 
                 (url, raw_url)
             } else {

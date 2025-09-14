@@ -169,7 +169,7 @@ impl SourceWindow {
                 let (url, raw_url) = pkg.pkgbuild_urls();
 
                 // Set URL label
-                imp.url_label.set_label(url);
+                imp.url_label.set_label(&format!("<a href=\"{url}\">{url}</a>"));
 
                 // Spawn tokio task to download PKGBUILD
                 let result = if raw_url.is_empty() {
