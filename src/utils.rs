@@ -154,7 +154,25 @@ pub mod pango_utils {
     use std::fmt::Write as _;
 
     use gtk::{glib, pango};
-    use gtk::prelude::ToValue;
+    use gtk::prelude::{ToValue, WidgetExt};
+
+    //---------------------------------------
+    // Pango color from style
+    //---------------------------------------
+    pub fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
+        let fc = |color: f32| -> u16 {
+            (color * f32::from(u16::MAX)) as u16
+        };
+
+        let label = gtk::Label::builder()
+            .css_name("texttag")
+            .css_classes([style])
+            .build();
+
+        let color = label.color();
+
+        (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
+    }
 
     //-----------------------------------
     // Pango font str to CSS function

@@ -14,6 +14,7 @@ use url::Url;
 
 use crate::APP_ID;
 use crate::info_row::PropType;
+use crate::utils::pango_utils;
 
 //------------------------------------------------------------------------------
 // CONST variables
@@ -556,24 +557,6 @@ impl TextWidget {
     }
 
     //---------------------------------------
-    // Pango color helper function
-    //---------------------------------------
-    fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
-        let fc = |color: f32| -> u16 {
-            (color * f32::from(u16::MAX)) as u16
-        };
-
-        let label = gtk::Label::builder()
-            .css_name("texttag")
-            .css_classes([style])
-            .build();
-
-        let color = label.color();
-
-        (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
-    }
-
-    //---------------------------------------
     // Setup widget
     //---------------------------------------
     fn setup_widget(&self) {
@@ -588,13 +571,13 @@ impl TextWidget {
         imp.selection_end.set(None);
 
         // Initialize pango colors
-        imp.link_fg_color.set(Self::pango_color_from_style("link"));
-        imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(pango_utils::pango_color_from_style("link"));
+        imp.comment_fg_color.set(pango_utils::pango_color_from_style("comment"));
+        imp.sel_bg_color.set(pango_utils::pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(pango_utils::pango_color_from_style("selection-focus"));
 
         // Initialize cairo error color
-        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
+        let (red, green, blue, alpha) = pango_utils::pango_color_from_style("error");
 
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
     }
@@ -735,13 +718,13 @@ impl TextWidget {
         let imp = self.imp();
 
         // Update pango color variables
-        imp.link_fg_color.set(Self::pango_color_from_style("link"));
-        imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(pango_utils::pango_color_from_style("link"));
+        imp.comment_fg_color.set(pango_utils::pango_color_from_style("comment"));
+        imp.sel_bg_color.set(pango_utils::pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(pango_utils::pango_color_from_style("selection-focus"));
 
         // Initialize cairo error color
-        let (red, green, blue, alpha) = Self::pango_color_from_style("error");
+        let (red, green, blue, alpha) = pango_utils::pango_color_from_style("error");
 
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
 
