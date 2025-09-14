@@ -63,6 +63,8 @@ mod imp {
         #[template_child]
         pub(super) files_search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
+        pub(super) files_filter_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
         pub(super) files_open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) files_copy_button: TemplateChild<gtk::Button>,
@@ -75,7 +77,9 @@ mod imp {
         #[template_child]
         pub(super) files_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) files_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) files_search_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) files_folder_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
         pub(super) log_header_label: TemplateChild<gtk::Label>,
@@ -277,6 +281,23 @@ impl InfoPane {
         // Set files search entry key capture widget
         imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
 
+        // Set files folder filter function
+        imp.files_folder_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                if imp.files_filter_button.is_active() {
+                    true
+                } else {
+                    let obj = item
+                        .downcast_ref::<gtk::StringObject>()
+                        .expect("Failed to downcast to 'StringObject'");
+
+                    !obj.string().ends_with('/')
+                }
+            }
+        ));
+
         // Add keyboard shortcut to cancel files search
         let shortcut = gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
@@ -387,7 +408,15 @@ impl InfoPane {
         imp.files_search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |entry| {
-                imp.files_filter.set_search(Some(&entry.text()));
+                imp.files_search_filter.set_search(Some(&entry.text()));
+            }
+        ));
+
+        // Files filter button toggled signal
+        imp.files_filter_button.connect_toggled(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.files_folder_filter.changed(gtk::FilterChange::Different);
             }
         ));
 

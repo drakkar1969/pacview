@@ -208,10 +208,20 @@
                                     <child>
                                       <object class="GtkSearchEntry" id="files_search_entry">
                                         <property name="margin-start">20</property>
-                                        <property name="margin-end">14</property>
                                         <property name="placeholder-text">Search for files</property>
                                         <style>
                                           <class name="round"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkToggleButton" id="files_filter_button">
+                                        <property name="margin-end">14</property>
+                                        <property name="icon-name">folder-symbolic</property>
+                                        <property name="tooltip-text">Show Directories</property>
+                                        <style>
+                                          <class name="flat"/>
+                                          <class name="circular"/>
                                         </style>
                                       </object>
                                     </child>
@@ -269,10 +279,18 @@
                                             <property name="model">
                                               <object class="GtkFilterListModel" id="files_filter_model">
                                                 <property name="filter">
-                                                  <object class="GtkStringFilter" id="files_filter">
-                                                    <property name="expression">
-                                                      <lookup name="string" type="GtkStringObject"/>
-                                                    </property>
+                                                  <object class="GtkEveryFilter">
+                                                    <child>
+                                                      <object class="GtkStringFilter" id="files_search_filter">
+                                                        <property name="expression">
+                                                          <lookup name="string" type="GtkStringObject"/>
+                                                        </property>
+                                                      </object>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkCustomFilter" id="files_folder_filter">
+                                                      </object>
+                                                    </child>
                                                   </object>
                                                 </property>
                                                 <property name="model">
