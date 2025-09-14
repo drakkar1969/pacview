@@ -61,32 +61,6 @@ impl PkgBackup {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: PkgBuild
-//------------------------------------------------------------------------------
-#[derive(Debug)]
-pub struct PkgBuild {
-    url: String,
-    content: String
-}
-
-impl PkgBuild {
-    fn new(url: &str, content: &str) -> Self {
-        Self {
-            url: url.to_owned(),
-            content: content.to_owned()
-        }
-    }
-
-    pub fn url(&self) -> &str {
-        &self.url
-    }
-
-    pub fn content(&self) -> &str {
-        &self.content
-    }
-}
-
-//------------------------------------------------------------------------------
 // MODULE: PkgObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -125,6 +99,7 @@ mod imp {
 
         // Read only fields
         pub(super) package_url: OnceCell<String>,
+        pub(super) pkgbuild_url: OnceCell<String>,
         pub(super) out_of_date_string: OnceCell<String>,
         pub(super) install_date_string: OnceCell<String>,
         pub(super) build_date_string: OnceCell<String>,
@@ -296,6 +271,36 @@ impl PkgObject {
                 format!("https://aur.archlinux.org/packages/{name}",
                     name=data.name
                 )
+            } else {
+                String::new()
+            }
+        })
+    }
+
+    pub fn pkgbuild_url(&self) -> &str {
+        self.imp().pkgbuild_url.get_or_init(|| {
+            let default_repos = ["core", "extra", "multilib"];
+
+            let data = self.imp().data.get().unwrap();
+
+            let name = if data.base.is_empty() {
+                &data.name
+            } else {
+                &data.base
+            };
+
+            let repo = &data.repository;
+
+            if default_repos.contains(&repo.as_str()) {
+                format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{name}/-/raw/main/PKGBUILD")
+            } else if repo == "aur" {
+                format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={name}")
+            } else if repo != "local" {
+                which_global("paru").ok()
+                    .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
+                    .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
+                    .map(|path| format!("file://{}", path.display()))
+                    .unwrap_or_default()
             } else {
                 String::new()
             }
@@ -557,33 +562,9 @@ impl PkgObject {
         })
     }
 
-    pub fn pkgbuild_future(&self) -> TokioJoinHandle<Result<PkgBuild, String>> {
+    pub fn pkgbuild_future(&self) -> TokioJoinHandle<Result<String, String>> {
         // Get PKGBUILD url
-        let base = self.base();
-
-        let name = if base.is_empty() {
-            self.name()
-        } else {
-            base.to_owned()
-        };
-
-        let default_repos = ["core", "extra", "multilib"];
-
-        let repo = self.repository();
-
-        let url = if default_repos.contains(&repo.as_str()) {
-            format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{name}/-/raw/main/PKGBUILD")
-        } else if repo == "aur" {
-            format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={name}")
-        } else if repo != "local" {
-            which_global("paru").ok()
-                .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
-                .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
-                .map(|path| path.display().to_string())
-                .unwrap_or_default()
-        } else {
-            String::new()
-        };
+        let url = self.pkgbuild_url().to_owned();
 
         // Spawn tokio task to download PKGBUILD
         tokio_runtime::runtime().spawn(
@@ -617,10 +598,9 @@ impl PkgObject {
                         Err(status.to_string())
                     }
                 } else {
-                    fs::read_to_string(&url)
+                    fs::read_to_string(&url.replace("file://", ""))
                         .map_err(|error| error.to_string())
                 }
-                .map(|content| PkgBuild::new(&url, &content))
             }
         )
     }

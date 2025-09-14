@@ -35,6 +35,8 @@ mod imp {
         pub(super) source_view: TemplateChild<sourceview5::View>,
         #[template_child]
         pub(super) error_status: TemplateChild<adw::StatusPage>,
+        #[template_child]
+        pub(super) url_label: TemplateChild<gtk::Label>,
 
         #[property(get = Self::buffer)]
         buffer: PhantomData<sourceview5::Buffer>,
@@ -167,7 +169,7 @@ impl SourceWindow {
                     Ok(pkgbuild) => {
                         let buffer = window.buffer();
 
-                        buffer.set_text(pkgbuild.content());
+                        buffer.set_text(&pkgbuild);
 
                         // Position cursor at start
                         buffer.place_cursor(&buffer.iter_at_offset(0));
@@ -188,6 +190,8 @@ impl SourceWindow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
+        let imp = self.imp();
+
         // Set syntax highlighting language
         let buffer = self.buffer();
 
@@ -217,6 +221,9 @@ impl SourceWindow {
         css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
 
         gtk::style_context_add_provider_for_display(&display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+        // Set URL label
+        imp.url_label.set_label(self.pkg().pkgbuild_url());
 
         // Download PKGBUILD
         self.download_pkgbuild();
