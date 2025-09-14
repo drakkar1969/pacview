@@ -1,8 +1,6 @@
 use std::cell::{RefCell, OnceCell};
-use std::fs;
 use std::rc::Rc;
 use std::cmp::Ordering;
-use std::time::Duration;
 
 use gtk::{glib, gio};
 use gtk::subclass::prelude::*;
@@ -13,13 +11,10 @@ use regex::Regex;
 use size::Size;
 use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
-use tokio::task::JoinHandle as TokioJoinHandle;
-use futures::TryFutureExt;
 use which::which_global;
 
 use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
-use crate::utils::tokio_runtime;
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
@@ -560,49 +555,6 @@ impl PkgObject {
             .await
             .expect("Failed to complete task")
         })
-    }
-
-    pub fn pkgbuild_future(&self) -> TokioJoinHandle<Result<String, String>> {
-        // Get PKGBUILD url
-        let url = self.pkgbuild_url().to_owned();
-
-        // Spawn tokio task to download PKGBUILD
-        tokio_runtime::runtime().spawn(
-            async move {
-                if url.is_empty() {
-                    return Err(String::from("PKGBUILD not available"))
-                }
-
-                if url.starts_with("https://") {
-                    let client = reqwest::Client::builder()
-                        .redirect(reqwest::redirect::Policy::none())
-                        .build()
-                        .map_err(|error| error.to_string())?;
-
-                    let response = client
-                        .get(&url)
-                        .timeout(Duration::from_secs(5))
-                        .send()
-                        .map_err(|error| error.to_string())
-                        .await?;
-
-                    let status = response.status();
-
-                    if status.is_success() {
-                        let pkgbuild = response.text()
-                            .map_err(|error| error.to_string())
-                            .await?;
-
-                        Ok(pkgbuild)
-                    } else {
-                        Err(status.to_string())
-                    }
-                } else {
-                    fs::read_to_string(&url.replace("file://", ""))
-                        .map_err(|error| error.to_string())
-                }
-            }
-        )
     }
 
     //---------------------------------------

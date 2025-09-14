@@ -1,5 +1,7 @@
 use std::cell::OnceCell;
 use std::marker::PhantomData;
+use std::fs;
+use std::time::Duration;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -10,7 +12,7 @@ use sourceview5::prelude::*;
 
 use crate::APP_ID;
 use crate::pkg_object::PkgObject;
-use crate::utils::{pango_utils, style_schemes};
+use crate::utils::{pango_utils, style_schemes, tokio_runtime};
 
 //------------------------------------------------------------------------------
 // MODULE: SourceWindow
@@ -162,8 +164,49 @@ impl SourceWindow {
             async move {
                 let imp = window.imp();
 
-                let result = window.pkg().pkgbuild_future().await
-                    .expect("Failed to complete tokio task");
+                // Get PKGBUILD url
+                let url = window.pkg().pkgbuild_url().to_owned();
+
+                // Set URL label
+                imp.url_label.set_label(&url);
+
+                // Spawn tokio task to download PKGBUILD
+                let result = if url.is_empty() {
+                    Err(String::from("PKGBUILD not available"))
+                } else if url.starts_with("https://") {
+                    tokio_runtime::runtime().spawn(
+                        async move {
+                            let client = reqwest::Client::builder()
+                                .redirect(reqwest::redirect::Policy::none())
+                                .build()
+                                .map_err(|error| error.to_string())?;
+
+                            let response = client
+                                .get(&url)
+                                .timeout(Duration::from_secs(5))
+                                .send()
+                                .await
+                                .map_err(|error| error.to_string())?;
+
+                            let status = response.status();
+
+                            if status.is_success() {
+                                let pkgbuild = response.text()
+                                    .await
+                                    .map_err(|error| error.to_string())?;
+
+                                Ok(pkgbuild)
+                            } else {
+                                Err(status.to_string())
+                            }
+                        }
+                    )
+                    .await
+                    .expect("Failed to complete tokio task")
+                } else {
+                    fs::read_to_string(url.replace("file://", ""))
+                        .map_err(|error| error.to_string())
+                };
 
                 match result {
                     Ok(pkgbuild) => {
@@ -190,8 +233,6 @@ impl SourceWindow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
-        let imp = self.imp();
-
         // Set syntax highlighting language
         let buffer = self.buffer();
 
@@ -221,9 +262,6 @@ impl SourceWindow {
         css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
 
         gtk::style_context_add_provider_for_display(&display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-        // Set URL label
-        imp.url_label.set_label(self.pkg().pkgbuild_url());
 
         // Download PKGBUILD
         self.download_pkgbuild();
