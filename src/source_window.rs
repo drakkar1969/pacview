@@ -167,7 +167,7 @@ impl SourceWindow {
                     Ok(pkgbuild) => {
                         let buffer = window.buffer();
 
-                        buffer.set_text(&pkgbuild);
+                        buffer.set_text(pkgbuild.content());
 
                         // Position cursor at start
                         buffer.place_cursor(&buffer.iter_at_offset(0));

@@ -61,6 +61,32 @@ impl PkgBackup {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: PkgBuild
+//------------------------------------------------------------------------------
+#[derive(Debug)]
+pub struct PkgBuild {
+    url: String,
+    content: String
+}
+
+impl PkgBuild {
+    fn new(url: &str, content: &str) -> Self {
+        Self {
+            url: url.to_owned(),
+            content: content.to_owned()
+        }
+    }
+
+    pub fn url(&self) -> &str {
+        &self.url
+    }
+
+    pub fn content(&self) -> &str {
+        &self.content
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: PkgObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -531,7 +557,7 @@ impl PkgObject {
         })
     }
 
-    pub fn pkgbuild_future(&self) -> TokioJoinHandle<Result<String, String>> {
+    pub fn pkgbuild_future(&self) -> TokioJoinHandle<Result<PkgBuild, String>> {
         // Get PKGBUILD url
         let base = self.base();
 
@@ -573,7 +599,7 @@ impl PkgObject {
                         .map_err(|error| error.to_string())?;
 
                     let response = client
-                        .get(url)
+                        .get(&url)
                         .timeout(Duration::from_secs(5))
                         .send()
                         .map_err(|error| error.to_string())
@@ -591,9 +617,10 @@ impl PkgObject {
                         Err(status.to_string())
                     }
                 } else {
-                    fs::read_to_string(url)
+                    fs::read_to_string(&url)
                         .map_err(|error| error.to_string())
                 }
+                .map(|content| PkgBuild::new(&url, &content))
             }
         )
     }
