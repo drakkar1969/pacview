@@ -165,15 +165,18 @@ impl SourceWindow {
                 let imp = window.imp();
 
                 // Get PKGBUILD url
-                let url = window.pkg().pkgbuild_url().to_owned();
+                let pkg = window.pkg();
+                let (url, raw_url) = pkg.pkgbuild_urls();
 
                 // Set URL label
-                imp.url_label.set_label(&url);
+                imp.url_label.set_label(url);
 
                 // Spawn tokio task to download PKGBUILD
-                let result = if url.is_empty() {
+                let result = if raw_url.is_empty() {
                     Err(String::from("PKGBUILD not available"))
-                } else if url.starts_with("https://") {
+                } else if raw_url.starts_with("https://") {
+                    let raw_url = raw_url.to_owned();
+
                     tokio_runtime::runtime().spawn(
                         async move {
                             let client = reqwest::Client::builder()
@@ -182,7 +185,7 @@ impl SourceWindow {
                                 .map_err(|error| error.to_string())?;
 
                             let response = client
-                                .get(&url)
+                                .get(&raw_url)
                                 .timeout(Duration::from_secs(5))
                                 .send()
                                 .await
@@ -204,7 +207,7 @@ impl SourceWindow {
                     .await
                     .expect("Failed to complete tokio task")
                 } else {
-                    fs::read_to_string(url.replace("file://", ""))
+                    fs::read_to_string(raw_url)
                         .map_err(|error| error.to_string())
                 };
 

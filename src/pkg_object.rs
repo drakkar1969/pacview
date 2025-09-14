@@ -94,7 +94,7 @@ mod imp {
 
         // Read only fields
         pub(super) package_url: OnceCell<String>,
-        pub(super) pkgbuild_url: OnceCell<String>,
+        pub(super) pkgbuild_urls: OnceCell<(String, String)>,
         pub(super) out_of_date_string: OnceCell<String>,
         pub(super) install_date_string: OnceCell<String>,
         pub(super) build_date_string: OnceCell<String>,
@@ -272,8 +272,8 @@ impl PkgObject {
         })
     }
 
-    pub fn pkgbuild_url(&self) -> &str {
-        self.imp().pkgbuild_url.get_or_init(|| {
+    pub fn pkgbuild_urls(&self) -> &(String, String) {
+        self.imp().pkgbuild_urls.get_or_init(|| {
             let default_repos = ["core", "extra", "multilib"];
 
             let data = self.imp().data.get().unwrap();
@@ -287,17 +287,31 @@ impl PkgObject {
             let repo = &data.repository;
 
             if default_repos.contains(&repo.as_str()) {
-                format!("https://gitlab.archlinux.org/archlinux/packaging/packages/{name}/-/raw/main/PKGBUILD")
+                let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
+
+                let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
+                let raw_url = format!("{domain}/{name}/-/raw/main/PKGBUILD");
+
+                (url, raw_url)
             } else if repo == "aur" {
-                format!("https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h={name}")
+                let domain = "https://aur.archlinux.org/cgit/aur.git";
+
+                let url = format!("{domain}/tree/PKGBUILD?h={name}");
+                let raw_url = format!("{domain}/plain/PKGBUILD?h={name}");
+
+                (url, raw_url)
             } else if repo != "local" {
-                which_global("paru").ok()
+                let raw_url = which_global("paru").ok()
                     .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
                     .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
-                    .map(|path| format!("file://{}", path.display()))
-                    .unwrap_or_default()
+                    .map(|path| path.display().to_string())
+                    .unwrap_or_default();
+
+                let url = format!("file:://{raw_url}");
+
+                (url, raw_url)
             } else {
-                String::new()
+                (String::new(), String::new())
             }
         })
     }
