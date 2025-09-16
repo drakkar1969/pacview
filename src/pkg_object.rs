@@ -17,6 +17,11 @@ use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKG
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------
+// CONSTANTS
+//------------------------------------------------------------------------------
+const DEFAULT_REPOS: [&str; 3] = ["core", "extra", "multilib"];
+
+//------------------------------------------------------------------------------
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
@@ -251,13 +256,11 @@ impl PkgObject {
 
     pub fn package_url(&self) -> &str {
         self.imp().package_url.get_or_init(|| {
-            let default_repos = ["core", "extra", "multilib"];
-
             let data = self.imp().data.get().unwrap();
 
             let repo = &data.repository;
 
-            if default_repos.contains(&repo.as_str()) {
+            if DEFAULT_REPOS.contains(&repo.as_str()) {
                 format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
                     arch=data.architecture,
                     name=data.name
@@ -274,8 +277,6 @@ impl PkgObject {
 
     pub fn pkgbuild_urls(&self) -> &(String, String) {
         self.imp().pkgbuild_urls.get_or_init(|| {
-            let default_repos = ["core", "extra", "multilib"];
-
             let data = self.imp().data.get().unwrap();
 
             let name = if data.base.is_empty() {
@@ -286,7 +287,7 @@ impl PkgObject {
 
             let repo = &data.repository;
 
-            if default_repos.contains(&repo.as_str()) {
+            if DEFAULT_REPOS.contains(&repo.as_str()) {
                 let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
 
                 let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
