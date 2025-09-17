@@ -638,6 +638,9 @@ impl PacViewWindow {
         settings.bind("window-height", self, "default-height").build();
         settings.bind("window-maximized", self, "maximized").build();
 
+        settings.bind("show-infopane", &imp.infopane_button.get(), "active").build();
+        settings.bind("show-sidebar", &imp.sidebar_button.get(), "active").build();
+
         // Load initial search bar settings
         settings.bind("search-mode", &imp.search_bar.get(), "mode")
             .get()
