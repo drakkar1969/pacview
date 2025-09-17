@@ -29,6 +29,8 @@ mod imp {
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
+        pub(super) signature_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
         pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) copy_button: TemplateChild<gtk::Button>,
@@ -41,6 +43,8 @@ mod imp {
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+        #[template_child]
+        pub(super) signature_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
@@ -152,6 +156,23 @@ impl CacheWindow {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
+        // Set signature filter function
+        imp.signature_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                if imp.signature_button.is_active() {
+                    true
+                } else {
+                    let obj = item
+                        .downcast_ref::<CacheObject>()
+                        .expect("Failed to downcast to 'CacheObject'");
+
+                    !obj.filename().ends_with(".sig")
+                }
+            }
+        ));
+
         // Add keyboard shortcut to cancel search
         let shortcut = gtk::Shortcut::new(
             gtk::ShortcutTrigger::parse_string("Escape"),
@@ -194,6 +215,14 @@ impl CacheWindow {
             #[weak] imp,
             move |entry| {
                 imp.search_filter.set_search(Some(&entry.text()));
+            }
+        ));
+
+        // Signature button toggled signal
+        imp.signature_button.connect_toggled(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.signature_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
