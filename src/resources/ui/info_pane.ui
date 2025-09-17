@@ -208,6 +208,7 @@
                                     <child>
                                       <object class="GtkSearchEntry" id="files_search_entry">
                                         <property name="margin-start">20</property>
+                                        <property name="margin-end">14</property>
                                         <property name="placeholder-text">Search for files</property>
                                         <style>
                                           <class name="round"/>
@@ -216,7 +217,6 @@
                                     </child>
                                     <child>
                                       <object class="GtkToggleButton" id="files_filter_button">
-                                        <property name="margin-end">14</property>
                                         <property name="icon-name">folder-symbolic</property>
                                         <property name="tooltip-text">Show Directories</property>
                                         <style>
