@@ -19,9 +19,6 @@
       </choices>
       <default>'default'</default>
     </key>
-    <key name="infopane-show-directories" type="b">
-      <default>false</default>
-    </key>
     <key name="infopane-width" type="d">
       <range min="400" max="1000"/>
       <default>560</default>
