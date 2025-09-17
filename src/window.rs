@@ -285,7 +285,7 @@ mod imp {
             klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
             // View copy list key binding
-            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "view.copy-list");
+            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::ALT_MASK, "view.copy-list");
 
             // View show all packages key binding
             klass.add_binding(gdk::Key::A, gdk::ModifierType::ALT_MASK, |window| {
@@ -307,7 +307,7 @@ mod imp {
             klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-log");
 
             // Pacman cache window key binding
-            klass.add_binding_action(gdk::Key::H, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-cache");
+            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-cache");
 
             // Pacman groups window key binding
             klass.add_binding_action(gdk::Key::G, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-groups");
