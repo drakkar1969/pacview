@@ -198,14 +198,10 @@
         <attribute name="label">Refresh</attribute>
         <attribute name="action">win.refresh</attribute>
       </item>
-    </section>
-    <section>
       <item>
         <attribute name="label">Check for Updates</attribute>
         <attribute name="action">win.check-updates</attribute>
       </item>
-    </section>
-    <section>
       <item>
         <attribute name="label">Update AUR Database</attribute>
         <attribute name="action">win.update-aur-database</attribute>
