@@ -19,7 +19,7 @@ use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 //------------------------------------------------------------------------------
 // CONSTANTS
 //------------------------------------------------------------------------------
-const DEFAULT_REPOS: [&str; 3] = ["core", "extra", "multilib"];
+const DEFAULT_REPOS: [&str; 9] = ["core", "extra", "multilib", "core-testing", "extra-testing", "gnome-unstable", "kde-unstable", "multilib-testing", "testing"];
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
