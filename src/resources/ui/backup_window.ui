@@ -119,6 +119,16 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkButton" id="compare_button">
+                        <property name="icon-name">info-compare-symbolic</property>
+                        <property name="tooltip-text">Compare with Original</property>
+                        <style>
+                          <class name="flat"/>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkButton" id="open_button">
                         <property name="icon-name">document-open-symbolic</property>
                         <property name="tooltip-text">Open</property>

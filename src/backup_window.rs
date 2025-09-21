@@ -46,6 +46,8 @@ mod imp {
         #[template_child]
         pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
+        pub(super) compare_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) copy_button: TemplateChild<gtk::Button>,
@@ -316,6 +318,22 @@ impl BackupWindow {
             }
         ));
 
+        // Compare button clicked signal
+        imp.compare_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .expect("Failed to downcast to 'BackupObject'");
+
+                glib::spawn_future_local(
+                    async move {
+                        let _ = item.compare_with_original().await;
+                    }
+                );
+            }
+        ));
+
         // Open button clicked signal
         imp.open_button.connect_clicked(clone!(
             #[weak] imp,
@@ -388,22 +406,18 @@ impl BackupWindow {
                 imp.header_sub_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
-
-                let status = imp.selection.selected_item()
-                    .and_downcast::<BackupObject>()
-                    .map_or(BackupStatus::All, |object| object.status());
-
-                imp.open_button.set_sensitive(status != BackupStatus::Locked && status != BackupStatus::All);
             }
         ));
 
-        // Selection selected items property notify signal
+        // Selection selected item property notify signal
         imp.selection.connect_selected_item_notify(clone!(
             #[weak] imp,
             move |selection| {
                 let status = selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::All, |object| object.status());
+
+                imp.compare_button.set_sensitive(status == BackupStatus::Modified);
 
                 imp.open_button.set_sensitive(status != BackupStatus::Locked && status != BackupStatus::All);
             }
