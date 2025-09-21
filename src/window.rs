@@ -38,6 +38,9 @@ use crate::utils::{async_command, aur_file};
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
+pub static PACCAT_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("paccat"));
+pub static MELD_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("meld"));
+
 thread_local! {
     pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };

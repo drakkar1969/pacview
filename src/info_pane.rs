@@ -110,6 +110,8 @@ mod imp {
         #[template_child]
         pub(super) backup_count_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) backup_compare_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) backup_open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) backup_copy_button: TemplateChild<gtk::Button>,
@@ -548,6 +550,22 @@ impl InfoPane {
             }
         ));
 
+        // Backup compare button clicked signal
+        imp.backup_compare_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let item = imp.backup_selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .expect("Failed to downcast to 'BackupObject'");
+
+                glib::spawn_future_local(
+                    async move {
+                        let _ = item.compare_with_original().await;
+                    }
+                );
+            }
+        ));
+
         // Backup open button clicked signal
         imp.backup_open_button.connect_clicked(clone!(
             #[weak] imp,
@@ -603,6 +621,10 @@ impl InfoPane {
                 let status = selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::Locked, |backup| backup.status());
+
+                imp.backup_compare_button.set_sensitive(
+                    status == BackupStatus::Modified
+                );
 
                 imp.backup_open_button.set_sensitive(
                     status != BackupStatus::Locked && status != BackupStatus::All

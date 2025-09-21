@@ -1,5 +1,8 @@
 use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
+use std::path::Path;
+use std::fs;
+use std::io;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -7,8 +10,10 @@ use gtk::prelude::ObjectExt;
 
 use strum::FromRepr;
 
+use crate::window::{PACCAT_PATH, MELD_PATH};
 use crate::enum_traits::EnumExt;
 use crate::pkg_object::PkgBackup;
+use crate::utils::async_command;
 
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus
@@ -124,5 +129,43 @@ impl BackupObject {
             .property("hash", backup.hash())
             .property("package", backup.package())
             .build()
+    }
+
+    //---------------------------------------
+    // Async compare with original function
+    //---------------------------------------
+    pub async fn compare_with_original(&self) -> io::Result<()> {
+        let filename = self.filename();
+
+        // Download original file with paccat
+        let paccat_cmd = PACCAT_PATH.as_ref()
+            .map(|path| format!("{} {} -- {}", path.display(), self.package(), filename))
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Paccat not found"))?;
+
+        let (status, content) = async_command::run(&paccat_cmd).await?;
+
+        if status != Some(0) {
+            return Err(io::Error::new(io::ErrorKind::Other, "Paccat error"))
+        }
+
+        // Save original file to /tmp folder
+        let tmp_filename = Path::new(&filename).file_name()
+            .map(|file_name| format!("/tmp/{}.original", file_name.to_string_lossy()))
+            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Failed to create temporary filename"))?;
+
+        fs::write(&tmp_filename, content)?;
+
+        // Compare file with original
+        let meld_cmd = MELD_PATH.as_ref()
+            .map(|path| format!("{} {} {}", path.display(), tmp_filename, filename))
+            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Meld not found"))?;
+
+        let (status, _) = async_command::run(&meld_cmd).await?;
+
+        if status == Some(0) {
+            Ok(())
+        } else {
+            Err(io::Error::new(io::ErrorKind::Other, "Meld error"))
+        }
     }
 }
