@@ -556,7 +556,7 @@ impl InfoPane {
                     .and_downcast::<BackupObject>()
                     .expect("Failed to downcast to 'BackupObject'");
 
-                    app_info::open_with_default_app(&item.filename());
+                app_info::open_with_default_app(&item.filename());
             }
         ));
 
@@ -593,7 +593,6 @@ impl InfoPane {
 
                 imp.backup_count_label.set_label(&n_items.to_string());
                 imp.backup_copy_button.set_sensitive(n_items > 0);
-                imp.backup_open_button.set_sensitive(n_items > 0);
             }
         ));
 
