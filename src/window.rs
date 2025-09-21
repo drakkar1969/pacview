@@ -38,6 +38,7 @@ use crate::utils::{async_command, aur_file};
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
+pub static PARU_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("paru"));
 pub static PACCAT_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("paccat"));
 pub static MELD_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("meld"));
 
@@ -786,7 +787,7 @@ impl PacViewWindow {
         imp.aur_file.replace(aur_file.clone());
 
         // Get paru repo paths
-        let paru_repo_paths: Vec<PathBuf> = which_global("paru").ok()
+        let paru_repo_paths: Vec<PathBuf> = PARU_PATH.as_ref().ok()
             .and_then(|_| xdg_dirs.get_cache_home())
             .and_then(|cache_dir| {
                 fs::read_dir(cache_dir.join("paru/clone/repo")).ok()
@@ -1100,7 +1101,7 @@ impl PacViewWindow {
                 let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;
 
-                let aur_command = which_global("paru")
+                let aur_command = PARU_PATH.as_ref()
                     .map(|path| path.display().to_string() + " -Qu --mode=ap");
 
                 // Check for pacman updates async

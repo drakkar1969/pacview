@@ -11,9 +11,8 @@ use regex::Regex;
 use size::Size;
 use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
-use which::which_global;
 
-use crate::window::{PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
+use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------
@@ -302,7 +301,7 @@ impl PkgObject {
 
                 (url, raw_url)
             } else if repo != "local" {
-                let raw_url = which_global("paru").ok()
+                let raw_url = PARU_PATH.as_ref().ok()
                     .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
                     .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
                     .map(|path| path.display().to_string())
