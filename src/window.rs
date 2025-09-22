@@ -1057,7 +1057,8 @@ impl PacViewWindow {
                         if prefs_dialog.aur_database_download() {
                             if let Some(aur_file) = imp.aur_file.borrow().as_ref() {
                                 if aur_file::check_file_age(aur_file, max_file_age) {
-                                    let _ = aur_file::download_future(&aur_file).await;
+                                    let _ = aur_file::download_future(aur_file).await
+                                        .expect("Failed to complete tokio task");
                                 }
                             }
                         }
