@@ -202,6 +202,10 @@
             <property name="title">Previous/Next Package</property>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;alt&gt;I</property>
