@@ -85,8 +85,6 @@ pub mod aur_file {
     use std::time::Duration;
 	use std::io::Read;
 
-    use gtk::glib;
-
     use flate2::read::GzDecoder;
     use tokio::task::JoinHandle as TokioJoinHandle;
 
@@ -95,7 +93,7 @@ pub mod aur_file {
     //---------------------------------------
     // Check file age function
     //---------------------------------------
-    pub fn check_file_age(aur_file: &PathBuf, update_interval: u64) {
+    pub fn check_file_age(aur_file: &PathBuf, update_interval: u64) -> bool {
         // Get AUR package names file age
         let file_time = fs::metadata(aur_file).ok()
             .and_then(|metadata| metadata.modified().ok())
@@ -105,15 +103,7 @@ pub mod aur_file {
                 now.duration_since(file_time).ok()
             });
 
-        // Spawn tokio task to download AUR package names file if does not exist or older than x hours
-        if file_time.is_none_or(|time| time >= Duration::from_secs(update_interval * 60 * 60)) {
-            let aur_file = aur_file.to_owned();
-
-            glib::spawn_future_local(async move {
-                let _ = download_future(&aur_file).await
-                    .expect("Failed to complete tokio task");
-            });
-        }
+        file_time.is_none_or(|time| time >= Duration::from_secs(update_interval * 60 * 60))
     }
 
     //---------------------------------------

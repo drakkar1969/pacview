@@ -1052,12 +1052,13 @@ impl PacViewWindow {
                         // Check AUR package names file age
                         let prefs_dialog = imp.prefs_dialog.get().unwrap();
 
+                        let max_file_age = prefs_dialog.aur_database_age() as u64;
+
                         if prefs_dialog.aur_database_download() {
                             if let Some(aur_file) = imp.aur_file.borrow().as_ref() {
-                                aur_file::check_file_age(
-                                    aur_file,
-                                    prefs_dialog.aur_database_age() as u64
-                                );
+                                if aur_file::check_file_age(aur_file, max_file_age) {
+                                    let _ = aur_file::download_future(&aur_file).await;
+                                }
                             }
                         }
                     },
