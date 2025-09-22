@@ -260,7 +260,7 @@ impl PkgObject {
             let repo = &data.repository;
 
             if DEFAULT_REPOS.contains(&repo.as_str()) {
-                format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}",
+                format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}/",
                     arch=data.architecture,
                     name=data.name
                 )
