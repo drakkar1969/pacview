@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object class="AdwShortcutsDialog" id="shortcuts_dialog">
+    <!-- <property name="modal">true</property> -->
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Application</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">F10</property>
+            <property name="title">Main Menu</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;B</property>
+            <property name="title">Show/Hide Sidebar</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;I</property>
+            <property name="title">Show/Hide Info Pane</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;F</property>
+            <property name="title">Start Search</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">Escape</property>
+            <property name="title">Exit Search</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;comma</property>
+            <property name="title">Preferences</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;question</property>
+            <property name="title">Show Keyboard Shortcuts</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;Q</property>
+            <property name="title">Quit</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;B</property>
+            <property name="title">View Backup Files</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
+            <property name="title">View Pacman Cache</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;P</property>
+            <property name="title">View Pacman Config</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;G</property>
+            <property name="title">View Pacman Groups</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;L</property>
+            <property name="title">View Pacman Log</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;S</property>
+            <property name="title">View Statistics</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Package List</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">F5</property>
+            <property name="title">Refresh</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">F9</property>
+            <property name="title">Check for Updates</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">F7</property>
+            <property name="title">Update AUR Database</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;alt&gt;C</property>
+            <property name="title">Copy Package List</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;A</property>
+            <property name="title">Show All Packages</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Package Search</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;M</property>
+            <property name="title">Cycle Match Mode</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;L</property>
+            <property name="title">Match All Terms</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;N</property>
+            <property name="title">Match Any Term</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;E</property>
+            <property name="title">Exact Match</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;P</property>
+            <property name="title">Cycle Search Property</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;1...7</property>
+            <property name="title">Set Search Property</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;R</property>
+            <property name="title">Reset Search Parameters</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Info Pane</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;Left Right</property>
+            <property name="title">Previous/Next Package</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;I</property>
+            <property name="title">View Info Tab</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;F</property>
+            <property name="title">View Files Tab</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;L</property>
+            <property name="title">View Log Tab</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;C</property>
+            <property name="title">View Cache Tab</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;B</property>
+            <property name="title">View Backup Tab</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;&lt;shift&gt;K</property>
+            <property name="title">Show PKGBUILD</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;&lt;shift&gt;H</property>
+            <property name="title">Show Package Hashes</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Info Pane Property</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;plus minus</property>
+            <property name="title">Expand/Contract</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;A</property>
+            <property name="title">Select All</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;A</property>
+            <property name="title">Select None</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="title">Copy Value</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">Left Right</property>
+            <property name="title">Previous/Next Link</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">Return</property>
+            <property name="title">Activate Link</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Backup Files Window</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;F</property>
+            <property name="title">Search for Files or Packages</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;O</property>
+            <property name="title">Open Backup File</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="title">Copy Backup List</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;A</property>
+            <property name="title">Show All</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;M</property>
+            <property name="title">Show Modified</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;U</property>
+            <property name="title">Show Unmodified</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;L</property>
+            <property name="title">Show Locked (Access Denied)</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Groups Window</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;F</property>
+            <property name="title">Search for Packages or Groups</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;I</property>
+            <property name="title">Filter Installed Packages</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="title">Copy Package List</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Pacman Cache Window</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;F</property>
+            <property name="title">Search for Files</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;O</property>
+            <property name="title">Show Cache File in Folder</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="title">Copy Cache File List</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Pacman Log Window</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;F</property>
+            <property name="title">Search in Messages</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;P</property>
+            <property name="title">Filter Package Events</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="title">Copy Log Messages</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">Statistics Window</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="title">Copy Statistics</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <property name="title">PKGBUILD Window</property>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">F5</property>
+            <property name="title">Refresh PKGBUILD</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;S</property>
+            <property name="title">Save PKGBUILD</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>
