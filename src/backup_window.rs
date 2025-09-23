@@ -111,6 +111,17 @@ mod imp {
                 glib::Propagation::Stop
             });
 
+            // Compare key binding
+            klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.compare_button.is_visible() && imp.compare_button.is_sensitive() {
+                    imp.compare_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
             // Open key binding
             klass.add_binding(gdk::Key::O, gdk::ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
