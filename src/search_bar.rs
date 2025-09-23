@@ -144,7 +144,7 @@ mod imp {
                     .nth(1)
                     .expect("Failed to get 'SearchMode'");
 
-                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
+                bar.set_mode(new_mode);
             });
 
             // Reverse cycle search mode action
@@ -154,7 +154,7 @@ mod imp {
                     .nth(1)
                     .expect("Failed to get 'SearchMode'");
 
-                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
+                bar.set_mode(new_mode);
             });
 
             // Search prop property action
@@ -167,7 +167,7 @@ mod imp {
                     .nth(1)
                     .expect("Failed to get 'SearchProp'");
 
-                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
+                bar.set_prop(new_prop);
             });
 
             // Reverse cycle search property action
@@ -177,15 +177,13 @@ mod imp {
                     .nth(1)
                     .expect("Failed to get 'SearchProp'");
 
-                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
+                bar.set_prop(new_prop);
             });
 
             // Reset search params action
             klass.install_action("search.reset-params", None, |bar, _, _| {
-                bar.activate_action("search.set-mode", Some(&bar.default_mode().nick_variant()))
-                    .unwrap();
-                bar.activate_action("search.set-prop", Some(&bar.default_prop().nick_variant()))
-                    .unwrap();
+                bar.set_mode(bar.default_mode());
+                bar.set_prop(bar.default_prop());
             });
 
             //---------------------------------------
@@ -197,20 +195,19 @@ mod imp {
 
             // Search mode letter shortcuts
             klass.add_binding(gdk::Key::L, gdk::ModifierType::CONTROL_MASK, |bar| {
-                bar.activate_action("search.set-mode", Some(&SearchMode::All.nick_variant())).unwrap();
+                bar.set_mode(SearchMode::All);
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |bar| {
-                bar.activate_action("search.set-mode", Some(&SearchMode::Any.nick_variant())).unwrap();
+                bar.set_mode(SearchMode::Any);
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(gdk::Key::E, gdk::ModifierType::CONTROL_MASK, |bar| {
-                bar.activate_action("search.set-mode", Some(&SearchMode::Exact.nick_variant()))
-                    .unwrap();
+                bar.set_mode(SearchMode::Exact);
 
                 glib::Propagation::Stop
             });
@@ -224,7 +221,7 @@ mod imp {
                 let key = gdk::Key::from_name((i+1).to_string()).unwrap();
                 
                 klass.add_binding(key, gdk::ModifierType::CONTROL_MASK, move |bar| {
-                    bar.activate_action("search.set-prop", Some(&prop.nick_variant())).unwrap();
+                    bar.set_prop(prop);
 
                     glib::Propagation::Stop
                 });
