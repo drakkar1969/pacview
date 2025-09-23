@@ -137,8 +137,48 @@ mod imp {
             // Search mode property action
             klass.install_property_action("search.set-mode", "mode");
 
+            // Cycle search mode action
+            klass.install_action("search.cycle-mode", None, |bar, _, _| {
+                let new_mode = SearchMode::iter().cycle()
+                    .skip_while(|&mode| mode != bar.mode())
+                    .nth(1)
+                    .expect("Failed to get 'SearchMode'");
+
+                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
+            });
+
+            // Reverse cycle search mode action
+            klass.install_action("search.reverse-cycle-mode", None, |bar, _, _| {
+                let new_mode = SearchMode::iter().rev().cycle()
+                    .skip_while(|&mode| mode != bar.mode())
+                    .nth(1)
+                    .expect("Failed to get 'SearchMode'");
+
+                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
+            });
+
             // Search prop property action
             klass.install_property_action("search.set-prop", "prop");
+
+            // Cycle search property action
+            klass.install_action("search.cycle-prop", None, |bar, _, _| {
+                let new_prop = SearchProp::iter().cycle()
+                    .skip_while(|&prop| prop != bar.prop())
+                    .nth(1)
+                    .expect("Failed to get 'SearchProp'");
+
+                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
+            });
+
+            // Reverse cycle search property action
+            klass.install_action("search.reverse-cycle-prop", None, |bar, _, _| {
+                let new_prop = SearchProp::iter().rev().cycle()
+                    .skip_while(|&prop| prop != bar.prop())
+                    .nth(1)
+                    .expect("Failed to get 'SearchProp'");
+
+                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
+            });
 
             // Reset search params action
             klass.install_action("search.reset-params", None, |bar, _, _| {
@@ -151,29 +191,9 @@ mod imp {
             //---------------------------------------
             // Add class key bindings
             //---------------------------------------
-            // Cycle search mode key binding
-            klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, |bar| {
-                let new_mode = SearchMode::iter().cycle()
-                    .skip_while(|&mode| mode != bar.mode())
-                    .nth(1)
-                    .expect("Failed to get 'SearchMode'");
-
-                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
-
-                glib::Propagation::Stop
-            });
-
-            // Reverse cycle search mode key binding
-            klass.add_binding(gdk::Key::M, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
-                let new_mode = SearchMode::iter().rev().cycle()
-                    .skip_while(|&mode| mode != bar.mode())
-                    .nth(1)
-                    .expect("Failed to get 'SearchMode'");
-
-                bar.activate_action("search.set-mode", Some(&new_mode.nick_variant())).unwrap();
-
-                glib::Propagation::Stop
-            });
+            // Cycle search mode key bindings
+            klass.add_binding_action(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, "search.cycle-mode");
+            klass.add_binding_action(gdk::Key::M, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
 
             // Search mode letter shortcuts
             klass.add_binding(gdk::Key::L, gdk::ModifierType::CONTROL_MASK, |bar| {
@@ -192,32 +212,12 @@ mod imp {
                 bar.activate_action("search.set-mode", Some(&SearchMode::Exact.nick_variant()))
                     .unwrap();
 
-                    glib::Propagation::Stop
-            });
-
-            // Cycle search prop key binding
-            klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |bar| {
-                let new_prop = SearchProp::iter().cycle()
-                    .skip_while(|&prop| prop != bar.prop())
-                    .nth(1)
-                    .expect("Failed to get 'SearchProp'");
-
-                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
-
                 glib::Propagation::Stop
             });
 
-            // Reverse cycle search prop key binding
-            klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, |bar| {
-                let new_prop = SearchProp::iter().rev().cycle()
-                    .skip_while(|&prop| prop != bar.prop())
-                    .nth(1)
-                    .expect("Failed to get 'SearchProp'");
-
-                bar.activate_action("search.set-prop", Some(&new_prop.nick_variant())).unwrap();
-
-                glib::Propagation::Stop
-            });
+            // Cycle search prop key bindings
+            klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, "search.cycle-prop");
+            klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "search.reverse-cycle-prop");
 
             // Search prop numbered shortcuts
             for (i, prop) in SearchProp::iter().enumerate() {
