@@ -7,7 +7,7 @@ use gtk::{glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
-use glib::clone;
+use glib::{clone, closure_local};
 
 use strum::{FromRepr, EnumIter, IntoEnumIterator};
 
@@ -361,6 +361,30 @@ impl SearchBar {
                 bar.emit_by_name::<()>("changed", &[]);
             }
         });
+
+        // Mode tag clicked signal
+        imp.tag_mode.connect_closure("clicked", false, closure_local!(
+            #[weak(rename_to = bar)] self,
+            move |_: SearchTag, shift: bool| {
+                if shift {
+                    bar.activate_action("search.reverse-cycle-mode", None).unwrap();
+                } else {
+                    bar.activate_action("search.cycle-mode", None).unwrap();
+                }
+            }
+        ));
+
+        // Prop tag clicked signal
+        imp.tag_prop.connect_closure("clicked", false, closure_local!(
+            #[weak(rename_to = bar)] self,
+            move |_: SearchTag, shift: bool| {
+                if shift {
+                    bar.activate_action("search.reverse-cycle-prop", None).unwrap();
+                } else {
+                    bar.activate_action("search.cycle-prop", None).unwrap();
+                }
+            }
+        ));
 
         // Search text changed signal
         imp.search_text.connect_changed(clone!(
