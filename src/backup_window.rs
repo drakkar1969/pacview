@@ -6,7 +6,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 
-use crate::window::INSTALLED_PKGS;
+use crate::window::{PACCAT_PATH, MELD_PATH, INSTALLED_PKGS};
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
 use crate::utils::app_info;
@@ -262,6 +262,9 @@ impl BackupWindow {
 
         imp.search_entry.add_controller(controller);
 
+        // Set backup compare button visibility
+        imp.compare_button.set_visible(PACCAT_PATH.is_ok() && MELD_PATH.is_ok());
+
         // Set initial focus on view
         imp.view.grab_focus();
     }
@@ -417,7 +420,7 @@ impl BackupWindow {
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::All, |object| object.status());
 
-                imp.compare_button.set_sensitive(status == BackupStatus::Modified);
+                imp.compare_button.set_sensitive(imp.compare_button.is_visible() && status == BackupStatus::Modified);
 
                 imp.open_button.set_sensitive(status != BackupStatus::Locked && status != BackupStatus::All);
             }

@@ -9,6 +9,7 @@ use gtk::prelude::*;
 use glib::closure_local;
 use glib::clone;
 
+use crate::window::{PACCAT_PATH, MELD_PATH};
 use crate::package_view::AUR_PKGS;
 use crate::text_widget::{TextWidget, INSTALLED_LABEL};
 use crate::info_row::{PropID, PropType, ValueType, InfoRow};
@@ -320,6 +321,9 @@ impl InfoPane {
 
         imp.files_search_entry.add_controller(controller);
 
+        // Set backup compare button visibility
+        imp.backup_compare_button.set_visible(PACCAT_PATH.is_ok() && MELD_PATH.is_ok());
+
         // Bind history list properties to widgets
         let pkg_history = imp.pkg_history.borrow();
 
@@ -623,7 +627,7 @@ impl InfoPane {
                     .map_or(BackupStatus::Locked, |backup| backup.status());
 
                 imp.backup_compare_button.set_sensitive(
-                    status == BackupStatus::Modified
+                    imp.backup_compare_button.is_visible() && status == BackupStatus::Modified
                 );
 
                 imp.backup_open_button.set_sensitive(
