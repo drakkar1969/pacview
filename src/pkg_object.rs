@@ -16,11 +16,6 @@ use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, IN
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------
-// CONSTANTS
-//------------------------------------------------------------------------------
-const DEFAULT_REPOS: [&str; 9] = ["core", "extra", "multilib", "core-testing", "extra-testing", "gnome-unstable", "kde-unstable", "multilib-testing", "testing"];
-
-//------------------------------------------------------------------------------
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
@@ -259,7 +254,7 @@ impl PkgObject {
 
             let repo = &data.repository;
 
-            if DEFAULT_REPOS.contains(&repo.as_str()) {
+            if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
                 format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}/",
                     arch=data.architecture,
                     name=data.name
@@ -286,7 +281,7 @@ impl PkgObject {
 
             let repo = &data.repository;
 
-            if DEFAULT_REPOS.contains(&repo.as_str()) {
+            if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
                 let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
 
                 let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
