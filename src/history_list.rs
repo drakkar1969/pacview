@@ -21,7 +21,7 @@ mod imp {
     pub struct HistoryList {
         #[property(get = Self::len)]
         len: PhantomData<u32>,
-        #[property(get, set = Self::set_current)]
+        #[property(get, set = Self::set_current, default_value = gtk::INVALID_LIST_POSITION, construct)]
         current: Cell<u32>,
         #[property(get = Self::current_item, nullable)]
         current_item: PhantomData<Option<PkgObject>>,
@@ -162,13 +162,6 @@ impl Default for HistoryList {
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        // Build HistoryList
-        let history_list: Self = glib::Object::builder()
-            .property("current", gtk::INVALID_LIST_POSITION)
-            .build();
-
-        history_list.imp().list.replace(vec![]);
-
-        history_list
+        glib::Object::builder().build()
     }
 }
