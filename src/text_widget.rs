@@ -1050,12 +1050,3 @@ impl TextWidget {
         imp.popover_menu.popup();
     }
 }
-
-impl Default for TextWidget {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder().build()
-    }
-}

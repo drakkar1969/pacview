@@ -594,12 +594,3 @@ impl PackageView {
         format!("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n{body}")
     }
 }
-
-impl Default for PackageView {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder().build()
-    }
-}

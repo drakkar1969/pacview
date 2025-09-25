@@ -116,12 +116,3 @@ impl SearchTag {
         self.add_controller(gesture_click);
     }
 }
-
-impl Default for SearchTag {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder().build()
-    }
-}
