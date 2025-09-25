@@ -777,16 +777,9 @@ impl PacViewWindow {
         imp.groups_window.get().unwrap().remove_all();
         imp.stats_window.get().unwrap().remove_all();
 
-        // Get AUR file (create cache dir)
+        // Get paru repo paths
         let xdg_dirs = xdg::BaseDirectories::new();
 
-        let aur_file = xdg_dirs.create_cache_directory("pacview")
-            .map(|cache_dir| cache_dir.join("aur_packages"))
-            .ok();
-
-        imp.aur_file.replace(aur_file.clone());
-
-        // Get paru repo paths
         let paru_repo_paths: Vec<PathBuf> = PARU_PATH.as_ref().ok()
             .and_then(|_| xdg_dirs.get_cache_home())
             .and_then(|cache_dir| {
@@ -816,6 +809,13 @@ impl PacViewWindow {
 
         // Populate sidebar
         self.alpm_populate_sidebar(first_load);
+
+        // Get AUR file (create cache dir)
+        let aur_file = xdg_dirs.create_cache_directory("pacview")
+            .map(|cache_dir| cache_dir.join("aur_packages"))
+            .ok();
+
+        imp.aur_file.replace(aur_file.clone());
 
         // If AUR database download is enabled and AUR file does not exist, download it
         if let Some(file) = aur_file
