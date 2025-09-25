@@ -149,7 +149,7 @@ pub mod pango_utils {
     //---------------------------------------
     // Pango color from style
     //---------------------------------------
-    pub fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
+    pub fn color_from_style(style: &str) -> (u16, u16, u16, u16) {
         let fc = |color: f32| -> u16 {
             (color * f32::from(u16::MAX)) as u16
         };

@@ -571,13 +571,13 @@ impl TextWidget {
         imp.selection_end.set(None);
 
         // Initialize pango colors
-        imp.link_fg_color.set(pango_utils::pango_color_from_style("link"));
-        imp.comment_fg_color.set(pango_utils::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(pango_utils::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(pango_utils::pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(pango_utils::color_from_style("link"));
+        imp.comment_fg_color.set(pango_utils::color_from_style("comment"));
+        imp.sel_bg_color.set(pango_utils::color_from_style("selection"));
+        imp.sel_focus_bg_color.set(pango_utils::color_from_style("selection-focus"));
 
         // Initialize cairo error color
-        let (red, green, blue, alpha) = pango_utils::pango_color_from_style("error");
+        let (red, green, blue, alpha) = pango_utils::color_from_style("error");
 
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
     }
@@ -718,13 +718,13 @@ impl TextWidget {
         let imp = self.imp();
 
         // Update pango color variables
-        imp.link_fg_color.set(pango_utils::pango_color_from_style("link"));
-        imp.comment_fg_color.set(pango_utils::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(pango_utils::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(pango_utils::pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(pango_utils::color_from_style("link"));
+        imp.comment_fg_color.set(pango_utils::color_from_style("comment"));
+        imp.sel_bg_color.set(pango_utils::color_from_style("selection"));
+        imp.sel_focus_bg_color.set(pango_utils::color_from_style("selection-focus"));
 
         // Initialize cairo error color
-        let (red, green, blue, alpha) = pango_utils::pango_color_from_style("error");
+        let (red, green, blue, alpha) = pango_utils::color_from_style("error");
 
         imp.cairo_error_color.set((fc(red), fc(green), fc(blue), fc(alpha)));
 
