@@ -359,6 +359,7 @@ impl InfoRow {
             }
         ));
 
+        // Value widget has selection property notify
         imp.value_widget.connect_has_selection_notify(clone!(
             #[weak(rename_to = row)] self,
             move |widget| {

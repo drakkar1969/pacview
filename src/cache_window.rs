@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -168,7 +170,10 @@ impl CacheWindow {
                         .downcast_ref::<CacheObject>()
                         .expect("Failed to downcast to 'CacheObject'");
 
-                    !obj.filename().ends_with(".sig")
+                    !Path::new(&obj.filename())
+                        .extension()
+                        .map_or(false, |ext| ext.eq_ignore_ascii_case("sig"))
+
                 }
             }
         ));
