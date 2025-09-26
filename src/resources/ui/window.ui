@@ -259,7 +259,7 @@
       </item>
       <item>
         <attribute name="label">Keyboard Shortcuts</attribute>
-        <attribute name="action">win.show-help-overlay</attribute>
+        <attribute name="action">app.shortcuts</attribute>
       </item>
     </section>
     <section>
