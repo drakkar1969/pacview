@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="AdwShortcutsDialog" id="shortcuts_dialog">
-    <!-- <property name="modal">true</property> -->
     <child>
       <object class="AdwShortcutsSection">
         <property name="title">Application</property>
