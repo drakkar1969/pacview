@@ -19,7 +19,7 @@
             <property name="spacing">5</property>
             <child>
               <object class="GtkBox">
-                <property name="spacing">24</property>
+                <property name="spacing">48</property>
                 <child>
                   <object class="GtkLabel">
                     <property name="valign">baseline-center</property>
@@ -72,7 +72,7 @@
             </child>
             <child>
               <object class="GtkBox">
-                <property name="spacing">24</property>
+                <property name="spacing">48</property>
                 <child>
                   <object class="GtkBox">
                     <property name="spacing">6</property>
@@ -171,6 +171,7 @@
                           </lookup>
                         </binding>
                         <property name="xalign">0</property>
+                        <property name="ellipsize">end</property>
                         <style>
                           <class name="caption"/>
                           <class name="dimmed"/>
