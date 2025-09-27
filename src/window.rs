@@ -463,9 +463,14 @@ impl PacViewWindow {
         let sidebar_width = prefs_dialog.sidebar_width();
         let infopane_width = prefs_dialog.infopane_width();
 
-        let min_packageview_width = 500.0;
+        // Helper closure to convert sp to px
+        let to_px = |sp: f64| -> f64 {
+            imp.main_split_view.sidebar_width_unit().to_px(sp, None)
+        };
 
-        self.set_width_request(infopane_width as i32);
+        let min_packageview_width = to_px(500.0);
+
+        self.set_width_request(to_px(infopane_width) as i32);
 
         imp.sidebar_split_view.set_min_sidebar_width(sidebar_width);
         imp.sidebar_split_view.set_max_sidebar_width(sidebar_width);

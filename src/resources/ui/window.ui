@@ -2,7 +2,7 @@
 <interface>
   <!--// PacViewWindow template //-->
   <template class="PacViewWindow" parent="AdwApplicationWindow">
-    <property name="default-width">1380</property>
+    <property name="default-width">1400</property>
     <property name="default-height">840</property>
     <property name="width-request">560</property>
     <property name="title">PacView</property>
