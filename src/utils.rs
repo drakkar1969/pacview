@@ -50,6 +50,7 @@ pub mod async_command {
 pub mod app_info {
     use gtk::gio;
     use gtk::prelude::AppInfoExt;
+    use gio::{AppInfo, AppLaunchContext};
 
     //---------------------------------------
     // Open containing folder function
@@ -57,8 +58,8 @@ pub mod app_info {
     pub fn open_containing_folder(path: &str) {
         let uri = format!("file://{path}");
 
-        if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-            let _res = desktop.launch_uris(&[&uri], None::<&gio::AppLaunchContext>);
+        if let Some(desktop) = AppInfo::default_for_type("inode/directory", true) {
+            let _res = desktop.launch_uris(&[&uri], None::<&AppLaunchContext>);
         }
     }
 
@@ -68,11 +69,10 @@ pub mod app_info {
     pub fn open_with_default_app(path: &str) {
         let uri = format!("file://{path}");
 
-        if gio::AppInfo::launch_default_for_uri(&uri, None::<&gio::AppLaunchContext>).is_err() {
-            if let Some(desktop) = gio::AppInfo::default_for_type("inode/directory", true) {
-                let _res = desktop.launch_uris(&[&uri], None::<&gio::AppLaunchContext>);
+        if AppInfo::launch_default_for_uri(&uri, None::<&AppLaunchContext>).is_err()
+            && let Some(desktop) = AppInfo::default_for_type("inode/directory", true) {
+                let _res = desktop.launch_uris(&[&uri], None::<&AppLaunchContext>);
             }
-        }
     }
 }
 
@@ -175,11 +175,10 @@ pub mod pango_utils {
 
         let mask = font_desc.set_fields();
 
-        if mask.contains(pango::FontMask::FAMILY) {
-            if let Some(family) = font_desc.family() {
+        if mask.contains(pango::FontMask::FAMILY)
+            && let Some(family) = font_desc.family() {
                 write!(css, "font-family: {family}; ").unwrap();
             }
-        }
 
         if mask.contains(pango::FontMask::SIZE) {
             let font_size = font_desc.size()/pango::SCALE;
@@ -205,11 +204,11 @@ pub mod pango_utils {
             write!(css, "font-weight: {weight}; ").unwrap();
         }
 
-        if mask.contains(pango::FontMask::STYLE) {
-            if let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style().to_value()) {
+        if mask.contains(pango::FontMask::STYLE)
+            && let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style()
+                .to_value()) {
                 write!(css, "font-style: {}; ", value.nick()).unwrap();
             }
-        }
 
         css
     }

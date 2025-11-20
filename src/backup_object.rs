@@ -140,32 +140,32 @@ impl BackupObject {
         // Download original file with paccat
         let paccat_cmd = PACCAT_PATH.as_ref()
             .map(|path| format!("{} {} -- {}", path.display(), self.package(), filename))
-            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Paccat not found"))?;
+            .map_err(|_| io::Error::other("Paccat not found"))?;
 
         let (status, content) = async_command::run(&paccat_cmd).await?;
 
         if status != Some(0) {
-            return Err(io::Error::new(io::ErrorKind::Other, "Paccat error"))
+            return Err(io::Error::other("Paccat error"))
         }
 
         // Save original file to /tmp folder
         let tmp_filename = Path::new(&filename).file_name()
             .map(|file_name| format!("/tmp/{}.original", file_name.to_string_lossy()))
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "Failed to create temporary filename"))?;
+            .ok_or_else(|| io::Error::other("Failed to create temporary filename"))?;
 
         fs::write(&tmp_filename, content)?;
 
         // Compare file with original
         let meld_cmd = MELD_PATH.as_ref()
             .map(|path| format!("{} {} {}", path.display(), tmp_filename, filename))
-            .map_err(|_| io::Error::new(io::ErrorKind::Other, "Meld not found"))?;
+            .map_err(|_| io::Error::other("Meld not found"))?;
 
         let (status, _) = async_command::run(&meld_cmd).await?;
 
         if status == Some(0) {
             Ok(())
         } else {
-            Err(io::Error::new(io::ErrorKind::Other, "Meld error"))
+            Err(io::Error::other("Meld error"))
         }
     }
 }

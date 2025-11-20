@@ -172,7 +172,7 @@ impl CacheWindow {
 
                     !Path::new(&obj.filename())
                         .extension()
-                        .map_or(false, |ext| ext.eq_ignore_ascii_case("sig"))
+                        .is_some_and(|ext| ext.eq_ignore_ascii_case("sig"))
 
                 }
             }
