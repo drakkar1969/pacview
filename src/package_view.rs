@@ -499,31 +499,34 @@ impl PackageView {
 
         imp.search_cancel_token.replace(Some(cancel_token));
 
-        // Create tokio task to search AUR
-        let search_future = tokio_runtime::runtime().spawn(
-            async move {
-                tokio::select! {
-                    () = cancel_token_clone.cancelled() => { Ok(vec![]) },
-                    res = Self::do_search_async(&term, prop, &aur_cache) => {
-                        res.map(|aur_list| {
-                            aur_list.iter().map(|pkg| PkgData::from_aur(pkg)).collect()
-                        })
-                    }
-                }
-            }
-        );
-
-        // Await task
+        // Search AUR
         glib::spawn_future_local(clone!(
             #[weak] imp,
             #[weak] search_bar,
             async move {
                 // Spawn tokio task to search AUR
-                let result = search_future.await
-                    .expect("Failed to complete tokio task");
+                let result = tokio_runtime::runtime().spawn(
+                    async move {
+                        tokio::select! {
+                            () = cancel_token_clone.cancelled() => {
+                                Ok(vec![])
+                            }
 
+                            result = Self::do_search_async(&term, prop, &aur_cache) => {
+                                result.map(|aur_list| {
+                                    aur_list.iter()
+                                        .map(|pkg| PkgData::from_aur(pkg))
+                                        .collect()
+                                })
+                            }
+                        }
+                    }
+                )
+                .await
+                .expect("Failed to complete tokio task");
+
+                // Get AUR search results
                 match result {
-                    // Get AUR search results
                     Ok(data_list) => {
                         if search_bar.enabled() {
                             let pkg_list: Vec<PkgObject> = data_list.into_iter()
