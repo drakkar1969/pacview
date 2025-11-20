@@ -99,15 +99,6 @@ glib::wrapper! {
 
 impl StatsWindow {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
-        glib::Object::builder()
-            .property("transient-for", parent)
-            .build()
-    }
-
-    //---------------------------------------
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
@@ -223,5 +214,14 @@ impl StatsWindow {
                 imp.model.splice(0, 0, &stats_items);
             });
         }
+    }
+}
+
+impl Default for StatsWindow {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
     }
 }

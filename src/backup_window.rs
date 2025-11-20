@@ -86,6 +86,9 @@ mod imp {
         type ParentType = adw::Window;
 
         fn class_init(klass: &mut Self::Class) {
+            BackupStatus::ensure_type();
+            BackupObject::ensure_type();
+
             klass.bind_template();
 
             //---------------------------------------
@@ -205,15 +208,6 @@ glib::wrapper! {
 }
 
 impl BackupWindow {
-    //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
-        glib::Object::builder()
-            .property("transient-for", parent)
-            .build()
-    }
-
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
@@ -487,5 +481,14 @@ impl BackupWindow {
             // Set status dropdown selected item
             imp.status_dropdown.set_selected(0);
         }
+    }
+}
+
+impl Default for BackupWindow {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
     }
 }

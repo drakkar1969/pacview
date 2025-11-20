@@ -136,15 +136,6 @@ glib::wrapper! {
 
 impl LogWindow {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
-        glib::Object::builder()
-            .property("transient-for", parent)
-            .build()
-    }
-
-    //---------------------------------------
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
@@ -322,5 +313,14 @@ impl LogWindow {
                 .collect::<Vec<LogObject>>()
             );
         }
+    }
+}
+
+impl Default for LogWindow {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
     }
 }

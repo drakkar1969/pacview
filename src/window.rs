@@ -122,15 +122,15 @@ mod imp {
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
 
-        pub(super) prefs_dialog: OnceCell<PreferencesDialog>,
+        pub(super) prefs_dialog: RefCell<PreferencesDialog>,
 
-        pub(super) backup_window: OnceCell<BackupWindow>,
-        pub(super) cache_window: OnceCell<CacheWindow>,
-        pub(super) groups_window: OnceCell<GroupsWindow>,
-        pub(super) log_window: OnceCell<LogWindow>,
-        pub(super) stats_window: OnceCell<StatsWindow>,
+        pub(super) backup_window: RefCell<BackupWindow>,
+        pub(super) cache_window: RefCell<CacheWindow>,
+        pub(super) groups_window: RefCell<GroupsWindow>,
+        pub(super) log_window: RefCell<LogWindow>,
+        pub(super) stats_window: RefCell<StatsWindow>,
 
-        pub(super) config_dialog: OnceCell<ConfigDialog>,
+        pub(super) config_dialog: RefCell<ConfigDialog>,
      }
 
     //---------------------------------------
@@ -213,33 +213,33 @@ mod imp {
 
             // Show window/dialog actions
             klass.install_action("win.show-backup-files", None, |window, _, _| {
-                window.imp().backup_window.get().unwrap().show();
+                window.imp().backup_window.borrow().show();
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
-                window.imp().cache_window.get().unwrap().show();
+                window.imp().cache_window.borrow().show();
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
-                window.imp().groups_window.get().unwrap().show();
+                window.imp().groups_window.borrow().show();
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
-                window.imp().log_window.get().unwrap().show();
+                window.imp().log_window.borrow().show();
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_window.get().unwrap().show(&imp.repo_names.borrow());
+                imp.stats_window.borrow().show(&imp.repo_names.borrow());
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
-                window.imp().config_dialog.get().unwrap().present(Some(window));
+                window.imp().config_dialog.borrow().present(Some(window));
             });
 
             klass.install_action("win.show-preferences", None, |window, _, _| {
-                window.imp().prefs_dialog.get().unwrap().present(Some(window));
+                window.imp().prefs_dialog.borrow().present(Some(window));
             });
 
             //---------------------------------------
@@ -387,7 +387,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_dialogs();
             obj.setup_signals();
 
             obj.bind_gsettings();
@@ -427,32 +426,12 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Setup dialogs
-    //---------------------------------------
-    fn setup_dialogs(&self) {
-        let imp = self.imp();
-
-        // Create preferences dialog
-        imp.prefs_dialog.set(PreferencesDialog::default()).unwrap();
-
-        // Create windows
-        imp.backup_window.set(BackupWindow::new(self)).unwrap();
-        imp.cache_window.set(CacheWindow::new(self)).unwrap();
-        imp.groups_window.set(GroupsWindow::new(self)).unwrap();
-        imp.log_window.set(LogWindow::new(self)).unwrap();
-        imp.stats_window.set(StatsWindow::new(self)).unwrap();
-
-        // Create config dialog
-        imp.config_dialog.set(ConfigDialog::default()).unwrap();
-    }
-
-    //---------------------------------------
     // Resize window helper function
     //---------------------------------------
     fn resize_window(&self) {
         let imp = self.imp();
 
-        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+        let prefs_dialog = imp.prefs_dialog.borrow();
 
         let sidebar_width = prefs_dialog.sidebar_width();
         let infopane_width = prefs_dialog.infopane_width();
@@ -574,7 +553,7 @@ impl PacViewWindow {
             }
         ));
 
-        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+        let prefs_dialog = imp.prefs_dialog.borrow();
 
         // Preferences sidebar width property notify signal
         prefs_dialog.connect_sidebar_width_notify(clone!(
@@ -656,7 +635,7 @@ impl PacViewWindow {
             .build();
 
         // Bind preferences
-        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+        let prefs_dialog = &*imp.prefs_dialog.borrow();
 
         settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
         settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
@@ -767,14 +746,14 @@ impl PacViewWindow {
         *PACMAN_CACHE.lock().unwrap() = cache_files;
 
         // Init config dialog
-        imp.config_dialog.get().unwrap().init(pacman_config);
+        imp.config_dialog.borrow().init(pacman_config);
 
         // Clear windows
-        imp.backup_window.get().unwrap().remove_all();
-        imp.log_window.get().unwrap().remove_all();
-        imp.cache_window.get().unwrap().remove_all();
-        imp.groups_window.get().unwrap().remove_all();
-        imp.stats_window.get().unwrap().remove_all();
+        imp.backup_window.borrow().remove_all();
+        imp.log_window.borrow().remove_all();
+        imp.cache_window.borrow().remove_all();
+        imp.groups_window.borrow().remove_all();
+        imp.stats_window.borrow().remove_all();
 
         // Get paru repo paths
         let xdg_dirs = xdg::BaseDirectories::new();
@@ -819,7 +798,7 @@ impl PacViewWindow {
         // If AUR database download is enabled and AUR file does not exist, download it
         if let Some(file) = aur_file
             .filter(|file| {
-                imp.prefs_dialog.get().unwrap().aur_database_download() && 
+                imp.prefs_dialog.borrow().aur_database_download() &&
                 fs::metadata(file).is_err()
             })
         {
@@ -911,7 +890,7 @@ impl PacViewWindow {
         let pacman_config = &PACMAN_CONFIG;
 
         // Get AUR package names file
-        let aur_download = imp.prefs_dialog.get().unwrap().aur_database_download();
+        let aur_download = imp.prefs_dialog.borrow().aur_database_download();
         let aur_file = imp.aur_file.borrow().to_owned();
         let paru_repo_paths = paru_repo_paths.to_owned();
 
@@ -1048,7 +1027,7 @@ impl PacViewWindow {
                         window.get_package_updates();
 
                         // Check AUR package names file age
-                        let prefs_dialog = imp.prefs_dialog.get().unwrap();
+                        let prefs_dialog = imp.prefs_dialog.borrow();
 
                         let max_file_age = prefs_dialog.aur_database_age() as u64;
 
@@ -1210,7 +1189,7 @@ impl PacViewWindow {
                 #[weak(rename_to = window)] self,
                 async move {
                     while receiver.recv().await == Ok(()) {
-                        if window.imp().prefs_dialog.get().unwrap().auto_refresh() {
+                        if window.imp().prefs_dialog.borrow().auto_refresh() {
                             gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
                                 .unwrap();
 

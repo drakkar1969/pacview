@@ -163,15 +163,6 @@ glib::wrapper! {
 
 impl GroupsWindow {
     //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new(parent: &impl IsA<gtk::Window>) -> Self {
-        glib::Object::builder()
-            .property("transient-for", parent)
-            .build()
-    }
-
-    //---------------------------------------
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
@@ -390,5 +381,14 @@ impl GroupsWindow {
                 imp.model.splice(0, 0, &pkg_list);
             });
         }
+    }
+}
+
+impl Default for GroupsWindow {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
     }
 }
