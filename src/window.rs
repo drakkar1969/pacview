@@ -178,7 +178,7 @@ mod imp {
             });
 
             // Update AUR database action
-            klass.install_action("win.update-aur-database", None, |window, _, _| {
+            klass.install_action_async("win.update-aur-database", None, async |window, _, _| {
                 let imp = window.imp();
 
                 if let Some(aur_file) = imp.aur_file.borrow().to_owned() {
@@ -187,17 +187,11 @@ mod imp {
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
-                    glib::spawn_future_local(clone!(
-                        #[weak] window,
-                        async move {
-                            let _ = aur_file::download_future(&aur_file).await
-                                .expect("Failed to complete tokio task");
+                    let _ = aur_file::download(&aur_file).await;
 
-                            // Refresh packages
-                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                                .unwrap();
-                        }
-                    ));
+                    // Refresh packages
+                    gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                        .unwrap();
                 }
             });
 
@@ -835,8 +829,7 @@ impl PacViewWindow {
             glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,
                 async move {
-                    let _ = aur_file::download_future(&file).await
-                        .expect("Failed to complete tokio task");
+                    let _ = aur_file::download(&file).await;
 
                     window.alpm_load_packages(&paru_repo_paths);
                 }
@@ -1062,8 +1055,7 @@ impl PacViewWindow {
                         if prefs_dialog.aur_database_download() {
                             if let Some(aur_file) = imp.aur_file.borrow().as_ref() {
                                 if aur_file::check_file_age(aur_file, max_file_age) {
-                                    let _ = aur_file::download_future(aur_file).await
-                                        .expect("Failed to complete tokio task");
+                                    let _ = aur_file::download(aur_file).await;
                                 }
                             }
                         }
