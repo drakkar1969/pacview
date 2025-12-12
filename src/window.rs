@@ -181,7 +181,9 @@ mod imp {
             klass.install_action_async("win.update-aur-database", None, async |window, _, _| {
                 let imp = window.imp();
 
-                if let Some(aur_file) = imp.aur_file.borrow().to_owned() {
+                let aur_file = imp.aur_file.borrow().to_owned();
+
+                if let Some(aur_file) = aur_file {
                     imp.update_row.borrow().set_status(Updates::Reset);
                     imp.package_view.set_status(PackageViewStatus::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
@@ -1027,16 +1029,19 @@ impl PacViewWindow {
                         window.get_package_updates();
 
                         // Check AUR package names file age
-                        let prefs_dialog = imp.prefs_dialog.borrow();
+                        let (max_file_age, database_download) = {
+                            let prefs_dialog = imp.prefs_dialog.borrow();
 
-                        let max_file_age = prefs_dialog.aur_database_age() as u64;
+                            (prefs_dialog.aur_database_age() as u64, prefs_dialog.aur_database_download())
+                        };
 
-                        if prefs_dialog.aur_database_download() {
-                            if let Some(aur_file) = imp.aur_file.borrow().as_ref() {
-                                if aur_file::check_file_age(aur_file, max_file_age) {
-                                    let _ = aur_file::download(aur_file).await;
+                        if database_download {
+                            let aur_file = imp.aur_file.borrow().to_owned();
+
+                            if let Some(aur_file) = aur_file
+                                && aur_file::check_file_age(&aur_file, max_file_age) {
+                                    let _ = aur_file::download(&aur_file).await;
                                 }
-                            }
                         }
                     },
                     Err(error) => {
