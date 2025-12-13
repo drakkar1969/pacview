@@ -215,25 +215,25 @@ mod imp {
 
             // Show window/dialog actions
             klass.install_action("win.show-backup-files", None, |window, _, _| {
-                window.imp().backup_window.borrow().show();
+                window.imp().backup_window.borrow().show(window);
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
-                window.imp().cache_window.borrow().show();
+                window.imp().cache_window.borrow().show(window);
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
-                window.imp().groups_window.borrow().show();
+                window.imp().groups_window.borrow().show(window);
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
-                window.imp().log_window.borrow().show();
+                window.imp().log_window.borrow().show(window);
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_window.borrow().show(&imp.repo_names.borrow());
+                imp.stats_window.borrow().show(window, &imp.repo_names.borrow());
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {

@@ -280,10 +280,11 @@ impl CacheWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self) {
+    pub fn show(&self, parent: &impl IsA<gtk::Window>) {
         let imp = self.imp();
 
         self.present();
+        self.set_transient_for(Some(parent));
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
