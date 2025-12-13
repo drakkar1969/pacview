@@ -378,27 +378,22 @@ impl GroupsWindow {
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            glib::idle_add_local_once(clone!(
-                #[weak] imp,
-                move || {
-                    PKGS.with_borrow(|pkgs| {
-                        // Get list of packages with groups
-                        let pkg_list: Vec<GroupsObject> = pkgs.iter()
-                            .filter(|&pkg| !pkg.groups().is_empty())
-                            .flat_map(|pkg| {
-                                pkg.groups().split(" | ")
-                                    .map(|group| {
-                                        GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
-                                    })
-                                    .collect::<Vec<GroupsObject>>()
+            PKGS.with_borrow(|pkgs| {
+                // Get list of packages with groups
+                let pkg_list: Vec<GroupsObject> = pkgs.iter()
+                    .filter(|&pkg| !pkg.groups().is_empty())
+                    .flat_map(|pkg| {
+                        pkg.groups().split(" | ")
+                            .map(|group| {
+                                GroupsObject::new(&pkg.name(), &pkg.status(), &pkg.status_icon_symbolic(), group)
                             })
-                            .collect();
+                            .collect::<Vec<GroupsObject>>()
+                    })
+                    .collect();
 
-                        // Populate column view
-                        imp.model.splice(0, 0, &pkg_list);
-                    });
-                }
-            ));
+                // Populate column view
+                imp.model.splice(0, 0, &pkg_list);
+            });
         }
     }
 }

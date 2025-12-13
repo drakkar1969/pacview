@@ -290,44 +290,37 @@ impl LogWindow {
             }
 
             // Read log lines
-            glib::idle_add_local_once(clone!(
-                #[weak] imp,
-                move || {
-                    let pacman_log = PACMAN_LOG.read().unwrap();
+            let log_lines: Vec<LogLine> = PACMAN_LOG.read().unwrap().as_ref().map_or(vec![], |log| {
+                // Strip ANSI control sequences from log
+                static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
+                });
 
-                    let log_lines: Vec<LogLine> = pacman_log.as_ref().map_or(vec![], |log| {
-                        // Strip ANSI control sequences from log
-                        static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
-                        });
+                let log = ANSI_EXPR.replace_all(log, "");
 
-                        let log = ANSI_EXPR.replace_all(log, "");
+                // Parse log lines
+                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Failed to compile Regex")
+                });
 
-                        // Parse log lines
-                        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                            Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Failed to compile Regex")
-                        });
-
-                        log.par_lines()
-                            .filter_map(|line| {
-                                EXPR.captures(line)
-                                    .map(|caps| LogLine {
-                                        date: caps[1].to_string(),
-                                        time: caps[2].to_string(),
-                                        category: caps[3].to_string(),
-                                        message: caps[4].to_string()
-                                    })
+                log.par_lines()
+                    .filter_map(|line| {
+                        EXPR.captures(line)
+                            .map(|caps| LogLine {
+                                date: caps[1].to_string(),
+                                time: caps[2].to_string(),
+                                category: caps[3].to_string(),
+                                message: caps[4].to_string()
                             })
-                            .collect()
-                    });
+                    })
+                    .collect()
+            });
 
-                    // Populate column view
-                    imp.model.splice(0, 0, &log_lines.iter().rev()
-                        .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
-                        .collect::<Vec<LogObject>>()
-                    );
-                }
-            ));
+            // Populate column view
+            imp.model.splice(0, 0, &log_lines.iter().rev()
+                .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
+                .collect::<Vec<LogObject>>()
+            );
         }
     }
 }

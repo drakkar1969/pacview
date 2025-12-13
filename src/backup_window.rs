@@ -479,25 +479,20 @@ impl BackupWindow {
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
+            INSTALLED_PKGS.with_borrow(|installed_pkgs| {
+                // Get backup list
+                let backup_list: Vec<BackupObject> = installed_pkgs.iter()
+                    .flat_map(|pkg| {
+                        pkg.backup().iter().map(BackupObject::new)
+                    })
+                    .collect();
+
+                // Populate column view
+                imp.model.splice(0, 0, &backup_list);
+            });
+
             // Set status dropdown selected item
             imp.status_dropdown.set_selected(0);
-
-            glib::idle_add_local_once(clone!(
-                #[weak] imp,
-                move || {
-                    INSTALLED_PKGS.with_borrow(|installed_pkgs| {
-                        // Get backup list
-                        let backup_list: Vec<BackupObject> = installed_pkgs.iter()
-                            .flat_map(|pkg| {
-                                pkg.backup().iter().map(BackupObject::new)
-                            })
-                            .collect();
-
-                        // Populate column view
-                        imp.model.splice(0, 0, &backup_list);
-                    });
-                }
-            ));
         }
     }
 }

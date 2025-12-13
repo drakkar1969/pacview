@@ -296,6 +296,12 @@ impl CacheWindow {
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
+            // Get cache files
+            imp.model.splice(0, 0, &PACMAN_CACHE.read().unwrap().iter()
+                .map(|file| CacheObject::new(&file.display().to_string()))
+                .collect::<Vec<CacheObject>>()
+            );
+
             // Get cache size
             let mut cache_size = 0;
 
@@ -304,17 +310,6 @@ impl CacheWindow {
             }
 
             imp.header_size_label.set_label(&Size::from_bytes(cache_size).to_string());
-
-            glib::idle_add_local_once(clone!(
-                #[weak] imp,
-                move || {
-                    // Get cache files
-                    imp.model.splice(0, 0, &PACMAN_CACHE.read().unwrap().iter()
-                        .map(|file| CacheObject::new(&file.display().to_string()))
-                        .collect::<Vec<CacheObject>>()
-                    );
-                }
-            ));
         }
     }
 }
