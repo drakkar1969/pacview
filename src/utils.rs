@@ -21,24 +21,20 @@ pub mod tokio_runtime {
 // MODULE: AsyncCommand
 //------------------------------------------------------------------------------
 pub mod async_command {
-    use std::io;
+    use std::ffi::OsStr;
+    use std::io::{Result, Error};
 
     //---------------------------------------
     // Run function
     //---------------------------------------
-    pub async fn run(cmd_line: &str) -> io::Result<(Option<i32>, String)> {
-        // Parse command line
-        let params = shlex::split(cmd_line);
-
-        let (cmd, args) = params.as_ref()
-            .and_then(|params| params.split_first())
-            .ok_or_else(|| io::Error::new(io::ErrorKind::InvalidInput, "Failed to parse command"))?;
-
-        // Run external command
-        let output = async_process::Command::new(cmd).args(args).output().await?;
+    pub async fn run(cmd: impl AsRef<OsStr>, args: &[&str]) -> Result<(Option<i32>, String)> {
+        let output = async_process::Command::new(cmd)
+            .args(args)
+            .output()
+            .await?;
 
         let stdout = String::from_utf8(output.stdout)
-            .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+            .map_err(|error| Error::other(error))?;
 
         Ok((output.status.code(), stdout))
     }

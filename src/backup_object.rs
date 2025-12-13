@@ -139,10 +139,9 @@ impl BackupObject {
 
         // Download original file with paccat
         let paccat_cmd = PACCAT_PATH.as_ref()
-            .map(|path| format!("{} {} -- {}", path.display(), self.package(), filename))
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
-        let (status, content) = async_command::run(&paccat_cmd).await?;
+        let (status, content) = async_command::run(paccat_cmd, &[&self.package(), "--", &filename]).await?;
 
         if status != Some(0) {
             return Err(io::Error::other("Paccat error"))
@@ -157,10 +156,9 @@ impl BackupObject {
 
         // Compare file with original
         let meld_cmd = MELD_PATH.as_ref()
-            .map(|path| format!("{} {} {}", path.display(), tmp_filename, filename))
             .map_err(|_| io::Error::other("Meld not found"))?;
 
-        let (status, _) = async_command::run(&meld_cmd).await?;
+        let (status, _) = async_command::run(meld_cmd, &[&tmp_filename, &filename]).await?;
 
         if status == Some(0) {
             Ok(())

@@ -1601,7 +1601,6 @@ dependencies = [
  "rayon",
  "regex",
  "reqwest 0.12.23",
- "shlex",
  "size",
  "sourceview5",
  "strum",

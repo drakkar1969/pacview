@@ -1079,15 +1079,12 @@ impl PacViewWindow {
                 let mut update_str = String::new();
                 let mut error_msg: Option<String> = None;
 
-                let aur_command = PARU_PATH.as_ref()
-                    .map(|path| path.display().to_string() + " -Qu --mode=ap");
-
                 // Check for pacman updates async
-                let pacman_handle = async_command::run("/usr/bin/checkupdates");
+                let pacman_handle = async_command::run("/usr/bin/checkupdates", &[]);
 
-                let (pacman_res, aur_res) = if let Ok(aur_command) = aur_command {
+                let (pacman_res, aur_res) = if let Ok(paru_path) = PARU_PATH.as_ref() {
                     // Check for AUR updates async
-                    let aur_handle = async_command::run(&aur_command);
+                    let aur_handle = async_command::run(paru_path, &["-Qu", "--mode=ap"]);
 
                     join!(pacman_handle, aur_handle)
                 } else {
