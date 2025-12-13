@@ -812,11 +812,11 @@ impl PacViewWindow {
                 async move {
                     let _ = aur_file::download(&file).await;
 
-                    window.alpm_load_packages(&paru_repo_paths);
+                    window.alpm_load_packages(paru_repo_paths);
                 }
             ));
         } else {
-            self.alpm_load_packages(&paru_repo_paths);
+            self.alpm_load_packages(paru_repo_paths);
         }
     }
 
@@ -885,7 +885,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, paru_repo_paths: &[PathBuf]) {
+    fn alpm_load_packages(&self, paru_repo_paths: Vec<PathBuf>) {
         let imp = self.imp();
 
         // Get pacman config
@@ -894,7 +894,6 @@ impl PacViewWindow {
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
         let aur_file = imp.aur_file.borrow().to_owned();
-        let paru_repo_paths = paru_repo_paths.to_owned();
 
         // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
@@ -902,34 +901,34 @@ impl PacViewWindow {
             let handle = alpm_utils::alpm_with_conf(pacman_config)?;
 
             // Load AUR package names from file if AUR download is enabled in preferences
-            let aur_names: Option<Vec<String>> = aur_file
-                .filter(|_| aur_download)
-                .and_then(|aur_file| fs::read(aur_file).ok())
-                .map(|bytes| {
-                    String::from_utf8_lossy(&bytes).lines().map(ToOwned::to_owned).collect()
-                });
+            let aur_names: HashSet<String> = if aur_download {
+                aur_file
+                    .and_then(|aur_file| fs::read_to_string(aur_file).ok())
+                    .map(|s| s.lines().map(ToOwned::to_owned).collect())
+                    .unwrap_or_default()
+            } else {
+                HashSet::default()
+            };
 
             // Get custom paru repo package map
-            let paru_map: Option<HashMap<String, &str>> = (!paru_repo_paths.is_empty()).then(|| {
-                paru_repo_paths.iter()
-                    .flat_map(|repo| {
-                        fs::read_dir(repo).ok()
-                            .map_or_else(HashMap::default, |read_dir| {
-                                let repo_name = repo.file_name()
-                                    .and_then(|s| s.to_str())
-                                    .unwrap_or_default();
+            let paru_map: HashMap<String, &str> = paru_repo_paths.iter()
+                .flat_map(|repo| {
+                    let repo_name = repo.file_name()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or_default();
 
-                                read_dir.into_iter()
-                                    .flatten()
-                                    .map(|entry| {
-                                        (entry.file_name().into_string().unwrap_or_default(),
-                                        repo_name)
-                                    })
-                                    .collect::<HashMap<_, _>>()
-                            })
-                    })
-                    .collect()
-            });
+                    fs::read_dir(repo)
+                        .map_or_else(|_| HashMap::default(), |read_dir| {
+                            read_dir.into_iter()
+                                .flatten()
+                                .map(|entry| {
+                                    (entry.file_name().into_string().unwrap_or_default(),
+                                    repo_name)
+                                })
+                                .collect::<HashMap<_, _>>()
+                        })
+                })
+                .collect();
 
             let syncdbs = handle.syncdbs();
             let localdb = handle.localdb();
@@ -941,9 +940,7 @@ impl PacViewWindow {
                         .map(|sync_pkg| {
                             let local_pkg = localdb.pkg(sync_pkg.name()).ok();
 
-                            let repository = sync_pkg.db().map(alpm::Db::name).unwrap_or_default();
-
-                            PkgData::from_alpm(sync_pkg, local_pkg, repository)
+                            PkgData::from_alpm(sync_pkg, local_pkg, db.name())
                         })
                 })
                 .collect();
@@ -952,11 +949,9 @@ impl PacViewWindow {
             pkg_data.extend(localdb.pkgs().iter()
                 .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
                 .map(|pkg| {
-                    let repository = paru_map.as_ref()
-                        .and_then(|map| map.get(pkg.name()))
+                    let repository = paru_map.get(pkg.name())
                         .map_or_else(|| {
-                            if aur_names.as_ref()
-                                .is_some_and(|names| names.iter().any(|name| name == pkg.name()))
+                            if aur_names.contains(pkg.name())
                             {
                                 "aur"
                             } else {
