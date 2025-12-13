@@ -454,7 +454,7 @@ impl PkgObject {
                     let root_dir = &PACMAN_CONFIG.root_dir;
 
                     let mut files: Vec<String> = pkg.files().files().iter()
-                        .map(|file| root_dir.to_owned() + file.name())
+                        .map(|file| root_dir.to_owned() + &String::from_utf8_lossy(&file.name()))
                         .collect();
 
                     files.par_sort_unstable();

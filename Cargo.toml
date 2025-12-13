@@ -7,11 +7,11 @@ edition = "2024"
 
 [dependencies]
 adw = { version = "0.8", package = "libadwaita", features = ["v1_8"] }
-alpm = "4"
-alpm-utils = "4"
+alpm = "5"
+alpm-utils = "5"
 async-channel = "2"
 async-process = "2"
-fancy-regex = "0.16"
+fancy-regex = "0.17"
 flate2 = "1"
 fs_extra = "1.3"
 futures = "0.3"

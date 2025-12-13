@@ -396,7 +396,7 @@ impl PreferencesDialog {
                 reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
                 reset_dialog.choose(
-                    &dialog,
+                    Some(&dialog),
                     None::<&gio::Cancellable>,
                     move |response| {
                         if response == "reset" {
