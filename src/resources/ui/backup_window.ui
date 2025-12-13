@@ -155,7 +155,7 @@
             <child>
               <object class="GtkOverlay">
                 <child>
-                  <object class="GtkScrolledWindow">
+                  <object class="GtkScrolledWindow" id="scroll_window">
                     <property name="hscrollbar-policy">never</property>
                     <property name="hexpand">true</property>
                     <property name="vexpand">true</property>
