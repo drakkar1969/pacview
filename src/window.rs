@@ -1163,7 +1163,9 @@ impl PacViewWindow {
         let mut debouncer = new_debouncer(Duration::from_secs(2), None, move |result: DebounceEventResult| {
             if let Ok(events) = result {
                 for event in events {
-                    if event.kind.is_create() || event.kind.is_modify() || event.kind.is_remove() {
+                    let kind = event.kind;
+
+                    if kind.is_create() || kind.is_modify() || kind.is_remove() {
                         sender.send_blocking(())
                             .expect("Failed to send through channel");
 
