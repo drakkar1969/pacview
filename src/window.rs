@@ -785,10 +785,11 @@ impl PacViewWindow {
             .chain([String::from("aur"), String::from("local")])
             .collect();
 
-        imp.repo_names.replace(repo_names);
-
         // Populate sidebar
-        self.alpm_populate_sidebar(first_load);
+        self.alpm_populate_sidebar(&repo_names, first_load);
+
+        // Store repo names
+        imp.repo_names.replace(repo_names);
 
         // Get AUR file (create cache dir)
         let aur_file = xdg_dirs.create_cache_directory("pacview")
@@ -823,7 +824,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: populate sidebar
     //---------------------------------------
-    fn alpm_populate_sidebar(&self, first_load: bool) {
+    fn alpm_populate_sidebar(&self, repo_names: &[String], first_load: bool) {
         let imp = self.imp();
 
         // Add repository rows (enumerate pacman repositories)
@@ -841,7 +842,7 @@ impl PacViewWindow {
 
         imp.all_repo_row.replace(all_row);
 
-        for repo in &*imp.repo_names.borrow() {
+        for repo in repo_names {
             let label = if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() };
 
             let row = FilterRow::new("repository-symbolic", &label, Some(repo), PkgFlags::empty());
