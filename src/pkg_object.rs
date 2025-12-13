@@ -488,7 +488,7 @@ impl PkgObject {
     //---------------------------------------
     // Public future getters from alpm package
     //---------------------------------------
-    pub fn log_future(&self) -> impl Future<Output = &Vec<String>> + '_ {
+    pub async fn log_future(&self) -> &Vec<String> {
         self.imp().log.get_or_init(async || {
             let pkg_name = self.name();
 
@@ -508,9 +508,10 @@ impl PkgObject {
             .await
             .expect("Failed to complete task")
         })
+        .await
     }
 
-    pub fn cache_future(&self) -> impl Future<Output = &Vec<String>> + '_ {
+    pub async fn cache_future(&self) -> &Vec<String> {
         self.imp().cache.get_or_init(async || {
             let pkg_name = self.name();
 
@@ -534,6 +535,7 @@ impl PkgObject {
             .await
             .expect("Failed to complete task")
         })
+        .await
     }
 
     //---------------------------------------
