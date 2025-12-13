@@ -747,10 +747,10 @@ impl InfoPane {
         self.set_info_row(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
         // Out of Date
-        self.set_info_row(PropID::OutOfDate, ValueType::StrOptNum(pkg.out_of_date_string(), pkg.out_of_date()));
+        self.set_info_row(PropID::OutOfDate, ValueType::StrOptNum(&pkg.out_of_date_string(), pkg.out_of_date()));
 
         // Package URL
-        self.set_info_row(PropID::PackageUrl, ValueType::StrOpt(pkg.package_url()));
+        self.set_info_row(PropID::PackageUrl, ValueType::StrOpt(&pkg.package_url()));
 
         // URL
         self.set_info_row(PropID::Url, ValueType::StrOpt(pkg.url()));
@@ -805,13 +805,13 @@ impl InfoPane {
         self.set_info_row(PropID::Packager, ValueType::Str(pkg.packager()));
 
         // Build date
-        self.set_info_row(PropID::BuildDate, ValueType::StrOptNum(pkg.build_date_string(), pkg.build_date()));
+        self.set_info_row(PropID::BuildDate, ValueType::StrOptNum(&pkg.build_date_string(), pkg.build_date()));
 
         // Install date
-        self.set_info_row(PropID::InstallDate, ValueType::StrOptNum(pkg.install_date_string(), pkg.install_date()));
+        self.set_info_row(PropID::InstallDate, ValueType::StrOptNum(&pkg.install_date_string(), pkg.install_date()));
 
         // Download size
-        self.set_info_row(PropID::DownloadSize, ValueType::StrOptNum(pkg.download_size_string(), pkg.download_size()));
+        self.set_info_row(PropID::DownloadSize, ValueType::StrOptNum(&pkg.download_size_string(), pkg.download_size()));
 
         // Installed size
         self.set_info_row(PropID::InstalledSize, ValueType::Str(&pkg.install_size_string()));

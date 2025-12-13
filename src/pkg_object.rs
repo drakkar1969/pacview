@@ -92,21 +92,11 @@ mod imp {
         pub(super) data: OnceCell<PkgData>,
 
         // Read only fields
-        pub(super) package_url: OnceCell<String>,
-        pub(super) pkgbuild_urls: OnceCell<(String, String)>,
-        pub(super) out_of_date_string: OnceCell<String>,
-        pub(super) install_date_string: OnceCell<String>,
-        pub(super) build_date_string: OnceCell<String>,
-        pub(super) download_size_string: OnceCell<String>,
-
         pub(super) required_by: OnceCell<Vec<String>>,
         pub(super) optional_for: OnceCell<Vec<String>>,
 
         pub(super) files: OnceCell<Vec<String>>,
         pub(super) backup: OnceCell<Vec<PkgBackup>>,
-        pub(super) base64_sig: OnceCell<String>,
-        pub(super) sha256sum: OnceCell<String>,
-        pub(super) md5sum: OnceCell<String>,
 
         pub(super) log: TokioOnceCell<Vec<String>>,
         pub(super) cache: TokioOnceCell<Vec<String>>,
@@ -242,73 +232,67 @@ impl PkgObject {
         self.imp().data.get().unwrap().out_of_date
     }
 
-    pub fn out_of_date_string(&self) -> &str {
-        self.imp().out_of_date_string.get_or_init(|| {
-            Self::date_to_string(self.imp().data.get().unwrap().out_of_date, "%d %B %Y %H:%M")
-        })
+    pub fn out_of_date_string(&self) -> String {
+        Self::date_to_string(self.imp().data.get().unwrap().out_of_date, "%d %B %Y %H:%M")
     }
 
-    pub fn package_url(&self) -> &str {
-        self.imp().package_url.get_or_init(|| {
-            let data = self.imp().data.get().unwrap();
+    pub fn package_url(&self) -> String {
+        let data = self.imp().data.get().unwrap();
 
-            let repo = &data.repository;
+        let repo = &data.repository;
 
-            if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
-                format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}/",
-                    arch=data.architecture,
-                    name=data.name
-                )
-            } else if repo == "aur" {
-                format!("https://aur.archlinux.org/packages/{name}",
-                    name=data.name
-                )
-            } else {
-                String::new()
-            }
-        })
+        if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
+            format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}/",
+                arch=data.architecture,
+                name=data.name
+            )
+        } else if repo == "aur" {
+            format!("https://aur.archlinux.org/packages/{name}",
+                name=data.name
+            )
+        } else {
+            String::new()
+        }
     }
 
-    pub fn pkgbuild_urls(&self) -> &(String, String) {
-        self.imp().pkgbuild_urls.get_or_init(|| {
-            let data = self.imp().data.get().unwrap();
+    pub fn pkgbuild_urls(&self) -> (String, String) {
+        let data = self.imp().data.get().unwrap();
 
-            let name = if data.base.is_empty() {
-                &data.name
-            } else {
-                &data.base
-            };
+        let name = if data.base.is_empty() {
+            &data.name
+        } else {
+            &data.base
+        };
 
-            let repo = &data.repository;
+        let repo = &data.repository;
 
-            if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
-                let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
+        if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
+            let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
 
-                let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
-                let raw_url = format!("{domain}/{name}/-/raw/main/PKGBUILD");
+            let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
+            let raw_url = format!("{domain}/{name}/-/raw/main/PKGBUILD");
 
-                (url, raw_url)
-            } else if repo == "aur" {
-                let domain = "https://aur.archlinux.org/cgit/aur.git";
+            (url, raw_url)
+        } else if repo == "aur" {
+            let domain = "https://aur.archlinux.org/cgit/aur.git";
 
-                let url = format!("{domain}/tree/PKGBUILD?h={name}");
-                let raw_url = format!("{domain}/plain/PKGBUILD?h={name}");
+            let url = format!("{domain}/tree/PKGBUILD?h={name}");
+            let raw_url = format!("{domain}/plain/PKGBUILD?h={name}");
 
-                (url, raw_url)
-            } else if repo != "local" {
-                let raw_url = PARU_PATH.as_ref().ok()
-                    .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
-                    .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
-                    .map(|path| path.display().to_string())
-                    .unwrap_or_default();
+            (url, raw_url)
+        } else if repo != "local" {
+            let raw_url = PARU_PATH.as_ref().ok()
+                .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
+                .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
+                .map(|path| path.display().to_string())
+                .unwrap_or_default();
 
-                let url = format!("file://{raw_url}");
+            let url = format!("file://{raw_url}");
 
-                (url, raw_url)
-            } else {
-                (String::new(), String::new())
-            }
-        })
+            (url, raw_url)
+        } else {
+            (String::new(), String::new())
+        }
     }
 
     pub fn url(&self) -> &str {
@@ -355,30 +339,24 @@ impl PkgObject {
         self.imp().data.get().unwrap().install_date
     }
 
-    pub fn install_date_string(&self) -> &str {
-        self.imp().install_date_string.get_or_init(|| {
-            Self::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
-        })
+    pub fn install_date_string(&self) -> String {
+        Self::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
     }
 
     pub fn build_date(&self) -> i64 {
         self.imp().data.get().unwrap().build_date
     }
 
-    pub fn build_date_string(&self) -> &str {
-        self.imp().build_date_string.get_or_init(|| {
-            Self::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
-        })
+    pub fn build_date_string(&self) -> String {
+        Self::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
     }
 
     pub fn download_size(&self) -> i64 {
         self.imp().data.get().unwrap().download_size
     }
 
-    pub fn download_size_string(&self) -> &str {
-        self.imp().download_size_string.get_or_init(|| {
-            Size::from_bytes(self.imp().data.get().unwrap().download_size).to_string()
-        })
+    pub fn download_size_string(&self) -> String {
+        Size::from_bytes(self.imp().data.get().unwrap().download_size).to_string()
     }
 
     pub fn has_script(&self) -> &str {
@@ -489,30 +467,21 @@ impl PkgObject {
     }
 
     pub fn base64_sig(&self) -> &str {
-        self.imp().base64_sig.get_or_init(|| {
-            self.sync_pkg()
-                .and_then(|pkg| pkg.base64_sig())
-                .unwrap_or_default()
-                .to_owned()
-        })
+        self.sync_pkg()
+            .and_then(|pkg| pkg.base64_sig())
+            .unwrap_or_default()
     }
 
     pub fn sha256sum(&self) -> &str {
-        self.imp().sha256sum.get_or_init(|| {
-            self.sync_pkg()
-                .and_then(|pkg| pkg.sha256sum())
-                .unwrap_or_default()
-                .to_owned()
-        })
+        self.sync_pkg()
+            .and_then(|pkg| pkg.sha256sum())
+            .unwrap_or_default()
     }
 
     pub fn md5sum(&self) -> &str {
-        self.imp().md5sum.get_or_init(|| {
-            self.sync_pkg()
-                .and_then(|pkg| pkg.md5sum())
-                .unwrap_or_default()
-                .to_owned()
-        })
+        self.sync_pkg()
+            .and_then(|pkg| pkg.md5sum())
+            .unwrap_or_default()
     }
 
     //---------------------------------------
