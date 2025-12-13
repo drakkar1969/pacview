@@ -142,6 +142,7 @@ pub mod pango_utils {
 
     use gtk::{glib, pango};
     use gtk::prelude::{ToValue, WidgetExt};
+    use pango::{FontDescription, FontMask, Weight};
 
     //---------------------------------------
     // Pango color from style
@@ -167,40 +168,40 @@ pub mod pango_utils {
     pub fn font_str_to_css(font_str: &str) -> String {
         let mut css = String::new();
         
-        let font_desc = pango::FontDescription::from_string(font_str);
+        let font_desc = FontDescription::from_string(font_str);
 
         let mask = font_desc.set_fields();
 
-        if mask.contains(pango::FontMask::FAMILY)
+        if mask.contains(FontMask::FAMILY)
             && let Some(family) = font_desc.family() {
                 write!(css, "font-family: {family}; ").unwrap();
             }
 
-        if mask.contains(pango::FontMask::SIZE) {
+        if mask.contains(FontMask::SIZE) {
             let font_size = font_desc.size()/pango::SCALE;
 
             write!(css, "font-size: {}pt; ", font_size.max(0)).unwrap();
         }
 
-        if mask.contains(pango::FontMask::WEIGHT) {
+        if mask.contains(FontMask::WEIGHT) {
             let weight = match font_desc.weight() {
-                pango::Weight::Normal => "normal",
-                pango::Weight::Bold => "bold",
-                pango::Weight::Thin => "100",
-                pango::Weight::Ultralight => "200",
-                pango::Weight::Light | pango::Weight::Semilight => "300",
-                pango::Weight::Book => "400",
-                pango::Weight::Medium => "500",
-                pango::Weight::Semibold => "600",
-                pango::Weight::Ultrabold => "800",
-                pango::Weight::Heavy | pango::Weight::Ultraheavy => "900",
+                Weight::Normal => "normal",
+                Weight::Bold => "bold",
+                Weight::Thin => "100",
+                Weight::Ultralight => "200",
+                Weight::Light | Weight::Semilight => "300",
+                Weight::Book => "400",
+                Weight::Medium => "500",
+                Weight::Semibold => "600",
+                Weight::Ultrabold => "800",
+                Weight::Heavy | Weight::Ultraheavy => "900",
                 _ => unreachable!()
             };
 
             write!(css, "font-weight: {weight}; ").unwrap();
         }
 
-        if mask.contains(pango::FontMask::STYLE)
+        if mask.contains(FontMask::STYLE)
             && let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style()
                 .to_value()) {
                 write!(css, "font-style: {}; ", value.nick()).unwrap();
@@ -215,16 +216,17 @@ pub mod pango_utils {
 //------------------------------------------------------------------------------
 pub mod style_schemes {
     use gtk::glib;
+    use sourceview5::{StyleScheme, StyleSchemeManager};
 
     //-----------------------------------
     // Is variant dark functions
     //-----------------------------------
-    pub fn is_variant_dark(scheme: &sourceview5::StyleScheme) -> bool {
+    pub fn is_variant_dark(scheme: &StyleScheme) -> bool {
         scheme.metadata("variant").is_some_and(|variant| variant == "dark")
     }
 
     pub fn is_variant_dark_by_id(id: &str) -> bool {
-        sourceview5::StyleSchemeManager::default()
+        StyleSchemeManager::default()
             .scheme(id)
             .is_some_and(|scheme| is_variant_dark(&scheme))
     }
@@ -233,7 +235,7 @@ pub mod style_schemes {
     // Variant function
     //-----------------------------------
     pub fn variant_id(id: &str) -> Option<glib::GString> {
-        let scheme_manager = sourceview5::StyleSchemeManager::default();
+        let scheme_manager = StyleSchemeManager::default();
 
         let scheme = scheme_manager.scheme(id)?;
 
@@ -249,8 +251,8 @@ pub mod style_schemes {
     //-----------------------------------
     // Schemes function
     //-----------------------------------
-    pub fn schemes(dark: bool) -> Vec<sourceview5::StyleScheme> {
-        let scheme_manager = sourceview5::StyleSchemeManager::default();
+    pub fn schemes(dark: bool) -> Vec<StyleScheme> {
+        let scheme_manager = StyleSchemeManager::default();
 
         scheme_manager
             .scheme_ids()
@@ -259,6 +261,6 @@ pub mod style_schemes {
                 scheme_manager.scheme(id)
                     .filter(|scheme| is_variant_dark(scheme) == dark)
             })
-            .collect::<Vec<sourceview5::StyleScheme>>()
+            .collect::<Vec<StyleScheme>>()
     }
 }
