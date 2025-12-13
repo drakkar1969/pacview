@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::cell::{RefCell, OnceCell};
 use std::rc::Rc;
 use std::cmp::Ordering;
@@ -232,26 +233,26 @@ impl PkgObject {
         self.imp().data.get().unwrap().out_of_date
     }
 
-    pub fn out_of_date_string(&self) -> String {
+    pub fn out_of_date_string(&self) -> Cow<'_, str> {
         Self::date_to_string(self.imp().data.get().unwrap().out_of_date, "%d %B %Y %H:%M")
     }
 
-    pub fn package_url(&self) -> String {
+    pub fn package_url(&self) -> Cow<'_, str> {
         let data = self.imp().data.get().unwrap();
 
         let repo = &data.repository;
 
         if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
-            format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}/",
+            Cow::Owned(format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}/",
                 arch=data.architecture,
                 name=data.name
-            )
+            ))
         } else if repo == "aur" {
-            format!("https://aur.archlinux.org/packages/{name}",
+            Cow::Owned(format!("https://aur.archlinux.org/packages/{name}",
                 name=data.name
-            )
+            ))
         } else {
-            String::new()
+            Cow::Borrowed("")
         }
     }
 
@@ -339,7 +340,7 @@ impl PkgObject {
         self.imp().data.get().unwrap().install_date
     }
 
-    pub fn install_date_string(&self) -> String {
+    pub fn install_date_string(&self) -> Cow<'_, str> {
         Self::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
     }
 
@@ -347,7 +348,7 @@ impl PkgObject {
         self.imp().data.get().unwrap().build_date
     }
 
-    pub fn build_date_string(&self) -> String {
+    pub fn build_date_string(&self) -> Cow<'_, str> {
         Self::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
     }
 
@@ -538,14 +539,14 @@ impl PkgObject {
     //---------------------------------------
     // Date to string associated function
     //---------------------------------------
-    pub fn date_to_string(date: i64, format: &str) -> String {
+    pub fn date_to_string(date: i64, format: &str) -> Cow<'_, str> {
         if date == 0 {
-            String::new()
+            Cow::Borrowed("")
         } else {
-            glib::DateTime::from_unix_local(date)
+            Cow::Owned(glib::DateTime::from_unix_local(date)
                 .and_then(|datetime| datetime.format(format))
                 .expect("Failed to format DateTime")
-                .to_string()
+                .to_string())
         }
     }
 
