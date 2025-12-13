@@ -34,7 +34,7 @@ pub mod async_command {
             .await?;
 
         let stdout = String::from_utf8(output.stdout)
-            .map_err(|error| Error::other(error))?;
+            .map_err(Error::other)?;
 
         Ok((output.status.code(), stdout))
     }

@@ -181,8 +181,6 @@ impl SourceWindow {
                 let result = if raw_url.is_empty() {
                     Err(String::from("PKGBUILD not available"))
                 } else if raw_url.starts_with("https://") {
-                    let raw_url = raw_url.to_owned();
-
                     tokio_runtime::runtime().spawn(
                         async move {
                             let client = reqwest::Client::builder()

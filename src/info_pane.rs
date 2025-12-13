@@ -698,9 +698,9 @@ impl InfoPane {
                         .and_then(|(name, _)| PkgObject::has_local_satisfier(name))
                         .unwrap_or_default()
                     {
-                        dep.to_string() + INSTALLED_LABEL
+                        dep.to_owned() + INSTALLED_LABEL
                     } else {
-                        dep.to_string()
+                        dep.to_owned()
                     }
                 })
                 .collect()

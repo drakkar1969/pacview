@@ -130,8 +130,8 @@ mod imp {
             let version = &self.data.get().unwrap().version;
 
             self.update_version.borrow().as_ref()
-                .map_or_else(|| version.to_string(), |update_version| {
-                    version.to_string() + " \u{2192} " + update_version
+                .map_or_else(|| version.to_owned(), |update_version| {
+                    version.to_owned() + " \u{2192} " + update_version
                 })
         }
 
@@ -433,7 +433,7 @@ impl PkgObject {
                     let root_dir = &PACMAN_CONFIG.root_dir;
 
                     let mut files: Vec<String> = pkg.files().files().iter()
-                        .map(|file| root_dir.to_owned() + &String::from_utf8_lossy(&file.name()))
+                        .map(|file| root_dir.to_owned() + &String::from_utf8_lossy(file.name()))
                         .collect();
 
                     files.par_sort_unstable();
