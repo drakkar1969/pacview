@@ -119,87 +119,8 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            //---------------------------------------
-            // Add class actions
-            //---------------------------------------
-            // Selection actions
-            klass.install_action("text.select-all", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                imp.selection_start.set(Some(0));
-                imp.selection_end.set(Some(widget.text().len()));
-
-                widget.set_has_selection(true);
-
-                imp.draw_area.queue_draw();
-            });
-
-            klass.install_action("text.select-none", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                imp.selection_start.set(None);
-                imp.selection_end.set(None);
-
-                widget.set_has_selection(false);
-
-                imp.draw_area.queue_draw();
-            });
-
-            // Copy action
-            klass.install_action("text.copy", None, |widget, _, _| {
-                if let Some(text) = widget.selected_text() {
-                    widget.clipboard().set_text(&text);
-                }
-            });
-
-            // Expand/contract actions
-            klass.install_action("text.expand", None, |widget, _, _| {
-                if widget.can_expand() && !widget.expanded() {
-                    widget.set_expanded(true);
-                }
-            });
-
-            klass.install_action("text.contract", None, |widget, _, _| {
-                if widget.can_expand() && widget.expanded() {
-                    widget.set_expanded(false);
-                }
-            });
-
-            // Link actions
-            klass.install_action("text.previous-link", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                if let Some(new_index) = imp.focus_link_index.get()
-                    .and_then(|i| i.checked_sub(1))
-                {
-                    imp.focus_link_index.set(Some(new_index));
-
-                    imp.draw_area.queue_draw();
-                }
-            });
-
-            klass.install_action("text.next-link", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                let link_list = imp.link_list.borrow();
-
-                if let Some(new_index) = imp.focus_link_index.get()
-                    .and_then(|i| i.checked_add(1))
-                    .filter(|&i| link_list.get(i)
-                        .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
-                    )
-                {
-                    imp.focus_link_index.set(Some(new_index));
-
-                    imp.draw_area.queue_draw();
-                }
-            });
-
-            klass.install_action("text.activate-link", None, |widget, _, _| {
-                if let Some(focus_link) = widget.focus_link() {
-                    widget.handle_link(&focus_link);
-                }
-            });
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -327,6 +248,90 @@ mod imp {
     }
 
     impl TextWidget {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Selection actions
+            klass.install_action("text.select-all", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                imp.selection_start.set(Some(0));
+                imp.selection_end.set(Some(widget.text().len()));
+
+                widget.set_has_selection(true);
+
+                imp.draw_area.queue_draw();
+            });
+
+            klass.install_action("text.select-none", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                imp.selection_start.set(None);
+                imp.selection_end.set(None);
+
+                widget.set_has_selection(false);
+
+                imp.draw_area.queue_draw();
+            });
+
+            // Copy action
+            klass.install_action("text.copy", None, |widget, _, _| {
+                if let Some(text) = widget.selected_text() {
+                    widget.clipboard().set_text(&text);
+                }
+            });
+
+            // Expand/contract actions
+            klass.install_action("text.expand", None, |widget, _, _| {
+                if widget.can_expand() && !widget.expanded() {
+                    widget.set_expanded(true);
+                }
+            });
+
+            klass.install_action("text.contract", None, |widget, _, _| {
+                if widget.can_expand() && widget.expanded() {
+                    widget.set_expanded(false);
+                }
+            });
+
+            // Link actions
+            klass.install_action("text.previous-link", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                if let Some(new_index) = imp.focus_link_index.get()
+                    .and_then(|i| i.checked_sub(1))
+                {
+                    imp.focus_link_index.set(Some(new_index));
+
+                    imp.draw_area.queue_draw();
+                }
+            });
+
+            klass.install_action("text.next-link", None, |widget, _, _| {
+                let imp = widget.imp();
+
+                let link_list = imp.link_list.borrow();
+
+                if let Some(new_index) = imp.focus_link_index.get()
+                    .and_then(|i| i.checked_add(1))
+                    .filter(|&i| link_list.get(i)
+                        .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
+                    )
+                {
+                    imp.focus_link_index.set(Some(new_index));
+
+                    imp.draw_area.queue_draw();
+                }
+            });
+
+            klass.install_action("text.activate-link", None, |widget, _, _| {
+                if let Some(focus_link) = widget.focus_link() {
+                    widget.handle_link(&focus_link);
+                }
+            });
+        }
+
         //---------------------------------------
         // Layout format helper functions
         //---------------------------------------

@@ -5,6 +5,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use gdk::{Key, ModifierType};
 
 use crate::window::{PACCAT_PATH, MELD_PATH, INSTALLED_PKGS};
 use crate::backup_object::{BackupObject, BackupStatus};
@@ -91,86 +92,11 @@ mod imp {
 
             klass.bind_template();
 
-            //---------------------------------------
-            // Add class actions
-            //---------------------------------------
-            // Search mode property action
-            klass.install_property_action("search.set-mode", "search-mode");
+            // Install actions
+            Self::install_actions(klass);
 
-            //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
-            // Close window binding
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
-
-            // Find key binding
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if !imp.search_entry.has_focus() {
-                    imp.search_entry.grab_focus();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            // Compare key binding
-            klass.add_binding(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.compare_button.is_visible() && imp.compare_button.is_sensitive() {
-                    imp.compare_button.emit_clicked();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            // Open key binding
-            klass.add_binding(gdk::Key::O, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.open_button.is_sensitive() {
-                    imp.open_button.emit_clicked();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            // Copy key binding
-            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            // Status key bindings
-            klass.add_binding(gdk::Key::A, gdk::ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::All.value());
-
-                glib::Propagation::Stop
-            });
-
-            klass.add_binding(gdk::Key::M, gdk::ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Modified.value());
-
-                glib::Propagation::Stop
-            });
-
-            klass.add_binding(gdk::Key::U, gdk::ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Unmodified.value());
-
-                glib::Propagation::Stop
-            });
-
-            klass.add_binding(gdk::Key::L, gdk::ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Locked.value());
-
-                glib::Propagation::Stop
-            });
+            // Add key bindings
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -196,6 +122,92 @@ mod imp {
     impl WidgetImpl for BackupWindow {}
     impl WindowImpl for BackupWindow {}
     impl AdwWindowImpl for BackupWindow {}
+
+    impl BackupWindow {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            klass.install_property_action("search.set-mode", "search-mode");
+        }
+
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Close window binding
+            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
+
+            // Find key binding
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if !imp.search_entry.has_focus() {
+                    imp.search_entry.grab_focus();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Compare key binding
+            klass.add_binding(Key::P, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.compare_button.is_visible() && imp.compare_button.is_sensitive() {
+                    imp.compare_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Open key binding
+            klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.open_button.is_sensitive() {
+                    imp.open_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Copy key binding
+            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.copy_button.is_sensitive() {
+                    imp.copy_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Status key bindings
+            klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::All.value());
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(Key::M, ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::Modified.value());
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(Key::U, ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::Unmodified.value());
+
+                glib::Propagation::Stop
+            });
+
+            klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
+                window.imp().status_dropdown.set_selected(BackupStatus::Locked.value());
+
+                glib::Propagation::Stop
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

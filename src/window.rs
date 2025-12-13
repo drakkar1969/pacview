@@ -10,6 +10,7 @@ use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
+use gdk::{Key, ModifierType};
 
 use alpm_utils::DbListExt;
 use heck::ToTitleCase;
@@ -145,9 +146,50 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            //---------------------------------------
-            // Add class actions
-            //---------------------------------------
+            // Install actions
+            Self::install_actions(klass);
+
+            // Add key bindings
+            Self::bind_shortcuts(klass);
+        }
+
+        fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
+            obj.init_template();
+        }
+    }
+
+    #[glib::derived_properties]
+    impl ObjectImpl for PacViewWindow {
+        //---------------------------------------
+        // Constructor
+        //---------------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_signals();
+
+            obj.bind_gsettings();
+
+            obj.setup_widgets();
+
+            obj.setup_alpm(true);
+
+            obj.setup_inotify();
+        }
+    }
+
+    impl WidgetImpl for PacViewWindow {}
+    impl WindowImpl for PacViewWindow {}
+    impl ApplicationWindowImpl for PacViewWindow {}
+    impl AdwApplicationWindowImpl for PacViewWindow {}
+
+    impl PacViewWindow {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Pane visibility property actions
             klass.install_property_action("win.show-sidebar", "show-sidebar");
             klass.install_property_action("win.show-infopane", "show-infopane");
@@ -243,18 +285,20 @@ mod imp {
             klass.install_action("win.show-preferences", None, |window, _, _| {
                 window.imp().prefs_dialog.borrow().present(Some(window));
             });
+        }
 
-            //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Search start/stop key bindings
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
                 window.imp().search_bar.set_enabled(true);
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
+            klass.add_binding(Key::Escape, ModifierType::NO_MODIFIER_MASK, |window| {
                 let imp = window.imp();
 
                 if (imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar()) || (imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar()) {
@@ -267,28 +311,28 @@ mod imp {
             });
 
             // Show sidebar key binding
-            klass.add_binding_action(gdk::Key::B, gdk::ModifierType::CONTROL_MASK, "win.show-sidebar");
+            klass.add_binding_action(Key::B, ModifierType::CONTROL_MASK, "win.show-sidebar");
 
             // Show infopane key binding
-            klass.add_binding_action(gdk::Key::I, gdk::ModifierType::CONTROL_MASK, "win.show-infopane");
+            klass.add_binding_action(Key::I, ModifierType::CONTROL_MASK, "win.show-infopane");
 
             // Show preferences key binding
-            klass.add_binding_action(gdk::Key::comma, gdk::ModifierType::CONTROL_MASK, "win.show-preferences");
+            klass.add_binding_action(Key::comma, ModifierType::CONTROL_MASK, "win.show-preferences");
 
             // View refresh key binding
-            klass.add_binding_action(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, "win.refresh");
+            klass.add_binding_action(Key::F5, ModifierType::NO_MODIFIER_MASK, "win.refresh");
 
             // View check updates binding
-            klass.add_binding_action(gdk::Key::F9, gdk::ModifierType::NO_MODIFIER_MASK, "win.check-updates");
+            klass.add_binding_action(Key::F9, ModifierType::NO_MODIFIER_MASK, "win.check-updates");
 
             // View update AUR database key binding
-            klass.add_binding_action(gdk::Key::F7, gdk::ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
+            klass.add_binding_action(Key::F7, ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
             // View copy list key binding
-            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::ALT_MASK, "view.copy-list");
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::ALT_MASK, "view.copy-list");
 
             // View show all packages key binding
-            klass.add_binding(gdk::Key::A, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
                 let imp = window.imp();
 
                 imp.all_repo_row.borrow().activate();
@@ -298,113 +342,82 @@ mod imp {
             });
 
             // Stats window key binding
-            klass.add_binding_action(gdk::Key::S, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-stats");
+            klass.add_binding_action(Key::S, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-stats");
 
             // Backup files window key binding
-            klass.add_binding_action(gdk::Key::B, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-backup-files");
+            klass.add_binding_action(Key::B, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-backup-files");
 
             // Pacman log window key binding
-            klass.add_binding_action(gdk::Key::L, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-log");
+            klass.add_binding_action(Key::L, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-pacman-log");
 
             // Pacman cache window key binding
-            klass.add_binding_action(gdk::Key::C, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-cache");
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-pacman-cache");
 
             // Pacman groups window key binding
-            klass.add_binding_action(gdk::Key::G, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-groups");
+            klass.add_binding_action(Key::G, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-pacman-groups");
 
             // Pacman config dialog key binding
-            klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "win.show-pacman-config");
+            klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-pacman-config");
 
             // Infopane set tab shortcuts
-            klass.add_binding(gdk::Key::I, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::I, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("info");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::F, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("files");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::L, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("log");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::C, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::C, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("cache");
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::B, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::B, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("backup");
 
                 glib::Propagation::Stop
             });
 
             // Infopane previous/next key bindings
-            klass.add_binding(gdk::Key::Left, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::Left, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.display_prev();
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::Right, gdk::ModifierType::ALT_MASK, |window| {
+            klass.add_binding(Key::Right, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.display_next();
 
                 glib::Propagation::Stop
             });
 
             // Infopane show PKGBUILD key bindings
-            klass.add_binding(gdk::Key::K, gdk::ModifierType::ALT_MASK | gdk::ModifierType::SHIFT_MASK, |window| {
+            klass.add_binding(Key::K, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, |window| {
                 window.imp().info_pane.show_pkgbuild();
 
                 glib::Propagation::Stop
             });
 
             // Infopane show hashes key bindings
-            klass.add_binding(gdk::Key::H, gdk::ModifierType::ALT_MASK | gdk::ModifierType::SHIFT_MASK, |window| {
+            klass.add_binding(Key::H, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, |window| {
                 window.imp().info_pane.show_hashes();
 
                 glib::Propagation::Stop
             });
         }
-
-        fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
-            obj.init_template();
-        }
     }
-
-    #[glib::derived_properties]
-    impl ObjectImpl for PacViewWindow {
-        //---------------------------------------
-        // Constructor
-        //---------------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            let obj = self.obj();
-
-            obj.setup_signals();
-
-            obj.bind_gsettings();
-
-            obj.setup_widgets();
-
-            obj.setup_alpm(true);
-
-            obj.setup_inotify();
-        }
-    }
-
-    impl WidgetImpl for PacViewWindow {}
-    impl WindowImpl for PacViewWindow {}
-    impl ApplicationWindowImpl for PacViewWindow {}
-    impl AdwApplicationWindowImpl for PacViewWindow {}
 }
 
 //------------------------------------------------------------------------------

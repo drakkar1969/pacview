@@ -7,6 +7,7 @@ use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use gdk::{Key, ModifierType};
 
 use sourceview5::prelude::*;
 
@@ -58,25 +59,8 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
-            // Close window binding
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
-
-            // Save binding
-            klass.add_binding(gdk::Key::S, gdk::ModifierType::CONTROL_MASK, |window| {
-                window.imp().save_button.emit_clicked();
-
-                glib::Propagation::Stop
-            });
-
-            // Refresh binding
-            klass.add_binding(gdk::Key::F5, gdk::ModifierType::NO_MODIFIER_MASK, |window| {
-                window.imp().refresh_button.emit_clicked();
-
-                glib::Propagation::Stop
-            });
+            // Add key bindings
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -101,6 +85,28 @@ mod imp {
     impl AdwWindowImpl for SourceWindow {}
 
     impl SourceWindow {
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Close window binding
+            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
+
+            // Save binding
+            klass.add_binding(Key::S, ModifierType::CONTROL_MASK, |window| {
+                window.imp().save_button.emit_clicked();
+
+                glib::Propagation::Stop
+            });
+
+            // Refresh binding
+            klass.add_binding(Key::F5, ModifierType::NO_MODIFIER_MASK, |window| {
+                window.imp().refresh_button.emit_clicked();
+
+                glib::Propagation::Stop
+            });
+        }
+
         //---------------------------------------
         // Property getter
         //---------------------------------------

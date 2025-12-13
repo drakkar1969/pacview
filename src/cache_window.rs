@@ -4,6 +4,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use gdk::{Key, ModifierType};
 
 use fs_extra::dir;
 use size::Size;
@@ -66,44 +67,8 @@ mod imp {
 
             klass.bind_template();
 
-            //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
-            // Close window binding
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
-
-            // Find key binding
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if !imp.search_entry.has_focus() {
-                    imp.search_entry.grab_focus();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            // Open key binding
-            klass.add_binding(gdk::Key::O, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.open_button.is_sensitive() {
-                    imp.open_button.emit_clicked();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            // Copy key binding
-            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                glib::Propagation::Stop
-            });
+            // Add key bindings
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -128,6 +93,49 @@ mod imp {
     impl WidgetImpl for CacheWindow {}
     impl WindowImpl for CacheWindow {}
     impl AdwWindowImpl for CacheWindow {}
+
+    impl CacheWindow {
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Close window binding
+            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
+
+            // Find key binding
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if !imp.search_entry.has_focus() {
+                    imp.search_entry.grab_focus();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Open key binding
+            klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.open_button.is_sensitive() {
+                    imp.open_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Copy key binding
+            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.copy_button.is_sensitive() {
+                    imp.copy_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

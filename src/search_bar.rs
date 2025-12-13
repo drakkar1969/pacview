@@ -8,6 +8,7 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
 use glib::{clone, closure_local};
+use gdk::{Key, ModifierType};
 
 use strum::{FromRepr, EnumIter, IntoEnumIterator};
 
@@ -131,9 +132,55 @@ mod imp {
             klass.bind_template();
             klass.set_css_name("searchbar");
 
-            //---------------------------------------
-            // Add class actions
-            //---------------------------------------
+            // Install actions
+            Self::install_actions(klass);
+
+            // Add key bindings
+            Self::bind_shortcuts(klass);
+        }
+
+        fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
+            obj.init_template();
+        }
+    }
+
+    #[glib::derived_properties]
+    impl ObjectImpl for SearchBar {
+        //---------------------------------------
+        // Signals
+        //---------------------------------------
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
+            SIGNALS.get_or_init(|| {
+                vec![
+                    Signal::builder("changed")
+                        .build(),
+                    Signal::builder("aur-search")
+                        .build(),
+                ]
+            })
+        }
+
+        //---------------------------------------
+        // Constructor
+        //---------------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_signals();
+        }
+    }
+
+    impl WidgetImpl for SearchBar {}
+    impl BinImpl for SearchBar {}
+
+    impl SearchBar {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Search mode property action
             klass.install_property_action("search.set-mode", "mode");
 
@@ -185,42 +232,44 @@ mod imp {
                 bar.set_mode(bar.default_mode());
                 bar.set_prop(bar.default_prop());
             });
+        }
 
-            //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Cycle search mode key bindings
-            klass.add_binding_action(gdk::Key::M, gdk::ModifierType::CONTROL_MASK, "search.cycle-mode");
-            klass.add_binding_action(gdk::Key::M, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK, "search.cycle-mode");
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
 
             // Search mode letter shortcuts
-            klass.add_binding(gdk::Key::L, gdk::ModifierType::CONTROL_MASK, |bar| {
+            klass.add_binding(Key::L, ModifierType::CONTROL_MASK, |bar| {
                 bar.set_mode(SearchMode::All);
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::N, gdk::ModifierType::CONTROL_MASK, |bar| {
+            klass.add_binding(Key::N, ModifierType::CONTROL_MASK, |bar| {
                 bar.set_mode(SearchMode::Any);
 
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(gdk::Key::E, gdk::ModifierType::CONTROL_MASK, |bar| {
+            klass.add_binding(Key::E, ModifierType::CONTROL_MASK, |bar| {
                 bar.set_mode(SearchMode::Exact);
 
                 glib::Propagation::Stop
             });
 
             // Cycle search prop key bindings
-            klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK, "search.cycle-prop");
-            klass.add_binding_action(gdk::Key::P, gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK, "search.reverse-cycle-prop");
+            klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "search.cycle-prop");
+            klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-prop");
 
             // Search prop numbered shortcuts
             for (i, prop) in SearchProp::iter().enumerate() {
-                let key = gdk::Key::from_name((i+1).to_string()).unwrap();
+                let key = Key::from_name((i+1).to_string()).unwrap();
                 
-                klass.add_binding(key, gdk::ModifierType::CONTROL_MASK, move |bar| {
+                klass.add_binding(key, ModifierType::CONTROL_MASK, move |bar| {
                     bar.set_prop(prop);
 
                     glib::Propagation::Stop
@@ -228,47 +277,9 @@ mod imp {
             }
 
             // Reset search params key binding
-            klass.add_binding_action(gdk::Key::R, gdk::ModifierType::CONTROL_MASK, "search.reset-params");
+            klass.add_binding_action(Key::R, ModifierType::CONTROL_MASK, "search.reset-params");
         }
 
-        fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
-            obj.init_template();
-        }
-    }
-
-    #[glib::derived_properties]
-    impl ObjectImpl for SearchBar {
-        //---------------------------------------
-        // Signals
-        //---------------------------------------
-        fn signals() -> &'static [Signal] {
-            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
-                vec![
-                    Signal::builder("changed")
-                        .build(),
-                    Signal::builder("aur-search")
-                        .build(),
-                ]
-            })
-        }
-
-        //---------------------------------------
-        // Constructor
-        //---------------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            let obj = self.obj();
-
-            obj.setup_signals();
-        }
-    }
-
-    impl WidgetImpl for SearchBar {}
-    impl BinImpl for SearchBar {}
-
-    impl SearchBar {
         //---------------------------------------
         // Property getter
         //---------------------------------------
@@ -457,8 +468,8 @@ impl SearchBar {
                 #[weak(rename_to = bar)] self,
                 #[upgrade_or] glib::Propagation::Proceed,
                 move |controller, _, _, state| {
-                    if !(bar.enabled() || state.contains(gdk::ModifierType::ALT_MASK) ||
-                        state.contains(gdk::ModifierType::CONTROL_MASK)) &&
+                    if !(bar.enabled() || state.contains(ModifierType::ALT_MASK) ||
+                        state.contains(ModifierType::CONTROL_MASK)) &&
                         controller.forward(&bar.imp().search_text.get())
                     {
                         bar.set_enabled(true);

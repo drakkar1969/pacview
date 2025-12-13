@@ -5,6 +5,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use gdk::{Key, ModifierType};
 
 use crate::window::PKGS;
 use crate::groups_object::GroupsObject;
@@ -83,48 +84,11 @@ mod imp {
 
             klass.bind_template();
 
-            //---------------------------------------
-            // Add class actions
-            //---------------------------------------
-            // Search mode property action
-            klass.install_property_action("search.set-mode", "search-mode");
+            // Install actions
+            Self::install_actions(klass);
 
-            //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
-            // Close window binding
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
-
-            // Find key binding
-            klass.add_binding(gdk::Key::F, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if !imp.search_entry.has_focus() {
-                    imp.search_entry.grab_focus();
-                }
-
-                glib::Propagation::Stop
-            });
-
-            // Installed key binding
-            klass.add_binding(gdk::Key::I, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                imp.installed_button.set_active(!imp.installed_button.is_active());
-
-                glib::Propagation::Stop
-            });
-
-            // Copy key binding
-            klass.add_binding(gdk::Key::C, gdk::ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                glib::Propagation::Stop
-            });
+            // Add key bindings
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -150,6 +114,55 @@ mod imp {
     impl WidgetImpl for GroupsWindow {}
     impl WindowImpl for GroupsWindow {}
     impl AdwWindowImpl for GroupsWindow {}
+
+    impl GroupsWindow {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Search mode property action
+            klass.install_property_action("search.set-mode", "search-mode");
+        }
+
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Close window binding
+            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
+
+            // Find key binding
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if !imp.search_entry.has_focus() {
+                    imp.search_entry.grab_focus();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Installed key binding
+            klass.add_binding(Key::I, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                imp.installed_button.set_active(!imp.installed_button.is_active());
+
+                glib::Propagation::Stop
+            });
+
+            // Copy key binding
+            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.copy_button.is_sensitive() {
+                    imp.copy_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 use gtk::{glib, gdk};
 use adw::{prelude::ActionRowExt, subclass::prelude::*};
 use gtk::prelude::*;
+use gdk::{Key, ModifierType};
 
 use crate::pkg_data::PkgValidation;
 use crate::pkg_object::PkgObject;
@@ -37,11 +38,8 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
-            //---------------------------------------
-            // Add class key bindings
-            //---------------------------------------
-            // Close window binding
-            klass.add_binding_action(gdk::Key::Escape, gdk::ModifierType::NO_MODIFIER_MASK, "window.close");
+            // Add key bindings
+            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -53,6 +51,16 @@ mod imp {
     impl WidgetImpl for HashWindow {}
     impl WindowImpl for HashWindow {}
     impl AdwWindowImpl for HashWindow {}
+
+    impl HashWindow {
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Close window binding
+            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
