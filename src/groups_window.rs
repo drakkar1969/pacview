@@ -49,8 +49,6 @@ mod imp {
         pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub(super) scroll_window: TemplateChild<gtk::ScrolledWindow>,
-        #[template_child]
         pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
@@ -398,15 +396,6 @@ impl GroupsWindow {
 
                         // Populate column view
                         imp.model.splice(0, 0, &pkg_list);
-
-                        // Scroll to start
-                        glib::idle_add_local_once(clone!(
-                            #[weak] imp,
-                            move || {
-                                let v_adjust = imp.scroll_window.vadjustment();
-                                v_adjust.set_value(v_adjust.lower());
-                            }
-                        ));
                     });
                 }
             ));
