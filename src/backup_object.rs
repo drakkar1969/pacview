@@ -56,7 +56,7 @@ mod imp {
         #[property(get = Self::file_hash, nullable)]
         file_hash: OnceCell<Option<String>>,
         #[property(get = Self::status, builder(BackupStatus::default()))]
-        status: OnceCell<BackupStatus>,
+        status: PhantomData<BackupStatus>,
 
         #[property(get = Self::status_icon)]
         status_icon: PhantomData<String>,
@@ -90,16 +90,14 @@ mod imp {
         }
 
         fn status(&self) -> BackupStatus {
-            *self.status.get_or_init(|| {
-                self.obj().file_hash()
-                    .map_or(BackupStatus::Locked, |file_hash| {
-                        if file_hash == self.obj().hash() {
-                            BackupStatus::Unmodified
-                        } else {
-                            BackupStatus::Modified
-                        }
-                    })
-            })
+            self.obj().file_hash()
+                .map_or(BackupStatus::Locked, |file_hash| {
+                    if file_hash == self.obj().hash() {
+                        BackupStatus::Unmodified
+                    } else {
+                        BackupStatus::Modified
+                    }
+                })
         }
 
         fn status_icon(&self) -> String {
