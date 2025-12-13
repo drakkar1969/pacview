@@ -290,7 +290,7 @@ impl LogWindow {
             }
 
             // Read log lines
-            let log_lines: Vec<LogLine> = PACMAN_LOG.lock().unwrap().as_ref().map_or(vec![], |log| {
+            let log_lines: Vec<LogLine> = PACMAN_LOG.read().unwrap().as_ref().map_or(vec![], |log| {
                 // Strip ANSI control sequences from log
                 static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
                     Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")

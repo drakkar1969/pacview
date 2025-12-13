@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::{LazyLock, Mutex};
+use std::sync::{LazyLock, RwLock};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -52,8 +52,8 @@ thread_local! {
 pub static PACMAN_CONFIG: LazyLock<pacmanconf::Config> = LazyLock::new(|| {
     pacmanconf::Config::new().expect("Failed to get pacman config")
 });
-pub static PACMAN_LOG: LazyLock<Mutex<Option<String>>> = LazyLock::new(|| Mutex::new(None));
-pub static PACMAN_CACHE: LazyLock<Mutex<Vec<PathBuf>>> = LazyLock::new(|| Mutex::new(vec![]));
+pub static PACMAN_LOG: LazyLock<RwLock<Option<String>>> = LazyLock::new(|| RwLock::new(None));
+pub static PACMAN_CACHE: LazyLock<RwLock<Vec<PathBuf>>> = LazyLock::new(|| RwLock::new(vec![]));
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -742,7 +742,7 @@ impl PacViewWindow {
         let pacman_config = &PACMAN_CONFIG;
 
         // Load pacman log
-        *PACMAN_LOG.lock().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
+        *PACMAN_LOG.write().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
 
         // Load pacman cache
         let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
@@ -758,7 +758,7 @@ impl PacViewWindow {
 
         cache_files.sort_unstable();
 
-        *PACMAN_CACHE.lock().unwrap() = cache_files;
+        *PACMAN_CACHE.write().unwrap() = cache_files;
 
         // Init config dialog
         imp.config_dialog.borrow().init(pacman_config);

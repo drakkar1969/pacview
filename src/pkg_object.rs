@@ -526,7 +526,7 @@ impl PkgObject {
                 let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
                     .expect("Failed to compile Regex");
 
-                let pacman_log = PACMAN_LOG.lock().unwrap();
+                let pacman_log = PACMAN_LOG.read().unwrap();
 
                 pacman_log.as_ref().map_or(vec![], |log| {
                     log.lines().rev()
@@ -545,7 +545,7 @@ impl PkgObject {
             let pkg_name = self.name();
 
             gio::spawn_blocking(move || {
-                let pacman_cache = PACMAN_CACHE.lock().unwrap();
+                let pacman_cache = PACMAN_CACHE.read().unwrap();
 
                 pacman_cache.iter()
                     .filter(|&path| {
