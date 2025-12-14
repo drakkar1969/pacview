@@ -172,10 +172,9 @@ impl PreferencesDialog {
         let schemes = style_schemes::schemes(style_manager.is_dark());
 
         if let Some(model) = imp.pkgbuild_style_scheme_row.model()
-            .and_downcast_ref::<gio::ListStore>()
-        {
-            model.splice(0, model.n_items(), &schemes);
-        }
+            .and_downcast_ref::<gio::ListStore>() {
+                model.splice(0, model.n_items(), &schemes);
+            }
 
         self.notify_pkgbuild_style_scheme();
     }
@@ -201,12 +200,11 @@ impl PreferencesDialog {
             #[weak(rename_to = dialog)] self,
             move |row| {
                 let color_scheme = match ColorScheme::from_repr(row.selected())
-                    .unwrap_or_default()
-                {
-                    ColorScheme::Default => adw::ColorScheme::PreferLight,
-                    ColorScheme::Light => adw::ColorScheme::ForceLight,
-                    ColorScheme::Dark => adw::ColorScheme::ForceDark,
-                };
+                    .unwrap_or_default() {
+                        ColorScheme::Default => adw::ColorScheme::PreferLight,
+                        ColorScheme::Light => adw::ColorScheme::ForceLight,
+                        ColorScheme::Dark => adw::ColorScheme::ForceDark,
+                    };
 
                 let style_manager = adw::StyleManager::for_display(&dialog.display());
 
@@ -387,13 +385,13 @@ impl PreferencesDialog {
                         model.iter::<sourceview5::StyleScheme>()
                             .flatten()
                             .position(|scheme| {
-                                scheme.id() == id ||
-                                style_schemes::variant_id(&scheme.id())
-                                    .is_some_and(|variant_id| variant_id == id)
+                                scheme.id() == id
+                                    || style_schemes::variant_id(&scheme.id())
+                                        .is_some_and(|variant_id| variant_id == id)
                             })
                     })
                     .unwrap_or_default();
-                
+
                 Some(index as u32)
             })
             .transform_from(|binding, _: u32| {

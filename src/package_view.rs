@@ -311,7 +311,7 @@ impl PackageView {
                 if term.is_empty() {
                     return true
                 }
-                
+
                 let mode = search_bar.mode();
                 let prop = search_bar.prop();
 

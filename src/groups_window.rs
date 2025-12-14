@@ -304,8 +304,8 @@ impl GroupsWindow {
                 } else {
                     match window.search_mode() {
                         GroupsSearchMode::All => {
-                            obj.package().to_lowercase().contains(&search_term) ||
-                                obj.groups().to_lowercase().contains(&search_term)
+                            obj.package().to_lowercase().contains(&search_term)
+                                || obj.groups().to_lowercase().contains(&search_term)
                         },
                         GroupsSearchMode::Groups => {
                             obj.groups().to_lowercase().contains(&search_term)

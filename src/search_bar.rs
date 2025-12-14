@@ -268,7 +268,7 @@ mod imp {
             // Search prop numbered shortcuts
             for (i, prop) in SearchProp::iter().enumerate() {
                 let key = Key::from_name((i+1).to_string()).unwrap();
-                
+
                 klass.add_binding(key, ModifierType::CONTROL_MASK, move |bar| {
                     bar.set_prop(prop);
 
@@ -474,12 +474,11 @@ impl SearchBar {
                 #[weak(rename_to = bar)] self,
                 #[upgrade_or] glib::Propagation::Proceed,
                 move |controller, _, _, state| {
-                    if !(bar.enabled() || state.contains(ModifierType::ALT_MASK) ||
-                        state.contains(ModifierType::CONTROL_MASK)) &&
-                        controller.forward(&bar.imp().search_text.get())
-                    {
-                        bar.set_enabled(true);
-                    }
+                    if !(bar.enabled() || state.contains(ModifierType::ALT_MASK)
+                        || state.contains(ModifierType::CONTROL_MASK))
+                        && controller.forward(&bar.imp().search_text.get()) {
+                            bar.set_enabled(true);
+                        }
 
                     glib::Propagation::Proceed
                 }

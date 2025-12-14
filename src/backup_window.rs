@@ -428,8 +428,8 @@ impl BackupWindow {
 
                     match window.search_mode() {
                         BackupSearchMode::All => {
-                            obj.filename().to_lowercase().contains(&search_term) ||
-                                obj.package().to_lowercase().contains(&search_term)
+                            obj.filename().to_lowercase().contains(&search_term)
+                                || obj.package().to_lowercase().contains(&search_term)
                         },
                         BackupSearchMode::Packages => {
                             obj.package().to_lowercase().contains(&search_term)

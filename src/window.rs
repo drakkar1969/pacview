@@ -814,24 +814,23 @@ impl PacViewWindow {
         // If AUR database download is enabled and AUR file does not exist, download it
         if let Some(file) = aur_file
             .filter(|file| {
-                imp.prefs_dialog.borrow().aur_database_download() &&
-                fs::metadata(file).is_err()
-            })
-        {
-            imp.package_view.set_state(PackageViewState::AURDownload);
-            imp.info_pane.set_pkg(None::<PkgObject>);
+                imp.prefs_dialog.borrow().aur_database_download()
+                    && fs::metadata(file).is_err()
+            }) {
+                imp.package_view.set_state(PackageViewState::AURDownload);
+                imp.info_pane.set_pkg(None::<PkgObject>);
 
-            glib::spawn_future_local(clone!(
-                #[weak(rename_to = window)] self,
-                async move {
-                    let _ = aur_file::download(&file).await;
+                glib::spawn_future_local(clone!(
+                    #[weak(rename_to = window)] self,
+                    async move {
+                        let _ = aur_file::download(&file).await;
 
-                    window.alpm_load_packages(paru_repo_paths);
-                }
-            ));
-        } else {
-            self.alpm_load_packages(paru_repo_paths);
-        }
+                        window.alpm_load_packages(paru_repo_paths);
+                    }
+                ));
+            } else {
+                self.alpm_load_packages(paru_repo_paths);
+            }
     }
 
     //---------------------------------------
@@ -881,11 +880,10 @@ impl PacViewWindow {
 
                 imp.status_listbox.append(&row);
 
-                if (saved_status_id == PkgFlags::empty() && flag == PkgFlags::INSTALLED) ||
-                    saved_status_id == flag
-                {
-                    row.activate();
-                }
+                if (saved_status_id == PkgFlags::empty() && flag == PkgFlags::INSTALLED)
+                    || saved_status_id == flag {
+                        row.activate();
+                    }
 
                 match flag {
                     PkgFlags::ALL => { imp.all_status_row.replace(row); },
@@ -965,8 +963,7 @@ impl PacViewWindow {
                 .map(|pkg| {
                     let repository = paru_map.get(pkg.name())
                         .map_or_else(|| {
-                            if aur_names.contains(pkg.name())
-                            {
+                            if aur_names.contains(pkg.name()) {
                                 "aur"
                             } else {
                                 "local"

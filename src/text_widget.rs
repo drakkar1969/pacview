@@ -300,12 +300,11 @@ mod imp {
                 let imp = widget.imp();
 
                 if let Some(new_index) = imp.focus_link_index.get()
-                    .and_then(|i| i.checked_sub(1))
-                {
-                    imp.focus_link_index.set(Some(new_index));
+                    .and_then(|i| i.checked_sub(1)) {
+                        imp.focus_link_index.set(Some(new_index));
 
-                    imp.draw_area.queue_draw();
-                }
+                        imp.draw_area.queue_draw();
+                    }
             });
 
             klass.install_action("text.next-link", None, |widget, _, _| {
@@ -317,12 +316,11 @@ mod imp {
                     .and_then(|i| i.checked_add(1))
                     .filter(|&i| link_list.get(i)
                         .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
-                    )
-                {
-                    imp.focus_link_index.set(Some(new_index));
+                    ) {
+                        imp.focus_link_index.set(Some(new_index));
 
-                    imp.draw_area.queue_draw();
-                }
+                        imp.draw_area.queue_draw();
+                    }
             });
 
             klass.install_action("text.activate-link", None, |widget, _, _| {
@@ -733,10 +731,9 @@ impl TextWidget {
                 // Update pango layout selection attributes
                 if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get())
                     .filter(|&(start, end)| start != end)
-                    .map(|(start, end)| (start.min(end), start.max(end)))
-                {
-                    attr_list.splice(&widget.selection_attributes(start, end), 0, 0);
-                }
+                    .map(|(start, end)| (start.min(end), start.max(end))) {
+                        attr_list.splice(&widget.selection_attributes(start, end), 0, 0);
+                    }
 
                 // Update pango layout focus link attributes
                 if widget.focused() && [PropType::Link, PropType::LinkList, PropType::Packager].contains(&widget.ptype()) {
@@ -1029,10 +1026,9 @@ impl TextWidget {
 
                 // Launch link if any
                 if let Some(link) = imp.pressed_link.take()
-                    .filter(|pressed| widget.link_at_xy(x, y).as_ref() == Some(pressed))
-                {
-                    widget.handle_link(&link);
-                }
+                    .filter(|pressed| widget.link_at_xy(x, y).as_ref() == Some(pressed)) {
+                        widget.handle_link(&link);
+                    }
             }
         ));
 

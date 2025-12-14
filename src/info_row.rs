@@ -307,7 +307,7 @@ impl InfoRow {
     // New function
     //---------------------------------------
     pub fn new(id: PropID, ptype: PropType) -> Self {
-        let obj:Self = glib::Object::builder().build();
+        let obj: Self = glib::Object::builder().build();
 
         let imp = obj.imp();
 
@@ -400,8 +400,10 @@ impl InfoRow {
             move |_, _, x, y| {
                 let value_widget = &row.imp().value_widget;
 
-                if let Some(point) = row.compute_point(&value_widget.get(), &graphene::Point::new(x as f32, y as f32))
-                {
+                if let Some(point) = row.compute_point(
+                    &value_widget.get(),
+                    &graphene::Point::new(x as f32, y as f32)
+                ) {
                     value_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
                 }
             }

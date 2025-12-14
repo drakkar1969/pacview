@@ -197,8 +197,8 @@ mod imp {
                 pkg.is_some_and(|pkg| {
                     let validation = pkg.validation();
 
-                    !(validation.intersects(PkgValidation::UNKNOWN) ||
-                    validation.intersects(PkgValidation::NONE))
+                    !(validation.intersects(PkgValidation::UNKNOWN)
+                        || validation.intersects(PkgValidation::NONE))
                 })
             );
 
@@ -736,12 +736,11 @@ impl InfoPane {
                 .map(|dep| {
                     if dep.split_once([':'])
                         .and_then(|(name, _)| PkgObject::has_local_satisfier(name))
-                        .unwrap_or_default()
-                    {
-                        dep.to_owned() + INSTALLED_LABEL
-                    } else {
-                        dep.to_owned()
-                    }
+                        .unwrap_or_default() {
+                            dep.to_owned() + INSTALLED_LABEL
+                        } else {
+                            dep.to_owned()
+                        }
                 })
                 .collect()
         } else {
@@ -995,18 +994,17 @@ impl InfoPane {
             .filter(|pkg| {
                 let validation = pkg.validation();
 
-                !(validation.intersects(PkgValidation::UNKNOWN) ||
-                validation.intersects(PkgValidation::NONE))                
-            })
-        {
-            let parent = self.root()
-                .and_downcast::<gtk::Window>()
-                .expect("Failed to downcast to 'GtkWindow'");
+                !(validation.intersects(PkgValidation::UNKNOWN)
+                    || validation.intersects(PkgValidation::NONE))
+            }) {
+                let parent = self.root()
+                    .and_downcast::<gtk::Window>()
+                    .expect("Failed to downcast to 'GtkWindow'");
 
-            let hash_window = HashWindow::new(&parent, &pkg);
+                let hash_window = HashWindow::new(&parent, &pkg);
 
-            hash_window.present();
-        }
+                hash_window.present();
+            }
     }
 }
 

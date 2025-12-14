@@ -178,7 +178,7 @@ pub mod pango_utils {
     //-----------------------------------
     pub fn font_str_to_css(font_str: &str) -> String {
         let mut css = String::new();
-        
+
         let font_desc = FontDescription::from_string(font_str);
 
         let mask = font_desc.set_fields();
