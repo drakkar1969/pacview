@@ -62,12 +62,11 @@ scrolledwindow.no-undershoot > undershoot.bottom {
 
 /* Info pane file count indicator */
 label.count-superscript {
-	font-size: 75%;
 	font-weight: 800;
 	background: color-mix(in srgb, currentColor 20%, transparent);
 	border-radius: 9999px;
-	min-height: 1.6em;
-	padding: 0 0.5em;
+	min-height: 1.2em;
+	padding: 0 0.4em;
 }
 
 /* Info pane property row box */

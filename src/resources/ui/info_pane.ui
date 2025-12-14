@@ -187,10 +187,11 @@
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="files_count_label">
-                                        <property name="xalign">0</property>
-                                        <property name="yalign">0.5</property>
                                         <property name="valign">center</property>
                                         <property name="label"></property>
+                                        <attributes>
+                                          <attribute name="scale" value="0.66"/>
+                                        </attributes>
                                         <style>
                                           <class name="count-superscript"/>
                                           <class name="numeric"/>
@@ -447,10 +448,11 @@
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="cache_count_label">
-                                        <property name="xalign">0</property>
-                                        <property name="yalign">0.5</property>
                                         <property name="valign">center</property>
                                         <property name="label"></property>
+                                        <attributes>
+                                          <attribute name="scale" value="0.66"/>
+                                        </attributes>
                                         <style>
                                           <class name="count-superscript"/>
                                           <class name="numeric"/>
@@ -574,10 +576,11 @@
                                     </child>
                                     <child>
                                       <object class="GtkLabel" id="backup_count_label">
-                                        <property name="xalign">0</property>
-                                        <property name="yalign">0.5</property>
                                         <property name="valign">center</property>
                                         <property name="label"></property>
+                                        <attributes>
+                                          <attribute name="scale" value="0.66"/>
+                                        </attributes>
                                         <style>
                                           <class name="count-superscript"/>
                                           <class name="numeric"/>

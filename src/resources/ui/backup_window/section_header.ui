@@ -30,6 +30,9 @@
             </child>
             <child>
               <object class="GtkLabel">
+                <attributes>
+                  <attribute name="scale" value="0.66"/>
+                </attributes>
                 <style>
                   <class name="count-superscript"/>
                   <class name="numeric"/>
