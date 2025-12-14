@@ -76,7 +76,7 @@ mod imp {
         pub(super) revealer: TemplateChild<gtk::Revealer>,
 
         #[template_child]
-        pub(super) icon_stack: TemplateChild<gtk::Stack>,
+        pub(super) search_image: TemplateChild<gtk::Image>,
 
         #[template_child]
         pub(super) tag_mode: TemplateChild<SearchTag>,
@@ -343,9 +343,15 @@ impl SearchBar {
 
         // Searching property notify signal
         self.connect_searching_notify(|bar| {
-            bar.imp().icon_stack.set_visible_child_name(
-                if bar.searching() { "spinner" } else { "icon" }
-            );
+            let imp = bar.imp();
+
+            if bar.searching() {
+                let spinner = adw::SpinnerPaintable::new(Some(&imp.search_image.get()));
+
+                imp.search_image.set_paintable(Some(&spinner));
+            } else {
+                imp.search_image.set_icon_name(Some("edit-find-symbolic"));
+            }
         });
 
         // Search mode property notify signal
