@@ -7,19 +7,19 @@ use gtk::prelude::*;
 use crate::pkg_data::PkgFlags;
 
 //------------------------------------------------------------------------------
-// ENUM: Updates
+// ENUM: FilterRowState
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 #[repr(u32)]
-pub enum Updates {
-    Output(Option<String>, u32),
+pub enum FilterRowState {
+    Updates(Option<String>, u32),
     Reset,
     Checking,
 }
 
-impl Default for Updates {
+impl Default for FilterRowState {
     fn default() -> Self {
-        Self::Output(None, 0)
+        Self::Updates(None, 0)
     }
 }
 
@@ -110,13 +110,13 @@ impl FilterRow {
     }
 
     //---------------------------------------
-    // Public set status function
+    // Public set state function
     //---------------------------------------
-    pub fn set_status(&self, status: Updates) {
+    pub fn set_state(&self, state: FilterRowState) {
         let imp = self.imp();
 
-        match status {
-            Updates::Output(error, count) => {
+        match state {
+            FilterRowState::Updates(error, count) => {
                 imp.spinner.set_visible(false);
 
                 imp.count_label.set_visible(count != 0);
@@ -129,12 +129,12 @@ impl FilterRow {
                     imp.error_button.set_visible(false);
                 }
             },
-            Updates::Reset => {
+            FilterRowState::Reset => {
                 imp.spinner.set_visible(false);
                 imp.count_label.set_visible(false);
                 imp.error_button.set_visible(false);
             }
-            Updates::Checking => {
+            FilterRowState::Checking => {
                 imp.error_button.set_visible(false);
                 imp.count_label.set_visible(false);
                 imp.spinner.set_visible(true);

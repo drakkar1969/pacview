@@ -31,12 +31,12 @@ thread_local! {
 }
 
 //------------------------------------------------------------------------------
-// ENUM: PackageViewStatus
+// ENUM: PackageViewState
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
-#[enum_type(name = "PackageViewStatus")]
-pub enum PackageViewStatus {
+#[enum_type(name = "PackageViewState")]
+pub enum PackageViewState {
     #[default]
     Normal,
     PackageLoad,
@@ -117,8 +117,8 @@ mod imp {
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
-        #[property(set = Self::set_status, builder(PackageViewStatus::default()))]
-        status: PhantomData<PackageViewStatus>,
+        #[property(set = Self::set_state, builder(PackageViewState::default()))]
+        state: PhantomData<PackageViewState>,
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
@@ -167,16 +167,16 @@ mod imp {
         //---------------------------------------
         // Property setter
         //---------------------------------------
-        pub fn set_status(&self, status: PackageViewStatus) {
-            match status {
-                PackageViewStatus::Normal => {
+        pub fn set_state(&self, state: PackageViewState) {
+            match state {
+                PackageViewState::Normal => {
                     self.stack.set_visible_child_name("view");
                 },
-                PackageViewStatus::PackageLoad => {
+                PackageViewState::PackageLoad => {
                     self.loading_status.set_title("Loading Pacman Databases");
                     self.stack.set_visible_child_name("spinner");
                 },
-                PackageViewStatus::AURDownload => {
+                PackageViewState::AURDownload => {
                     self.loading_status.set_title("Updating AUR Database");
                     self.stack.set_visible_child_name("spinner");
                 }

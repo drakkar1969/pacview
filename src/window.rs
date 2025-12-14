@@ -24,9 +24,9 @@ use crate::PacViewApplication;
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::{ALPM_HANDLE, PkgObject};
 use crate::search_bar::SearchBar;
-use crate::package_view::{PackageView, PackageViewStatus, SortProp};
+use crate::package_view::{PackageView, PackageViewState, SortProp};
 use crate::info_pane::InfoPane;
-use crate::filter_row::{FilterRow, Updates};
+use crate::filter_row::{FilterRow, FilterRowState};
 use crate::stats_window::StatsWindow;
 use crate::backup_window::BackupWindow;
 use crate::groups_window::GroupsWindow;
@@ -226,8 +226,8 @@ mod imp {
                 let aur_file = imp.aur_file.borrow().to_owned();
 
                 if let Some(aur_file) = aur_file {
-                    imp.update_row.borrow().set_status(Updates::Reset);
-                    imp.package_view.set_status(PackageViewStatus::AURDownload);
+                    imp.update_row.borrow().set_state(FilterRowState::Reset);
+                    imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
@@ -818,7 +818,7 @@ impl PacViewWindow {
                 fs::metadata(file).is_err()
             })
         {
-            imp.package_view.set_status(PackageViewStatus::AURDownload);
+            imp.package_view.set_state(PackageViewState::AURDownload);
             imp.info_pane.set_pkg(None::<PkgObject>);
 
             glib::spawn_future_local(clone!(
@@ -986,10 +986,10 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 // Hide update count in sidebar
-                imp.update_row.borrow().set_status(Updates::Reset);
+                imp.update_row.borrow().set_state(FilterRowState::Reset);
 
                 // Show package view loading spinner
-                imp.package_view.set_status(PackageViewStatus::PackageLoad);
+                imp.package_view.set_state(PackageViewState::PackageLoad);
 
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
@@ -1069,7 +1069,7 @@ impl PacViewWindow {
                 }
 
                 // Hide loading spinner
-                imp.package_view.set_status(PackageViewStatus::Normal);
+                imp.package_view.set_state(PackageViewState::Normal);
 
                 // Set focus on package view
                 imp.package_view.view().grab_focus();
@@ -1084,7 +1084,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         let update_row = imp.update_row.borrow().clone();
-        update_row.set_status(Updates::Checking);
+        update_row.set_state(FilterRowState::Checking);
 
         // Spawn async process to check for updates
         glib::spawn_future_local(clone!(
@@ -1154,7 +1154,7 @@ impl PacViewWindow {
                 }
 
                 // Show update status/count in sidebar
-                update_row.set_status(Updates::Output(error_msg, update_map.len() as u32));
+                update_row.set_state(FilterRowState::Updates(error_msg, update_map.len() as u32));
 
                 // If update row is selected, refresh package status filter
                 if update_row.is_selected() {
