@@ -385,6 +385,12 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;G</property>
+            <property name="title">Show Signature Files</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;O</property>
             <property name="title">Show Cache File in Folder</property>
           </object>

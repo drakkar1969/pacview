@@ -113,6 +113,15 @@ mod imp {
                 glib::Propagation::Stop
             });
 
+            // Show sig files key binding
+            klass.add_binding(Key::G, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                imp.signature_button.set_active(!imp.signature_button.is_active());
+
+                glib::Propagation::Stop
+            });
+
             // Open key binding
             klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
