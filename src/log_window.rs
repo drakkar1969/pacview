@@ -82,8 +82,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -143,57 +143,6 @@ glib::wrapper! {
 }
 
 impl LogWindow {
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Set search entry key capture widget
-        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
-
-        // Set package filter function
-        imp.package_filter.set_filter_func(clone!(
-            #[weak] imp,
-            #[upgrade_or] false,
-            move |item| {
-                if imp.package_button.is_active() {
-                    let msg = item
-                        .downcast_ref::<LogObject>()
-                        .expect("Failed to downcast to 'LogObject'")
-                        .message();
-
-                    msg.starts_with("installed ") || msg.starts_with("removed ") || msg.starts_with("upgraded ") || msg.starts_with("downgraded ")
-                } else {
-                    true
-                }
-            }
-        ));
-
-        // Add keyboard shortcut to cancel search
-        let shortcut = gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(
-                #[weak] imp,
-                #[upgrade_or] glib::Propagation::Proceed,
-                move |_, _| {
-                    imp.search_entry.set_text("");
-                    imp.view.grab_focus();
-
-                    glib::Propagation::Stop
-                }
-            )))
-        );
-
-        let controller = gtk::ShortcutController::new();
-        controller.add_shortcut(shortcut);
-
-        imp.search_entry.add_controller(controller);
-
-        // Set initial focus on view
-        imp.view.grab_focus();
-    }
-
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -261,6 +210,57 @@ impl LogWindow {
                 imp.copy_button.set_sensitive(n_items > 0);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Set search entry key capture widget
+        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+
+        // Set package filter function
+        imp.package_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                if imp.package_button.is_active() {
+                    let msg = item
+                        .downcast_ref::<LogObject>()
+                        .expect("Failed to downcast to 'LogObject'")
+                        .message();
+
+                    msg.starts_with("installed ") || msg.starts_with("removed ") || msg.starts_with("upgraded ") || msg.starts_with("downgraded ")
+                } else {
+                    true
+                }
+            }
+        ));
+
+        // Add keyboard shortcut to cancel search
+        let shortcut = gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(
+                #[weak] imp,
+                #[upgrade_or] glib::Propagation::Proceed,
+                move |_, _| {
+                    imp.search_entry.set_text("");
+                    imp.view.grab_focus();
+
+                    glib::Propagation::Stop
+                }
+            )))
+        );
+
+        let controller = gtk::ShortcutController::new();
+        controller.add_shortcut(shortcut);
+
+        imp.search_entry.add_controller(controller);
+
+        // Set initial focus on view
+        imp.view.grab_focus();
     }
 
     //---------------------------------------

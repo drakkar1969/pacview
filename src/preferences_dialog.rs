@@ -143,8 +143,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -179,6 +179,106 @@ impl PreferencesDialog {
 
         self.notify_pkgbuild_style_scheme();
     }
+
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // System color scheme signal
+        let style_manager = adw::StyleManager::for_display(&self.display());
+
+        style_manager.connect_dark_notify(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |style_manager| {
+                dialog.populate_style_schemes(style_manager);
+            }
+        ));
+
+        // Color scheme row selected property notify signal
+        imp.color_scheme_row.connect_selected_notify(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |row| {
+                let color_scheme = match ColorScheme::from_repr(row.selected())
+                    .unwrap_or_default()
+                {
+                    ColorScheme::Default => adw::ColorScheme::PreferLight,
+                    ColorScheme::Light => adw::ColorScheme::ForceLight,
+                    ColorScheme::Dark => adw::ColorScheme::ForceDark,
+                };
+
+                let style_manager = adw::StyleManager::for_display(&dialog.display());
+
+                style_manager.set_color_scheme(color_scheme);
+            }
+        ));
+
+        // PKGBUILD custom font row activated signal
+        imp.pkgbuild_custom_font_row.connect_activated(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |_| {
+                let font_dialog = gtk::FontDialog::builder()
+                    .modal(true)
+                    .title("Select Font")
+                    .build();
+
+                font_dialog.choose_font(
+                    dialog.root().and_downcast_ref::<PacViewWindow>(),
+                    Some(&pango::FontDescription::from_string(&dialog.pkgbuild_custom_font())),
+                    None::<&gio::Cancellable>,
+                    clone!(move |response| {
+                        if let Ok(font_desc) = response {
+                            dialog.set_pkgbuild_custom_font(font_desc.to_string());
+                        }
+                    })
+                );
+            }
+        ));
+
+        // Preferences reset button clicked signal
+        imp.reset_button.connect_activated(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |_| {
+                let reset_dialog = adw::AlertDialog::builder()
+                    .heading("Reset Preferences?")
+                    .body("Reset all preferences to their default values.")
+                    .default_response("reset")
+                    .build();
+
+                reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+                reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
+
+                reset_dialog.choose(
+                    Some(&dialog),
+                    None::<&gio::Cancellable>,
+                    move |response| {
+                        if response == "reset" {
+                            let settings = gio::Settings::new(APP_ID);
+
+                            settings.reset("color-scheme");
+                            settings.reset("sidebar-width");
+                            settings.reset("infopane-width");
+                            settings.reset("aur-database-download");
+                            settings.reset("aur-database-age");
+                            settings.reset("auto-refresh");
+                            settings.reset("remember-sort");
+                            settings.reset("search-mode");
+                            settings.reset("search-prop");
+                            settings.reset("search-delay");
+                            settings.reset("property-max-lines");
+                            settings.reset("property-line-spacing");
+                            settings.reset("underline-links");
+                            settings.reset("pkgbuild-style-scheme");
+                            settings.reset("pkgbuild-use-system-font");
+                            settings.reset("pkgbuild-custom-font");
+                        }
+                    }
+                );
+            }
+        ));
+    }
+
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
@@ -324,105 +424,6 @@ impl PreferencesDialog {
             .sync_create()
             .bidirectional()
             .build();
-    }
-
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
-
-        // System color scheme signal
-        let style_manager = adw::StyleManager::for_display(&self.display());
-
-        style_manager.connect_dark_notify(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |style_manager| {
-                dialog.populate_style_schemes(style_manager);
-            }
-        ));
-
-        // Color scheme row selected property notify signal
-        imp.color_scheme_row.connect_selected_notify(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |row| {
-                let color_scheme = match ColorScheme::from_repr(row.selected())
-                    .unwrap_or_default()
-                {
-                    ColorScheme::Default => adw::ColorScheme::PreferLight,
-                    ColorScheme::Light => adw::ColorScheme::ForceLight,
-                    ColorScheme::Dark => adw::ColorScheme::ForceDark,
-                };
-
-                let style_manager = adw::StyleManager::for_display(&dialog.display());
-
-                style_manager.set_color_scheme(color_scheme);
-            }
-        ));
-
-        // PKGBUILD custom font row activated signal
-        imp.pkgbuild_custom_font_row.connect_activated(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |_| {
-                let font_dialog = gtk::FontDialog::builder()
-                    .modal(true)
-                    .title("Select Font")
-                    .build();
-
-                font_dialog.choose_font(
-                    dialog.root().and_downcast_ref::<PacViewWindow>(),
-                    Some(&pango::FontDescription::from_string(&dialog.pkgbuild_custom_font())),
-                    None::<&gio::Cancellable>,
-                    clone!(move |response| {
-                        if let Ok(font_desc) = response {
-                            dialog.set_pkgbuild_custom_font(font_desc.to_string());
-                        }
-                    })
-                );
-            }
-        ));
-
-        // Preferences reset button clicked signal
-        imp.reset_button.connect_activated(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |_| {
-                let reset_dialog = adw::AlertDialog::builder()
-                    .heading("Reset Preferences?")
-                    .body("Reset all preferences to their default values.")
-                    .default_response("reset")
-                    .build();
-
-                reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
-                reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
-
-                reset_dialog.choose(
-                    Some(&dialog),
-                    None::<&gio::Cancellable>,
-                    move |response| {
-                        if response == "reset" {
-                            let settings = gio::Settings::new(APP_ID);
-
-                            settings.reset("color-scheme");
-                            settings.reset("sidebar-width");
-                            settings.reset("infopane-width");
-                            settings.reset("aur-database-download");
-                            settings.reset("aur-database-age");
-                            settings.reset("auto-refresh");
-                            settings.reset("remember-sort");
-                            settings.reset("search-mode");
-                            settings.reset("search-prop");
-                            settings.reset("search-delay");
-                            settings.reset("property-max-lines");
-                            settings.reset("property-line-spacing");
-                            settings.reset("underline-links");
-                            settings.reset("pkgbuild-style-scheme");
-                            settings.reset("pkgbuild-use-system-font");
-                            settings.reset("pkgbuild-custom-font");
-                        }
-                    }
-                );
-            }
-        ));
     }
 }
 

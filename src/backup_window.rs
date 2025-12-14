@@ -116,8 +116,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -222,72 +222,6 @@ glib::wrapper! {
 }
 
 impl BackupWindow {
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Set search entry key capture widget
-        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
-
-        // Set search filter function
-        imp.search_filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
-            #[upgrade_or] false,
-            move |item| {
-                let search_term = window.imp().search_entry.text().to_lowercase();
-
-                if search_term.is_empty() {
-                    true
-                } else {
-                    let obj = item
-                        .downcast_ref::<BackupObject>()
-                        .expect("Failed to downcast to 'BackupObject'");
-
-                    match window.search_mode() {
-                        BackupSearchMode::All => {
-                            obj.filename().to_lowercase().contains(&search_term) ||
-                                obj.package().to_lowercase().contains(&search_term)
-                        },
-                        BackupSearchMode::Packages => {
-                            obj.package().to_lowercase().contains(&search_term)
-                        },
-                        BackupSearchMode::Files => {
-                            obj.filename().to_lowercase().contains(&search_term)
-                        },
-                    }
-                }
-            }
-        ));
-
-        // Add keyboard shortcut to cancel search
-        let shortcut = gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(
-                #[weak] imp,
-                #[upgrade_or] glib::Propagation::Proceed,
-                move |_, _| {
-                    imp.search_entry.set_text("");
-                    imp.view.grab_focus();
-
-                    glib::Propagation::Stop
-                }
-            )))
-        );
-
-        let controller = gtk::ShortcutController::new();
-        controller.add_shortcut(shortcut);
-
-        imp.search_entry.add_controller(controller);
-
-        // Set backup compare button visibility
-        imp.compare_button.set_visible(PACCAT_PATH.is_ok() && MELD_PATH.is_ok());
-
-        // Set initial focus on view
-        imp.view.grab_focus();
-    }
-
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -467,6 +401,72 @@ impl BackupWindow {
                 }
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Set search entry key capture widget
+        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+
+        // Set search filter function
+        imp.search_filter.set_filter_func(clone!(
+            #[weak(rename_to = window)] self,
+            #[upgrade_or] false,
+            move |item| {
+                let search_term = window.imp().search_entry.text().to_lowercase();
+
+                if search_term.is_empty() {
+                    true
+                } else {
+                    let obj = item
+                        .downcast_ref::<BackupObject>()
+                        .expect("Failed to downcast to 'BackupObject'");
+
+                    match window.search_mode() {
+                        BackupSearchMode::All => {
+                            obj.filename().to_lowercase().contains(&search_term) ||
+                                obj.package().to_lowercase().contains(&search_term)
+                        },
+                        BackupSearchMode::Packages => {
+                            obj.package().to_lowercase().contains(&search_term)
+                        },
+                        BackupSearchMode::Files => {
+                            obj.filename().to_lowercase().contains(&search_term)
+                        },
+                    }
+                }
+            }
+        ));
+
+        // Add keyboard shortcut to cancel search
+        let shortcut = gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(
+                #[weak] imp,
+                #[upgrade_or] glib::Propagation::Proceed,
+                move |_, _| {
+                    imp.search_entry.set_text("");
+                    imp.view.grab_focus();
+
+                    glib::Propagation::Stop
+                }
+            )))
+        );
+
+        let controller = gtk::ShortcutController::new();
+        controller.add_shortcut(shortcut);
+
+        imp.search_entry.add_controller(controller);
+
+        // Set backup compare button visibility
+        imp.compare_button.set_visible(PACCAT_PATH.is_ok() && MELD_PATH.is_ok());
+
+        // Set initial focus on view
+        imp.view.grab_focus();
     }
 
     //---------------------------------------

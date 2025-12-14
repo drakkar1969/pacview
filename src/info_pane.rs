@@ -163,8 +163,12 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_info_signals();
+            obj.setup_files_signals();
+            obj.setup_log_signals();
+            obj.setup_cache_signals();
+            obj.setup_backup_signals();
             obj.setup_widgets();
-            obj.setup_signals();
         }
     }
 
@@ -249,99 +253,9 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Setup widgets
+    // Setup info signals
     //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Add info rows
-        self.add_info_row(PropID::Name, PropType::Title);
-        self.add_info_row(PropID::Version, PropType::Text);
-        self.add_info_row(PropID::Description, PropType::Text);
-        self.add_info_row(PropID::Popularity, PropType::Text);
-        self.add_info_row(PropID::OutOfDate, PropType::Error);
-        self.add_info_row(PropID::PackageUrl, PropType::Link);
-        self.add_info_row(PropID::Url, PropType::Link);
-        self.add_info_row(PropID::Status, PropType::Text);
-        self.add_info_row(PropID::Repository, PropType::Text);
-        self.add_info_row(PropID::Groups, PropType::Text);
-        self.add_info_row(PropID::Dependencies, PropType::LinkList);
-        self.add_info_row(PropID::Optional, PropType::LinkList);
-        self.add_info_row(PropID::Make, PropType::LinkList);
-        self.add_info_row(PropID::RequiredBy, PropType::LinkList);
-        self.add_info_row(PropID::OptionalFor, PropType::LinkList);
-        self.add_info_row(PropID::Provides, PropType::Text);
-        self.add_info_row(PropID::ConflictsWith, PropType::LinkList);
-        self.add_info_row(PropID::Replaces, PropType::LinkList);
-        self.add_info_row(PropID::Licenses, PropType::Text);
-        self.add_info_row(PropID::Architecture, PropType::Text);
-        self.add_info_row(PropID::Packager, PropType::Packager);
-        self.add_info_row(PropID::BuildDate, PropType::Text);
-        self.add_info_row(PropID::InstallDate, PropType::Text);
-        self.add_info_row(PropID::DownloadSize, PropType::Text);
-        self.add_info_row(PropID::InstalledSize, PropType::Text);
-        self.add_info_row(PropID::InstallScript, PropType::Text);
-        self.add_info_row(PropID::Validation, PropType::Text);
-
-        // Set files search entry key capture widget
-        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
-
-        // Set files folder filter function
-        imp.files_folder_filter.set_filter_func(clone!(
-            #[weak] imp,
-            #[upgrade_or] false,
-            move |item| {
-                if imp.files_filter_button.is_active() {
-                    true
-                } else {
-                    let obj = item
-                        .downcast_ref::<gtk::StringObject>()
-                        .expect("Failed to downcast to 'StringObject'");
-
-                    !obj.string().ends_with('/')
-                }
-            }
-        ));
-
-        // Add keyboard shortcut to cancel files search
-        let shortcut = gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(
-                #[weak] imp,
-                #[upgrade_or] glib::Propagation::Proceed,
-                move |_, _| {
-                    imp.files_search_entry.set_text("");
-                    imp.files_view.grab_focus();
-
-                    glib::Propagation::Stop
-                }
-            )))
-        );
-
-        let controller = gtk::ShortcutController::new();
-        controller.add_shortcut(shortcut);
-
-        imp.files_search_entry.add_controller(controller);
-
-        // Set backup compare button visibility
-        imp.backup_compare_button.set_visible(PACCAT_PATH.is_ok() && MELD_PATH.is_ok());
-
-        // Bind history list properties to widgets
-        let pkg_history = imp.pkg_history.borrow();
-
-        pkg_history.bind_property("peek-previous", &imp.prev_button.get(), "sensitive")
-            .sync_create()
-            .build();
-
-        pkg_history.bind_property("peek-next", &imp.next_button.get(), "sensitive")
-            .sync_create()
-            .build();
-    }
-
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
+    fn setup_info_signals(&self) {
         let imp = self.imp();
 
         // Previous button clicked signal
@@ -404,6 +318,13 @@ impl InfoPane {
                 infopane.clipboard().set_text(&format!("## Package Information\n{body}"));
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup files signals
+    //---------------------------------------
+    fn setup_files_signals(&self) {
+        let imp = self.imp();
 
         // Files search entry search started signal
         imp.files_search_entry.connect_search_started(|entry| {
@@ -481,6 +402,13 @@ impl InfoPane {
                 imp.files_copy_button.set_sensitive(n_items > 0);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup log signals
+    //---------------------------------------
+    fn setup_log_signals(&self) {
+        let imp = self.imp();
 
         // Log copy button clicked signal
         imp.log_copy_button.connect_clicked(clone!(
@@ -506,6 +434,13 @@ impl InfoPane {
                 imp.log_copy_button.set_sensitive(n_items > 0);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup cache_signals
+    //---------------------------------------
+    fn setup_cache_signals(&self) {
+        let imp = self.imp();
 
         // Cache open button clicked signal
         imp.cache_open_button.connect_clicked(clone!(
@@ -555,6 +490,13 @@ impl InfoPane {
                 imp.cache_copy_button.set_sensitive(n_items > 0);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup backup signals
+    //---------------------------------------
+    fn setup_backup_signals(&self) {
+        let imp = self.imp();
 
         // Backup compare button clicked signal
         imp.backup_compare_button.connect_clicked(clone!(
@@ -645,6 +587,96 @@ impl InfoPane {
                 );
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Add info rows
+        self.add_info_row(PropID::Name, PropType::Title);
+        self.add_info_row(PropID::Version, PropType::Text);
+        self.add_info_row(PropID::Description, PropType::Text);
+        self.add_info_row(PropID::Popularity, PropType::Text);
+        self.add_info_row(PropID::OutOfDate, PropType::Error);
+        self.add_info_row(PropID::PackageUrl, PropType::Link);
+        self.add_info_row(PropID::Url, PropType::Link);
+        self.add_info_row(PropID::Status, PropType::Text);
+        self.add_info_row(PropID::Repository, PropType::Text);
+        self.add_info_row(PropID::Groups, PropType::Text);
+        self.add_info_row(PropID::Dependencies, PropType::LinkList);
+        self.add_info_row(PropID::Optional, PropType::LinkList);
+        self.add_info_row(PropID::Make, PropType::LinkList);
+        self.add_info_row(PropID::RequiredBy, PropType::LinkList);
+        self.add_info_row(PropID::OptionalFor, PropType::LinkList);
+        self.add_info_row(PropID::Provides, PropType::Text);
+        self.add_info_row(PropID::ConflictsWith, PropType::LinkList);
+        self.add_info_row(PropID::Replaces, PropType::LinkList);
+        self.add_info_row(PropID::Licenses, PropType::Text);
+        self.add_info_row(PropID::Architecture, PropType::Text);
+        self.add_info_row(PropID::Packager, PropType::Packager);
+        self.add_info_row(PropID::BuildDate, PropType::Text);
+        self.add_info_row(PropID::InstallDate, PropType::Text);
+        self.add_info_row(PropID::DownloadSize, PropType::Text);
+        self.add_info_row(PropID::InstalledSize, PropType::Text);
+        self.add_info_row(PropID::InstallScript, PropType::Text);
+        self.add_info_row(PropID::Validation, PropType::Text);
+
+        // Set files search entry key capture widget
+        imp.files_search_entry.set_key_capture_widget(Some(&imp.files_view.get()));
+
+        // Set files folder filter function
+        imp.files_folder_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                if imp.files_filter_button.is_active() {
+                    true
+                } else {
+                    let obj = item
+                        .downcast_ref::<gtk::StringObject>()
+                        .expect("Failed to downcast to 'StringObject'");
+
+                    !obj.string().ends_with('/')
+                }
+            }
+        ));
+
+        // Add keyboard shortcut to cancel files search
+        let shortcut = gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(
+                #[weak] imp,
+                #[upgrade_or] glib::Propagation::Proceed,
+                move |_, _| {
+                    imp.files_search_entry.set_text("");
+                    imp.files_view.grab_focus();
+
+                    glib::Propagation::Stop
+                }
+            )))
+        );
+
+        let controller = gtk::ShortcutController::new();
+        controller.add_shortcut(shortcut);
+
+        imp.files_search_entry.add_controller(controller);
+
+        // Set backup compare button visibility
+        imp.backup_compare_button.set_visible(PACCAT_PATH.is_ok() && MELD_PATH.is_ok());
+
+        // Bind history list properties to widgets
+        let pkg_history = imp.pkg_history.borrow();
+
+        pkg_history.bind_property("peek-previous", &imp.prev_button.get(), "sensitive")
+            .sync_create()
+            .build();
+
+        pkg_history.bind_property("peek-next", &imp.next_button.get(), "sensitive")
+            .sync_create()
+            .build();
     }
 
     //---------------------------------------

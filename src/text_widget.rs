@@ -155,10 +155,10 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_signals();
             obj.bind_gsettings();
             obj.setup_widget();
             obj.setup_layout();
-            obj.setup_signals();
             obj.setup_controllers();
         }
 
@@ -543,6 +543,69 @@ glib::wrapper! {
 
 impl TextWidget {
     //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        // Expanded property notify signal
+        self.connect_expanded_notify(|widget| {
+            widget.imp().draw_area.queue_resize();
+        });
+
+        // Max lines property notify signal
+        self.connect_max_lines_notify(|widget| {
+            if !widget.expanded() {
+                widget.imp().draw_area.queue_resize();
+            }
+        });
+
+        // Line spacing property notify signal
+        self.connect_line_spacing_notify(|widget| {
+            let imp = widget.imp();
+
+            let layout = imp.layout.get().unwrap();
+
+            let line_spacing = widget.line_spacing() as f32;
+
+            if line_spacing != layout.line_spacing() {
+                layout.set_line_spacing(line_spacing);
+
+                imp.draw_area.queue_resize();
+            }
+        });
+
+        // Underline links property notify signal
+        self.connect_underline_links_notify(|widget| {
+            let imp = widget.imp();
+
+            imp.set_layout_attributes();
+            imp.draw_area.queue_draw();
+        });
+
+        // Focused property notify signal
+        self.connect_focused_notify(|widget| {
+            widget.imp().draw_area.queue_draw();
+        });
+
+        // System color scheme signal
+        let style_manager = adw::StyleManager::for_display(&self.display());
+
+        style_manager.connect_dark_notify(clone!(
+            #[weak(rename_to = widget)] self,
+            move |_| {
+                widget.update_pango_colors();
+            }
+        ));
+
+        // System accent color signal
+        style_manager.connect_accent_color_notify(clone!(
+            #[weak(rename_to = widget)] self,
+            move |_| {
+                widget.update_pango_colors();
+            }
+        ));
+    }
+
+    //---------------------------------------
     // Bind gsettings
     //---------------------------------------
     fn bind_gsettings(&self) {
@@ -738,69 +801,6 @@ impl TextWidget {
 
         // Redraw widget
         imp.draw_area.queue_draw();
-    }
-
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        // Expanded property notify signal
-        self.connect_expanded_notify(|widget| {
-            widget.imp().draw_area.queue_resize();
-        });
-
-        // Max lines property notify signal
-        self.connect_max_lines_notify(|widget| {
-            if !widget.expanded() {
-                widget.imp().draw_area.queue_resize();
-            }
-        });
-
-        // Line spacing property notify signal
-        self.connect_line_spacing_notify(|widget| {
-            let imp = widget.imp();
-
-            let layout = imp.layout.get().unwrap();
-
-            let line_spacing = widget.line_spacing() as f32;
-
-            if line_spacing != layout.line_spacing() {
-                layout.set_line_spacing(line_spacing);
-
-                imp.draw_area.queue_resize();
-            }
-        });
-
-        // Underline links property notify signal
-        self.connect_underline_links_notify(|widget| {
-            let imp = widget.imp();
-
-            imp.set_layout_attributes();
-            imp.draw_area.queue_draw();
-        });
-
-        // Focused property notify signal
-        self.connect_focused_notify(|widget| {
-            widget.imp().draw_area.queue_draw();
-        });
-
-        // System color scheme signal
-        let style_manager = adw::StyleManager::for_display(&self.display());
-
-        style_manager.connect_dark_notify(clone!(
-            #[weak(rename_to = widget)] self,
-            move |_| {
-                widget.update_pango_colors();
-            }
-        ));
-
-        // System accent color signal
-        style_manager.connect_accent_color_notify(clone!(
-            #[weak(rename_to = widget)] self,
-            move |_| {
-                widget.update_pango_colors();
-            }
-        ));
     }
 
     //---------------------------------------

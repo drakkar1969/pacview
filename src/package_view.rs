@@ -151,8 +151,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -170,6 +170,85 @@ glib::wrapper! {
 }
 
 impl PackageView {
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // List view selection items changed signal
+        imp.selection.connect_items_changed(clone!(
+            #[weak(rename_to = view)] self,
+            move |selection, _, _, _| {
+                view.imp().empty_status.set_visible(selection.n_items() == 0);
+            }
+        ));
+
+        // List view selected item property notify signal
+        imp.selection.connect_selected_item_notify(clone!(
+            #[weak(rename_to = view)] self,
+            move |selection| {
+                let pkg = selection.selected_item()
+                    .and_downcast::<PkgObject>();
+
+                view.info_pane().set_pkg(pkg);
+            }
+        ));
+
+        // List view activate signal
+        imp.view.connect_activate(clone!(
+            #[weak(rename_to = view)] self,
+            move |_, index| {
+                let pkg = view.imp().selection.item(index)
+                    .and_downcast::<PkgObject>();
+
+                let info_pane = view.info_pane();
+
+                if pkg != info_pane.pkg() {
+                    info_pane.set_pkg(pkg);
+                }
+            }
+        ));
+
+        // Sort prop property notify signal
+        self.connect_sort_prop_notify(|view| {
+            view.imp().sorter.changed(gtk::SorterChange::Different);
+        });
+
+        // Sort ascending property notify signal
+        self.connect_sort_ascending_notify(|view| {
+            view.imp().sorter.changed(gtk::SorterChange::Inverted);
+        });
+
+        // Search bar changed signal
+        self.search_bar().connect_closure("changed", false, closure_local!(
+            #[weak(rename_to = view)] self,
+            move |_: SearchBar| {
+                view.imp().search_filter.changed(gtk::FilterChange::Different);
+            }
+        ));
+
+        // Search bar AUR Search signal
+        self.search_bar().connect_closure("aur-search", false, closure_local!(
+            #[weak(rename_to = view)] self,
+            move |search_bar: &SearchBar| {
+                view.search_in_aur(search_bar);
+            }
+        ));
+
+        // Search bar enabled property notify signal
+        self.search_bar().connect_enabled_notify(clone!(
+            #[weak(rename_to = view)] self,
+            move |bar| {
+                if !bar.enabled() {
+                    view.cancel_aur_search();
+
+                    view.imp().view.grab_focus();
+                }
+            }
+        ));
+    }
+
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
@@ -270,85 +349,6 @@ impl PackageView {
 
         // Set search bar key capture widget
         self.search_bar().set_key_capture_widget(imp.view.upcast_ref());
-    }
-
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
-
-        // List view selection items changed signal
-        imp.selection.connect_items_changed(clone!(
-            #[weak(rename_to = view)] self,
-            move |selection, _, _, _| {
-                view.imp().empty_status.set_visible(selection.n_items() == 0);
-            }
-        ));
-
-        // List view selected item property notify signal
-        imp.selection.connect_selected_item_notify(clone!(
-            #[weak(rename_to = view)] self,
-            move |selection| {
-                let pkg = selection.selected_item()
-                    .and_downcast::<PkgObject>();
-
-                view.info_pane().set_pkg(pkg);
-            }
-        ));
-
-        // List view activate signal
-        imp.view.connect_activate(clone!(
-            #[weak(rename_to = view)] self,
-            move |_, index| {
-                let pkg = view.imp().selection.item(index)
-                    .and_downcast::<PkgObject>();
-
-                let info_pane = view.info_pane();
-
-                if pkg != info_pane.pkg() {
-                    info_pane.set_pkg(pkg);
-                }
-            }
-        ));
-
-        // Sort prop property notify signal
-        self.connect_sort_prop_notify(|view| {
-            view.imp().sorter.changed(gtk::SorterChange::Different);
-        });
-
-        // Sort ascending property notify signal
-        self.connect_sort_ascending_notify(|view| {
-            view.imp().sorter.changed(gtk::SorterChange::Inverted);
-        });
-
-        // Search bar changed signal
-        self.search_bar().connect_closure("changed", false, closure_local!(
-            #[weak(rename_to = view)] self,
-            move |_: SearchBar| {
-                view.imp().search_filter.changed(gtk::FilterChange::Different);
-            }
-        ));
-
-        // Search bar AUR Search signal
-        self.search_bar().connect_closure("aur-search", false, closure_local!(
-            #[weak(rename_to = view)] self,
-            move |search_bar: &SearchBar| {
-                view.search_in_aur(search_bar);
-            }
-        ));
-
-        // Search bar enabled property notify signal
-        self.search_bar().connect_enabled_notify(clone!(
-            #[weak(rename_to = view)] self,
-            move |bar| {
-                if !bar.enabled() {
-                    view.cancel_aur_search();
-
-                    view.imp().view.grab_focus();
-                }
-            }
-        ));
     }
 
     //---------------------------------------

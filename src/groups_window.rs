@@ -106,8 +106,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -175,87 +175,6 @@ glib::wrapper! {
 }
 
 impl GroupsWindow {
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Set search entry key capture widget
-        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
-
-        // Set search filter function
-        imp.search_filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
-            #[upgrade_or] false,
-            move |item| {
-                let obj = item
-                    .downcast_ref::<GroupsObject>()
-                    .expect("Failed to downcast to 'GroupsObject'");
-
-                let search_term = window.imp().search_entry.text().to_lowercase();
-
-                if search_term.is_empty() {
-                    true
-                } else {
-                    match window.search_mode() {
-                        GroupsSearchMode::All => {
-                            obj.package().to_lowercase().contains(&search_term) ||
-                                obj.groups().to_lowercase().contains(&search_term)
-                        },
-                        GroupsSearchMode::Groups => {
-                            obj.groups().to_lowercase().contains(&search_term)
-                        },
-                        GroupsSearchMode::Packages => {
-                            obj.package().to_lowercase().contains(&search_term)
-                        },
-                    }
-                }
-            }
-        ));
-
-        // Set installed filter function
-        imp.installed_filter.set_filter_func(clone!(
-            #[weak] imp,
-            #[upgrade_or] false,
-            move |item| {
-                if imp.installed_button.is_active() {
-                    let status = item
-                        .downcast_ref::<GroupsObject>()
-                        .expect("Failed to downcast to 'GroupsObject'")
-                        .status();
-
-                    status != "not installed"
-                } else {
-                    true
-                }
-            }
-        ));
-
-        // Add keyboard shortcut to cancel search
-        let shortcut = gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(
-                #[weak] imp,
-                #[upgrade_or] glib::Propagation::Proceed,
-                move |_, _| {
-                    imp.search_entry.set_text("");
-                    imp.view.grab_focus();
-
-                    glib::Propagation::Stop
-                }
-            )))
-        );
-
-        let controller = gtk::ShortcutController::new();
-        controller.add_shortcut(shortcut);
-
-        imp.search_entry.add_controller(controller);
-
-        // Set initial focus on view
-        imp.view.grab_focus();
-    }
-
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -358,6 +277,87 @@ impl GroupsWindow {
                 imp.copy_button.set_sensitive(n_items > 0);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Set search entry key capture widget
+        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+
+        // Set search filter function
+        imp.search_filter.set_filter_func(clone!(
+            #[weak(rename_to = window)] self,
+            #[upgrade_or] false,
+            move |item| {
+                let obj = item
+                    .downcast_ref::<GroupsObject>()
+                    .expect("Failed to downcast to 'GroupsObject'");
+
+                let search_term = window.imp().search_entry.text().to_lowercase();
+
+                if search_term.is_empty() {
+                    true
+                } else {
+                    match window.search_mode() {
+                        GroupsSearchMode::All => {
+                            obj.package().to_lowercase().contains(&search_term) ||
+                                obj.groups().to_lowercase().contains(&search_term)
+                        },
+                        GroupsSearchMode::Groups => {
+                            obj.groups().to_lowercase().contains(&search_term)
+                        },
+                        GroupsSearchMode::Packages => {
+                            obj.package().to_lowercase().contains(&search_term)
+                        },
+                    }
+                }
+            }
+        ));
+
+        // Set installed filter function
+        imp.installed_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                if imp.installed_button.is_active() {
+                    let status = item
+                        .downcast_ref::<GroupsObject>()
+                        .expect("Failed to downcast to 'GroupsObject'")
+                        .status();
+
+                    status != "not installed"
+                } else {
+                    true
+                }
+            }
+        ));
+
+        // Add keyboard shortcut to cancel search
+        let shortcut = gtk::Shortcut::new(
+            gtk::ShortcutTrigger::parse_string("Escape"),
+            Some(gtk::CallbackAction::new(clone!(
+                #[weak] imp,
+                #[upgrade_or] glib::Propagation::Proceed,
+                move |_, _| {
+                    imp.search_entry.set_text("");
+                    imp.view.grab_focus();
+
+                    glib::Propagation::Stop
+                }
+            )))
+        );
+
+        let controller = gtk::ShortcutController::new();
+        controller.add_shortcut(shortcut);
+
+        imp.search_entry.add_controller(controller);
+
+        // Set initial focus on view
+        imp.view.grab_focus();
     }
 
     //---------------------------------------

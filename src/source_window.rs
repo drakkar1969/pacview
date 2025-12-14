@@ -75,8 +75,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -237,44 +237,6 @@ impl SourceWindow {
     }
 
     //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        // Set syntax highlighting language
-        let buffer = self.buffer();
-
-        buffer.set_language(
-            sourceview5::LanguageManager::default().language("pkgbuild").as_ref()
-        );
-
-        // Set style scheme
-        let display = gtk::prelude::WidgetExt::display(self);
-        let style_manager = adw::StyleManager::for_display(&display);
-
-        self.set_style_scheme(&style_manager);
-
-        // Set font
-        let settings = gio::Settings::new(APP_ID);
-
-        let use_system_font = settings.boolean("pkgbuild-use-system-font");
-        let mut custom_font = settings.string("pkgbuild-custom-font");
-
-        if use_system_font || custom_font.is_empty() {
-            custom_font = style_manager.monospace_font_name();
-        }
-
-        let css = pango_utils::font_str_to_css(&custom_font);
-
-        let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
-
-        gtk::style_context_add_provider_for_display(&display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-        // Download PKGBUILD
-        self.download_pkgbuild();
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -331,5 +293,43 @@ impl SourceWindow {
                 window.download_pkgbuild();
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        // Set syntax highlighting language
+        let buffer = self.buffer();
+
+        buffer.set_language(
+            sourceview5::LanguageManager::default().language("pkgbuild").as_ref()
+        );
+
+        // Set style scheme
+        let display = gtk::prelude::WidgetExt::display(self);
+        let style_manager = adw::StyleManager::for_display(&display);
+
+        self.set_style_scheme(&style_manager);
+
+        // Set font
+        let settings = gio::Settings::new(APP_ID);
+
+        let use_system_font = settings.boolean("pkgbuild-use-system-font");
+        let mut custom_font = settings.string("pkgbuild-custom-font");
+
+        if use_system_font || custom_font.is_empty() {
+            custom_font = style_manager.monospace_font_name();
+        }
+
+        let css = pango_utils::font_str_to_css(&custom_font);
+
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
+
+        gtk::style_context_add_provider_for_display(&display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+        // Download PKGBUILD
+        self.download_pkgbuild();
     }
 }

@@ -66,8 +66,8 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_widgets();
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
     impl WidgetImpl for StatsWindow {}
@@ -107,14 +107,6 @@ glib::wrapper! {
 
 impl StatsWindow {
     //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        // Set initial focus on view
-        self.imp().view.grab_focus();
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -145,6 +137,14 @@ impl StatsWindow {
                 );
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        // Set initial focus on view
+        self.imp().view.grab_focus();
     }
 
     //---------------------------------------
