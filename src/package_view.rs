@@ -3,7 +3,6 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::cmp::Ordering;
 use std::borrow::Cow;
-use std::marker::PhantomData;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -117,8 +116,6 @@ mod imp {
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
-        #[property(set = Self::set_state, builder(PackageViewState::default()))]
-        state: PhantomData<PackageViewState>,
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
@@ -162,27 +159,6 @@ mod imp {
 
     impl WidgetImpl for PackageView {}
     impl BinImpl for PackageView {}
-
-    impl PackageView{
-        //---------------------------------------
-        // Property setter
-        //---------------------------------------
-        pub fn set_state(&self, state: PackageViewState) {
-            match state {
-                PackageViewState::Normal => {
-                    self.stack.set_visible_child_name("view");
-                },
-                PackageViewState::PackageLoad => {
-                    self.loading_status.set_title("Loading Pacman Databases");
-                    self.stack.set_visible_child_name("spinner");
-                },
-                PackageViewState::AURDownload => {
-                    self.loading_status.set_title("Updating AUR Database");
-                    self.stack.set_visible_child_name("spinner");
-                }
-            }
-        }
-    }
 }
 
 //------------------------------------------------------------------------------
@@ -552,6 +528,27 @@ impl PackageView {
                 search_bar.set_searching(false);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Public set state functions
+    //---------------------------------------
+    pub fn set_state(&self, state: PackageViewState) {
+        let imp = self.imp();
+
+        match state {
+            PackageViewState::Normal => {
+                imp.stack.set_visible_child_name("view");
+            },
+            PackageViewState::PackageLoad => {
+                imp.loading_status.set_title("Loading Pacman Databases");
+                imp.stack.set_visible_child_name("spinner");
+            },
+            PackageViewState::AURDownload => {
+                imp.loading_status.set_title("Updating AUR Database");
+                imp.stack.set_visible_child_name("spinner");
+            }
+        }
     }
 
     //---------------------------------------
