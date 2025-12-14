@@ -120,8 +120,12 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="compare_button">
-                        <property name="icon-name">info-compare-symbolic</property>
                         <property name="tooltip-text">Compare with Original</property>
+                        <property name="child">
+                          <object class="GtkImage" id="compare_image">
+                            <property name="icon-name">info-compare-symbolic</property>
+                          </object>
+                        </property>
                         <style>
                           <class name="flat"/>
                           <class name="circular"/>

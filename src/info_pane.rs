@@ -113,6 +113,8 @@ mod imp {
         #[template_child]
         pub(super) backup_compare_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub(super) backup_compare_image: TemplateChild<gtk::Image>,
+        #[template_child]
         pub(super) backup_open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) backup_copy_button: TemplateChild<gtk::Button>,
@@ -557,7 +559,11 @@ impl InfoPane {
         // Backup compare button clicked signal
         imp.backup_compare_button.connect_clicked(clone!(
             #[weak] imp,
-            move |_| {
+            move |button| {
+                let spinner = adw::SpinnerPaintable::new(Some(button));
+
+                imp.backup_compare_image.set_paintable(Some(&spinner));
+
                 let item = imp.backup_selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .expect("Failed to downcast to 'BackupObject'");
@@ -565,6 +571,8 @@ impl InfoPane {
                 glib::spawn_future_local(
                     async move {
                         let _ = item.compare_with_original().await;
+
+                        imp.backup_compare_image.set_icon_name(Some("info-compare-symbolic"));
                     }
                 );
             }

@@ -49,6 +49,8 @@ mod imp {
         #[template_child]
         pub(super) compare_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub(super) compare_image: TemplateChild<gtk::Image>,
+        #[template_child]
         pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) copy_button: TemplateChild<gtk::Button>,
@@ -341,7 +343,11 @@ impl BackupWindow {
         // Compare button clicked signal
         imp.compare_button.connect_clicked(clone!(
             #[weak] imp,
-            move |_| {
+            move |button| {
+                let spinner = adw::SpinnerPaintable::new(Some(button));
+
+                imp.compare_image.set_paintable(Some(&spinner));
+
                 let item = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .expect("Failed to downcast to 'BackupObject'");
@@ -349,6 +355,8 @@ impl BackupWindow {
                 glib::spawn_future_local(
                     async move {
                         let _ = item.compare_with_original().await;
+
+                        imp.compare_image.set_icon_name(Some("info-compare-symbolic"));
                     }
                 );
             }

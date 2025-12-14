@@ -38,6 +38,17 @@ pub mod async_command {
 
         Ok((output.status.code(), stdout))
     }
+
+    //---------------------------------------
+    // Spawn function
+    //---------------------------------------
+    pub fn spawn(cmd: impl AsRef<OsStr>, args: &[&str]) -> Result<()> {
+        async_process::Command::new(cmd)
+            .args(args)
+            .spawn()?;
+
+        Ok(())
+    }
 }
 
 //------------------------------------------------------------------------------
