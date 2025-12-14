@@ -2,7 +2,7 @@
 <interface>
   <!--// BackupWindow template //-->
   <template class="BackupWindow" parent="AdwWindow">
-    <property name="default-width">850</property>
+    <property name="default-width">900</property>
     <property name="default-height">640</property>
     <property name="modal">true</property>
     <property name="hide-on-close">true</property>
@@ -80,6 +80,7 @@
                         </style>
                         <child>
                           <object class="GtkSearchEntry" id="search_entry">
+                            <property name="width-request">220</property>
                             <property name="margin-start">20</property>
                             <property name="placeholder-text">Search all</property>
                             <style>
@@ -103,7 +104,7 @@
                     </child>
                     <child>
                       <object class="GtkDropDown" id="status_dropdown">
-                        <property name="width-request">160</property>
+                        <property name="width-request">180</property>
                         <property name="margin-end">14</property>
                         <property name="model">
                           <object class="AdwEnumListModel">
