@@ -555,10 +555,10 @@ impl PacViewWindow {
         ));
 
         // Package view n_items property notify signal
-        imp.package_view.connect_n_items_notify(clone!(
+        imp.package_view.selection().connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
-            move |view| {
-                let n_items = view.n_items();
+            move |selection, _, _, _| {
+                let n_items = selection.n_items();
 
                 window.imp().status_label.set_label(
                     &format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })

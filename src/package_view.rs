@@ -79,8 +79,13 @@ mod imp {
         #[template_child]
         pub(super) loading_status: TemplateChild<adw::StatusPage>,
 
+        #[property(get)]
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
+        #[property(get)]
+        #[template_child]
+        pub(super) view: TemplateChild<gtk::ListView>,
+
         #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
@@ -101,17 +106,11 @@ mod imp {
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
-        #[property(get)]
-        #[template_child]
-        pub(super) view: TemplateChild<gtk::ListView>,
-
         #[property(get, set, construct)]
         search_bar: RefCell<SearchBar>,
         #[property(get, set, construct)]
         info_pane: RefCell<InfoPane>,
 
-        #[property(get, set)]
-        n_items: Cell<u32>,
         #[property(get, set, builder(SortProp::default()))]
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
@@ -283,10 +282,7 @@ impl PackageView {
         imp.selection.connect_items_changed(clone!(
             #[weak(rename_to = view)] self,
             move |selection, _, _, _| {
-                let n_items = selection.n_items();
-
-                view.set_n_items(n_items);
-                view.imp().empty_status.set_visible(n_items == 0);
+                view.imp().empty_status.set_visible(selection.n_items() == 0);
             }
         ));
 
