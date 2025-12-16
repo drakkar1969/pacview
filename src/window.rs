@@ -14,6 +14,7 @@ use gdk::{Key, ModifierType};
 
 use alpm_utils::DbListExt;
 use heck::ToTitleCase;
+use rayon::slice::ParallelSliceMut;
 use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
@@ -740,23 +741,23 @@ impl PacViewWindow {
         let imp = self.imp();
 
         let pacman_config = &PACMAN_CONFIG;
+        let xdg_dirs = xdg::BaseDirectories::new();
 
         // Load pacman log
         *PACMAN_LOG.write().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
 
         // Load pacman cache
-        let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
-            .flat_map(|dir| {
-                fs::read_dir(dir).map_or(vec![], |read_dir| {
-                    read_dir.into_iter()
-                        .flatten()
-                        .map(|entry| entry.path())
-                        .collect()
-                })
-            })
-            .collect();
+        let mut cache_files: Vec<PathBuf> = vec![];
 
-        cache_files.sort_unstable();
+        for dir in &pacman_config.cache_dir {
+            if let Ok(read_dir) = fs::read_dir(dir) {
+                let files = read_dir.into_iter().flatten().map(|entry| entry.path());
+
+                cache_files.extend(files);
+            }
+        }
+
+        cache_files.par_sort_unstable();
 
         *PACMAN_CACHE.write().unwrap() = cache_files;
 
@@ -770,32 +771,26 @@ impl PacViewWindow {
         imp.groups_window.borrow().remove_all();
         imp.stats_window.borrow().remove_all();
 
-        // Get paru repo paths
-        let xdg_dirs = xdg::BaseDirectories::new();
+        // Get paru repos
+        let mut paru_repos: Vec<(String, PathBuf)> = vec![];
 
-        let paru_repo_paths: Vec<PathBuf> = PARU_PATH.as_ref().ok()
-            .and_then(|_| xdg_dirs.get_cache_home())
-            .and_then(|cache_dir| {
-                fs::read_dir(cache_dir.join("paru/clone/repo")).ok()
-                    .map(|read_dir| {
-                        read_dir.into_iter()
-                            .flatten()
-                            .map(|entry| entry.path())
-                            .collect()
-                    })
-            })
-            .unwrap_or_default();
+        if PARU_PATH.is_ok() && let Some(cache_dir) = xdg_dirs.get_cache_home()
+            && let Ok(read_dir) = fs::read_dir(cache_dir.join("paru/clone/repo")) {
+                let repos = read_dir.into_iter()
+                    .flatten()
+                    .map(|entry| {
+                        (entry.file_name().to_string_lossy().into_owned(), entry.path())
+                    });
+
+                paru_repos.extend(repos);
+            }
 
         // Create repo names list
         let repo_names: Vec<String> = pacman_config.repos.iter()
-            .map(|r| r.name.clone())
-            .chain(paru_repo_paths.iter()
-                .map(|repo| repo.file_name()
-                    .and_then(|s| s.to_str().map(ToOwned::to_owned))
-                    .unwrap_or_default()
-                )
-            )
-            .chain([String::from("aur"), String::from("local")])
+            .map(|r| r.name.as_str())
+            .chain(paru_repos.iter().map(|(name, _)| name.as_str()))
+            .chain(["aur", "local"])
+            .map(ToOwned::to_owned)
             .collect();
 
         // Populate sidebar
@@ -825,11 +820,11 @@ impl PacViewWindow {
                     async move {
                         let _ = aur_file::download(&file).await;
 
-                        window.alpm_load_packages(paru_repo_paths);
+                        window.alpm_load_packages(paru_repos);
                     }
                 ));
             } else {
-                self.alpm_load_packages(paru_repo_paths);
+                self.alpm_load_packages(paru_repos);
             }
     }
 
@@ -897,7 +892,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, paru_repo_paths: Vec<PathBuf>) {
+    fn alpm_load_packages(&self, paru_repos: Vec<(String, PathBuf)>) {
         let imp = self.imp();
 
         // Get pacman config
@@ -922,25 +917,20 @@ impl PacViewWindow {
                 HashSet::default()
             };
 
-            // Get custom paru repo package map
-            let paru_map: HashMap<String, &str> = paru_repo_paths.iter()
-                .flat_map(|repo| {
-                    let repo_name = repo.file_name()
-                        .and_then(|s| s.to_str())
-                        .unwrap_or_default();
+            // Get paru repo package map
+            let mut paru_map: HashMap<String, String> = HashMap::new();
 
-                    fs::read_dir(repo)
-                        .map_or_else(|_| HashMap::default(), |read_dir| {
-                            read_dir.into_iter()
-                                .flatten()
-                                .map(|entry| {
-                                    (entry.file_name().into_string().unwrap_or_default(),
-                                    repo_name)
-                                })
-                                .collect::<HashMap<_, _>>()
-                        })
-                })
-                .collect();
+            for (name, path) in paru_repos {
+                if let Ok(read_dir) = fs::read_dir(path) {
+                    let items = read_dir.into_iter()
+                        .flatten()
+                        .map(|entry| {
+                            (entry.file_name().to_string_lossy().into_owned(), name.clone())
+                        });
+
+                    paru_map.extend(items);
+                }
+            }
 
             let syncdbs = handle.syncdbs();
             let localdb = handle.localdb();
