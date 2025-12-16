@@ -217,7 +217,7 @@ impl StatsWindow {
                     &format!("<b>{pkg_count_total}</b>"),
                     &format!("<b>{install_count_total}</b>"),
                     &format!("<b>{explicit_count_total}</b>"),
-                    &format!("<b>{}</b>", &Size::from_bytes(install_size_total).to_string())
+                    &format!("<b>{}</b>", Size::from_bytes(install_size_total))
                 ));
 
                 imp.model.splice(0, 0, &stats_items);
