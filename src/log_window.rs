@@ -25,8 +25,6 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/log_window.ui")]
     pub struct LogWindow {
         #[template_child]
-        pub(super) header_sub_label: TemplateChild<gtk::Label>,
-        #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
         pub(super) package_button: TemplateChild<gtk::ToggleButton>,
@@ -46,6 +44,8 @@ mod imp {
         #[template_child]
         pub(super) package_filter: TemplateChild<gtk::CustomFilter>,
 
+        #[template_child]
+        pub(super) footer_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
     }
@@ -205,7 +205,7 @@ impl LogWindow {
 
                 imp.empty_status.set_visible(n_items == 0);
 
-                imp.header_sub_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
+                imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
             }

@@ -3,6 +3,7 @@
   <template class="GtkColumnViewCell">
     <property name="child">
       <object class="GtkBox">
+        <property name="margin-start">2</property>
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">

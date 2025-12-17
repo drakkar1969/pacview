@@ -6,10 +6,7 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
-use fs_extra::dir;
-use size::Size;
-
-use crate::window::{PACMAN_CACHE, PACMAN_CONFIG};
+use crate::window::PACMAN_CACHE;
 use crate::cache_object::CacheObject;
 use crate::utils::app_info;
 
@@ -25,10 +22,6 @@ mod imp {
     #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/cache_window.ui")]
     pub struct CacheWindow {
-        #[template_child]
-        pub(super) header_size_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) header_sub_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
         #[template_child]
@@ -49,6 +42,8 @@ mod imp {
         #[template_child]
         pub(super) signature_filter: TemplateChild<gtk::CustomFilter>,
 
+        #[template_child]
+        pub(super) footer_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
     }
@@ -227,7 +222,7 @@ impl CacheWindow {
 
                 imp.empty_status.set_visible(n_items == 0);
 
-                imp.header_sub_label.set_label(&format!("{n_items} file{}", if n_items == 1 { "" } else { "s" }));
+                imp.footer_label.set_label(&format!("{n_items} file{}", if n_items == 1 { "" } else { "s" }));
 
                 imp.copy_button.set_sensitive(n_items > 0);
             }
@@ -310,15 +305,6 @@ impl CacheWindow {
                 .map(|file| CacheObject::new(&file.display().to_string()))
                 .collect::<Vec<CacheObject>>()
             );
-
-            // Get cache size
-            let mut cache_size = 0;
-
-            for dir in &PACMAN_CONFIG.cache_dir {
-                cache_size += dir::get_size(dir).unwrap_or_default();
-            }
-
-            imp.header_size_label.set_label(&Size::from_bytes(cache_size).to_string());
         }
     }
 }

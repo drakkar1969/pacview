@@ -9,26 +9,15 @@
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
+        <property name="top-bar-style">raised</property>
+        <property name="bottom-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
-          </object>
-        </child>
-        <property name="content">
-          <object class="GtkBox" id="main_box">
-            <style>
-              <class name="card"/>
-            </style>
-            <property name="orientation">vertical</property>
-            <property name="margin-start">24</property>
-            <property name="margin-end">24</property>
-            <property name="margin-top">6</property>
-            <property name="margin-bottom">24</property>
-            <property name="spacing">16</property>
             <child>
               <object class="GtkBox" id="header_box">
-                <property name="margin-start">16</property>
-                <property name="margin-end">16</property>
-                <property name="margin-top">16</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <property name="margin-start">6</property>
                 <property name="spacing">12</property>
                 <child>
                   <object class="GtkImage" id="header_image">
@@ -40,195 +29,189 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkBox">
-                    <property name="orientation">vertical</property>
-                    <property name="valign">center</property>
-                    <property name="spacing">2</property>
-                    <child>
-                      <object class="GtkLabel" id="header_label">
-                        <property name="xalign">0</property>
-                        <property name="yalign">0.5</property>
-                        <property name="label">Pacman Groups</property>
-                        <style>
-                          <class name="title-3"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="header_sub_label">
-                        <property name="xalign">0</property>
-                        <property name="yalign">0.5</property>
-                        <property name="label"></property>
-                        <style>
-                          <class name="caption-heading"/>
-                          <class name="dimmed"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkBox">
-                    <property name="hexpand">true</property>
-                    <property name="halign">end</property>
-                    <property name="valign">center</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <object class="GtkBox">
-                        <style>
-                          <class name="linked"/>
-                        </style>
-                        <child>
-                          <object class="GtkSearchEntry" id="search_entry">
-                            <property name="margin-start">20</property>
-                            <property name="placeholder-text">Search all</property>
-                            <style>
-                              <class name="round"/>
-                              <class name="left"/>
-                            </style>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkMenuButton" id="search_button">
-                            <property name="margin-end">14</property>
-                            <property name="icon-name">view-more-symbolic</property>
-                            <property name="menu-model">search_menu</property>
-                            <style>
-                              <class name="round"/>
-                              <class name="right"/>
-                            </style>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkToggleButton" id="installed_button">
-                        <property name="icon-name">status-installed-symbolic</property>
-                        <property name="tooltip-text">Filter Installed Packages</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="copy_button">
-                        <property name="icon-name">edit-copy-symbolic</property>
-                        <property name="tooltip-text">Copy Package List</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
-                      </object>
-                    </child>
+                  <object class="GtkLabel" id="header_label">
+                    <property name="xalign">0</property>
+                    <property name="yalign">0.5</property>
+                    <property name="label">Pacman Groups</property>
+                    <style>
+                      <class name="title-3"/>
+                    </style>
                   </object>
                 </child>
               </object>
             </child>
-            <child>
-              <object class="GtkOverlay">
+            <child type="end">
+              <object class="GtkBox" id="control_box">
+                <property name="valign">center</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <property name="margin-end">6</property>
+                <property name="spacing">6</property>
                 <child>
-                  <object class="GtkScrolledWindow">
-                    <property name="hscrollbar-policy">never</property>
-                    <property name="hexpand">true</property>
-                    <property name="vexpand">true</property>
-                    <property name="margin-bottom">16</property>
-                    <property name="child">
-                      <object class="GtkColumnView" id="view">
+                  <object class="GtkBox">
+                    <style>
+                      <class name="linked"/>
+                    </style>
+                    <child>
+                      <object class="GtkSearchEntry" id="search_entry">
+                        <property name="placeholder-text">Search all</property>
                         <style>
-                          <class name="card-list"/>
+                          <class name="round"/>
+                          <class name="left"/>
                         </style>
-                        <property name="margin-start">16</property>
-                        <property name="margin-end">16</property>
-                        <property name="tab-behavior">item</property>
-                        <property name="model">
-                          <object class="GtkSingleSelection" id="selection">
-                            <property name="model">
-                              <object class="GtkSortListModel" id="section_sort_model">
-                                <property name="sorter">
-                                  <object class="GtkStringSorter" id="sorter">
-                                    <property name="expression">
-                                      <lookup name="package" type="GroupsObject"/>
-                                    </property>
-                                  </object>
-                                </property>
-                                <property name="section-sorter">
-                                  <object class="GtkStringSorter" id="section_sorter">
-                                    <property name="expression">
-                                      <lookup name="groups" type="GroupsObject"/>
-                                    </property>
-                                  </object>
-                                </property>
-                                <property name="model">
-                                  <object class="GtkFilterListModel" id="filter_model">
-                                    <property name="filter">
-                                      <object class="GtkEveryFilter" id="main_filter">
-                                        <child>
-                                          <object class="GtkCustomFilter" id="search_filter">
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkCustomFilter" id="installed_filter"/>
-                                        </child>
-                                      </object>
-                                    </property>
-                                    <property name="model">
-                                      <object class="GListStore" id="model">
-                                        <property name="item-type">GroupsObject</property>
-                                      </object>
-                                    </property>
-                                  </object>
-                                </property>
-                              </object>
-                            </property>
-                          </object>
-                        </property>
-                        <property name="header-factory">
-                          <object class="GtkBuilderListItemFactory" id="section_factory">
-                            <property name="resource">/com/github/PacView/ui/groups_window/section_header.ui</property>
-                          </object>
-                        </property>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="filename_column">
-                            <property name="title">Package</property>
-                            <property name="resizable">true</property>
-                            <property name="expand">true</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/groups_window/package_item.ui</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn" id="status_column">
-                            <property name="title">Status</property>
-                            <property name="resizable">true</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/groups_window/status_item.ui</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
                       </object>
-                    </property>
+                    </child>
+                    <child>
+                      <object class="GtkMenuButton" id="search_button">
+                        <property name="margin-end">14</property>
+                        <property name="icon-name">view-more-symbolic</property>
+                        <property name="menu-model">search_menu</property>
+                        <style>
+                          <class name="round"/>
+                          <class name="right"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
-                <child type="overlay">
-                  <object class="AdwStatusPage" id="empty_status">
-                    <property name="icon-name">edit-find-symbolic</property>
-                    <property name="title">No Packages Found</property>
+                <child>
+                  <object class="GtkToggleButton" id="installed_button">
+                    <property name="icon-name">status-installed-symbolic</property>
+                    <property name="tooltip-text">Filter Installed Packages</property>
                     <style>
-                      <class name="compact"/>
-                      <class name="dimmed"/>
+                      <class name="flat"/>
+                      <class name="circular"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="copy_button">
+                    <property name="icon-name">edit-copy-symbolic</property>
+                    <property name="tooltip-text">Copy Package List</property>
+                    <style>
+                      <class name="flat"/>
+                      <class name="circular"/>
                     </style>
                   </object>
                 </child>
               </object>
             </child>
           </object>
+        </child>
+        <property name="content">
+          <object class="GtkOverlay">
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="hscrollbar-policy">never</property>
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="child">
+                  <object class="GtkColumnView" id="view">
+                    <style>
+                      <class name="card-list"/>
+                    </style>
+                    <property name="tab-behavior">item</property>
+                    <property name="model">
+                      <object class="GtkSingleSelection" id="selection">
+                        <property name="model">
+                          <object class="GtkSortListModel" id="section_sort_model">
+                            <property name="sorter">
+                              <object class="GtkStringSorter" id="sorter">
+                                <property name="expression">
+                                  <lookup name="package" type="GroupsObject"/>
+                                </property>
+                              </object>
+                            </property>
+                            <property name="section-sorter">
+                              <object class="GtkStringSorter" id="section_sorter">
+                                <property name="expression">
+                                  <lookup name="groups" type="GroupsObject"/>
+                                </property>
+                              </object>
+                            </property>
+                            <property name="model">
+                              <object class="GtkFilterListModel" id="filter_model">
+                                <property name="filter">
+                                  <object class="GtkEveryFilter" id="main_filter">
+                                    <child>
+                                      <object class="GtkCustomFilter" id="search_filter">
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkCustomFilter" id="installed_filter"/>
+                                    </child>
+                                  </object>
+                                </property>
+                                <property name="model">
+                                  <object class="GListStore" id="model">
+                                    <property name="item-type">GroupsObject</property>
+                                  </object>
+                                </property>
+                              </object>
+                            </property>
+                          </object>
+                        </property>
+                      </object>
+                    </property>
+                    <property name="header-factory">
+                      <object class="GtkBuilderListItemFactory" id="section_factory">
+                        <property name="resource">/com/github/PacView/ui/groups_window/section_header.ui</property>
+                      </object>
+                    </property>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="filename_column">
+                        <property name="title">Package</property>
+                        <property name="resizable">true</property>
+                        <property name="expand">true</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/groups_window/package_item.ui</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkColumnViewColumn" id="status_column">
+                        <property name="title">Status</property>
+                        <property name="resizable">true</property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/groups_window/status_item.ui</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child type="overlay">
+              <object class="AdwStatusPage" id="empty_status">
+                <property name="icon-name">edit-find-symbolic</property>
+                <property name="title">No Packages Found</property>
+                <style>
+                  <class name="compact"/>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </child>
+          </object>
         </property>
+        <child type="bottom">
+          <object class="GtkLabel" id="footer_label">
+            <property name="margin-start">16</property>
+            <property name="margin-end">16</property>
+            <property name="margin-top">10</property>
+            <property name="margin-bottom">8</property>
+            <property name="xalign">0</property>
+            <property name="yalign">0.5</property>
+            <property name="label"></property>
+            <style>
+              <class name="caption-heading"/>
+              <class name="dimmed"/>
+            </style>
+          </object>
+        </child>
       </object>
     </property>
   </template>
