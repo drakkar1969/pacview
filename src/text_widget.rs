@@ -765,11 +765,10 @@ impl TextWidget {
     fn selected_text(&self) -> Option<String> {
         let imp = self.imp();
 
-        if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get()) {
-            self.text().get(start.min(end)..start.max(end)).map(String::from)
-        } else {
-            None
-        }
+        imp.selection_start.get().zip(imp.selection_end.get())
+            .and_then(|(start, end)| {
+                self.text().get(start.min(end)..start.max(end)).map(String::from)
+            })
     }
 
     //---------------------------------------
@@ -806,7 +805,9 @@ impl TextWidget {
     fn index_at_xy(&self, x: f64, y: f64) -> (bool, usize) {
         let layout = self.imp().layout.get().unwrap();
 
-        let (inside, mut index, trailing) = layout.xy_to_index(pango::units_from_double(x), pango::units_from_double(y));
+        let (inside, mut index, trailing) = layout.xy_to_index(
+            pango::units_from_double(x), pango::units_from_double(y)
+        );
 
         if trailing > 0 {
             index += 1;
@@ -919,7 +920,9 @@ impl TextWidget {
 
                     imp.selection_end.set(Some(index));
 
-                    widget.set_has_selection(true);
+                    if !widget.has_selection() {
+                        widget.set_has_selection(true);
+                    }
 
                     imp.draw_area.queue_draw();
                 }
@@ -942,8 +945,6 @@ impl TextWidget {
                     widget.set_has_selection(false);
 
                     imp.draw_area.queue_draw();
-                } else {
-                    widget.set_has_selection(true);
                 }
 
                 imp.is_selecting.set(false);
