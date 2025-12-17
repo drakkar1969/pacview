@@ -107,9 +107,6 @@
                 <property name="vexpand">true</property>
                 <property name="child">
                   <object class="GtkColumnView" id="view">
-                    <style>
-                      <class name="card-list"/>
-                    </style>
                     <property name="tab-behavior">item</property>
                     <property name="model">
                       <object class="GtkSingleSelection" id="selection">
