@@ -52,9 +52,14 @@ mod imp {
         #[template_child]
         pub(super) downloaduser_row: TemplateChild<adw::ActionRow>,
         #[template_child]
+        pub(super) architecture_row: TemplateChild<adw::ActionRow>,
+
+        #[template_child]
         pub(super) disablesandbox_row: TemplateChild<adw::ActionRow>,
         #[template_child]
-        pub(super) architecture_row: TemplateChild<adw::ActionRow>,
+        pub(super) disablesandboxfs_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) disablesandboxsys_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
         pub(super) holdpkg_row: TemplateChild<adw::ActionRow>,
@@ -211,8 +216,11 @@ impl ConfigDialog {
         imp.paralleldownloads_row.set_subtitle(&config.parallel_downloads.to_string());
         imp.disabledownloadtimeout_row.set_subtitle(&config.disable_download_timeout.to_string());
         imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or_else(|| String::from("None")));
-        imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
         imp.architecture_row.set_subtitle(&config.architecture.join(" | "));
+
+        imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
+        imp.disablesandboxfs_row.set_subtitle(&config.disable_sandbox_filesystem.to_string());
+        imp.disablesandboxsys_row.set_subtitle(&config.disable_sandbox_syscalls.to_string());
 
         imp.holdpkg_row.set_subtitle(&config.hold_pkg.join(" | "));
         imp.ignorepkg_row.set_subtitle(&config.ignore_pkg.join(" | "));

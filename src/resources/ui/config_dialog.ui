@@ -172,6 +172,20 @@
               </object>
             </child>
             <child>
+              <object class="AdwActionRow" id="architecture_row">
+                <property name="title">Architecture</property>
+                <property name="subtitle-selectable">true</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">SandBox</property>
+            <child>
               <object class="AdwActionRow" id="disablesandbox_row">
                 <property name="title">DisableSandBox</property>
                 <property name="subtitle-selectable">true</property>
@@ -181,8 +195,17 @@
               </object>
             </child>
             <child>
-              <object class="AdwActionRow" id="architecture_row">
-                <property name="title">Architecture</property>
+              <object class="AdwActionRow" id="disablesandboxfs_row">
+                <property name="title">DisableSandBoxFilesystem</property>
+                <property name="subtitle-selectable">true</property>
+                <style>
+                  <class name="property"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="disablesandboxsys_row">
+                <property name="title">DisableSandBoxSyscalls</property>
                 <property name="subtitle-selectable">true</property>
                 <style>
                   <class name="property"/>
