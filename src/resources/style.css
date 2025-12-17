@@ -123,8 +123,8 @@ texttag.error {
 image.bubble {
 	border-radius: 50%;
 	background: color-mix(in srgb, currentColor 15%, transparent);
-	min-width: 2.4em;
-	min-height: 2.4em;
+	min-width: 2.2em;
+	min-height: 2.2em;
 }
 
 /* Round controls */
