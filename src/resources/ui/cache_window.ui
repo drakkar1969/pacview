@@ -97,7 +97,7 @@
                 <property name="hexpand">true</property>
                 <property name="vexpand">true</property>
                 <property name="child">
-                  <object class="GtkColumnView" id="view">
+                  <object class="GtkListView" id="view">
                     <property name="tab-behavior">item</property>
                     <property name="model">
                       <object class="GtkSingleSelection" id="selection">
@@ -127,17 +127,11 @@
                         </property>
                       </object>
                     </property>
-                    <child>
-                      <object class="GtkColumnViewColumn" id="file_column">
-                        <property name="title">Cache File</property>
-                        <property name="expand">true</property>
-                        <property name="factory">
-                          <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/cache_window/cache_item.ui</property>
-                          </object>
-                        </property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/cache_window/item.ui</property>
                       </object>
-                    </child>
+                    </property>
                   </object>
                 </property>
               </object>

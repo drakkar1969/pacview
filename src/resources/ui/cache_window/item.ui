@@ -3,12 +3,15 @@
   <template class="GtkListItem">
     <property name="child">
       <object class="GtkBox">
-        <property name="margin-start">2</property>
+        <property name="margin-top">6</property>
+        <property name="margin-bottom">6</property>
+        <property name="margin-start">8</property>
+        <property name="margin-end">8</property>
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">
             <binding name="icon-name">
-              <lookup name="status-icon" type="BackupObject">
+              <lookup name="icon" type="CacheObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
@@ -17,7 +20,7 @@
         <child>
           <object class="GtkLabel">
             <binding name="label">
-              <lookup name="filename" type="BackupObject">
+              <lookup name="filename" type="CacheObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
