@@ -972,13 +972,11 @@ impl TextWidget {
                         let (_, index) = widget.index_at_xy(x, y);
 
                         let text = widget.text();
-                        let bytes = text.as_bytes();
-
-                        let (first, last) = bytes.split_at_checked(index).unzip();
+                        let (first, last) = text.split_at_checked(index).unzip();
 
                         let start = first
-                            .and_then(|bytes| {
-                                bytes.iter().rposition(|&ch| {
+                            .and_then(|s| {
+                                s.as_bytes().iter().rposition(|&ch| {
                                     ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
                                 })
                             })
@@ -986,8 +984,8 @@ impl TextWidget {
                             .unwrap_or(0);
 
                         let end = last
-                            .and_then(|bytes| {
-                                bytes.iter().position(|&ch| {
+                            .and_then(|s| {
+                                s.as_bytes().iter().position(|&ch| {
                                     ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
                                 })
                             })
