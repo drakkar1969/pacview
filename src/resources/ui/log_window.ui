@@ -84,10 +84,23 @@
           <object class="GtkOverlay">
             <child>
               <object class="GtkScrolledWindow">
+                <style>
+                  <class name="card"/>
+                </style>
                 <property name="hexpand">true</property>
                 <property name="vexpand">true</property>
+                <property name="margin-top">24</property>
+                <property name="margin-bottom">24</property>
+                <property name="margin-start">24</property>
+                <property name="margin-end">24</property>
                 <property name="child">
                   <object class="GtkColumnView" id="view">
+                    <style>
+                      <class name="card-list"/>
+                    </style>
+                    <property name="margin-bottom">16</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-end">12</property>
                     <property name="tab-behavior">item</property>
                     <property name="model">
                       <object class="GtkNoSelection" id="selection">
