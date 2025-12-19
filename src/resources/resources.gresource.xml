@@ -36,10 +36,12 @@
     <file compressed="true">icons/pkg-optional.svg</file>
     <file compressed="true">icons/pkg-orphan.svg</file>
     <file compressed="true">icons/pkg-update.svg</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/backup_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/header.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/cache_window/item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/cache_window/cache_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/package_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/status_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/log_item.ui</file>

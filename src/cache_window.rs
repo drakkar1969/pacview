@@ -32,7 +32,7 @@ mod imp {
         pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub(super) view: TemplateChild<gtk::ListView>,
+        pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]

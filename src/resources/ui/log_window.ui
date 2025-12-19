@@ -130,9 +130,8 @@
                       </object>
                     </property>
                     <child>
-                      <object class="GtkColumnViewColumn" id="date_column">
+                      <object class="GtkColumnViewColumn">
                         <property name="title">Date</property>
-                        <property name="resizable">true</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
                             <property name="resource">/com/github/PacView/ui/log_window/date_item.ui</property>
@@ -141,9 +140,8 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkColumnViewColumn" id="time_column">
+                      <object class="GtkColumnViewColumn">
                         <property name="title">Time</property>
-                        <property name="resizable">true</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
                             <property name="resource">/com/github/PacView/ui/log_window/time_item.ui</property>
@@ -152,9 +150,8 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkColumnViewColumn" id="category_column">
+                      <object class="GtkColumnViewColumn">
                         <property name="title">Category</property>
-                        <property name="resizable">true</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
                             <property name="resource">/com/github/PacView/ui/log_window/category_item.ui</property>
@@ -163,9 +160,8 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkColumnViewColumn" id="message_column">
+                      <object class="GtkColumnViewColumn">
                         <property name="title">Message</property>
-                        <property name="resizable">true</property>
                         <property name="expand">true</property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
