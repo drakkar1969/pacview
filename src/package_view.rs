@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::cmp::Ordering;
 use std::borrow::Cow;
+use std::fmt::Write as _;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -567,25 +568,21 @@ impl PackageView {
     // Public copy list function
     //---------------------------------------
     pub fn copy_list(&self) -> String {
-        let body = self.imp().selection.iter::<glib::Object>()
-            .flatten()
-            .map(|item| {
-                let pkg = item
-                    .downcast::<PkgObject>()
-                    .expect("Failed to downcast to 'PkgObject'");
+        let mut output = String::from("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n");
 
-                format!("|{name}|{version}|{repo}|{status}|{size}|{groups}|",
+        for pkg in self.imp().selection.iter::<glib::Object>()
+            .flatten()
+            .filter_map(|item| item.downcast::<PkgObject>().ok()) {
+                let _ = writeln!(output, "|{name}|{version}|{repo}|{status}|{size}|{groups}|",
                     name=pkg.name(),
                     version=pkg.version(),
                     repo=pkg.repository(),
                     status=pkg.status(),
                     size=pkg.install_size_string(),
                     groups=pkg.groups()
-                )
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+                );
+            }
 
-        format!("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n{body}")
+        output
     }
 }
