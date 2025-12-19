@@ -70,7 +70,7 @@ mod imp {
         #[template_child]
         pub(super) files_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) files_view: TemplateChild<gtk::ListView>,
+        pub(super) files_view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) files_model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -100,7 +100,7 @@ mod imp {
         #[template_child]
         pub(super) cache_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) cache_view: TemplateChild<gtk::ListView>,
+        pub(super) cache_view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) cache_model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -119,7 +119,7 @@ mod imp {
         #[template_child]
         pub(super) backup_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) backup_view: TemplateChild<gtk::ListView>,
+        pub(super) backup_view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) backup_model: TemplateChild<gio::ListStore>,
         #[template_child]

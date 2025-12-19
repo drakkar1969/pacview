@@ -5,8 +5,6 @@
       <object class="GtkLabel">
         <property name="margin-start">4</property>
         <property name="margin-end">4</property>
-        <property name="margin-top">6</property>
-        <property name="margin-bottom">6</property>
         <binding name="label">
           <lookup name="string" type="GtkStringObject">
             <lookup name="item">GtkListItem</lookup>

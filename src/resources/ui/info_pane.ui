@@ -263,11 +263,10 @@
                                 <property name="margin-start">24</property>
                                 <property name="margin-end">24</property>
                                 <property name="child">
-                                  <object class="GtkListView" id="files_view">
+                                  <object class="GtkColumnView" id="files_view">
                                     <style>
                                       <class name="card-list"/>
                                     </style>
-                                    <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
                                     <property name="margin-start">12</property>
                                     <property name="margin-end">12</property>
@@ -300,11 +299,17 @@
                                         </property>
                                       </object>
                                     </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="title">File</property>
+                                        <property name="expand">true</property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
+                                          </object>
+                                        </property>
                                       </object>
-                                    </property>
+                                    </child>
                                   </object>
                                 </property>
                               </object>
@@ -370,11 +375,10 @@
                                 <property name="margin-start">24</property>
                                 <property name="margin-end">24</property>
                                 <property name="child">
-                                  <object class="GtkListView" id="log_view">
+                                  <object class="GtkColumnView" id="log_view">
                                     <style>
                                       <class name="card-list"/>
                                     </style>
-                                    <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
                                     <property name="margin-start">12</property>
                                     <property name="margin-end">12</property>
@@ -388,11 +392,17 @@
                                         </property>
                                       </object>
                                     </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/log_item.ui</property>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="title">Log Message</property>
+                                        <property name="expand">true</property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/log_item.ui</property>
+                                          </object>
+                                        </property>
                                       </object>
-                                    </property>
+                                    </child>
                                   </object>
                                 </property>
                               </object>
@@ -492,11 +502,10 @@
                                 <property name="margin-start">24</property>
                                 <property name="margin-end">24</property>
                                 <property name="child">
-                                  <object class="GtkListView" id="cache_view">
+                                  <object class="GtkColumnView" id="cache_view">
                                     <style>
                                       <class name="card-list"/>
                                     </style>
-                                    <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
                                     <property name="margin-start">12</property>
                                     <property name="margin-end">12</property>
@@ -510,11 +519,17 @@
                                         </property>
                                       </object>
                                     </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/cache_item.ui</property>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="title">Cache File</property>
+                                        <property name="expand">true</property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/cache_item.ui</property>
+                                          </object>
+                                        </property>
                                       </object>
-                                    </property>
+                                    </child>
                                   </object>
                                 </property>
                               </object>
@@ -628,11 +643,10 @@
                                 <property name="margin-start">24</property>
                                 <property name="margin-end">24</property>
                                 <property name="child">
-                                  <object class="GtkListView" id="backup_view">
+                                  <object class="GtkColumnView" id="backup_view">
                                     <style>
                                       <class name="card-list"/>
                                     </style>
-                                    <property name="margin-top">16</property>
                                     <property name="margin-bottom">16</property>
                                     <property name="margin-start">12</property>
                                     <property name="margin-end">12</property>
@@ -646,11 +660,17 @@
                                         </property>
                                       </object>
                                     </property>
-                                    <property name="factory">
-                                      <object class="GtkBuilderListItemFactory">
-                                        <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="title">Backup File</property>
+                                        <property name="expand">true</property>
+                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
+                                          </object>
+                                        </property>
                                       </object>
-                                    </property>
+                                    </child>
                                   </object>
                                 </property>
                               </object>
