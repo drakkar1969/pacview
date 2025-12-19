@@ -9,7 +9,6 @@
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
-        <property name="top-bar-style">raised</property>
         <property name="bottom-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
@@ -17,7 +16,7 @@
               <object class="GtkBox" id="header_box">
                 <property name="margin-top">6</property>
                 <property name="margin-bottom">6</property>
-                <property name="margin-start">6</property>
+                <property name="margin-start">20</property>
                 <property name="spacing">12</property>
                 <child>
                   <object class="GtkImage" id="header_image">
@@ -89,7 +88,7 @@
                 </style>
                 <property name="hexpand">true</property>
                 <property name="vexpand">true</property>
-                <property name="margin-top">24</property>
+                <property name="margin-top">12</property>
                 <property name="margin-bottom">24</property>
                 <property name="margin-start">24</property>
                 <property name="margin-end">24</property>
