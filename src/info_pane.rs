@@ -2,6 +2,7 @@ use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
+use std::fmt::Write as _;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -294,28 +295,24 @@ impl InfoPane {
         imp.info_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                let body = {
-                    let mut properties: Vec<String> = vec![];
+                let mut output = String::from("## Package Information\n");
 
-                    let mut child = infopane.imp().info_listbox.first_child();
+                let mut child = infopane.imp().info_listbox.first_child();
 
-                    while let Some(row) = child.and_downcast::<InfoRow>() {
-                        if row.is_visible() {
-                            let label = row.label();
-                            let value = row.value();
+                while let Some(row) = child.and_downcast::<InfoRow>() {
+                    if row.is_visible() {
+                        let label = row.label();
+                        let value = row.value();
 
-                            if !(label.is_empty() || value.is_empty()) {
-                                properties.push(format!("- **{label}** : {value}"));
-                            }
+                        if !(label.is_empty() || value.is_empty()) {
+                            let _ = writeln!(output, "- **{label}** : {value}");
                         }
-
-                        child = row.next_sibling();
                     }
 
-                    properties.join("\n")
-                };
+                    child = row.next_sibling();
+                }
 
-                infopane.clipboard().set_text(&format!("## Package Information\n{body}"));
+                infopane.clipboard().set_text(&output);
             }
         ));
     }
@@ -365,19 +362,17 @@ impl InfoPane {
         imp.files_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                let body = infopane.imp().files_selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        item
-                            .downcast::<gtk::StringObject>()
-                            .expect("Failed to downcast to 'StringObject'")
-                            .string()
-                    })
-                    .collect::<Vec<glib::GString>>()
-                    .join("\n");
+                let mut output = String::new();
 
-                infopane.clipboard().set_text(
-                    &format!("## {}\n|Files|\n|---|\n{body}", infopane.pkg().unwrap().name())
-                );
+                let _ = writeln!(output, "## {}\n|Files|\n|---|", infopane.pkg().unwrap().name());
+
+                for obj in infopane.imp().files_selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<gtk::StringObject>().ok()) {
+                        let _ = writeln!(output, "{}", obj.string());
+                    }
+
+                infopane.clipboard().set_text(&output);
             }
         ));
 
@@ -414,14 +409,16 @@ impl InfoPane {
         imp.log_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                let body = infopane.imp().log_model.iter::<gtk::StringObject>().flatten()
-                    .map(|item| item.string())
-                    .collect::<Vec<glib::GString>>()
-                    .join("\n");
+                let mut output = String::new();
 
-                infopane.clipboard().set_text(
-                    &format!("## {}\n|Log Messages|\n|---|\n{body}", infopane.pkg().unwrap().name())
-                );
+                let _ = writeln!(output, "## {}\n|Log Messages|\n|---|", infopane.pkg().unwrap().name());
+
+                for obj in infopane.imp().log_model.iter::<gtk::StringObject>()
+                    .flatten() {
+                        let _ = writeln!(output, "{}", obj.string());
+                    }
+
+                infopane.clipboard().set_text(&output);
             }
         ));
 
@@ -458,14 +455,16 @@ impl InfoPane {
         imp.cache_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                let body = infopane.imp().cache_model.iter::<gtk::StringObject>().flatten()
-                    .map(|item| item.string())
-                    .collect::<Vec<glib::GString>>()
-                    .join("\n");
+                let mut output = String::new();
 
-                infopane.clipboard().set_text(
-                    &format!("## {}\n|Cache Files|\n|---|\n{body}", infopane.pkg().unwrap().name())
-                );
+                let _ = writeln!(output, "## {}\n|Cache Files|\n|---|", infopane.pkg().unwrap().name());
+
+                for obj in infopane.imp().cache_model.iter::<gtk::StringObject>()
+                    .flatten() {
+                        let _ = writeln!(output, "{}", obj.string());
+                    }
+
+                infopane.clipboard().set_text(&output);
             }
         ));
 
@@ -536,14 +535,16 @@ impl InfoPane {
         imp.backup_copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                let body = infopane.imp().backup_model.iter::<BackupObject>().flatten()
-                    .map(|item| format!("{}|{}", item.filename(), item.status_text()))
-                    .collect::<Vec<String>>()
-                    .join("\n");
+                let mut output = String::new();
 
-                infopane.clipboard().set_text(
-                    &format!("## {}\n|Backup Files|Status|\n|---|---|\n{body}", infopane.pkg().unwrap().name())
-                );
+                let _ = writeln!(output, "## {}\n|Backup Files|Status|\n|---|---|", infopane.pkg().unwrap().name());
+
+                for obj in infopane.imp().backup_model.iter::<BackupObject>()
+                    .flatten() {
+                        let _ = writeln!(output, "{}|{}", obj.filename(), obj.status_text());
+                    }
+
+                infopane.clipboard().set_text(&output);
             }
         ));
 
