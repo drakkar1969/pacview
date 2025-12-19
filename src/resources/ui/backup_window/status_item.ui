@@ -8,8 +8,8 @@
             <lookup name="item">GtkListItem</lookup>
           </lookup>
         </binding>
-        <property name="margin-start">6</property>
-        <property name="margin-end">6</property>
+        <property name="margin-start">4</property>
+        <property name="margin-end">4</property>
         <property name="xalign">1</property>
       </object>
     </property>
