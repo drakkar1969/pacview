@@ -12,7 +12,6 @@ use glib::{clone, closure_local};
 use tokio::sync::Mutex as TokioMutex;
 use tokio_util::sync::CancellationToken;
 use raur::Raur;
-use raur::ArcPackage;
 use futures::future;
 
 use crate::pkg_data::{PkgFlags, PkgData};
@@ -119,7 +118,7 @@ mod imp {
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
 
-        pub(super) aur_cache: Arc<TokioMutex<HashSet<ArcPackage>>>,
+        pub(super) aur_cache: Arc<TokioMutex<raur::Cache>>,
         pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
     }
 
@@ -370,7 +369,7 @@ impl PackageView {
     async fn do_search_async(
         term: &str,
         prop: SearchProp,
-        aur_cache: &Arc<TokioMutex<HashSet<raur::ArcPackage>>>
+        aur_cache: &Arc<TokioMutex<raur::Cache>>
     ) -> Result<Vec<raur::ArcPackage>, raur::Error> {
         let handle = raur::Handle::new();
 
