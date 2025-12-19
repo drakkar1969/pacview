@@ -315,35 +315,31 @@ impl BackupWindow {
             #[weak(rename_to = window)] self,
             move |_| {
                 let mut package = String::new();
-                let mut body = String::new();
+                let mut output = String::from("## Backup Files\n|Filename|Status|\n|---|---|\n");
 
-                for item in window.imp().selection.iter::<glib::Object>().flatten() {
-                    let backup = item
-                        .downcast::<BackupObject>()
-                        .expect("Failed to downcast to 'BackupObject'");
+                for backup in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<BackupObject>().ok()) {
+                        let backup_package = backup.package();
 
-                    let backup_package = backup.package();
+                        if backup_package != package {
+                            writeln!(output, "|**{backup_package}**||").unwrap();
 
-                    if backup_package != package {
-                        writeln!(body, "|**{backup_package}**||").unwrap();
+                            package = backup_package;
+                        }
 
-                        package = backup_package;
+                        writeln!(output, "|{filename}|{status}|",
+                            filename=backup.filename(),
+                            status=backup.status_text()
+                        ).unwrap();
+
+                        writeln!(output, "|{filename}|{status}|",
+                            filename=backup.filename(),
+                            status=backup.status_text()
+                        ).unwrap();
                     }
 
-                    writeln!(body, "|{filename}|{status}|",
-                        filename=backup.filename(),
-                        status=backup.status_text()
-                    ).unwrap();
-
-                    writeln!(body, "|{filename}|{status}|",
-                        filename=backup.filename(),
-                        status=backup.status_text()
-                    ).unwrap();
-                }
-
-                window.clipboard().set_text(
-                    &format!("## Backup Files\n|Filename|Status|\n|---|---|\n{body}")
-                );
+                window.clipboard().set_text(&output);
             }
         ));
 

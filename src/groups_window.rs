@@ -226,31 +226,27 @@ impl GroupsWindow {
             #[weak(rename_to = window)] self,
             move |_| {
                 let mut groups = String::new();
-                let mut body = String::new();
+                let mut output = String::from("## Pacman Groups\n|Package Name|Status|\n|---|---|\n");
 
-                for item in window.imp().selection.iter::<glib::Object>().flatten() {
-                    let pkg = item
-                        .downcast::<GroupsObject>()
-                        .expect("Failed to downcast to 'GroupsObject'");
+                for pkg in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<GroupsObject>().ok()) {
+                        let pkg_groups = pkg.groups();
 
-                    let pkg_groups = pkg.groups();
+                        if pkg_groups != groups {
+                            writeln!(output, "|**{pkg_groups}**||").unwrap();
 
-                    if pkg_groups != groups {
-                        writeln!(body, "|**{pkg_groups}**||").unwrap();
+                            groups = pkg_groups;
+                        }
 
-                        groups = pkg_groups;
+                        writeln!(output, "|{package}|{status}|",
+                            package=pkg.package(),
+                            status=pkg.status()
+                        )
+                        .unwrap();
                     }
 
-                    writeln!(body, "|{package}|{status}|",
-                        package=pkg.package(),
-                        status=pkg.status()
-                    )
-                    .unwrap();
-                }
-
-                window.clipboard().set_text(
-                    &format!("## Pacman Groups\n|Package Name|Status|\n|---|---|\n{body}")
-                );
+                window.clipboard().set_text(&output);
             }
         ));
 

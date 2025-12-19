@@ -1,4 +1,5 @@
 use std::sync::LazyLock;
+use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -176,24 +177,20 @@ impl LogWindow {
         imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
-                let body = window.imp().selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        let log = item
-                            .downcast::<LogObject>()
-                            .expect("Failed to downcast to 'LogObject'");
+                let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
 
-                        format!("|{date}|{time}|{category}|{message}|",
+                for log in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<LogObject>().ok()) {
+                        let _ = writeln!(output, "|{date}|{time}|{category}|{message}|",
                             date=log.date(),
                             time=log.time(),
                             category=log.category(),
-                            message=log.message())
-                    })
-                    .collect::<Vec<String>>()
-                    .join("\n");
+                            message=log.message()
+                        );
+                    }
 
-                window.clipboard().set_text(&
-                    format!("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n{body}")
-                );
+                window.clipboard().set_text(&output);
             }
         ));
 

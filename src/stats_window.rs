@@ -1,3 +1,5 @@
+use std::fmt::Write as _;
+
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -116,25 +118,22 @@ impl StatsWindow {
         imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
-                let body = window.imp().selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        let stat = item
-                            .downcast::<StatsObject>()
-                            .expect("Failed to downcast to 'StatsObject'");
+                let mut output = String::from("## Package Statistics\n|Repository|Packages|Installed|Explicit|Installed Size|\n|---|---|---|---|---|\n");
 
-                        format!("|{repository}|{packages}|{installed}|{explicit}|{size}|",
+                for stat in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<StatsObject>().ok()) {
+                        let _ = writeln!(output,
+                            "|{repository}|{packages}|{installed}|{explicit}|{size}|",
                             repository=stat.repository(),
                             packages=stat.packages(),
                             installed=stat.installed(),
                             explicit=stat.explicit(),
-                            size=stat.size())
-                    })
-                    .collect::<Vec<String>>()
-                    .join("\n");
+                            size=stat.size()
+                        );
+                    }
 
-                window.clipboard().set_text(
-                    &format!("## Package Statistics\n|Repository|Packages|Installed|Explicit|Installed Size|\n|---|---|---|---|---|\n{body}")
-                );
+                window.clipboard().set_text(&output);
             }
         ));
     }

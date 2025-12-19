@@ -1,4 +1,5 @@
 use std::path::Path;
+use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -197,20 +198,14 @@ impl CacheWindow {
         imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
-                let body = window.imp().selection.iter::<glib::Object>().flatten()
-                    .map(|item| {
-                        let cache = item
-                            .downcast::<CacheObject>()
-                            .expect("Failed to downcast to 'CacheObject'");
+                let mut output = String::from("## Cache Files\n|File|\n|---|\n");
 
-                        format!("|{file}|", file=cache.filename())
-                    })
-                    .collect::<Vec<String>>()
-                    .join("\n");
-
-                window.clipboard().set_text(&
-                    format!("## Cache Files\n|File|\n|---|\n{body}")
-                );
+                for cache in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<CacheObject>().ok()) {
+                        let _ = writeln!(output, "|{}|", cache.filename());
+                    }
+                window.clipboard().set_text(&output);
             }
         ));
 
