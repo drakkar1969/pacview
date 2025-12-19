@@ -155,6 +155,11 @@ columnview.card-list {
 	background-color: transparent;
 }
 
+columnview.card-list header {
+	margin-top: 6px;
+	margin-bottom: 4px;
+}
+
 textview.card-list border {
 	background-color: transparent;
 }
