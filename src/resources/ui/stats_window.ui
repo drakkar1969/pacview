@@ -2,23 +2,23 @@
 <interface>
   <!--// StatsWindow template //-->
   <template class="StatsWindow" parent="AdwWindow">
-    <property name="default-width">500</property>
+    <property name="default-width">580</property>
     <property name="modal">true</property>
     <property name="hide-on-close">true</property>
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
-        <property name="top-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
             <child>
               <object class="GtkBox" id="header_box">
                 <property name="margin-top">6</property>
                 <property name="margin-bottom">6</property>
-                <property name="margin-start">6</property>
+                <property name="margin-start">20</property>
                 <property name="spacing">12</property>
                 <child>
                   <object class="GtkImage" id="header_image">
+                    <property name="valign">center</property>
                     <property name="icon-name">stats-symbolic</property>
                     <style>
                       <class name="bubble"/>
@@ -59,70 +59,85 @@
           </object>
         </child>
         <property name="content">
-          <object class="GtkColumnView" id="view">
+          <object class="GtkBox">
             <style>
-              <class name="card-list"/>
+              <class name="card"/>
             </style>
-            <property name="hexpand">true</property>
-            <property name="show-column-separators">true</property>
-            <property name="model">
-              <object class="GtkNoSelection" id="selection">
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">24</property>
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <child>
+              <object class="GtkColumnView" id="view">
+                <style>
+                  <class name="card-list"/>
+                </style>
+                <property name="hexpand">true</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">16</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="tab-behavior">item</property>
                 <property name="model">
-                  <object class="GListStore" id="model">
-                    <property name="item-type">StatsObject</property>
+                  <object class="GtkNoSelection" id="selection">
+                    <property name="model">
+                      <object class="GListStore" id="model">
+                        <property name="item-type">StatsObject</property>
+                      </object>
+                    </property>
                   </object>
                 </property>
-              </object>
-            </property>
-            <child>
-              <object class="GtkColumnViewColumn" id="repository_column">
-                <property name="title">Repository</property>
-                <property name="expand">true</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/repository_item.ui</property>
+                <child>
+                  <object class="GtkColumnViewColumn" id="repository_column">
+                    <property name="title">Repository</property>
+                    <property name="expand">true</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/stats_window/repository_item.ui</property>
+                      </object>
+                    </property>
                   </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="packages_column">
-                <property name="title">Packages</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/packages_item.ui</property>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="packages_column">
+                    <property name="title">Packages</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/stats_window/packages_item.ui</property>
+                      </object>
+                    </property>
                   </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="installed_column">
-                <property name="title">Installed</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/installed_item.ui</property>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="installed_column">
+                    <property name="title">Installed</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/stats_window/installed_item.ui</property>
+                      </object>
+                    </property>
                   </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="explicit_column">
-                <property name="title">Explicit</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/explicit_item.ui</property>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="explicit_column">
+                    <property name="title">Explicit</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/stats_window/explicit_item.ui</property>
+                      </object>
+                    </property>
                   </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="size_column">
-                <property name="title">Installed Size</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/size_item.ui</property>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn" id="size_column">
+                    <property name="title">Installed Size</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/stats_window/size_item.ui</property>
+                      </object>
+                    </property>
                   </object>
-                </property>
+                </child>
               </object>
             </child>
           </object>
