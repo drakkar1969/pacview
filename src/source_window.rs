@@ -175,6 +175,27 @@ impl SourceWindow {
     }
 
     //---------------------------------------
+    // Set font helper function
+    //---------------------------------------
+    fn set_font(&self, style_manager: &adw::StyleManager, display: &gdk::Display) {
+        let settings = gio::Settings::new(APP_ID);
+
+        let use_system_font = settings.boolean("pkgbuild-use-system-font");
+        let mut custom_font = settings.string("pkgbuild-custom-font");
+
+        if use_system_font || custom_font.is_empty() {
+            custom_font = style_manager.monospace_font_name();
+        }
+
+        let css = pango_utils::font_str_to_css(&custom_font);
+
+        let css_provider = gtk::CssProvider::new();
+        css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
+
+        gtk::style_context_add_provider_for_display(display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+    }
+
+    //---------------------------------------
     // Download PKGBUILD helper function
     //---------------------------------------
     fn download_pkgbuild(&self) {
@@ -275,6 +296,14 @@ impl SourceWindow {
             }
         ));
 
+        // System monospace font signal
+        style_manager.connect_monospace_font_name_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |style_manager| {
+                window.set_font(style_manager, &display);
+            }
+        ));
+
         // Save button clicked signal
         imp.save_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
@@ -338,28 +367,15 @@ impl SourceWindow {
             sourceview5::LanguageManager::default().language("pkgbuild").as_ref()
         );
 
-        // Set style scheme
+        // Get window display and style manager
         let display = gtk::prelude::WidgetExt::display(self);
         let style_manager = adw::StyleManager::for_display(&display);
 
+        // Set style scheme
         self.set_style_scheme(&style_manager);
 
         // Set font
-        let settings = gio::Settings::new(APP_ID);
-
-        let use_system_font = settings.boolean("pkgbuild-use-system-font");
-        let mut custom_font = settings.string("pkgbuild-custom-font");
-
-        if use_system_font || custom_font.is_empty() {
-            custom_font = style_manager.monospace_font_name();
-        }
-
-        let css = pango_utils::font_str_to_css(&custom_font);
-
-        let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
-
-        gtk::style_context_add_provider_for_display(&display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+        self.set_font(&style_manager, &display);
 
         // Download PKGBUILD
         self.download_pkgbuild();
