@@ -858,8 +858,8 @@ impl TextWidget {
                 let pkg_name = url.domain().unwrap_or_default();
 
                 self.emit_by_name::<()>("package-link", &[&pkg_name, &link.version]);
-            } else if let Some(handler) = gio::AppInfo::default_for_uri_scheme(url_scheme) {
-                let _ = handler.launch_uris(&[link_url], None::<&gio::AppLaunchContext>);
+            } else {
+                let _ = gio::AppInfo::launch_default_for_uri(link_url, None::<&gio::AppLaunchContext>);
             }
         }
     }
