@@ -918,14 +918,19 @@ impl PacViewWindow {
             };
 
             // Get paru repo package map
-            let mut paru_map: HashMap<String, String> = HashMap::new();
+            let mut paru_map: HashMap<String, Rc<String>> = HashMap::new();
 
             for (name, path) in paru_repos {
+                let name_rc = Rc::new(name);
+
                 if let Ok(read_dir) = fs::read_dir(path) {
                     let items = read_dir.into_iter()
                         .flatten()
                         .map(|entry| {
-                            (entry.file_name().to_string_lossy().into_owned(), name.clone())
+                            (
+                                entry.file_name().to_string_lossy().into_owned(),
+                                Rc::clone(&name_rc)
+                            )
                         });
 
                     paru_map.extend(items);
@@ -1000,7 +1005,7 @@ impl PacViewWindow {
                         let mut installed_pkg_names: HashSet<String> = HashSet::with_capacity(len/10);
 
                         for data in pkg_data {
-                            let pkg = PkgObject::new(data,handle_ref.as_ref().map(Rc::clone));
+                            let pkg = PkgObject::new(data, handle_ref.as_ref().map(Rc::clone));
 
                             if pkg.flags().intersects(PkgFlags::INSTALLED) {
                                 installed_pkg_names.insert(pkg.name());
@@ -1025,7 +1030,7 @@ impl PacViewWindow {
                         window.get_package_updates();
 
                         // Check AUR package names file age
-                        let (max_file_age, database_download) = {
+                        let (max_age, database_download) = {
                             let prefs_dialog = imp.prefs_dialog.borrow();
 
                             (prefs_dialog.aur_database_age() as u64, prefs_dialog.aur_database_download())
@@ -1035,17 +1040,15 @@ impl PacViewWindow {
                             let aur_file = imp.aur_file.borrow().to_owned();
 
                             if let Some(aur_file) = aur_file
-                                && aur_file::check_file_age(&aur_file, max_file_age) {
+                                && aur_file::check_age(&aur_file, max_age) {
                                     let _ = aur_file::download(&aur_file).await;
                                 }
                         }
                     },
                     Err(error) => {
-                        let mut error = error.to_string();
-
                         let warning_dialog = adw::AlertDialog::builder()
                             .heading("Alpm Error")
-                            .body(error.remove(0).to_uppercase().to_string() + &error)
+                            .body(error.to_string().to_title_case())
                             .default_response("ok")
                             .build();
 

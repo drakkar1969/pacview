@@ -97,9 +97,9 @@ pub mod aur_file {
     use crate::utils::tokio_runtime;
 
     //---------------------------------------
-    // Check file age function
+    // Check age function
     //---------------------------------------
-    pub fn check_file_age(aur_file: &PathBuf, update_interval: u64) -> bool {
+    pub fn check_age(aur_file: &PathBuf, update_interval: u64) -> bool {
         // Get AUR package names file age
         let file_time = fs::metadata(aur_file).ok()
             .and_then(|metadata| metadata.modified().ok())
@@ -109,7 +109,7 @@ pub mod aur_file {
                 now.duration_since(file_time).ok()
             });
 
-        file_time.is_none_or(|time| time >= Duration::from_secs(update_interval * 60 * 60))
+        file_time.is_none_or(|time| time >= Duration::from_hours(update_interval))
     }
 
     //---------------------------------------

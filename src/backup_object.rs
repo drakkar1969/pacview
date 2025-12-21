@@ -86,7 +86,7 @@ mod imp {
 
                 alpm::compute_md5sum(filename.as_str()).ok()
             })
-            .clone()
+            .to_owned()
         }
 
         fn status(&self) -> BackupStatus {
