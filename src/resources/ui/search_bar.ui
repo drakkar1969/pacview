@@ -55,6 +55,7 @@
                     <property name="menu-model">search_menu</property>
                     <style>
                       <class name="circular"/>
+                      <class name="flat"/>
                     </style>
                   </object>
                 </child>
@@ -66,6 +67,7 @@
                     <property name="popover">error_popover</property>
                     <style>
                       <class name="circular"/>
+                      <class name="flat"/>
                     </style>
                   </object>
                 </child>

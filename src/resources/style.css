@@ -1,5 +1,5 @@
 /* Search bar */
-searchbar button {
+searchbar button:not(.toggle) {
 	background: none;
 }
 
@@ -7,10 +7,6 @@ searchbar button.toggle {
 	min-height: 24px;
 	min-width: 24px;
 	margin: 5px 0;
-}
-
-searchbar button.toggle:checked {
-	background: color-mix(in srgb, currentColor 10%, transparent);
 }
 
 searchbar image:not(:hover) {
