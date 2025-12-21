@@ -12,14 +12,30 @@
         <child type="top">
           <object class="AdwHeaderBar">
             <child>
-              <object class="GtkButton" id="save_button">
-                <property name="child">
-                  <object class="AdwButtonContent">
-                    <property name="icon-name">document-save-symbolic</property>
-                    <property name="label">_Save</property>
-                    <property name="use-underline">true</property>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkButton" id="save_button">
+                    <property name="child">
+                      <object class="AdwButtonContent">
+                        <property name="icon-name">document-save-symbolic</property>
+                        <property name="label">_Save</property>
+                        <property name="use-underline">true</property>
+                      </object>
+                    </property>
                   </object>
-                </property>
+                </child>
+                <child>
+                  <object class="GtkButton" id="url_button">
+                    <property name="child">
+                      <object class="AdwButtonContent">
+                        <property name="icon-name">web-browser-symbolic</property>
+                        <property name="label">So_urce</property>
+                        <property name="use-underline">true</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
               </object>
             </child>
             <child type="end">
@@ -112,37 +128,6 @@
             </child>
           </object>
         </property>
-        <child type="bottom">
-          <object class="GtkBox">
-            <property name="halign">start</property>
-            <property name="spacing">16</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="margin-start">16</property>
-                <property name="margin-top">10</property>
-                <property name="margin-bottom">8</property>
-                <property name="label">Source</property>
-                <style>
-                  <class name="caption"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkSeparator"/>
-            </child>
-            <child>
-              <object class="GtkLabel" id="url_label">
-                <property name="margin-end">16</property>
-                <property name="margin-top">10</property>
-                <property name="margin-bottom">8</property>
-                <property name="use-markup">true</property>
-                <style>
-                  <class name="caption"/>
-                </style>
-              </object>
-            </child>
-          </object>
-        </child>
       </object>
     </property>
   </template>

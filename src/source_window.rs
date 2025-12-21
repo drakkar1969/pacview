@@ -1,4 +1,4 @@
-use std::cell::OnceCell;
+use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::fs;
 use std::time::Duration;
@@ -33,18 +33,20 @@ mod imp {
         #[template_child]
         pub(super) save_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub(super) url_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) refresh_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) source_view: TemplateChild<sourceview5::View>,
         #[template_child]
         pub(super) error_status: TemplateChild<adw::StatusPage>,
-        #[template_child]
-        pub(super) url_label: TemplateChild<gtk::Label>,
 
         #[property(get = Self::buffer)]
         buffer: PhantomData<sourceview5::Buffer>,
         #[property(get, set, construct_only)]
         pkg: OnceCell<PkgObject>,
+
+        pub(super) source_url: RefCell<String>,
     }
 
     //---------------------------------------
@@ -175,7 +177,8 @@ impl SourceWindow {
                 let (url, raw_url) = pkg.pkgbuild_urls();
 
                 // Set URL label
-                imp.url_label.set_label(&format!("<a href=\"{url}\">{url}</a>"));
+                imp.url_button.set_tooltip_text(Some(&url));
+                imp.source_url.replace(url);
 
                 // Spawn tokio task to download PKGBUILD
                 let result = if raw_url.is_empty() {
@@ -283,6 +286,16 @@ impl SourceWindow {
                         }
                     }
                 ));
+            }
+        ));
+
+        // Url button clicked signal
+        imp.url_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                let source_url = imp.source_url.borrow();
+
+                let _ = gio::AppInfo::launch_default_for_uri(&source_url, None::<&gio::AppLaunchContext>);
             }
         ));
 
