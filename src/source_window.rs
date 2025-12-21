@@ -228,11 +228,15 @@ impl SourceWindow {
                         buffer.place_cursor(&buffer.iter_at_offset(0));
 
                         imp.stack.set_visible_child_name("text");
+                        imp.save_button.set_sensitive(true);
+                        imp.url_button.set_sensitive(true);
                     }
                     Err(error) => {
                         imp.error_status.set_description(Some(&error));
 
                         imp.stack.set_visible_child_name("error");
+                        imp.save_button.set_sensitive(false);
+                        imp.url_button.set_sensitive(false);
                     }
                 }
             }
