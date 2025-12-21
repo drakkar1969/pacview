@@ -205,6 +205,7 @@ impl CacheWindow {
                     .filter_map(|item| item.downcast::<CacheObject>().ok()) {
                         let _ = writeln!(output, "|{}|", cache.filename());
                     }
+
                 window.clipboard().set_text(&output);
             }
         ));
