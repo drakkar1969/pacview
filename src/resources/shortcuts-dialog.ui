@@ -452,6 +452,12 @@
             <property name="title">Save PKGBUILD</property>
           </object>
         </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;U</property>
+            <property name="title">Open PKGBUILD source URL</property>
+          </object>
+        </child>
       </object>
     </child>
   </object>

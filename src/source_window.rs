@@ -96,7 +96,22 @@ mod imp {
 
             // Save binding
             klass.add_binding(Key::S, ModifierType::CONTROL_MASK, |window| {
-                window.imp().save_button.emit_clicked();
+                let imp = window.imp();
+
+                if imp.save_button.is_sensitive() {
+                    imp.save_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
+
+            // Source url binding
+            klass.add_binding(Key::U, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.url_button.is_sensitive() {
+                    imp.url_button.emit_clicked();
+                }
 
                 glib::Propagation::Stop
             });
