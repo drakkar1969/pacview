@@ -181,6 +181,8 @@ impl SourceWindow {
         let imp = self.imp();
 
         imp.stack.set_visible_child_name("loading");
+        imp.save_button.set_sensitive(false);
+        imp.url_button.set_sensitive(false);
 
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
@@ -250,8 +252,6 @@ impl SourceWindow {
                         imp.error_status.set_description(Some(&error));
 
                         imp.stack.set_visible_child_name("error");
-                        imp.save_button.set_sensitive(false);
-                        imp.url_button.set_sensitive(false);
                     }
                 }
             }
