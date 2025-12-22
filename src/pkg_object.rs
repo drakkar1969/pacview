@@ -283,10 +283,12 @@ impl PkgObject {
             (url, raw_url)
         } else if repo != "local" {
             let raw_url = PARU_PATH.as_ref().ok()
-                .and_then(|_| xdg::BaseDirectories::new().get_cache_home())
-                .map(|dir| dir.join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD")))
-                .map(|path| path.display().to_string())
-                .unwrap_or_default();
+                .map_or_else(String::new, |_| {
+                    glib::user_cache_dir()
+                        .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
+                        .display()
+                        .to_string()
+                });
 
             let url = format!("file://{raw_url}");
 

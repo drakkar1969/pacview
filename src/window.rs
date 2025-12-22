@@ -741,7 +741,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         let pacman_config = &PACMAN_CONFIG;
-        let xdg_dirs = xdg::BaseDirectories::new();
+        let user_cache_dir = glib::user_cache_dir();
 
         // Load pacman log
         *PACMAN_LOG.write().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
@@ -774,8 +774,8 @@ impl PacViewWindow {
         // Get paru repos
         let mut paru_repos: Vec<(String, PathBuf)> = vec![];
 
-        if PARU_PATH.is_ok() && let Some(cache_dir) = xdg_dirs.get_cache_home()
-            && let Ok(read_dir) = fs::read_dir(cache_dir.join("paru/clone/repo")) {
+        if PARU_PATH.is_ok()
+            && let Ok(read_dir) = fs::read_dir(user_cache_dir.join("paru/clone/repo")) {
                 let repos = read_dir.into_iter()
                     .flatten()
                     .map(|entry| {
@@ -800,8 +800,10 @@ impl PacViewWindow {
         imp.repo_names.replace(repo_names);
 
         // Get AUR file (create cache dir)
-        let aur_file = xdg_dirs.create_cache_directory("pacview")
-            .map(|cache_dir| cache_dir.join("aur_packages"))
+        let cache_dir = user_cache_dir.join("pacview");
+        
+        let aur_file = fs::create_dir_all(&cache_dir)
+            .map(|_| cache_dir.join("aur_packages"))
             .ok();
 
         imp.aur_file.replace(aur_file.clone());
