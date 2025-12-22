@@ -18,6 +18,9 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/config_dialog.ui")]
     pub struct ConfigDialog {
         #[template_child]
+        pub(super) config_button: TemplateChild<gtk::Button>,
+
+        #[template_child]
         pub(super) rootdir_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) dbpath_row: TemplateChild<adw::ActionRow>,
@@ -100,7 +103,7 @@ mod imp {
     impl ObjectSubclass for ConfigDialog {
         const NAME: &'static str = "ConfigDialog";
         type Type = super::ConfigDialog;
-        type ParentType = adw::PreferencesDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -126,7 +129,6 @@ mod imp {
 
     impl WidgetImpl for ConfigDialog {}
     impl AdwDialogImpl for ConfigDialog {}
-    impl PreferencesDialogImpl for ConfigDialog {}
 }
 
 //------------------------------------------------------------------------------
@@ -134,7 +136,7 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ConfigDialog(ObjectSubclass<imp::ConfigDialog>)
-    @extends adw::PreferencesDialog, adw::Dialog, gtk::Widget,
+    @extends adw::Dialog, gtk::Widget,
     @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
@@ -144,6 +146,11 @@ impl ConfigDialog {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Config button clicked signal
+        imp.config_button.connect_clicked(|_| {
+            app_info::open_with_default_app("/etc/pacman.conf");
+        });
 
         // RootDir open button clicked signal
         imp.rootdir_open_button.connect_clicked(clone!(
