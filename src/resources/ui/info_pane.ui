@@ -666,7 +666,17 @@
                                         <property name="expand">true</property>
                                         <property name="factory">
                                           <object class="GtkBuilderListItemFactory">
-                                            <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
+                                            <property name="resource">/com/github/PacView/ui/info_pane/backup_file_item.ui</property>
+                                          </object>
+                                        </property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkColumnViewColumn">
+                                        <property name="title">Status</property>
++                                        <property name="factory">
+                                          <object class="GtkBuilderListItemFactory">
+                                            <property name="resource">/com/github/PacView/ui/info_pane/backup_status_item.ui</property>
                                           </object>
                                         </property>
                                       </object>
