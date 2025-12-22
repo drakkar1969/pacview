@@ -17,7 +17,7 @@ use heck::ToTitleCase;
 use rayon::slice::ParallelSliceMut;
 use regex::Regex;
 use futures::join;
-use notify_debouncer_full::{notify::*, new_debouncer, Debouncer, DebounceEventResult, NoCache};
+use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 use which::which_global;
 
 use crate::APP_ID;
@@ -1166,42 +1166,37 @@ impl PacViewWindow {
         let (sender, receiver) = async_channel::bounded(1);
 
         // Create new watcher
-        let mut debouncer = new_debouncer(Duration::from_secs(2), None, move |result: DebounceEventResult| {
-            if let Ok(events) = result {
-                for event in events {
-                    let kind = event.kind;
-
-                    if kind.is_create() || kind.is_modify() || kind.is_remove() {
+        if let Ok(mut debouncer) = new_debouncer(
+            Duration::from_secs(2),
+            None,
+            move |result: DebounceEventResult| {
+                if result.unwrap_or_default().iter()
+                    .map(|event| event.kind)
+                    .any(|kind| kind.is_create() || kind.is_modify() || kind.is_remove()) {
                         sender.send_blocking(())
                             .expect("Failed to send through channel");
-
-                        break;
                     }
-                }
             }
-        })
-        .expect("Failed to create debouncer");
+        ) {
+            // Watch pacman local db path
+            let path = Path::new(&PACMAN_CONFIG.db_path).join("local");
 
-        // Watch pacman local db path
-        let path = Path::new(&PACMAN_CONFIG.db_path).join("local");
+            if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
+                // Store debouncer
+                imp.notify_debouncer.set(debouncer).unwrap();
 
-        if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
-            // Store watcher
-            imp.notify_debouncer.set(debouncer).unwrap();
-
-            // Attach receiver for async channel
-            glib::spawn_future_local(clone!(
-                #[weak(rename_to = window)] self,
-                async move {
-                    while receiver.recv().await == Ok(()) {
-                        if window.imp().prefs_dialog.borrow().auto_refresh() {
-                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                                .unwrap();
-
+                // Attach receiver for async channel
+                glib::spawn_future_local(clone!(
+                    #[weak(rename_to = window)] self,
+                    async move {
+                        while receiver.recv().await == Ok(()) {
+                            if window.imp().prefs_dialog.borrow().auto_refresh() {
+                                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
+                            }
                         }
                     }
-                }
-            ));
-        }
+                ));
+            }
+        };
     }
 }
