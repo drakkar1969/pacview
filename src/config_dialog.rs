@@ -149,14 +149,20 @@ impl ConfigDialog {
 
         // Config button clicked signal
         imp.config_button.connect_clicked(|_| {
-            app_info::open_with_default_app("/etc/pacman.conf");
+            glib::spawn_future_local(async move {
+                app_info::open_with_default_app("/etc/pacman.conf").await;
+            });
         });
 
         // RootDir open button clicked signal
         imp.rootdir_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                app_info::open_with_default_app(&imp.rootdir_row.subtitle().unwrap_or_default());
+                let root_dir = imp.rootdir_row.subtitle().unwrap_or_default();
+
+                glib::spawn_future_local(async move {
+                    app_info::open_with_default_app(&root_dir).await;
+                });
             }
         ));
 
@@ -164,7 +170,11 @@ impl ConfigDialog {
         imp.dbpath_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                app_info::open_with_default_app(&imp.dbpath_row.subtitle().unwrap_or_default());
+                let db_path = imp.dbpath_row.subtitle().unwrap_or_default();
+
+                glib::spawn_future_local(async move {
+                    app_info::open_with_default_app(&db_path).await;
+                });
             }
         ));
 
@@ -172,8 +182,12 @@ impl ConfigDialog {
         imp.cachedir_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                for item in imp.cachedir_row.subtitle().unwrap_or_default().split('\n') {
-                    app_info::open_with_default_app(item);
+                let cache_dirs = imp.cachedir_row.subtitle().unwrap_or_default();
+
+                for dir in cache_dirs.split('\n').map(ToOwned::to_owned) {
+                    glib::spawn_future_local(async move {
+                        app_info::open_with_default_app(&dir).await;
+                    });
                 }
             }
         ));
@@ -182,7 +196,11 @@ impl ConfigDialog {
         imp.logfile_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                app_info::open_with_default_app(&imp.logfile_row.subtitle().unwrap_or_default());
+                let log_file = imp.logfile_row.subtitle().unwrap_or_default();
+
+                glib::spawn_future_local(async move {
+                    app_info::open_with_default_app(&log_file).await;
+                });
             }
         ));
 
@@ -190,7 +208,11 @@ impl ConfigDialog {
         imp.gpgdir_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                app_info::open_with_default_app(&imp.gpgdir_row.subtitle().unwrap_or_default());
+                let gpg_dir = imp.gpgdir_row.subtitle().unwrap_or_default();
+
+                glib::spawn_future_local(async move {
+                    app_info::open_with_default_app(&gpg_dir).await;
+                });
             }
         ));
 
@@ -198,8 +220,12 @@ impl ConfigDialog {
         imp.hookdir_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                for item in imp.hookdir_row.subtitle().unwrap_or_default().split('\n') {
-                    app_info::open_with_default_app(item);
+                let hook_dirs = imp.hookdir_row.subtitle().unwrap_or_default();
+
+                for dir in hook_dirs.split('\n').map(ToOwned::to_owned) {
+                    glib::spawn_future_local(async move {
+                        app_info::open_with_default_app(&dir).await;
+                    });
                 }
             }
         ));

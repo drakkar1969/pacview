@@ -56,29 +56,31 @@ pub mod async_command {
 //------------------------------------------------------------------------------
 pub mod app_info {
     use gtk::gio;
-    use gtk::prelude::AppInfoExt;
     use gio::{AppInfo, AppLaunchContext};
+    use gtk::prelude::AppInfoExtManual;
 
     //---------------------------------------
     // Open containing folder function
     //---------------------------------------
-    pub fn open_containing_folder(path: &str) {
+    pub async fn open_containing_folder(path: &str) {
         let uri = format!("file://{path}");
 
         if let Some(desktop) = AppInfo::default_for_type("inode/directory", true) {
-            let _res = desktop.launch_uris(&[&uri], None::<&AppLaunchContext>);
+            let _ = desktop.launch_uris_future(&[&uri], None::<&AppLaunchContext>).await;
         }
     }
 
     //---------------------------------------
     // Open with default app function
     //---------------------------------------
-    pub fn open_with_default_app(path: &str) {
+    pub async fn open_with_default_app(path: &str) {
         let uri = format!("file://{path}");
+        let path = path.to_owned();
 
-        if AppInfo::launch_default_for_uri(&uri, None::<&AppLaunchContext>).is_err()
-            && let Some(desktop) = AppInfo::default_for_type("inode/directory", true) {
-                let _res = desktop.launch_uris(&[&uri], None::<&AppLaunchContext>);
+        if AppInfo::launch_default_for_uri_future(&uri, None::<&AppLaunchContext>)
+            .await
+            .is_err() {
+                open_containing_folder(&path).await;
             }
     }
 }

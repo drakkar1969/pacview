@@ -186,11 +186,14 @@ impl CacheWindow {
         imp.open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                let item = imp.selection.selected_item()
+                let cache_file = imp.selection.selected_item()
                     .and_downcast::<CacheObject>()
-                    .expect("Failed to downcast to 'CacheObject'");
+                    .expect("Failed to downcast to 'CacheObject'")
+                    .filename();
 
-                app_info::open_containing_folder(&item.filename());
+                glib::spawn_future_local(async move {
+                    app_info::open_containing_folder(&cache_file).await;
+                });
             }
         ));
 

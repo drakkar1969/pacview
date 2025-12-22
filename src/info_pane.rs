@@ -350,11 +350,14 @@ impl InfoPane {
         imp.files_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                let item = imp.files_selection.selected_item()
+                let file = imp.files_selection.selected_item()
                     .and_downcast::<gtk::StringObject>()
-                    .expect("Failed to downcast to 'StringObject'");
+                    .expect("Failed to downcast to 'StringObject'")
+                    .string();
 
-                app_info::open_with_default_app(&item.string());
+                glib::spawn_future_local(async move {
+                    app_info::open_with_default_app(&file).await;
+                });
             }
         ));
 
@@ -443,11 +446,14 @@ impl InfoPane {
         imp.cache_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                let item = imp.cache_selection.selected_item()
+                let cache_file = imp.cache_selection.selected_item()
                     .and_downcast::<gtk::StringObject>()
-                    .expect("Failed to downcast to 'StringObject'");
+                    .expect("Failed to downcast to 'StringObject'")
+                    .string();
 
-                app_info::open_containing_folder(&item.string());
+                glib::spawn_future_local(async move {
+                    app_info::open_containing_folder(&cache_file).await;
+                });
             }
         ));
 
@@ -523,11 +529,14 @@ impl InfoPane {
         imp.backup_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                let item = imp.backup_selection.selected_item()
+                let backup_file = imp.backup_selection.selected_item()
                     .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'");
+                    .expect("Failed to downcast to 'BackupObject'")
+                    .filename();
 
-                app_info::open_with_default_app(&item.filename());
+                glib::spawn_future_local(async move {
+                    app_info::open_with_default_app(&backup_file).await;
+                });
             }
         ));
 

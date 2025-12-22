@@ -849,9 +849,9 @@ impl TextWidget {
     }
 
     fn handle_link(&self, link: &TextTag) {
-        let link_url = &link.text;
+        let link_url = link.text.to_owned();
 
-        if let Ok(url) = Url::parse(link_url) {
+        if let Ok(url) = Url::parse(&link_url) {
             let url_scheme = url.scheme();
 
             if url_scheme == "pkg" {
@@ -859,7 +859,13 @@ impl TextWidget {
 
                 self.emit_by_name::<()>("package-link", &[&pkg_name, &link.version]);
             } else {
-                let _ = gio::AppInfo::launch_default_for_uri(link_url, None::<&gio::AppLaunchContext>);
+                glib::spawn_future_local(async move {
+                    let _ = gio::AppInfo::launch_default_for_uri_future(
+                        &link_url,
+                        None::<&gio::AppLaunchContext>
+                    )
+                    .await;
+                });
             }
         }
     }

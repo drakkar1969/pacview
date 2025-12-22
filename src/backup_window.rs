@@ -302,11 +302,14 @@ impl BackupWindow {
         imp.open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                let item = imp.selection.selected_item()
+                let backup_file = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'");
+                    .expect("Failed to downcast to 'BackupObject'")
+                    .filename();
 
-                app_info::open_with_default_app(&item.filename());
+                glib::spawn_future_local(async move {
+                    app_info::open_with_default_app(&backup_file).await;
+                });
             }
         ));
 

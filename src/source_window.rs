@@ -341,9 +341,15 @@ impl SourceWindow {
         imp.url_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
-                let source_url = imp.source_url.borrow();
+                let source_url = imp.source_url.borrow().to_owned();
 
-                let _ = gio::AppInfo::launch_default_for_uri(&source_url, None::<&gio::AppLaunchContext>);
+                glib::spawn_future_local(async move {
+                    let _ = gio::AppInfo::launch_default_for_uri_future(
+                        &source_url,
+                        None::<&gio::AppLaunchContext>
+                    )
+                    .await;
+                });
             }
         ));
 
