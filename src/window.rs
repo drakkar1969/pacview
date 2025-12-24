@@ -962,7 +962,7 @@ impl PacViewWindow {
                             }
                         }, |paru_repo| paru_repo);
 
-                    PkgData::from_alpm(pkg, Some(pkg), repository)
+                    PkgData::from_alpm(pkg, true, repository)
                 })
                 .collect();
 
@@ -975,7 +975,7 @@ impl PacViewWindow {
                     db.pkgs().iter()
                         .filter(|pkg| localdb.pkg(pkg.name()).is_err())
                         .map(|pkg| {
-                            PkgData::from_alpm(pkg, None, db.name())
+                            PkgData::from_alpm(pkg, false, db.name())
                         })
                 })
                 .collect();

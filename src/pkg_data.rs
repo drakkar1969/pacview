@@ -82,7 +82,7 @@ impl PkgData {
     //---------------------------------------
     // Alpm constructor
     //---------------------------------------
-    pub fn from_alpm(sync_pkg: &alpm::Package, local_pkg: Option<&alpm::Package>, repository: &str) -> Self {
+    pub fn from_alpm(pkg: &alpm::Package, is_local: bool, repository: &str) -> Self {
         // Helper closures
         let alpm_list_to_string = |list: alpm::AlpmList<&str>| -> String {
             list.iter().sorted_unstable().join(" | ")
@@ -93,46 +93,43 @@ impl PkgData {
         };
 
         // Build PkgData
-        let (flags, version, install_date) = local_pkg.map_or_else(
-            || (PkgFlags::NONE, sync_pkg.version(), 0),
-            |pkg| {
-                let flags = match pkg.reason() {
-                    alpm::PackageReason::Explicit => PkgFlags::EXPLICIT,
-                    _ if !pkg.required_by().is_empty() => PkgFlags::DEPENDENCY,
-                    _ if !pkg.optional_for().is_empty() => PkgFlags::OPTIONAL,
-                    _ => PkgFlags::ORPHAN
-                };
-
-                (flags, pkg.version(), pkg.install_date().unwrap_or_default())
+        let flags = if is_local {
+            match pkg.reason() {
+                alpm::PackageReason::Explicit => PkgFlags::EXPLICIT,
+                _ if !pkg.required_by().is_empty() => PkgFlags::DEPENDENCY,
+                _ if !pkg.optional_for().is_empty() => PkgFlags::OPTIONAL,
+                _ => PkgFlags::ORPHAN
             }
-        );
+        } else {
+            PkgFlags::NONE
+        };
 
         Self {
             flags,
-            base: sync_pkg.base().unwrap_or_default().to_owned(),
-            name: sync_pkg.name().to_owned(),
-            version: version.to_string(),
-            description: sync_pkg.desc().unwrap_or_default().to_owned(),
+            base: pkg.base().unwrap_or_default().to_owned(),
+            name: pkg.name().to_owned(),
+            version: pkg.version().to_string(),
+            description: pkg.desc().unwrap_or_default().to_owned(),
             popularity: String::new(),
             out_of_date: 0,
-            url: sync_pkg.url().unwrap_or_default().to_owned(),
-            licenses: alpm_list_to_string(sync_pkg.licenses()),
+            url: pkg.url().unwrap_or_default().to_owned(),
+            licenses: alpm_list_to_string(pkg.licenses()),
             repository: repository.to_owned(),
-            groups: alpm_list_to_string(sync_pkg.groups()),
-            depends: alpm_deplist_to_vec(sync_pkg.depends()),
-            optdepends: alpm_deplist_to_vec(sync_pkg.optdepends()),
+            groups: alpm_list_to_string(pkg.groups()),
+            depends: alpm_deplist_to_vec(pkg.depends()),
+            optdepends: alpm_deplist_to_vec(pkg.optdepends()),
             makedepends: vec![],
-            provides: alpm_deplist_to_vec(sync_pkg.provides()),
-            conflicts: alpm_deplist_to_vec(sync_pkg.conflicts()),
-            replaces: alpm_deplist_to_vec(sync_pkg.replaces()),
-            architecture: sync_pkg.arch().unwrap_or_default().to_owned(),
-            packager: sync_pkg.packager().unwrap_or("Unknown Packager").to_owned(),
-            build_date: sync_pkg.build_date(),
-            install_date,
-            download_size: sync_pkg.download_size(),
-            install_size: sync_pkg.isize(),
-            has_script: if sync_pkg.has_scriptlet() { "Yes" } else { "No" }.to_owned(),
-            validation: PkgValidation::from_bits_truncate(sync_pkg.validation().bits()),
+            provides: alpm_deplist_to_vec(pkg.provides()),
+            conflicts: alpm_deplist_to_vec(pkg.conflicts()),
+            replaces: alpm_deplist_to_vec(pkg.replaces()),
+            architecture: pkg.arch().unwrap_or_default().to_owned(),
+            packager: pkg.packager().unwrap_or("Unknown Packager").to_owned(),
+            build_date: pkg.build_date(),
+            install_date: pkg.install_date().unwrap_or_default(),
+            download_size: pkg.download_size(),
+            install_size: pkg.isize(),
+            has_script: if pkg.has_scriptlet() { "Yes" } else { "No" }.to_owned(),
+            validation: PkgValidation::from_bits_truncate(pkg.validation().bits()),
         }
     }
 
