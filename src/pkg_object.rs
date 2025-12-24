@@ -13,7 +13,7 @@ use size::Size;
 use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
 
-use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS, INSTALLED_PKG_NAMES};
+use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------
@@ -557,16 +557,11 @@ impl PkgObject {
     //---------------------------------------
     // Satisfier associated functions
     //---------------------------------------
-    pub fn has_local_satisfier(search_term: &str) -> Option<bool> {
+    pub fn has_local_satisfier(search_term: &str) -> bool {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
-            let handle = alpm_handle.as_ref()?;
-
-            handle.localdb().pkgs().find_satisfier(search_term)
-                .map(|local_pkg| {
-                    INSTALLED_PKG_NAMES.with_borrow(|installed_pkg_names| {
-                        installed_pkg_names.contains(local_pkg.name())
-                    })
-                })
+            alpm_handle.as_ref()
+                .and_then(|handle| handle.localdb().pkgs().find_satisfier(search_term))
+                .is_some()
         })
     }
 

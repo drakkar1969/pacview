@@ -47,7 +47,6 @@ pub static MELD_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_
 thread_local! {
     pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
     pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
-    pub static INSTALLED_PKG_NAMES: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
 }
 
 pub static PACMAN_CONFIG: LazyLock<pacmanconf::Config> = LazyLock::new(|| {
@@ -1007,7 +1006,6 @@ impl PacViewWindow {
                 // Get package lists
                 let mut pkgs: Vec<PkgObject> = Vec::new();
                 let mut installed_pkgs: Vec<PkgObject> = Vec::new();
-                let mut installed_pkg_names: HashSet<String> = HashSet::new();
 
                 while let Ok((pkg_data, local_data)) = receiver.recv().await {
                     // Resize package lists
@@ -1017,7 +1015,6 @@ impl PacViewWindow {
 
                     if local_data {
                         installed_pkgs.reserve(len);
-                        installed_pkg_names.reserve(len);
                     }
 
                     // Process package data
@@ -1026,8 +1023,7 @@ impl PacViewWindow {
                     for data in pkg_data {
                         let pkg = PkgObject::new(data, handle_ref.as_ref().map(Rc::clone));
 
-                        if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                            installed_pkg_names.insert(pkg.name());
+                        if local_data {
                             installed_pkgs.push(pkg.clone());
                         }
 
@@ -1057,7 +1053,6 @@ impl PacViewWindow {
                         // Store package lists
                         PKGS.replace(pkgs);
                         INSTALLED_PKGS.replace(installed_pkgs);
-                        INSTALLED_PKG_NAMES.replace(installed_pkg_names);
 
                         // Get package updates
                         window.get_package_updates();

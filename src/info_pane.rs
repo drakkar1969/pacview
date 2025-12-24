@@ -745,7 +745,7 @@ impl InfoPane {
             optdepends.iter()
                 .map(|dep| {
                     if dep.split_once([':'])
-                        .and_then(|(name, _)| PkgObject::has_local_satisfier(name))
+                        .map(|(name, _)| PkgObject::has_local_satisfier(name))
                         .unwrap_or_default() {
                             dep.to_owned() + INSTALLED_LABEL
                         } else {
