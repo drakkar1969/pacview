@@ -14,7 +14,6 @@ use gdk::{Key, ModifierType};
 
 use alpm_utils::DbListExt;
 use heck::ToTitleCase;
-use rayon::slice::ParallelSliceMut;
 use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
@@ -756,7 +755,7 @@ impl PacViewWindow {
             }
         }
 
-        cache_files.par_sort_unstable();
+        cache_files.sort_unstable();
 
         *PACMAN_CACHE.write().unwrap() = cache_files;
 
