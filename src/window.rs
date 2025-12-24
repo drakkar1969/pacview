@@ -904,6 +904,9 @@ impl PacViewWindow {
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
         let aur_file = imp.aur_file.borrow().to_owned();
 
+        // Create async channel
+        let (sender, receiver) = async_channel::bounded(1);
+
         // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
@@ -942,36 +945,45 @@ impl PacViewWindow {
             let syncdbs = handle.syncdbs();
             let localdb = handle.localdb();
 
-            // Load pacman sync packages
-            let mut pkg_data: Vec<PkgData> = syncdbs.iter()
-                .flat_map(|db| {
-                    db.pkgs().iter()
-                        .map(|sync_pkg| {
-                            let local_pkg = localdb.pkg(sync_pkg.name()).ok();
-
-                            PkgData::from_alpm(sync_pkg, local_pkg, db.name())
-                        })
-                })
-                .collect();
-
-            // Load pacman local packages not in sync databases
-            pkg_data.extend(localdb.pkgs().iter()
-                .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
+            // Load pacman local packages
+            let local_data: Vec<PkgData> = localdb.pkgs().iter()
+                // .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
                 .map(|pkg| {
                     let repository = paru_map.get(pkg.name())
                         .map_or_else(|| {
                             if aur_names.contains(pkg.name()) {
                                 "aur"
                             } else {
-                                "local"
+                                if let Ok(sync_pkg) = syncdbs.pkg(pkg.name()) {
+                                    sync_pkg.db().map(|db| db.name()).unwrap_or_default()
+                                } else {
+                                    "local"
+                                }
                             }
                         }, |paru_repo| paru_repo);
 
                     PkgData::from_alpm(pkg, Some(pkg), repository)
                 })
-            );
+                .collect();
 
-            Ok(pkg_data)
+            sender.send_blocking((local_data, true))
+                .expect("Failed to send through channel");
+
+            // Load pacman sync packages
+            let sync_data: Vec<PkgData> = syncdbs.iter()
+                .flat_map(|db| {
+                    db.pkgs().iter()
+                        .filter(|pkg| localdb.pkg(pkg.name()).is_err())
+                        .map(|pkg| {
+                            PkgData::from_alpm(pkg, None, db.name())
+                        })
+                })
+                .collect();
+
+            sender.send_blocking((sync_data, false))
+                .expect("Failed to send through channel");
+
+            Ok(())
         });
 
         glib::spawn_future_local(clone!(
@@ -985,41 +997,64 @@ impl PacViewWindow {
                 // Show package view loading spinner
                 imp.package_view.set_state(PackageViewState::PackageLoad);
 
+                // Clear package view
+                imp.package_view.clear_packages();
+
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
-                // Spawn task to load package data
-                let result: alpm::Result<Vec<PkgData>> = alpm_future.await
+                // Get alpm handle
+                let handle_ref = alpm_utils::alpm_with_conf(pacman_config)
+                    .map(Rc::new)
+                    .ok();
+
+                // Get package lists
+                let mut pkgs: Vec<PkgObject> = Vec::new();
+                let mut installed_pkgs: Vec<PkgObject> = Vec::new();
+                let mut installed_pkg_names: HashSet<String> = HashSet::new();
+
+                while let Ok((pkg_data, local_data)) = receiver.recv().await {
+                    // Resize package lists
+                    let len = pkg_data.len();
+
+                    pkgs.reserve(len);
+
+                    if local_data {
+                        installed_pkgs.reserve(len);
+                        installed_pkg_names.reserve(len);
+                    }
+
+                    // Process package data
+                    let mut pkg_chunk: Vec<PkgObject> = Vec::with_capacity(len);
+
+                    for data in pkg_data {
+                        let pkg = PkgObject::new(data, handle_ref.as_ref().map(Rc::clone));
+
+                        if pkg.flags().intersects(PkgFlags::INSTALLED) {
+                            installed_pkg_names.insert(pkg.name());
+                            installed_pkgs.push(pkg.clone());
+                        }
+
+                        pkg_chunk.push(pkg);
+                    }
+
+                    // Add packages to package view
+                    imp.package_view.append_packages(&pkg_chunk);
+
+                    pkgs.append(&mut pkg_chunk);
+
+                    // Hide package view loading spinner
+                    if local_data {
+                        imp.package_view.set_state(PackageViewState::Normal);
+                    }
+                }
+
+                // Await package load task
+                let result: alpm::Result<()> = alpm_future.await
                     .expect("Failed to complete task");
 
                 match result {
-                    Ok(pkg_data) => {
-                        // Get alpm handle
-                        let handle_ref = alpm_utils::alpm_with_conf(pacman_config)
-                            .map(Rc::new)
-                            .ok();
-
-                        // Get package lists
-                        let len = pkg_data.len();
-
-                        let mut pkgs: Vec<PkgObject> = Vec::with_capacity(len);
-                        let mut installed_pkgs: Vec<PkgObject> = Vec::with_capacity(len/10);
-                        let mut installed_pkg_names: HashSet<String> = HashSet::with_capacity(len/10);
-
-                        for data in pkg_data {
-                            let pkg = PkgObject::new(data, handle_ref.as_ref().map(Rc::clone));
-
-                            if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                                installed_pkg_names.insert(pkg.name());
-                                installed_pkgs.push(pkg.clone());
-                            }
-
-                            pkgs.push(pkg);
-                        }
-
-                        // Add packages to package view
-                        imp.package_view.splice_packages(&pkgs);
-
+                    Ok(()) => {
                         // Store alpm handle
                         ALPM_HANDLE.replace(handle_ref);
 
@@ -1059,9 +1094,6 @@ impl PacViewWindow {
                         warning_dialog.present(Some(&window));
                     }
                 }
-
-                // Hide loading spinner
-                imp.package_view.set_state(PackageViewState::Normal);
 
                 // Set focus on package view
                 imp.package_view.view().grab_focus();

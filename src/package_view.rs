@@ -550,10 +550,14 @@ impl PackageView {
     //---------------------------------------
     // Public package functions
     //---------------------------------------
-    pub fn splice_packages(&self, pkg_slice: &[PkgObject]) {
+    pub fn clear_packages(&self) {
+        self.imp().pkg_model.remove_all();
+    }
+
+    pub fn append_packages(&self, pkg_slice: &[PkgObject]) {
         let imp = self.imp();
 
-        imp.pkg_model.splice(0, imp.pkg_model.n_items(), pkg_slice);
+        imp.pkg_model.splice(imp.pkg_model.n_items(), 0, pkg_slice);
     }
 
     pub fn show_updates(&self, update_map: &HashMap<String, String>) {
