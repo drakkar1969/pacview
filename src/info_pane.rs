@@ -921,11 +921,7 @@ impl InfoPane {
         let imp = self.imp();
 
         // Populate backup view
-        let backup_list: Vec<BackupObject> = pkg.backup().iter()
-            .map(BackupObject::new)
-            .collect();
-
-        imp.backup_model.splice(0, imp.backup_model.n_items(), &backup_list);
+        imp.backup_model.splice(0, imp.backup_model.n_items(), pkg.backup());
     }
 
     //---------------------------------------
