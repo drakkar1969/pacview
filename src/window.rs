@@ -953,12 +953,10 @@ impl PacViewWindow {
                         .map_or_else(|| {
                             if aur_names.contains(pkg.name()) {
                                 "aur"
+                            } else if let Ok(sync_pkg) = syncdbs.pkg(pkg.name()) {
+                                sync_pkg.db().map(|db| db.name()).unwrap_or_default()
                             } else {
-                                if let Ok(sync_pkg) = syncdbs.pkg(pkg.name()) {
-                                    sync_pkg.db().map(|db| db.name()).unwrap_or_default()
-                                } else {
-                                    "local"
-                                }
+                                "local"
                             }
                         }, |paru_repo| paru_repo);
 
@@ -974,9 +972,7 @@ impl PacViewWindow {
                 .flat_map(|db| {
                     db.pkgs().iter()
                         .filter(|pkg| localdb.pkg(pkg.name()).is_err())
-                        .map(|pkg| {
-                            PkgData::from_alpm(pkg, false, db.name())
-                        })
+                        .map(|pkg| PkgData::from_alpm(pkg, false, db.name()))
                 })
                 .collect();
 
