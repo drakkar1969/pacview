@@ -15,13 +15,44 @@ use tokio::sync::OnceCell as TokioOnceCell;
 
 use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
-use crate::backup_object::BackupObject;
 
 //------------------------------------------------------------------------------
 // GLOBAL VARIABLES
 //------------------------------------------------------------------------------
 thread_local! {
     pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const { RefCell::new(None) };
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: PkgBackup
+//------------------------------------------------------------------------------
+#[derive(Debug)]
+pub struct PkgBackup {
+    filename: String,
+    hash: String,
+    package: String
+}
+
+impl PkgBackup {
+    fn new(filename: &str, hash: &str, package: &str) -> Self {
+        Self {
+            filename: filename.to_owned(),
+            hash: hash.to_owned(),
+            package: package.to_owned()
+        }
+    }
+
+    pub fn filename(&self) -> &str {
+        &self.filename
+    }
+
+    pub fn hash(&self) -> &str {
+        &self.hash
+    }
+
+    pub fn package(&self) -> &str {
+        &self.package
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -66,7 +97,7 @@ mod imp {
         pub(super) optional_for: OnceCell<Vec<String>>,
 
         pub(super) files: OnceCell<Vec<String>>,
-        pub(super) backup: OnceCell<Vec<BackupObject>>,
+        pub(super) backup: OnceCell<Vec<PkgBackup>>,
 
         pub(super) log: TokioOnceCell<Vec<String>>,
         pub(super) cache: TokioOnceCell<Vec<String>>,
@@ -418,22 +449,21 @@ impl PkgObject {
         })
     }
 
-    pub fn backup(&self) -> &[BackupObject] {
+    pub fn backup(&self) -> &[PkgBackup] {
         self.imp().backup.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
                     let root_dir = &PACMAN_CONFIG.root_dir;
                     let pkg_name = self.name();
 
-                    let mut backup: Vec<BackupObject> = pkg.backup()
-                        .iter()
+                    let mut backup: Vec<PkgBackup> = pkg.backup().iter()
                         .map(|backup| {
-                            BackupObject::new(&(root_dir.to_owned() + backup.name()), backup.hash(), &pkg_name)
+                            PkgBackup::new(&(root_dir.to_owned() + backup.name()), backup.hash(), &pkg_name)
                         })
                         .collect();
 
-                    backup.sort_unstable_by(|backup_a, backup_b| {
-                        backup_a.filename().partial_cmp(&backup_b.filename()).unwrap_or(Ordering::Equal)
+                    backup.par_sort_unstable_by(|backup_a, backup_b| {
+                        backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
                     });
 
                     backup

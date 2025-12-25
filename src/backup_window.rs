@@ -491,7 +491,9 @@ impl BackupWindow {
             INSTALLED_PKGS.with_borrow(|installed_pkgs| {
                 // Get backup list
                 let backup_list: Vec<BackupObject> = installed_pkgs.iter()
-                    .flat_map(|pkg| pkg.backup().iter().cloned())
+                    .flat_map(|pkg| {
+                        pkg.backup().iter().map(BackupObject::new)
+                    })
                     .collect();
 
                 // Populate column view

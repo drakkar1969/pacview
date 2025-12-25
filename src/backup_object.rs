@@ -12,6 +12,7 @@ use strum::FromRepr;
 
 use crate::window::{PACCAT_PATH, MELD_PATH};
 use crate::enum_traits::EnumExt;
+use crate::pkg_object::PkgBackup;
 use crate::utils::async_command;
 
 //------------------------------------------------------------------------------
@@ -120,11 +121,11 @@ impl BackupObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(filename: &str, hash: &str, package: &str) -> Self {
+    pub fn new(backup: &PkgBackup) -> Self {
         glib::Object::builder()
-            .property("filename", filename)
-            .property("hash", hash)
-            .property("package", package)
+            .property("filename", backup.filename())
+            .property("hash", backup.hash())
+            .property("package", backup.package())
             .build()
     }
 
