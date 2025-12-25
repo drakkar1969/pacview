@@ -114,7 +114,7 @@ mod imp {
             let flags = self.data.get().unwrap().flags;
 
             self.update_version.borrow().as_ref()
-                .map_or_else(|| flags, |_| flags | PkgFlags::UPDATES)
+                .map_or(flags, |_| flags | PkgFlags::UPDATES)
         }
 
         fn version(&self) -> String {
