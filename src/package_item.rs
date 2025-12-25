@@ -72,19 +72,30 @@ glib::wrapper! {
 
 impl PackageItem {
     //---------------------------------------
-    // Bind function
+    // Setup function
     //---------------------------------------
-    pub fn bind(&self, pkg: &PkgObject) {
+    pub fn setup(&self, item: &gtk::ListItem) {
         let imp = self.imp();
 
-        pkg.property_expression("flags")
+        let expression = item.property_expression("item");
+
+        expression
+            .chain_property::<PkgObject>("flags")
             .chain_closure::<bool>(closure!(|_: Option<glib::Object>, flags: PkgFlags| {
                 flags.intersects(PkgFlags::UPDATES)
             }))
             .bind(&imp.version_image.get(), "visible", gtk::Widget::NONE);
 
-        pkg.property_expression("version")
+        expression
+            .chain_property::<PkgObject>("version")
             .bind(&imp.version_label.get(), "label", gtk::Widget::NONE);
+    }
+
+    //---------------------------------------
+    // Bind function
+    //---------------------------------------
+    pub fn bind(&self, pkg: &PkgObject) {
+        let imp = self.imp();
 
         imp.name_label.set_label(&pkg.name());
         imp.status_image.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
