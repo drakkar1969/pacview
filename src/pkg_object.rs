@@ -10,6 +10,7 @@ use gtk::prelude::ObjectExt;
 use alpm_utils::DbListExt;
 use regex::Regex;
 use size::Size;
+use rayon::prelude::*;
 use tokio::sync::OnceCell as TokioOnceCell;
 
 use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS};
@@ -374,7 +375,7 @@ impl PkgObject {
                         .into_iter()
                         .collect();
 
-                    required_by.sort_unstable();
+                    required_by.par_sort_unstable();
 
                     required_by
                 })
@@ -390,7 +391,7 @@ impl PkgObject {
                         .into_iter()
                         .collect();
 
-                    optional_for.sort_unstable();
+                    optional_for.par_sort_unstable();
 
                     optional_for
                 })
@@ -409,7 +410,7 @@ impl PkgObject {
                         .map(|file| root_dir.to_owned() + &String::from_utf8_lossy(file.name()))
                         .collect();
 
-                    files.sort_unstable();
+                    files.par_sort_unstable();
 
                     files
                 })
