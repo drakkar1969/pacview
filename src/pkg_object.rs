@@ -370,7 +370,8 @@ impl PkgObject {
         self.imp().required_by.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
-                    let mut required_by: Vec<String> = pkg.required_by().into_iter()
+                    let mut required_by: Vec<String> = pkg.required_by()
+                        .into_iter()
                         .collect();
 
                     required_by.sort_unstable();
@@ -385,7 +386,8 @@ impl PkgObject {
         self.imp().optional_for.get_or_init(|| {
             self.pkg()
                 .map(|pkg| {
-                    let mut optional_for: Vec<String> = pkg.optional_for().into_iter()
+                    let mut optional_for: Vec<String> = pkg.optional_for()
+                        .into_iter()
                         .collect();
 
                     optional_for.sort_unstable();
@@ -402,7 +404,8 @@ impl PkgObject {
                 .map(|pkg| {
                     let root_dir = &PACMAN_CONFIG.root_dir;
 
-                    let mut files: Vec<String> = pkg.files().files().iter()
+                    let mut files: Vec<String> = pkg.files().files()
+                        .iter()
                         .map(|file| root_dir.to_owned() + &String::from_utf8_lossy(file.name()))
                         .collect();
 
@@ -421,7 +424,8 @@ impl PkgObject {
                     let root_dir = &PACMAN_CONFIG.root_dir;
                     let pkg_name = self.name();
 
-                    let mut backup: Vec<BackupObject> = pkg.backup().iter()
+                    let mut backup: Vec<BackupObject> = pkg.backup()
+                        .iter()
                         .map(|backup| {
                             BackupObject::new(&(root_dir.to_owned() + backup.name()), backup.hash(), &pkg_name)
                         })
@@ -470,7 +474,7 @@ impl PkgObject {
 
                 pacman_log.as_ref().map_or(vec![], |log| {
                     log.lines().rev()
-                        .filter(|&line| line.contains(&pkg_name) && expr.is_match(line))
+                        .filter(|&line| expr.is_match(line))
                         .map(|line| expr.replace(line, "[$1  $2]  $3 $4 $5").into_owned())
                         .collect::<Vec<String>>()
                 })
