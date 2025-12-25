@@ -74,23 +74,14 @@ mod imp {
         #[property(get, set, nullable)]
         update_version: RefCell<Option<String>>,
 
-        // Read-only properties with getter
-        #[property(name = "flags", get = Self::flags, type = PkgFlags)]
-        #[property(name = "version", get = Self::version, type = String)]
-        #[property(name = "show-version-icon", get = Self::show_version_icon, type = bool)]
-        #[property(name = "status", get = Self::status, type = String)]
-        #[property(name = "status-icon", get = Self::status_icon, type = String)]
-        #[property(name = "status-icon-symbolic", get = Self::status_icon_symbolic, type = String)]
-        #[property(name = "show-status-icon", get = Self::show_status_icon, type = bool)]
-        #[property(name = "install-size-string", get = Self::install_size_string, type = String)]
-        #[property(name = "show-groups-icon", get = Self::show_groups_icon, type = bool)]
-
         // Read-only properties from data fields
         #[property(name = "name", get, type = String, member = name)]
         #[property(name = "repository", get, type = String, member = repository)]
-        #[property(name = "install-size", get, type = i64, member = install_size)]
-        #[property(name = "groups", get, type = String, member = groups)]
         pub(super) data: OnceCell<PkgData>,
+
+        // Read-only properties with getter
+        #[property(name = "flags", get = Self::flags, type = PkgFlags)]
+        #[property(name = "version", get = Self::version, type = String)]
 
         // Read only fields
         pub(super) required_by: OnceCell<Vec<String>>,
@@ -134,52 +125,6 @@ mod imp {
                     version.to_owned() + " \u{2192} " + update_version
                 })
         }
-
-        fn show_version_icon(&self) -> bool {
-            self.flags().intersects(PkgFlags::UPDATES)
-        }
-
-        fn status(&self) -> String {
-            match self.data.get().unwrap().flags {
-                PkgFlags::EXPLICIT => "explicit",
-                PkgFlags::DEPENDENCY => "dependency",
-                PkgFlags::OPTIONAL => "optional",
-                PkgFlags::ORPHAN => "orphan",
-                _ => "not installed"
-            }.to_owned()
-        }
-
-        fn status_icon(&self) -> String {
-            match self.data.get().unwrap().flags {
-                PkgFlags::EXPLICIT => "pkg-explicit",
-                PkgFlags::DEPENDENCY => "pkg-dependency",
-                PkgFlags::OPTIONAL => "pkg-optional",
-                PkgFlags::ORPHAN => "pkg-orphan",
-                _ => ""
-            }.to_owned()
-        }
-
-        fn status_icon_symbolic(&self) -> String {
-            match self.data.get().unwrap().flags {
-                PkgFlags::EXPLICIT => "status-explicit-symbolic",
-                PkgFlags::DEPENDENCY => "status-dependency-symbolic",
-                PkgFlags::OPTIONAL => "status-optional-symbolic",
-                PkgFlags::ORPHAN => "status-orphan-symbolic",
-                _ => ""
-            }.to_owned()
-        }
-
-        fn show_status_icon(&self) -> bool {
-            self.data.get().unwrap().flags.intersects(PkgFlags::INSTALLED)
-        }
-
-        fn install_size_string(&self) -> String {
-            Size::from_bytes(self.data.get().unwrap().install_size).to_string()
-        }
-
-        fn show_groups_icon(&self) -> bool {
-            !self.data.get().unwrap().groups.is_empty()
-        }
     }
 }
 
@@ -208,7 +153,6 @@ impl PkgObject {
         pkg.connect_update_version_notify(|pkg| {
             pkg.notify_flags();
             pkg.notify_version();
-            pkg.notify_show_version_icon();
         });
 
         pkg
@@ -302,6 +246,40 @@ impl PkgObject {
         &self.imp().data.get().unwrap().url
     }
 
+    pub fn groups(&self) -> &str {
+        &self.imp().data.get().unwrap().groups
+    }
+
+    pub fn status(&self) -> &str {
+        match self.imp().data.get().unwrap().flags {
+            PkgFlags::EXPLICIT => "explicit",
+            PkgFlags::DEPENDENCY => "dependency",
+            PkgFlags::OPTIONAL => "optional",
+            PkgFlags::ORPHAN => "orphan",
+            _ => "not installed"
+        }
+    }
+
+    pub fn status_icon(&self) -> &str {
+        match self.imp().data.get().unwrap().flags {
+            PkgFlags::EXPLICIT => "pkg-explicit",
+            PkgFlags::DEPENDENCY => "pkg-dependency",
+            PkgFlags::OPTIONAL => "pkg-optional",
+            PkgFlags::ORPHAN => "pkg-orphan",
+            _ => ""
+        }
+    }
+
+    pub fn status_icon_symbolic(&self) -> &str {
+        match self.imp().data.get().unwrap().flags {
+            PkgFlags::EXPLICIT => "status-explicit-symbolic",
+            PkgFlags::DEPENDENCY => "status-dependency-symbolic",
+            PkgFlags::OPTIONAL => "status-optional-symbolic",
+            PkgFlags::ORPHAN => "status-orphan-symbolic",
+            _ => ""
+        }
+    }
+
     pub fn licenses(&self) -> &str {
         &self.imp().data.get().unwrap().licenses
     }
@@ -336,6 +314,14 @@ impl PkgObject {
 
     pub fn packager(&self) -> &str {
         &self.imp().data.get().unwrap().packager
+    }
+
+    pub fn install_size(&self) -> i64 {
+        self.imp().data.get().unwrap().install_size
+    }
+
+    pub fn install_size_string(&self) -> String {
+        Size::from_bytes(self.imp().data.get().unwrap().install_size).to_string()
     }
 
     pub fn install_date(&self) -> i64 {

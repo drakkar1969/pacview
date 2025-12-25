@@ -15,6 +15,7 @@ use tokio_util::sync::CancellationToken;
 use raur::Raur;
 use futures::future;
 
+use crate::package_item::PackageItem;
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
@@ -99,7 +100,7 @@ mod imp {
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
-        pub(super) factory: TemplateChild<gtk::BuilderListItemFactory>,
+        pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
         pub(super) sorter: TemplateChild<gtk::CustomSorter>,
 
@@ -175,6 +176,32 @@ impl PackageView {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
+
+        // Factory setup signal
+        imp.factory.connect_setup(|_, obj| {
+            let item = obj
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Could not downcast to 'GtkLIstItem'");
+
+            item.set_child(Some(&PackageItem::default()));
+        });
+
+        // Factory bind signal
+        imp.factory.connect_bind(|_, obj| {
+            let item = obj
+                .downcast_ref::<gtk::ListItem>()
+                .expect("Could not downcast to 'GtkListItem'");
+
+            let child = item.child()
+                .and_downcast::<PackageItem>()
+                .expect("Could not downcast to 'PackageItem'");
+
+            let pkg = item.item()
+                .and_downcast::<PkgObject>()
+                .expect("Could not downcast to 'PkgObject'");
+
+            child.bind(&pkg);
+        });
 
         // List view selection items changed signal
         imp.selection.connect_items_changed(clone!(
@@ -272,10 +299,10 @@ impl PackageView {
                     SortProp::Name => { pkg_a.name().partial_cmp(&pkg_b.name()) },
                     SortProp::Version => { pkg_a.version().partial_cmp(&pkg_b.version()) },
                     SortProp::Repository => { pkg_a.repository().partial_cmp(&pkg_b.repository()) },
-                    SortProp::Status => { pkg_a.status().partial_cmp(&pkg_b.status()) },
+                    SortProp::Status => { pkg_a.status().partial_cmp(pkg_b.status()) },
                     SortProp::InstallDate => { pkg_a.install_date().partial_cmp(&pkg_b.install_date()) },
                     SortProp::InstalledSize => { pkg_a.install_size().partial_cmp(&pkg_b.install_size()) },
-                    SortProp::Groups => { pkg_a.groups().partial_cmp(&pkg_b.groups()) },
+                    SortProp::Groups => { pkg_a.groups().partial_cmp(pkg_b.groups()) },
                 }.unwrap_or(Ordering::Equal);
 
                 if view.sort_ascending() {
@@ -322,7 +349,7 @@ impl PackageView {
                 let search_props: Cow<'_, [String]> = match prop {
                     SearchProp::Name => Cow::Owned(vec![pkg.name()]),
                     SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
-                    SearchProp::Groups => Cow::Owned(vec![pkg.groups()]),
+                    SearchProp::Groups => Cow::Owned(vec![pkg.groups().to_owned()]),
                     SearchProp::Deps => Cow::Borrowed(pkg.depends()),
                     SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
                     SearchProp::Provides => Cow::Borrowed(pkg.provides()),

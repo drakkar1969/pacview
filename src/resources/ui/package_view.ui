@@ -69,9 +69,7 @@
                           </object>
                         </property>
                         <property name="factory">
-                          <object class="GtkBuilderListItemFactory" id="factory">
-                            <property name="resource">/com/github/PacView/ui/package_view/package_item.ui</property>
-                          </object>
+                          <object class="GtkSignalListItemFactory" id="factory"/>
                         </property>
                       </object>
                     </child>

@@ -4,6 +4,7 @@ mod search_bar;
 mod search_tag;
 mod filter_row;
 mod package_view;
+mod package_item;
 mod info_pane;
 mod hash_window;
 mod info_row;

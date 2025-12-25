@@ -811,8 +811,8 @@ impl InfoPane {
 
         self.set_info_row(PropID::Status,
             ValueType::StrIcon(
-                &pkg.status(),
-                pkg.flags().intersects(PkgFlags::INSTALLED).then_some(&status_icon)
+                pkg.status(),
+                pkg.flags().intersects(PkgFlags::INSTALLED).then_some(status_icon)
             )
         );
 
@@ -820,7 +820,7 @@ impl InfoPane {
         self.set_info_row(PropID::Repository, ValueType::Str(&pkg.repository()));
 
         // Groups
-        self.set_info_row(PropID::Groups, ValueType::StrOpt(&pkg.groups()));
+        self.set_info_row(PropID::Groups, ValueType::StrOpt(pkg.groups()));
 
         // Depends
         self.set_info_row(PropID::Dependencies, ValueType::Vec(pkg.depends()));
