@@ -181,6 +181,10 @@ impl PkgObject {
         Self::date_to_string(self.imp().data.get().unwrap().out_of_date, "%d %B %Y %H:%M")
     }
 
+    pub fn url(&self) -> &str {
+        &self.imp().data.get().unwrap().url
+    }
+
     pub fn package_url(&self) -> Cow<'_, str> {
         let data = self.imp().data.get().unwrap();
 
@@ -242,14 +246,6 @@ impl PkgObject {
         }
     }
 
-    pub fn url(&self) -> &str {
-        &self.imp().data.get().unwrap().url
-    }
-
-    pub fn groups(&self) -> &str {
-        &self.imp().data.get().unwrap().groups
-    }
-
     pub fn status(&self) -> &str {
         match self.imp().data.get().unwrap().flags {
             PkgFlags::EXPLICIT => "explicit",
@@ -284,6 +280,10 @@ impl PkgObject {
         &self.imp().data.get().unwrap().licenses
     }
 
+    pub fn groups(&self) -> &str {
+        &self.imp().data.get().unwrap().groups
+    }
+
     pub fn depends(&self) -> &[String] {
         &self.imp().data.get().unwrap().depends
     }
@@ -316,12 +316,12 @@ impl PkgObject {
         &self.imp().data.get().unwrap().packager
     }
 
-    pub fn install_size(&self) -> i64 {
-        self.imp().data.get().unwrap().install_size
+    pub fn build_date(&self) -> i64 {
+        self.imp().data.get().unwrap().build_date
     }
 
-    pub fn install_size_string(&self) -> String {
-        Size::from_bytes(self.imp().data.get().unwrap().install_size).to_string()
+    pub fn build_date_string(&self) -> Cow<'_, str> {
+        Self::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
     }
 
     pub fn install_date(&self) -> i64 {
@@ -332,20 +332,20 @@ impl PkgObject {
         Self::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
     }
 
-    pub fn build_date(&self) -> i64 {
-        self.imp().data.get().unwrap().build_date
-    }
-
-    pub fn build_date_string(&self) -> Cow<'_, str> {
-        Self::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
-    }
-
     pub fn download_size(&self) -> i64 {
         self.imp().data.get().unwrap().download_size
     }
 
     pub fn download_size_string(&self) -> String {
         Size::from_bytes(self.imp().data.get().unwrap().download_size).to_string()
+    }
+
+    pub fn install_size(&self) -> i64 {
+        self.imp().data.get().unwrap().install_size
+    }
+
+    pub fn install_size_string(&self) -> String {
+        Size::from_bytes(self.imp().data.get().unwrap().install_size).to_string()
     }
 
     pub fn has_script(&self) -> &str {
