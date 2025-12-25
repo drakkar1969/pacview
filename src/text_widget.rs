@@ -849,7 +849,7 @@ impl TextWidget {
     }
 
     fn handle_link(&self, link: &TextTag) {
-        let link_url = link.text.to_owned();
+        let link_url = link.text.clone();
 
         if let Ok(url) = Url::parse(&link_url) {
             let url_scheme = url.scheme();

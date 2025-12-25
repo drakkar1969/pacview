@@ -952,7 +952,7 @@ impl PacViewWindow {
                             if aur_names.contains(pkg.name()) {
                                 "aur"
                             } else if let Ok(sync_pkg) = syncdbs.pkg(pkg.name()) {
-                                sync_pkg.db().map(|db| db.name()).unwrap_or_default()
+                                sync_pkg.db().map(alpm::Db::name).unwrap_or_default()
                             } else {
                                 "local"
                             }
@@ -1219,6 +1219,6 @@ impl PacViewWindow {
                     }
                 ));
             }
-        };
+        }
     }
 }
