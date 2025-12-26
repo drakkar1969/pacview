@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
@@ -83,6 +83,8 @@ mod imp {
         pub(super) files_search_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) files_folder_filter: TemplateChild<gtk::CustomFilter>,
+        #[template_child]
+        pub(super) files_paused_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
         pub(super) log_header_label: TemplateChild<gtk::Label>,
@@ -92,6 +94,8 @@ mod imp {
         pub(super) log_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) log_selection: TemplateChild<gtk::NoSelection>,
+        #[template_child]
+        pub(super) log_paused_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
         pub(super) cache_header_label: TemplateChild<gtk::Label>,
@@ -107,6 +111,8 @@ mod imp {
         pub(super) cache_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub(super) cache_paused_status: TemplateChild<adw::StatusPage>,
 
         #[template_child]
         pub(super) backup_header_label: TemplateChild<gtk::Label>,
@@ -126,6 +132,8 @@ mod imp {
         pub(super) backup_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
+        #[template_child]
+        pub(super) backup_paused_status: TemplateChild<adw::StatusPage>,
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         pkg: PhantomData<Option<PkgObject>>,
@@ -136,6 +144,7 @@ mod imp {
         pub(super) pkg_history: RefCell<HistoryList>,
 
         pub(super) update_delay_id: RefCell<Option<glib::SourceId>>,
+        pub(super) update_count: Cell<u16>,
     }
 
     //---------------------------------------
@@ -877,6 +886,8 @@ impl InfoPane {
     fn update_files_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
+        imp.files_paused_status.set_visible(false);
+
         // Populate files view
         let files_list: Vec<gtk::StringObject> = pkg.files().iter()
             .map(|file| gtk::StringObject::new(file))
@@ -887,6 +898,8 @@ impl InfoPane {
 
     fn update_log_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
+
+        imp.log_paused_status.set_visible(false);
 
         // Populate log view
         glib::spawn_future_local(clone!(
@@ -905,6 +918,8 @@ impl InfoPane {
     fn update_cache_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
+        imp.cache_paused_status.set_visible(false);
+
         // Populate cache view
         glib::spawn_future_local(clone!(
             #[weak] imp,
@@ -922,6 +937,8 @@ impl InfoPane {
     fn update_backup_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
+        imp.backup_paused_status.set_visible(false);
+
         // Populate backup view
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
             .map(BackupObject::new)
@@ -936,14 +953,11 @@ impl InfoPane {
     pub fn update_display(&self) {
         let imp = self.imp();
 
+        // Increment update count
+        imp.update_count.set(imp.update_count.get() + 1);
+
         // Clear header bar title
         imp.title_widget.set_title("");
-
-        // Clear files/log/cache/backup views
-        imp.files_model.remove_all();
-        imp.log_model.remove_all();
-        imp.cache_model.remove_all();
-        imp.backup_model.remove_all();
 
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
@@ -964,6 +978,21 @@ impl InfoPane {
             // Remove delay timer if present
             if let Some(delay_id) = imp.update_delay_id.take() {
                 delay_id.remove();
+
+                if imp.update_count.get() > 1 {
+                    // Clear files/log/cache/backup views
+                    imp.files_paused_status.set_visible(true);
+                    imp.files_model.remove_all();
+
+                    imp.log_paused_status.set_visible(true);
+                    imp.log_model.remove_all();
+
+                    imp.cache_paused_status.set_visible(true);
+                    imp.cache_model.remove_all();
+
+                    imp.backup_paused_status.set_visible(true);
+                    imp.backup_model.remove_all();
+                }
             }
 
             // Start delay timer
@@ -972,6 +1001,8 @@ impl InfoPane {
                 clone!(
                     #[weak(rename_to = infopane)] self,
                     move || {
+                        let imp = infopane.imp();
+
                         // Populate files/log/cache/backup views
                         infopane.update_files_view(&pkg);
 
@@ -981,7 +1012,9 @@ impl InfoPane {
 
                         infopane.update_backup_view(&pkg);
 
-                        infopane.imp().update_delay_id.take();
+                        imp.update_delay_id.take();
+
+                        imp.update_count.set(0);
                     }
                 )
             );
