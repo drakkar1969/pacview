@@ -116,7 +116,7 @@ mod imp {
         #[property(get, set)]
         searching: Cell<bool>,
 
-        pub(super) delay_source_id: RefCell<Option<glib::SourceId>>,
+        pub(super) search_delay_id: RefCell<Option<glib::SourceId>>,
     }
 
     //---------------------------------------
@@ -410,7 +410,7 @@ impl SearchBar {
                 imp.clear_button.set_visible(!text.is_empty());
 
                 // Remove delay timer if present
-                if let Some(delay_id) = imp.delay_source_id.take() {
+                if let Some(delay_id) = imp.search_delay_id.take() {
                     delay_id.remove();
                 }
 
@@ -428,12 +428,12 @@ impl SearchBar {
                             move || {
                                 bar.emit_by_name::<()>("changed", &[]);
 
-                                imp.delay_source_id.take();
+                                imp.search_delay_id.take();
                             }
                         )
                     );
 
-                    imp.delay_source_id.replace(Some(delay_id));
+                    imp.search_delay_id.replace(Some(delay_id));
                 }
             }
         ));
