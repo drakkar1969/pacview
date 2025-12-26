@@ -33,6 +33,8 @@ mod imp {
         pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
+        pub(super) stack: TemplateChild<gtk::Stack>,
+        #[template_child]
         pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
@@ -47,8 +49,6 @@ mod imp {
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) empty_status: TemplateChild<adw::StatusPage>,
     }
 
     //---------------------------------------
@@ -200,7 +200,7 @@ impl LogWindow {
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
 
-                imp.empty_status.set_visible(n_items == 0);
+                imp.stack.set_visible_child_name(if n_items == 0 { "empty" } else { "view" });
 
                 imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 

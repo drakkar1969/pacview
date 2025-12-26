@@ -54,6 +54,8 @@ mod imp {
         pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
+        pub(super) stack: TemplateChild<gtk::Stack>,
+        #[template_child]
         pub(super) scroll_window: TemplateChild<gtk::ScrolledWindow>,
         #[template_child]
         pub(super) view: TemplateChild<gtk::ColumnView>,
@@ -74,8 +76,6 @@ mod imp {
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
         #[property(get, set, builder(BackupSearchMode::default()))]
         search_mode: Cell<BackupSearchMode>,
@@ -364,7 +364,7 @@ impl BackupWindow {
                     }
                 }
 
-                imp.empty_status.set_visible(n_items == 0);
+                imp.stack.set_visible_child_name(if n_items == 0 { "empty" } else { "view" });
 
                 imp.footer_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
 
