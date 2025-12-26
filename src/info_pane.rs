@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
 use std::fmt::Write as _;
+use std::time::Duration;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
@@ -133,6 +134,8 @@ mod imp {
         pub(super) selection_widget: RefCell<Option<TextWidget>>,
 
         pub(super) pkg_history: RefCell<HistoryList>,
+
+        pub(super) update_delay_id: RefCell<Option<glib::SourceId>>,
     }
 
     //---------------------------------------
@@ -936,6 +939,12 @@ impl InfoPane {
         // Clear header bar title
         imp.title_widget.set_title("");
 
+        // Clear files/log/cache/backup views
+        imp.files_model.remove_all();
+        imp.log_model.remove_all();
+        imp.cache_model.remove_all();
+        imp.backup_model.remove_all();
+
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
             // Set header bar title
@@ -952,14 +961,32 @@ impl InfoPane {
             // Populate info listbox
             self.update_info_listbox(&pkg);
 
-            // Populate files/log/cache/backup views
-            self.update_files_view(&pkg);
+            // Remove delay timer if present
+            if let Some(delay_id) = imp.update_delay_id.take() {
+                delay_id.remove();
+            }
 
-            self.update_log_view(&pkg);
+            // Start delay timer
+            let delay_id = glib::timeout_add_local_once(
+                Duration::from_millis(50),
+                clone!(
+                    #[weak(rename_to = infopane)] self,
+                    move || {
+                        // Populate files/log/cache/backup views
+                        infopane.update_files_view(&pkg);
 
-            self.update_cache_view(&pkg);
+                        infopane.update_log_view(&pkg);
 
-            self.update_backup_view(&pkg);
+                        infopane.update_cache_view(&pkg);
+
+                        infopane.update_backup_view(&pkg);
+
+                        infopane.imp().update_delay_id.take();
+                    }
+                )
+            );
+
+            imp.update_delay_id.replace(Some(delay_id));
         }
     }
 
