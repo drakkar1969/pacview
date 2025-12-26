@@ -74,14 +74,14 @@ mod imp {
         #[property(get, set, nullable)]
         update_version: RefCell<Option<String>>,
 
+        // Read-only properties with getter
+        #[property(name = "flags", get = Self::flags, type = PkgFlags)]
+        #[property(name = "version", get = Self::version, type = String)]
+
         // Read-only properties from data fields
         #[property(name = "name", get, type = String, member = name)]
         #[property(name = "repository", get, type = String, member = repository)]
         pub(super) data: OnceCell<PkgData>,
-
-        // Read-only properties with getter
-        #[property(name = "flags", get = Self::flags, type = PkgFlags)]
-        #[property(name = "version", get = Self::version, type = String)]
 
         // Read only fields
         pub(super) required_by: OnceCell<Vec<String>>,
