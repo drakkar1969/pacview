@@ -63,6 +63,10 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/hash_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_backup_tab.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_cache_tab.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_files_tab.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/info_log_tab.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_item.ui</file>

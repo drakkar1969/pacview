@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// InfoBackupTab template //-->
+  <template class="InfoBackupTab" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="spacing">16</property>
+    <child>
+      <object class="GtkBox" id="header_box">
+        <property name="margin-start">28</property>
+        <property name="margin-end">28</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkLabel" id="header_label">
+                <property name="xalign">0</property>
+                <property name="yalign">0.5</property>
+                <property name="label">Backup</property>
+                <property name="valign">baseline-center</property>
+                <style>
+                  <class name="title-4"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator">
+                <style>
+                  <class name="spacer"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="count_label">
+                <property name="valign">center</property>
+                <property name="label"></property>
+                <attributes>
+                  <attribute name="scale" value="0.66"/>
+                </attributes>
+                <style>
+                  <class name="count-superscript"/>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="hexpand">true</property>
+            <property name="halign">end</property>
+            <property name="valign">center</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkButton" id="compare_button">
+                <property name="tooltip-text">Compare with Original</property>
+                <property name="child">
+                  <object class="GtkImage" id="compare_image">
+                    <property name="icon-name">info-compare-symbolic</property>
+                  </object>
+                </property>
+                <style>
+                  <class name="flat"/>
+                  <class name="circular"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="open_button">
+                <property name="icon-name">document-open-symbolic</property>
+                <property name="tooltip-text">Open</property>
+                <style>
+                  <class name="flat"/>
+                  <class name="circular"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton" id="copy_button">
+                <property name="icon-name">edit-copy-symbolic</property>
+                <property name="tooltip-text">Copy Backup File List</property>
+                <style>
+                  <class name="flat"/>
+                  <class name="circular"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkOverlay">
+        <child>
+          <object class="GtkScrolledWindow">
+            <style>
+              <class name="card"/>
+            </style>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="child">
+              <object class="GtkColumnView" id="view">
+                <style>
+                  <class name="card-list"/>
+                </style>
+                <property name="margin-bottom">16</property>
+                <property name="margin-start">12</property>
+                <property name="margin-end">12</property>
+                <property name="tab-behavior">item</property>
+                <property name="model">
+                  <object class="GtkSingleSelection" id="selection">
+                    <property name="model">
+                      <object class="GListStore" id="model">
+                        <property name="item-type">BackupObject</property>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">Backup File</property>
+                    <property name="expand">true</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/info_pane/backup_file_item.ui</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkColumnViewColumn">
+                    <property name="title">Status</property>
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/com/github/PacView/ui/info_pane/backup_status_item.ui</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child type="overlay">
+          <object class="AdwStatusPage" id="paused_status">
+            <property name="visible">false</property>
+            <property name="title">View Update Paused</property>
+            <property name="paintable">
+              <object class="AdwSpinnerPaintable">
+                <property name="widget">paused_status</property>
+              </object>
+            </property>
+            <style>
+              <class name="compact"/>
+              <class name="dimmed"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
