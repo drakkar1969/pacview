@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell};
+use std::cell::RefCell;
 use std::marker::PhantomData;
 use std::collections::HashMap;
 use std::borrow::Cow;
@@ -78,7 +78,6 @@ mod imp {
         pub(super) pkg_history: RefCell<HistoryList>,
 
         pub(super) update_delay_id: RefCell<Option<glib::SourceId>>,
-        pub(super) update_count: Cell<u16>,
     }
 
     //---------------------------------------
@@ -493,9 +492,6 @@ impl InfoPane {
     pub fn update_display(&self) {
         let imp = self.imp();
 
-        // Increment update count
-        imp.update_count.set(imp.update_count.get() + 1);
-
         // Clear header bar title
         imp.title_widget.set_title("");
 
@@ -519,13 +515,11 @@ impl InfoPane {
             if let Some(delay_id) = imp.update_delay_id.take() {
                 delay_id.remove();
 
-                if imp.update_count.get() > 1 {
-                    // Clear files/log/cache/backup views
-                    imp.files_tab.pause_view();
-                    imp.log_tab.pause_view();
-                    imp.cache_tab.pause_view();
-                    imp.backup_tab.pause_view();
-                }
+                // Clear files/log/cache/backup views
+                imp.files_tab.pause_view();
+                imp.log_tab.pause_view();
+                imp.cache_tab.pause_view();
+                imp.backup_tab.pause_view();
             }
 
             // Start delay timer
@@ -541,7 +535,6 @@ impl InfoPane {
                         imp.backup_tab.update_view(&pkg);
 
                         imp.update_delay_id.take();
-                        imp.update_count.set(0);
                     }
                 )
             );
