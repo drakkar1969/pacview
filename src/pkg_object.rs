@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::cell::{RefCell, OnceCell};
+use std::sync::LazyLock;
 use std::rc::Rc;
 use std::cmp::Ordering;
 
@@ -161,93 +162,97 @@ impl PkgObject {
     //---------------------------------------
     // Public data field getters
     //---------------------------------------
+    #[inline(always)]
+    fn data(&self) -> &PkgData {
+        self.imp().data.get().unwrap()
+    }
+    
     pub fn base(&self) -> &str {
-        &self.imp().data.get().unwrap().base
+        &self.data().base
     }
 
     pub fn description(&self) -> &str {
-        &self.imp().data.get().unwrap().description
+        &self.data().description
     }
 
     pub fn popularity(&self) -> &str {
-        &self.imp().data.get().unwrap().popularity
+        &self.data().popularity
     }
 
     pub fn out_of_date(&self) -> i64 {
-        self.imp().data.get().unwrap().out_of_date
+        self.data().out_of_date
     }
 
     pub fn out_of_date_string(&self) -> Cow<'_, str> {
-        Self::date_to_string(self.imp().data.get().unwrap().out_of_date, "%d %B %Y %H:%M")
+        Self::date_to_string(self.data().out_of_date, "%d %B %Y %H:%M")
     }
 
     pub fn url(&self) -> &str {
-        &self.imp().data.get().unwrap().url
+        &self.data().url
     }
 
     pub fn package_url(&self) -> Cow<'_, str> {
-        let data = self.imp().data.get().unwrap();
+        let data = self.data();
 
         let repo = &data.repository;
 
-        if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
-            Cow::Owned(format!("https://www.archlinux.org/packages/{repo}/{arch}/{name}/",
-                arch=data.architecture,
-                name=data.name
-            ))
-        } else if repo == "aur" {
-            Cow::Owned(format!("https://aur.archlinux.org/packages/{name}",
-                name=data.name
-            ))
-        } else {
-            Cow::Borrowed("")
+        if repo == "aur" {
+            return Cow::Owned(format!("https://aur.archlinux.org/packages/{}", data.name));
         }
+
+        if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
+            return Cow::Owned(format!(
+                "https://www.archlinux.org/packages/{}/{}/{}/",
+                repo, data.architecture, data.name
+            ));
+        }
+
+        Cow::Borrowed("")
     }
 
     pub fn pkgbuild_urls(&self) -> (String, String) {
-        let data = self.imp().data.get().unwrap();
-
-        let name = if data.base.is_empty() {
-            &data.name
-        } else {
-            &data.base
-        };
-
+        let data = self.data();
+        let name = if data.base.is_empty() { &data.name } else { &data.base };
         let repo = &data.repository;
 
-        if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) {
-            let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
+        match repo.as_str() {
+            "aur" => {
+                let domain = "https://aur.archlinux.org/cgit/aur.git";
 
-            let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
-            let raw_url = format!("{domain}/{name}/-/raw/main/PKGBUILD");
+                let url = format!("{domain}/tree/PKGBUILD?h={name}");
+                let raw_url = format!("{domain}/plain/PKGBUILD?h={name}");
 
-            (url, raw_url)
-        } else if repo == "aur" {
-            let domain = "https://aur.archlinux.org/cgit/aur.git";
+                (url, raw_url)
+            }
+            _ if PACMAN_CONFIG.repos.iter().any(|r| &r.name == repo) => {
+                let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
 
-            let url = format!("{domain}/tree/PKGBUILD?h={name}");
-            let raw_url = format!("{domain}/plain/PKGBUILD?h={name}");
+                let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
+                let raw_url = format!("{domain}/{name}/-/raw/main/PKGBUILD");
 
-            (url, raw_url)
-        } else if repo != "local" {
-            let raw_url = PARU_PATH.as_ref().ok()
-                .map_or_else(String::new, |_| {
-                    glib::user_cache_dir()
-                        .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
-                        .display()
-                        .to_string()
-                });
+                (url, raw_url)
+            }
+            "local" => {
+                (String::new(), String::new())
+            }
+            _ => {
+                let raw_url = PARU_PATH.as_ref().ok()
+                    .map_or_else(String::new, |_| {
+                        glib::user_cache_dir()
+                            .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
+                            .display()
+                            .to_string()
+                    });
 
-            let url = format!("file://{raw_url}");
+                let url = format!("file://{raw_url}");
 
-            (url, raw_url)
-        } else {
-            (String::new(), String::new())
+                (url, raw_url)
+            }
         }
     }
 
     pub fn status(&self) -> &str {
-        match self.imp().data.get().unwrap().flags {
+        match self.data().flags {
             PkgFlags::EXPLICIT => "explicit",
             PkgFlags::DEPENDENCY => "dependency",
             PkgFlags::OPTIONAL => "optional",
@@ -257,7 +262,7 @@ impl PkgObject {
     }
 
     pub fn status_icon(&self) -> &str {
-        match self.imp().data.get().unwrap().flags {
+        match self.data().flags {
             PkgFlags::EXPLICIT => "pkg-explicit",
             PkgFlags::DEPENDENCY => "pkg-dependency",
             PkgFlags::OPTIONAL => "pkg-optional",
@@ -267,7 +272,7 @@ impl PkgObject {
     }
 
     pub fn status_icon_symbolic(&self) -> &str {
-        match self.imp().data.get().unwrap().flags {
+        match self.data().flags {
             PkgFlags::EXPLICIT => "status-explicit-symbolic",
             PkgFlags::DEPENDENCY => "status-dependency-symbolic",
             PkgFlags::OPTIONAL => "status-optional-symbolic",
@@ -277,83 +282,83 @@ impl PkgObject {
     }
 
     pub fn licenses(&self) -> &[String] {
-        &self.imp().data.get().unwrap().licenses
+        &self.data().licenses
     }
 
     pub fn groups(&self) -> &[String] {
-        &self.imp().data.get().unwrap().groups
+        &self.data().groups
     }
 
     pub fn depends(&self) -> &[String] {
-        &self.imp().data.get().unwrap().depends
+        &self.data().depends
     }
 
     pub fn optdepends(&self) -> &[String] {
-        &self.imp().data.get().unwrap().optdepends
+        &self.data().optdepends
     }
 
     pub fn makedepends(&self) -> &[String] {
-        &self.imp().data.get().unwrap().makedepends
+        &self.data().makedepends
     }
 
     pub fn provides(&self) -> &[String] {
-        &self.imp().data.get().unwrap().provides
+        &self.data().provides
     }
 
     pub fn conflicts(&self) -> &[String] {
-        &self.imp().data.get().unwrap().conflicts
+        &self.data().conflicts
     }
 
     pub fn replaces(&self) -> &[String] {
-        &self.imp().data.get().unwrap().replaces
+        &self.data().replaces
     }
 
     pub fn architecture(&self) -> &str {
-        &self.imp().data.get().unwrap().architecture
+        &self.data().architecture
     }
 
     pub fn packager(&self) -> &str {
-        &self.imp().data.get().unwrap().packager
+        &self.data().packager
     }
 
     pub fn build_date(&self) -> i64 {
-        self.imp().data.get().unwrap().build_date
+        self.data().build_date
     }
 
     pub fn build_date_string(&self) -> Cow<'_, str> {
-        Self::date_to_string(self.imp().data.get().unwrap().build_date, "%d %B %Y %H:%M")
+        Self::date_to_string(self.data().build_date, "%d %B %Y %H:%M")
     }
 
     pub fn install_date(&self) -> i64 {
-        self.imp().data.get().unwrap().install_date
+        self.data().install_date
     }
 
     pub fn install_date_string(&self) -> Cow<'_, str> {
-        Self::date_to_string(self.imp().data.get().unwrap().install_date, "%d %B %Y %H:%M")
+        Self::date_to_string(self.data().install_date, "%d %B %Y %H:%M")
     }
 
     pub fn download_size(&self) -> i64 {
-        self.imp().data.get().unwrap().download_size
+        self.data().download_size
     }
 
     pub fn download_size_string(&self) -> String {
-        Size::from_bytes(self.imp().data.get().unwrap().download_size).to_string()
+        Size::from_bytes(self.data().download_size).to_string()
     }
 
     pub fn install_size(&self) -> i64 {
-        self.imp().data.get().unwrap().install_size
+        self.data().install_size
     }
 
     pub fn install_size_string(&self) -> String {
-        Size::from_bytes(self.imp().data.get().unwrap().install_size).to_string()
+        Size::from_bytes(self.data().install_size).to_string()
     }
 
     pub fn has_script(&self) -> &str {
-        &self.imp().data.get().unwrap().has_script
+        &self.data().has_script
     }
 
     pub fn validation(&self) -> PkgValidation {
-        self.imp().data.get().unwrap().validation
+        self.data().validation
     }
 
     //---------------------------------------
@@ -392,7 +397,7 @@ impl PkgObject {
                         .into_iter()
                         .collect();
 
-                    required_by.par_sort_unstable();
+                    required_by.sort_unstable();
 
                     required_by
                 })
@@ -408,7 +413,7 @@ impl PkgObject {
                         .into_iter()
                         .collect();
 
-                    optional_for.par_sort_unstable();
+                    optional_for.sort_unstable();
 
                     optional_for
                 })
@@ -424,7 +429,11 @@ impl PkgObject {
 
                     let mut files: Vec<String> = pkg.files().files()
                         .iter()
-                        .map(|file| root_dir.to_owned() + &String::from_utf8_lossy(file.name()))
+                        .map(|file| {
+                            let mut path = root_dir.to_owned();
+                            path.push_str(&String::from_utf8_lossy(file.name()));
+                            path
+                        })
                         .collect();
 
                     files.par_sort_unstable();
@@ -444,11 +453,14 @@ impl PkgObject {
 
                     let mut backup: Vec<PkgBackup> = pkg.backup().iter()
                         .map(|backup| {
-                            PkgBackup::new(&(root_dir.to_owned() + backup.name()), backup.hash(), &pkg_name)
+                            let mut path = root_dir.to_owned();
+                            path.push_str(backup.name());
+
+                            PkgBackup::new(&path, backup.hash(), &pkg_name)
                         })
                         .collect();
 
-                    backup.par_sort_unstable_by(|backup_a, backup_b| {
+                    backup.sort_unstable_by(|backup_a, backup_b| {
                         backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
                     });
 
@@ -481,18 +493,25 @@ impl PkgObject {
     //---------------------------------------
     pub async fn log_future(&self) -> &Vec<String> {
         self.imp().log.get_or_init(async || {
+            static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) (.+?) (.+)").expect("Failed to compile Regex")
+            });
+
             let pkg_name = self.name();
 
             gio::spawn_blocking(move || {
-                let expr = Regex::new(&format!(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) ({name}) (.+)", name=regex::escape(&pkg_name)))
-                    .expect("Failed to compile Regex");
-
                 let pacman_log = PACMAN_LOG.read().unwrap();
 
                 pacman_log.as_ref().map_or(vec![], |log| {
                     log.lines().rev()
-                        .filter(|&line| expr.is_match(line))
-                        .map(|line| expr.replace(line, "[$1  $2]  $3 $4 $5").into_owned())
+                        .filter(|&line| line.contains(&pkg_name))
+                        .filter_map(|line| {
+                            EXPR.captures(line).and_then(|caps| {
+                                (caps[4] == pkg_name).then(|| {
+                                    format!("[{}  {}]  {} {} {}", &caps[1], &caps[2], &caps[3], &caps[4], &caps[5])
+                                })
+                            })
+                        })
                         .collect::<Vec<String>>()
                 })
             })
