@@ -92,9 +92,12 @@ pub mod aur_file {
     use std::fs;
     use std::path::PathBuf;
     use std::time::Duration;
-	use std::io::Read;
 
-    use flate2::read::GzDecoder;
+    use tokio::fs::File;
+    use tokio::io;
+    use tokio_util::io::StreamReader;
+    use futures_util::TryStreamExt;
+    use async_compression::tokio::bufread::GzipDecoder;
 
     use crate::utils::tokio_runtime;
 
@@ -117,7 +120,7 @@ pub mod aur_file {
     //---------------------------------------
     // Download async function
     //---------------------------------------
-    pub async fn download(aur_file: &PathBuf) -> Result<(), reqwest::Error> {
+    pub async fn download(aur_file: &PathBuf) -> Result<(), io::Error> {
         let aur_file = aur_file.to_owned();
 
         // Spawn tokio task to download AUR file
@@ -127,19 +130,21 @@ pub mod aur_file {
                     .get("https://aur.archlinux.org/packages.gz")
                     .timeout(Duration::from_secs(5))
                     .send()
-                    .await?;
+                    .await
+                    .map_err(|e| io::Error::other(e))?;
 
-                let bytes = response.bytes().await?;
+                let stream = response
+                    .bytes_stream()
+                    .map_err(|e| io::Error::other(e));
 
-                let mut decoder = GzDecoder::new(bytes.as_ref());
+                let stream_reader = StreamReader::new(stream);
+                let mut decoder = GzipDecoder::new(stream_reader);
 
-                let mut gz_string = String::new();
+                let mut out_file = File::create(aur_file).await?;
 
-                if decoder.read_to_string(&mut gz_string).is_ok() {
-                    fs::write(&aur_file, gz_string).unwrap_or_default();
-                }
+                io::copy(&mut decoder, &mut out_file).await?;
 
-                Ok::<(), reqwest::Error>(())
+                Ok::<(), io::Error>(())
             }
         )
         .await

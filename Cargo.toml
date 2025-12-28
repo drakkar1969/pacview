@@ -10,10 +10,11 @@ adw = { version = "0.8", package = "libadwaita", features = ["v1_8"] }
 alpm = "5"
 alpm-utils = "5"
 async-channel = "2"
+async-compression = { version = "0.4", features = ["tokio", "gzip"] }
 async-process = "2"
 fancy-regex = "0.17"
-flate2 = "1"
 futures = "0.3"
+futures-util = "0.3"
 gtk = { version = "0.10", package = "gtk4", features = ["v4_20"] }
 heck = "0.5"
 itertools = "0.14.0"
@@ -23,7 +24,7 @@ pangocairo = "0.21"
 raur = "7"
 rayon = "1"
 regex = "1"
-reqwest = "0.12"
+reqwest = { version = "0.12", features = ["stream"] }
 size = "0.5"
 sourceview5 = { version = "0.10", features = ["v5_18"] }
 strum = { version = "0.27", features = ["derive"] }
