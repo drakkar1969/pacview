@@ -2,7 +2,6 @@ use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::cmp::Ordering;
-use std::borrow::Cow;
 use std::fmt::Write as _;
 
 use gtk::{glib, gio};
@@ -350,14 +349,14 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Failed to downcast to 'PkgObject'");
 
-                let search_props: Cow<'_, [String]> = match prop {
-                    SearchProp::Name => Cow::Owned(vec![pkg.name()]),
-                    SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
-                    SearchProp::Groups => Cow::Borrowed(pkg.groups()),
-                    SearchProp::Deps => Cow::Borrowed(pkg.depends()),
-                    SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
-                    SearchProp::Provides => Cow::Borrowed(pkg.provides()),
-                    SearchProp::Files => Cow::Borrowed(pkg.files()),
+                let search_props: &[String] = match prop {
+                    SearchProp::Name => &[pkg.name()],
+                    SearchProp::NameDesc => &[pkg.name(), pkg.description().to_owned()],
+                    SearchProp::Groups => pkg.groups(),
+                    SearchProp::Deps => pkg.depends(),
+                    SearchProp::Optdeps => pkg.optdepends(),
+                    SearchProp::Provides => pkg.provides(),
+                    SearchProp::Files => pkg.files(),
                 };
 
                 match mode {
