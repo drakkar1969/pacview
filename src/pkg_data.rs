@@ -83,14 +83,16 @@ impl PkgData {
     // Alpm constructor
     //---------------------------------------
     pub fn from_alpm(pkg: &alpm::Package, is_local: bool, repository: &str) -> Self {
-        // Helper closures
-        let alpm_list_to_string = |list: alpm::AlpmList<&str>| -> String {
+        // Helper functions
+        #[inline]
+        fn alpm_list_to_string(list: alpm::AlpmList<&str>) -> String {
             list.iter().sorted_unstable().join(" | ")
-        };
+        }
 
-        let alpm_deplist_to_vec = |list: alpm::AlpmList<&alpm::Dep>| -> Vec<String> {
+        #[inline]
+        fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
             list.iter().map(ToString::to_string).sorted_unstable().collect()
-        };
+        }
 
         // Build PkgData
         let flags = if is_local {
@@ -106,13 +108,13 @@ impl PkgData {
 
         Self {
             flags,
-            base: pkg.base().unwrap_or_default().to_owned(),
+            base: pkg.base().map(String::from).unwrap_or_default(),
             name: pkg.name().to_owned(),
             version: pkg.version().to_string(),
-            description: pkg.desc().unwrap_or_default().to_owned(),
+            description: pkg.desc().map(String::from).unwrap_or_default(),
             popularity: String::new(),
             out_of_date: 0,
-            url: pkg.url().unwrap_or_default().to_owned(),
+            url: pkg.url().map(String::from).unwrap_or_default(),
             licenses: alpm_list_to_string(pkg.licenses()),
             repository: repository.to_owned(),
             groups: alpm_list_to_string(pkg.groups()),
@@ -122,13 +124,13 @@ impl PkgData {
             provides: alpm_deplist_to_vec(pkg.provides()),
             conflicts: alpm_deplist_to_vec(pkg.conflicts()),
             replaces: alpm_deplist_to_vec(pkg.replaces()),
-            architecture: pkg.arch().unwrap_or_default().to_owned(),
+            architecture: pkg.arch().map(String::from).unwrap_or_default(),
             packager: pkg.packager().unwrap_or("Unknown Packager").to_owned(),
             build_date: pkg.build_date(),
             install_date: pkg.install_date().unwrap_or_default(),
             download_size: pkg.download_size(),
             install_size: pkg.isize(),
-            has_script: if pkg.has_scriptlet() { "Yes" } else { "No" }.to_owned(),
+            has_script: if pkg.has_scriptlet() { "Yes".into() } else { "No".into() },
             validation: PkgValidation::from_bits_truncate(pkg.validation().bits()),
         }
     }
@@ -137,14 +139,16 @@ impl PkgData {
     // AUR constructor
     //---------------------------------------
     pub fn from_aur(pkg: &raur::Package) -> Self {
-        // Helper closures
-        let aur_vec_to_string = |slice: &[String]| -> String {
+        // Helper functions
+        #[inline]
+        fn aur_vec_to_string(slice: &[String]) -> String {
             slice.iter().sorted_unstable().join(" | ")
-        };
+        }
 
-        let aur_sorted_vec = |slice: &[String]| -> Vec<String> {
+        #[inline]
+        fn aur_sorted_vec(slice: &[String]) -> Vec<String> {
             slice.iter().map(String::from).sorted_unstable().collect()
-        };
+        }
 
         // Build PkgData
         Self {
@@ -152,10 +156,10 @@ impl PkgData {
             base: pkg.package_base.clone(),
             name: pkg.name.clone(),
             version: pkg.version.clone(),
-            description: pkg.description.clone().unwrap_or_default(),
+            description: pkg.description.as_deref().unwrap_or_default().to_owned(),
             popularity: format!("{:.2?} ({} votes)", pkg.popularity, pkg.num_votes),
             out_of_date: pkg.out_of_date.unwrap_or_default(),
-            url: pkg.url.clone().unwrap_or_default(),
+            url: pkg.url.as_deref().unwrap_or_default().to_owned(),
             licenses: aur_vec_to_string(&pkg.license),
             repository: String::from("aur"),
             groups: aur_vec_to_string(&pkg.groups),
@@ -166,7 +170,7 @@ impl PkgData {
             conflicts: aur_sorted_vec(&pkg.conflicts),
             replaces: aur_sorted_vec(&pkg.replaces),
             architecture: String::new(),
-            packager: pkg.maintainer.clone().unwrap_or_else(|| String::from("Unknown Packager")),
+            packager: pkg.maintainer.as_deref().unwrap_or("Unknown Packager").to_owned(),
             build_date: pkg.last_modified,
             install_date: 0,
             download_size: 0,
