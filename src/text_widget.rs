@@ -765,10 +765,9 @@ impl TextWidget {
     fn selected_text(&self) -> Option<String> {
         let imp = self.imp();
 
-        imp.selection_start.get().zip(imp.selection_end.get())
-            .and_then(|(start, end)| {
-                self.text().get(start.min(end)..start.max(end)).map(String::from)
-            })
+        let (start, end) = imp.selection_start.get().zip(imp.selection_end.get())?;
+
+        self.text().get(start.min(end)..start.max(end)).map(String::from)
     }
 
     //---------------------------------------

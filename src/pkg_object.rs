@@ -506,12 +506,12 @@ impl PkgObject {
                     log.lines().rev()
                         .filter(|&line| line.contains(&pkg_name))
                         .filter_map(|line| {
-                            EXPR.captures(line).and_then(|caps| {
-                                (caps[4] == pkg_name).then(|| {
-                                    format!("[{}  {}]  {} {} {}", &caps[1], &caps[2], &caps[3], &caps[4], &caps[5])
-                                })
+                            let caps = EXPR.captures(line)?;
+
+                            (caps[4] == pkg_name).then(|| {
+                                format!("[{}  {}]  {} {} {}", &caps[1], &caps[2], &caps[3], &caps[4], &caps[5])
                             })
-                        })
+                    })
                         .collect::<Vec<String>>()
                 })
             })
