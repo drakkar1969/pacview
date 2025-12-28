@@ -467,7 +467,7 @@ impl InfoRow {
             if id == PropID::Version {
                 self.set_icon_css_class("success", true);
             } else if id == PropID::Status {
-                self.set_icon_css_class("error", imp.image.icon_name().unwrap_or_default() == "pkg-orphan");
+                self.set_icon_css_class("error", imp.image.icon_name() == Some("pkg-orphan".into()));
             }
         }
     }
