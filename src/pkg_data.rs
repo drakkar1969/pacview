@@ -56,9 +56,9 @@ pub struct PkgData {
     pub popularity: String,
     pub out_of_date: i64,
     pub url: String,
-    pub licenses: String,
+    pub licenses: Vec<String>,
     pub repository: String,
-    pub groups: String,
+    pub groups: Vec<String>,
     pub depends: Vec<String>,
     pub optdepends: Vec<String>,
     pub makedepends: Vec<String>,
@@ -85,8 +85,8 @@ impl PkgData {
     pub fn from_alpm(pkg: &alpm::Package, is_local: bool, repository: &str) -> Self {
         // Helper functions
         #[inline]
-        fn alpm_list_to_string(list: alpm::AlpmList<&str>) -> String {
-            list.iter().sorted_unstable().join(" | ")
+        fn alpm_list_to_vec(list: alpm::AlpmList<&str>) -> Vec<String> {
+            list.iter().map(ToOwned::to_owned).sorted_unstable().collect()
         }
 
         #[inline]
@@ -115,9 +115,9 @@ impl PkgData {
             popularity: String::new(),
             out_of_date: 0,
             url: pkg.url().map(String::from).unwrap_or_default(),
-            licenses: alpm_list_to_string(pkg.licenses()),
+            licenses: alpm_list_to_vec(pkg.licenses()),
             repository: repository.to_owned(),
-            groups: alpm_list_to_string(pkg.groups()),
+            groups: alpm_list_to_vec(pkg.groups()),
             depends: alpm_deplist_to_vec(pkg.depends()),
             optdepends: alpm_deplist_to_vec(pkg.optdepends()),
             makedepends: vec![],
@@ -139,12 +139,7 @@ impl PkgData {
     // AUR constructor
     //---------------------------------------
     pub fn from_aur(pkg: &raur::Package) -> Self {
-        // Helper functions
-        #[inline]
-        fn aur_vec_to_string(slice: &[String]) -> String {
-            slice.iter().sorted_unstable().join(" | ")
-        }
-
+        // Helper function
         #[inline]
         fn aur_sorted_vec(slice: &[String]) -> Vec<String> {
             slice.iter().map(String::from).sorted_unstable().collect()
@@ -160,9 +155,9 @@ impl PkgData {
             popularity: format!("{:.2?} ({} votes)", pkg.popularity, pkg.num_votes),
             out_of_date: pkg.out_of_date.unwrap_or_default(),
             url: pkg.url.as_deref().unwrap_or_default().to_owned(),
-            licenses: aur_vec_to_string(&pkg.license),
+            licenses: aur_sorted_vec(&pkg.license),
             repository: String::from("aur"),
-            groups: aur_vec_to_string(&pkg.groups),
+            groups: aur_sorted_vec(&pkg.groups),
             depends: aur_sorted_vec(&pkg.depends),
             optdepends: aur_sorted_vec(&pkg.opt_depends),
             makedepends: aur_sorted_vec(&pkg.make_depends),

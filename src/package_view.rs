@@ -353,7 +353,7 @@ impl PackageView {
                 let search_props: Cow<'_, [String]> = match prop {
                     SearchProp::Name => Cow::Owned(vec![pkg.name()]),
                     SearchProp::NameDesc => Cow::Owned(vec![pkg.name(), pkg.description().to_owned()]),
-                    SearchProp::Groups => Cow::Owned(vec![pkg.groups().to_owned()]),
+                    SearchProp::Groups => Cow::Borrowed(pkg.groups()),
                     SearchProp::Deps => Cow::Borrowed(pkg.depends()),
                     SearchProp::Optdeps => Cow::Borrowed(pkg.optdepends()),
                     SearchProp::Provides => Cow::Borrowed(pkg.provides()),
@@ -614,7 +614,7 @@ impl PackageView {
                     repo=pkg.repository(),
                     status=pkg.status(),
                     size=pkg.install_size_string(),
-                    groups=pkg.groups()
+                    groups=pkg.groups().join(" | ")
                 );
             }
 

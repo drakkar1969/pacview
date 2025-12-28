@@ -104,7 +104,7 @@ impl PackageItem {
         imp.repository_label.set_label(&pkg.repository());
         imp.size_label.set_label(&pkg.install_size_string());
         imp.groups_image.set_visible(!pkg.groups().is_empty());
-        imp.groups_label.set_label(pkg.groups());
+        imp.groups_label.set_label(&pkg.groups().join(" | "));
     }
 }
 

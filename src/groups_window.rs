@@ -381,7 +381,7 @@ impl GroupsWindow {
                 let pkg_list: Vec<GroupsObject> = pkgs.iter()
                     .filter(|&pkg| !pkg.groups().is_empty())
                     .flat_map(|pkg| {
-                        pkg.groups().split(" | ")
+                        pkg.groups().iter()
                             .map(|group| {
                                 GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_icon_symbolic(), group)
                             })

@@ -419,7 +419,7 @@ impl InfoPane {
         self.set_info_row(PropID::Url, ValueType::StrOpt(pkg.url()));
 
         // Licenses
-        self.set_info_row(PropID::Licenses, ValueType::StrOpt(pkg.licenses()));
+        self.set_info_row(PropID::Licenses, ValueType::VecOptJoin(pkg.licenses()));
 
         // Status
         let status_icon = pkg.status_icon();
@@ -435,7 +435,7 @@ impl InfoPane {
         self.set_info_row(PropID::Repository, ValueType::Str(&pkg.repository()));
 
         // Groups
-        self.set_info_row(PropID::Groups, ValueType::StrOpt(pkg.groups()));
+        self.set_info_row(PropID::Groups, ValueType::VecOptJoin(pkg.groups()));
 
         // Depends
         self.set_info_row(PropID::Dependencies, ValueType::Vec(pkg.depends()));

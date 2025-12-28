@@ -105,7 +105,8 @@ pub enum ValueType<'a> {
     StrOpt(&'a str),
     StrOptNum(&'a str, i64),
     Vec(&'a [String]),
-    VecOpt(&'a [String])
+    VecOpt(&'a [String]),
+    VecOptJoin(&'a [String])
 }
 
 //------------------------------------------------------------------------------
@@ -435,7 +436,7 @@ impl InfoRow {
             ValueType::Str(_) | ValueType::StrIcon(_, _) | ValueType::Vec(_) => true,
             ValueType::StrOpt(s) => !s.is_empty(),
             ValueType::StrOptNum(_, i) => i != 0,
-            ValueType::VecOpt(v) => !v.is_empty(),
+            ValueType::VecOpt(v) | ValueType::VecOptJoin(v) => !v.is_empty(),
         };
 
         self.set_visible(visible);
@@ -445,7 +446,7 @@ impl InfoRow {
                 ValueType::Str(s) | ValueType::StrOpt(s) | ValueType::StrOptNum(s, _) => {
                     imp.image.set_visible(false);
                     imp.value_widget.set_text(s);
-                },
+                }
                 ValueType::StrIcon(s, icon) => {
                     imp.image.set_visible(icon.is_some());
                     imp.image.set_icon_name(icon);
@@ -454,6 +455,10 @@ impl InfoRow {
                 ValueType::Vec(v) | ValueType::VecOpt(v) => {
                     imp.image.set_visible(false);
                     imp.value_widget.set_text(v.join(LINK_SPACER));
+                }
+                ValueType::VecOptJoin(v) => {
+                    imp.image.set_visible(false);
+                    imp.value_widget.set_text(v.join(" | "));
                 }
             }
 

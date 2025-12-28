@@ -276,11 +276,11 @@ impl PkgObject {
         }
     }
 
-    pub fn licenses(&self) -> &str {
+    pub fn licenses(&self) -> &[String] {
         &self.imp().data.get().unwrap().licenses
     }
 
-    pub fn groups(&self) -> &str {
+    pub fn groups(&self) -> &[String] {
         &self.imp().data.get().unwrap().groups
     }
 
