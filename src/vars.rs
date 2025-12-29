@@ -70,7 +70,7 @@ pub mod pacman {
         &PACMAN_LOG
     }
 
-    pub fn update_log(new_log: Option<String>) {
+    pub fn set_log(new_log: Option<String>) {
         let mut pacman_log = log().write().unwrap();
 
         *pacman_log = new_log;
@@ -87,7 +87,7 @@ pub mod pacman {
         &PACMAN_CACHE
     }
 
-    pub fn update_cache(new_cache: Vec<PathBuf>) {
+    pub fn set_cache(new_cache: Vec<PathBuf>) {
         let mut pacman_cache = cache().write().unwrap();
 
         *pacman_cache = new_cache;

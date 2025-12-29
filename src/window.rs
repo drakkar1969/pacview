@@ -728,7 +728,7 @@ impl PacViewWindow {
         let user_cache_dir = glib::user_cache_dir();
 
         // Load pacman log
-        pacman::update_log(fs::read_to_string(&pacman_config.log_file).ok());
+        pacman::set_log(fs::read_to_string(&pacman_config.log_file).ok());
 
         // Load pacman cache
         let mut cache_files: Vec<PathBuf> = vec![];
@@ -743,7 +743,7 @@ impl PacViewWindow {
 
         cache_files.sort_unstable();
 
-        pacman::update_cache(cache_files);
+        pacman::set_cache(cache_files);
 
         // Init config dialog
         imp.config_dialog.borrow().init(pacman_config);
