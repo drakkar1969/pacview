@@ -525,7 +525,7 @@ impl PackageView {
                     Ok(data_list) => {
                         if search_bar.enabled() {
                             let pkg_list: Vec<PkgObject> = data_list.into_iter()
-                                .map(|data| PkgObject::new(data))
+                                .map(PkgObject::new)
                                 .collect();
 
                             imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);

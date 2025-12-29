@@ -15,7 +15,7 @@ pub mod paths {
             which_global("paru")
         });
 
-        &*PARU_PATH
+        &PARU_PATH
     }
 
     //---------------------------------------
@@ -26,7 +26,7 @@ pub mod paths {
             which_global("paccat")
         });
 
-        &*PACCAT_PATH
+        &PACCAT_PATH
     }
 
     //---------------------------------------
@@ -37,7 +37,7 @@ pub mod paths {
             which_global("meld")
         });
 
-        &*MELD_PATH
+        &MELD_PATH
     }
 }
 
@@ -56,7 +56,7 @@ pub mod pacman {
             pacmanconf::Config::new().expect("Failed to get pacman config")
         });
 
-        &*PACMAN_CONFIG
+        &PACMAN_CONFIG
     }
 
     //---------------------------------------
@@ -67,7 +67,7 @@ pub mod pacman {
             RwLock::new(None)
         });
 
-        &*PACMAN_LOG
+        &PACMAN_LOG
     }
 
     pub fn update_log(new_log: Option<String>) {
@@ -84,7 +84,7 @@ pub mod pacman {
             RwLock::new(vec![])
         });
 
-        &*PACMAN_CACHE
+        &PACMAN_CACHE
     }
 
     pub fn update_cache(new_cache: Vec<PathBuf>) {

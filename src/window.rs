@@ -787,7 +787,7 @@ impl PacViewWindow {
         let cache_dir = user_cache_dir.join("pacview");
         
         let aur_file = fs::create_dir_all(&cache_dir)
-            .map(|_| cache_dir.join("aur_packages"))
+            .map(|()| cache_dir.join("aur_packages"))
             .ok();
 
         imp.aur_file.replace(aur_file.clone());
@@ -989,7 +989,7 @@ impl PacViewWindow {
                 while let Ok((pkg_data, local_data)) = receiver.recv().await {
                     // Add packages to package view
                     let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
-                        .map(|data| PkgObject::new(data))
+                        .map(PkgObject::new)
                         .collect();
 
                     imp.package_view.append_packages(&pkg_chunk);

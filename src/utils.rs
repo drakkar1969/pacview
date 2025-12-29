@@ -131,11 +131,11 @@ pub mod aur_file {
                     .timeout(Duration::from_secs(5))
                     .send()
                     .await
-                    .map_err(|e| io::Error::other(e))?;
+                    .map_err(io::Error::other)?;
 
                 let stream = response
                     .bytes_stream()
-                    .map_err(|e| io::Error::other(e));
+                    .map_err(io::Error::other);
 
                 let stream_reader = StreamReader::new(stream);
                 let mut decoder = GzipDecoder::new(stream_reader);

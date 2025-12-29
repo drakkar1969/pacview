@@ -146,7 +146,7 @@ impl PkgObject {
     //---------------------------------------
     // Public data field getters
     //---------------------------------------
-    #[inline(always)]
+    #[inline]
     fn data(&self) -> &PkgData {
         self.imp().data.get().unwrap()
     }
@@ -593,7 +593,7 @@ impl PkgObject {
 
             if let Some(db_pkg) = handle.as_ref()?.localdb().pkgs().find_satisfier(search_term)
                 .or_else(|| handle.as_ref()?.syncdbs().find_satisfier(search_term)) {
-                    return model.iter::<PkgObject>()
+                    return model.iter::<Self>()
                         .flatten()
                         .find(|pkg| pkg.name() == db_pkg.name());
                 }
