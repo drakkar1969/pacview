@@ -1,5 +1,5 @@
 use std::cell::{Cell, RefCell, OnceCell};
-use std::sync::{LazyLock, RwLock};
+use std::sync::LazyLock;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
@@ -17,10 +17,10 @@ use heck::ToTitleCase;
 use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
-use which::which_global;
 
 use crate::APP_ID;
 use crate::PacViewApplication;
+use crate::vars::{paths, pacman};
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::{ALPM_HANDLE, PkgObject};
 use crate::search_bar::SearchBar;
@@ -35,19 +35,6 @@ use crate::cache_window::CacheWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::PreferencesDialog;
 use crate::utils::{async_command, aur_file};
-
-//------------------------------------------------------------------------------
-// GLOBAL VARIABLES
-//------------------------------------------------------------------------------
-pub static PARU_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("paru"));
-pub static PACCAT_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("paccat"));
-pub static MELD_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("meld"));
-
-pub static PACMAN_CONFIG: LazyLock<pacmanconf::Config> = LazyLock::new(|| {
-    pacmanconf::Config::new().expect("Failed to get pacman config")
-});
-pub static PACMAN_LOG: LazyLock<RwLock<Option<String>>> = LazyLock::new(|| RwLock::new(None));
-pub static PACMAN_CACHE: LazyLock<RwLock<Vec<PathBuf>>> = LazyLock::new(|| RwLock::new(vec![]));
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -737,11 +724,11 @@ impl PacViewWindow {
     fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
-        let pacman_config = &PACMAN_CONFIG;
+        let pacman_config = pacman::config();
         let user_cache_dir = glib::user_cache_dir();
 
         // Load pacman log
-        *PACMAN_LOG.write().unwrap() = fs::read_to_string(&pacman_config.log_file).ok();
+        pacman::update_log(fs::read_to_string(&pacman_config.log_file).ok());
 
         // Load pacman cache
         let mut cache_files: Vec<PathBuf> = vec![];
@@ -756,7 +743,7 @@ impl PacViewWindow {
 
         cache_files.sort_unstable();
 
-        *PACMAN_CACHE.write().unwrap() = cache_files;
+        pacman::update_cache(cache_files);
 
         // Init config dialog
         imp.config_dialog.borrow().init(pacman_config);
@@ -771,7 +758,7 @@ impl PacViewWindow {
         // Get paru repos
         let mut paru_repos: Vec<(String, PathBuf)> = vec![];
 
-        if PARU_PATH.is_ok()
+        if paths::paru().is_ok()
             && let Ok(read_dir) = fs::read_dir(user_cache_dir.join("paru/clone/repo")) {
                 let repos = read_dir.into_iter()
                     .flatten()
@@ -895,7 +882,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Get pacman config
-        let pacman_config = &PACMAN_CONFIG;
+        let pacman_config = pacman::config();
 
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
@@ -1081,7 +1068,7 @@ impl PacViewWindow {
                 // Check for pacman updates async
                 let pacman_handle = async_command::run("/usr/bin/checkupdates", &[]);
 
-                let (pacman_res, aur_res) = if let Ok(paru_path) = PARU_PATH.as_ref() {
+                let (pacman_res, aur_res) = if let Ok(paru_path) = paths::paru().as_ref() {
                     // Check for AUR updates async
                     let aur_handle = async_command::run(paru_path, &["-Qu", "--mode=ap"]);
 
@@ -1172,7 +1159,7 @@ impl PacViewWindow {
             }
         ) {
             // Watch pacman local db path
-            let path = Path::new(&PACMAN_CONFIG.db_path).join("local");
+            let path = Path::new(&pacman::config().db_path).join("local");
 
             if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
                 // Store debouncer

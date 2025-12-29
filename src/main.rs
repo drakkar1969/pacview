@@ -1,5 +1,6 @@
 mod app;
 mod window;
+mod vars;
 mod search_bar;
 mod search_tag;
 mod filter_row;
