@@ -7,9 +7,9 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
-use crate::window::PKGS;
 use crate::groups_object::GroupsObject;
 use crate::enum_traits::EnumExt;
+use crate::pkg_object::PkgObject;
 
 //------------------------------------------------------------------------------
 // ENUM: GroupsSearchMode
@@ -368,7 +368,7 @@ impl GroupsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Window>) {
+    pub fn show(&self, parent: &impl IsA<gtk::Window>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         self.set_transient_for(Some(parent));
@@ -376,22 +376,20 @@ impl GroupsWindow {
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            PKGS.with_borrow(|pkgs| {
-                // Get list of packages with groups
-                let pkg_list: Vec<GroupsObject> = pkgs.iter()
-                    .filter(|&pkg| !pkg.groups().is_empty())
-                    .flat_map(|pkg| {
-                        pkg.groups().iter()
-                            .map(|group| {
-                                GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_icon_symbolic(), group)
-                            })
-                            .collect::<Vec<GroupsObject>>()
-                    })
-                    .collect();
+            // Get list of packages with groups
+            let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
+                .flatten()
+                .flat_map(|pkg| {
+                    pkg.groups().iter()
+                        .map(|group| {
+                            GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_icon_symbolic(), group)
+                        })
+                        .collect::<Vec<GroupsObject>>()
+                })
+                .collect();
 
-                // Populate column view
-                imp.model.splice(0, 0, &pkg_list);
-            });
+            // Populate column view
+            imp.model.splice(0, 0, &pkg_list);
 
             // Scroll to start
             glib::idle_add_local_once(clone!(

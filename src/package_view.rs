@@ -23,13 +23,6 @@ use crate::utils::tokio_runtime;
 use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
-// GLOBAL VARIABLES
-//------------------------------------------------------------------------------
-thread_local! {
-    pub static AUR_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
-}
-
-//------------------------------------------------------------------------------
 // ENUM: PackageViewState
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
@@ -85,13 +78,15 @@ mod imp {
         #[property(get)]
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
+        #[property(get)]
+        #[template_child]
+        pub(super) pkg_model: TemplateChild<gio::ListStore>,
+        #[property(get)]
+        #[template_child]
+        pub(super) aur_model: TemplateChild<gio::ListStore>,
 
         #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
-        pub(super) pkg_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub(super) aur_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) repo_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
@@ -456,8 +451,6 @@ impl PackageView {
 
         // Clear AUR search results
         self.imp().aur_model.remove_all();
-
-        AUR_PKGS.replace(vec![]);
     }
 
     //---------------------------------------
@@ -536,8 +529,6 @@ impl PackageView {
                                 .collect();
 
                             imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
-
-                            AUR_PKGS.replace(pkg_list);
                         }
 
                         search_bar.set_aur_status(Ok(()));
@@ -618,5 +609,14 @@ impl PackageView {
             }
 
         output
+    }
+}
+
+impl Default for PackageView {
+    //---------------------------------------
+    // Default constructor
+    //---------------------------------------
+    fn default() -> Self {
+        glib::Object::builder().build()
     }
 }

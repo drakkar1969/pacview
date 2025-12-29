@@ -12,9 +12,10 @@ use alpm_utils::DbListExt;
 use regex::Regex;
 use size::Size;
 use rayon::prelude::*;
+use sourceview5::prelude::ListModelExtManual;
 use tokio::sync::OnceCell as TokioOnceCell;
 
-use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE, PKGS, INSTALLED_PKGS};
+use crate::window::{PARU_PATH, PACMAN_CONFIG, PACMAN_LOG, PACMAN_CACHE};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------
@@ -573,25 +574,16 @@ impl PkgObject {
         })
     }
 
-    pub fn find_satisfier(search_term: &str) -> Option<Self> {
+    pub fn find_satisfier(search_term: &str, model: &gio::ListStore) -> Option<Self> {
         ALPM_HANDLE.with_borrow(|alpm_handle| {
             let handle = alpm_handle.as_ref()?;
 
-            if let Some(local_pkg) = handle.localdb().pkgs().find_satisfier(search_term) {
-                return INSTALLED_PKGS.with_borrow(|installed_pkgs| {
-                    installed_pkgs.iter()
-                        .find(|&pkg| pkg.name() == local_pkg.name())
-                        .cloned()
-                })
-            }
-
-            if let Some(sync_pkg) = handle.syncdbs().find_satisfier(search_term) {
-                return PKGS.with_borrow(|pkgs| {
-                    pkgs.iter()
-                        .find(|&pkg| pkg.name() == sync_pkg.name())
-                        .cloned()
-                })
-            }
+            if let Some(db_pkg) = handle.localdb().pkgs().find_satisfier(search_term)
+                .or_else(|| handle.syncdbs().find_satisfier(search_term)) {
+                    return model.iter::<PkgObject>()
+                        .flatten()
+                        .find(|pkg| pkg.name() == db_pkg.name());
+                }
 
             None
         })

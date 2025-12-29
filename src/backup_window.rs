@@ -7,7 +7,9 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
-use crate::window::{PACCAT_PATH, MELD_PATH, INSTALLED_PKGS};
+use crate::pkg_data::PkgFlags;
+use crate::pkg_object::PkgObject;
+use crate::window::{PACCAT_PATH, MELD_PATH};
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
 use crate::utils::app_info;
@@ -480,7 +482,7 @@ impl BackupWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Window>) {
+    pub fn show(&self, parent: &impl IsA<gtk::Window>, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         self.set_transient_for(Some(parent));
@@ -488,17 +490,19 @@ impl BackupWindow {
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            INSTALLED_PKGS.with_borrow(|installed_pkgs| {
-                // Get backup list
-                let backup_list: Vec<BackupObject> = installed_pkgs.iter()
-                    .flat_map(|pkg| {
-                        pkg.backup().iter().map(BackupObject::new)
-                    })
-                    .collect();
+            // Get backup list
+            let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
+                .flatten()
+                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+                .flat_map(|pkg| {
+                    pkg.backup().iter()
+                        .map(BackupObject::new)
+                        .collect::<Vec<BackupObject>>()
+                })
+                .collect();
 
-                // Populate column view
-                imp.model.splice(0, 0, &backup_list);
-            });
+            // Populate column view
+            imp.model.splice(0, 0, &backup_list);
 
             // Scroll to start
             glib::idle_add_local_once(clone!(

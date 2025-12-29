@@ -43,11 +43,6 @@ pub static PARU_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_
 pub static PACCAT_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("paccat"));
 pub static MELD_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| which_global("meld"));
 
-thread_local! {
-    pub static PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
-    pub static INSTALLED_PKGS: RefCell<Vec<PkgObject>> = const { RefCell::new(vec![]) };
-}
-
 pub static PACMAN_CONFIG: LazyLock<pacmanconf::Config> = LazyLock::new(|| {
     pacmanconf::Config::new().expect("Failed to get pacman config")
 });
@@ -256,7 +251,9 @@ mod imp {
 
             // Show window/dialog actions
             klass.install_action("win.show-backup-files", None, |window, _, _| {
-                window.imp().backup_window.borrow().show(window);
+                let imp = window.imp();
+
+                imp.backup_window.borrow().show(window, &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
@@ -264,7 +261,9 @@ mod imp {
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
-                window.imp().groups_window.borrow().show(window);
+                let imp = window.imp();
+
+                imp.groups_window.borrow().show(window, &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
@@ -274,7 +273,7 @@ mod imp {
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_window.borrow().show(window, &imp.repo_names.borrow());
+                imp.stats_window.borrow().show(window, &imp.repo_names.borrow(), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
@@ -1002,37 +1001,13 @@ impl PacViewWindow {
                     .map(Rc::new)
                     .ok();
 
-                // Get package lists
-                let mut pkgs: Vec<PkgObject> = Vec::new();
-                let mut installed_pkgs: Vec<PkgObject> = Vec::new();
-
                 while let Ok((pkg_data, local_data)) = receiver.recv().await {
-                    // Resize package lists
-                    let len = pkg_data.len();
-
-                    pkgs.reserve(len);
-
-                    if local_data {
-                        installed_pkgs.reserve(len);
-                    }
-
-                    // Process package data
-                    let mut pkg_chunk: Vec<PkgObject> = Vec::with_capacity(len);
-
-                    for data in pkg_data {
-                        let pkg = PkgObject::new(data, handle_ref.as_ref().map(Rc::clone));
-
-                        if local_data {
-                            installed_pkgs.push(pkg.clone());
-                        }
-
-                        pkg_chunk.push(pkg);
-                    }
-
                     // Add packages to package view
-                    imp.package_view.append_packages(&pkg_chunk);
+                    let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
+                        .map(|data| PkgObject::new(data, handle_ref.as_ref().map(Rc::clone)))
+                        .collect();
 
-                    pkgs.append(&mut pkg_chunk);
+                    imp.package_view.append_packages(&pkg_chunk);
 
                     // Hide package view loading spinner
                     if local_data {
@@ -1048,10 +1023,6 @@ impl PacViewWindow {
                     Ok(()) => {
                         // Store alpm handle
                         ALPM_HANDLE.replace(handle_ref);
-
-                        // Store package lists
-                        PKGS.replace(pkgs);
-                        INSTALLED_PKGS.replace(installed_pkgs);
 
                         // Get package updates
                         window.get_package_updates();

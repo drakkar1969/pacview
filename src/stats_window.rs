@@ -9,8 +9,8 @@ use gdk::{Key, ModifierType};
 use size::Size;
 use heck::ToTitleCase;
 
-use crate::window::PKGS;
 use crate::pkg_data::PkgFlags;
+use crate::pkg_object::PkgObject;
 use crate::stats_object::StatsObject;
 
 //------------------------------------------------------------------------------
@@ -156,7 +156,7 @@ impl StatsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Window>, repos: &[String]) {
+    pub fn show(&self, parent: &impl IsA<gtk::Window>, repos: &[String], pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         self.set_transient_for(Some(parent));
@@ -164,23 +164,24 @@ impl StatsWindow {
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            PKGS.with_borrow(|pkgs| {
-                let mut stats_items: Vec<StatsObject> = Vec::with_capacity(repos.len() + 1);
+            let mut stats_items: Vec<StatsObject> = Vec::with_capacity(repos.len() + 1);
 
-                let mut pkg_count_total = 0;
-                let mut install_count_total = 0;
-                let mut install_size_total = 0;
-                let mut explicit_count_total = 0;
+            let mut pkg_count_total = 0;
+            let mut install_count_total = 0;
+            let mut install_size_total = 0;
+            let mut explicit_count_total = 0;
 
-                // Iterate repos
-                for repo in repos {
-                    let mut pkg_count = 0;
-                    let mut install_count = 0;
-                    let mut install_size = 0;
-                    let mut explicit_count = 0;
+            // Iterate repos
+            for repo in repos {
+                let mut pkg_count = 0;
+                let mut install_count = 0;
+                let mut install_size = 0;
+                let mut explicit_count = 0;
 
-                    // Iterate packages in repo
-                    for pkg in pkgs.iter().filter(|pkg| &pkg.repository() == repo) {
+                // Iterate packages in repo
+                for pkg in pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .filter(|pkg| &pkg.repository() == repo) {
                         pkg_count += 1;
 
                         if pkg.flags().intersects(PkgFlags::INSTALLED) {
@@ -193,34 +194,33 @@ impl StatsWindow {
                         }
                     }
 
-                    pkg_count_total += pkg_count;
-                    install_count_total += install_count;
-                    install_size_total += install_size;
-                    explicit_count_total += explicit_count;
+                pkg_count_total += pkg_count;
+                install_count_total += install_count;
+                install_size_total += install_size;
+                explicit_count_total += explicit_count;
 
-                    // Add repo item to stats view
-                    stats_items.push(StatsObject::new(
-                        Some("repository-symbolic"),
-                        &(if *repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
-                        &pkg_count.to_string(),
-                        &install_count.to_string(),
-                        &explicit_count.to_string(),
-                        &Size::from_bytes(install_size).to_string()
-                    ));
-                }
-
-                // Add item with totals to stats view
+                // Add repo item to stats view
                 stats_items.push(StatsObject::new(
-                    None,
-                    "<b>Total</b>",
-                    &format!("<b>{pkg_count_total}</b>"),
-                    &format!("<b>{install_count_total}</b>"),
-                    &format!("<b>{explicit_count_total}</b>"),
-                    &format!("<b>{}</b>", Size::from_bytes(install_size_total))
+                    Some("repository-symbolic"),
+                    &(if *repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
+                    &pkg_count.to_string(),
+                    &install_count.to_string(),
+                    &explicit_count.to_string(),
+                    &Size::from_bytes(install_size).to_string()
                 ));
+            }
 
-                imp.model.splice(0, 0, &stats_items);
-            });
+            // Add item with totals to stats view
+            stats_items.push(StatsObject::new(
+                None,
+                "<b>Total</b>",
+                &format!("<b>{pkg_count_total}</b>"),
+                &format!("<b>{install_count_total}</b>"),
+                &format!("<b>{explicit_count_total}</b>"),
+                &format!("<b>{}</b>", Size::from_bytes(install_size_total))
+            ));
+
+            imp.model.splice(0, 0, &stats_items);
         }
     }
 }

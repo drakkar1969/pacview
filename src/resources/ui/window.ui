@@ -128,6 +128,7 @@
             <property name="min-sidebar-width">560</property>
             <property name="sidebar">
               <object class="InfoPane" id="info_pane">
+                <property name="package-view">package_view</property>
               </object>
             </property>
             <property name="content">
