@@ -655,9 +655,9 @@ impl TextWidget {
         let imp = self.imp();
 
         let link_list = imp.link_list.borrow();
-        let focus_index = imp.focus_link_index.get();
+        let focus_index = imp.focus_link_index.get()?;
 
-        focus_index.and_then(|index| link_list.get(index)).cloned()
+        link_list.get(focus_index).cloned()
     }
 
     fn selection_attributes(&self, start: usize, end: usize) -> pango::AttrList {

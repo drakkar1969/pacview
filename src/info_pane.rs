@@ -76,7 +76,7 @@ mod imp {
         package_view: OnceCell<PackageView>,
 
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
-        pub(super) selection_widget: RefCell<Option<TextWidget>>,
+        pub(super) sel_widget: RefCell<Option<TextWidget>>,
 
         pub(super) pkg_history: RefCell<HistoryList>,
 
@@ -326,17 +326,12 @@ impl InfoPane {
             #[weak] imp,
             move |_: InfoRow, widget: TextWidget| {
                 if widget.has_selection() {
-                    if imp.selection_widget.borrow().as_ref()
-                        .is_none_or(|selection_widget| selection_widget != &widget)
-                    {
-                        if let Some(selection_widget) = imp.selection_widget.replace(Some(widget)) {
-                            selection_widget.activate_action("text.select-none", None).unwrap();
+                    if imp.sel_widget.borrow().as_ref().is_none_or(|w| w != &widget)
+                        && let Some(prev_widget) = imp.sel_widget.replace(Some(widget)) {
+                            prev_widget.activate_action("text.select-none", None).unwrap();
                         }
-                    }
-                } else if imp.selection_widget.borrow().as_ref()
-                    .is_some_and(|selection_widget| selection_widget == &widget)
-                {
-                    imp.selection_widget.replace(None);
+                } else if imp.sel_widget.borrow().as_ref().is_some_and(|w| w == &widget) {
+                    imp.sel_widget.replace(None);
                 }
             }
         ));

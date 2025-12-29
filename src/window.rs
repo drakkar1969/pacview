@@ -986,7 +986,7 @@ impl PacViewWindow {
                 // Get alpm handle
                 let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
 
-                while let Ok((pkg_data, local_data)) = receiver.recv().await {
+                while let Ok((pkg_data, is_local_data)) = receiver.recv().await {
                     // Add packages to package view
                     let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
                         .map(PkgObject::new)
@@ -995,7 +995,7 @@ impl PacViewWindow {
                     imp.package_view.append_packages(&pkg_chunk);
 
                     // Hide package view loading spinner
-                    if local_data {
+                    if is_local_data {
                         imp.package_view.set_state(PackageViewState::Normal);
                     }
                 }
@@ -1007,7 +1007,7 @@ impl PacViewWindow {
                 match result {
                     Ok(()) => {
                         // Store alpm handle
-                        PkgObject::alpm_handle(|handle| {
+                        PkgObject::with_alpm_handle(|handle| {
                             handle.replace(alpm_handle);
                         });
 

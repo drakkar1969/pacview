@@ -380,7 +380,7 @@ impl PkgObject {
     //---------------------------------------
     // Alpm handle associated function
     //---------------------------------------
-    pub fn alpm_handle<F, R>(f: F) -> R
+    pub fn with_alpm_handle<F, R>(f: F) -> R
     where F: FnOnce(&RefCell<Option<alpm::Alpm>>) -> R {
         thread_local! {
             static ALPM_HANDLE: RefCell<Option<alpm::Alpm>> = const { RefCell::new(None) };
@@ -413,7 +413,7 @@ impl PkgObject {
     //---------------------------------------
     pub fn required_by(&self) -> &[String] {
         self.imp().required_by.get_or_init(|| {
-            Self::alpm_handle(|handle| {
+            Self::with_alpm_handle(|handle| {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
@@ -432,7 +432,7 @@ impl PkgObject {
 
     pub fn optional_for(&self) -> &[String] {
         self.imp().optional_for.get_or_init(|| {
-            Self::alpm_handle(|handle| {
+            Self::with_alpm_handle(|handle| {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
@@ -451,7 +451,7 @@ impl PkgObject {
 
     pub fn files(&self) -> &[String] {
         self.imp().files.get_or_init(|| {
-            Self::alpm_handle(|handle| {
+            Self::with_alpm_handle(|handle| {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
@@ -477,7 +477,7 @@ impl PkgObject {
 
     pub fn backup(&self) -> &[PkgBackup] {
         self.imp().backup.get_or_init(|| {
-            Self::alpm_handle(|handle| {
+            Self::with_alpm_handle(|handle| {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
@@ -505,7 +505,7 @@ impl PkgObject {
     }
 
     pub fn hashes(&self) -> PkgHashes {
-        Self::alpm_handle(|handle| {
+        Self::with_alpm_handle(|handle| {
             handle.borrow().as_ref()
                 .and_then(|handle| self.sync_pkg(handle))
                 .map(|pkg| PkgHashes::new(pkg.base64_sig(), pkg.sha256sum(), pkg.md5sum()))
@@ -537,7 +537,7 @@ impl PkgObject {
                                 format!("[{}  {}]  {} {} {}", &caps[1], &caps[2], &caps[3], &caps[4], &caps[5])
                             })
                     })
-                        .collect::<Vec<String>>()
+                    .collect::<Vec<String>>()
                 })
             })
             .await
@@ -591,7 +591,7 @@ impl PkgObject {
     // Satisfier associated functions
     //---------------------------------------
     pub fn has_local_satisfier(search_term: &str) -> bool {
-        Self::alpm_handle(|handle| {
+        Self::with_alpm_handle(|handle| {
             handle.borrow().as_ref()
                 .and_then(|handle| handle.localdb().pkgs().find_satisfier(search_term))
                 .is_some()
@@ -599,17 +599,16 @@ impl PkgObject {
     }
 
     pub fn find_satisfier(search_term: &str, model: &gio::ListStore) -> Option<Self> {
-        Self::alpm_handle(|handle| {
+        Self::with_alpm_handle(|handle| {
             let handle = handle.borrow();
+            let handle = handle.as_ref()?;
 
-            if let Some(db_pkg) = handle.as_ref()?.localdb().pkgs().find_satisfier(search_term)
-                .or_else(|| handle.as_ref()?.syncdbs().find_satisfier(search_term)) {
-                    return model.iter::<Self>()
-                        .flatten()
-                        .find(|pkg| pkg.name() == db_pkg.name());
-                }
+            let db_pkg = handle.localdb().pkgs().find_satisfier(search_term)
+                .or_else(|| handle.syncdbs().find_satisfier(search_term))?;
 
-            None
+            model.iter::<Self>()
+                .flatten()
+                .find(|pkg| pkg.name() == db_pkg.name())
         })
     }
 }
