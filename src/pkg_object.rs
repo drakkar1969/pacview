@@ -472,33 +472,30 @@ impl PkgObject {
         })
     }
 
-    pub fn base64_sig(&self) -> String {
+    pub fn base64_sig(&self) -> Option<String> {
         Self::alpm_handle(|handle| {
             handle.borrow().as_ref()
                 .and_then(|handle| self.sync_pkg(handle))
                 .and_then(|pkg| pkg.base64_sig())
-                .unwrap_or_default()
-                .to_owned()
+                .map(ToOwned::to_owned)
         })
     }
 
-    pub fn sha256sum(&self) -> String {
+    pub fn sha256sum(&self) -> Option<String> {
         Self::alpm_handle(|handle| {
             handle.borrow().as_ref()
                 .and_then(|handle| self.sync_pkg(handle))
                 .and_then(|pkg| pkg.sha256sum())
-                .unwrap_or_default()
-                .to_owned()
+                .map(ToOwned::to_owned)
         })
     }
 
-    pub fn md5sum(&self) -> String {
+    pub fn md5sum(&self) -> Option<String> {
         Self::alpm_handle(|handle| {
             handle.borrow().as_ref()
                 .and_then(|handle| self.sync_pkg(handle))
                 .and_then(|pkg| pkg.md5sum())
-                .unwrap_or_default()
-                .to_owned()
+                .map(ToOwned::to_owned)
         })
     }
 

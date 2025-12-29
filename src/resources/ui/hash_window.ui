@@ -21,10 +21,9 @@
               <class name="boxed-list"/>
             </style>
             <child>
-              <object class="AdwActionRow" id="md5_row">
-                <property name="title">MD5Sum</property>
+              <object class="AdwActionRow" id="base64_row">
+                <property name="title">Base64 Signature</property>
                 <property name="subtitle-selectable">true</property>
-                <property name="subtitle-lines">1</property>
                 <style>
                   <class name="property"/>
                 </style>
@@ -41,9 +40,10 @@
               </object>
             </child>
             <child>
-              <object class="AdwActionRow" id="base64_row">
-                <property name="title">Base64 Signature</property>
+              <object class="AdwActionRow" id="md5_row">
+                <property name="title">MD5Sum</property>
                 <property name="subtitle-selectable">true</property>
+                <property name="subtitle-lines">1</property>
                 <style>
                   <class name="property"/>
                 </style>

@@ -3,7 +3,6 @@ use adw::{prelude::ActionRowExt, subclass::prelude::*};
 use gtk::prelude::*;
 use gdk::{Key, ModifierType};
 
-use crate::pkg_data::PkgValidation;
 use crate::pkg_object::PkgObject;
 
 //------------------------------------------------------------------------------
@@ -19,11 +18,11 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/hash_window.ui")]
     pub struct HashWindow {
         #[template_child]
-        pub(super) md5_row: TemplateChild<adw::ActionRow>,
+        pub(super) base64_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) sha256_row: TemplateChild<adw::ActionRow>,
         #[template_child]
-        pub(super) base64_row: TemplateChild<adw::ActionRow>,
+        pub(super) md5_row: TemplateChild<adw::ActionRow>,
     }
 
     //---------------------------------------
@@ -84,21 +83,19 @@ impl HashWindow {
 
         let imp = obj.imp();
 
-        let validation = pkg.validation();
-
         // Helper closure
-        let update_row = |row: &adw::ActionRow, flag: PkgValidation, subtitle: &str| {
-            if validation.intersects(flag) {
+        let update_row = |row: &adw::ActionRow, hash: Option<&str> | {
+            if let Some(hash) = hash {
                 row.set_visible(true);
-                row.set_subtitle(subtitle);
+                row.set_subtitle(hash);
             } else {
                 row.set_visible(false);
             }
         };
 
-        update_row(&imp.md5_row, PkgValidation::MD5SUM, &pkg.md5sum());
-        update_row(&imp.sha256_row, PkgValidation::SHA256SUM, &pkg.sha256sum());
-        update_row(&imp.base64_row, PkgValidation::SIGNATURE, &pkg.base64_sig());
+        update_row(&imp.base64_row, pkg.base64_sig().as_deref());
+        update_row(&imp.sha256_row, pkg.sha256sum().as_deref());
+        update_row(&imp.md5_row, pkg.md5sum().as_deref());
 
         obj
     }
