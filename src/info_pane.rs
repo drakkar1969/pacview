@@ -123,9 +123,7 @@ mod imp {
             self.pkg_history.borrow().current_item()
         }
 
-        fn set_pkg(&self, pkg: Option<&PkgObject>) {
-            self.pkg_history.borrow().init(pkg);
-
+        fn set_pkg(&self, pkg: Option<PkgObject>) {
             self.main_stack.set_visible_child_name(
                 if pkg.is_some() { "properties" } else { "empty" }
             );
@@ -135,13 +133,15 @@ mod imp {
             self.info_pkgbuild_button.set_sensitive(pkg.is_some());
 
             self.info_hashes_button.set_sensitive(
-                pkg.is_some_and(|pkg| {
+                pkg.as_ref().is_some_and(|pkg| {
                     let validation = pkg.validation();
 
                     !(validation.intersects(PkgValidation::UNKNOWN)
                         || validation.intersects(PkgValidation::NONE))
                 })
             );
+
+            self.pkg_history.borrow().init(pkg);
 
             self.obj().update_display();
         }
@@ -169,7 +169,7 @@ impl InfoPane {
             let pkg = PkgObject::find_satisfier(&pkg_link);
 
             // Find link package in AUR search results
-            let new_pkg = pkg.as_ref()
+            let new_pkg = pkg
                 .or_else(|| {
                     aur_pkgs.iter()
                         .find(|&pkg| pkg.name() == pkg_name)
@@ -177,6 +177,7 @@ impl InfoPane {
                             aur_pkgs.iter()
                                 .find(|&pkg| pkg.provides().iter().any(|s| s == &pkg_link))
                         })
+                        .cloned()
                 });
 
             // If link package found

@@ -103,14 +103,14 @@ impl HistoryList {
     //---------------------------------------
     // Public functions
     //---------------------------------------
-    pub fn init(&self, item: Option<&PkgObject>) {
+    pub fn init(&self, item: Option<PkgObject>) {
         let mut list = self.imp().list.borrow_mut();
 
         // Clear history and append item
         list.clear();
 
         let current = item.map_or(gtk::INVALID_LIST_POSITION, |item| {
-            list.push(item.clone());
+            list.push(item);
 
             0
         });
@@ -132,7 +132,7 @@ impl HistoryList {
         }
     }
 
-    pub fn set_current_or_make_last(&self, item: &PkgObject) {
+    pub fn set_current_or_make_last(&self, item: PkgObject) {
         let imp = self.imp();
 
         let mut list = imp.list.borrow_mut();
@@ -146,7 +146,7 @@ impl HistoryList {
             }
 
             // Append item and make current
-            list.push(item.clone());
+            list.push(item);
 
             list.len() - 1
         }, |index| index);
