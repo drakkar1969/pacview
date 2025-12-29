@@ -51,7 +51,7 @@ impl GroupsObject {
     // New function
     //---------------------------------------
     pub fn new(package: &str, status: &str, status_icon: &str, groups: &str) -> Self {
-        // Build LogObject
+        // Build GroupsObject
         glib::Object::builder()
             .property("package", package)
             .property("status", status)

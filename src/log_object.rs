@@ -5,6 +5,16 @@ use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
 //------------------------------------------------------------------------------
+// STRUCT: LogLine
+//------------------------------------------------------------------------------
+pub struct LogLine {
+    pub date: String,
+    pub time: String,
+    pub category: String,
+    pub message: String
+}
+
+//------------------------------------------------------------------------------
 // MODULE: LogObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -50,13 +60,13 @@ impl LogObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(date: &str, time: &str, category: &str, message: &str) -> Self {
+    pub fn new(line: &LogLine) -> Self {
         // Build LogObject
         glib::Object::builder()
-            .property("date", date)
-            .property("time", time)
-            .property("category", category)
-            .property("message", message)
+            .property("date", &line.date)
+            .property("time", &line.time)
+            .property("category", &line.category)
+            .property("message", &line.message)
             .build()
     }
 }

@@ -11,7 +11,7 @@ use regex::Regex;
 use rayon::prelude::*;
 
 use crate::vars::pacman;
-use crate::log_object::LogObject;
+use crate::log_object::{LogLine, LogObject};
 
 //------------------------------------------------------------------------------
 // MODULE: LogWindow
@@ -278,16 +278,10 @@ impl LogWindow {
 
         // Populate if necessary
         if imp.model.n_items() == 0 {
-            // Define local struct
-            struct LogLine {
-                date: String,
-                time: String,
-                category: String,
-                message: String
-            }
-
             // Read log lines
-            let log_lines: Vec<LogLine> = pacman::log().read().unwrap().as_ref().map_or(vec![], |log| {
+            let pacman_log = pacman::log().read().unwrap();
+
+            let log_lines: Vec<LogLine> = pacman_log.as_ref().map_or(vec![], |log| {
                 // Strip ANSI control sequences from log
                 static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
                     Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
@@ -315,7 +309,7 @@ impl LogWindow {
 
             // Populate column view
             imp.model.splice(0, 0, &log_lines.iter().rev()
-                .map(|line| LogObject::new(&line.date, &line.time, &line.category, &line.message))
+                .map(LogObject::new)
                 .collect::<Vec<LogObject>>()
             );
         }

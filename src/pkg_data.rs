@@ -85,12 +85,12 @@ impl PkgData {
     pub fn from_alpm(pkg: &alpm::Package, is_local: bool, repository: &str) -> Self {
         // Helper functions
         #[inline]
-        fn alpm_list_to_vec(list: alpm::AlpmList<&str>) -> Vec<String> {
+        fn list_to_vec(list: alpm::AlpmList<&str>) -> Vec<String> {
             list.iter().map(ToOwned::to_owned).sorted_unstable().collect()
         }
 
         #[inline]
-        fn alpm_deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
+        fn deplist_to_vec(list: alpm::AlpmList<&alpm::Dep>) -> Vec<String> {
             list.iter().map(ToString::to_string).sorted_unstable().collect()
         }
 
@@ -115,15 +115,15 @@ impl PkgData {
             popularity: String::new(),
             out_of_date: 0,
             url: pkg.url().map(String::from).unwrap_or_default(),
-            licenses: alpm_list_to_vec(pkg.licenses()),
+            licenses: list_to_vec(pkg.licenses()),
             repository: repository.to_owned(),
-            groups: alpm_list_to_vec(pkg.groups()),
-            depends: alpm_deplist_to_vec(pkg.depends()),
-            optdepends: alpm_deplist_to_vec(pkg.optdepends()),
+            groups: list_to_vec(pkg.groups()),
+            depends: deplist_to_vec(pkg.depends()),
+            optdepends: deplist_to_vec(pkg.optdepends()),
             makedepends: vec![],
-            provides: alpm_deplist_to_vec(pkg.provides()),
-            conflicts: alpm_deplist_to_vec(pkg.conflicts()),
-            replaces: alpm_deplist_to_vec(pkg.replaces()),
+            provides: deplist_to_vec(pkg.provides()),
+            conflicts: deplist_to_vec(pkg.conflicts()),
+            replaces: deplist_to_vec(pkg.replaces()),
             architecture: pkg.arch().map(String::from).unwrap_or_default(),
             packager: pkg.packager().unwrap_or("Unknown Packager").to_owned(),
             build_date: pkg.build_date(),
@@ -141,7 +141,7 @@ impl PkgData {
     pub fn from_aur(pkg: &raur::Package) -> Self {
         // Helper function
         #[inline]
-        fn aur_sorted_vec(slice: &[String]) -> Vec<String> {
+        fn sorted_vec(slice: &[String]) -> Vec<String> {
             slice.iter().map(String::from).sorted_unstable().collect()
         }
 
@@ -155,15 +155,15 @@ impl PkgData {
             popularity: format!("{:.2?} ({} votes)", pkg.popularity, pkg.num_votes),
             out_of_date: pkg.out_of_date.unwrap_or_default(),
             url: pkg.url.as_deref().unwrap_or_default().to_owned(),
-            licenses: aur_sorted_vec(&pkg.license),
+            licenses: sorted_vec(&pkg.license),
             repository: String::from("aur"),
-            groups: aur_sorted_vec(&pkg.groups),
-            depends: aur_sorted_vec(&pkg.depends),
-            optdepends: aur_sorted_vec(&pkg.opt_depends),
-            makedepends: aur_sorted_vec(&pkg.make_depends),
-            provides: aur_sorted_vec(&pkg.provides),
-            conflicts: aur_sorted_vec(&pkg.conflicts),
-            replaces: aur_sorted_vec(&pkg.replaces),
+            groups: sorted_vec(&pkg.groups),
+            depends: sorted_vec(&pkg.depends),
+            optdepends: sorted_vec(&pkg.opt_depends),
+            makedepends: sorted_vec(&pkg.make_depends),
+            provides: sorted_vec(&pkg.provides),
+            conflicts: sorted_vec(&pkg.conflicts),
+            replaces: sorted_vec(&pkg.replaces),
             architecture: String::new(),
             packager: pkg.maintainer.as_deref().unwrap_or("Unknown Packager").to_owned(),
             build_date: pkg.last_modified,
