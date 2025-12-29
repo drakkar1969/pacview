@@ -22,7 +22,7 @@ use crate::APP_ID;
 use crate::PacViewApplication;
 use crate::vars::{paths, pacman};
 use crate::pkg_data::{PkgFlags, PkgData};
-use crate::pkg_object::{ALPM_HANDLE, PkgObject};
+use crate::pkg_object::PkgObject;
 use crate::search_bar::SearchBar;
 use crate::package_view::{PackageView, PackageViewState, SortProp};
 use crate::info_pane::InfoPane;
@@ -894,7 +894,7 @@ impl PacViewWindow {
         // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
-            let handle = alpm_utils::alpm_with_conf(pacman_config)?;
+            let alpm_handle = alpm_utils::alpm_with_conf(pacman_config)?;
 
             // Load AUR package names from file if AUR download is enabled in preferences
             let aur_names: HashSet<String> = if aur_download {
@@ -926,8 +926,8 @@ impl PacViewWindow {
                 }
             }
 
-            let syncdbs = handle.syncdbs();
-            let localdb = handle.localdb();
+            let syncdbs = alpm_handle.syncdbs();
+            let localdb = alpm_handle.localdb();
 
             // Load pacman local packages
             let local_data: Vec<PkgData> = localdb.pkgs().iter()
@@ -984,14 +984,12 @@ impl PacViewWindow {
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
                 // Get alpm handle
-                let handle_ref = alpm_utils::alpm_with_conf(pacman_config)
-                    .map(Rc::new)
-                    .ok();
+                let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
 
                 while let Ok((pkg_data, local_data)) = receiver.recv().await {
                     // Add packages to package view
                     let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
-                        .map(|data| PkgObject::new(data, handle_ref.as_ref().map(Rc::clone)))
+                        .map(|data| PkgObject::new(data))
                         .collect();
 
                     imp.package_view.append_packages(&pkg_chunk);
@@ -1009,7 +1007,9 @@ impl PacViewWindow {
                 match result {
                     Ok(()) => {
                         // Store alpm handle
-                        ALPM_HANDLE.replace(handle_ref);
+                        PkgObject::alpm_handle(|handle| {
+                            handle.replace(alpm_handle);
+                        });
 
                         // Get package updates
                         window.get_package_updates();

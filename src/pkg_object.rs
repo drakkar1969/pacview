@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::cell::{RefCell, OnceCell};
 use std::sync::LazyLock;
-use std::rc::Rc;
 use std::cmp::Ordering;
 
 use gtk::{glib, gio};
@@ -17,13 +16,6 @@ use tokio::sync::OnceCell as TokioOnceCell;
 
 use crate::vars::{paths, pacman};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
-
-//------------------------------------------------------------------------------
-// GLOBAL VARIABLES
-//------------------------------------------------------------------------------
-thread_local! {
-    pub static ALPM_HANDLE: RefCell<Option<Rc<alpm::Alpm>>> = const { RefCell::new(None) };
-}
 
 //------------------------------------------------------------------------------
 // STRUCT: PkgBackup
@@ -69,9 +61,6 @@ mod imp {
     #[derive(Default, glib::Properties)]
     #[properties(wrapper_type = super::PkgObject)]
     pub struct PkgObject {
-        // Alpm handle
-        pub(super) handle: OnceCell<Rc<alpm::Alpm>>,
-
         // Read-write properties
         #[property(get, set, nullable)]
         update_version: RefCell<Option<String>>,
@@ -141,16 +130,10 @@ impl PkgObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(data: PkgData, handle: Option<Rc<alpm::Alpm>>) -> Self {
+    pub fn new(data: PkgData) -> Self {
         let pkg: Self = glib::Object::builder().build();
 
-        let imp = pkg.imp();
-
-        imp.data.set(data).unwrap();
-
-        if let Some(handle) = handle {
-            imp.handle.set(handle).unwrap();
-        }
+        pkg.imp().data.set(data).unwrap();
 
         pkg.connect_update_version_notify(|pkg| {
             pkg.notify_flags();
@@ -363,13 +346,22 @@ impl PkgObject {
     }
 
     //---------------------------------------
+    // Alpm handle associated function
+    //---------------------------------------
+    pub fn alpm_handle<F, R>(f: F) -> R
+    where F: FnOnce(&RefCell<Option<alpm::Alpm>>) -> R {
+        thread_local! {
+            static ALPM_HANDLE: RefCell<Option<alpm::Alpm>> = const { RefCell::new(None) };
+        }
+        
+        ALPM_HANDLE.with(f)
+    }
+
+    //---------------------------------------
     // Get alpm package helper functions
     //---------------------------------------
-    fn pkg(&self) -> Option<&alpm::Package> {
-        let imp = self.imp();
-
-        let handle = imp.handle.get()?;
-        let data = imp.data.get().unwrap();
+    fn pkg<'a>(&self, handle: &'a alpm::Alpm) -> Option<&'a alpm::Package> {
+        let data = self.data();
 
         if data.flags.intersects(PkgFlags::INSTALLED) {
             handle.localdb().pkg(data.name.as_str()).ok()
@@ -378,11 +370,8 @@ impl PkgObject {
         }
     }
 
-    fn sync_pkg(&self) -> Option<&alpm::Package> {
-        let imp = self.imp();
-
-        let handle = imp.handle.get()?;
-        let data = imp.data.get().unwrap();
+    fn sync_pkg<'a>(&self, handle: &'a alpm::Alpm) -> Option<&'a alpm::Package> {
+        let data = self.data();
 
         handle.syncdbs().pkg(data.name.as_str()).ok()
     }
@@ -392,101 +381,125 @@ impl PkgObject {
     //---------------------------------------
     pub fn required_by(&self) -> &[String] {
         self.imp().required_by.get_or_init(|| {
-            self.pkg()
-                .map(|pkg| {
-                    let mut required_by: Vec<String> = pkg.required_by()
-                        .into_iter()
-                        .collect();
+            Self::alpm_handle(|handle| {
+                handle.borrow().as_ref()
+                    .and_then(|handle| self.pkg(handle))
+                    .map(|pkg| {
+                        let mut required_by: Vec<String> = pkg.required_by()
+                            .into_iter()
+                            .collect();
 
-                    required_by.sort_unstable();
+                        required_by.sort_unstable();
 
-                    required_by
-                })
-                .unwrap_or_default()
+                        required_by
+                    })
+                    .unwrap_or_default()
+            })
         })
     }
 
     pub fn optional_for(&self) -> &[String] {
         self.imp().optional_for.get_or_init(|| {
-            self.pkg()
-                .map(|pkg| {
-                    let mut optional_for: Vec<String> = pkg.optional_for()
-                        .into_iter()
-                        .collect();
+            Self::alpm_handle(|handle| {
+                handle.borrow().as_ref()
+                    .and_then(|handle| self.pkg(handle))
+                    .map(|pkg| {
+                        let mut optional_for: Vec<String> = pkg.optional_for()
+                            .into_iter()
+                            .collect();
 
-                    optional_for.sort_unstable();
+                        optional_for.sort_unstable();
 
-                    optional_for
-                })
-                .unwrap_or_default()
+                        optional_for
+                    })
+                    .unwrap_or_default()
+            })
         })
     }
 
     pub fn files(&self) -> &[String] {
         self.imp().files.get_or_init(|| {
-            self.pkg()
-                .map(|pkg| {
-                    let root_dir = &pacman::config().root_dir;
+            Self::alpm_handle(|handle| {
+                handle.borrow().as_ref()
+                    .and_then(|handle| self.pkg(handle))
+                    .map(|pkg| {
+                        let root_dir = &pacman::config().root_dir;
 
-                    let mut files: Vec<String> = pkg.files().files()
-                        .iter()
-                        .map(|file| {
-                            let mut path = root_dir.to_owned();
-                            path.push_str(&String::from_utf8_lossy(file.name()));
-                            path
-                        })
-                        .collect();
+                        let mut files: Vec<String> = pkg.files().files()
+                            .iter()
+                            .map(|file| {
+                                let mut path = root_dir.to_owned();
+                                path.push_str(&String::from_utf8_lossy(file.name()));
+                                path
+                            })
+                            .collect();
 
-                    files.par_sort_unstable();
+                        files.par_sort_unstable();
 
-                    files
-                })
-                .unwrap_or_default()
+                        files
+                    })
+                    .unwrap_or_default()
+            })
         })
     }
 
     pub fn backup(&self) -> &[PkgBackup] {
         self.imp().backup.get_or_init(|| {
-            self.pkg()
-                .map(|pkg| {
-                    let root_dir = &pacman::config().root_dir;
-                    let pkg_name = self.name();
+            Self::alpm_handle(|handle| {
+                handle.borrow().as_ref()
+                    .and_then(|handle| self.pkg(handle))
+                    .map(|pkg| {
+                        let root_dir = &pacman::config().root_dir;
+                        let pkg_name = self.name();
 
-                    let mut backup: Vec<PkgBackup> = pkg.backup().iter()
-                        .map(|backup| {
-                            let mut path = root_dir.to_owned();
-                            path.push_str(backup.name());
+                        let mut backup: Vec<PkgBackup> = pkg.backup().iter()
+                            .map(|backup| {
+                                let mut path = root_dir.to_owned();
+                                path.push_str(backup.name());
 
-                            PkgBackup::new(&path, backup.hash(), &pkg_name)
-                        })
-                        .collect();
+                                PkgBackup::new(&path, backup.hash(), &pkg_name)
+                            })
+                            .collect();
 
-                    backup.sort_unstable_by(|backup_a, backup_b| {
-                        backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
-                    });
+                        backup.sort_unstable_by(|backup_a, backup_b| {
+                            backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
+                        });
 
-                    backup
-                })
-                .unwrap_or_default()
+                        backup
+                    })
+                    .unwrap_or_default()
+            })
         })
     }
 
-    pub fn base64_sig(&self) -> &str {
-        self.sync_pkg()
-            .and_then(|pkg| pkg.base64_sig())
-            .unwrap_or_default()
+    pub fn base64_sig(&self) -> String {
+        Self::alpm_handle(|handle| {
+            handle.borrow().as_ref()
+                .and_then(|handle| self.sync_pkg(handle))
+                .and_then(|pkg| pkg.base64_sig())
+                .unwrap_or_default()
+                .to_owned()
+        })
     }
 
-    pub fn sha256sum(&self) -> &str {
-        self.sync_pkg()
-            .and_then(|pkg| pkg.sha256sum())
-            .unwrap_or_default()
+    pub fn sha256sum(&self) -> String {
+        Self::alpm_handle(|handle| {
+            handle.borrow().as_ref()
+                .and_then(|handle| self.sync_pkg(handle))
+                .and_then(|pkg| pkg.sha256sum())
+                .unwrap_or_default()
+                .to_owned()
+        })
     }
 
-    pub fn md5sum(&self) -> &str {
-        self.sync_pkg()
-            .and_then(|pkg| pkg.md5sum())
-            .unwrap_or_default()
+    pub fn md5sum(&self) -> String {
+        Self::alpm_handle(|handle| {
+            handle.borrow().as_ref()
+                .and_then(|handle| self.sync_pkg(handle))
+                .and_then(|pkg| pkg.md5sum())
+                .unwrap_or_default()
+                .to_owned()
+        })
     }
 
     //---------------------------------------
@@ -567,19 +580,19 @@ impl PkgObject {
     // Satisfier associated functions
     //---------------------------------------
     pub fn has_local_satisfier(search_term: &str) -> bool {
-        ALPM_HANDLE.with_borrow(|alpm_handle| {
-            alpm_handle.as_ref()
+        Self::alpm_handle(|handle| {
+            handle.borrow().as_ref()
                 .and_then(|handle| handle.localdb().pkgs().find_satisfier(search_term))
                 .is_some()
         })
     }
 
     pub fn find_satisfier(search_term: &str, model: &gio::ListStore) -> Option<Self> {
-        ALPM_HANDLE.with_borrow(|alpm_handle| {
-            let handle = alpm_handle.as_ref()?;
+        Self::alpm_handle(|handle| {
+            let handle = handle.borrow();
 
-            if let Some(db_pkg) = handle.localdb().pkgs().find_satisfier(search_term)
-                .or_else(|| handle.syncdbs().find_satisfier(search_term)) {
+            if let Some(db_pkg) = handle.as_ref()?.localdb().pkgs().find_satisfier(search_term)
+                .or_else(|| handle.as_ref()?.syncdbs().find_satisfier(search_term)) {
                     return model.iter::<PkgObject>()
                         .flatten()
                         .find(|pkg| pkg.name() == db_pkg.name());

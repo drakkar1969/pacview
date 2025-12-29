@@ -96,9 +96,9 @@ impl HashWindow {
             }
         };
 
-        update_row(&imp.md5_row, PkgValidation::MD5SUM, pkg.md5sum());
-        update_row(&imp.sha256_row, PkgValidation::SHA256SUM, pkg.sha256sum());
-        update_row(&imp.base64_row, PkgValidation::SIGNATURE, pkg.base64_sig());
+        update_row(&imp.md5_row, PkgValidation::MD5SUM, &pkg.md5sum());
+        update_row(&imp.sha256_row, PkgValidation::SHA256SUM, &pkg.sha256sum());
+        update_row(&imp.base64_row, PkgValidation::SIGNATURE, &pkg.base64_sig());
 
         obj
     }
