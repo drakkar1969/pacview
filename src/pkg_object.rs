@@ -50,6 +50,38 @@ impl PkgBackup {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: PkgHashes
+//------------------------------------------------------------------------------
+#[derive(Default, Debug)]
+pub struct PkgHashes {
+    base64_sig: Option<String>,
+    sha256sum: Option<String>,
+    md5sum: Option<String>
+}
+
+impl PkgHashes {
+    pub fn new(base64_sig: Option<&str>, sha256sum: Option<&str>, md5sum: Option<&str>) -> Self {
+        Self {
+            base64_sig: base64_sig.map(ToOwned::to_owned),
+            sha256sum: sha256sum.map(ToOwned::to_owned),
+            md5sum: md5sum.map(ToOwned::to_owned)
+        }
+    }
+
+    pub fn base64_sig(&self) -> Option<&str> {
+        self.base64_sig.as_deref()
+    }
+
+    pub fn sha256sum(&self) -> Option<&str> {
+        self.sha256sum.as_deref()
+    }
+
+    pub fn md5sum(&self) -> Option<&str> {
+        self.md5sum.as_deref()
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: PkgObject
 //------------------------------------------------------------------------------
 mod imp {
@@ -472,30 +504,12 @@ impl PkgObject {
         })
     }
 
-    pub fn base64_sig(&self) -> Option<String> {
+    pub fn hashes(&self) -> PkgHashes {
         Self::alpm_handle(|handle| {
             handle.borrow().as_ref()
                 .and_then(|handle| self.sync_pkg(handle))
-                .and_then(|pkg| pkg.base64_sig())
-                .map(ToOwned::to_owned)
-        })
-    }
-
-    pub fn sha256sum(&self) -> Option<String> {
-        Self::alpm_handle(|handle| {
-            handle.borrow().as_ref()
-                .and_then(|handle| self.sync_pkg(handle))
-                .and_then(|pkg| pkg.sha256sum())
-                .map(ToOwned::to_owned)
-        })
-    }
-
-    pub fn md5sum(&self) -> Option<String> {
-        Self::alpm_handle(|handle| {
-            handle.borrow().as_ref()
-                .and_then(|handle| self.sync_pkg(handle))
-                .and_then(|pkg| pkg.md5sum())
-                .map(ToOwned::to_owned)
+                .map(|pkg| PkgHashes::new(pkg.base64_sig(), pkg.sha256sum(), pkg.md5sum()))
+                .unwrap_or_default()
         })
     }
 
