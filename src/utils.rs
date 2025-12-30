@@ -1,10 +1,29 @@
-//------------------------------------------------------------------------------
-// MODULE: TokioRuntime
-//------------------------------------------------------------------------------
-pub mod tokio_runtime {
-    use std::sync::OnceLock;
-    use tokio::runtime::Runtime;
+use std::sync::OnceLock;
+use std::ffi::OsStr;
+use std::fs;
+use std::io;
+use std::fmt::Write as _;
+use std::path::PathBuf;
+use std::time::Duration;
 
+use gtk::{gio, glib, pango};
+use gio::{AppInfo, AppLaunchContext};
+use gtk::prelude::{AppInfoExtManual, ToValue, WidgetExt};
+use pango::{FontDescription, FontMask, Weight};
+use sourceview5::{StyleScheme, StyleSchemeManager};
+
+use tokio::runtime::Runtime;
+use tokio::fs::File;
+use tokio_util::io::StreamReader;
+use futures_util::TryStreamExt;
+use async_compression::tokio::bufread::GzipDecoder;
+
+//------------------------------------------------------------------------------
+// STRUCT: TokioRuntime
+//------------------------------------------------------------------------------
+pub struct TokioRuntime;
+
+impl TokioRuntime {
     //---------------------------------------
     // Runtime function
     //---------------------------------------
@@ -18,23 +37,22 @@ pub mod tokio_runtime {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: AsyncCommand
+// STRUCT: AsyncCommand
 //------------------------------------------------------------------------------
-pub mod async_command {
-    use std::ffi::OsStr;
-    use std::io::{Result, Error};
+pub struct AsyncCommand;
 
+impl AsyncCommand {
     //---------------------------------------
     // Run function
     //---------------------------------------
-    pub async fn run(cmd: impl AsRef<OsStr>, args: &[&str]) -> Result<(Option<i32>, String)> {
+    pub async fn run(cmd: impl AsRef<OsStr>, args: &[&str]) -> io::Result<(Option<i32>, String)> {
         let output = async_process::Command::new(cmd)
             .args(args)
             .output()
             .await?;
 
         let stdout = String::from_utf8(output.stdout)
-            .map_err(Error::other)?;
+            .map_err(io::Error::other)?;
 
         Ok((output.status.code(), stdout))
     }
@@ -42,7 +60,7 @@ pub mod async_command {
     //---------------------------------------
     // Spawn function
     //---------------------------------------
-    pub fn spawn(cmd: impl AsRef<OsStr>, args: &[&str]) -> Result<()> {
+    pub fn spawn(cmd: impl AsRef<OsStr>, args: &[&str]) -> io::Result<()> {
         async_process::Command::new(cmd)
             .args(args)
             .spawn()?;
@@ -52,13 +70,11 @@ pub mod async_command {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: AppInfo
+// STRUCT: AppInfoExt
 //------------------------------------------------------------------------------
-pub mod app_info {
-    use gtk::gio;
-    use gio::{AppInfo, AppLaunchContext};
-    use gtk::prelude::AppInfoExtManual;
+pub struct AppInfoExt;
 
+impl AppInfoExt {
     //---------------------------------------
     // Open containing folder function
     //---------------------------------------
@@ -80,27 +96,17 @@ pub mod app_info {
         if AppInfo::launch_default_for_uri_future(&uri, None::<&AppLaunchContext>)
             .await
             .is_err() {
-                open_containing_folder(&path).await;
+                Self::open_containing_folder(&path).await;
             }
     }
 }
 
 //------------------------------------------------------------------------------
-// MODULE: AURFile
+// STRUCT: AURFile
 //------------------------------------------------------------------------------
-pub mod aur_file {
-    use std::fs;
-    use std::path::PathBuf;
-    use std::time::Duration;
+pub struct AURFile;
 
-    use tokio::fs::File;
-    use tokio::io;
-    use tokio_util::io::StreamReader;
-    use futures_util::TryStreamExt;
-    use async_compression::tokio::bufread::GzipDecoder;
-
-    use crate::utils::tokio_runtime;
-
+impl AURFile {
     //---------------------------------------
     // Check age function
     //---------------------------------------
@@ -124,7 +130,7 @@ pub mod aur_file {
         let aur_file = aur_file.to_owned();
 
         // Spawn tokio task to download AUR file
-        tokio_runtime::runtime().spawn(
+        TokioRuntime::runtime().spawn(
             async move {
                 let response = reqwest::Client::new()
                     .get("https://aur.archlinux.org/packages.gz")
@@ -142,7 +148,7 @@ pub mod aur_file {
 
                 let mut out_file = File::create(aur_file).await?;
 
-                io::copy(&mut decoder, &mut out_file).await?;
+                tokio::io::copy(&mut decoder, &mut out_file).await?;
 
                 Ok::<(), io::Error>(())
             }
@@ -153,15 +159,11 @@ pub mod aur_file {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: PangoUtils
+// STRUCT: PangoUtils
 //------------------------------------------------------------------------------
-pub mod pango_utils {
-    use std::fmt::Write as _;
+pub struct PangoUtils;
 
-    use gtk::{glib, pango};
-    use gtk::prelude::{ToValue, WidgetExt};
-    use pango::{FontDescription, FontMask, Weight};
-
+impl PangoUtils {
     //---------------------------------------
     // Pango color from style
     //---------------------------------------
@@ -230,12 +232,11 @@ pub mod pango_utils {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: StyleSchemes
+// STRUCT: StyleSchemes
 //------------------------------------------------------------------------------
-pub mod style_schemes {
-    use gtk::glib;
-    use sourceview5::{StyleScheme, StyleSchemeManager};
+pub struct StyleSchemes;
 
+impl StyleSchemes {
     //-----------------------------------
     // Is variant dark functions
     //-----------------------------------
@@ -246,7 +247,7 @@ pub mod style_schemes {
     pub fn is_variant_dark_by_id(id: &str) -> bool {
         StyleSchemeManager::default()
             .scheme(id)
-            .is_some_and(|scheme| is_variant_dark(&scheme))
+            .is_some_and(|scheme| Self::is_variant_dark(&scheme))
     }
 
     //-----------------------------------
@@ -277,7 +278,7 @@ pub mod style_schemes {
             .iter()
             .filter_map(|id| {
                 scheme_manager.scheme(id)
-                    .filter(|scheme| is_variant_dark(scheme) == dark)
+                    .filter(|scheme| Self::is_variant_dark(scheme) == dark)
             })
             .collect::<Vec<StyleScheme>>()
     }

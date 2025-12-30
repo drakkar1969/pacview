@@ -9,7 +9,7 @@ use gdk::{Key, ModifierType};
 
 use crate::vars::Pacman;
 use crate::cache_object::CacheObject;
-use crate::utils::app_info;
+use crate::utils::AppInfoExt;
 
 //------------------------------------------------------------------------------
 // MODULE: CacheWindow
@@ -192,7 +192,7 @@ impl CacheWindow {
                     .filename();
 
                 glib::spawn_future_local(async move {
-                    app_info::open_containing_folder(&cache_file).await;
+                    AppInfoExt::open_containing_folder(&cache_file).await;
                 });
             }
         ));

@@ -13,7 +13,7 @@ use strum::FromRepr;
 use crate::vars::Paths;
 use crate::enum_traits::EnumExt;
 use crate::pkg_object::PkgBackup;
-use crate::utils::async_command;
+use crate::utils::AsyncCommand;
 
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus
@@ -139,7 +139,7 @@ impl BackupObject {
         let paccat_cmd = Paths::paccat().as_ref()
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
-        let (status, content) = async_command::run(paccat_cmd, &[&self.package(), "--", &filename]).await?;
+        let (status, content) = AsyncCommand::run(paccat_cmd, &[&self.package(), "--", &filename]).await?;
 
         if status != Some(0) {
             return Err(io::Error::other("Paccat error"))
@@ -156,6 +156,6 @@ impl BackupObject {
         let meld_cmd = Paths::meld().as_ref()
             .map_err(|_| io::Error::other("Meld not found"))?;
 
-        async_command::spawn(meld_cmd, &[&tmp_filename, &filename])
+        AsyncCommand::spawn(meld_cmd, &[&tmp_filename, &filename])
     }
 }

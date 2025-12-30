@@ -34,7 +34,7 @@ use crate::log_window::LogWindow;
 use crate::cache_window::CacheWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::PreferencesDialog;
-use crate::utils::{async_command, aur_file};
+use crate::utils::{AsyncCommand, AURFile};
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -212,7 +212,7 @@ mod imp {
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
-                    let _ = aur_file::download(&aur_file).await;
+                    let _ = AURFile::download(&aur_file).await;
 
                     // Refresh packages
                     gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
@@ -804,7 +804,7 @@ impl PacViewWindow {
                 glib::spawn_future_local(clone!(
                     #[weak(rename_to = window)] self,
                     async move {
-                        let _ = aur_file::download(&file).await;
+                        let _ = AURFile::download(&file).await;
 
                         window.alpm_load_packages(paru_repos);
                     }
@@ -1025,8 +1025,8 @@ impl PacViewWindow {
                             let aur_file = imp.aur_file.borrow().to_owned();
 
                             if let Some(aur_file) = aur_file
-                                && aur_file::check_age(&aur_file, max_age) {
-                                    let _ = aur_file::download(&aur_file).await;
+                                && AURFile::check_age(&aur_file, max_age) {
+                                    let _ = AURFile::download(&aur_file).await;
                                 }
                         }
                     },
@@ -1066,11 +1066,11 @@ impl PacViewWindow {
                 let mut error_msg: Option<String> = None;
 
                 // Check for pacman updates async
-                let pacman_handle = async_command::run("/usr/bin/checkupdates", &[]);
+                let pacman_handle = AsyncCommand::run("/usr/bin/checkupdates", &[]);
 
                 let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
                     // Check for AUR updates async
-                    let aur_handle = async_command::run(paru_path, &["-Qu", "--mode=ap"]);
+                    let aur_handle = AsyncCommand::run(paru_path, &["-Qu", "--mode=ap"]);
 
                     join!(pacman_handle, aur_handle)
                 } else {

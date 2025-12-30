@@ -12,7 +12,7 @@ use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::enum_traits::EnumExt;
-use crate::utils::app_info;
+use crate::utils::AppInfoExt;
 
 //------------------------------------------------------------------------------
 // ENUM: BackupSearchMode
@@ -310,7 +310,7 @@ impl BackupWindow {
                     .filename();
 
                 glib::spawn_future_local(async move {
-                    app_info::open_with_default_app(&backup_file).await;
+                    AppInfoExt::open_with_default_app(&backup_file).await;
                 });
             }
         ));

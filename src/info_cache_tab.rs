@@ -7,7 +7,7 @@ use gtk::{glib, gio};
 use glib::clone;
 
 use crate::pkg_object::PkgObject;
-use crate::utils::app_info;
+use crate::utils::AppInfoExt;
 
 //------------------------------------------------------------------------------
 // MODULE: InfoCacheTab
@@ -104,7 +104,7 @@ impl InfoCacheTab {
                     .string();
 
                 glib::spawn_future_local(async move {
-                    app_info::open_containing_folder(&cache_file).await;
+                    AppInfoExt::open_containing_folder(&cache_file).await;
                 });
             }
         ));

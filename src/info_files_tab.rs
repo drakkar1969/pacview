@@ -7,7 +7,7 @@ use gtk::{glib, gio};
 use glib::clone;
 
 use crate::pkg_object::PkgObject;
-use crate::utils::app_info;
+use crate::utils::AppInfoExt;
 
 //------------------------------------------------------------------------------
 // MODULE: InfoFilesTab
@@ -138,7 +138,7 @@ impl InfoFilesTab {
                     .string();
 
                 glib::spawn_future_local(async move {
-                    app_info::open_with_default_app(&file).await;
+                    AppInfoExt::open_with_default_app(&file).await;
                 });
             }
         ));

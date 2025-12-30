@@ -19,7 +19,7 @@ use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::{SearchBar, SearchMode, SearchProp};
 use crate::info_pane::InfoPane;
-use crate::utils::tokio_runtime;
+use crate::utils::TokioRuntime;
 use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
@@ -500,7 +500,7 @@ impl PackageView {
             #[weak] search_bar,
             async move {
                 // Spawn tokio task to search AUR
-                let result = tokio_runtime::runtime().spawn(
+                let result = TokioRuntime::runtime().spawn(
                     async move {
                         tokio::select! {
                             () = cancel_token_clone.cancelled() => {

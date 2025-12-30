@@ -13,7 +13,7 @@ use sourceview5::prelude::*;
 
 use crate::APP_ID;
 use crate::pkg_object::PkgObject;
-use crate::utils::{pango_utils, style_schemes, tokio_runtime};
+use crate::utils::{PangoUtils, StyleSchemes, TokioRuntime};
 
 //------------------------------------------------------------------------------
 // MODULE: SourceWindow
@@ -166,9 +166,9 @@ impl SourceWindow {
 
         let scheme_manager = sourceview5::StyleSchemeManager::default();
 
-        let scheme = (style_schemes::is_variant_dark_by_id(&id) == style_manager.is_dark())
+        let scheme = (StyleSchemes::is_variant_dark_by_id(&id) == style_manager.is_dark())
             .then_some(id.clone())
-            .or_else(|| style_schemes::variant_id(&id))
+            .or_else(|| StyleSchemes::variant_id(&id))
             .and_then(|id| scheme_manager.scheme(&id));
 
         self.buffer().set_style_scheme(scheme.as_ref());
@@ -187,7 +187,7 @@ impl SourceWindow {
             custom_font = style_manager.monospace_font_name();
         }
 
-        let css = pango_utils::font_str_to_css(&custom_font);
+        let css = PangoUtils::font_str_to_css(&custom_font);
 
         let css_provider = gtk::CssProvider::new();
         css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
@@ -222,7 +222,7 @@ impl SourceWindow {
                 let result = if raw_url.is_empty() {
                     Err(String::from("PKGBUILD not available"))
                 } else if raw_url.starts_with("https://") {
-                    tokio_runtime::runtime().spawn(
+                    TokioRuntime::runtime().spawn(
                         async move {
                             let client = reqwest::Client::builder()
                                 .redirect(reqwest::redirect::Policy::none())

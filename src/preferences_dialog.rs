@@ -10,7 +10,7 @@ use strum::FromRepr;
 use crate::APP_ID;
 use crate::window::PacViewWindow;
 use crate::search_bar::{SearchMode, SearchProp};
-use crate::utils::style_schemes;
+use crate::utils::StyleSchemes;
 use crate::enum_traits::EnumExt;
 
 //------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ impl PreferencesDialog {
     fn populate_style_schemes(&self, style_manager: &adw::StyleManager) {
         let imp = self.imp();
 
-        let schemes = style_schemes::schemes(style_manager.is_dark());
+        let schemes = StyleSchemes::schemes(style_manager.is_dark());
 
         if let Some(model) = imp.pkgbuild_style_scheme_row.model()
             .and_downcast_ref::<gio::ListStore>() {
@@ -386,7 +386,7 @@ impl PreferencesDialog {
                             .flatten()
                             .position(|scheme| {
                                 scheme.id() == id
-                                    || style_schemes::variant_id(&scheme.id())
+                                    || StyleSchemes::variant_id(&scheme.id())
                                         .is_some_and(|variant_id| variant_id == id)
                             })
                     })

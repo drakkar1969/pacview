@@ -9,7 +9,7 @@ use glib::clone;
 use crate::vars::Paths;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
-use crate::utils::app_info;
+use crate::utils::AppInfoExt;
 
 //------------------------------------------------------------------------------
 // MODULE: InfoBackupTab
@@ -133,7 +133,7 @@ impl InfoBackupTab {
                     .filename();
 
                 glib::spawn_future_local(async move {
-                    app_info::open_with_default_app(&backup_file).await;
+                    AppInfoExt::open_with_default_app(&backup_file).await;
                 });
             }
         ));
