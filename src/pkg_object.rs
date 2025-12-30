@@ -409,7 +409,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public getters from alpm package
+    // Public getters from alpm handle
     //---------------------------------------
     pub fn required_by(&self) -> &[String] {
         self.imp().required_by.get_or_init(|| {
@@ -514,7 +514,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public future getters from alpm package
+    // Public future getters from alpm handle
     //---------------------------------------
     pub async fn log_future(&self) -> &Vec<String> {
         self.imp().log.get_or_init(async || {
