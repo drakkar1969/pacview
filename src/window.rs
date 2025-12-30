@@ -983,9 +983,7 @@ impl PacViewWindow {
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
-                // Get alpm handle
-                let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
-
+                // Attach receiver for package load task
                 while let Ok((pkg_data, is_local_data)) = receiver.recv().await {
                     // Add packages to package view
                     let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
@@ -1008,6 +1006,8 @@ impl PacViewWindow {
                     Ok(()) => {
                         // Store alpm handle
                         PkgObject::with_alpm_handle(|handle| {
+                            let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
+
                             handle.replace(alpm_handle);
                         });
 
