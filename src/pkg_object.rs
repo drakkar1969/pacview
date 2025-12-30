@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::cell::{RefCell, OnceCell};
 use std::sync::LazyLock;
 use std::cmp::Ordering;
@@ -199,31 +198,31 @@ impl PkgObject {
         self.data().out_of_date
     }
 
-    pub fn out_of_date_string(&self) -> Cow<'_, str> {
-        Self::date_to_string(self.data().out_of_date, "%d %B %Y %H:%M")
+    pub fn out_of_date_string(&self) -> String {
+        Self::date_to_string(self.data().out_of_date)
     }
 
     pub fn url(&self) -> &str {
         &self.data().url
     }
 
-    pub fn package_url(&self) -> Cow<'_, str> {
+    pub fn package_url(&self) -> String {
         let data = self.data();
 
         let repo = &data.repository;
 
         if repo == "aur" {
-            return Cow::Owned(format!("https://aur.archlinux.org/packages/{}", data.name));
+            return format!("https://aur.archlinux.org/packages/{}", data.name);
         }
 
         if Pacman::config().repos.iter().any(|r| &r.name == repo) {
-            return Cow::Owned(format!(
+            return format!(
                 "https://www.archlinux.org/packages/{}/{}/{}/",
                 repo, data.architecture, data.name
-            ));
+            );
         }
 
-        Cow::Borrowed("")
+        String::new()
     }
 
     pub fn pkgbuild_urls(&self) -> (String, String) {
@@ -341,16 +340,16 @@ impl PkgObject {
         self.data().build_date
     }
 
-    pub fn build_date_string(&self) -> Cow<'_, str> {
-        Self::date_to_string(self.data().build_date, "%d %B %Y %H:%M")
+    pub fn build_date_string(&self) -> String {
+        Self::date_to_string(self.data().build_date)
     }
 
     pub fn install_date(&self) -> i64 {
         self.data().install_date
     }
 
-    pub fn install_date_string(&self) -> Cow<'_, str> {
-        Self::date_to_string(self.data().install_date, "%d %B %Y %H:%M")
+    pub fn install_date_string(&self) -> String {
+        Self::date_to_string(self.data().install_date)
     }
 
     pub fn download_size(&self) -> i64 {
@@ -576,14 +575,14 @@ impl PkgObject {
     //---------------------------------------
     // Date to string associated function
     //---------------------------------------
-    pub fn date_to_string(date: i64, format: &str) -> Cow<'_, str> {
+    pub fn date_to_string(date: i64) -> String {
         if date == 0 {
-            Cow::Borrowed("")
+            String::new()
         } else {
-            Cow::Owned(glib::DateTime::from_unix_local(date)
-                .and_then(|datetime| datetime.format(format))
+            glib::DateTime::from_unix_local(date)
+                .and_then(|datetime| datetime.format("%c"))
                 .expect("Failed to format DateTime")
-                .to_string())
+                .to_string()
         }
     }
 
@@ -598,7 +597,7 @@ impl PkgObject {
         })
     }
 
-    pub fn find_satisfier(search_term: &str, model: &gio::ListStore) -> Option<Self> {
+    pub fn find_satisfier(search_term: &str, pkg_model: &gio::ListStore) -> Option<Self> {
         Self::with_alpm_handle(|handle| {
             let handle = handle.borrow();
             let handle = handle.as_ref()?;
@@ -606,7 +605,7 @@ impl PkgObject {
             let db_pkg = handle.localdb().pkgs().find_satisfier(search_term)
                 .or_else(|| handle.syncdbs().find_satisfier(search_term))?;
 
-            model.iter::<Self>()
+            pkg_model.iter::<Self>()
                 .flatten()
                 .find(|pkg| pkg.name() == db_pkg.name())
         })
