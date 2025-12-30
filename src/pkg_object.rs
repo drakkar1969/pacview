@@ -14,7 +14,7 @@ use rayon::prelude::*;
 use sourceview5::prelude::ListModelExtManual;
 use tokio::sync::OnceCell as TokioOnceCell;
 
-use crate::vars::{paths, pacman};
+use crate::vars::{Paths, Pacman};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------
@@ -216,7 +216,7 @@ impl PkgObject {
             return Cow::Owned(format!("https://aur.archlinux.org/packages/{}", data.name));
         }
 
-        if pacman::config().repos.iter().any(|r| &r.name == repo) {
+        if Pacman::config().repos.iter().any(|r| &r.name == repo) {
             return Cow::Owned(format!(
                 "https://www.archlinux.org/packages/{}/{}/{}/",
                 repo, data.architecture, data.name
@@ -240,7 +240,7 @@ impl PkgObject {
 
                 (url, raw_url)
             }
-            _ if pacman::config().repos.iter().any(|r| &r.name == repo) => {
+            _ if Pacman::config().repos.iter().any(|r| &r.name == repo) => {
                 let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
 
                 let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
@@ -252,7 +252,7 @@ impl PkgObject {
                 (String::new(), String::new())
             }
             _ => {
-                let raw_url = paths::paru().as_ref().ok()
+                let raw_url = Paths::paru().as_ref().ok()
                     .map_or_else(String::new, |_| {
                         glib::user_cache_dir()
                             .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
@@ -455,7 +455,7 @@ impl PkgObject {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
-                        let root_dir = &pacman::config().root_dir;
+                        let root_dir = &Pacman::config().root_dir;
 
                         let mut files: Vec<String> = pkg.files().files()
                             .iter()
@@ -481,7 +481,7 @@ impl PkgObject {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
-                        let root_dir = &pacman::config().root_dir;
+                        let root_dir = &Pacman::config().root_dir;
                         let pkg_name = self.name();
 
                         let mut backup: Vec<PkgBackup> = pkg.backup().iter()
@@ -525,7 +525,7 @@ impl PkgObject {
             let pkg_name = self.name();
 
             gio::spawn_blocking(move || {
-                let pacman_log = pacman::log().read().unwrap();
+                let pacman_log = Pacman::log().read().unwrap();
 
                 pacman_log.as_ref().map_or(vec![], |log| {
                     log.lines().rev()
@@ -551,7 +551,7 @@ impl PkgObject {
             let pkg_name = self.name();
 
             gio::spawn_blocking(move || {
-                let pacman_cache = pacman::cache().read().unwrap();
+                let pacman_cache = Pacman::cache().read().unwrap();
 
                 pacman_cache.iter()
                     .filter(|&path| {

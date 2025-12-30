@@ -7,7 +7,7 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
-use crate::vars::pacman;
+use crate::vars::Pacman;
 use crate::cache_object::CacheObject;
 use crate::utils::app_info;
 
@@ -300,7 +300,7 @@ impl CacheWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Get cache files
-            let pacman_cache = pacman::cache().read().unwrap();
+            let pacman_cache = Pacman::cache().read().unwrap();
 
             imp.model.splice(0, 0, &pacman_cache.iter()
                 .map(|file| CacheObject::new(&file.display().to_string()))

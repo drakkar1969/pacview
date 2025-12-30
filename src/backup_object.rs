@@ -10,7 +10,7 @@ use gtk::prelude::ObjectExt;
 
 use strum::FromRepr;
 
-use crate::vars::paths;
+use crate::vars::Paths;
 use crate::enum_traits::EnumExt;
 use crate::pkg_object::PkgBackup;
 use crate::utils::async_command;
@@ -136,7 +136,7 @@ impl BackupObject {
         let filename = self.filename();
 
         // Download original file with paccat
-        let paccat_cmd = paths::paccat().as_ref()
+        let paccat_cmd = Paths::paccat().as_ref()
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
         let (status, content) = async_command::run(paccat_cmd, &[&self.package(), "--", &filename]).await?;
@@ -153,7 +153,7 @@ impl BackupObject {
         fs::write(&tmp_filename, content)?;
 
         // Compare file with original
-        let meld_cmd = paths::meld().as_ref()
+        let meld_cmd = Paths::meld().as_ref()
             .map_err(|_| io::Error::other("Meld not found"))?;
 
         async_command::spawn(meld_cmd, &[&tmp_filename, &filename])

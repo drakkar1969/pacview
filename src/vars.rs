@@ -1,12 +1,14 @@
-//------------------------------------------------------------------------------
-// MODULE: Paths
-//------------------------------------------------------------------------------
-pub mod paths {
-    use std::sync::LazyLock;
-    use std::path::PathBuf;
+use std::sync::{LazyLock, RwLock};
+use std::path::PathBuf;
 
-    use which::which_global;
+use which::which_global;
 
+//------------------------------------------------------------------------------
+// STRUCT: Paths
+//------------------------------------------------------------------------------
+pub struct Paths;
+
+impl Paths {
     //---------------------------------------
     // Paru path function
     //---------------------------------------
@@ -42,12 +44,11 @@ pub mod paths {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: Pacman
+// STRUCT: Pacman
 //------------------------------------------------------------------------------
-pub mod pacman {
-    use std::sync::{LazyLock, RwLock};
-    use std::path::PathBuf;
+pub struct Pacman;
 
+impl Pacman {
     //---------------------------------------
     // Config function
     //---------------------------------------
@@ -71,7 +72,7 @@ pub mod pacman {
     }
 
     pub fn set_log(new_log: Option<String>) {
-        let mut pacman_log = log().write().unwrap();
+        let mut pacman_log = Self::log().write().unwrap();
 
         *pacman_log = new_log;
     }
@@ -88,7 +89,7 @@ pub mod pacman {
     }
 
     pub fn set_cache(new_cache: Vec<PathBuf>) {
-        let mut pacman_cache = cache().write().unwrap();
+        let mut pacman_cache = Self::cache().write().unwrap();
 
         *pacman_cache = new_cache;
     }

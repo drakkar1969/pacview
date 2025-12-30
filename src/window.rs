@@ -20,7 +20,7 @@ use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debounc
 
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::vars::{paths, pacman};
+use crate::vars::{Paths, Pacman};
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::SearchBar;
@@ -724,11 +724,11 @@ impl PacViewWindow {
     fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
-        let pacman_config = pacman::config();
+        let pacman_config = Pacman::config();
         let user_cache_dir = glib::user_cache_dir();
 
         // Load pacman log
-        pacman::set_log(fs::read_to_string(&pacman_config.log_file).ok());
+        Pacman::set_log(fs::read_to_string(&pacman_config.log_file).ok());
 
         // Load pacman cache
         let mut cache_files: Vec<PathBuf> = vec![];
@@ -743,7 +743,7 @@ impl PacViewWindow {
 
         cache_files.sort_unstable();
 
-        pacman::set_cache(cache_files);
+        Pacman::set_cache(cache_files);
 
         // Init config dialog
         imp.config_dialog.borrow().init(pacman_config);
@@ -758,7 +758,7 @@ impl PacViewWindow {
         // Get paru repos
         let mut paru_repos: Vec<(String, PathBuf)> = vec![];
 
-        if paths::paru().is_ok()
+        if Paths::paru().is_ok()
             && let Ok(read_dir) = fs::read_dir(user_cache_dir.join("paru/clone/repo")) {
                 let repos = read_dir.into_iter()
                     .flatten()
@@ -882,7 +882,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Get pacman config
-        let pacman_config = pacman::config();
+        let pacman_config = Pacman::config();
 
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
@@ -1068,7 +1068,7 @@ impl PacViewWindow {
                 // Check for pacman updates async
                 let pacman_handle = async_command::run("/usr/bin/checkupdates", &[]);
 
-                let (pacman_res, aur_res) = if let Ok(paru_path) = paths::paru().as_ref() {
+                let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
                     // Check for AUR updates async
                     let aur_handle = async_command::run(paru_path, &["-Qu", "--mode=ap"]);
 
@@ -1159,7 +1159,7 @@ impl PacViewWindow {
             }
         ) {
             // Watch pacman local db path
-            let path = Path::new(&pacman::config().db_path).join("local");
+            let path = Path::new(&Pacman::config().db_path).join("local");
 
             if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
                 // Store debouncer

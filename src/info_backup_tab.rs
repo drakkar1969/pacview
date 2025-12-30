@@ -6,7 +6,7 @@ use gtk::prelude::*;
 use gtk::{glib, gio};
 use glib::clone;
 
-use crate::vars::paths;
+use crate::vars::Paths;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
 use crate::utils::app_info;
@@ -204,7 +204,7 @@ impl InfoBackupTab {
         let imp = self.imp();
 
         // Set compare button visibility
-        imp.compare_button.set_visible(paths::paccat().is_ok() && paths::meld().is_ok());
+        imp.compare_button.set_visible(Paths::paccat().is_ok() && Paths::meld().is_ok());
     }
 
     //---------------------------------------

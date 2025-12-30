@@ -10,7 +10,7 @@ use gdk::{Key, ModifierType};
 use regex::Regex;
 use rayon::prelude::*;
 
-use crate::vars::pacman;
+use crate::vars::Pacman;
 use crate::log_object::{LogLine, LogObject};
 
 //------------------------------------------------------------------------------
@@ -279,7 +279,7 @@ impl LogWindow {
         // Populate if necessary
         if imp.model.n_items() == 0 {
             // Read log lines
-            let pacman_log = pacman::log().read().unwrap();
+            let pacman_log = Pacman::log().read().unwrap();
 
             let log_lines: Vec<LogLine> = pacman_log.as_ref().map_or(vec![], |log| {
                 // Strip ANSI control sequences from log

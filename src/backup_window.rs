@@ -7,7 +7,7 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
-use crate::vars::paths;
+use crate::vars::Paths;
 use crate::pkg_data::PkgFlags;
 use crate::pkg_object::PkgObject;
 use crate::backup_object::{BackupObject, BackupStatus};
@@ -466,7 +466,7 @@ impl BackupWindow {
         imp.search_entry.add_controller(controller);
 
         // Set backup compare button visibility
-        imp.compare_button.set_visible(paths::paccat().is_ok() && paths::meld().is_ok());
+        imp.compare_button.set_visible(Paths::paccat().is_ok() && Paths::meld().is_ok());
 
         // Set initial focus on view
         imp.view.grab_focus();
