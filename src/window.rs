@@ -1066,7 +1066,7 @@ impl PacViewWindow {
                 let mut error_msg: Option<String> = None;
 
                 // Check for pacman updates async
-                let pacman_handle = AsyncCommand::run("/usr/bin/checkupdates", &[]);
+                let pacman_handle = AsyncCommand::run("/usr/bin/checkupdates", &[""]);
 
                 let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
                     // Check for AUR updates async

@@ -45,7 +45,8 @@ impl AsyncCommand {
     //---------------------------------------
     // Run function
     //---------------------------------------
-    pub async fn run(cmd: impl AsRef<OsStr>, args: &[&str]) -> io::Result<(Option<i32>, String)> {
+    pub async fn run<I, S1, S2>(cmd: S1, args: I) -> io::Result<(Option<i32>, String)>
+    where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         let output = async_process::Command::new(cmd)
             .args(args)
             .output()
@@ -60,7 +61,8 @@ impl AsyncCommand {
     //---------------------------------------
     // Spawn function
     //---------------------------------------
-    pub fn spawn(cmd: impl AsRef<OsStr>, args: &[&str]) -> io::Result<()> {
+    pub fn spawn<I, S1, S2>(cmd: S1, args: I) -> io::Result<()>
+    where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         async_process::Command::new(cmd)
             .args(args)
             .spawn()?;
