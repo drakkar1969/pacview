@@ -189,7 +189,7 @@ impl CacheWindow {
                 let cache_file = imp.selection.selected_item()
                     .and_downcast::<CacheObject>()
                     .expect("Failed to downcast to 'CacheObject'")
-                    .filename();
+                    .path();
 
                 glib::spawn_future_local(async move {
                     AppInfoExt::open_containing_folder(&cache_file).await;
@@ -206,7 +206,7 @@ impl CacheWindow {
                 for cache in window.imp().selection.iter::<glib::Object>()
                     .flatten()
                     .filter_map(|item| item.downcast::<CacheObject>().ok()) {
-                        let _ = writeln!(output, "|{}|", cache.filename());
+                        let _ = writeln!(output, "|{}|", cache.path());
                     }
 
                 window.clipboard().set_text(&output);
@@ -249,7 +249,7 @@ impl CacheWindow {
                         .downcast_ref::<CacheObject>()
                         .expect("Failed to downcast to 'CacheObject'");
 
-                    !Path::new(&obj.filename())
+                    !Path::new(&obj.path())
                         .extension()
                         .is_some_and(|ext| ext.eq_ignore_ascii_case("sig"))
 

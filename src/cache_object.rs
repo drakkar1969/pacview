@@ -18,7 +18,7 @@ mod imp {
     #[properties(wrapper_type = super::CacheObject)]
     pub struct CacheObject {
         #[property(get, set, construct_only)]
-        filename: RefCell<String>,
+        path: RefCell<String>,
         #[property(get = Self::get_icon)]
         icon: PhantomData<String>,
     }
@@ -40,7 +40,7 @@ mod imp {
         // Property getter
         //---------------------------------------
         fn get_icon(&self) -> String {
-            if self.filename.borrow().ends_with(".sig") {
+            if self.path.borrow().ends_with(".sig") {
                 "info-signed-symbolic"
             } else {
                 "info-archive-symbolic"
@@ -60,10 +60,10 @@ impl CacheObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(filename: &str) -> Self {
+    pub fn new(path: &str) -> Self {
         // Build CacheObject
         glib::Object::builder()
-            .property("filename", filename)
+            .property("path", path)
             .build()
     }
 }

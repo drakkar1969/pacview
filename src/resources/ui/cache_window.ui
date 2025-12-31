@@ -121,7 +121,7 @@
                                     <child>
                                       <object class="GtkStringFilter" id="search_filter">
                                         <property name="expression">
-                                          <lookup name="filename" type="CacheObject"/>
+                                          <lookup name="path" type="CacheObject"/>
                                         </property>
                                       </object>
                                     </child>
