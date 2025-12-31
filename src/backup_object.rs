@@ -147,16 +147,20 @@ impl BackupObject {
         }
 
         // Save original file to /tmp folder
-        let tmp_filename = Path::new(&path).file_name()
-            .map(|file_name| format!("/tmp/{}.original", file_name.to_string_lossy()))
-            .ok_or_else(|| io::Error::other("Failed to create temporary filename"))?;
+        let path = Path::new(&path);
 
-        fs::write(&tmp_filename, content)?;
+        let tmp_filename = path.file_name()
+            .ok_or_else(|| io::Error::other("Failed to retrieve filename"))?;
+
+        let mut tmp_path = std::env::temp_dir().join(tmp_filename);
+        tmp_path.add_extension("original");
+
+        fs::write(&tmp_path, content)?;
 
         // Compare file with original
         let meld_cmd = Paths::meld().as_ref()
             .map_err(|_| io::Error::other("Meld not found"))?;
 
-        AsyncCommand::spawn(meld_cmd, &[&tmp_filename, &path])
+        AsyncCommand::spawn(meld_cmd, &[&tmp_path, path])
     }
 }
