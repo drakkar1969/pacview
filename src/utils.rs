@@ -3,7 +3,7 @@ use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::fmt::Write as _;
-use std::path::PathBuf;
+use std::path::Path;
 use std::time::Duration;
 
 use gtk::{gio, glib, pango};
@@ -112,7 +112,7 @@ impl AURFile {
     //---------------------------------------
     // Check age function
     //---------------------------------------
-    pub fn check_age(aur_file: &PathBuf, update_interval: u64) -> bool {
+    pub fn check_age(aur_file: &Path, update_interval: u64) -> bool {
         // Get AUR package names file age
         let file_time = fs::metadata(aur_file).ok()
             .and_then(|metadata| metadata.modified().ok())
@@ -128,7 +128,7 @@ impl AURFile {
     //---------------------------------------
     // Download async function
     //---------------------------------------
-    pub async fn download(aur_file: &PathBuf) -> Result<(), io::Error> {
+    pub async fn download(aur_file: &Path) -> Result<(), io::Error> {
         let aur_file = aur_file.to_owned();
 
         // Spawn tokio task to download AUR file
