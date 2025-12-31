@@ -21,22 +21,22 @@ use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct PkgBackup {
-    filename: String,
+    path: String,
     hash: String,
     package: String
 }
 
 impl PkgBackup {
-    fn new(filename: &str, hash: &str, package: &str) -> Self {
+    fn new(path: &str, hash: &str, package: &str) -> Self {
         Self {
-            filename: filename.to_owned(),
+            path: path.to_owned(),
             hash: hash.to_owned(),
             package: package.to_owned()
         }
     }
 
-    pub fn filename(&self) -> &str {
-        &self.filename
+    pub fn path(&self) -> &str {
+        &self.path
     }
 
     pub fn hash(&self) -> &str {
@@ -493,7 +493,8 @@ impl PkgObject {
                             .collect();
 
                         backup.sort_unstable_by(|backup_a, backup_b| {
-                            backup_a.filename.partial_cmp(&backup_b.filename).unwrap_or(Ordering::Equal)
+                            backup_a.path.partial_cmp(&backup_b.path)
+                                .unwrap_or(Ordering::Equal)
                         });
 
                         backup

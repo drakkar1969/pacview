@@ -46,7 +46,7 @@ mod imp {
     pub struct BackupObject {
         // Read-write properties, construct only
         #[property(get, set, construct_only)]
-        filename: RefCell<String>,
+        path: RefCell<String>,
         #[property(get, set, construct_only)]
         hash: RefCell<String>,
         #[property(get, set, construct_only)]
@@ -82,9 +82,9 @@ mod imp {
         //---------------------------------------
         fn file_hash(&self) -> Option<String> {
             self.file_hash.get_or_init(|| {
-                let filename = self.filename.borrow();
+                let path = self.path.borrow();
 
-                alpm::compute_md5sum(filename.as_str()).ok()
+                alpm::compute_md5sum(path.as_str()).ok()
             })
             .to_owned()
         }
@@ -123,7 +123,7 @@ impl BackupObject {
     //---------------------------------------
     pub fn new(backup: &PkgBackup) -> Self {
         glib::Object::builder()
-            .property("filename", backup.filename())
+            .property("path", backup.path())
             .property("hash", backup.hash())
             .property("package", backup.package())
             .build()
@@ -133,20 +133,21 @@ impl BackupObject {
     // Async compare with original function
     //---------------------------------------
     pub async fn compare_with_original(&self) -> io::Result<()> {
-        let filename = self.filename();
+        let path = self.path();
 
         // Download original file with paccat
         let paccat_cmd = Paths::paccat().as_ref()
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
-        let (status, content) = AsyncCommand::run(paccat_cmd, &[&self.package(), "--", &filename]).await?;
+        let (status, content) = AsyncCommand::run(paccat_cmd, &[&self.package(), "--", &path])
+            .await?;
 
         if status != Some(0) {
             return Err(io::Error::other("Paccat error"))
         }
 
         // Save original file to /tmp folder
-        let tmp_filename = Path::new(&filename).file_name()
+        let tmp_filename = Path::new(&path).file_name()
             .map(|file_name| format!("/tmp/{}.original", file_name.to_string_lossy()))
             .ok_or_else(|| io::Error::other("Failed to create temporary filename"))?;
 
@@ -156,6 +157,6 @@ impl BackupObject {
         let meld_cmd = Paths::meld().as_ref()
             .map_err(|_| io::Error::other("Meld not found"))?;
 
-        AsyncCommand::spawn(meld_cmd, &[&tmp_filename, &filename])
+        AsyncCommand::spawn(meld_cmd, &[&tmp_filename, &path])
     }
 }

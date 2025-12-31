@@ -307,7 +307,7 @@ impl BackupWindow {
                 let backup_file = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .expect("Failed to downcast to 'BackupObject'")
-                    .filename();
+                    .path();
 
                 glib::spawn_future_local(async move {
                     AppInfoExt::open_with_default_app(&backup_file).await;
@@ -333,13 +333,13 @@ impl BackupWindow {
                             package = backup_package;
                         }
 
-                        writeln!(output, "|{filename}|{status}|",
-                            filename=backup.filename(),
+                        writeln!(output, "|{path}|{status}|",
+                            path=backup.path(),
                             status=backup.status_text()
                         ).unwrap();
 
-                        writeln!(output, "|{filename}|{status}|",
-                            filename=backup.filename(),
+                        writeln!(output, "|{path}|{status}|",
+                            path=backup.path(),
                             status=backup.status_text()
                         ).unwrap();
                     }
@@ -431,14 +431,14 @@ impl BackupWindow {
 
                     match window.search_mode() {
                         BackupSearchMode::All => {
-                            obj.filename().to_lowercase().contains(&search_term)
+                            obj.path().to_lowercase().contains(&search_term)
                                 || obj.package().to_lowercase().contains(&search_term)
                         },
                         BackupSearchMode::Packages => {
                             obj.package().to_lowercase().contains(&search_term)
                         },
                         BackupSearchMode::Files => {
-                            obj.filename().to_lowercase().contains(&search_term)
+                            obj.path().to_lowercase().contains(&search_term)
                         },
                     }
                 }

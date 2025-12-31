@@ -130,7 +130,7 @@ impl InfoBackupTab {
                 let backup_file = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .expect("Failed to downcast to 'BackupObject'")
-                    .filename();
+                    .path();
 
                 glib::spawn_future_local(async move {
                     AppInfoExt::open_with_default_app(&backup_file).await;
@@ -148,7 +148,7 @@ impl InfoBackupTab {
 
                 for obj in tab.imp().model.iter::<BackupObject>()
                     .flatten() {
-                        let _ = writeln!(output, "{}|{}", obj.filename(), obj.status_text());
+                        let _ = writeln!(output, "{}|{}", obj.path(), obj.status_text());
                     }
 
                 tab.clipboard().set_text(&output);
