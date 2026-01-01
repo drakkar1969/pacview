@@ -247,8 +247,6 @@ impl InfoFilesTab {
     pub fn update_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        self.set_pkg_name(pkg.name());
-
         imp.paused_status.set_visible(false);
 
         // Populate view
@@ -257,5 +255,7 @@ impl InfoFilesTab {
             .collect();
 
         imp.model.splice(0, imp.model.n_items(), &files_list);
+
+        self.set_pkg_name(pkg.name());
     }
 }

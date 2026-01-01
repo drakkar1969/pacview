@@ -161,6 +161,6 @@ impl BackupObject {
         let meld_cmd = Paths::meld().as_ref()
             .map_err(|_| io::Error::other("Meld not found"))?;
 
-        AsyncCommand::spawn(meld_cmd, &[&tmp_path, path])
+        AsyncCommand::spawn(meld_cmd, [&tmp_path, path])
     }
 }

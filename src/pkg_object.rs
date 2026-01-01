@@ -475,6 +475,7 @@ impl PkgObject {
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
+
                         let mut backup: Vec<PkgBackup> = pkg.backup().iter()
                             .map(|backup| {
                                 let mut path = root_dir.to_owned();
