@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::fmt::Write as _;
 use std::fs;
+use std::os::unix::fs::MetadataExt;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -311,19 +312,19 @@ impl CacheWindow {
             );
 
             // Get cache size
-            let size: u64 = Pacman::config().cache_dir.iter()
+            let size = 512u64 * Pacman::config().cache_dir.iter()
                 .map(|dir| {
                     fs::read_dir(dir).map_or(0, |read_dir| {
                         read_dir.flatten()
                             .filter_map(|entry| {
-                                entry.metadata().map(|metadata| metadata.len()).ok()
+                                entry.metadata().map(|metadata| metadata.blocks()).ok()
                             })
                             .sum()
                     })
                 })
-                .sum();
+                .sum::<u64>();
 
-            imp.size_label.set_label(&format!("Total Cache Size: {}", Size::from_bytes(size)));
+            imp.size_label.set_label(&format!("Cache Size on Disk: {}", Size::from_bytes(size)));
         }
     }
 }
