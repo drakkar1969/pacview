@@ -1,11 +1,14 @@
 use std::path::Path;
 use std::fmt::Write as _;
+use std::fs;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
+
+use size::Size;
 
 use crate::vars::Pacman;
 use crate::cache_object::CacheObject;
@@ -47,6 +50,8 @@ mod imp {
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) size_label: TemplateChild<gtk::Label>,
     }
 
     //---------------------------------------
@@ -304,6 +309,21 @@ impl CacheWindow {
                 .map(|file| CacheObject::new(&file.display().to_string()))
                 .collect::<Vec<CacheObject>>()
             );
+
+            // Get cache size
+            let size: u64 = Pacman::config().cache_dir.iter()
+                .map(|dir| {
+                    fs::read_dir(dir).map_or(0, |read_dir| {
+                        read_dir.flatten()
+                            .filter_map(|entry| {
+                                entry.metadata().map(|metadata| metadata.len()).ok()
+                            })
+                            .sum()
+                    })
+                })
+                .sum();
+
+            imp.size_label.set_label(&format!("Total Cache Size: {}", Size::from_bytes(size)));
         }
     }
 }
