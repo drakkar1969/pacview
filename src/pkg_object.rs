@@ -22,16 +22,14 @@ use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 #[derive(Debug)]
 pub struct PkgBackup {
     path: String,
-    hash: String,
-    package: String
+    hash: String
 }
 
 impl PkgBackup {
-    fn new(path: &str, hash: &str, package: &str) -> Self {
+    fn new(path: &str, hash: &str) -> Self {
         Self {
             path: path.to_owned(),
-            hash: hash.to_owned(),
-            package: package.to_owned()
+            hash: hash.to_owned()
         }
     }
 
@@ -41,10 +39,6 @@ impl PkgBackup {
 
     pub fn hash(&self) -> &str {
         &self.hash
-    }
-
-    pub fn package(&self) -> &str {
-        &self.package
     }
 }
 
@@ -481,14 +475,12 @@ impl PkgObject {
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
-                        let pkg_name = self.name();
-
                         let mut backup: Vec<PkgBackup> = pkg.backup().iter()
                             .map(|backup| {
                                 let mut path = root_dir.to_owned();
                                 path.push_str(backup.name());
 
-                                PkgBackup::new(&path, backup.hash(), &pkg_name)
+                                PkgBackup::new(&path, backup.hash())
                             })
                             .collect();
 

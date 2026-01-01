@@ -223,15 +223,17 @@ impl InfoBackupTab {
     pub fn update_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        self.set_pkg_name(pkg.name());
+        let pkg_name = pkg.name();
 
         imp.paused_status.set_visible(false);
 
         // Populate view
         let backup_list: Vec<BackupObject> = pkg.backup().iter()
-            .map(BackupObject::new)
+            .map(|backup| BackupObject::new(backup, &pkg_name))
             .collect();
 
         imp.model.splice(0, imp.model.n_items(), &backup_list);
+
+        self.set_pkg_name(pkg_name);
     }
 }

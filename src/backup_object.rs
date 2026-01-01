@@ -121,11 +121,11 @@ impl BackupObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(backup: &PkgBackup) -> Self {
+    pub fn new(backup: &PkgBackup, package: &str) -> Self {
         glib::Object::builder()
             .property("path", backup.path())
             .property("hash", backup.hash())
-            .property("package", backup.package())
+            .property("package", package)
             .build()
     }
 

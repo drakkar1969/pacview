@@ -495,8 +495,10 @@ impl BackupWindow {
                 .flatten()
                 .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
                 .flat_map(|pkg| {
+                    let pkg_name = pkg.name();
+
                     pkg.backup().iter()
-                        .map(BackupObject::new)
+                        .map(|backup| BackupObject::new(backup, &pkg_name))
                         .collect::<Vec<BackupObject>>()
                 })
                 .collect();
