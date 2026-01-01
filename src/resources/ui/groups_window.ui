@@ -219,7 +219,6 @@
             <property name="margin-top">12</property>
             <property name="margin-bottom">10</property>
             <property name="xalign">0</property>
-            <property name="label"></property>
             <style>
               <class name="caption-heading"/>
               <class name="dimmed"/>

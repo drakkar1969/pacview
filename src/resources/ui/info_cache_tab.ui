@@ -32,7 +32,6 @@
             <child>
               <object class="GtkLabel" id="count_label">
                 <property name="valign">center</property>
-                <property name="label"></property>
                 <attributes>
                   <attribute name="scale" value="0.66"/>
                 </attributes>
