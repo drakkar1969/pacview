@@ -397,8 +397,6 @@ impl PackageView {
         prop: SearchProp,
         aur_cache: &Arc<TokioMutex<raur::Cache>>
     ) -> Result<Vec<raur::ArcPackage>, raur::Error> {
-        let handle = raur::Handle::new();
-
         // Return if query arg too small
         if term.len() < 2 {
             return Err(raur::Error::Aur(String::from("Query arg too small.")))
@@ -421,6 +419,8 @@ impl PackageView {
         };
 
         // Search for AUR packages
+        let handle = raur::Handle::new();
+
         let search_results = future::join_all(term.split_whitespace()
             .map(|t| handle.search_by(t, search_by))
         )

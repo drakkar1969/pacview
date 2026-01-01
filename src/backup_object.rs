@@ -90,14 +90,13 @@ mod imp {
         }
 
         fn status(&self) -> BackupStatus {
-            self.obj().file_hash()
-                .map_or(BackupStatus::Locked, |file_hash| {
-                    if file_hash == self.obj().hash() {
-                        BackupStatus::Unmodified
-                    } else {
-                        BackupStatus::Modified
-                    }
-                })
+            self.obj().file_hash().map_or(BackupStatus::Locked, |file_hash| {
+                if file_hash == self.obj().hash() {
+                    BackupStatus::Unmodified
+                } else {
+                    BackupStatus::Modified
+                }
+            })
         }
 
         fn status_icon(&self) -> String {

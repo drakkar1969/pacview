@@ -245,13 +245,12 @@ impl PkgObject {
                 (String::new(), String::new())
             }
             _ => {
-                let raw_url = Paths::paru().as_ref().ok()
-                    .map_or_else(String::new, |_| {
-                        glib::user_cache_dir()
-                            .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
-                            .display()
-                            .to_string()
-                    });
+                let raw_url = Paths::paru().as_ref().ok().map_or_else(String::new, |_| {
+                    glib::user_cache_dir()
+                        .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
+                        .display()
+                        .to_string()
+                });
 
                 let url = format!("file://{raw_url}");
 
