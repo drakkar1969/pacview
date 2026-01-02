@@ -10,10 +10,9 @@ use gtk::prelude::ObjectExt;
 
 use strum::FromRepr;
 
-use crate::vars::Paths;
 use crate::enum_traits::EnumExt;
 use crate::pkg_object::PkgBackup;
-use crate::utils::AsyncCommand;
+use crate::utils::{Paths, AsyncCommand};
 
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus

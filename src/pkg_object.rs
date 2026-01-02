@@ -14,7 +14,7 @@ use rayon::prelude::*;
 use sourceview5::prelude::ListModelExtManual;
 use tokio::sync::OnceCell as TokioOnceCell;
 
-use crate::vars::{Paths, Pacman};
+use crate::utils::{Paths, Pacman};
 use crate::pkg_data::{PkgData, PkgFlags, PkgValidation};
 
 //------------------------------------------------------------------------------

@@ -10,7 +10,7 @@ use gdk::{Key, ModifierType};
 use regex::Regex;
 use rayon::prelude::*;
 
-use crate::vars::Pacman;
+use crate::utils::Pacman;
 use crate::log_object::{LogLine, LogObject};
 
 //------------------------------------------------------------------------------

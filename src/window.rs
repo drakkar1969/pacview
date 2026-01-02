@@ -20,7 +20,6 @@ use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debounc
 
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::vars::{Paths, Pacman, AurDBFile};
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::SearchBar;
@@ -34,7 +33,7 @@ use crate::log_window::LogWindow;
 use crate::cache_window::CacheWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::PreferencesDialog;
-use crate::utils::AsyncCommand;
+use crate::utils::{Paths, Pacman, AurDBFile, AsyncCommand};
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
