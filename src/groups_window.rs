@@ -368,10 +368,9 @@ impl GroupsWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Window>, pkg_model: &gio::ListStore) {
+    pub fn show(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        self.set_transient_for(Some(parent));
         self.present();
 
         // Populate if necessary

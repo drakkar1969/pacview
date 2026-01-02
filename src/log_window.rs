@@ -270,10 +270,9 @@ impl LogWindow {
     //---------------------------------------
     // Show window
     //---------------------------------------
-    pub fn show(&self, parent: &impl IsA<gtk::Window>) {
+    pub fn show(&self) {
         let imp = self.imp();
 
-        self.set_transient_for(Some(parent));
         self.present();
 
         // Populate if necessary

@@ -240,27 +240,27 @@ mod imp {
             klass.install_action("win.show-backup-files", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.backup_window.borrow().show(window, &imp.package_view.pkg_model());
+                imp.backup_window.borrow().show(&imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
-                window.imp().cache_window.borrow().show(window);
+                window.imp().cache_window.borrow().show();
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.groups_window.borrow().show(window, &imp.package_view.pkg_model());
+                imp.groups_window.borrow().show(&imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
-                window.imp().log_window.borrow().show(window);
+                window.imp().log_window.borrow().show();
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_window.borrow().show(window, &imp.repo_names.borrow(), &imp.package_view.pkg_model());
+                imp.stats_window.borrow().show(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
@@ -716,6 +716,13 @@ impl PacViewWindow {
             .sync_create()
             .bidirectional()
             .build();
+
+        // Set window parents
+        imp.backup_window.borrow().set_transient_for(Some(self));
+        imp.cache_window.borrow().set_transient_for(Some(self));
+        imp.groups_window.borrow().set_transient_for(Some(self));
+        imp.log_window.borrow().set_transient_for(Some(self));
+        imp.stats_window.borrow().set_transient_for(Some(self));
     }
 
     //---------------------------------------
