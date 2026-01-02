@@ -446,9 +446,9 @@ impl PackageView {
     }
 
     //---------------------------------------
-    // Public reset AUR search function
+    // Reset AUR search function
     //---------------------------------------
-    pub fn reset_aur_search(&self) {
+    fn reset_aur_search(&self) {
         // Cancel ongoing AUR search if any
         self.cancel_aur_search();
 
@@ -457,9 +457,9 @@ impl PackageView {
     }
 
     //---------------------------------------
-    // Public cancel AUR search function
+    // Cancel AUR search function
     //---------------------------------------
-    pub fn cancel_aur_search(&self) {
+    fn cancel_aur_search(&self) {
         let imp = self.imp();
 
         if let Some(token) = imp.search_cancel_token.take() {
@@ -468,9 +468,9 @@ impl PackageView {
     }
 
     //---------------------------------------
-    // Public search in AUR function
+    // Search in AUR function
     //---------------------------------------
-    pub fn search_in_aur(&self, search_bar: &SearchBar) {
+    fn search_in_aur(&self, search_bar: &SearchBar) {
         let imp = self.imp();
 
         let term = search_bar.text().trim().to_lowercase();
