@@ -786,11 +786,8 @@ impl PacViewWindow {
         imp.repo_names.replace(repo_names);
 
         // If AUR database download is enabled and AUR file does not exist, download it
-        if AurDBFile::path().as_ref()
-            .is_some_and(|aur_file| {
-                imp.prefs_dialog.borrow().aur_database_download()
-                    && fs::metadata(aur_file).is_err()
-            }) {
+        if imp.prefs_dialog.borrow().aur_database_download() && AurDBFile::path().as_ref()
+            .is_some_and(|aur_file| fs::metadata(aur_file).is_err()) {
                 imp.package_view.set_state(PackageViewState::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
