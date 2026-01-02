@@ -881,9 +881,6 @@ impl PacViewWindow {
     fn alpm_load_packages(&self, paru_repos: Vec<(String, PathBuf)>) {
         let imp = self.imp();
 
-        // Get pacman config
-        let pacman_config = Pacman::config();
-
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
         let aur_file = imp.aur_file.borrow().to_owned();
@@ -894,7 +891,7 @@ impl PacViewWindow {
         // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
-            let alpm_handle = alpm_utils::alpm_with_conf(pacman_config)?;
+            let alpm_handle = alpm_utils::alpm_with_conf(Pacman::config())?;
 
             // Load AUR package names from file if AUR download is enabled in preferences
             let aur_names: HashSet<String> = if aur_download {
@@ -982,13 +979,6 @@ impl PacViewWindow {
 
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
-
-                // Initialize PkgObject alpm handle
-                PkgObject::with_alpm_handle(|handle| {
-                    let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
-
-                    handle.replace(alpm_handle);
-                });
 
                 // Attach receiver for package load task
                 while let Ok((pkg_data, is_local_data)) = receiver.recv().await {

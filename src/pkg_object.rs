@@ -373,11 +373,12 @@ impl PkgObject {
     // Alpm handle associated function
     //---------------------------------------
     pub fn with_alpm_handle<F, R>(f: F) -> R
-    where F: FnOnce(&RefCell<Option<alpm::Alpm>>) -> R {
+    where F: FnOnce(&Option<alpm::Alpm>) -> R {
         thread_local! {
-            static ALPM_HANDLE: RefCell<Option<alpm::Alpm>> = const { RefCell::new(None) };
+            static ALPM_HANDLE: Option<alpm::Alpm> =
+                alpm_utils::alpm_with_conf(Pacman::config()).ok();
         }
-        
+
         ALPM_HANDLE.with(f)
     }
 
@@ -406,7 +407,7 @@ impl PkgObject {
     pub fn required_by(&self) -> &[String] {
         self.imp().required_by.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
-                handle.borrow().as_ref()
+                handle.as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
                         let mut required_by: Vec<String> = pkg.required_by()
@@ -425,7 +426,7 @@ impl PkgObject {
     pub fn optional_for(&self) -> &[String] {
         self.imp().optional_for.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
-                handle.borrow().as_ref()
+                handle.as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
                         let mut optional_for: Vec<String> = pkg.optional_for()
@@ -444,7 +445,7 @@ impl PkgObject {
     pub fn files(&self) -> &[String] {
         self.imp().files.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
-                handle.borrow().as_ref()
+                handle.as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
@@ -470,7 +471,7 @@ impl PkgObject {
     pub fn backup(&self) -> &[PkgBackup] {
         self.imp().backup.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
-                handle.borrow().as_ref()
+                handle.as_ref()
                     .and_then(|handle| self.pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
@@ -498,7 +499,7 @@ impl PkgObject {
 
     pub fn hashes(&self) -> PkgHashes {
         Self::with_alpm_handle(|handle| {
-            handle.borrow().as_ref()
+            handle.as_ref()
                 .and_then(|handle| self.sync_pkg(handle))
                 .map(|pkg| PkgHashes::new(pkg.base64_sig(), pkg.sha256sum(), pkg.md5sum()))
                 .unwrap_or_default()
@@ -584,7 +585,7 @@ impl PkgObject {
     //---------------------------------------
     pub fn has_local_satisfier(search_term: &str) -> bool {
         Self::with_alpm_handle(|handle| {
-            handle.borrow().as_ref()
+            handle.as_ref()
                 .and_then(|handle| handle.localdb().pkgs().find_satisfier(search_term))
                 .is_some()
         })
@@ -592,7 +593,6 @@ impl PkgObject {
 
     pub fn find_satisfier(search_term: &str, pkg_model: &gio::ListStore) -> Option<Self> {
         Self::with_alpm_handle(|handle| {
-            let handle = handle.borrow();
             let handle = handle.as_ref()?;
 
             let db_pkg = handle.localdb().pkgs().find_satisfier(search_term)
