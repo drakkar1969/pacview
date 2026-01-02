@@ -373,7 +373,7 @@ impl PkgObject {
     //---------------------------------------
     // Alpm handle associated function
     //---------------------------------------
-    pub fn with_alpm_handle<F, R>(f: F) -> R
+    fn with_alpm_handle<F, R>(f: F) -> R
     where F: FnOnce(&Option<Alpm>) -> R {
         thread_local! {
             static ALPM_HANDLE: Option<Alpm> = alpm_with_conf(Pacman::config()).ok();
@@ -569,7 +569,7 @@ impl PkgObject {
     //---------------------------------------
     // Date to string associated function
     //---------------------------------------
-    pub fn date_to_string(date: i64) -> String {
+    fn date_to_string(date: i64) -> String {
         if date == 0 {
             String::new()
         } else {
