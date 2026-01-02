@@ -389,12 +389,9 @@ impl PackageView {
     }
 
     //---------------------------------------
-    // Do search async helper function
+    // Do search helper function
     //---------------------------------------
-    async fn do_search_async(
-        term: &str,
-        prop: SearchProp
-    ) -> Result<Vec<raur::ArcPackage>, raur::Error> {
+    async fn do_search(term: &str, prop: SearchProp) -> Result<Vec<PkgData>, raur::Error> {
         // Static AUR cache variable
         static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
             TokioMutex::new(raur::Cache::default())
@@ -436,13 +433,16 @@ impl PackageView {
         }
 
         // Get AUR package info using cache
-        let aur_pkg_list = handle.cache_info(
+        let pkg_data = handle.cache_info(
             &mut *AUR_CACHE.lock().await,
             &search_names.iter().collect::<Vec<&String>>()
         )
-        .await?;
+        .await?
+        .iter()
+        .map(|pkg| PkgData::from_aur(pkg))
+        .collect();
 
-        Ok(aur_pkg_list)
+        Ok(pkg_data)
     }
 
     //---------------------------------------
@@ -503,17 +503,8 @@ impl PackageView {
                 let result = TokioRuntime::runtime().spawn(
                     async move {
                         tokio::select! {
-                            () = cancel_token_clone.cancelled() => {
-                                Ok(vec![])
-                            }
-
-                            result = Self::do_search_async(&term, prop) => {
-                                result.map(|aur_list| {
-                                    aur_list.iter()
-                                        .map(|pkg| PkgData::from_aur(pkg))
-                                        .collect()
-                                })
-                            }
+                            () = cancel_token_clone.cancelled() => Ok(vec![]),
+                            pkg_data = Self::do_search(&term, prop) => pkg_data
                         }
                     }
                 )
