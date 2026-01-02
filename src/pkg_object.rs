@@ -385,7 +385,7 @@ impl PkgObject {
     //---------------------------------------
     // Get alpm package helper functions
     //---------------------------------------
-    fn pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
+    fn alpm_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
         let data = self.data();
 
         if data.flags.intersects(PkgFlags::INSTALLED) {
@@ -395,7 +395,7 @@ impl PkgObject {
         }
     }
 
-    fn sync_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
+    fn alpm_sync_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
         let data = self.data();
 
         handle.syncdbs().pkg(data.name.as_str()).ok()
@@ -408,7 +408,7 @@ impl PkgObject {
         self.imp().required_by.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
                 handle.as_ref()
-                    .and_then(|handle| self.pkg(handle))
+                    .and_then(|handle| self.alpm_pkg(handle))
                     .map(|pkg| {
                         let mut required_by: Vec<String> = pkg.required_by()
                             .into_iter()
@@ -427,7 +427,7 @@ impl PkgObject {
         self.imp().optional_for.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
                 handle.as_ref()
-                    .and_then(|handle| self.pkg(handle))
+                    .and_then(|handle| self.alpm_pkg(handle))
                     .map(|pkg| {
                         let mut optional_for: Vec<String> = pkg.optional_for()
                             .into_iter()
@@ -446,7 +446,7 @@ impl PkgObject {
         self.imp().files.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
                 handle.as_ref()
-                    .and_then(|handle| self.pkg(handle))
+                    .and_then(|handle| self.alpm_pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
 
@@ -472,7 +472,7 @@ impl PkgObject {
         self.imp().backup.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
                 handle.as_ref()
-                    .and_then(|handle| self.pkg(handle))
+                    .and_then(|handle| self.alpm_pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
 
@@ -500,7 +500,7 @@ impl PkgObject {
     pub fn hashes(&self) -> PkgHashes {
         Self::with_alpm_handle(|handle| {
             handle.as_ref()
-                .and_then(|handle| self.sync_pkg(handle))
+                .and_then(|handle| self.alpm_sync_pkg(handle))
                 .map(|pkg| PkgHashes::new(pkg.base64_sig(), pkg.sha256sum(), pkg.md5sum()))
                 .unwrap_or_default()
         })
