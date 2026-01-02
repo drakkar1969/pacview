@@ -1,4 +1,4 @@
-use std::sync::{LazyLock, OnceLock, RwLock};
+use std::sync::{LazyLock, RwLock};
 use std::path::PathBuf;
 use std::ffi::OsStr;
 use std::fs;
@@ -121,11 +121,11 @@ impl TokioRuntime {
     // Runtime function
     //---------------------------------------
     pub fn runtime() -> &'static Runtime {
-        static RUNTIME: OnceLock<Runtime> = OnceLock::new();
-
-        RUNTIME.get_or_init(|| {
+        static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
             Runtime::new().expect("Failed to set up tokio runtime")
-        })
+        });
+
+        &RUNTIME
     }
 }
 
