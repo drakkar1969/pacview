@@ -24,7 +24,7 @@ pangocairo = "0.21"
 raur = "7"
 rayon = "1"
 regex = "1"
-reqwest = { version = "0.12", features = ["stream"] }
+reqwest = { version = "0.13", features = ["stream"] }
 size = "0.5"
 sourceview5 = { version = "0.10", features = ["v5_18"] }
 strum = { version = "0.27", features = ["derive"] }
