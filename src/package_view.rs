@@ -460,9 +460,7 @@ impl PackageView {
     // Cancel AUR search function
     //---------------------------------------
     fn cancel_aur_search(&self) {
-        let imp = self.imp();
-
-        if let Some(token) = imp.search_cancel_token.take() {
+        if let Some(token) = self.imp().search_cancel_token.take() {
             token.cancel();
         }
     }

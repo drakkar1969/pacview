@@ -133,9 +133,7 @@ impl HistoryList {
     }
 
     pub fn set_current_or_make_last(&self, item: PkgObject) {
-        let imp = self.imp();
-
-        let mut list = imp.list.borrow_mut();
+        let mut list = self.imp().list.borrow_mut();
 
         let current = list.iter().position(|pkg| pkg.name() == item.name()).map_or_else(|| {
             // If current item is not the last one, truncate the list

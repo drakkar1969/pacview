@@ -201,10 +201,8 @@ impl InfoBackupTab {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
-        let imp = self.imp();
-
         // Set compare button visibility
-        imp.compare_button.set_visible(Paths::paccat().is_ok() && Paths::meld().is_ok());
+        self.imp().compare_button.set_visible(Paths::paccat().is_ok() && Paths::meld().is_ok());
     }
 
     //---------------------------------------

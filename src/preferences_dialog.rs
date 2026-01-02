@@ -167,11 +167,9 @@ impl PreferencesDialog {
     // Populate style schemes helper function
     //---------------------------------------
     fn populate_style_schemes(&self, style_manager: &adw::StyleManager) {
-        let imp = self.imp();
-
         let schemes = StyleSchemes::schemes(style_manager.is_dark());
 
-        if let Some(model) = imp.pkgbuild_style_scheme_row.model()
+        if let Some(model) = self.imp().pkgbuild_style_scheme_row.model()
             .and_downcast_ref::<gio::ListStore>() {
                 model.splice(0, model.n_items(), &schemes);
             }

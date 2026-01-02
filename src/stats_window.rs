@@ -112,10 +112,8 @@ impl StatsWindow {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        let imp = self.imp();
-
         // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(
+        self.imp().copy_button.connect_clicked(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
                 let mut output = String::from("## Package Statistics\n|Repository|Packages|Installed|Explicit|Installed Size|\n|---|---|---|---|---|\n");
