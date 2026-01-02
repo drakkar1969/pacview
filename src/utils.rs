@@ -110,9 +110,9 @@ pub struct AURFile;
 
 impl AURFile {
     //---------------------------------------
-    // Check age function
+    // Out of date function
     //---------------------------------------
-    pub fn check_age(aur_file: &Path, update_interval: u64) -> bool {
+    pub fn out_of_date(aur_file: &Path, max_age: u64) -> bool {
         // Get AUR package names file age
         let file_time = fs::metadata(aur_file).ok()
             .and_then(|metadata| metadata.modified().ok())
@@ -122,7 +122,7 @@ impl AURFile {
                 now.duration_since(file_time).ok()
             });
 
-        file_time.is_none_or(|time| time >= Duration::from_hours(update_interval))
+        file_time.is_none_or(|time| time >= Duration::from_hours(max_age))
     }
 
     //---------------------------------------

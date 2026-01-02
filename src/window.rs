@@ -1023,7 +1023,7 @@ impl PacViewWindow {
                             let aur_file = imp.aur_file.borrow().to_owned();
 
                             if let Some(aur_file) = aur_file
-                                && AURFile::check_age(&aur_file, max_age) {
+                                && AURFile::out_of_date(&aur_file, max_age) {
                                     let _ = AURFile::download(&aur_file).await;
                                 }
                         }
