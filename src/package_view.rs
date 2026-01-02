@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
+use std::sync::LazyLock;
 use std::collections::{HashMap, HashSet};
-use std::sync::Arc;
 use std::cmp::Ordering;
 use std::fmt::Write as _;
 
@@ -114,7 +114,6 @@ mod imp {
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
 
-        pub(super) aur_cache: Arc<TokioMutex<raur::Cache>>,
         pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
     }
 
@@ -394,9 +393,13 @@ impl PackageView {
     //---------------------------------------
     async fn do_search_async(
         term: &str,
-        prop: SearchProp,
-        aur_cache: &Arc<TokioMutex<raur::Cache>>
+        prop: SearchProp
     ) -> Result<Vec<raur::ArcPackage>, raur::Error> {
+        // Static AUR cache variable
+        static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
+            TokioMutex::new(raur::Cache::default())
+        });
+
         // Return if query arg too small
         if term.len() < 2 {
             return Err(raur::Error::Aur(String::from("Query arg too small.")))
@@ -434,7 +437,7 @@ impl PackageView {
 
         // Get AUR package info using cache
         let aur_pkg_list = handle.cache_info(
-            &mut *aur_cache.lock().await,
+            &mut *AUR_CACHE.lock().await,
             &search_names.iter().collect::<Vec<&String>>()
         )
         .await?;
@@ -484,9 +487,6 @@ impl PackageView {
         // Show search spinner
         search_bar.set_searching(true);
 
-        // Get AUR cache (clone Arc)
-        let aur_cache = Arc::clone(&imp.aur_cache);
-
         // Create and store search cancel token
         let cancel_token = CancellationToken::new();
 
@@ -507,7 +507,7 @@ impl PackageView {
                                 Ok(vec![])
                             }
 
-                            result = Self::do_search_async(&term, prop, &aur_cache) => {
+                            result = Self::do_search_async(&term, prop) => {
                                 result.map(|aur_list| {
                                     aur_list.iter()
                                         .map(|pkg| PkgData::from_aur(pkg))
