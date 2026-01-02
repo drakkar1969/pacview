@@ -1,5 +1,8 @@
 use std::sync::{LazyLock, RwLock};
 use std::path::PathBuf;
+use std::fs;
+
+use gtk::glib;
 
 use which::which_global;
 
@@ -92,5 +95,27 @@ impl Pacman {
         let mut pacman_cache = Self::cache().write().unwrap();
 
         *pacman_cache = new_cache;
+    }
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: AurDB
+//------------------------------------------------------------------------------
+pub struct AurDB;
+
+impl AurDB {
+   //---------------------------------------
+    // Path function
+    //---------------------------------------
+    pub fn path() -> &'static Option<PathBuf> {
+        static AUR_FILE: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
+            let cache_dir = glib::user_cache_dir().join("pacview");
+
+            fs::create_dir_all(&cache_dir)
+                .map(|()| cache_dir.join("aur_packages"))
+                .ok()
+        });
+
+        &AUR_FILE
     }
 }

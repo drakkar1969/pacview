@@ -20,7 +20,7 @@ use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debounc
 
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::vars::{Paths, Pacman};
+use crate::vars::{Paths, Pacman, AurDB};
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::SearchBar;
@@ -90,8 +90,6 @@ mod imp {
 
         #[property(get, set, builder(SortProp::default()))]
         package_sort_prop: Cell<SortProp>,
-
-        pub(super) aur_file: RefCell<Option<PathBuf>>,
 
         pub(super) repo_names: RefCell<Vec<String>>,
 
@@ -204,9 +202,7 @@ mod imp {
             klass.install_action_async("win.update-aur-database", None, async |window, _, _| {
                 let imp = window.imp();
 
-                let aur_file = imp.aur_file.borrow().to_owned();
-
-                if let Some(aur_file) = aur_file {
+                if let Some(aur_file) = AurDB::path() {
                     imp.update_row.borrow().set_state(FilterRowState::Reset);
                     imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
@@ -790,17 +786,8 @@ impl PacViewWindow {
         // Store repo names
         imp.repo_names.replace(repo_names);
 
-        // Get AUR file (create cache dir)
-        let cache_dir = user_cache_dir.join("pacview");
-        
-        let aur_file = fs::create_dir_all(&cache_dir)
-            .map(|()| cache_dir.join("aur_packages"))
-            .ok();
-
-        imp.aur_file.replace(aur_file.clone());
-
         // If AUR database download is enabled and AUR file does not exist, download it
-        if let Some(file) = aur_file
+        if let Some(file) = AurDB::path().as_ref()
             .filter(|file| {
                 imp.prefs_dialog.borrow().aur_database_download()
                     && fs::metadata(file).is_err()
@@ -890,7 +877,6 @@ impl PacViewWindow {
 
         // Get AUR package names file
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
-        let aur_file = imp.aur_file.borrow().to_owned();
 
         // Create async channel
         let (sender, receiver) = async_channel::bounded(1);
@@ -902,7 +888,7 @@ impl PacViewWindow {
 
             // Load AUR package names from file if AUR download is enabled in preferences
             let aur_names: HashSet<String> = if aur_download {
-                aur_file
+                AurDB::path().as_ref()
                     .and_then(|aur_file| fs::read_to_string(aur_file).ok())
                     .map(|s| s.lines().map(ToOwned::to_owned).collect())
                     .unwrap_or_default()
@@ -1020,9 +1006,7 @@ impl PacViewWindow {
                         };
 
                         if aur_download {
-                            let aur_file = imp.aur_file.borrow().to_owned();
-
-                            if let Some(aur_file) = aur_file
+                            if let Some(aur_file) = AurDB::path()
                                 && AURFile::out_of_date(&aur_file, max_age) {
                                     let _ = AURFile::download(&aur_file).await;
                                 }
