@@ -10,8 +10,10 @@ use glib::RustClosure;
 use glib::subclass::Signal;
 use gdk::{Key, ModifierType};
 
-use crate::text_widget::{TextWidget, LINK_SPACER};
-use crate::enum_traits::EnumExt;
+use crate::{
+    text_widget::{TextWidget, LINK_SPACER},
+    enum_traits::EnumExt
+};
 
 //------------------------------------------------------------------------------
 // ENUM: PropID

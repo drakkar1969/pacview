@@ -7,9 +7,11 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
-use crate::groups_object::GroupsObject;
-use crate::enum_traits::EnumExt;
-use crate::pkg_object::PkgObject;
+use crate::{
+    groups_object::GroupsObject,
+    enum_traits::EnumExt,
+    pkg_object::PkgObject
+};
 
 //------------------------------------------------------------------------------
 // ENUM: GroupsSearchMode

@@ -6,9 +6,11 @@ use gtk::prelude::*;
 use gtk::{glib, gio};
 use glib::clone;
 
-use crate::pkg_object::PkgObject;
-use crate::backup_object::{BackupObject, BackupStatus};
-use crate::utils::{Paths, AppInfoExt};
+use crate::{
+    pkg_object::PkgObject,
+    backup_object::{BackupObject, BackupStatus},
+    utils::{Paths, AppInfoExt}
+};
 
 //------------------------------------------------------------------------------
 // MODULE: InfoBackupTab

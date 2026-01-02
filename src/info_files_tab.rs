@@ -6,8 +6,10 @@ use gtk::prelude::*;
 use gtk::{glib, gio};
 use glib::clone;
 
-use crate::pkg_object::PkgObject;
-use crate::utils::AppInfoExt;
+use crate::{
+    pkg_object::PkgObject,
+    utils::AppInfoExt
+};
 
 //------------------------------------------------------------------------------
 // MODULE: InfoFilesTab

@@ -12,9 +12,11 @@ use fancy_regex::Regex as FancyRegex;
 use regex::Regex;
 use url::Url;
 
-use crate::APP_ID;
-use crate::info_row::PropType;
-use crate::utils::PangoUtils;
+use crate::{
+    APP_ID,
+    info_row::PropType,
+    utils::PangoUtils
+};
 
 //------------------------------------------------------------------------------
 // CONST variables

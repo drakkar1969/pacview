@@ -3,8 +3,10 @@ use gtk::prelude::{GObjectPropertyExpressionExt, WidgetExt};
 use gtk::glib;
 use glib::closure;
 
-use crate::pkg_data::PkgFlags;
-use crate::pkg_object::PkgObject;
+use crate::{
+    pkg_data::PkgFlags,
+    pkg_object::PkgObject
+};
 
 //------------------------------------------------------------------------------
 // MODULE: PackageItem

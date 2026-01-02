@@ -7,11 +7,13 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
-use crate::pkg_data::PkgFlags;
-use crate::pkg_object::PkgObject;
-use crate::backup_object::{BackupObject, BackupStatus};
-use crate::enum_traits::EnumExt;
-use crate::utils::{Paths, AppInfoExt};
+use crate::{
+    pkg_data::PkgFlags,
+    pkg_object::PkgObject,
+    backup_object::{BackupObject, BackupStatus},
+    enum_traits::EnumExt,
+    utils::{Paths, AppInfoExt}
+};
 
 //------------------------------------------------------------------------------
 // ENUM: BackupSearchMode

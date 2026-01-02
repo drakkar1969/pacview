@@ -7,11 +7,13 @@ use glib::clone;
 
 use strum::FromRepr;
 
-use crate::APP_ID;
-use crate::window::PacViewWindow;
-use crate::search_bar::{SearchMode, SearchProp};
-use crate::utils::StyleSchemes;
-use crate::enum_traits::EnumExt;
+use crate::{
+    APP_ID,
+    window::PacViewWindow,
+    search_bar::{SearchMode, SearchProp},
+    utils::StyleSchemes,
+    enum_traits::EnumExt
+};
 
 //------------------------------------------------------------------------------
 // ENUM: ColorScheme

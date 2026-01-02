@@ -10,8 +10,10 @@ use gdk::{Key, ModifierType};
 use regex::Regex;
 use rayon::prelude::*;
 
-use crate::utils::Pacman;
-use crate::log_object::{LogLine, LogObject};
+use crate::{
+    utils::Pacman,
+    log_object::{LogLine, LogObject}
+};
 
 //------------------------------------------------------------------------------
 // MODULE: LogWindow

@@ -12,8 +12,10 @@ use gdk::{Key, ModifierType};
 
 use strum::{FromRepr, EnumIter, IntoEnumIterator};
 
-use crate::search_tag::SearchTag;
-use crate::enum_traits::EnumExt;
+use crate::{
+    search_tag::SearchTag,
+    enum_traits::EnumExt
+};
 
 //------------------------------------------------------------------------------
 // ENUM: SearchMode

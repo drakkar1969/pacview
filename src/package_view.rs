@@ -14,13 +14,15 @@ use tokio_util::sync::CancellationToken;
 use raur::Raur;
 use futures::future;
 
-use crate::package_item::PackageItem;
-use crate::pkg_data::{PkgFlags, PkgData};
-use crate::pkg_object::PkgObject;
-use crate::search_bar::{SearchBar, SearchMode, SearchProp};
-use crate::info_pane::InfoPane;
-use crate::utils::TokioRuntime;
-use crate::enum_traits::EnumExt;
+use crate::{
+    package_item::PackageItem,
+    pkg_data::{PkgFlags, PkgData},
+    pkg_object::PkgObject,
+    search_bar::{SearchBar, SearchMode, SearchProp},
+    info_pane::InfoPane,
+    utils::TokioRuntime,
+    enum_traits::EnumExt
+};
 
 //------------------------------------------------------------------------------
 // ENUM: PackageViewState

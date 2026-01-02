@@ -11,18 +11,20 @@ use gtk::prelude::*;
 use glib::closure_local;
 use glib::clone;
 
-use crate::package_view::PackageView;
-use crate::text_widget::{TextWidget, INSTALLED_LABEL};
-use crate::info_files_tab::InfoFilesTab;
-use crate::info_log_tab::InfoLogTab;
-use crate::info_cache_tab::InfoCacheTab;
-use crate::info_backup_tab::InfoBackupTab;
-use crate::info_row::{PropID, PropType, ValueType, InfoRow};
-use crate::history_list::HistoryList;
-use crate::pkg_data::{PkgFlags, PkgValidation};
-use crate::pkg_object::PkgObject;
-use crate::source_window::SourceWindow;
-use crate::hash_window::HashWindow;
+use crate::{
+    package_view::PackageView,
+    text_widget::{TextWidget, INSTALLED_LABEL},
+    info_files_tab::InfoFilesTab,
+    info_log_tab::InfoLogTab,
+    info_cache_tab::InfoCacheTab,
+    info_backup_tab::InfoBackupTab,
+    info_row::{PropID, PropType, ValueType, InfoRow},
+    history_list::HistoryList,
+    pkg_data::{PkgFlags, PkgValidation},
+    pkg_object::PkgObject,
+    source_window::SourceWindow,
+    hash_window::HashWindow
+};
 
 //------------------------------------------------------------------------------
 // MODULE: InfoPane

@@ -9,9 +9,11 @@ use gdk::{Key, ModifierType};
 use size::Size;
 use heck::ToTitleCase;
 
-use crate::pkg_data::PkgFlags;
-use crate::pkg_object::PkgObject;
-use crate::stats_object::StatsObject;
+use crate::{
+    pkg_data::PkgFlags,
+    pkg_object::PkgObject,
+    stats_object::StatsObject
+};
 
 //------------------------------------------------------------------------------
 // MODULE: StatsWindow

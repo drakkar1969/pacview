@@ -11,9 +11,11 @@ use gdk::{Key, ModifierType};
 
 use sourceview5::prelude::*;
 
-use crate::APP_ID;
-use crate::pkg_object::PkgObject;
-use crate::utils::{PangoUtils, StyleSchemes, TokioRuntime};
+use crate::{
+    APP_ID,
+    pkg_object::PkgObject,
+    utils::{PangoUtils, StyleSchemes, TokioRuntime}
+};
 
 //------------------------------------------------------------------------------
 // MODULE: SourceWindow

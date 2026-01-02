@@ -11,8 +11,10 @@ use gdk::{Key, ModifierType};
 
 use size::Size;
 
-use crate::cache_object::CacheObject;
-use crate::utils::{Pacman, AppInfoExt};
+use crate::{
+    cache_object::CacheObject,
+    utils::{Pacman, AppInfoExt}
+};
 
 //------------------------------------------------------------------------------
 // MODULE: CacheWindow

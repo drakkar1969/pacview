@@ -18,22 +18,24 @@ use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 
-use crate::APP_ID;
-use crate::PacViewApplication;
-use crate::pkg_data::{PkgFlags, PkgData};
-use crate::pkg_object::PkgObject;
-use crate::search_bar::SearchBar;
-use crate::package_view::{PackageView, PackageViewState, SortProp};
-use crate::info_pane::InfoPane;
-use crate::filter_row::{FilterRow, FilterRowState};
-use crate::stats_window::StatsWindow;
-use crate::backup_window::BackupWindow;
-use crate::groups_window::GroupsWindow;
-use crate::log_window::LogWindow;
-use crate::cache_window::CacheWindow;
-use crate::config_dialog::ConfigDialog;
-use crate::preferences_dialog::PreferencesDialog;
-use crate::utils::{Paths, Pacman, AurDBFile, AsyncCommand};
+use crate::{
+    APP_ID,
+    PacViewApplication,
+    pkg_data::{PkgFlags, PkgData},
+    pkg_object::PkgObject,
+    search_bar::SearchBar,
+    package_view::{PackageView, PackageViewState, SortProp},
+    info_pane::InfoPane,
+    filter_row::{FilterRow, FilterRowState},
+    stats_window::StatsWindow,
+    backup_window::BackupWindow,
+    groups_window::GroupsWindow,
+    log_window::LogWindow,
+    cache_window::CacheWindow,
+    config_dialog::ConfigDialog,
+    preferences_dialog::PreferencesDialog,
+    utils::{Paths, Pacman, AurDBFile, AsyncCommand}
+};
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
