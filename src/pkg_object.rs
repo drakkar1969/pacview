@@ -6,7 +6,8 @@ use gtk::{glib, gio};
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
-use alpm_utils::DbListExt;
+use alpm::{Alpm, Package};
+use alpm_utils::{alpm_with_conf, DbListExt};
 use regex::Regex;
 use size::Size;
 use rayon::prelude::*;
@@ -373,10 +374,9 @@ impl PkgObject {
     // Alpm handle associated function
     //---------------------------------------
     pub fn with_alpm_handle<F, R>(f: F) -> R
-    where F: FnOnce(&Option<alpm::Alpm>) -> R {
+    where F: FnOnce(&Option<Alpm>) -> R {
         thread_local! {
-            static ALPM_HANDLE: Option<alpm::Alpm> =
-                alpm_utils::alpm_with_conf(Pacman::config()).ok();
+            static ALPM_HANDLE: Option<Alpm> = alpm_with_conf(Pacman::config()).ok();
         }
 
         ALPM_HANDLE.with(f)
@@ -385,7 +385,7 @@ impl PkgObject {
     //---------------------------------------
     // Get alpm package helper functions
     //---------------------------------------
-    fn pkg<'a>(&self, handle: &'a alpm::Alpm) -> Option<&'a alpm::Package> {
+    fn pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
         let data = self.data();
 
         if data.flags.intersects(PkgFlags::INSTALLED) {
@@ -395,7 +395,7 @@ impl PkgObject {
         }
     }
 
-    fn sync_pkg<'a>(&self, handle: &'a alpm::Alpm) -> Option<&'a alpm::Package> {
+    fn sync_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
         let data = self.data();
 
         handle.syncdbs().pkg(data.name.as_str()).ok()
