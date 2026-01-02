@@ -196,8 +196,8 @@ mod imp {
             });
 
             // Check for updates action
-            klass.install_action("win.check-updates", None, |window, _, _| {
-                window.get_package_updates();
+            klass.install_action_async("win.check-updates", None, async |window, _, _| {
+                window.get_package_updates().await;
             });
 
             // Update AUR database action
@@ -970,6 +970,7 @@ impl PacViewWindow {
             Ok(())
         });
 
+        // Attach package load task receiver
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
             async move {
@@ -987,7 +988,7 @@ impl PacViewWindow {
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
-                // Attach receiver for package load task
+                // Process task messages
                 while let Ok((pkg_data, is_local_data)) = receiver.recv().await {
                     // Add packages to package view
                     let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
@@ -1009,7 +1010,7 @@ impl PacViewWindow {
                 match result {
                     Ok(()) => {
                         // Get package updates
-                        window.get_package_updates();
+                        window.get_package_updates().await;
 
                         // Check AUR package names file age
                         let (max_age, aur_download) = {
@@ -1049,88 +1050,83 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: get package updates
     //---------------------------------------
-    fn get_package_updates(&self) {
+    async fn get_package_updates(&self) {
         let imp = self.imp();
 
-        let update_row = imp.update_row.borrow().clone();
+        // Reset sidebar update count
+        let update_row = imp.update_row.borrow();
         update_row.set_state(FilterRowState::Checking);
 
-        // Spawn async process to check for updates
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            async move {
-                let mut update_str = String::new();
-                let mut error_msg: Option<String> = None;
+        // Check for pacman updates
+        let mut update_str = String::new();
+        let mut error_msg: Option<String> = None;
 
-                // Check for pacman updates async
-                let pacman_handle = AsyncCommand::run("/usr/bin/checkupdates", &[""]);
+        let pacman_handle = AsyncCommand::run("/usr/bin/checkupdates", &[""]);
 
-                let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
-                    // Check for AUR updates async
-                    let aur_handle = AsyncCommand::run(paru_path, &["-Qu", "--mode=ap"]);
+        let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
+            // Check for AUR updates
+            let aur_handle = AsyncCommand::run(paru_path, &["-Qu", "--mode=ap"]);
 
-                    join!(pacman_handle, aur_handle)
-                } else {
-                    (pacman_handle.await, Ok((None, String::new())))
-                };
+            join!(pacman_handle, aur_handle)
+        } else {
+            (pacman_handle.await, Ok((None, String::new())))
+        };
 
-                // Get pacman update results
-                match pacman_res {
-                    Ok((Some(0), stdout)) => {
-                        update_str.push_str(&stdout);
-                    },
-                    Ok((Some(1), _)) => {
-                        error_msg = Some(String::from("Failed to retrieve pacman updates: checkupdates error"));
-                    },
-                    Err(error) => {
-                        error_msg = Some(format!("Failed to retrieve pacman updates: {error}"));
-                    }
-                    _ => {}
-                }
-
-                // Get AUR update results
-                match aur_res {
-                    Ok((Some(0), stdout)) => {
-                        update_str.push_str(&stdout);
-                    },
-                    Err(error) if error_msg.is_none() => {
-                        error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
-                    },
-                    _ => {}
-                }
-
-                // Create map with updates (name, version)
-                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"([a-zA-Z0-9@._+-]+)[ \t]+[a-zA-Z0-9@._+-:]+[ \t]+->[ \t]+([a-zA-Z0-9@._+-:]+)")
-                        .expect("Failed to compile Regex")
-                });
-
-                let update_map: HashMap<String, String> = update_str.lines()
-                    .filter_map(|s| {
-                        EXPR.captures(s)
-                            .map(|caps| (caps[1].to_string(), caps[2].to_string()))
-                    })
-                    .collect();
-
-                // Update status of packages with updates
-                if !update_map.is_empty() {
-                    imp.package_view.show_updates(&update_map);
-                }
-
-                // Update info pane package if it has update
-                if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name())) {
-                    imp.info_pane.update_display();
-                }
-
-                // Show update status/count in sidebar
-                update_row.set_state(FilterRowState::Updates(error_msg, update_map.len() as u32));
-
-                // If update row is selected, refresh package status filter
-                if update_row.is_selected() {
-                    imp.package_view.status_filter_changed(update_row.status_id());
-                }
+        // Get pacman update results
+        match pacman_res {
+            Ok((Some(0), stdout)) => {
+                update_str.push_str(&stdout);
+            },
+            Ok((Some(1), _)) => {
+                error_msg = Some(String::from("Failed to retrieve pacman updates: checkupdates error"));
+            },
+            Err(error) => {
+                error_msg = Some(format!("Failed to retrieve pacman updates: {error}"));
             }
-        ));
+            _ => {}
+        }
+
+        // Get AUR update results
+        match aur_res {
+            Ok((Some(0), stdout)) => {
+                update_str.push_str(&stdout);
+            },
+            Err(error) if error_msg.is_none() => {
+                error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
+            },
+            _ => {}
+        }
+
+        // Create map with updates (name, version)
+        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"([a-zA-Z0-9@._+-]+)[ \t]+[a-zA-Z0-9@._+-:]+[ \t]+->[ \t]+([a-zA-Z0-9@._+-:]+)")
+                .expect("Failed to compile Regex")
+        });
+
+        let update_map: HashMap<String, String> = update_str.lines()
+            .filter_map(|s| {
+                EXPR.captures(s)
+                    .map(|caps| (caps[1].to_string(), caps[2].to_string()))
+            })
+            .collect();
+
+        // Update status of packages with updates
+        if !update_map.is_empty() {
+            imp.package_view.show_updates(&update_map);
+        }
+
+        // Update info pane package if it has update
+        if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name())) {
+            imp.info_pane.update_display();
+        }
+
+        // Show update status/count in sidebar
+        update_row.set_state(FilterRowState::Updates(error_msg, update_map.len() as u32));
+
+        // If update row is selected, refresh package status filter
+        if update_row.is_selected() {
+            imp.package_view.status_filter_changed(update_row.status_id());
+        }
     }
 
     //---------------------------------------
