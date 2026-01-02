@@ -1,10 +1,18 @@
 use std::sync::{LazyLock, RwLock};
 use std::path::PathBuf;
 use std::fs;
+use std::io;
+use std::time::Duration;
 
 use gtk::glib;
 
 use which::which_global;
+use tokio::fs::File;
+use tokio_util::io::StreamReader;
+use futures_util::TryStreamExt;
+use async_compression::tokio::bufread::GzipDecoder;
+
+use crate::utils::TokioRuntime;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -99,12 +107,12 @@ impl Pacman {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: AurDB
+// STRUCT: AurDBFile
 //------------------------------------------------------------------------------
-pub struct AurDB;
+pub struct AurDBFile;
 
-impl AurDB {
-   //---------------------------------------
+impl AurDBFile {
+    //---------------------------------------
     // Path function
     //---------------------------------------
     pub fn path() -> &'static Option<PathBuf> {
@@ -117,5 +125,57 @@ impl AurDB {
         });
 
         &AUR_FILE
+    }
+
+    //---------------------------------------
+    // Out of date function
+    //---------------------------------------
+    pub fn out_of_date(max_age: u64) -> bool {
+        // Get AUR package names file age
+        let file_time = Self::path().as_ref()
+            .and_then(|aur_file| fs::metadata(aur_file).ok())
+            .and_then(|metadata| metadata.modified().ok())
+            .and_then(|file_time| {
+                let now = std::time::SystemTime::now();
+
+                now.duration_since(file_time).ok()
+            });
+
+        file_time.is_none_or(|time| time >= Duration::from_hours(max_age))
+    }
+
+    //---------------------------------------
+    // Download async function
+    //---------------------------------------
+    pub async fn download() -> Result<(), io::Error> {
+        let aur_file = Self::path().as_ref()
+            .ok_or_else(|| io::Error::other("Failed to retrieve AUR database path"))?;
+
+        // Spawn tokio task to download AUR file
+        TokioRuntime::runtime().spawn(
+            async move {
+                let response = reqwest::Client::new()
+                    .get("https://aur.archlinux.org/packages.gz")
+                    .timeout(Duration::from_secs(5))
+                    .send()
+                    .await
+                    .map_err(io::Error::other)?;
+
+                let stream = response
+                    .bytes_stream()
+                    .map_err(io::Error::other);
+
+                let stream_reader = StreamReader::new(stream);
+                let mut decoder = GzipDecoder::new(stream_reader);
+
+                let mut out_file = File::create(aur_file).await?;
+
+                tokio::io::copy(&mut decoder, &mut out_file).await?;
+
+                Ok::<(), io::Error>(())
+            }
+        )
+        .await
+        .expect("Failed to complete tokio task")
     }
 }

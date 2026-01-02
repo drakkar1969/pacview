@@ -20,7 +20,7 @@ use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debounc
 
 use crate::APP_ID;
 use crate::PacViewApplication;
-use crate::vars::{Paths, Pacman, AurDB};
+use crate::vars::{Paths, Pacman, AurDBFile};
 use crate::pkg_data::{PkgFlags, PkgData};
 use crate::pkg_object::PkgObject;
 use crate::search_bar::SearchBar;
@@ -34,7 +34,7 @@ use crate::log_window::LogWindow;
 use crate::cache_window::CacheWindow;
 use crate::config_dialog::ConfigDialog;
 use crate::preferences_dialog::PreferencesDialog;
-use crate::utils::{AsyncCommand, AURFile};
+use crate::utils::AsyncCommand;
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -202,13 +202,13 @@ mod imp {
             klass.install_action_async("win.update-aur-database", None, async |window, _, _| {
                 let imp = window.imp();
 
-                if let Some(aur_file) = AurDB::path() {
+                if AurDBFile::path().is_some() {
                     imp.update_row.borrow().set_state(FilterRowState::Reset);
                     imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
                     // Spawn tokio task to download AUR package names file
-                    let _ = AURFile::download(&aur_file).await;
+                    let _ = AurDBFile::download().await;
 
                     // Refresh packages
                     gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
@@ -787,10 +787,10 @@ impl PacViewWindow {
         imp.repo_names.replace(repo_names);
 
         // If AUR database download is enabled and AUR file does not exist, download it
-        if let Some(file) = AurDB::path().as_ref()
-            .filter(|file| {
+        if AurDBFile::path().as_ref()
+            .is_some_and(|aur_file| {
                 imp.prefs_dialog.borrow().aur_database_download()
-                    && fs::metadata(file).is_err()
+                    && fs::metadata(aur_file).is_err()
             }) {
                 imp.package_view.set_state(PackageViewState::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
@@ -798,7 +798,7 @@ impl PacViewWindow {
                 glib::spawn_future_local(clone!(
                     #[weak(rename_to = window)] self,
                     async move {
-                        let _ = AURFile::download(&file).await;
+                        let _ = AurDBFile::download().await;
 
                         window.alpm_load_packages(paru_repos);
                     }
@@ -888,7 +888,7 @@ impl PacViewWindow {
 
             // Load AUR package names from file if AUR download is enabled in preferences
             let aur_names: HashSet<String> = if aur_download {
-                AurDB::path().as_ref()
+                AurDBFile::path().as_ref()
                     .and_then(|aur_file| fs::read_to_string(aur_file).ok())
                     .map(|s| s.lines().map(ToOwned::to_owned).collect())
                     .unwrap_or_default()
@@ -1005,11 +1005,8 @@ impl PacViewWindow {
                             (prefs_dialog.aur_database_age() as u64, prefs_dialog.aur_database_download())
                         };
 
-                        if aur_download {
-                            if let Some(aur_file) = AurDB::path()
-                                && AURFile::out_of_date(&aur_file, max_age) {
-                                    let _ = AURFile::download(&aur_file).await;
-                                }
+                        if aur_download && AurDBFile::out_of_date(max_age) {
+                            let _ = AurDBFile::download().await;
                         }
                     },
                     Err(error) => {
@@ -1038,8 +1035,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Reset sidebar update count
-        let update_row = imp.update_row.borrow();
-        update_row.set_state(FilterRowState::Checking);
+        imp.update_row.borrow().set_state(FilterRowState::Checking);
 
         // Check for pacman updates
         let mut update_str = String::new();
@@ -1105,6 +1101,8 @@ impl PacViewWindow {
         }
 
         // Show update status/count in sidebar
+        let update_row = imp.update_row.borrow();
+
         update_row.set_state(FilterRowState::Updates(error_msg, update_map.len() as u32));
 
         // If update row is selected, refresh package status filter
