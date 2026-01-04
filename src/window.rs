@@ -919,16 +919,16 @@ impl PacViewWindow {
 
             // Load pacman local packages
             let local_data: Vec<PkgData> = localdb.pkgs().iter()
-                // .filter(|&pkg| syncdbs.pkg(pkg.name()).is_err())
                 .map(|pkg| {
                     let repository = paru_map.get(pkg.name())
                         .map_or_else(|| {
                             if aur_names.contains(pkg.name()) {
                                 "aur"
-                            } else if let Ok(sync_pkg) = syncdbs.pkg(pkg.name()) {
-                                sync_pkg.db().map(alpm::Db::name).unwrap_or_default()
                             } else {
-                                "local"
+                                syncdbs.pkg(pkg.name()).ok()
+                                    .and_then(|sync_pkg| sync_pkg.db())
+                                    .map(alpm::Db::name)
+                                    .unwrap_or("local")
                             }
                         }, |paru_repo| paru_repo);
 
