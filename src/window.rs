@@ -981,9 +981,11 @@ impl PacViewWindow {
 
                     imp.package_view.append_packages(&pkg_chunk);
 
-                    // Hide package view loading spinner
+                    // Hide loading spinner and focus package view
                     if is_local_data {
                         imp.package_view.set_state(PackageViewState::Normal);
+
+                        imp.package_view.view().grab_focus();
                     }
                 }
 
@@ -1019,9 +1021,6 @@ impl PacViewWindow {
                         warning_dialog.present(Some(&window));
                     }
                 }
-
-                // Set focus on package view
-                imp.package_view.view().grab_focus();
             }
         ));
     }
