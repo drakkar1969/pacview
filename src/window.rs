@@ -969,9 +969,6 @@ impl PacViewWindow {
                 // Show package view loading spinner
                 imp.package_view.set_state(PackageViewState::PackageLoad);
 
-                // Clear package view
-                imp.package_view.clear_packages();
-
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
@@ -989,7 +986,7 @@ impl PacViewWindow {
                         .map(PkgObject::new)
                         .collect();
 
-                    imp.package_view.append_packages(&pkg_chunk);
+                    imp.package_view.splice_packages(&pkg_chunk, is_local_data);
 
                     // Hide loading spinner and focus package view
                     if is_local_data {
