@@ -476,48 +476,43 @@ impl BackupWindow {
     //---------------------------------------
     // Clear window
     //---------------------------------------
-    pub fn remove_all(&self) {
+    pub fn clear(&self) {
         self.imp().model.remove_all();
     }
 
     //---------------------------------------
-    // Show window
+    // Populate window
     //---------------------------------------
-    pub fn show(&self, pkg_model: &gio::ListStore) {
+    pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        self.present();
+        // Get backup list
+        let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
+            .flatten()
+            .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+            .flat_map(|pkg| {
+                let pkg_name = pkg.name();
 
-        // Populate if necessary
-        if imp.model.n_items() == 0 {
-            // Get backup list
-            let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
-                .flatten()
-                .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
-                .flat_map(|pkg| {
-                    let pkg_name = pkg.name();
+                pkg.backup().iter()
+                    .map(|backup| BackupObject::new(backup, &pkg_name))
+                    .collect::<Vec<BackupObject>>()
+            })
+            .collect();
 
-                    pkg.backup().iter()
-                        .map(|backup| BackupObject::new(backup, &pkg_name))
-                        .collect::<Vec<BackupObject>>()
-                })
-                .collect();
+        // Populate column view
+        imp.model.splice(0, 0, &backup_list);
 
-            // Populate column view
-            imp.model.splice(0, 0, &backup_list);
+        // Scroll to start
+        glib::idle_add_local_once(clone!(
+            #[weak] imp,
+            move || {
+                let v_adjust = imp.scroll_window.vadjustment();
+                v_adjust.set_value(v_adjust.lower());
+            }
+        ));
 
-            // Scroll to start
-            glib::idle_add_local_once(clone!(
-                #[weak] imp,
-                move || {
-                    let v_adjust = imp.scroll_window.vadjustment();
-                    v_adjust.set_value(v_adjust.lower());
-                }
-            ));
-
-            // Set status dropdown selected item
-            imp.status_dropdown.set_selected(0);
-        }
+        // Set status dropdown selected item
+        imp.status_dropdown.set_selected(0);
     }
 }
 

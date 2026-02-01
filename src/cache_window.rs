@@ -291,41 +291,36 @@ impl CacheWindow {
     //---------------------------------------
     // Clear window
     //---------------------------------------
-    pub fn remove_all(&self) {
+    pub fn clear(&self) {
         self.imp().model.remove_all();
     }
 
     //---------------------------------------
-    // Show window
+    // Populate window
     //---------------------------------------
-    pub fn show(&self) {
+    pub fn populate(&self) {
         let imp = self.imp();
 
-        self.present();
+        // Get cache files
+        imp.model.splice(0, 0, &Pacman::cache().read().unwrap().iter()
+            .map(|file| CacheObject::new(&file.display().to_string()))
+            .collect::<Vec<CacheObject>>()
+        );
 
-        // Populate if necessary
-        if imp.model.n_items() == 0 {
-            // Get cache files
-            imp.model.splice(0, 0, &Pacman::cache().read().unwrap().iter()
-                .map(|file| CacheObject::new(&file.display().to_string()))
-                .collect::<Vec<CacheObject>>()
-            );
-
-            // Get cache size
-            let size = 512u64 * Pacman::config().cache_dir.iter()
-                .map(|dir| {
-                    fs::read_dir(dir).map_or(0, |read_dir| {
-                        read_dir.flatten()
-                            .filter_map(|entry| {
-                                entry.metadata().map(|metadata| metadata.blocks()).ok()
-                            })
-                            .sum()
-                    })
+        // Get cache size
+        let size = 512u64 * Pacman::config().cache_dir.iter()
+            .map(|dir| {
+                fs::read_dir(dir).map_or(0, |read_dir| {
+                    read_dir.flatten()
+                        .filter_map(|entry| {
+                            entry.metadata().map(|metadata| metadata.blocks()).ok()
+                        })
+                        .sum()
                 })
-                .sum::<u64>();
+            })
+            .sum::<u64>();
 
-            imp.size_label.set_label(&format!("Cache Size on Disk: {}", Size::from_bytes(size)));
-        }
+        imp.size_label.set_label(&format!("Cache Size on Disk: {}", Size::from_bytes(size)));
     }
 }
 

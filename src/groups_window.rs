@@ -363,44 +363,39 @@ impl GroupsWindow {
     //---------------------------------------
     // Clear window
     //---------------------------------------
-    pub fn remove_all(&self) {
+    pub fn clear(&self) {
         self.imp().model.remove_all();
     }
 
     //---------------------------------------
-    // Show window
+    // Populate window
     //---------------------------------------
-    pub fn show(&self, pkg_model: &gio::ListStore) {
+    pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        self.present();
+        // Get list of packages with groups
+        let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
+            .flatten()
+            .flat_map(|pkg| {
+                pkg.groups().iter()
+                    .map(|group| {
+                        GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_icon_symbolic(), group)
+                    })
+                    .collect::<Vec<GroupsObject>>()
+            })
+            .collect();
 
-        // Populate if necessary
-        if imp.model.n_items() == 0 {
-            // Get list of packages with groups
-            let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
-                .flatten()
-                .flat_map(|pkg| {
-                    pkg.groups().iter()
-                        .map(|group| {
-                            GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_icon_symbolic(), group)
-                        })
-                        .collect::<Vec<GroupsObject>>()
-                })
-                .collect();
+        // Populate column view
+        imp.model.splice(0, 0, &pkg_list);
 
-            // Populate column view
-            imp.model.splice(0, 0, &pkg_list);
-
-            // Scroll to start
-            glib::idle_add_local_once(clone!(
-                #[weak] imp,
-                move || {
-                    let v_adjust = imp.scroll_window.vadjustment();
-                    v_adjust.set_value(v_adjust.lower());
-                }
-            ));
-        }
+        // Scroll to start
+        glib::idle_add_local_once(clone!(
+            #[weak] imp,
+            move || {
+                let v_adjust = imp.scroll_window.vadjustment();
+                v_adjust.set_value(v_adjust.lower());
+            }
+        ));
     }
 }
 

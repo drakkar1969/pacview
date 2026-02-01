@@ -265,54 +265,49 @@ impl LogWindow {
     //---------------------------------------
     // Clear window
     //---------------------------------------
-    pub fn remove_all(&self) {
+    pub fn clear(&self) {
         self.imp().model.remove_all();
     }
 
     //---------------------------------------
-    // Show window
+    // Populate window
     //---------------------------------------
-    pub fn show(&self) {
+    pub fn populate(&self) {
         let imp = self.imp();
 
-        self.present();
-
-        // Populate if necessary
-        if imp.model.n_items() == 0 {
-            // Read log lines
-            let log_lines: Vec<LogLine> = Pacman::log().read().unwrap().as_ref()
-                .map_or(vec![], |log| {
-                    // Strip ANSI control sequences from log
-                    static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                        Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
-                    });
-
-                    let log = ANSI_EXPR.replace_all(log, "");
-
-                    // Parse log lines
-                    static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                        Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Failed to compile Regex")
-                    });
-
-                    log.par_lines()
-                        .filter_map(|line| {
-                            EXPR.captures(line)
-                                .map(|caps| LogLine {
-                                    date: caps[1].to_string(),
-                                    time: caps[2].to_string(),
-                                    category: caps[3].to_string(),
-                                    message: caps[4].to_string()
-                                })
-                        })
-                        .collect()
+        // Read log lines
+        let log_lines: Vec<LogLine> = Pacman::log().read().unwrap().as_ref()
+            .map_or(vec![], |log| {
+                // Strip ANSI control sequences from log
+                static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
                 });
 
-            // Populate column view
-            imp.model.splice(0, 0, &log_lines.iter().rev()
-                .map(LogObject::new)
-                .collect::<Vec<LogObject>>()
-            );
-        }
+                let log = ANSI_EXPR.replace_all(log, "");
+
+                // Parse log lines
+                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Failed to compile Regex")
+                });
+
+                log.par_lines()
+                    .filter_map(|line| {
+                        EXPR.captures(line)
+                            .map(|caps| LogLine {
+                                date: caps[1].to_string(),
+                                time: caps[2].to_string(),
+                                category: caps[3].to_string(),
+                                message: caps[4].to_string()
+                            })
+                    })
+                    .collect()
+            });
+
+        // Populate column view
+        imp.model.splice(0, 0, &log_lines.iter().rev()
+            .map(LogObject::new)
+            .collect::<Vec<LogObject>>()
+        );
     }
 }
 

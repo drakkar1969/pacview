@@ -237,27 +237,27 @@ mod imp {
             klass.install_action("win.show-backup-files", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.backup_window.borrow().show(&imp.package_view.pkg_model());
+                imp.backup_window.borrow().present();
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
-                window.imp().cache_window.borrow().show();
+                window.imp().cache_window.borrow().present();
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.groups_window.borrow().show(&imp.package_view.pkg_model());
+                imp.groups_window.borrow().present();
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
-                window.imp().log_window.borrow().show();
+                window.imp().log_window.borrow().present();
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_window.borrow().show(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
+                imp.stats_window.borrow().present();
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
@@ -753,11 +753,11 @@ impl PacViewWindow {
         imp.config_dialog.borrow().init(pacman_config);
 
         // Clear windows
-        imp.backup_window.borrow().remove_all();
-        imp.log_window.borrow().remove_all();
-        imp.cache_window.borrow().remove_all();
-        imp.groups_window.borrow().remove_all();
-        imp.stats_window.borrow().remove_all();
+        imp.backup_window.borrow().clear();
+        imp.log_window.borrow().clear();
+        imp.cache_window.borrow().clear();
+        imp.groups_window.borrow().clear();
+        imp.stats_window.borrow().clear();
 
         // Get paru repos
         let mut paru_repos: Vec<(String, PathBuf)> = vec![];
@@ -1002,6 +1002,18 @@ impl PacViewWindow {
 
                 match result {
                     Ok(()) => {
+                        // Populate windows
+                        glib::idle_add_local_once(clone!(
+                            #[weak] imp,
+                            move || {
+                                imp.backup_window.borrow().populate(&imp.package_view.pkg_model());
+                                imp.cache_window.borrow().populate();
+                                imp.groups_window.borrow().populate(&imp.package_view.pkg_model());
+                                imp.log_window.borrow().populate();
+                                imp.stats_window.borrow().populate(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
+                            }
+                        ));
+
                         // Get package updates
                         window.get_package_updates().await;
 
