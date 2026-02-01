@@ -930,8 +930,7 @@ impl PacViewWindow {
                             } else {
                                 syncdbs.pkg(pkg.name()).ok()
                                     .and_then(|sync_pkg| sync_pkg.db())
-                                    .map(alpm::Db::name)
-                                    .unwrap_or("local")
+                                    .map_or("local", alpm::Db::name)
                             }
                         }, |paru_repo| paru_repo);
 
@@ -1003,10 +1002,17 @@ impl PacViewWindow {
                 match result {
                     Ok(()) => {
                         // Populate windows
-                        imp.backup_window.borrow().populate(&imp.package_view.pkg_model()).await;
-                        imp.cache_window.borrow().populate().await;
-                        imp.groups_window.borrow().populate(&imp.package_view.pkg_model()).await;
-                        imp.log_window.borrow().populate().await;
+                        let backup_window = imp.backup_window.borrow().clone();
+                        backup_window.populate(&imp.package_view.pkg_model()).await;
+
+                        let cache_window = imp.cache_window.borrow().clone();
+                        cache_window.populate().await;
+
+                        let groups_window = imp.groups_window.borrow().clone();
+                        groups_window.populate(&imp.package_view.pkg_model()).await;
+
+                        let log_window = imp.log_window.borrow().clone();
+                        log_window.populate().await;
 
                         glib::idle_add_local_once(clone!(
                             #[weak] imp,
