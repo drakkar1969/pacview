@@ -1003,13 +1003,14 @@ impl PacViewWindow {
                 match result {
                     Ok(()) => {
                         // Populate windows
+                        imp.backup_window.borrow().populate(&imp.package_view.pkg_model()).await;
+                        imp.cache_window.borrow().populate().await;
+                        imp.groups_window.borrow().populate(&imp.package_view.pkg_model()).await;
+                        imp.log_window.borrow().populate().await;
+
                         glib::idle_add_local_once(clone!(
                             #[weak] imp,
                             move || {
-                                imp.backup_window.borrow().populate(&imp.package_view.pkg_model());
-                                imp.cache_window.borrow().populate();
-                                imp.groups_window.borrow().populate(&imp.package_view.pkg_model());
-                                imp.log_window.borrow().populate();
                                 imp.stats_window.borrow().populate(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
                             }
                         ));

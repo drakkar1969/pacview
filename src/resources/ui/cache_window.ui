@@ -172,6 +172,25 @@
                 </property>
               </object>
             </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">loading</property>
+                <property name="child">
+                  <object class="AdwStatusPage" id="loading_status">
+                    <property name="title">Loading Cache Files</property>
+                    <property name="paintable">
+                      <object class="AdwSpinnerPaintable">
+                        <property name="widget">loading_status</property>
+                      </object>
+                    </property>
+                    <style>
+                      <class name="compact"/>
+                      <class name="dimmed"/>
+                    </style>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </property>
         <child type="bottom">

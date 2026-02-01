@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::sync::LazyLock;
 use std::fmt::Write as _;
 
@@ -24,7 +25,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::LogWindow)]
     #[template(resource = "/com/github/PacView/ui/log_window.ui")]
     pub struct LogWindow {
         #[template_child]
@@ -51,6 +53,9 @@ mod imp {
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
+
+        #[property(get, set)]
+        loading: Cell<bool>,
     }
 
     //---------------------------------------
@@ -76,6 +81,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for LogWindow {
         //---------------------------------------
         // Constructor
@@ -196,13 +202,34 @@ impl LogWindow {
             }
         ));
 
+        // Loading property notify signal
+        self.connect_loading_notify(|window| {
+            let imp = window.imp();
+
+            imp.stack.set_visible_child_name(
+                if imp.selection.n_items() == 0 {
+                    if window.loading() { "loading" } else { "empty" }
+                } else {
+                    "view"
+                }
+            );
+        });
+
         // Selection items changed signal
         imp.selection.connect_items_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |selection, _, _, _| {
+                let imp = window.imp();
+
                 let n_items = selection.n_items();
 
-                imp.stack.set_visible_child_name(if n_items == 0 { "empty" } else { "view" });
+                imp.stack.set_visible_child_name(
+                    if n_items == 0 {
+                        if window.loading() { "loading" } else { "empty" }
+                    } else {
+                        "view"
+                    }
+                );
 
                 imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
@@ -266,13 +293,15 @@ impl LogWindow {
     // Clear window
     //---------------------------------------
     pub fn clear(&self) {
+        self.set_loading(true);
+
         self.imp().model.remove_all();
     }
 
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub fn populate(&self) {
+    pub async fn populate(&self) {
         let imp = self.imp();
 
         // Read log lines
@@ -308,6 +337,8 @@ impl LogWindow {
             .map(LogObject::new)
             .collect::<Vec<LogObject>>()
         );
+
+        self.set_loading(false);
     }
 }
 

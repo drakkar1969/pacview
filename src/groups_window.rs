@@ -72,6 +72,8 @@ mod imp {
 
         #[property(get, set, builder(GroupsSearchMode::default()))]
         search_mode: Cell<GroupsSearchMode>,
+        #[property(get, set)]
+        loading: Cell<bool>,
     }
 
     //---------------------------------------
@@ -252,10 +254,25 @@ impl GroupsWindow {
             }
         ));
 
+        // Loading property notify signal
+        self.connect_loading_notify(|window| {
+            let imp = window.imp();
+
+            imp.stack.set_visible_child_name(
+                if imp.section_sort_model.n_items() == 0 {
+                    if window.loading() { "loading" } else { "empty" }
+                } else {
+                    "view"
+                }
+            );
+        });
+
         // Section sort model items changed signal
         imp.section_sort_model.connect_items_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |sort_model, _, _, _| {
+                let imp = window.imp();
+
                 let n_items = sort_model.n_items();
                 let mut n_sections = 0;
 
@@ -270,7 +287,13 @@ impl GroupsWindow {
                     }
                 }
 
-                imp.stack.set_visible_child_name(if n_items == 0 { "empty" } else { "view" });
+                imp.stack.set_visible_child_name(
+                    if n_items == 0 {
+                        if window.loading() { "loading" } else { "empty" }
+                    } else {
+                        "view"
+                    }
+                );
 
                 imp.footer_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections == 1 { "" } else { "s" }));
 
@@ -364,13 +387,15 @@ impl GroupsWindow {
     // Clear window
     //---------------------------------------
     pub fn clear(&self) {
+        self.set_loading(true);
+
         self.imp().model.remove_all();
     }
 
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub fn populate(&self, pkg_model: &gio::ListStore) {
+    pub async fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         // Get list of packages with groups
@@ -396,6 +421,8 @@ impl GroupsWindow {
                 v_adjust.set_value(v_adjust.lower());
             }
         ));
+
+        self.set_loading(false);
     }
 }
 

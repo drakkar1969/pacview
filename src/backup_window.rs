@@ -82,6 +82,8 @@ mod imp {
 
         #[property(get, set, builder(BackupSearchMode::default()))]
         search_mode: Cell<BackupSearchMode>,
+        #[property(get, set)]
+        loading: Cell<bool>,
     }
 
     //---------------------------------------
@@ -349,10 +351,25 @@ impl BackupWindow {
             }
         ));
 
+        // Loading property notify signal
+        self.connect_loading_notify(|window| {
+            let imp = window.imp();
+
+            imp.stack.set_visible_child_name(
+                if imp.section_sort_model.n_items() == 0 {
+                    if window.loading() { "loading" } else { "empty" }
+                } else {
+                    "view"
+                }
+            );
+        });
+
         // Section sort model items changed signal
         imp.section_sort_model.connect_items_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |sort_model, _, _, _| {
+                let imp = window.imp();
+
                 let n_items = sort_model.n_items();
                 let mut n_sections = 0;
 
@@ -367,7 +384,13 @@ impl BackupWindow {
                     }
                 }
 
-                imp.stack.set_visible_child_name(if n_items == 0 { "empty" } else { "view" });
+                imp.stack.set_visible_child_name(
+                    if n_items == 0 {
+                        if window.loading() { "loading" } else { "empty" }
+                    } else {
+                        "view"
+                    }
+                );
 
                 imp.footer_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
 
@@ -477,13 +500,15 @@ impl BackupWindow {
     // Clear window
     //---------------------------------------
     pub fn clear(&self) {
+        self.set_loading(true);
+
         self.imp().model.remove_all();
     }
 
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub fn populate(&self, pkg_model: &gio::ListStore) {
+    pub async fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         // Get backup list
@@ -513,6 +538,8 @@ impl BackupWindow {
 
         // Set status dropdown selected item
         imp.status_dropdown.set_selected(0);
+
+        self.set_loading(false);
     }
 }
 
