@@ -20,12 +20,11 @@ searchbar button.toggle:checked image {
 /* Search bar tags */
 searchtag {
 	background: color-mix(in srgb, currentColor 12%, transparent);
-	border-radius: 9999px;
+	border-radius: 6px;
 }
 
 searchtag label {
-	min-height: 1.6em;
-	margin: 0 1.2em;
+	margin: 3px 10px;
 }
 
 /* Sidebar row error button */
