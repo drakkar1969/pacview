@@ -9,13 +9,15 @@
     <property name="title"></property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
+        <property name="top-bar-style">raised</property>
+        <property name="bottom-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
             <child>
               <object class="GtkBox" id="header_box">
-                <property name="margin-top">6</property>
-                <property name="margin-bottom">6</property>
-                <property name="margin-start">20</property>
+                <property name="margin-top">2</property>
+                <property name="margin-bottom">2</property>
+                <property name="margin-start">6</property>
                 <property name="spacing">12</property>
                 <child>
                   <object class="GtkImage" id="header_image">
@@ -32,7 +34,7 @@
                     <property name="yalign">0.5</property>
                     <property name="label">Pacman Cache</property>
                     <style>
-                      <class name="title-3"/>
+                      <class name="title-4"/>
                     </style>
                   </object>
                 </child>
@@ -41,8 +43,8 @@
             <child type="end">
               <object class="GtkBox" id="control_box">
                 <property name="valign">center</property>
-                <property name="margin-top">6</property>
-                <property name="margin-bottom">6</property>
+                <property name="margin-top">2</property>
+                <property name="margin-bottom">2</property>
                 <property name="margin-end">6</property>
                 <property name="spacing">6</property>
                 <child>
@@ -90,12 +92,6 @@
         </child>
         <property name="content">
           <object class="GtkStack" id="stack">
-            <style>
-              <class name="card"/>
-            </style>
-            <property name="margin-top">12</property>
-            <property name="margin-start">24</property>
-            <property name="margin-end">24</property>
             <child>
               <object class="GtkStackPage">
                 <property name="name">view</property>
@@ -105,12 +101,6 @@
                     <property name="vexpand">true</property>
                     <property name="child">
                       <object class="GtkColumnView" id="view">
-                        <style>
-                          <class name="card-list"/>
-                        </style>
-                        <property name="margin-bottom">16</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-end">12</property>
                         <property name="tab-behavior">item</property>
                         <property name="model">
                           <object class="GtkSingleSelection" id="selection">
@@ -195,9 +185,9 @@
         </property>
         <child type="bottom">
           <object class="GtkBox">
-            <property name="margin-start">28</property>
-            <property name="margin-end">28</property>
-            <property name="margin-top">12</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">12</property>
+            <property name="margin-top">10</property>
             <property name="margin-bottom">10</property>
             <property name="spacing">36</property>
             <child>
