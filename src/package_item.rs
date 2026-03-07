@@ -27,15 +27,9 @@ mod imp {
         #[template_child]
         pub(super) version_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) status_image: TemplateChild<gtk::Image>,
-        #[template_child]
-        pub(super) status_label: TemplateChild<gtk::Label>,
-        #[template_child]
         pub(super) repository_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) size_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) groups_image: TemplateChild<gtk::Image>,
+        pub(super) status_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) groups_label: TemplateChild<gtk::Label>,
     }
@@ -100,12 +94,20 @@ impl PackageItem {
         let imp = self.imp();
 
         imp.name_label.set_label(&pkg.name());
-        imp.status_image.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
-        imp.status_image.set_icon_name(Some(pkg.status_icon_symbolic()));
-        imp.status_label.set_label(pkg.status());
+
         imp.repository_label.set_label(&pkg.repository());
-        imp.size_label.set_label(&pkg.install_size_string());
-        imp.groups_image.set_visible(!pkg.groups().is_empty());
+
+        imp.status_label.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
+        imp.status_label.set_css_classes(
+            if pkg.flags().contains(PkgFlags::ORPHAN) {
+                &["caption-heading", "tag", "warning"]
+            } else {
+                &["caption-heading", "tag", "success"]
+            }
+        );
+        imp.status_label.set_label(pkg.status());
+
+        imp.groups_label.set_visible(!pkg.groups().is_empty());
         imp.groups_label.set_label(&pkg.groups().join(" | "));
     }
 }

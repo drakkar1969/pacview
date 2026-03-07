@@ -49,6 +49,13 @@ label.count-indicator {
 	padding: 0 0.5em;
 }
 
+/* Package view labels */
+label.tag {
+	border-radius: 6px;
+	background: color-mix(in srgb, currentColor 10%, transparent);
+	padding: 3px 10px;
+}
+
 /* Info pane file count indicator */
 label.count-superscript {
 	font-weight: 600;
