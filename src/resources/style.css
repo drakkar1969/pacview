@@ -49,12 +49,6 @@ label.count-indicator {
 	padding: 0 0.5em;
 }
 
-/* Info pane scrolled windows */
-scrolledwindow > undershoot.bottom {
-	background-image: none;
-	box-shadow: none;
-}
-
 /* Info pane file count indicator */
 label.count-superscript {
 	font-weight: 600;
