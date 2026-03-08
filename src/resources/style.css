@@ -87,12 +87,6 @@ button.property.active image {
 	-gtk-icon-transform: rotate(0turn);
 }
 
-/* Info pane property row image */
-image.status-image {
-	border-radius: 50%;
-	background: var(--accent-bg-color);
-}
-
 /* Text widget colors */
 texttag.link {
 	color: var(--accent-color);
@@ -151,15 +145,6 @@ dropdown.round > button.toggle {
 /* Card lists/views */
 listview.card-list {
 	background-color: transparent;
-}
-
-columnview.card-list {
-	background-color: transparent;
-}
-
-columnview.card-list header {
-	margin-top: 6px;
-	margin-bottom: 4px;
 }
 
 textview.card-list border {
