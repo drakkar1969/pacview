@@ -28,7 +28,6 @@
   <gresource prefix="/com/github/PacView/">
     <file compressed="true">style.css</file>
     <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
-    <file compressed="true">icons/pkg-update.svg</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/cache_window/item.ui</file>
