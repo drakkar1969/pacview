@@ -54,13 +54,13 @@ mod imp {
         pub(super) tab_stack: TemplateChild<adw::ViewStack>,
 
         #[template_child]
-        pub(super) info_listbox: TemplateChild<gtk::ListBox>,
+        pub(super) pkgbuild_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) info_pkgbuild_button: TemplateChild<gtk::Button>,
+        pub(super) hashes_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) info_hashes_button: TemplateChild<gtk::Button>,
+        pub(super) copy_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) info_copy_button: TemplateChild<gtk::Button>,
+        pub(super) listbox: TemplateChild<gtk::ListBox>,
 
         #[template_child]
         pub(super) files_tab: TemplateChild<InfoFilesTab>,
@@ -135,9 +135,9 @@ mod imp {
 
             self.tab_switcher.set_sensitive(pkg.is_some());
 
-            self.info_pkgbuild_button.set_sensitive(pkg.is_some());
+            self.pkgbuild_button.set_sensitive(pkg.is_some());
 
-            self.info_hashes_button.set_sensitive(
+            self.hashes_button.set_sensitive(
                 pkg.as_ref().is_some_and(|pkg| {
                     let validation = pkg.validation();
 
@@ -220,29 +220,29 @@ impl InfoPane {
             }
         ));
 
-        // Info PKGBUILD button clicked signal
-        imp.info_pkgbuild_button.connect_clicked(clone!(
+        // PKGBUILD button clicked signal
+        imp.pkgbuild_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
                 infopane.show_pkgbuild();
             }
         ));
 
-        // Info hashes button clicked signal
-        imp.info_hashes_button.connect_clicked(clone!(
+        // Hashes button clicked signal
+        imp.hashes_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
                 infopane.show_hashes();
             }
         ));
 
-        // Info copy button clicked signal
-        imp.info_copy_button.connect_clicked(clone!(
+        // Copy button clicked signal
+        imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
                 let mut output = String::from("## Package Information\n");
 
-                let mut child = infopane.imp().info_listbox.first_child();
+                let mut child = infopane.imp().listbox.first_child();
 
                 while let Some(row) = child.and_downcast::<InfoRow>() {
                     if row.is_visible() {
@@ -338,7 +338,7 @@ impl InfoPane {
             }
         ));
 
-        imp.info_listbox.append(&row);
+        imp.listbox.append(&row);
 
         imp.info_row_map.borrow_mut().insert(id, row);
     }

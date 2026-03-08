@@ -69,16 +69,16 @@
                         <property name="title">Info</property>
                         <property name="icon-name">info-outline-symbolic</property>
                         <property name="child">
-                          <object class="GtkBox" id="info_box">
+                          <object class="GtkBox">
                             <property name="orientation">vertical</property>
                             <property name="spacing">10</property>
                             <child>
-                              <object class="GtkBox" id="info_header_box">
+                              <object class="GtkBox" id="header_box">
                                 <property name="margin-start">28</property>
                                 <property name="margin-end">28</property>
                                 <property name="spacing">12</property>
                                 <child>
-                                  <object class="GtkLabel" id="info_header_label">
+                                  <object class="GtkLabel" id="header_label">
                                     <property name="xalign">0</property>
                                     <property name="yalign">0.5</property>
                                     <property name="label">Package Information</property>
@@ -95,7 +95,7 @@
                                     <property name="valign">center</property>
                                     <property name="spacing">6</property>
                                     <child>
-                                      <object class="GtkButton" id="info_pkgbuild_button">
+                                      <object class="GtkButton" id="pkgbuild_button">
                                         <property name="icon-name">info-pkgbuild-symbolic</property>
                                         <property name="tooltip-text">Show PKGBUILD</property>
                                         <style>
@@ -105,7 +105,7 @@
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkButton" id="info_hashes_button">
+                                      <object class="GtkButton" id="hashes_button">
                                         <property name="icon-name">info-signed-symbolic</property>
                                         <property name="tooltip-text">Show Package Hashes</property>
                                         <style>
@@ -115,7 +115,7 @@
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkButton" id="info_copy_button">
+                                      <object class="GtkButton" id="copy_button">
                                         <property name="icon-name">edit-copy-symbolic</property>
                                         <property name="tooltip-text">Copy Package Information</property>
                                         <style>
@@ -134,7 +134,7 @@
                                 <property name="vexpand">true</property>
                                 <property name="margin-bottom">6</property>
                                 <property name="child">
-                                  <object class="GtkListBox" id="info_listbox">
+                                  <object class="GtkListBox" id="listbox">
                                     <property name="margin-top">12</property>
                                     <property name="margin-bottom">12</property>
                                     <property name="margin-start">24</property>
