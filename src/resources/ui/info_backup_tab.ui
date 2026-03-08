@@ -3,7 +3,7 @@
   <!--// InfoBackupTab template //-->
   <template class="InfoBackupTab" parent="GtkBox">
     <property name="orientation">vertical</property>
-    <property name="spacing">16</property>
+    <property name="spacing">12</property>
     <child>
       <object class="GtkBox" id="header_box">
         <property name="margin-start">28</property>
@@ -18,7 +18,7 @@
                 <property name="label">Backup</property>
                 <property name="valign">baseline-center</property>
                 <style>
-                  <class name="title-4"/>
+                  <class name="heading"/>
                 </style>
               </object>
             </child>
@@ -96,7 +96,6 @@
             </style>
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
-            <property name="margin-top">6</property>
             <property name="margin-bottom">6</property>
             <property name="margin-start">24</property>
             <property name="margin-end">24</property>
