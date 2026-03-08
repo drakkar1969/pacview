@@ -42,7 +42,7 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) view: TemplateChild<gtk::ColumnView>,
+        pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
