@@ -2,25 +2,20 @@
 <interface>
   <template class="GtkListItem">
     <property name="child">
-      <object class="GtkBox">
+      <object class="GtkLabel">
         <property name="margin-top">4</property>
         <property name="margin-bottom">4</property>
         <property name="margin-start">6</property>
         <property name="margin-end">6</property>
-        <property name="spacing">6</property>
-        <child>
-          <object class="GtkLabel">
-            <binding name="label">
-              <lookup name="string" type="GtkStringObject">
-                <lookup name="item">GtkListItem</lookup>
-              </lookup>
-            </binding>
-            <property name="xalign">0</property>
-            <style>
-              <class name="numeric"/>
-            </style>
-          </object>
-        </child>
+        <binding name="label">
+          <lookup name="string" type="GtkStringObject">
+            <lookup name="item">GtkListItem</lookup>
+          </lookup>
+        </binding>
+        <property name="xalign">0</property>
+        <style>
+          <class name="numeric"/>
+        </style>
       </object>
     </property>
   </template>
