@@ -479,13 +479,12 @@ impl InfoPane {
             // Set header bar title
             let pkg_history = imp.pkg_history.borrow();
 
-            let title = if pkg_history.len() > 1 {
-                format!("{}  \u{2022}  {}/{}", pkg.name(), pkg_history.current() + 1, pkg_history.len())
-            } else {
-                pkg.name()
-            };
-
-            imp.title_widget.set_title(&title);
+            if pkg_history.len() > 1 {
+                imp.title_widget.set_title(&format!("{}/{}",
+                    pkg_history.current() + 1,
+                    pkg_history.len()
+                ));
+            }
 
             // Show package information
             imp.name_label.set_label(&pkg.name());
