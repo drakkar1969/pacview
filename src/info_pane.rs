@@ -400,7 +400,7 @@ impl InfoPane {
     //---------------------------------------
     // Display helper functions
     //---------------------------------------
-    fn update_info_listbox(&self, pkg: &PkgObject) {
+    fn update_listbox(&self, pkg: &PkgObject) {
         // Popularity
         self.set_info_row(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
@@ -504,8 +504,8 @@ impl InfoPane {
                 imp.update_label.set_visible(false);
             }
 
-            // Populate info listbox
-            self.update_info_listbox(&pkg);
+            // Populate details listbox
+            self.update_listbox(&pkg);
 
             // Remove delay timer if present
             if let Some(delay_id) = imp.update_delay_id.take() {
