@@ -375,6 +375,12 @@ mod imp {
             let comment_list = self.comment_list.borrow();
 
             for comment in comment_list.as_slice() {
+                let mut attr = pango::AttrInt::new_weight(pango::Weight::Semibold);
+                attr.set_start_index(comment.start);
+                attr.set_end_index(comment.end);
+
+                attr_list.insert(attr);
+
                 let mut attr = pango::AttrColor::new_foreground(red, green, blue);
                 attr.set_start_index(comment.start);
                 attr.set_end_index(comment.end);
@@ -387,7 +393,7 @@ mod imp {
 
                 attr_list.insert(attr);
 
-                let mut attr = pango::AttrFloat::new_scale(0.9);
+                let mut attr = pango::AttrFloat::new_scale(0.75);
                 attr.set_start_index(comment.start);
                 attr.set_end_index(comment.end);
 
