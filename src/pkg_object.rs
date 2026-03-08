@@ -95,10 +95,10 @@ mod imp {
 
         // Read-only properties with getter
         #[property(name = "flags", get = Self::flags, type = PkgFlags)]
-        #[property(name = "version", get = Self::version, type = String)]
 
         // Read-only properties from data fields
         #[property(name = "name", get, type = String, member = name)]
+        #[property(name = "version", get, type = String, member = version)]
         #[property(name = "repository", get, type = String, member = repository)]
         pub(super) data: OnceCell<PkgData>,
 
@@ -134,15 +134,6 @@ mod imp {
 
             self.update_version.borrow().as_ref()
                 .map_or(flags, |_| flags | PkgFlags::UPDATES)
-        }
-
-        fn version(&self) -> String {
-            let version = &self.data.get().unwrap().version;
-
-            self.update_version.borrow().as_ref()
-                .map_or_else(|| version.to_owned(), |update_version| {
-                    version.to_owned() + " \u{2192} " + update_version
-                })
         }
     }
 }
@@ -268,16 +259,6 @@ impl PkgObject {
             PkgFlags::DEPENDENCY => "dependency",
             PkgFlags::OPTIONAL => "optional",
             PkgFlags::ORPHAN => "orphan",
-            _ => ""
-        }
-    }
-
-    pub fn status_icon(&self) -> &str {
-        match self.data().flags {
-            PkgFlags::EXPLICIT => "pkg-explicit",
-            PkgFlags::DEPENDENCY => "pkg-dependency",
-            PkgFlags::OPTIONAL => "pkg-optional",
-            PkgFlags::ORPHAN => "pkg-orphan",
             _ => ""
         }
     }

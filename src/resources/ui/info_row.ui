@@ -50,14 +50,6 @@
             <property name="margin-end">6</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkImage" id="image">
-                <property name="valign">center</property>
-                <style>
-                  <class name="status-image"/>
-                </style>
-              </object>
-            </child>
-            <child>
               <object class="TextWidget" id="value_widget">
                 <property name="hexpand">true</property>
               </object>

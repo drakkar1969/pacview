@@ -1,4 +1,3 @@
-use std::cell::Cell;
 use std::sync::OnceLock;
 use std::marker::PhantomData;
 
@@ -23,12 +22,6 @@ use crate::{
 #[enum_type(name = "PropID")]
 pub enum PropID {
     #[default]
-    #[enum_value(name = "Name")]
-    Name,
-    #[enum_value(name = "Version")]
-    Version,
-    #[enum_value(name = "Description")]
-    Description,
     #[enum_value(name = "Popularity")]
     Popularity,
     #[enum_value(name = "Out of Date")]
@@ -37,10 +30,6 @@ pub enum PropID {
     PackageUrl,
     #[enum_value(name = "URL")]
     Url,
-    #[enum_value(name = "Status")]
-    Status,
-    #[enum_value(name = "Repository")]
-    Repository,
     #[enum_value(name = "Groups")]
     Groups,
     #[enum_value(name = "Dependencies")]
@@ -71,8 +60,6 @@ pub enum PropID {
     InstallDate,
     #[enum_value(name = "Download Size")]
     DownloadSize,
-    #[enum_value(name = "Installed Size")]
-    InstalledSize,
     #[enum_value(name = "Install Script")]
     InstallScript,
     #[enum_value(name = "Validation")]
@@ -103,7 +90,6 @@ pub enum PropType {
 #[derive(Debug)]
 pub enum ValueType<'a> {
     Str(&'a str),
-    StrIcon(&'a str, Option<&'a str>),
     StrOpt(&'a str),
     StrOptNum(&'a str, i64),
     Vec(&'a [String]),
@@ -129,16 +115,12 @@ mod imp {
         #[template_child]
         pub(super) expand_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) image: TemplateChild<gtk::Image>,
-        #[template_child]
         pub(super) value_widget: TemplateChild<TextWidget>,
 
         #[property(get = Self::label)]
         label: PhantomData<glib::GString>,
         #[property(get = Self::value)]
         value: PhantomData<glib::GString>,
-
-        pub(super) id: Cell<PropID>,
     }
 
     //---------------------------------------
@@ -314,8 +296,6 @@ impl InfoRow {
 
         let imp = obj.imp();
 
-        imp.id.set(id);
-
         imp.prop_label.set_label(&id.name());
         imp.value_widget.set_ptype(ptype);
 
@@ -416,26 +396,13 @@ impl InfoRow {
     }
 
     //---------------------------------------
-    // Set icon css class helper function
-    //---------------------------------------
-    fn set_icon_css_class(&self, class: &str, add: bool) {
-        let imp = self.imp();
-
-        if add {
-            imp.image.add_css_class(class);
-        } else {
-            imp.image.remove_css_class(class);
-        }
-    }
-
-    //---------------------------------------
     // Public set value function
     //---------------------------------------
     pub fn set_value(&self, value: ValueType) {
         let imp = self.imp();
 
         let visible = match value {
-            ValueType::Str(_) | ValueType::StrIcon(_, _) | ValueType::Vec(_) => true,
+            ValueType::Str(_) | ValueType::Vec(_) => true,
             ValueType::StrOpt(s) => !s.is_empty(),
             ValueType::StrOptNum(_, i) => i != 0,
             ValueType::VecOpt(v) | ValueType::VecOptJoin(v) => !v.is_empty(),
@@ -446,30 +413,14 @@ impl InfoRow {
         if visible {
             match value {
                 ValueType::Str(s) | ValueType::StrOpt(s) | ValueType::StrOptNum(s, _) => {
-                    imp.image.set_visible(false);
-                    imp.value_widget.set_text(s);
-                }
-                ValueType::StrIcon(s, icon) => {
-                    imp.image.set_visible(icon.is_some());
-                    imp.image.set_icon_name(icon);
                     imp.value_widget.set_text(s);
                 }
                 ValueType::Vec(v) | ValueType::VecOpt(v) => {
-                    imp.image.set_visible(false);
                     imp.value_widget.set_text(v.join(LINK_SPACER));
                 }
                 ValueType::VecOptJoin(v) => {
-                    imp.image.set_visible(false);
                     imp.value_widget.set_text(v.join(" | "));
                 }
-            }
-
-            let id = imp.id.get();
-
-            if id == PropID::Version {
-                self.set_icon_css_class("success", true);
-            } else if id == PropID::Status {
-                self.set_icon_css_class("error", imp.image.icon_name() == Some("pkg-orphan".into()));
             }
         }
     }

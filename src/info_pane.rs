@@ -54,6 +54,21 @@ mod imp {
         pub(super) tab_stack: TemplateChild<adw::ViewStack>,
 
         #[template_child]
+        pub(super) name_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) desc_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) status_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) repo_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) version_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) size_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) update_label: TemplateChild<gtk::Label>,
+
+        #[template_child]
         pub(super) pkgbuild_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) hashes_button: TemplateChild<gtk::Button>,
@@ -269,15 +284,10 @@ impl InfoPane {
         let imp = self.imp();
 
         // Add info rows
-        self.add_info_row(PropID::Name, PropType::Title);
-        self.add_info_row(PropID::Version, PropType::Text);
-        self.add_info_row(PropID::Description, PropType::Text);
         self.add_info_row(PropID::Popularity, PropType::Text);
         self.add_info_row(PropID::OutOfDate, PropType::Error);
         self.add_info_row(PropID::PackageUrl, PropType::Link);
         self.add_info_row(PropID::Url, PropType::Link);
-        self.add_info_row(PropID::Status, PropType::Text);
-        self.add_info_row(PropID::Repository, PropType::Text);
         self.add_info_row(PropID::Groups, PropType::Text);
         self.add_info_row(PropID::Dependencies, PropType::LinkList);
         self.add_info_row(PropID::Optional, PropType::LinkList);
@@ -293,7 +303,6 @@ impl InfoPane {
         self.add_info_row(PropID::BuildDate, PropType::Text);
         self.add_info_row(PropID::InstallDate, PropType::Text);
         self.add_info_row(PropID::DownloadSize, PropType::Text);
-        self.add_info_row(PropID::InstalledSize, PropType::Text);
         self.add_info_row(PropID::InstallScript, PropType::Text);
         self.add_info_row(PropID::Validation, PropType::Text);
 
@@ -392,20 +401,6 @@ impl InfoPane {
     // Display helper functions
     //---------------------------------------
     fn update_info_listbox(&self, pkg: &PkgObject) {
-        // Name
-        self.set_info_row(PropID::Name, ValueType::Str(&pkg.name()));
-
-        // Version
-        self.set_info_row(PropID::Version,
-            ValueType::StrIcon(
-                &pkg.version(),
-                pkg.flags().intersects(PkgFlags::UPDATES).then_some("pkg-update")
-            )
-        );
-
-        // Description
-        self.set_info_row(PropID::Description, ValueType::StrOpt(pkg.description()));
-
         // Popularity
         self.set_info_row(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
@@ -420,19 +415,6 @@ impl InfoPane {
 
         // Licenses
         self.set_info_row(PropID::Licenses, ValueType::VecOptJoin(pkg.licenses()));
-
-        // Status
-        let status_icon = pkg.status_icon();
-
-        self.set_info_row(PropID::Status,
-            ValueType::StrIcon(
-                pkg.status(),
-                pkg.flags().intersects(PkgFlags::INSTALLED).then_some(status_icon)
-            )
-        );
-
-        // Repository
-        self.set_info_row(PropID::Repository, ValueType::Str(&pkg.repository()));
 
         // Groups
         self.set_info_row(PropID::Groups, ValueType::VecOptJoin(pkg.groups()));
@@ -476,9 +458,6 @@ impl InfoPane {
         // Download size
         self.set_info_row(PropID::DownloadSize, ValueType::StrOptNum(&pkg.download_size_string(), pkg.download_size()));
 
-        // Installed size
-        self.set_info_row(PropID::InstalledSize, ValueType::Str(&pkg.install_size_string()));
-
         // Has script
         self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
 
@@ -507,6 +486,24 @@ impl InfoPane {
             };
 
             imp.title_widget.set_title(&title);
+
+            // Show package information
+            imp.name_label.set_label(&pkg.name());
+            imp.desc_label.set_label(pkg.description());
+
+            imp.status_label.set_css_classes(&pkg.status_css_classes());
+            imp.status_label.set_label(pkg.status());
+
+            imp.repo_label.set_label(&pkg.repository());
+            imp.version_label.set_label(&pkg.version());
+            imp.size_label.set_label(&pkg.install_size_string());
+
+            if let Some(update) = pkg.update_version() {
+                imp.update_label.set_visible(true);
+                imp.update_label.set_label(&update);
+            } else {
+                imp.update_label.set_visible(false);
+            }
 
             // Populate info listbox
             self.update_info_listbox(&pkg);
