@@ -1,7 +1,6 @@
 use gtk::subclass::prelude::*;
 use gtk::prelude::{GObjectPropertyExpressionExt, WidgetExt};
 use gtk::glib;
-use glib::closure;
 
 use crate::{
     pkg_data::PkgFlags,
@@ -22,8 +21,6 @@ mod imp {
     pub struct PackageItem {
         #[template_child]
         pub(super) name_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) version_image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) version_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -74,13 +71,6 @@ impl PackageItem {
         let imp = self.imp();
 
         let expression = item.property_expression("item");
-
-        expression
-            .chain_property::<PkgObject>("flags")
-            .chain_closure::<bool>(closure!(|_: Option<glib::Object>, flags: PkgFlags| {
-                flags.intersects(PkgFlags::UPDATES)
-            }))
-            .bind(&imp.version_image.get(), "visible", gtk::Widget::NONE);
 
         expression
             .chain_property::<PkgObject>("version")
