@@ -16,7 +16,7 @@
         <property name="margin-bottom">8</property>
         <property name="spacing">2</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="prop_box">
             <property name="spacing">12</property>
             <style>
               <class name="property"/>
@@ -32,13 +32,11 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="expand_button">
-                <property name="can-focus">false</property>
+              <object class="GtkImage" id="expand_image">
                 <property name="valign">center</property>
+                <property name="margin-end">6</property>
                 <property name="icon-name">expander-symbolic</property>
                 <style>
-                  <class name="flat"/>
-                  <class name="caption"/>
                   <class name="property"/>
                 </style>
               </object>

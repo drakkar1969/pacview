@@ -111,9 +111,11 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_row.ui")]
     pub struct InfoRow {
         #[template_child]
+        pub(super) prop_box: TemplateChild<gtk::Box>,
+        #[template_child]
         pub(super) prop_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) expand_button: TemplateChild<gtk::Button>,
+        pub(super) expand_image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) value_widget: TemplateChild<TextWidget>,
 
@@ -320,19 +322,11 @@ impl InfoRow {
             row.imp().value_widget.set_focused(row.has_focus());
         });
 
-        // Expand button clicked signal
-        imp.expand_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.value_widget.set_expanded(!imp.value_widget.expanded());
-            }
-        ));
-
         // Value widget can expand property notify
         imp.value_widget.connect_can_expand_notify(clone!(
             #[weak] imp,
             move |widget| {
-                imp.expand_button.set_visible(widget.can_expand());
+                imp.expand_image.set_visible(widget.can_expand());
             }
         ));
 
@@ -341,9 +335,9 @@ impl InfoRow {
             #[weak] imp,
             move |widget| {
                 if widget.expanded() {
-                    imp.expand_button.add_css_class("active");
+                    imp.expand_image.add_css_class("active");
                 } else {
-                    imp.expand_button.remove_css_class("active");
+                    imp.expand_image.remove_css_class("active");
                 }
             }
         ));
@@ -410,7 +404,7 @@ impl InfoRow {
             }
         ));
 
-        imp.prop_label.add_controller(click_gesture);
+        imp.prop_box.add_controller(click_gesture);
     }
 
     //---------------------------------------
