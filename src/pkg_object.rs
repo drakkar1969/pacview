@@ -268,7 +268,7 @@ impl PkgObject {
             PkgFlags::DEPENDENCY => "dependency",
             PkgFlags::OPTIONAL => "optional",
             PkgFlags::ORPHAN => "orphan",
-            _ => "not installed"
+            _ => ""
         }
     }
 
@@ -278,16 +278,6 @@ impl PkgObject {
             PkgFlags::DEPENDENCY => "pkg-dependency",
             PkgFlags::OPTIONAL => "pkg-optional",
             PkgFlags::ORPHAN => "pkg-orphan",
-            _ => ""
-        }
-    }
-
-    pub fn status_icon_symbolic(&self) -> &str {
-        match self.data().flags {
-            PkgFlags::EXPLICIT => "status-explicit-symbolic",
-            PkgFlags::DEPENDENCY => "status-dependency-symbolic",
-            PkgFlags::OPTIONAL => "status-optional-symbolic",
-            PkgFlags::ORPHAN => "status-orphan-symbolic",
             _ => ""
         }
     }

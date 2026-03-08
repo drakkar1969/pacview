@@ -21,7 +21,7 @@ mod imp {
         #[property(get, set, construct_only)]
         status: RefCell<String>,
         #[property(get, set, construct_only)]
-        status_icon: RefCell<String>,
+        status_css_classes: RefCell<Vec<String>>,
         #[property(get, set, construct_only)]
         groups: RefCell<String>,
     }
@@ -50,12 +50,12 @@ impl GroupsObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(package: &str, status: &str, status_icon: &str, groups: &str) -> Self {
+    pub fn new(package: &str, status: &str, status_css_classes: &[&str], groups: &str) -> Self {
         // Build GroupsObject
         glib::Object::builder()
             .property("package", package)
             .property("status", status)
-            .property("status-icon", status_icon)
+            .property("status-css-classes", status_css_classes)
             .property("groups", groups)
             .build()
     }

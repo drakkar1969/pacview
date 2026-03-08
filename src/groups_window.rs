@@ -53,7 +53,7 @@ mod imp {
         #[template_child]
         pub(super) scroll_window: TemplateChild<gtk::ScrolledWindow>,
         #[template_child]
-        pub(super) view: TemplateChild<gtk::ColumnView>,
+        pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
@@ -352,7 +352,7 @@ impl GroupsWindow {
                         .expect("Failed to downcast to 'GroupsObject'")
                         .status();
 
-                    status != "not installed"
+                    !status.is_empty()
                 } else {
                     true
                 }
@@ -404,7 +404,7 @@ impl GroupsWindow {
             .flat_map(|pkg| {
                 pkg.groups().iter()
                     .map(|group| {
-                        GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_icon_symbolic(), group)
+                        GroupsObject::new(&pkg.name(), pkg.status(), &pkg.status_css_classes(), group)
                     })
                     .collect::<Vec<GroupsObject>>()
             })
