@@ -98,13 +98,7 @@ impl PackageItem {
         imp.repository_label.set_label(&pkg.repository());
 
         imp.status_label.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
-        imp.status_label.set_css_classes(
-            if pkg.flags().contains(PkgFlags::ORPHAN) {
-                &["caption-heading", "tag", "warning"]
-            } else {
-                &["caption-heading", "tag", "success"]
-            }
-        );
+        imp.status_label.set_css_classes(&pkg.status_css_classes());
         imp.status_label.set_label(pkg.status());
 
         imp.groups_label.set_visible(!pkg.groups().is_empty());

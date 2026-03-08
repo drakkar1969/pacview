@@ -292,6 +292,14 @@ impl PkgObject {
         }
     }
 
+    pub fn status_css_classes(&self) -> Vec<&str> {
+        match self.data().flags {
+            PkgFlags::ORPHAN => vec!["caption-heading", "tag", "warning"],
+            PkgFlags::EXPLICIT | PkgFlags::DEPENDENCY | PkgFlags::OPTIONAL => vec!["caption-heading", "tag", "success"],
+            _ => vec![]
+        }
+    }
+
     pub fn licenses(&self) -> &[String] {
         &self.data().licenses
     }
