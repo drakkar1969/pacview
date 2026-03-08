@@ -180,8 +180,6 @@ impl PackageView {
 
             let package_item = PackageItem::default();
 
-            package_item.setup(item);
-
             item.set_child(Some(&package_item));
         });
 

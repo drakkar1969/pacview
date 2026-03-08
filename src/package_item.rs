@@ -1,5 +1,5 @@
 use gtk::subclass::prelude::*;
-use gtk::prelude::{GObjectPropertyExpressionExt, WidgetExt};
+use gtk::prelude::WidgetExt;
 use gtk::glib;
 
 use crate::{
@@ -65,19 +65,6 @@ glib::wrapper! {
 
 impl PackageItem {
     //---------------------------------------
-    // Setup function
-    //---------------------------------------
-    pub fn setup(&self, item: &gtk::ListItem) {
-        let imp = self.imp();
-
-        let expression = item.property_expression("item");
-
-        expression
-            .chain_property::<PkgObject>("version")
-            .bind(&imp.version_label.get(), "label", gtk::Widget::NONE);
-    }
-
-    //---------------------------------------
     // Bind function
     //---------------------------------------
     pub fn bind(&self, pkg: &PkgObject) {
@@ -86,6 +73,7 @@ impl PackageItem {
         imp.name_label.set_label(&pkg.name());
 
         imp.repository_label.set_label(&pkg.repository());
+        imp.version_label.set_label(&pkg.version());
 
         imp.status_label.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
         imp.status_label.set_css_classes(&pkg.status_css_classes());
