@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
-    <file alias="backup-locked-symbolic.svg">icons/backup-locked-symbolic.svg</file>
-    <file alias="backup-modified-symbolic.svg">icons/backup-modified-symbolic.svg</file>
-    <file alias="backup-unmodified-symbolic.svg">icons/backup-unmodified-symbolic.svg</file>
     <file alias="groups-symbolic.svg">icons/groups-symbolic.svg</file>
     <file alias="expander-symbolic.svg">icons/expander-symbolic.svg</file>
     <file alias="info-archive-symbolic.svg">icons/info-archive-symbolic.svg</file>
