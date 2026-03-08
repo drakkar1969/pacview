@@ -62,7 +62,7 @@
                 </child>
                 <property name="content">
                   <object class="AdwViewStack" id="tab_stack">
-                    <property name="margin-top">12</property>
+                    <property name="margin-top">6</property>
                     <child>
                       <object class="AdwViewStackPage">
                         <property name="name">info</property>
