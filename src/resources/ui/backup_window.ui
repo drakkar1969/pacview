@@ -140,7 +140,7 @@
                     <property name="hexpand">true</property>
                     <property name="vexpand">true</property>
                     <property name="child">
-                      <object class="GtkColumnView" id="view">
+                      <object class="GtkListView" id="view">
                         <property name="tab-behavior">item</property>
                         <property name="model">
                           <object class="GtkSingleSelection" id="selection">
@@ -187,27 +187,11 @@
                             <property name="resource">/com/github/PacView/ui/backup_window/header.ui</property>
                           </object>
                         </property>
-                        <child>
-                          <object class="GtkColumnViewColumn">
-                            <property name="title">Backup File</property>
-                            <property name="expand">true</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/backup_window/backup_item.ui</property>
-                              </object>
-                            </property>
+                        <property name="factory">
+                          <object class="GtkBuilderListItemFactory">
+                            <property name="resource">/com/github/PacView/ui/backup_window/item.ui</property>
                           </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn">
-                            <property name="title">Status</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/backup_window/status_item.ui</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
+                        </property>
                       </object>
                     </property>
                   </object>

@@ -61,7 +61,7 @@ mod imp {
         #[template_child]
         pub(super) scroll_window: TemplateChild<gtk::ScrolledWindow>,
         #[template_child]
-        pub(super) view: TemplateChild<gtk::ColumnView>,
+        pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]

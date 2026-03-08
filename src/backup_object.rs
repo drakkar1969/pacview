@@ -59,8 +59,8 @@ mod imp {
         #[property(get = Self::status, builder(BackupStatus::default()))]
         status: PhantomData<BackupStatus>,
 
-        #[property(get = Self::status_icon)]
-        status_icon: PhantomData<String>,
+        #[property(get = Self::status_css_classes)]
+        status_css_classes: PhantomData<Vec<String>>,
         #[property(get = Self::status_text)]
         status_text: PhantomData<String>,
     }
@@ -100,8 +100,16 @@ mod imp {
             })
         }
 
-        fn status_icon(&self) -> String {
-            format!("backup-{}-symbolic", self.status().nick())
+        fn status_css_classes(&self) -> Vec<String> {
+            match self.status() {
+                BackupStatus::Modified => vec!["caption-heading", "tag", "warning"],
+                BackupStatus::Unmodified => vec!["caption-heading", "tag", "success"],
+                BackupStatus::Locked => vec!["caption-heading", "tag", "error"],
+                _ => vec![]
+            }
+            .into_iter()
+            .map(ToOwned::to_owned)
+            .collect()
         }
 
         fn status_text(&self) -> String {
