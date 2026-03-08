@@ -107,11 +107,12 @@
             <property name="margin-start">24</property>
             <property name="margin-end">24</property>
             <property name="child">
-              <object class="GtkColumnView" id="view">
+              <object class="GtkListView" id="view">
                 <style>
                   <class name="card-list"/>
                 </style>
-                <property name="margin-bottom">16</property>
+                <property name="margin-top">12</property>
+                <property name="margin-bottom">12</property>
                 <property name="margin-start">12</property>
                 <property name="margin-end">12</property>
                 <property name="tab-behavior">item</property>
@@ -143,17 +144,11 @@
                     </property>
                   </object>
                 </property>
-                <child>
-                  <object class="GtkColumnViewColumn">
-                    <property name="title">File</property>
-                    <property name="expand">true</property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
-                      </object>
-                    </property>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
                   </object>
-                </child>
+                </property>
               </object>
             </property>
           </object>
