@@ -3,8 +3,6 @@
   <template class="GtkListItem">
     <property name="child">
       <object class="GtkBox">
-        <property name="margin-top">6</property>
-        <property name="margin-bottom">6</property>
         <property name="margin-start">6</property>
         <property name="margin-end">12</property>
         <property name="spacing">6</property>
@@ -15,6 +13,8 @@
         </child>
         <child>
           <object class="GtkLabel">
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
             <binding name="label">
               <lookup name="package" type="GroupsObject">
                 <lookup name="item">GtkListItem</lookup>
@@ -27,6 +27,7 @@
           <object class="GtkLabel">
             <property name="hexpand">true</property>
             <property name="halign">end</property>
+            <property name="valign">center</property>
             <binding name="label">
               <lookup name="status" type="GroupsObject">
                 <lookup name="item">GtkListItem</lookup>
