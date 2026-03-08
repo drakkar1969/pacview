@@ -393,6 +393,24 @@ impl InfoRow {
         ));
 
         self.add_controller(popup_gesture);
+
+        // Label double-click controller
+        let imp = self.imp();
+
+        let click_gesture = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_PRIMARY)
+            .build();
+
+        click_gesture.connect_released(clone!(
+            #[weak] imp,
+            move |_, n, _, _| {
+                if n == 1 {
+                    imp.value_widget.set_expanded(!imp.value_widget.expanded());
+                }
+            }
+        ));
+
+        imp.prop_label.add_controller(click_gesture);
     }
 
     //---------------------------------------
