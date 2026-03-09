@@ -46,9 +46,9 @@ mod imp {
             let application = self.obj();
 
             // Show main window
-            let window = application.active_window().map_or_else(|| {
+            let window = application.active_window().unwrap_or_else(|| {
                 PacViewWindow::new(&application).upcast()
-            }, |window| window);
+            });
 
             window.present();
         }

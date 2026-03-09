@@ -173,6 +173,7 @@ impl AppInfoExt {
     //---------------------------------------
     // Open containing folder function
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     pub async fn open_containing_folder(path: &str) {
         let uri = format!("file://{path}");
 
@@ -184,6 +185,7 @@ impl AppInfoExt {
     //---------------------------------------
     // Open with default app function
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     pub async fn open_with_default_app(path: &str) {
         let uri = format!("file://{path}");
         let path = path.to_owned();
@@ -205,7 +207,7 @@ impl AurDBFile {
     //---------------------------------------
     // Path function
     //---------------------------------------
-    pub fn path() -> &'static Option<PathBuf> {
+    pub fn path() -> Option<&'static PathBuf> {
         static AUR_FILE: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
             let cache_dir = glib::user_cache_dir().join("pacview");
 
@@ -214,7 +216,7 @@ impl AurDBFile {
                 .ok()
         });
 
-        &AUR_FILE
+        AUR_FILE.as_ref()
     }
 
     //---------------------------------------
@@ -238,7 +240,7 @@ impl AurDBFile {
     // Download async function
     //---------------------------------------
     pub async fn download() -> Result<(), io::Error> {
-        let aur_file = Self::path().as_ref()
+        let aur_file = Self::path()
             .ok_or_else(|| io::Error::other("Failed to retrieve AUR database path"))?;
 
         // Spawn tokio task to download AUR file

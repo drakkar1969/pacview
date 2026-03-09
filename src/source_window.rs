@@ -179,7 +179,7 @@ impl SourceWindow {
     //---------------------------------------
     // Set font helper function
     //---------------------------------------
-    fn set_font(&self, style_manager: &adw::StyleManager, display: &gdk::Display) {
+    fn set_font(style_manager: &adw::StyleManager, display: &gdk::Display) {
         let settings = gio::Settings::new(APP_ID);
 
         let use_system_font = settings.boolean("pkgbuild-use-system-font");
@@ -299,12 +299,9 @@ impl SourceWindow {
         ));
 
         // System monospace font signal
-        style_manager.connect_monospace_font_name_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |style_manager| {
-                window.set_font(style_manager, &display);
-            }
-        ));
+        style_manager.connect_monospace_font_name_notify(move |style_manager| {
+            Self::set_font(style_manager, &display);
+        });
 
         // Save button clicked signal
         imp.save_button.connect_clicked(clone!(
@@ -383,7 +380,7 @@ impl SourceWindow {
         self.set_style_scheme(&style_manager);
 
         // Set font
-        self.set_font(&style_manager, &display);
+        Self::set_font(&style_manager, &display);
 
         // Download PKGBUILD
         self.download_pkgbuild();

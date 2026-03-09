@@ -327,7 +327,7 @@ impl CacheWindow {
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub async fn populate(&self) {
+    pub fn populate(&self) {
         let imp = self.imp();
 
         // Get cache files

@@ -87,7 +87,7 @@ pub enum PropType {
 //------------------------------------------------------------------------------
 // ENUM: ValueType
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ValueType<'a> {
     Str(&'a str),
     StrOpt(&'a str),

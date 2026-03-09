@@ -1003,16 +1003,16 @@ impl PacViewWindow {
                     Ok(()) => {
                         // Populate windows
                         let backup_window = imp.backup_window.borrow().clone();
-                        backup_window.populate(&imp.package_view.pkg_model()).await;
+                        backup_window.populate(&imp.package_view.pkg_model());
 
                         let cache_window = imp.cache_window.borrow().clone();
-                        cache_window.populate().await;
+                        cache_window.populate();
 
                         let groups_window = imp.groups_window.borrow().clone();
-                        groups_window.populate(&imp.package_view.pkg_model()).await;
+                        groups_window.populate(&imp.package_view.pkg_model());
 
                         let log_window = imp.log_window.borrow().clone();
-                        log_window.populate().await;
+                        log_window.populate();
 
                         glib::idle_add_local_once(clone!(
                             #[weak] imp,
@@ -1054,6 +1054,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: get package updates
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     async fn get_package_updates(&self) {
         let imp = self.imp();
 

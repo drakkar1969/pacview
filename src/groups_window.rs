@@ -395,7 +395,7 @@ impl GroupsWindow {
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub async fn populate(&self, pkg_model: &gio::ListStore) {
+    pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         // Get list of packages with groups

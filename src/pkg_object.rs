@@ -490,6 +490,7 @@ impl PkgObject {
     //---------------------------------------
     // Public future getters from alpm handle
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     pub async fn log_future(&self) -> &Vec<String> {
         self.imp().log.get_or_init(async || {
             static EXPR: LazyLock<Regex> = LazyLock::new(|| {
@@ -520,6 +521,7 @@ impl PkgObject {
         .await
     }
 
+    #[allow(clippy::future_not_send)]
     pub async fn cache_future(&self) -> &Vec<String> {
         self.imp().cache.get_or_init(async || {
             let pkg_name = self.name();

@@ -140,6 +140,7 @@ impl BackupObject {
     //---------------------------------------
     // Async compare with original function
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     pub async fn compare_with_original(&self) -> io::Result<()> {
         let path = self.path();
 
