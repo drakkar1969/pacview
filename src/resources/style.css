@@ -52,7 +52,7 @@ label.count-indicator {
 label.tag {
 	border-radius: 6px;
 	background: color-mix(in srgb, currentColor 20%, transparent);
-	padding: 3px 10px;
+	padding: 4px 10px;
 }
 
 /* Info pane file count indicator */
