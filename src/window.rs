@@ -360,18 +360,6 @@ mod imp {
                 glib::Propagation::Stop
             });
 
-            klass.add_binding(Key::C, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_visible_tab("cache");
-
-                glib::Propagation::Stop
-            });
-
-            klass.add_binding(Key::B, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_visible_tab("backup");
-
-                glib::Propagation::Stop
-            });
-
             // Infopane previous/next key bindings
             klass.add_binding(Key::Left, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.display_prev();

@@ -227,18 +227,6 @@
             <property name="title">View Log Tab</property>
           </object>
         </child>
-        <child>
-          <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;alt&gt;C</property>
-            <property name="title">View Cache Tab</property>
-          </object>
-        </child>
-        <child>
-          <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;alt&gt;B</property>
-            <property name="title">View Backup Tab</property>
-          </object>
-        </child>
       </object>
     </child>
     <child>
