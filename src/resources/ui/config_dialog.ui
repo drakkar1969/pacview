@@ -15,9 +15,6 @@
                 <property name="label">_Open</property>
                 <property name="tooltip-text">Open Pacman Config</property>
                 <property name="use-underline">true</property>
-                <style>
-                  <class name="flat"/>
-                </style>
               </object>
             </child>
           </object>
