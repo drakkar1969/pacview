@@ -52,7 +52,6 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/hash_window.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/info_cache_tab.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_files_tab.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_log_tab.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
