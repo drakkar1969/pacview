@@ -15,8 +15,6 @@
           <object class="AdwHeaderBar" id="header_bar">
             <child>
               <object class="GtkBox" id="header_box">
-                <property name="margin-top">2</property>
-                <property name="margin-bottom">2</property>
                 <property name="margin-start">6</property>
                 <property name="spacing">12</property>
                 <child>
@@ -43,8 +41,6 @@
             <child type="end">
               <object class="GtkBox" id="control_box">
                 <property name="valign">center</property>
-                <property name="margin-top">2</property>
-                <property name="margin-bottom">2</property>
                 <property name="margin-end">6</property>
                 <property name="spacing">6</property>
                 <child>
