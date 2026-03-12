@@ -247,24 +247,33 @@ impl InfoPane {
         imp.copy_button.connect_clicked(clone!(
             #[weak(rename_to = infopane)] self,
             move |_| {
-                let mut output = String::from("## Package Information\n");
+                if let Some(pkg) = infopane.pkg() {
+                    let mut output = String::from("## Package Information\n");
 
-                let mut child = infopane.imp().listbox.first_child();
+                    let _ = writeln!(output, "- **Name** : {}", pkg.name());
+                    let _ = writeln!(output, "- **Version** : {}", pkg.version());
+                    let _ = writeln!(output, "- **Description** : {}", pkg.description());
+                    let _ = writeln!(output, "- **Repository** : {}", pkg.repository());
+                    let _ = writeln!(output, "- **Installed Size** : {}", pkg.install_size_string());
+                    let _ = writeln!(output, "- **Status** : {}", pkg.status());
 
-                while let Some(row) = child.and_downcast::<InfoRow>() {
-                    if row.is_visible() {
-                        let label = row.label();
-                        let value = row.value();
+                    let mut child = infopane.imp().listbox.first_child();
 
-                        if !(label.is_empty() || value.is_empty()) {
-                            let _ = writeln!(output, "- **{label}** : {value}");
+                    while let Some(row) = child.and_downcast::<InfoRow>() {
+                        if row.is_visible() {
+                            let label = row.label();
+                            let value = row.value();
+
+                            if !(label.is_empty() || value.is_empty()) {
+                                let _ = writeln!(output, "- **{label}** : {value}");
+                            }
                         }
+
+                        child = row.next_sibling();
                     }
 
-                    child = row.next_sibling();
+                    infopane.clipboard().set_text(&output);
                 }
-
-                infopane.clipboard().set_text(&output);
             }
         ));
     }
