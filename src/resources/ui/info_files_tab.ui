@@ -5,13 +5,14 @@
     <property name="orientation">vertical</property>
     <property name="margin-start">24</property>
     <property name="margin-end">24</property>
-    <property name="spacing">16</property>
+    <property name="spacing">12</property>
     <child>
       <object class="GtkBox" id="files_header_box">
+        <property name="margin-start">4</property>
+        <property name="margin-end">4</property>
+        <property name="spacing">16</property>
         <child>
           <object class="GtkLabel" id="files_header_label">
-            <property name="margin-start">4</property>
-            <property name="margin-end">4</property>
             <property name="xalign">0</property>
             <property name="label">Files</property>
             <style>
@@ -20,14 +21,8 @@
           </object>
         </child>
         <child>
-          <object class="GtkSeparator">
-            <style>
-              <class name="spacer"/>
-            </style>
-          </object>
-        </child>
-        <child>
           <object class="GtkLabel" id="files_count_label">
+            <property name="valign">center</property>
             <attributes>
               <attribute name="scale" value="0.66"/>
             </attributes>
@@ -37,25 +32,16 @@
             </style>
           </object>
         </child>
-      </object>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <style>
-          <class name="card"/>
-        </style>
         <child>
-          <object class="GtkBox" id="files_control_box">
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">12</property>
-            <property name="margin-start">16</property>
-            <property name="margin-end">16</property>
+          <object class="GtkBox">
+            <property name="hexpand">true</property>
+            <property name="halign">end</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkSearchEntry" id="files_search_entry">
                 <property name="hexpand">true</property>
                 <property name="halign">start</property>
+                <property name="margin-end">6</property>
                 <property name="placeholder-text">Search for files</property>
                 <style>
                   <class name="round"/>
@@ -94,71 +80,75 @@
             </child>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkOverlay">
+        <style>
+          <class name="card"/>
+        </style>
         <child>
-          <object class="GtkOverlay">
-            <child>
-              <object class="GtkScrolledWindow">
-                <property name="hexpand">true</property>
-                <property name="vexpand">true</property>
-                <property name="margin-bottom">16</property>
-                <property name="child">
-                  <object class="GtkListView" id="files_view">
-                    <style>
-                      <class name="card-list"/>
-                    </style>
-                    <property name="tab-behavior">item</property>
+          <object class="GtkScrolledWindow">
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="child">
+              <object class="GtkListView" id="files_view">
+                <style>
+                  <class name="card-list"/>
+                </style>
+                <property name="tab-behavior">item</property>
+                <property name="model">
+                  <object class="GtkSingleSelection" id="files_selection">
                     <property name="model">
-                      <object class="GtkSingleSelection" id="files_selection">
+                      <object class="GtkFilterListModel" id="files_filter_model">
+                        <property name="filter">
+                          <object class="GtkEveryFilter">
+                            <child>
+                              <object class="GtkStringFilter" id="files_search_filter">
+                                <property name="expression">
+                                  <lookup name="string" type="GtkStringObject"/>
+                                </property>
+                              </object>
+                            </child>
+                            <child>
+                              <object class="GtkCustomFilter" id="files_folder_filter">
+                              </object>
+                            </child>
+                          </object>
+                        </property>
                         <property name="model">
-                          <object class="GtkFilterListModel" id="files_filter_model">
-                            <property name="filter">
-                              <object class="GtkEveryFilter">
-                                <child>
-                                  <object class="GtkStringFilter" id="files_search_filter">
-                                    <property name="expression">
-                                      <lookup name="string" type="GtkStringObject"/>
-                                    </property>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkCustomFilter" id="files_folder_filter">
-                                  </object>
-                                </child>
-                              </object>
-                            </property>
-                            <property name="model">
-                              <object class="GListStore" id="files_model">
-                                <property name="item-type">GtkStringObject</property>
-                              </object>
-                            </property>
+                          <object class="GListStore" id="files_model">
+                            <property name="item-type">GtkStringObject</property>
                           </object>
                         </property>
                       </object>
                     </property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
-                      </object>
-                    </property>
+                  </object>
+                </property>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="resource">/com/github/PacView/ui/info_pane/file_item.ui</property>
                   </object>
                 </property>
               </object>
-            </child>
-            <child type="overlay">
-              <object class="AdwStatusPage" id="files_paused_status">
-                <property name="visible">false</property>
-                <property name="title">Waiting on Scroll...</property>
-                <property name="paintable">
-                  <object class="AdwSpinnerPaintable">
-                    <property name="widget">files_paused_status</property>
-                  </object>
-                </property>
-                <style>
-                  <class name="compact"/>
-                  <class name="dimmed"/>
-                </style>
+            </property>
+          </object>
+        </child>
+        <child type="overlay">
+          <object class="AdwStatusPage" id="files_paused_status">
+            <property name="visible">false</property>
+            <property name="title">Waiting on Scroll...</property>
+            <property name="paintable">
+              <object class="AdwSpinnerPaintable">
+                <property name="widget">files_paused_status</property>
               </object>
-            </child>
+            </property>
+            <style>
+              <class name="compact"/>
+              <class name="dimmed"/>
+            </style>
           </object>
         </child>
       </object>
@@ -166,10 +156,11 @@
     <child>
       <object class="GtkBox" id="backup_header_box">
         <property name="margin-top">12</property>
+        <property name="margin-start">4</property>
+        <property name="margin-end">4</property>
+        <property name="spacing">16</property>
         <child>
           <object class="GtkLabel" id="backup_header_label">
-            <property name="margin-start">4</property>
-            <property name="margin-end">4</property>
             <property name="xalign">0</property>
             <property name="label">Backup Files</property>
             <style>
@@ -178,14 +169,8 @@
           </object>
         </child>
         <child>
-          <object class="GtkSeparator">
-            <style>
-              <class name="spacer"/>
-            </style>
-          </object>
-        </child>
-        <child>
           <object class="GtkLabel" id="backup_count_label">
+            <property name="valign">center</property>
             <attributes>
               <attribute name="scale" value="0.66"/>
             </attributes>
@@ -195,21 +180,10 @@
             </style>
           </object>
         </child>
-      </object>
-    </child>
-    <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <style>
-          <class name="card"/>
-        </style>
         <child>
-          <object class="GtkBox" id="backup_control_box">
+          <object class="GtkBox">
+            <property name="hexpand">true</property>
             <property name="halign">end</property>
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">12</property>
-            <property name="margin-start">16</property>
-            <property name="margin-end">16</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkButton" id="backup_compare_button">
@@ -247,52 +221,56 @@
             </child>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkOverlay">
+        <style>
+          <class name="card"/>
+        </style>
         <child>
-          <object class="GtkOverlay">
-            <child>
-              <object class="GtkScrolledWindow">
-                <property name="hexpand">true</property>
-                <property name="vexpand">true</property>
-                <property name="margin-bottom">16</property>
-                <property name="child">
-                  <object class="GtkListView" id="backup_view">
-                    <style>
-                      <class name="card-list"/>
-                    </style>
-                    <property name="tab-behavior">item</property>
-                    <property name="model">
-                      <object class="GtkSingleSelection" id="backup_selection">
-                        <property name="model">
-                          <object class="GListStore" id="backup_model">
-                            <property name="item-type">BackupObject</property>
-                          </object>
-                        </property>
-                      </object>
-                    </property>
-                    <property name="factory">
-                      <object class="GtkBuilderListItemFactory">
-                        <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
-                      </object>
-                    </property>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child type="overlay">
-              <object class="AdwStatusPage" id="backup_paused_status">
-                <property name="visible">false</property>
-                <property name="title">Waiting on Scroll...</property>
-                <property name="paintable">
-                  <object class="AdwSpinnerPaintable">
-                    <property name="widget">backup_paused_status</property>
-                  </object>
-                </property>
+          <object class="GtkScrolledWindow">
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">12</property>
+            <property name="child">
+              <object class="GtkListView" id="backup_view">
                 <style>
-                  <class name="compact"/>
-                  <class name="dimmed"/>
+                  <class name="card-list"/>
                 </style>
+                <property name="tab-behavior">item</property>
+                <property name="model">
+                  <object class="GtkSingleSelection" id="backup_selection">
+                    <property name="model">
+                      <object class="GListStore" id="backup_model">
+                        <property name="item-type">BackupObject</property>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
+                  </object>
+                </property>
               </object>
-            </child>
+            </property>
+          </object>
+        </child>
+        <child type="overlay">
+          <object class="AdwStatusPage" id="backup_paused_status">
+            <property name="visible">false</property>
+            <property name="title">Waiting on Scroll...</property>
+            <property name="paintable">
+              <object class="AdwSpinnerPaintable">
+                <property name="widget">backup_paused_status</property>
+              </object>
+            </property>
+            <style>
+              <class name="compact"/>
+              <class name="dimmed"/>
+            </style>
           </object>
         </child>
       </object>
