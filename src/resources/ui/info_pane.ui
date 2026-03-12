@@ -53,7 +53,6 @@
                     <child>
                       <object class="GtkButton" id="next_button">
                         <property name="sensitive">false</property>
-                        <property name="margin-end">20</property>
                         <property name="icon-name">go-next-symbolic</property>
                         <property name="tooltip-text">Next</property>
                       </object>
@@ -62,7 +61,7 @@
                 </child>
                 <property name="content">
                   <object class="AdwViewStack" id="tab_stack">
-                    <property name="margin-top">6</property>
+                    <property name="margin-top">10</property>
                     <child>
                       <object class="AdwViewStackPage">
                         <property name="name">info</property>
@@ -71,61 +70,16 @@
                         <property name="child">
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
-                            <property name="spacing">12</property>
+                            <property name="spacing">16</property>
                             <child>
-                              <object class="GtkBox" id="header_box">
+                              <object class="GtkLabel" id="header_label">
                                 <property name="margin-start">28</property>
                                 <property name="margin-end">28</property>
-                                <property name="spacing">12</property>
-                                <child>
-                                  <object class="GtkLabel" id="header_label">
-                                    <property name="xalign">0</property>
-                                    <property name="yalign">0.5</property>
-                                    <property name="label">Package Information</property>
-                                    <property name="valign">baseline-center</property>
-                                    <style>
-                                      <class name="heading"/>
-                                    </style>
-                                  </object>
-                                </child>
-                                <child>
-                                  <object class="GtkBox">
-                                    <property name="hexpand">true</property>
-                                    <property name="halign">end</property>
-                                    <property name="valign">center</property>
-                                    <property name="spacing">6</property>
-                                    <child>
-                                      <object class="GtkButton" id="pkgbuild_button">
-                                        <property name="icon-name">info-pkgbuild-symbolic</property>
-                                        <property name="tooltip-text">Show PKGBUILD</property>
-                                        <style>
-                                          <class name="flat"/>
-                                          <class name="circular"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkButton" id="hashes_button">
-                                        <property name="icon-name">info-signed-symbolic</property>
-                                        <property name="tooltip-text">Show Package Hashes</property>
-                                        <style>
-                                          <class name="flat"/>
-                                          <class name="circular"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkButton" id="copy_button">
-                                        <property name="icon-name">edit-copy-symbolic</property>
-                                        <property name="tooltip-text">Copy Package Information</property>
-                                        <style>
-                                          <class name="flat"/>
-                                          <class name="circular"/>
-                                        </style>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
+                                <property name="xalign">0</property>
+                                <property name="label">Package Information</property>
+                                <style>
+                                  <class name="heading"/>
+                                </style>
                               </object>
                             </child>
                             <child>
@@ -190,7 +144,7 @@
                                         </child>
                                         <child>
                                           <object class="GtkBox">
-                                            <property name="margin-top">20</property>
+                                            <property name="margin-top">8</property>
                                             <property name="spacing">6</property>
                                             <child>
                                               <object class="GtkLabel" id="repo_label">
@@ -241,6 +195,35 @@
                                             </layout>
                                           </object>
                                         </child>
+                                        <child>
+                                          <object class="GtkBox">
+                                            <property name="margin-top">24</property>
+                                            <property name="spacing">6</property>
+                                            <child>
+                                              <object class="GtkButton" id="pkgbuild_button">
+                                                <property name="label">Pkgbuild</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkButton" id="hashes_button">
+                                                <property name="label">Hashes</property>
+                                              </object>
+                                            </child>
+                                            <child>
+                                              <object class="GtkButton" id="copy_button">
+                                                <property name="hexpand">true</property>
+                                                <property name="halign">end</property>
+                                                <property name="icon-name">edit-copy-symbolic</property>
+                                                <property name="tooltip-text">Copy Package Information</property>
+                                              </object>
+                                            </child>
+                                            <layout>
+                                              <property name="column">0</property>
+                                              <property name="row">3</property>
+                                              <property name="column-span">2</property>
+                                            </layout>
+                                          </object>
+                                        </child>
                                       </object>
                                     </property>
                                     <child type="overlay">
@@ -258,11 +241,10 @@
                               <object class="GtkScrolledWindow">
                                 <property name="hexpand">true</property>
                                 <property name="vexpand">true</property>
-                                <property name="margin-top">12</property>
-                                <property name="margin-bottom">6</property>
+                                <property name="margin-top">8</property>
                                 <property name="child">
                                   <object class="GtkListBox" id="listbox">
-                                    <property name="margin-bottom">12</property>
+                                    <property name="margin-bottom">6</property>
                                     <property name="margin-start">24</property>
                                     <property name="margin-end">24</property>
                                     <property name="selection-mode">none</property>
@@ -324,7 +306,7 @@
                   <object class="AdwInlineViewSwitcher" id="tab_switcher">
                     <property name="margin-start">24</property>
                     <property name="margin-end">24</property>
-                    <property name="margin-top">16</property>
+                    <property name="margin-top">20</property>
                     <property name="margin-bottom">16</property>
                     <property name="stack">tab_stack</property>
                     <property name="display-mode">both</property>
