@@ -138,16 +138,9 @@
           </object>
         </child>
         <child type="overlay">
-          <object class="AdwStatusPage" id="files_paused_status">
+          <object class="AdwSpinner" id="files_spinner">
             <property name="visible">false</property>
-            <property name="title">Waiting on Scroll...</property>
-            <property name="paintable">
-              <object class="AdwSpinnerPaintable">
-                <property name="widget">files_paused_status</property>
-              </object>
-            </property>
             <style>
-              <class name="compact"/>
               <class name="dimmed"/>
             </style>
           </object>
@@ -260,16 +253,9 @@
           </object>
         </child>
         <child type="overlay">
-          <object class="AdwStatusPage" id="backup_paused_status">
+          <object class="AdwSpinner" id="backup_spinner">
             <property name="visible">false</property>
-            <property name="title">Waiting on Scroll...</property>
-            <property name="paintable">
-              <object class="AdwSpinnerPaintable">
-                <property name="widget">backup_paused_status</property>
-              </object>
-            </property>
             <style>
-              <class name="compact"/>
               <class name="dimmed"/>
             </style>
           </object>

@@ -50,7 +50,7 @@ mod imp {
         #[template_child]
         pub(super) files_folder_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
-        pub(super) files_paused_status: TemplateChild<adw::StatusPage>,
+        pub(super) files_spinner: TemplateChild<adw::Spinner>,
 
         #[template_child]
         pub(super) backup_header_label: TemplateChild<gtk::Label>,
@@ -71,7 +71,7 @@ mod imp {
         #[template_child]
         pub(super) backup_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) backup_paused_status: TemplateChild<adw::StatusPage>,
+        pub(super) backup_spinner: TemplateChild<adw::Spinner>,
 
         #[property(get, set)]
         pkg_name: RefCell<String>,
@@ -361,10 +361,10 @@ impl InfoFilesTab {
     pub fn pause_views(&self) {
         let imp = self.imp();
 
-        imp.files_paused_status.set_visible(true);
+        imp.files_spinner.set_visible(true);
         imp.files_model.remove_all();
 
-        imp.backup_paused_status.set_visible(true);
+        imp.backup_spinner.set_visible(true);
         imp.backup_model.remove_all();
     }
 
@@ -376,8 +376,8 @@ impl InfoFilesTab {
 
         let pkg_name = pkg.name();
 
-        imp.files_paused_status.set_visible(false);
-        imp.backup_paused_status.set_visible(false);
+        imp.files_spinner.set_visible(false);
+        imp.backup_spinner.set_visible(false);
 
         // Populate files view
         let files_list: Vec<gtk::StringObject> = pkg.files().iter()

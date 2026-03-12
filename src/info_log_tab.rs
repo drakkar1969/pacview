@@ -33,7 +33,7 @@ mod imp {
         #[template_child]
         pub(super) log_selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
-        pub(super) log_paused_status: TemplateChild<adw::StatusPage>,
+        pub(super) log_spinner: TemplateChild<adw::Spinner>,
 
         #[template_child]
         pub(super) cache_header_label: TemplateChild<gtk::Label>,
@@ -50,7 +50,7 @@ mod imp {
         #[template_child]
         pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) cache_paused_status: TemplateChild<adw::StatusPage>,
+        pub(super) cache_spinner: TemplateChild<adw::Spinner>,
 
         #[property(get, set)]
         pkg_name: RefCell<String>,
@@ -195,10 +195,10 @@ impl InfoLogTab {
     pub fn pause_views(&self) {
         let imp = self.imp();
 
-        imp.log_paused_status.set_visible(true);
+        imp.log_spinner.set_visible(true);
         imp.log_model.remove_all();
 
-        imp.cache_paused_status.set_visible(true);
+        imp.cache_spinner.set_visible(true);
         imp.cache_model.remove_all();
     }
 
@@ -208,8 +208,8 @@ impl InfoLogTab {
     pub fn update_views(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        imp.log_paused_status.set_visible(false);
-        imp.cache_paused_status.set_visible(false);
+        imp.log_spinner.set_visible(false);
+        imp.cache_spinner.set_visible(false);
 
         // Populate log view
         glib::spawn_future_local(clone!(

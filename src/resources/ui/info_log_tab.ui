@@ -76,16 +76,9 @@
           </object>
         </child>
         <child type="overlay">
-          <object class="AdwStatusPage" id="log_paused_status">
+          <object class="AdwSpinner" id="log_spinner">
             <property name="visible">false</property>
-            <property name="title">Waiting on Scroll...</property>
-            <property name="paintable">
-              <object class="AdwSpinnerPaintable">
-                <property name="widget">log_paused_status</property>
-              </object>
-            </property>
             <style>
-              <class name="compact"/>
               <class name="dimmed"/>
             </style>
           </object>
@@ -184,16 +177,9 @@
           </object>
         </child>
         <child type="overlay">
-          <object class="AdwStatusPage" id="cache_paused_status">
+          <object class="AdwSpinner" id="cache_spinner">
             <property name="visible">false</property>
-            <property name="title">Waiting on Scroll...</property>
-            <property name="paintable">
-              <object class="AdwSpinnerPaintable">
-                <property name="widget">cache_paused_status</property>
-              </object>
-            </property>
             <style>
-              <class name="compact"/>
               <class name="dimmed"/>
             </style>
           </object>
