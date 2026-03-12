@@ -202,6 +202,8 @@ impl InfoFilesTab {
                 let n_items = selection.n_items();
 
                 imp.files_count_label.set_label(&n_items.to_string());
+                imp.files_search_entry.set_sensitive(n_items > 0);
+                imp.files_filter_button.set_sensitive(n_items > 0);
                 imp.files_open_button.set_sensitive(n_items > 0);
                 imp.files_copy_button.set_sensitive(n_items > 0);
             }
