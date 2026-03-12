@@ -3,6 +3,7 @@
   <!--// InfoFilesTab template //-->
   <template class="InfoFilesTab" parent="GtkBox">
     <property name="orientation">vertical</property>
+    <property name="margin-bottom">24</property>
     <property name="margin-start">24</property>
     <property name="margin-end">24</property>
     <property name="spacing">12</property>
@@ -155,7 +156,7 @@
     </child>
     <child>
       <object class="GtkBox" id="backup_header_box">
-        <property name="margin-top">12</property>
+        <property name="margin-top">16</property>
         <property name="margin-start">4</property>
         <property name="margin-end">4</property>
         <property name="spacing">16</property>

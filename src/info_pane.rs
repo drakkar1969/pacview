@@ -38,8 +38,6 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
-        pub(super) title_widget: TemplateChild<adw::WindowTitle>,
-        #[template_child]
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) next_button: TemplateChild<gtk::Button>,
@@ -465,21 +463,8 @@ impl InfoPane {
     pub fn update_display(&self) {
         let imp = self.imp();
 
-        // Clear header bar title
-        imp.title_widget.set_title("");
-
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
-            // Set header bar title
-            let pkg_history = imp.pkg_history.borrow();
-
-            if pkg_history.len() > 1 {
-                imp.title_widget.set_title(&format!("{}/{}",
-                    pkg_history.current() + 1,
-                    pkg_history.len()
-                ));
-            }
-
             // Show package information
             imp.name_label.set_label(&pkg.name());
             imp.desc_label.set_label(pkg.description());
