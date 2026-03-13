@@ -42,15 +42,10 @@
     </child>
     <child>
       <object class="GtkOverlay">
-        <style>
-          <class name="card"/>
-        </style>
         <child>
           <object class="GtkScrolledWindow">
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">12</property>
             <property name="child">
               <object class="GtkListView" id="log_view">
                 <style>
@@ -143,15 +138,10 @@
     </child>
     <child>
       <object class="GtkOverlay">
-        <style>
-          <class name="card"/>
-        </style>
         <child>
           <object class="GtkScrolledWindow">
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">12</property>
             <property name="child">
               <object class="GtkListView" id="cache_view">
                 <style>
