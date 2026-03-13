@@ -38,20 +38,20 @@ glib-build-tools = "0.21"
 
 [lints.clippy]
 # NURSERY
-nursery = { level = "warn", priority = -1 }
+# nursery = { level = "warn", priority = -1 }
 
 # future_not_send = "allow"
-missing_const_for_fn = "allow"
+# missing_const_for_fn = "allow"
 
 # PEDANTIC
-pedantic = { level = "warn", priority = -1 }
+# pedantic = { level = "warn", priority = -1 }
 
-wildcard_imports = "allow"
-cast_sign_loss = "allow"
+# wildcard_imports = "allow"
+# cast_sign_loss = "allow"
 # if_not_else = "allow"
-too_many_lines = "allow"
-cast_possible_truncation = "allow"
-cast_precision_loss = "allow"
+# too_many_lines = "allow"
+# cast_possible_truncation = "allow"
+# cast_precision_loss = "allow"
 # items_after_statements = "allow"
 # float_cmp = "allow"
 # needless_pass_by_value = "allow"
