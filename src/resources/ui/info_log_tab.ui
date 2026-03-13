@@ -6,7 +6,7 @@
     <property name="margin-bottom">24</property>
     <property name="margin-start">24</property>
     <property name="margin-end">24</property>
-    <property name="spacing">12</property>
+    <property name="spacing">8</property>
     <child>
       <object class="GtkBox" id="log_header_box">
         <property name="margin-start">4</property>
@@ -82,7 +82,7 @@
     </child>
     <child>
       <object class="GtkBox" id="cache_header_box">
-        <property name="margin-top">16</property>
+        <property name="margin-top">20</property>
         <property name="margin-start">4</property>
         <property name="margin-end">4</property>
         <property name="spacing">16</property>
