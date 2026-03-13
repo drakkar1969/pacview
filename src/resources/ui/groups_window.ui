@@ -51,10 +51,6 @@
                     <child>
                       <object class="GtkSearchEntry" id="search_entry">
                         <property name="placeholder-text">Search all</property>
-                        <style>
-                          <class name="round"/>
-                          <class name="left"/>
-                        </style>
                       </object>
                     </child>
                     <child>
@@ -62,10 +58,6 @@
                         <property name="margin-end">14</property>
                         <property name="icon-name">view-more-symbolic</property>
                         <property name="menu-model">search_menu</property>
-                        <style>
-                          <class name="round"/>
-                          <class name="right"/>
-                        </style>
                       </object>
                     </child>
                   </object>
@@ -76,7 +68,6 @@
                     <property name="tooltip-text">Filter Installed Packages</property>
                     <style>
                       <class name="flat"/>
-                      <class name="circular"/>
                     </style>
                   </object>
                 </child>
@@ -86,7 +77,6 @@
                     <property name="tooltip-text">Copy Package List</property>
                     <style>
                       <class name="flat"/>
-                      <class name="circular"/>
                     </style>
                   </object>
                 </child>

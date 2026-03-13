@@ -44,9 +44,6 @@
                 <property name="halign">start</property>
                 <property name="margin-end">6</property>
                 <property name="placeholder-text">Search for files</property>
-                <style>
-                  <class name="round"/>
-                </style>
               </object>
             </child>
             <child>
@@ -55,7 +52,6 @@
                 <property name="tooltip-text">Show Directories</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>
@@ -65,7 +61,6 @@
                 <property name="tooltip-text">Open</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>
@@ -75,7 +70,6 @@
                 <property name="tooltip-text">Copy File List</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>
@@ -184,7 +178,6 @@
                 </property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>
@@ -194,7 +187,6 @@
                 <property name="tooltip-text">Open</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>
@@ -204,7 +196,6 @@
                 <property name="tooltip-text">Copy Backup File List</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>

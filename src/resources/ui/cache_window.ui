@@ -47,9 +47,6 @@
                   <object class="GtkSearchEntry" id="search_entry">
                     <property name="margin-end">14</property>
                     <property name="placeholder-text">Search for files</property>
-                    <style>
-                      <class name="round"/>
-                    </style>
                   </object>
                 </child>
                 <child>
@@ -58,7 +55,6 @@
                     <property name="tooltip-text">Show Signature Files</property>
                     <style>
                       <class name="flat"/>
-                      <class name="circular"/>
                     </style>
                   </object>
                 </child>
@@ -68,7 +64,6 @@
                     <property name="tooltip-text">Open Cache Folder</property>
                     <style>
                       <class name="flat"/>
-                      <class name="circular"/>
                     </style>
                   </object>
                 </child>
@@ -78,7 +73,6 @@
                     <property name="tooltip-text">Copy File List</property>
                     <style>
                       <class name="flat"/>
-                      <class name="circular"/>
                     </style>
                   </object>
                 </child>

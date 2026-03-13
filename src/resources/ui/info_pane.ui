@@ -102,7 +102,6 @@
                                         <property name="tooltip-text">Copy Package Information</property>
                                         <style>
                                           <class name="flat"/>
-                                          <class name="circular"/>
                                         </style>
                                       </object>
                                     </child>

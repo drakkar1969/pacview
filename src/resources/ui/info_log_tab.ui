@@ -32,7 +32,6 @@
                 <property name="tooltip-text">Copy Log Messages</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>
@@ -118,7 +117,6 @@
                 <property name="tooltip-text">Open Cache Folder</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>
@@ -128,7 +126,6 @@
                 <property name="tooltip-text">Copy Cache File List</property>
                 <style>
                   <class name="flat"/>
-                  <class name="circular"/>
                 </style>
               </object>
             </child>

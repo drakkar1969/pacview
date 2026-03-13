@@ -48,7 +48,6 @@
                     <property name="margin-end">14</property>
                     <property name="placeholder-text">Search in messages</property>
                     <style>
-                      <class name="round"/>
                     </style>
                   </object>
                 </child>
@@ -58,7 +57,6 @@
                     <property name="tooltip-text">Filter Package Events</property>
                     <style>
                       <class name="flat"/>
-                      <class name="circular"/>
                     </style>
                   </object>
                 </child>
@@ -68,7 +66,6 @@
                     <property name="tooltip-text">Copy Log Messages</property>
                     <style>
                       <class name="flat"/>
-                      <class name="circular"/>
                     </style>
                   </object>
                 </child>
