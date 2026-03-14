@@ -312,14 +312,12 @@ impl LogWindow {
                     Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
                 });
 
-                let log = ANSI_EXPR.replace_all(log, "");
-
                 // Parse log lines
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                     Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Failed to compile Regex")
                 });
 
-                log.par_lines()
+                ANSI_EXPR.replace_all(log, "").par_lines()
                     .filter_map(|line| {
                         EXPR.captures(line)
                             .map(|caps| LogLine {
