@@ -29,6 +29,8 @@ mod imp {
         pub(super) status_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) groups_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) update_label: TemplateChild<gtk::Label>,
     }
 
     //---------------------------------------
@@ -73,7 +75,12 @@ impl PackageItem {
         imp.name_label.set_label(&pkg.name());
 
         imp.repository_label.set_label(&pkg.repository());
+
+        imp.version_label.set_visible(pkg.update_version().is_none());
         imp.version_label.set_label(&pkg.version());
+
+        imp.update_label.set_visible(pkg.update_version().is_some());
+        imp.update_label.set_label(&pkg.update_version().unwrap_or_default());
 
         imp.status_label.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
         imp.status_label.set_css_classes(&pkg.status_css_classes());
