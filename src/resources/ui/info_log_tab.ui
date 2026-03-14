@@ -8,23 +8,24 @@
     <property name="margin-end">24</property>
     <property name="spacing">8</property>
     <child>
-      <object class="GtkBox" id="log_header_box">
+      <object class="GtkCenterBox" id="log_header_box">
         <property name="margin-start">4</property>
-        <property name="margin-end">4</property>
-        <property name="spacing">16</property>
-        <child>
-          <object class="GtkLabel" id="log_header_label">
-            <property name="xalign">0</property>
-            <property name="label">Log Messages</property>
-            <style>
-              <class name="heading"/>
-            </style>
-          </object>
-        </child>
-        <child>
+        <property name="start-widget">
           <object class="GtkBox">
-            <property name="hexpand">true</property>
-            <property name="halign">end</property>
+            <property name="spacing">12</property>
+            <child>
+              <object class="GtkLabel" id="log_header_label">
+                <property name="xalign">0</property>
+                <property name="label">Log Messages</property>
+                <style>
+                  <class name="heading"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+        <property name="end-widget">
+          <object class="GtkBox">
             <property name="spacing">6</property>
             <child>
               <object class="GtkButton" id="log_copy_button">
@@ -36,7 +37,7 @@
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
     </child>
     <child>
@@ -80,36 +81,37 @@
       </object>
     </child>
     <child>
-      <object class="GtkBox" id="cache_header_box">
-        <property name="margin-top">20</property>
+      <object class="GtkCenterBox" id="cache_header_box">
         <property name="margin-start">4</property>
-        <property name="margin-end">4</property>
-        <property name="spacing">16</property>
-        <child>
-          <object class="GtkLabel" id="cache_header_label">
-            <property name="xalign">0</property>
-            <property name="label">Cache Files</property>
-            <style>
-              <class name="heading"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="cache_count_label">
-            <property name="valign">center</property>
-            <attributes>
-              <attribute name="scale" value="0.66"/>
-            </attributes>
-            <style>
-              <class name="count-superscript"/>
-              <class name="numeric"/>
-            </style>
-          </object>
-        </child>
-        <child>
+        <property name="margin-top">20</property>
+        <property name="start-widget">
           <object class="GtkBox">
-            <property name="hexpand">true</property>
-            <property name="halign">end</property>
+            <property name="spacing">12</property>
+            <child>
+              <object class="GtkLabel" id="cache_header_label">
+                <property name="xalign">0</property>
+                <property name="label">Cache Files</property>
+                <style>
+                  <class name="heading"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="cache_count_label">
+                <property name="valign">center</property>
+                <attributes>
+                  <attribute name="scale" value="0.66"/>
+                </attributes>
+                <style>
+                  <class name="count-superscript"/>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+        <property name="end-widget">
+          <object class="GtkBox">
             <property name="spacing">6</property>
             <child>
               <object class="GtkButton" id="cache_open_button">
@@ -130,7 +132,7 @@
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
     </child>
     <child>

@@ -78,11 +78,10 @@
                             <property name="orientation">vertical</property>
                             <property name="spacing">8</property>
                             <child>
-                              <object class="GtkBox" id="header_box">
+                              <object class="GtkCenterBox" id="header_box">
                                 <property name="margin-start">28</property>
-                                <property name="margin-end">28</property>
-                                <property name="spacing">16</property>
-                                <child>
+                                <property name="margin-end">24</property>
+                                <property name="start-widget">
                                   <object class="GtkLabel" id="header_label">
                                     <property name="xalign">0</property>
                                     <property name="label">Package Information</property>
@@ -90,11 +89,9 @@
                                       <class name="heading"/>
                                     </style>
                                   </object>
-                                </child>
-                                <child>
+                                </property>
+                                <property name="end-widget">
                                   <object class="GtkBox">
-                                    <property name="hexpand">true</property>
-                                    <property name="halign">end</property>
                                     <property name="spacing">6</property>
                                     <child>
                                       <object class="GtkButton" id="copy_button">
@@ -106,7 +103,7 @@
                                       </object>
                                     </child>
                                   </object>
-                                </child>
+                                </property>
                               </object>
                             </child>
                             <child>

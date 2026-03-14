@@ -8,44 +8,42 @@
     <property name="margin-end">24</property>
     <property name="spacing">8</property>
     <child>
-      <object class="GtkBox" id="files_header_box">
+      <object class="GtkCenterBox" id="files_header_box">
         <property name="margin-start">4</property>
-        <property name="margin-end">4</property>
-        <property name="spacing">16</property>
-        <child>
-          <object class="GtkLabel" id="files_header_label">
-            <property name="xalign">0</property>
-            <property name="label">Files</property>
-            <style>
-              <class name="heading"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="files_count_label">
-            <property name="valign">center</property>
-            <attributes>
-              <attribute name="scale" value="0.66"/>
-            </attributes>
-            <style>
-              <class name="count-superscript"/>
-              <class name="numeric"/>
-            </style>
-          </object>
-        </child>
-        <child>
+        <property name="start-widget">
           <object class="GtkBox">
-            <property name="hexpand">true</property>
-            <property name="halign">end</property>
-            <property name="spacing">6</property>
+            <property name="spacing">12</property>
             <child>
-              <object class="GtkSearchEntry" id="files_search_entry">
-                <property name="hexpand">true</property>
-                <property name="halign">start</property>
-                <property name="margin-end">6</property>
-                <property name="placeholder-text">Search for files</property>
+              <object class="GtkLabel" id="files_header_label">
+                <property name="xalign">0</property>
+                <property name="label">Files</property>
+                <style>
+                  <class name="heading"/>
+                </style>
               </object>
             </child>
+            <child>
+              <object class="GtkLabel" id="files_count_label">
+                <property name="valign">center</property>
+                <attributes>
+                  <attribute name="scale" value="0.66"/>
+                </attributes>
+                <style>
+                  <class name="count-superscript"/>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+        <property name="center-widget">
+          <object class="GtkSearchEntry" id="files_search_entry">
+            <property name="placeholder-text">Search for files</property>
+          </object>
+        </property>
+        <property name="end-widget">
+          <object class="GtkBox">
+            <property name="spacing">6</property>
             <child>
               <object class="GtkToggleButton" id="files_filter_button">
                 <property name="icon-name">folder-symbolic</property>
@@ -74,7 +72,7 @@
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
     </child>
     <child>
@@ -137,36 +135,37 @@
       </object>
     </child>
     <child>
-      <object class="GtkBox" id="backup_header_box">
-        <property name="margin-top">20</property>
+      <object class="GtkCenterBox" id="backup_header_box">
         <property name="margin-start">4</property>
-        <property name="margin-end">4</property>
-        <property name="spacing">16</property>
-        <child>
-          <object class="GtkLabel" id="backup_header_label">
-            <property name="xalign">0</property>
-            <property name="label">Backup Files</property>
-            <style>
-              <class name="heading"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel" id="backup_count_label">
-            <property name="valign">center</property>
-            <attributes>
-              <attribute name="scale" value="0.66"/>
-            </attributes>
-            <style>
-              <class name="count-superscript"/>
-              <class name="numeric"/>
-            </style>
-          </object>
-        </child>
-        <child>
+        <property name="margin-top">20</property>
+        <property name="start-widget">
           <object class="GtkBox">
-            <property name="hexpand">true</property>
-            <property name="halign">end</property>
+            <property name="spacing">12</property>
+            <child>
+              <object class="GtkLabel" id="backup_header_label">
+                <property name="xalign">0</property>
+                <property name="label">Backup Files</property>
+                <style>
+                  <class name="heading"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="backup_count_label">
+                <property name="valign">center</property>
+                <attributes>
+                  <attribute name="scale" value="0.66"/>
+                </attributes>
+                <style>
+                  <class name="count-superscript"/>
+                  <class name="numeric"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+        <property name="end-widget">
+          <object class="GtkBox">
             <property name="spacing">6</property>
             <child>
               <object class="GtkButton" id="backup_compare_button">
@@ -200,7 +199,7 @@
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
     </child>
     <child>
