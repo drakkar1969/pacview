@@ -1,6 +1,7 @@
 use gtk::subclass::prelude::*;
-use gtk::prelude::WidgetExt;
+use gtk::prelude::{GObjectPropertyExpressionExt, WidgetExt};
 use gtk::glib;
+use glib::closure;
 
 use crate::{
     pkg_data::PkgFlags,
@@ -67,6 +68,37 @@ glib::wrapper! {
 
 impl PackageItem {
     //---------------------------------------
+    // Setup function
+    //---------------------------------------
+    pub fn setup(&self, item: &gtk::ListItem) {
+        let imp = self.imp();
+
+        let expression = item.property_expression("item");
+
+        expression
+            .chain_property::<PkgObject>("update-version")
+            .chain_closure::<bool>(closure!(|_: Option<glib::Object>, update: Option<String>| {
+                update.is_none()
+            }))
+            .bind(&imp.version_label.get(), "visible", gtk::Widget::NONE);
+
+        expression
+            .chain_property::<PkgObject>("version")
+            .bind(&imp.version_label.get(), "label", gtk::Widget::NONE);
+
+        expression
+            .chain_property::<PkgObject>("update-version")
+            .chain_closure::<bool>(closure!(|_: Option<glib::Object>, update: Option<String>| {
+                update.is_some()
+            }))
+            .bind(&imp.update_label.get(), "visible", gtk::Widget::NONE);
+
+        expression
+            .chain_property::<PkgObject>("update-version")
+            .bind(&imp.update_label.get(), "label", gtk::Widget::NONE);
+    }
+
+    //---------------------------------------
     // Bind function
     //---------------------------------------
     pub fn bind(&self, pkg: &PkgObject) {
@@ -75,12 +107,6 @@ impl PackageItem {
         imp.name_label.set_label(&pkg.name());
 
         imp.repository_label.set_label(&pkg.repository());
-
-        imp.version_label.set_visible(pkg.update_version().is_none());
-        imp.version_label.set_label(&pkg.version());
-
-        imp.update_label.set_visible(pkg.update_version().is_some());
-        imp.update_label.set_label(&pkg.update_version().unwrap_or_default());
 
         imp.status_label.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
         imp.status_label.set_css_classes(&pkg.status_css_classes());
