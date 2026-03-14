@@ -426,7 +426,7 @@ impl PacViewWindow {
             imp.main_split_view.sidebar_width_unit().to_px(sp, None)
         };
 
-        let min_packageview_width = to_px(500.0);
+        let min_packageview_width = 400.0;
 
         self.set_width_request(to_px(infopane_width) as i32);
 
@@ -434,6 +434,7 @@ impl PacViewWindow {
         imp.sidebar_split_view.set_max_sidebar_width(sidebar_width);
 
         imp.main_split_view.set_min_sidebar_width(infopane_width);
+        imp.main_split_view.set_max_sidebar_width(infopane_width*2.0);
 
         imp.main_breakpoint.set_condition(Some(
             &adw::BreakpointCondition::new_length(
