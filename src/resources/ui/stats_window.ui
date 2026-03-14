@@ -20,9 +20,6 @@
                   <object class="GtkImage" id="header_image">
                     <property name="valign">center</property>
                     <property name="icon-name">stats-symbolic</property>
-                    <style>
-                      <class name="bubble"/>
-                    </style>
                   </object>
                 </child>
                 <child>
@@ -31,7 +28,7 @@
                     <property name="yalign">0.5</property>
                     <property name="label">Package Statistics</property>
                     <style>
-                      <class name="title-4"/>
+                      <class name="heading"/>
                     </style>
                   </object>
                 </child>

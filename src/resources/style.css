@@ -105,14 +105,6 @@ texttag.error {
 	color: var(--error-color);
 }
 
-/* Bubble images */
-image.bubble {
-	border-radius: 50%;
-	background: color-mix(in srgb, currentColor 15%, transparent);
-	min-width: 1.8em;
-	min-height: 1.8em;
-}
-
 /* Card lists/views */
 listview.card-list {
 	border: 1px solid var(--border-color);
