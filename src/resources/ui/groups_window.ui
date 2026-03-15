@@ -52,7 +52,6 @@
                     </child>
                     <child>
                       <object class="GtkMenuButton" id="search_button">
-                        <property name="margin-end">14</property>
                         <property name="icon-name">view-more-symbolic</property>
                         <property name="menu-model">search_menu</property>
                       </object>
@@ -65,6 +64,13 @@
                     <property name="tooltip-text">Filter Installed Packages</property>
                     <style>
                       <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator">
+                    <style>
+                      <class name="spacer"/>
                     </style>
                   </object>
                 </child>

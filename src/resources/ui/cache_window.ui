@@ -42,7 +42,6 @@
                 <property name="spacing">6</property>
                 <child>
                   <object class="GtkSearchEntry" id="search_entry">
-                    <property name="margin-end">14</property>
                     <property name="placeholder-text">Search for files</property>
                   </object>
                 </child>
@@ -52,6 +51,13 @@
                     <property name="tooltip-text">Show Signature Files</property>
                     <style>
                       <class name="flat"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator">
+                    <style>
+                      <class name="spacer"/>
                     </style>
                   </object>
                 </child>
