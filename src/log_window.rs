@@ -324,7 +324,7 @@ impl LogWindow {
                                 date: caps[1].to_string(),
                                 time: caps[2].to_string(),
                                 category: caps[3].to_string(),
-                                message: caps[4].to_string()
+                                message: caps[4].trim().to_string()
                             })
                     })
                     .collect()
