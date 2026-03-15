@@ -195,6 +195,7 @@
                                         <child>
                                           <object class="GtkLabel" id="version_label">
                                             <property name="xalign">0</property>
+                                            <property name="ellipsize">end</property>
                                             <style>
                                               <class name="caption-heading"/>
                                               <class name="tag"/>
@@ -207,6 +208,7 @@
                                             <property name="hexpand">true</property>
                                             <property name="halign">end</property>
                                             <property name="xalign">0</property>
+                                            <property name="ellipsize">end</property>
                                             <style>
                                               <class name="caption-heading"/>
                                               <class name="tag"/>
