@@ -45,7 +45,7 @@
                         <property name="margin-start">12</property>
                         <property name="margin-end">12</property>
                         <property name="stack">tab_stack</property>
-                        <property name="display-mode">both</property>
+                        <property name="display-mode">labels</property>
                         <property name="homogeneous">true</property>
                       </object>
                     </property>
