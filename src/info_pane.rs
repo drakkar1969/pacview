@@ -50,6 +50,8 @@ mod imp {
         pub(super) tab_stack: TemplateChild<adw::ViewStack>,
 
         #[template_child]
+        pub(super) header_label: TemplateChild<gtk::Label>,
+        #[template_child]
         pub(super) name_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) desc_label: TemplateChild<gtk::Label>,
@@ -474,6 +476,18 @@ impl InfoPane {
 
         // If package is not none, display it
         if let Some(pkg) = self.pkg() {
+            // Update header label
+            let pkg_history = imp.pkg_history.borrow();
+
+            if pkg_history.len() > 1 {
+                imp.header_label.set_label(&format!("Package Information   \u{2022}   {}/{}",
+                    pkg_history.current() + 1,
+                    pkg_history.len()
+                ));
+            } else {
+                imp.header_label.set_label("Package Information")
+            }
+
             // Show package information
             imp.name_label.set_label(&pkg.name());
             imp.desc_label.set_label(pkg.description());
