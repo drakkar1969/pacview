@@ -23,6 +23,8 @@
     </child>
     <property name="content">
       <object class="AdwOverlaySplitView" id="sidebar_split_view">
+        <property name="min-sidebar-width">230</property>
+        <property name="max-sidebar-width">230</property>
         <property name="sidebar">
           <object class="AdwToolbarView" id="sidebar_toolbar_view">
             <child type="top">

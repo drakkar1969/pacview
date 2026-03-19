@@ -425,7 +425,7 @@ impl PacViewWindow {
 
         let prefs_dialog = imp.prefs_dialog.borrow();
 
-        let sidebar_width = prefs_dialog.sidebar_width();
+        let sidebar_width = imp.sidebar_split_view.min_sidebar_width();
         let infopane_width = prefs_dialog.infopane_width();
 
         // Helper closure to convert sp to px
@@ -436,9 +436,6 @@ impl PacViewWindow {
         let min_packageview_width = 400.0;
 
         self.set_width_request(to_px(infopane_width) as i32);
-
-        imp.sidebar_split_view.set_min_sidebar_width(sidebar_width);
-        imp.sidebar_split_view.set_max_sidebar_width(sidebar_width);
 
         imp.main_split_view.set_min_sidebar_width(infopane_width);
         imp.main_split_view.set_max_sidebar_width(infopane_width*2.0);
@@ -565,14 +562,6 @@ impl PacViewWindow {
             }
         ));
 
-        // Preferences sidebar width property notify signal
-        prefs_dialog.connect_sidebar_width_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                window.resize_window();
-            }
-        ));
-
         // Preferences infopane width property notify signal
         prefs_dialog.connect_infopane_width_notify(clone!(
             #[weak(rename_to = window)] self,
@@ -645,7 +634,6 @@ impl PacViewWindow {
         let prefs_dialog = &*imp.prefs_dialog.borrow();
 
         settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
-        settings.bind("sidebar-width", prefs_dialog, "sidebar-width").build();
         settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
         settings.bind("aur-database-download", prefs_dialog, "aur-database-download").build();
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
