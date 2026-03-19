@@ -61,13 +61,13 @@ mod imp {
         pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
 
         #[template_child]
-        pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) sidebar_show_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) sort_button: TemplateChild<adw::SplitButton>,
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) infopane_button: TemplateChild<gtk::ToggleButton>,
+        pub(super) infopane_show_button: TemplateChild<gtk::Button>,
 
         #[template_child]
         pub(super) repo_listbox: TemplateChild<gtk::ListBox>,
@@ -83,11 +83,6 @@ mod imp {
 
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
-
-        #[property(get, set)]
-        show_sidebar: Cell<bool>,
-        #[property(get, set)]
-        show_infopane: Cell<bool>,
 
         #[property(get, set, builder(SortProp::default()))]
         package_sort_prop: Cell<SortProp>,
@@ -170,10 +165,6 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Pane visibility property actions
-            klass.install_property_action("win.show-sidebar", "show-sidebar");
-            klass.install_property_action("win.show-infopane", "show-infopane");
-
             // Refresh action
             klass.install_action("win.refresh", None, |window, _, _| {
                 let imp = window.imp();
@@ -293,10 +284,26 @@ mod imp {
             });
 
             // Show sidebar key binding
-            klass.add_binding_action(Key::B, ModifierType::CONTROL_MASK, "win.show-sidebar");
+            klass.add_binding(Key::B, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.sidebar_show_button.is_visible() {
+                    imp.sidebar_show_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
 
             // Show infopane key binding
-            klass.add_binding_action(Key::I, ModifierType::CONTROL_MASK, "win.show-infopane");
+            klass.add_binding(Key::I, ModifierType::CONTROL_MASK, |window| {
+                let imp = window.imp();
+
+                if imp.infopane_show_button.is_visible() {
+                    imp.infopane_show_button.emit_clicked();
+                }
+
+                glib::Propagation::Stop
+            });
 
             // Show preferences key binding
             klass.add_binding_action(Key::comma, ModifierType::CONTROL_MASK, "win.show-preferences");
@@ -542,6 +549,22 @@ impl PacViewWindow {
 
         let prefs_dialog = imp.prefs_dialog.borrow();
 
+        // Sidebar show button clicked signal
+        imp.sidebar_show_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.sidebar_split_view.set_show_sidebar(true);
+            }
+        ));
+
+        // Infopane show button clicked signal
+        imp.infopane_show_button.connect_clicked(clone!(
+            #[weak] imp,
+            move |_| {
+                imp.main_split_view.set_show_sidebar(true);
+            }
+        ));
+
         // Preferences sidebar width property notify signal
         prefs_dialog.connect_sidebar_width_notify(clone!(
             #[weak(rename_to = window)] self,
@@ -607,9 +630,6 @@ impl PacViewWindow {
         settings.bind("window-height", self, "default-height").build();
         settings.bind("window-maximized", self, "maximized").build();
 
-        settings.bind("show-infopane", &imp.infopane_button.get(), "active").build();
-        settings.bind("show-sidebar", &imp.sidebar_button.get(), "active").build();
-
         // Load initial search bar settings
         settings.bind("search-mode", &imp.search_bar.get(), "mode")
             .get()
@@ -669,31 +689,8 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind properties to pane visibility
-        self.bind_property("show-sidebar", &imp.sidebar_split_view.get(), "show-sidebar")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        self.bind_property("show-infopane", &imp.main_split_view.get(), "show-sidebar")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        // Bind sidebar button state to sidebar visibility
-        imp.sidebar_button.bind_property("active", &imp.sidebar_split_view.get(), "show-sidebar")
-            .sync_create()
-            .bidirectional()
-            .build();
-
         // Bind search button state to search bar enabled state
         imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        // Bind infopane button state to infopane visibility
-        imp.infopane_button.bind_property("active", &imp.main_split_view.get(), "show-sidebar")
             .sync_create()
             .bidirectional()
             .build();

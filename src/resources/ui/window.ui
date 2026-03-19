@@ -8,6 +8,7 @@
     <child>
       <object class="AdwBreakpoint" id="main_breakpoint">
         <setter object="main_split_view" property="collapsed">true</setter>
+        <setter object="infopane_show_button" property="visible">true</setter>
       </object>
     </child>
     <child>
@@ -16,6 +17,8 @@
         <setter object="sidebar_split_view" property="collapsed">true</setter>
         <setter object="sidebar_menu_button" property="visible">false</setter>
         <setter object="view_menu_button" property="visible">true</setter>
+        <setter object="sidebar_show_button" property="visible">true</setter>
+        <setter object="infopane_show_button" property="visible">true</setter>
       </object>
     </child>
     <property name="content">
@@ -130,10 +133,10 @@
                           </object>
                         </property>
                         <child>
-                          <object class="GtkToggleButton" id="sidebar_button">
-                            <property name="active">true</property>
+                          <object class="GtkButton" id="sidebar_show_button">
+                            <property name="visible">false</property>
                             <property name="icon-name">sidebar-show-symbolic</property>
-                            <property name="tooltip-text">Toggle Sidebar</property>
+                            <property name="tooltip-text">Show Sidebar</property>
                           </object>
                         </child>
                         <child>
@@ -153,10 +156,10 @@
                           </object>
                         </child>
                         <child type="end">
-                          <object class="GtkToggleButton" id="infopane_button">
-                            <property name="active">true</property>
+                          <object class="GtkButton" id="infopane_show_button">
+                            <property name="visible">false</property>
                             <property name="icon-name">sidebar-show-right-symbolic</property>
-                            <property name="tooltip-text">Toggle Info Pane</property>
+                            <property name="tooltip-text">Show Info Pane</property>
                           </object>
                         </child>
                         <child type="end">
@@ -220,16 +223,6 @@
       <item>
         <attribute name="label">Copy Package List</attribute>
         <attribute name="action">view.copy-list</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Show Sidebar</attribute>
-        <attribute name="action">win.show-sidebar</attribute>
-      </item>
-      <item>
-        <attribute name="label">Show Info Pane</attribute>
-        <attribute name="action">win.show-infopane</attribute>
       </item>
     </section>
     <section>
