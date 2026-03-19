@@ -1,3 +1,8 @@
+/* Global colors */
+:root {
+	--view-bg-color: #222226;
+}
+
 /* Search bar */
 searchbar button {
 	background: none;
