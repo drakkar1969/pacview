@@ -73,13 +73,13 @@ mod imp {
         pub(super) repo_listbox: TemplateChild<gtk::ListBox>,
         #[template_child]
         pub(super) status_listbox: TemplateChild<gtk::ListBox>,
-        #[template_child]
-        pub(super) status_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) search_bar: TemplateChild<SearchBar>,
         #[template_child]
         pub(super) package_view: TemplateChild<PackageView>,
+        #[template_child]
+        pub(super) package_count_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
@@ -531,9 +531,10 @@ impl PacViewWindow {
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
 
-                window.imp().status_label.set_label(
-                    &format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })
-                );
+                window.imp().package_count_label.set_label(&format!(
+                    "{n_items} matching package{}",
+                    if n_items == 1 { "" } else { "s" }
+                ));
 
                 window.action_set_enabled("view.copy-list", n_items != 0);
             }

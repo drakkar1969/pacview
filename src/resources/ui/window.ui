@@ -104,19 +104,6 @@
                 </child>
               </object>
             </property>
-            <child type="bottom">
-              <object class="GtkLabel" id="status_label">
-                <property name="margin-start">18</property>
-                <property name="margin-end">18</property>
-                <property name="margin-top">8</property>
-                <property name="margin-bottom">12</property>
-                <property name="xalign">0</property>
-                <style>
-                  <class name="heading"/>
-                  <class name="dimmed"/>
-                </style>
-              </object>
-            </child>
           </object>
         </property>
         <property name="content">
@@ -131,6 +118,7 @@
             <property name="content">
               <object class="AdwToolbarView" id="package_toolbar_view">
                 <property name="top-bar-style">raised</property>
+                <property name="bottom-bar-style">raised</property>
                 <child type="top">
                   <object class="GtkBox">
                     <property name="orientation">vertical</property>
@@ -194,6 +182,16 @@
                     <property name="info-pane">info_pane</property>
                   </object>
                 </property>
+                <child type="bottom">
+                  <object class="GtkLabel" id="package_count_label">
+                    <property name="margin-top">8</property>
+                    <property name="margin-bottom">8</property>
+                    <style>
+                      <class name="heading"/>
+                      <class name="dimmed"/>
+                    </style>
+                  </object>
+                </child>
               </object>
             </property>
           </object>
