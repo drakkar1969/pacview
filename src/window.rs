@@ -977,22 +977,21 @@ impl PacViewWindow {
                 match result {
                     Ok(()) => {
                         // Populate windows
-                        let backup_window = imp.backup_window.borrow().clone();
-                        backup_window.populate(&imp.package_view.pkg_model());
-
-                        let cache_window = imp.cache_window.borrow().clone();
-                        cache_window.populate();
-
-                        let groups_window = imp.groups_window.borrow().clone();
-                        groups_window.populate(&imp.package_view.pkg_model());
-
-                        let log_window = imp.log_window.borrow().clone();
-                        log_window.populate();
-
                         glib::idle_add_local_once(clone!(
                             #[weak] imp,
                             move || {
-                                imp.stats_window.borrow().populate(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
+                                imp.backup_window.borrow()
+                                    .populate(&imp.package_view.pkg_model());
+
+                                imp.cache_window.borrow().populate();
+
+                                imp.groups_window.borrow()
+                                    .populate(&imp.package_view.pkg_model());
+
+                                imp.log_window.borrow().populate();
+
+                                imp.stats_window.borrow()
+                                    .populate(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
                             }
                         ));
 
