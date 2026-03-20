@@ -1,6 +1,6 @@
 /* Global colors */
 :root {
-	--view-bg-color: #222226;
+	--view-bg-color: var(--window-bg-color);
 }
 
 /* Search bar */
