@@ -167,7 +167,6 @@
                     <property name="title">No Packages Found</property>
                     <style>
                       <class name="compact"/>
-                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>
@@ -186,7 +185,6 @@
                     </property>
                     <style>
                       <class name="compact"/>
-                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>

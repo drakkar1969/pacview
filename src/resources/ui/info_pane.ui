@@ -24,7 +24,6 @@
                     <property name="title">No Package Selected</property>
                     <style>
                       <class name="compact"/>
-                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>

@@ -171,7 +171,6 @@
                     <property name="title">No Log Messages Found</property>
                     <style>
                       <class name="compact"/>
-                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>
@@ -190,7 +189,6 @@
                     </property>
                     <style>
                       <class name="compact"/>
-                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>

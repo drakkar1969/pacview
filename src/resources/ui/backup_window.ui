@@ -191,7 +191,6 @@
                     <property name="title">No Backup Files Found</property>
                     <style>
                       <class name="compact"/>
-                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>
@@ -210,7 +209,6 @@
                     </property>
                     <style>
                       <class name="compact"/>
-                      <class name="dimmed"/>
                     </style>
                   </object>
                 </property>
