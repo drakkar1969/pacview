@@ -223,12 +223,14 @@
                                         <property name="spacing">12</property>
                                         <child>
                                           <object class="GtkButton" id="pkgbuild_button">
-                                            <property name="label">Pkgbuild</property>
+                                            <property name="label">_Pkgbuild</property>
+                                            <property name="use-underline">true</property>
                                           </object>
                                         </child>
                                         <child>
                                           <object class="GtkButton" id="hashes_button">
-                                            <property name="label">Hashes</property>
+                                            <property name="label">_Hashes</property>
+                                            <property name="use-underline">true</property>
                                           </object>
                                         </child>
                                       </object>

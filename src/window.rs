@@ -381,14 +381,14 @@ mod imp {
             });
 
             // Infopane show PKGBUILD key bindings
-            klass.add_binding(Key::K, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, |window| {
+            klass.add_binding(Key::P, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.show_pkgbuild();
 
                 glib::Propagation::Stop
             });
 
             // Infopane show hashes key bindings
-            klass.add_binding(Key::H, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, |window| {
+            klass.add_binding(Key::H, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.show_hashes();
 
                 glib::Propagation::Stop

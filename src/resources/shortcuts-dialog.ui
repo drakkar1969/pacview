@@ -233,13 +233,13 @@
       <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;alt&gt;&lt;shift&gt;K</property>
+            <property name="accelerator">&lt;alt&gt;P</property>
             <property name="title">Show PKGBUILD</property>
           </object>
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;alt&gt;&lt;shift&gt;H</property>
+            <property name="accelerator">&lt;alt&gt;H</property>
             <property name="title">Show Package Hashes</property>
           </object>
         </child>
