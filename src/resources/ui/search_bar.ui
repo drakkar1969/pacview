@@ -160,7 +160,7 @@
             <property name="label">AUR Error</property>
             <property name="xalign">0</property>
             <style>
-              <class name="title-4"/>
+              <class name="heading"/>
             </style>
           </object>
         </child>
