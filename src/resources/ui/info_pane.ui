@@ -81,12 +81,24 @@
                                 <property name="margin-start">28</property>
                                 <property name="margin-end">24</property>
                                 <property name="start-widget">
-                                  <object class="GtkLabel" id="header_label">
-                                    <property name="xalign">0</property>
-                                    <property name="label">Package Information</property>
-                                    <style>
-                                      <class name="heading"/>
-                                    </style>
+                                  <object class="GtkBox">
+                                    <child>
+                                      <object class="GtkLabel" id="header_label">
+                                        <property name="xalign">0</property>
+                                        <property name="label">Package Information</property>
+                                        <style>
+                                          <class name="heading"/>
+                                        </style>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkLabel" id="count_label">
+                                        <property name="xalign">0</property>
+                                        <style>
+                                          <class name="heading"/>
+                                        </style>
+                                      </object>
+                                    </child>
                                   </object>
                                 </property>
                                 <property name="end-widget">
