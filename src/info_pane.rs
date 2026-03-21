@@ -485,7 +485,7 @@ impl InfoPane {
                     pkg_history.len()
                 ));
             } else {
-                imp.count_label.set_label("")
+                imp.count_label.set_label("");
             }
 
             // Show package information
