@@ -74,27 +74,25 @@ impl PackageItem {
         let imp = self.imp();
 
         let expression = item.property_expression("item");
-
-        expression
-            .chain_property::<PkgObject>("update-version")
-            .chain_closure::<bool>(closure!(|_: Option<glib::Object>, update: Option<String>| {
-                update.is_none()
-            }))
-            .bind(&imp.version_label.get(), "visible", gtk::Widget::NONE);
+        let update_expr = expression.chain_property::<PkgObject>("update-version");
 
         expression
             .chain_property::<PkgObject>("version")
             .bind(&imp.version_label.get(), "label", gtk::Widget::NONE);
 
-        expression
-            .chain_property::<PkgObject>("update-version")
+        update_expr
+            .chain_closure::<bool>(closure!(|_: Option<glib::Object>, update: Option<String>| {
+                update.is_none()
+            }))
+            .bind(&imp.version_label.get(), "visible", gtk::Widget::NONE);
+
+        update_expr
             .chain_closure::<bool>(closure!(|_: Option<glib::Object>, update: Option<String>| {
                 update.is_some()
             }))
             .bind(&imp.update_label.get(), "visible", gtk::Widget::NONE);
 
-        expression
-            .chain_property::<PkgObject>("update-version")
+        update_expr
             .bind(&imp.update_label.get(), "label", gtk::Widget::NONE);
     }
 
