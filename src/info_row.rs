@@ -335,9 +335,9 @@ impl InfoRow {
             #[weak] imp,
             move |widget| {
                 if widget.expanded() {
-                    imp.expand_image.add_css_class("active");
+                    imp.prop_box.add_css_class("active");
                 } else {
-                    imp.expand_image.remove_css_class("active");
+                    imp.prop_box.remove_css_class("active");
                 }
             }
         ));

@@ -36,9 +36,6 @@
                 <property name="valign">center</property>
                 <property name="margin-end">6</property>
                 <property name="icon-name">expander-symbolic</property>
-                <style>
-                  <class name="property"/>
-                </style>
               </object>
             </child>
           </object>
