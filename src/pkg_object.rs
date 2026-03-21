@@ -265,8 +265,8 @@ impl PkgObject {
 
     pub fn status_css_classes(&self) -> Vec<&str> {
         match self.data().flags {
-            PkgFlags::ORPHAN => vec!["caption-heading", "tag", "warning"],
-            PkgFlags::EXPLICIT | PkgFlags::DEPENDENCY | PkgFlags::OPTIONAL => vec!["caption-heading", "tag", "success"],
+            PkgFlags::ORPHAN => vec!["tag", "warning"],
+            PkgFlags::EXPLICIT | PkgFlags::DEPENDENCY | PkgFlags::OPTIONAL => vec!["tag", "success"],
             _ => vec![]
         }
     }

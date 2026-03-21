@@ -58,6 +58,8 @@ label.tag {
 	border-radius: 6px;
 	background: color-mix(in srgb, currentColor 20%, transparent);
 	padding: 4px 10px;
+	font-size: 80%;
+	font-weight: 700;
 }
 
 /* Info pane file count indicator */

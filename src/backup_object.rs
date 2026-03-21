@@ -101,9 +101,9 @@ mod imp {
 
         fn status_css_classes(&self) -> Vec<String> {
             match self.status() {
-                BackupStatus::Modified => vec!["caption-heading", "tag", "warning"],
-                BackupStatus::Unmodified => vec!["caption-heading", "tag", "success"],
-                BackupStatus::Locked => vec!["caption-heading", "tag", "error"],
+                BackupStatus::Modified => vec!["tag", "warning"],
+                BackupStatus::Unmodified => vec!["tag", "success"],
+                BackupStatus::Locked => vec!["tag", "error"],
                 _ => vec![]
             }
             .into_iter()
