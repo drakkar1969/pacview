@@ -134,7 +134,7 @@ mod imp {
         // Property getter/setter
         //---------------------------------------
         fn pkg(&self) -> Option<PkgObject> {
-            self.pkg_history.borrow().current_item()
+            self.pkg_history.borrow().selected_item()
         }
 
         fn set_pkg(&self, pkg: Option<PkgObject>) {
@@ -199,8 +199,8 @@ impl InfoPane {
             let pkg_history = self.imp().pkg_history.borrow();
 
             // If link package is in infopane history, select it
-            // Otherwise append it after current history package
-            pkg_history.set_current_or_make_last(pkg);
+            // Otherwise append it after selected history package
+            pkg_history.select_or_append(pkg);
 
             // Display link package
             self.update_display();
@@ -481,7 +481,7 @@ impl InfoPane {
 
             if pkg_history.len() > 1 {
                 imp.header_label.set_label(&format!("Package Information   \u{2022}   {}/{}",
-                    pkg_history.current() + 1,
+                    pkg_history.selected() + 1,
                     pkg_history.len()
                 ));
             } else {
@@ -538,13 +538,13 @@ impl InfoPane {
     }
 
     pub fn display_prev(&self) {
-        self.imp().pkg_history.borrow().move_previous();
+        self.imp().pkg_history.borrow().select_previous();
 
         self.update_display();
     }
 
     pub fn display_next(&self) {
-        self.imp().pkg_history.borrow().move_next();
+        self.imp().pkg_history.borrow().select_next();
 
         self.update_display();
     }

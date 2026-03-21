@@ -21,10 +21,10 @@ mod imp {
     pub struct HistoryList {
         #[property(get = Self::len)]
         len: PhantomData<u32>,
-        #[property(get, set = Self::set_current, default_value = gtk::INVALID_LIST_POSITION, construct)]
-        current: Cell<u32>,
-        #[property(get = Self::current_item, nullable)]
-        current_item: PhantomData<Option<PkgObject>>,
+        #[property(get, set = Self::set_selected, default_value = gtk::INVALID_LIST_POSITION, construct)]
+        selected: Cell<u32>,
+        #[property(get = Self::selected_item, nullable)]
+        selected_item: PhantomData<Option<PkgObject>>,
         #[property(get = Self::peek_previous)]
         peek_previous: PhantomData<bool>,
         #[property(get = Self::peek_next)]
@@ -53,11 +53,11 @@ mod imp {
             self.list.borrow().len() as u32
         }
 
-        fn set_current(&self, index: u32) {
+        fn set_selected(&self, index: u32) {
             if index < self.list.borrow().len() as u32 {
-                self.current.set(index);
+                self.selected.set(index);
             } else {
-                self.current.set(gtk::INVALID_LIST_POSITION);
+                self.selected.set(gtk::INVALID_LIST_POSITION);
             }
 
             let obj = self.obj();
@@ -65,29 +65,29 @@ mod imp {
             obj.notify_len();
             obj.notify_peek_previous();
             obj.notify_peek_next();
-            obj.notify_current_item();
+            obj.notify_selected_item();
         }
 
-        fn current_item(&self) -> Option<PkgObject> {
-            let current = self.current.get();
+        fn selected_item(&self) -> Option<PkgObject> {
+            let selected = self.selected.get();
 
-            if current == gtk::INVALID_LIST_POSITION {
+            if selected == gtk::INVALID_LIST_POSITION {
                 None
             } else {
-                self.list.borrow().get(current as usize).cloned()
+                self.list.borrow().get(selected as usize).cloned()
             }
         }
 
         fn peek_previous(&self) -> bool {
-            let current = self.current.get();
+            let selected = self.selected.get();
 
-            current != gtk::INVALID_LIST_POSITION && current > 0
+            selected != gtk::INVALID_LIST_POSITION && selected > 0
         }
 
         fn peek_next(&self) -> bool {
-            let current = self.current.get();
-
-            current.checked_add(1).filter(|&i| i < self.list.borrow().len() as u32).is_some()
+            self.selected.get()
+                .checked_add(1)
+                .is_some_and(|i| i < self.list.borrow().len() as u32)
         }
     }
 }
@@ -109,7 +109,7 @@ impl HistoryList {
         // Clear history and append item
         list.clear();
 
-        let current = item.map_or(gtk::INVALID_LIST_POSITION, |item| {
+        let selected = item.map_or(gtk::INVALID_LIST_POSITION, |item| {
             list.push(item);
 
             0
@@ -117,35 +117,34 @@ impl HistoryList {
 
         drop(list);
 
-        self.set_current(current);
+        self.set_selected(selected);
     }
 
-    pub fn move_previous(&self) {
+    pub fn select_previous(&self) {
         if self.peek_previous() {
-            self.set_current(self.current() - 1);
+            self.set_selected(self.selected() - 1);
         }
     }
 
-    pub fn move_next(&self) {
+    pub fn select_next(&self) {
         if self.peek_next() {
-            self.set_current(self.current() + 1);
+            self.set_selected(self.selected() + 1);
         }
     }
 
-    pub fn set_current_or_make_last(&self, item: PkgObject) {
+    pub fn select_or_append(&self, item: PkgObject) {
         let mut list = self.imp().list.borrow_mut();
 
-        let current = list.iter().position(|pkg| pkg.name() == item.name())
+        let selected = list.iter().position(|pkg| pkg.name() == item.name())
             .unwrap_or_else(|| {
-                // If current item is not the last one, truncate the list
-                let current = self.current();
-
-                if let Some(i) = current.checked_add(1)
+                // If selected item is not the last one, truncate the list
+                if let Some(i) = self.selected()
+                    .checked_add(1)
                     .filter(|&i| i < list.len() as u32) {
                         list.truncate(i as usize);
                     }
 
-                // Append item and make current
+                // Append item and select it
                 list.push(item);
 
                 list.len() - 1
@@ -153,7 +152,7 @@ impl HistoryList {
 
         drop(list);
 
-        self.set_current(current as u32);
+        self.set_selected(selected as u32);
     }
 }
 
