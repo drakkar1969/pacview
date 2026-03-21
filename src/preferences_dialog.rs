@@ -12,7 +12,6 @@ use crate::{
     window::PacViewWindow,
     search_bar::{SearchMode, SearchProp},
     utils::StyleSchemes,
-    enum_traits::EnumExt
 };
 
 //------------------------------------------------------------------------------
@@ -26,9 +25,6 @@ pub enum ColorScheme {
     Default,
     Light,
     Dark,
-}
-
-impl EnumExt for ColorScheme {
 }
 
 //------------------------------------------------------------------------------
@@ -290,7 +286,7 @@ impl PreferencesDialog {
 
         // Bind properties to widgets
         self.bind_property("color-scheme", &imp.color_scheme_row.get(), "selected")
-            .transform_to(|_, scheme: ColorScheme| Some(scheme.value()))
+            .transform_to(|_, scheme: ColorScheme| Some(scheme as u32))
             .transform_from(|_, index: u32| {
                 Some(ColorScheme::from_repr(index).unwrap_or_default())
             })
@@ -329,7 +325,7 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("search-mode", &imp.search_mode_row.get(), "selected")
-            .transform_to(|_, mode: SearchMode| Some(mode.value()))
+            .transform_to(|_, mode: SearchMode| Some(mode as u32))
             .transform_from(|_, index: u32| {
                 Some(SearchMode::from_repr(index).unwrap_or_default())
             })
@@ -338,7 +334,7 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("search-prop", &imp.search_prop_row.get(), "selected")
-            .transform_to(|_, prop: SearchProp| Some(prop.value()))
+            .transform_to(|_, prop: SearchProp| Some(prop as u32))
             .transform_from(|_, index: u32| {
                 Some(SearchProp::from_repr(index).unwrap_or_default())
             })

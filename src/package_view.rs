@@ -21,7 +21,6 @@ use crate::{
     search_bar::{SearchBar, SearchMode, SearchProp},
     info_pane::InfoPane,
     utils::TokioRuntime,
-    enum_traits::EnumExt
 };
 
 //------------------------------------------------------------------------------
@@ -53,8 +52,6 @@ pub enum SortProp {
     InstalledSize,
     Groups,
 }
-
-impl EnumExt for SortProp {}
 
 //------------------------------------------------------------------------------
 // MODULE: PackageView

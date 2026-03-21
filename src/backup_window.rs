@@ -193,25 +193,25 @@ mod imp {
 
             // Status key bindings
             klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::All.value());
+                window.imp().status_dropdown.set_selected(BackupStatus::All as u32);
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(Key::M, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Modified.value());
+                window.imp().status_dropdown.set_selected(BackupStatus::Modified as u32);
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(Key::U, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Unmodified.value());
+                window.imp().status_dropdown.set_selected(BackupStatus::Unmodified as u32);
 
                 glib::Propagation::Stop
             });
 
             klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Locked.value());
+                window.imp().status_dropdown.set_selected(BackupStatus::Locked as u32);
 
                 glib::Propagation::Stop
             });
