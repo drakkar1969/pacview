@@ -6,20 +6,14 @@
     <property name="modal">true</property>
     <property name="content">
       <object class="AdwToolbarView">
+        <property name="top-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar">
           </object>
         </child>
         <property name="content">
           <object class="GtkListBox">
-            <property name="margin-start">24</property>
-            <property name="margin-end">24</property>
-            <property name="margin-top">24</property>
-            <property name="margin-bottom">24</property>
             <property name="selection-mode">none</property>
-            <style>
-              <class name="boxed-list"/>
-            </style>
             <child>
               <object class="AdwActionRow" id="base64_row">
                 <property name="title">Base64 Signature</property>

@@ -8,7 +8,6 @@
     <property name="content">
       <object class="AdwToolbarView">
         <property name="top-bar-style">raised</property>
-        <property name="bottom-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar">
             <child>
