@@ -533,12 +533,11 @@ impl PkgObject {
                     .filter(|&path| {
                         path.file_name()
                             .and_then(|filename| filename.to_str())
-                            .filter(|&filename| {
-                                filename.rsplitn(4, '-').last()
-                                    .is_some_and(|name| name == pkg_name)
+                            .is_some_and(|filename| {
+                                filename.ends_with(".pkg.tar.zst")
+                                    && filename.rsplitn(4, '-').last()
+                                        .is_some_and(|name| name == pkg_name)
                             })
-                            .filter(|&filename| filename.ends_with(".pkg.tar.zst"))
-                            .is_some()
                     })
                     .map(|path| path.display().to_string())
                     .collect::<Vec<String>>()
