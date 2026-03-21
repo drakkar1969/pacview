@@ -10,17 +10,15 @@ use glib::subclass::Signal;
 use glib::{clone, closure_local};
 use gdk::{Key, ModifierType};
 
-use strum::{FromRepr, EnumIter, IntoEnumIterator};
+use strum::{FromRepr, EnumIter, IntoEnumIterator, AsRefStr};
 
-use crate::{
-    search_tag::SearchTag,
-    enum_traits::EnumExt
-};
+use crate::search_tag::SearchTag;
 
 //------------------------------------------------------------------------------
 // ENUM: SearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter, AsRefStr)]
+#[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "SearchMode")]
 pub enum SearchMode {
@@ -33,12 +31,11 @@ pub enum SearchMode {
     Exact,
 }
 
-impl EnumExt for SearchMode {}
-
 //------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter, AsRefStr)]
+#[strum(serialize_all = "kebab-case")]
 #[repr(u32)]
 #[enum_type(name = "SearchProp")]
 pub enum SearchProp {
@@ -58,8 +55,6 @@ pub enum SearchProp {
     #[enum_value(name = "Files")]
     Files,
 }
-
-impl EnumExt for SearchProp {}
 
 //------------------------------------------------------------------------------
 // MODULE: SearchBar
@@ -360,7 +355,7 @@ impl SearchBar {
         self.connect_mode_notify(|bar| {
             let imp = bar.imp();
 
-            imp.tag_mode.set_text(bar.mode().nick());
+            imp.tag_mode.set_text(bar.mode().as_ref());
 
             if !imp.search_text.text().is_empty() {
                 bar.emit_by_name::<()>("changed", &[]);
@@ -371,7 +366,7 @@ impl SearchBar {
         self.connect_prop_notify(|bar| {
             let imp = bar.imp();
 
-            imp.tag_prop.set_text(bar.prop().nick());
+            imp.tag_prop.set_text(bar.prop().as_ref());
 
             if !imp.search_text.text().is_empty() {
                 bar.emit_by_name::<()>("changed", &[]);

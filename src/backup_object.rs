@@ -8,10 +8,9 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
-use strum::FromRepr;
+use strum::{FromRepr, AsRefStr};
 
 use crate::{
-    enum_traits::EnumExt,
     pkg_object::PkgBackup,
     utils::{Paths, AsyncCommand}
 };
@@ -19,7 +18,8 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, AsRefStr)]
+#[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "BackupStatus")]
 pub enum BackupStatus {
@@ -27,11 +27,10 @@ pub enum BackupStatus {
     Modified,
     Unmodified,
     #[default]
+    #[strum(serialize = "access denied")]
     #[enum_value(name = "Access Denied")]
     Locked,
 }
-
-impl EnumExt for BackupStatus {}
 
 //------------------------------------------------------------------------------
 // MODULE: BackupObject
@@ -113,7 +112,7 @@ mod imp {
         }
 
         fn status_text(&self) -> String {
-            self.status().name().to_lowercase()
+            self.status().as_ref().to_owned()
         }
     }
 }

@@ -9,64 +9,61 @@ use glib::RustClosure;
 use glib::subclass::Signal;
 use gdk::{Key, ModifierType};
 
-use crate::{
-    text_widget::{TextWidget, LINK_SPACER},
-    enum_traits::EnumExt
-};
+use strum::AsRefStr;
+
+use crate::text_widget::{TextWidget, LINK_SPACER};
 
 //------------------------------------------------------------------------------
 // ENUM: PropID
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum, AsRefStr)]
 #[repr(u32)]
 #[enum_type(name = "PropID")]
 pub enum PropID {
     #[default]
-    #[enum_value(name = "Popularity")]
+    #[strum(serialize = "Popularity")]
     Popularity,
-    #[enum_value(name = "Out of Date")]
+    #[strum(serialize = "Out of Date")]
     OutOfDate,
-    #[enum_value(name = "Package URL")]
+    #[strum(serialize = "Package URL")]
     PackageUrl,
-    #[enum_value(name = "URL")]
+    #[strum(serialize = "URL")]
     Url,
-    #[enum_value(name = "Groups")]
+    #[strum(serialize = "Groups")]
     Groups,
-    #[enum_value(name = "Dependencies")]
+    #[strum(serialize = "Dependencies")]
     Dependencies,
-    #[enum_value(name = "Optional")]
+    #[strum(serialize = "Optional")]
     Optional,
-    #[enum_value(name = "Make")]
+    #[strum(serialize = "Make")]
     Make,
-    #[enum_value(name = "Required By")]
+    #[strum(serialize = "Required By")]
     RequiredBy,
-    #[enum_value(name = "Optional For")]
+    #[strum(serialize = "Optional For")]
     OptionalFor,
-    #[enum_value(name = "Provides")]
+    #[strum(serialize = "Provides")]
     Provides,
-    #[enum_value(name = "Conflicts With")]
+    #[strum(serialize = "Conflicts With")]
     ConflictsWith,
-    #[enum_value(name = "Replaces")]
+    #[strum(serialize = "Replaces")]
     Replaces,
-    #[enum_value(name = "Licenses")]
+    #[strum(serialize = "Licenses")]
     Licenses,
-    #[enum_value(name = "Architecture")]
+    #[strum(serialize = "Architecture")]
     Architecture,
-    #[enum_value(name = "Packager")]
+    #[strum(serialize = "Packager")]
     Packager,
-    #[enum_value(name = "Build Date")]
+    #[strum(serialize = "Build Date")]
     BuildDate,
-    #[enum_value(name = "Install Date")]
+    #[strum(serialize = "Install Date")]
     InstallDate,
-    #[enum_value(name = "Download Size")]
+    #[strum(serialize = "Download Size")]
     DownloadSize,
-    #[enum_value(name = "Install Script")]
+    #[strum(serialize = "Install Script")]
     InstallScript,
-    #[enum_value(name = "Validation")]
+    #[strum(serialize = "Validation")]
     Validation,
 }
-
-impl EnumExt for PropID {}
 
 //------------------------------------------------------------------------------
 // ENUM: PropType
@@ -298,7 +295,7 @@ impl InfoRow {
 
         let imp = obj.imp();
 
-        imp.prop_label.set_label(&id.name());
+        imp.prop_label.set_label(&id.as_ref());
         imp.value_widget.set_ptype(ptype);
 
         obj

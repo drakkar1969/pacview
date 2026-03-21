@@ -7,16 +7,18 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
+use strum::AsRefStr;
+
 use crate::{
     groups_object::GroupsObject,
-    enum_traits::EnumExt,
     pkg_object::PkgObject
 };
 
 //------------------------------------------------------------------------------
 // ENUM: GroupsSearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, AsRefStr)]
+#[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "GroupsSearchMode")]
 pub enum GroupsSearchMode {
@@ -25,8 +27,6 @@ pub enum GroupsSearchMode {
     Groups,
     Packages,
 }
-
-impl EnumExt for GroupsSearchMode {}
 
 //------------------------------------------------------------------------------
 // MODULE: GroupsWindow
@@ -211,7 +211,7 @@ impl GroupsWindow {
             if search_mode == GroupsSearchMode::All {
                 imp.search_entry.set_placeholder_text(Some("Search all"));
             } else {
-                imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.nick())));
+                imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.as_ref())));
             }
 
             imp.search_filter.changed(gtk::FilterChange::Different);

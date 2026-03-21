@@ -7,18 +7,20 @@ use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
 
+use strum::AsRefStr;
+
 use crate::{
     pkg_data::PkgFlags,
     pkg_object::PkgObject,
     backup_object::{BackupObject, BackupStatus},
-    enum_traits::EnumExt,
     utils::{Paths, AppInfoExt}
 };
 
 //------------------------------------------------------------------------------
 // ENUM: BackupSearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, AsRefStr)]
+#[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "BackupSearchMode")]
 pub enum BackupSearchMode {
@@ -27,8 +29,6 @@ pub enum BackupSearchMode {
     Packages,
     Files,
 }
-
-impl EnumExt for BackupSearchMode {}
 
 //------------------------------------------------------------------------------
 // MODULE: BackupWindow
@@ -259,7 +259,7 @@ impl BackupWindow {
             if search_mode == BackupSearchMode::All {
                 imp.search_entry.set_placeholder_text(Some("Search all"));
             } else {
-                imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.nick())));
+                imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.as_ref())));
             }
 
             imp.search_filter.changed(gtk::FilterChange::Different);
@@ -274,7 +274,7 @@ impl BackupWindow {
                 if status == BackupStatus::All {
                     imp.status_filter.set_search(None);
                 } else {
-                    imp.status_filter.set_search(Some(&status.name()));
+                    imp.status_filter.set_search(Some(&status.as_ref()));
                 }
 
                 imp.view.grab_focus();

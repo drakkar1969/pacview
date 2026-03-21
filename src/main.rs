@@ -28,7 +28,6 @@ mod log_object;
 mod cache_object;
 mod groups_object;
 mod utils;
-mod enum_traits;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;
