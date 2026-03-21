@@ -524,7 +524,7 @@ impl PacViewWindow {
                 );
 
                 imp.sort_button.set_tooltip_text(
-                    Some(if sort_asc { "Descending" } else { "Ascending" })
+                    Some(if sort_asc { "Sort Descending" } else { "Sort Ascending" })
                 );
             }
         ));
