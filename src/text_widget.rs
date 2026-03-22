@@ -5,7 +5,7 @@ use std::sync::{OnceLock, LazyLock};
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, GString};
 use glib::subclass::Signal;
 
 use fancy_regex::Regex as FancyRegex;
@@ -67,7 +67,7 @@ mod imp {
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
-        text: PhantomData<glib::GString>,
+        text: PhantomData<GString>,
 
         #[property(get, set)]
         can_expand: Cell<bool>,
@@ -436,7 +436,7 @@ mod imp {
         //---------------------------------------
         // Text property getter/setter
         //---------------------------------------
-        fn text(&self) -> glib::GString {
+        fn text(&self) -> GString {
             self.layout.get().unwrap().text()
         }
 

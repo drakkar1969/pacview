@@ -7,7 +7,7 @@ use gtk::{glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
-use glib::{clone, closure_local};
+use glib::{clone, closure_local, GString};
 use gdk::{Key, ModifierType};
 
 use strum::{FromRepr, EnumIter, IntoEnumIterator, AsRefStr};
@@ -97,7 +97,7 @@ mod imp {
         enabled: Cell<bool>,
 
         #[property(get = Self::text)]
-        text: PhantomData<glib::GString>,
+        text: PhantomData<GString>,
         #[property(get, set, builder(SearchMode::default()))]
         mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
@@ -280,7 +280,7 @@ mod imp {
         //---------------------------------------
         // Property getter
         //---------------------------------------
-        fn text(&self) -> glib::GString {
+        fn text(&self) -> GString {
             self.search_text.text()
         }
     }

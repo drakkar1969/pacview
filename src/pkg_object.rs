@@ -5,6 +5,7 @@ use std::cmp::Ordering;
 use gtk::{glib, gio};
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
+use glib::GString;
 
 use alpm::{Alpm, Package};
 use alpm_utils::DbListExt;
@@ -185,7 +186,7 @@ impl PkgObject {
         self.data().out_of_date
     }
 
-    pub fn out_of_date_string(&self) -> glib::GString {
+    pub fn out_of_date_string(&self) -> GString {
         Self::date_to_string(self.data().out_of_date)
     }
 
@@ -314,7 +315,7 @@ impl PkgObject {
         self.data().build_date
     }
 
-    pub fn build_date_string(&self) -> glib::GString {
+    pub fn build_date_string(&self) -> GString {
         Self::date_to_string(self.data().build_date)
     }
 
@@ -322,7 +323,7 @@ impl PkgObject {
         self.data().install_date
     }
 
-    pub fn install_date_string(&self) -> glib::GString {
+    pub fn install_date_string(&self) -> GString {
         Self::date_to_string(self.data().install_date)
     }
 
@@ -550,9 +551,9 @@ impl PkgObject {
     //---------------------------------------
     // Date to string associated function
     //---------------------------------------
-    fn date_to_string(date: i64) -> glib::GString {
+    fn date_to_string(date: i64) -> GString {
         if date == 0 {
-            glib::GString::new()
+            GString::new()
         } else {
             glib::DateTime::from_unix_local(date)
                 .and_then(|datetime| datetime.format("%c"))

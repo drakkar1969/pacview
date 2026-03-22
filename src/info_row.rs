@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use gtk::{glib, gdk, graphene};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, GString};
 use glib::RustClosure;
 use glib::subclass::Signal;
 use gdk::{Key, ModifierType};
@@ -117,9 +117,9 @@ mod imp {
         pub(super) value_widget: TemplateChild<TextWidget>,
 
         #[property(get = Self::label)]
-        label: PhantomData<glib::GString>,
+        label: PhantomData<GString>,
         #[property(get = Self::value)]
-        value: PhantomData<glib::GString>,
+        value: PhantomData<GString>,
     }
 
     //---------------------------------------
@@ -267,11 +267,11 @@ mod imp {
         //---------------------------------------
         // Property getters
         //---------------------------------------
-        fn label(&self) -> glib::GString {
+        fn label(&self) -> GString {
             self.prop_label.label()
         }
 
-        fn value(&self) -> glib::GString {
+        fn value(&self) -> GString {
             self.value_widget.text()
         }
     }
