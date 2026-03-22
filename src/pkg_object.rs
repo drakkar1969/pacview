@@ -185,7 +185,7 @@ impl PkgObject {
         self.data().out_of_date
     }
 
-    pub fn out_of_date_string(&self) -> String {
+    pub fn out_of_date_string(&self) -> glib::GString {
         Self::date_to_string(self.data().out_of_date)
     }
 
@@ -314,7 +314,7 @@ impl PkgObject {
         self.data().build_date
     }
 
-    pub fn build_date_string(&self) -> String {
+    pub fn build_date_string(&self) -> glib::GString {
         Self::date_to_string(self.data().build_date)
     }
 
@@ -322,7 +322,7 @@ impl PkgObject {
         self.data().install_date
     }
 
-    pub fn install_date_string(&self) -> String {
+    pub fn install_date_string(&self) -> glib::GString {
         Self::date_to_string(self.data().install_date)
     }
 
@@ -550,14 +550,13 @@ impl PkgObject {
     //---------------------------------------
     // Date to string associated function
     //---------------------------------------
-    fn date_to_string(date: i64) -> String {
+    fn date_to_string(date: i64) -> glib::GString {
         if date == 0 {
-            String::new()
+            glib::GString::new()
         } else {
             glib::DateTime::from_unix_local(date)
                 .and_then(|datetime| datetime.format("%c"))
                 .expect("Failed to format DateTime")
-                .to_string()
         }
     }
 
