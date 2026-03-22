@@ -32,25 +32,25 @@ searchtag label {
 	margin: 3px 10px;
 }
 
-/* Sidebar row error button */
-.filter-row menubutton > button {
-	min-height: 28px;
-	min-width: 28px;
-}
-
 /* Sidebar row spinner */
-image.spinner.count-spinner {
+.filter-row image.spinner {
 	min-height: 1.4em;
 	min-width: 1.4em;
 }
 
 /* Sidebar row count indicator */
-label.count-indicator {
+.filter-row label.indicator {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
 	border-radius: 9999px;
 	min-height: 1.6em;
 	padding: 0 0.5em;
+}
+
+/* Sidebar row error button */
+.filter-row menubutton > button {
+	min-height: 28px;
+	min-width: 28px;
 }
 
 /* Package view labels */
