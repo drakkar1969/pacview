@@ -15,6 +15,7 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkLabel" id="log_header_label">
+                <property name="valign">baseline-fill</property>
                 <property name="xalign">0</property>
                 <property name="label">Log Messages</property>
                 <style>
@@ -89,6 +90,7 @@
             <property name="spacing">12</property>
             <child>
               <object class="GtkLabel" id="cache_header_label">
+                <property name="valign">baseline-fill</property>
                 <property name="xalign">0</property>
                 <property name="label">Cache Files</property>
                 <style>
