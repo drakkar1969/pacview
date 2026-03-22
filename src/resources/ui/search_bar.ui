@@ -23,14 +23,10 @@
                 <property name="valign">center</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="SearchTag" id="tag_mode">
-                    <property name="text">all</property>
-                  </object>
+                  <object class="SearchTag" id="tag_mode"/>
                 </child>
                 <child>
-                  <object class="SearchTag" id="tag_prop">
-                    <property name="text">name</property>
-                  </object>
+                  <object class="SearchTag" id="tag_prop"/>
                 </child>
               </object>
             </child>
