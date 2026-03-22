@@ -156,7 +156,6 @@ impl PkgObject {
 
         pkg.connect_update_version_notify(|pkg| {
             pkg.notify_flags();
-            pkg.notify_version();
         });
 
         pkg
