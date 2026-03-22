@@ -3,43 +3,55 @@
   <template class="GtkListHeader">
     <property name="child">
       <object class="GtkBox">
-        <property name="margin-start">4</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">8</property>
         <child>
-          <object class="GtkLabel">
-            <style>
-              <class name="title-4"/>
-              <class name="dimmed"/>
-            </style>
-            <binding name="label">
-              <lookup name="package" type="BackupObject">
-                <lookup name="item">GtkListHeader</lookup>
-              </lookup>
-            </binding>
-            <property name="xalign">0</property>
-            <property name="valign">baseline-fill</property>
+          <object class="GtkSeparator"/>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <property name="margin-start">12</property>
+            <child>
+              <object class="GtkLabel">
+                <style>
+                  <class name="heading"/>
+                  <class name="dimmed"/>
+                </style>
+                <binding name="label">
+                  <lookup name="package" type="BackupObject">
+                    <lookup name="item">GtkListHeader</lookup>
+                  </lookup>
+                </binding>
+                <property name="xalign">0</property>
+                <property name="valign">baseline-fill</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator">
+                <style>
+                  <class name="spacer"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <attributes>
+                  <attribute name="scale" value="0.66"/>
+                </attributes>
+                <style>
+                  <class name="count-superscript"/>
+                  <class name="numeric"/>
+                </style>
+                <binding name="label">
+                  <lookup name="n-items">GtkListHeader</lookup>
+                </binding>
+                <property name="valign">center</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
-          <object class="GtkSeparator">
-            <style>
-              <class name="spacer"/>
-            </style>
-          </object>
-        </child>
-        <child>
-          <object class="GtkLabel">
-            <attributes>
-              <attribute name="scale" value="0.66"/>
-            </attributes>
-            <style>
-              <class name="count-superscript"/>
-              <class name="numeric"/>
-            </style>
-            <binding name="label">
-              <lookup name="n-items">GtkListHeader</lookup>
-            </binding>
-            <property name="valign">center</property>
-          </object>
+          <object class="GtkSeparator"/>
         </child>
       </object>
     </property>
