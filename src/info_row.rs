@@ -295,7 +295,7 @@ impl InfoRow {
 
         let imp = obj.imp();
 
-        imp.prop_label.set_label(&id.as_ref());
+        imp.prop_label.set_label(id.as_ref());
         imp.value_widget.set_ptype(ptype);
 
         obj

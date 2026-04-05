@@ -274,7 +274,7 @@ impl BackupWindow {
                 if status == BackupStatus::All {
                     imp.status_filter.set_search(None);
                 } else {
-                    imp.status_filter.set_search(Some(&status.as_ref()));
+                    imp.status_filter.set_search(Some(status.as_ref()));
                 }
 
                 imp.view.grab_focus();
