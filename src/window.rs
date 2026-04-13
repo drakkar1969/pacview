@@ -26,7 +26,9 @@ use crate::{
     search_bar::SearchBar,
     package_view::{PackageView, PackageViewState, SortProp},
     info_pane::InfoPane,
-    filter_row::{FilterRow, FilterRowState},
+    repo_item::RepoItem,
+    status_item::StatusItem,
+    status_item_indicator::StatusItemState,
     stats_window::StatsWindow,
     backup_window::BackupWindow,
     groups_window::GroupsWindow,
@@ -70,9 +72,13 @@ mod imp {
         pub(super) infopane_show_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub(super) repo_listbox: TemplateChild<gtk::ListBox>,
+        pub(super) repo_sidebar: TemplateChild<adw::Sidebar>,
         #[template_child]
-        pub(super) status_listbox: TemplateChild<gtk::ListBox>,
+        pub(super) repo_section: TemplateChild<adw::SidebarSection>,
+        #[template_child]
+        pub(super) status_sidebar: TemplateChild<adw::Sidebar>,
+        #[template_child]
+        pub(super) status_section: TemplateChild<adw::SidebarSection>,
 
         #[template_child]
         pub(super) search_bar: TemplateChild<SearchBar>,
@@ -92,9 +98,9 @@ mod imp {
         pub(super) saved_repo_id: RefCell<Option<String>>,
         pub(super) saved_status_id: Cell<PkgFlags>,
 
-        pub(super) all_repo_row: RefCell<FilterRow>,
-        pub(super) all_status_row: RefCell<FilterRow>,
-        pub(super) update_row: RefCell<FilterRow>,
+        pub(super) all_repo_item: RefCell<RepoItem>,
+        pub(super) all_status_item: RefCell<StatusItem>,
+        pub(super) update_item: RefCell<StatusItem>,
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
 
@@ -169,15 +175,15 @@ mod imp {
             klass.install_action("win.refresh", None, |window, _, _| {
                 let imp = window.imp();
 
-                let repo_id = imp.repo_listbox.selected_row()
-                    .and_downcast::<FilterRow>()
-                    .and_then(|row| row.repo_id());
+                let repo_id = imp.repo_sidebar.selected_item()
+                    .and_downcast::<RepoItem>()
+                    .and_then(|item| item.id());
 
                 imp.saved_repo_id.replace(repo_id);
 
-                let status_id = imp.status_listbox.selected_row()
-                    .and_downcast::<FilterRow>()
-                    .map(|row| row.status_id())
+                let status_id = imp.status_sidebar.selected_item()
+                    .and_downcast::<StatusItem>()
+                    .map(|item| item.id())
                     .unwrap_or_default();
 
                 imp.saved_status_id.set(status_id);
@@ -195,7 +201,7 @@ mod imp {
                 let imp = window.imp();
 
                 if AurDBFile::path().is_some() {
-                    imp.update_row.borrow().set_state(FilterRowState::Reset);
+                    imp.update_item.borrow().set_state(StatusItemState::Reset);
                     imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
 
@@ -324,8 +330,8 @@ mod imp {
             klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
                 let imp = window.imp();
 
-                imp.all_repo_row.borrow().activate();
-                imp.all_status_row.borrow().activate();
+                imp.all_repo_item.borrow().activate();
+                imp.all_status_item.borrow().activate();
 
                 glib::Propagation::Stop
             });
@@ -471,16 +477,16 @@ impl PacViewWindow {
             }
         ));
 
-        // Repo listbox row activated signal
-        imp.repo_listbox.connect_row_activated(clone!(
+        // Repo sidebar activated signal
+        imp.repo_sidebar.connect_activated(clone!(
             #[weak] imp,
-            move |_, row| {
-                let repo_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Failed to downcast to 'FilterRow'")
-                    .repo_id();
+            move |sidebar, index| {
+                let id = sidebar.items().item(index)
+                    .and_downcast::<RepoItem>()
+                    .expect("Failed to downcast to 'RepoItem'")
+                    .id();
 
-                imp.package_view.repo_filter_changed(repo_id.as_deref());
+                imp.package_view.repo_filter_changed(id.as_deref());
 
                 if imp.sidebar_split_view.is_collapsed() {
                     imp.sidebar_split_view.set_show_sidebar(false);
@@ -490,16 +496,16 @@ impl PacViewWindow {
             }
         ));
 
-        // Status listbox row activated signal
-        imp.status_listbox.connect_row_activated(clone!(
+        // Status sidebar activated signal
+        imp.status_sidebar.connect_activated(clone!(
             #[weak] imp,
-            move |_, row| {
-                let status_id = row
-                    .downcast_ref::<FilterRow>()
-                    .expect("Failed to downcast to 'FilterRow'")
-                    .status_id();
+            move |sidebar, index| {
+                let id = sidebar.items().item(index)
+                    .and_downcast::<StatusItem>()
+                    .expect("Failed to downcast to 'StatusItem'")
+                    .id();
 
-                imp.package_view.status_filter_changed(status_id);
+                imp.package_view.status_filter_changed(id);
 
                 if imp.sidebar_split_view.is_collapsed() {
                     imp.sidebar_split_view.set_show_sidebar(false);
@@ -787,34 +793,34 @@ impl PacViewWindow {
     fn alpm_populate_sidebar(&self, repo_names: &[String], first_load: bool) {
         let imp = self.imp();
 
-        // Add repository rows (enumerate pacman repositories)
-        imp.repo_listbox.remove_all();
+        // Add repository items (enumerate pacman repositories)
+        imp.repo_section.remove_all();
 
         let saved_repo_id = imp.saved_repo_id.take();
 
-        let all_row = FilterRow::new("repository-symbolic", "All", None, PkgFlags::empty());
+        let all_item = RepoItem::new("repository-symbolic", "All", None);
 
-        imp.repo_listbox.append(&all_row);
+        imp.repo_section.append(all_item.clone());
 
         if saved_repo_id.is_none() {
-            all_row.activate();
+            all_item.activate();
         }
 
-        imp.all_repo_row.replace(all_row);
+        imp.all_repo_item.replace(all_item);
 
         for repo in repo_names {
             let label = if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() };
 
-            let row = FilterRow::new("repository-symbolic", &label, Some(repo), PkgFlags::empty());
+            let item = RepoItem::new("repository-symbolic", &label, Some(repo));
 
-            imp.repo_listbox.append(&row);
+            imp.repo_section.append(item.clone());
 
             if saved_repo_id.as_ref() == Some(repo) {
-                row.activate();
+                item.activate();
             }
         }
 
-        // If first load, add package status rows (enumerate PkgStatusFlags)
+        // If first load, add package status items (enumerate PkgStatusFlags)
         if first_load {
             let saved_status_id = imp.saved_status_id.replace(PkgFlags::empty());
 
@@ -824,18 +830,18 @@ impl PacViewWindow {
                 let flag = PkgFlags::from_bits_truncate(f.value());
                 let nick = f.nick();
 
-                let row = FilterRow::new(&format!("status-{nick}-symbolic"), f.name(), None, flag);
+                let item = StatusItem::new(&format!("status-{nick}-symbolic"), f.name(), flag);
 
-                imp.status_listbox.append(&row);
+                imp.status_section.append(item.clone());
 
                 if (saved_status_id == PkgFlags::empty() && flag == PkgFlags::INSTALLED)
                     || saved_status_id == flag {
-                        row.activate();
+                        item.activate();
                     }
 
                 match flag {
-                    PkgFlags::ALL => { imp.all_status_row.replace(row); },
-                    PkgFlags::UPDATES => { imp.update_row.replace(row); },
+                    PkgFlags::ALL => { imp.all_status_item.replace(item); },
+                    PkgFlags::UPDATES => { imp.update_item.replace(item); },
                     _ => {}
                 }
             }
@@ -938,7 +944,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 // Hide update count in sidebar
-                imp.update_row.borrow().set_state(FilterRowState::Reset);
+                imp.update_item.borrow().set_state(StatusItemState::Reset);
 
                 // Show package view loading spinner
                 imp.package_view.set_state(PackageViewState::PackageLoad);
@@ -1033,7 +1039,9 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Reset sidebar update count
-        imp.update_row.borrow().set_state(FilterRowState::Checking);
+        let update_item = imp.update_item.borrow();
+
+        update_item.set_state(StatusItemState::Checking);
 
         // Check for pacman updates
         let mut update_str = String::new();
@@ -1099,14 +1107,13 @@ impl PacViewWindow {
         }
 
         // Show update status/count in sidebar
-        let update_row = imp.update_row.borrow();
+        update_item.set_state(StatusItemState::Updates(error_msg, update_map.len() as u32));
 
-        update_row.set_state(FilterRowState::Updates(error_msg, update_map.len() as u32));
-
-        // If update row is selected, refresh package status filter
-        if update_row.is_selected() {
-            imp.package_view.status_filter_changed(update_row.status_id());
-        }
+        // If update item is selected, refresh package status filter
+        if imp.status_sidebar.selected_item()
+            .and_downcast::<StatusItem>().as_ref() == Some(&*update_item) {
+                imp.package_view.status_filter_changed(update_item.id());
+            }
     }
 
     //---------------------------------------

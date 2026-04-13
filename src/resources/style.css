@@ -32,14 +32,14 @@ searchtag label {
 	margin: 3px 10px;
 }
 
-/* Sidebar row spinner */
-.filter-row image.spinner {
+/* Sidebar status row spinner */
+.status-row-indicator image.spinner {
 	min-height: 1.4em;
 	min-width: 1.4em;
 }
 
-/* Sidebar row count indicator */
-.filter-row label.indicator {
+/* Sidebar status row count indicator */
+.status-row-indicator > label {
 	background: var(--accent-bg-color);
 	color: var(--accent-fg-color);
 	border-radius: 9999px;
@@ -47,8 +47,8 @@ searchtag label {
 	padding: 0 0.5em;
 }
 
-/* Sidebar row error button */
-.filter-row menubutton > button {
+/* Sidebar status row error button */
+.status-row-indicator menubutton > button {
 	min-height: 28px;
 	min-width: 28px;
 }

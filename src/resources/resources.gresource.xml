@@ -47,7 +47,6 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/cache_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/config_dialog.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/filter_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/hash_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_files_tab.ui</file>
@@ -63,6 +62,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/source_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/status_item_indicator.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/window.ui</file>
   </gresource>
 </gresources>

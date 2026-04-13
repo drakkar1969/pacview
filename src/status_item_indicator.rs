@@ -1,30 +1,26 @@
-use std::cell::{Cell, RefCell};
-
 use gtk::glib;
-use gtk::subclass::prelude::*;
+use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
-use crate::pkg_data::PkgFlags;
-
 //------------------------------------------------------------------------------
-// ENUM: FilterRowState
+// ENUM: StatusItemState
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 #[repr(u32)]
-pub enum FilterRowState {
+pub enum StatusItemState {
     Updates(Option<String>, u32),
     Reset,
     Checking,
 }
 
-impl Default for FilterRowState {
+impl Default for StatusItemState {
     fn default() -> Self {
         Self::Updates(None, 0)
     }
 }
 
 //------------------------------------------------------------------------------
-// MODULE: FilterRow
+// MODULE: StatusItemIndicator
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -32,14 +28,9 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::FilterRow)]
-    #[template(resource = "/com/github/PacView/ui/filter_row.ui")]
-    pub struct FilterRow {
-        #[template_child]
-        pub(super) image: TemplateChild<gtk::Image>,
-        #[template_child]
-        pub(super) text_label: TemplateChild<gtk::Label>,
+    #[derive(Default, gtk::CompositeTemplate)]
+    #[template(resource = "/com/github/PacView/ui/status_item_indicator.ui")]
+    pub struct StatusItemIndicator {
         #[template_child]
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
@@ -49,24 +40,20 @@ mod imp {
 
         #[template_child]
         pub(super) error_label: TemplateChild<gtk::Label>,
-
-        #[property(get, set, nullable, construct_only)]
-        repo_id: RefCell<Option<String>>,
-        #[property(get, set, construct_only)]
-        status_id: Cell<PkgFlags>,
     }
 
     //---------------------------------------
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for FilterRow {
-        const NAME: &'static str = "FilterRow";
-        type Type = super::FilterRow;
-        type ParentType = gtk::ListBoxRow;
+    impl ObjectSubclass for StatusItemIndicator {
+        const NAME: &'static str = "StatusItemIndicator";
+        type Type = super::StatusItemIndicator;
+        type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+            klass.set_css_name("StatusItemIndicator");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -74,49 +61,29 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
-    impl ObjectImpl for FilterRow {}
-
-    impl WidgetImpl for FilterRow {}
-    impl ListBoxRowImpl for FilterRow {}
+    impl ObjectImpl for StatusItemIndicator {}
+    impl WidgetImpl for StatusItemIndicator {}
+    impl BoxImpl for StatusItemIndicator {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: FilterRow
+// IMPLEMENTATION: StatusItemIndicator
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct FilterRow(ObjectSubclass<imp::FilterRow>)
-        @extends gtk::ListBoxRow, gtk::Widget,
-        @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
+    pub struct StatusItemIndicator(ObjectSubclass<imp::StatusItemIndicator>)
+        @extends gtk::Box, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl FilterRow {
-    //---------------------------------------
-    // New function
-    //---------------------------------------
-    pub fn new(icon: &str, text: &str, repo_id: Option<&str>, status_id: PkgFlags) -> Self {
-        let obj: Self = glib::Object::builder()
-            .property("repo-id", repo_id)
-            .property("status-id", status_id)
-            .build();
-
-        let imp = obj.imp();
-
-        imp.image.set_icon_name(Some(icon));
-
-        imp.text_label.set_label(text);
-
-        obj
-    }
-
+impl StatusItemIndicator {
     //---------------------------------------
     // Public set state function
     //---------------------------------------
-    pub fn set_state(&self, state: FilterRowState) {
+    pub fn set_state(&self, state: StatusItemState) {
         let imp = self.imp();
 
         match state {
-            FilterRowState::Updates(error, count) => {
+            StatusItemState::Updates(error, count) => {
                 imp.spinner.set_visible(false);
 
                 imp.count_label.set_visible(count != 0);
@@ -129,12 +96,12 @@ impl FilterRow {
                     imp.error_button.set_visible(false);
                 }
             },
-            FilterRowState::Reset => {
+            StatusItemState::Reset => {
                 imp.spinner.set_visible(false);
                 imp.count_label.set_visible(false);
                 imp.error_button.set_visible(false);
             }
-            FilterRowState::Checking => {
+            StatusItemState::Checking => {
                 imp.error_button.set_visible(false);
                 imp.count_label.set_visible(false);
                 imp.spinner.set_visible(true);
@@ -143,11 +110,12 @@ impl FilterRow {
     }
 }
 
-impl Default for FilterRow {
+impl Default for StatusItemIndicator {
     //---------------------------------------
     // Default constructor
     //---------------------------------------
     fn default() -> Self {
-        Self::new("", "", None, PkgFlags::default())
+        glib::Object::builder()
+            .build()
     }
 }
