@@ -188,6 +188,8 @@ mod imp {
 
                 imp.saved_status_id.set(status_id);
 
+                imp.package_count_label.set_label("");
+
                 window.setup_alpm(false);
             });
 
@@ -204,6 +206,7 @@ mod imp {
                     imp.update_item.borrow().set_state(StatusItemState::Reset);
                     imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
+                    imp.package_count_label.set_label("");
 
                     // Spawn tokio task to download AUR package names file
                     let _ = AurDBFile::download().await;
