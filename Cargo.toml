@@ -6,7 +6,7 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-adw = { version = "0.8", package = "libadwaita", features = ["v1_8"] }
+adw = { version = "0.9", package = "libadwaita", features = ["v1_9"] }
 alpm = "5"
 alpm-utils = "5"
 async-channel = "2"
@@ -15,18 +15,18 @@ async-process = "2"
 fancy-regex = "0.17"
 futures = "0.3"
 futures-util = "0.3"
-gtk = { version = "0.10", package = "gtk4", features = ["v4_20"] }
+gtk = { version = "0.11", package = "gtk4", features = ["v4_22"] }
 heck = "0.5"
 itertools = "0.14.0"
 notify-debouncer-full = "0.7"
 pacmanconf = "3"
-pangocairo = "0.21"
+pangocairo = "0.22"
 raur = "8"
 rayon = "1"
 regex = "1"
 reqwest = { version = "0.13", features = ["stream"] }
 size = "0.5"
-sourceview5 = { version = "0.10", features = ["v5_18"] }
+sourceview5 = { version = "0.11", features = ["v5_18"] }
 strum = { version = "0.28", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 tokio-util = "0.7"
@@ -34,7 +34,7 @@ url = "2"
 which = "8"
 
 [build-dependencies]
-glib-build-tools = "0.21"
+glib-build-tools = "0.22"
 
 [lints.clippy]
 # NURSERY
