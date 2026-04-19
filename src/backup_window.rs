@@ -44,7 +44,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
     pub struct BackupWindow {
         #[template_child]
-        pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
@@ -55,6 +55,10 @@ mod imp {
         pub(super) open_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) copy_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) search_bar: TemplateChild<gtk::SearchBar>,
+        #[template_child]
+        pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
 
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
@@ -149,11 +153,7 @@ mod imp {
 
             // Find key binding
             klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if !imp.search_entry.has_focus() {
-                    imp.search_entry.grab_focus();
-                }
+                window.imp().search_bar.set_search_mode(true);
 
                 glib::Propagation::Stop
             });
@@ -234,13 +234,6 @@ impl BackupWindow {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
-
-        // Search entry search started signal
-        imp.search_entry.connect_search_started(|entry| {
-            if !entry.has_focus() {
-                entry.grab_focus();
-            }
-        });
 
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
@@ -436,8 +429,15 @@ impl BackupWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Set search entry key capture widget
-        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+        // Set search bar key capture widget and connect entry
+        imp.search_bar.set_key_capture_widget(Some(&imp.view.get()));
+        imp.search_bar.connect_entry(&imp.search_entry.get());
+
+        // Bind search button state to search bar visibility
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
+            .bidirectional()
+            .sync_create()
+            .build();
 
         // Set search filter function
         imp.search_filter.set_filter_func(clone!(
@@ -468,26 +468,6 @@ impl BackupWindow {
                 }
             }
         ));
-
-        // Add keyboard shortcut to cancel search
-        let shortcut = gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(
-                #[weak] imp,
-                #[upgrade_or] glib::Propagation::Proceed,
-                move |_, _| {
-                    imp.search_entry.set_text("");
-                    imp.view.grab_focus();
-
-                    glib::Propagation::Stop
-                }
-            )))
-        );
-
-        let controller = gtk::ShortcutController::new();
-        controller.add_shortcut(shortcut);
-
-        imp.search_entry.add_controller(controller);
 
         // Set backup compare button visibility
         imp.compare_button.set_visible(Paths::paccat().is_ok() && Paths::meld().is_ok());
