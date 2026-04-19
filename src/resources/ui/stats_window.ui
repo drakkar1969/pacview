@@ -5,35 +5,13 @@
     <property name="default-width">580</property>
     <property name="modal">true</property>
     <property name="hide-on-close">true</property>
-    <property name="title"></property>
+    <property name="title">Package Statistics</property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
         <property name="top-bar-style">raised</property>
         <property name="bottom-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
-            <child>
-              <object class="GtkBox" id="header_box">
-                <property name="margin-start">6</property>
-                <property name="spacing">12</property>
-                <child>
-                  <object class="GtkImage" id="header_image">
-                    <property name="valign">center</property>
-                    <property name="icon-name">stats-symbolic</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="header_label">
-                    <property name="xalign">0</property>
-                    <property name="yalign">0.5</property>
-                    <property name="label">Package Statistics</property>
-                    <style>
-                      <class name="heading"/>
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
             <child type="end">
               <object class="GtkBox" id="control_box">
                 <property name="valign">center</property>
