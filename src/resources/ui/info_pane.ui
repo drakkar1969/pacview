@@ -71,7 +71,6 @@
                       <object class="AdwViewStackPage">
                         <property name="name">info</property>
                         <property name="title">Info</property>
-                        <property name="icon-name">info-outline-symbolic</property>
                         <property name="child">
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
@@ -277,7 +276,6 @@
                       <object class="AdwViewStackPage">
                         <property name="name">files</property>
                         <property name="title">Files</property>
-                        <property name="icon-name">info-files-symbolic</property>
                         <property name="child">
                           <object class="InfoFilesTab" id="files_tab"/>
                         </property>
@@ -287,7 +285,6 @@
                       <object class="AdwViewStackPage">
                         <property name="name">log</property>
                         <property name="title">Log</property>
-                        <property name="icon-name">info-log-symbolic</property>
                         <property name="child">
                           <object class="InfoLogTab" id="log_tab"/>
                         </property>
