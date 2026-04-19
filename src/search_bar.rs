@@ -113,6 +113,8 @@ mod imp {
         #[property(get, set)]
         searching: Cell<bool>,
 
+        pub(super) spinner: RefCell<Option<adw::SpinnerPaintable>>,
+
         pub(super) search_delay_id: RefCell<Option<glib::SourceId>>,
     }
 
@@ -167,6 +169,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_widgets();
         }
     }
 
@@ -343,9 +346,7 @@ impl SearchBar {
             let imp = bar.imp();
 
             if bar.searching() {
-                let spinner = adw::SpinnerPaintable::new(Some(&imp.search_image.get()));
-
-                imp.search_image.set_paintable(Some(&spinner));
+                imp.search_image.set_paintable(imp.spinner.borrow().as_ref());
             } else {
                 imp.search_image.set_icon_name(Some("edit-find-symbolic"));
             }
@@ -456,6 +457,15 @@ impl SearchBar {
                 }
             }
         ));
+    }
+
+    //---------------------------------------
+    // Setup sidgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        imp.spinner.replace(Some(adw::SpinnerPaintable::new(Some(&imp.search_image.get()))));
     }
 
     //---------------------------------------
