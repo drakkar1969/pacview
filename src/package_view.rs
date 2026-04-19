@@ -112,6 +112,10 @@ mod imp {
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
+        #[property(get, set)]
+        search_term: RefCell<String>,
+        #[property(get, set)]
+        search_tokens: RefCell<Vec<String>>,
 
         pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
     }
@@ -246,8 +250,20 @@ impl PackageView {
         // Search bar changed signal
         self.search_bar().connect_closure("changed", false, closure_local!(
             #[weak(rename_to = view)] self,
-            move |_: SearchBar| {
-                view.imp().search_filter.changed(gtk::FilterChange::Different);
+            move |bar: SearchBar| {
+                let imp = view.imp();
+
+                let term = bar.text().trim().to_lowercase();
+
+                view.set_search_tokens(
+                    term.split_whitespace()
+                        .into_iter()
+                        .map(ToOwned::to_owned)
+                        .collect::<Vec<String>>()
+                );
+                view.set_search_term(term);
+
+                imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
@@ -329,9 +345,7 @@ impl PackageView {
             move |item| {
                 let search_bar = view.search_bar();
 
-                let term = search_bar.text().trim().to_lowercase();
-
-                if term.is_empty() {
+                if view.search_term().is_empty() {
                     return true
                 }
 
@@ -354,15 +368,15 @@ impl PackageView {
 
                 match mode {
                     SearchMode::Exact => {
-                        search_props.iter().any(|s| s.to_lowercase().eq(&term))
+                        search_props.iter().any(|s| s.to_lowercase().eq(&view.search_term()))
                     },
                     SearchMode::All => {
-                        term.split_whitespace().all(|t| {
+                        view.search_tokens().iter().all(|t| {
                             search_props.iter().any(|s| s.to_lowercase().contains(t))
                         })
                     },
                     SearchMode::Any => {
-                        term.split_whitespace().any(|t| {
+                        view.search_tokens().iter().any(|t| {
                             search_props.iter().any(|s| s.to_lowercase().contains(t))
                         })
                     },
@@ -390,7 +404,7 @@ impl PackageView {
     //---------------------------------------
     // Do search helper function
     //---------------------------------------
-    async fn do_search(term: &str, prop: SearchProp) -> Result<Vec<PkgData>, raur::Error> {
+    async fn do_search(term: &str, tokens: &[String], prop: SearchProp) -> Result<Vec<PkgData>, raur::Error> {
         // Static AUR cache variable
         static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
             TokioMutex::new(raur::Cache::default())
@@ -420,7 +434,7 @@ impl PackageView {
         // Search for AUR packages
         let handle = raur::Handle::new();
 
-        let search_results = future::join_all(term.split_whitespace()
+        let search_results = future::join_all(tokens.iter()
             .map(|t| handle.search_by(t, search_by))
         )
         .await;
@@ -470,7 +484,8 @@ impl PackageView {
     fn search_in_aur(&self, search_bar: &SearchBar) {
         let imp = self.imp();
 
-        let term = search_bar.text().trim().to_lowercase();
+        let term = self.search_term();
+        let tokens = self.search_tokens();
         let prop = search_bar.prop();
 
         // Reset AUR search
@@ -501,7 +516,7 @@ impl PackageView {
                     async move {
                         tokio::select! {
                             () = cancel_token_clone.cancelled() => Ok(vec![]),
-                            pkg_data = Self::do_search(&term, prop) => pkg_data
+                            pkg_data = Self::do_search(&term, &tokens, prop) => pkg_data
                         }
                     }
                 )
