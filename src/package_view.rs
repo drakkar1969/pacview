@@ -364,10 +364,10 @@ impl PackageView {
                 };
 
                 if search_bar.exact() {
-                    search_props.iter().any(|s| s.to_lowercase().eq(&view.search_term()))
+                    search_props.iter().any(|s| s.eq_ignore_ascii_case(&view.search_term()))
                 } else {
                     view.search_tokens().iter().all(|t| {
-                        search_props.iter().any(|s| s.to_lowercase().contains(t))
+                        search_props.iter().any(|s| s.to_ascii_lowercase().contains(t))
                     })
                 }
             }
@@ -437,7 +437,7 @@ impl PackageView {
         // Get AUR package info using cache
         let pkg_data = handle.cache_info(
             &mut *AUR_CACHE.lock().await,
-            &search_names.iter().collect::<Vec<&String>>()
+            &search_names.iter().map(|s| s.as_str()).collect::<Vec<&str>>()
         )
         .await?
         .iter()
