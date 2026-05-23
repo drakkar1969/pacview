@@ -139,6 +139,12 @@
             <property name="title">Show All Packages</property>
           </object>
         </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;G</property>
+            <property name="title">Group Packages by Repository</property>
+          </object>
+        </child>
       </object>
     </child>
     <child>

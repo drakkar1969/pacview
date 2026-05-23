@@ -96,6 +96,8 @@ mod imp {
         pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
         #[template_child]
         pub(super) sorter: TemplateChild<gtk::CustomSorter>,
+        #[template_child]
+        pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
 
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
@@ -109,6 +111,8 @@ mod imp {
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
         sort_ascending: Cell<bool>,
+        #[property(get, set, default = false, construct)]
+        grouping: Cell<bool>,
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
@@ -245,6 +249,30 @@ impl PackageView {
         // Sort ascending property notify signal
         self.connect_sort_ascending_notify(|view| {
             view.imp().sorter.changed(gtk::SorterChange::Inverted);
+        });
+
+        // Grouping property notify signal
+        self.connect_grouping_notify(|view| {
+            let imp = view.imp();
+
+            if view.grouping() {
+                let expression = gtk::PropertyExpression::new(
+                    PkgObject::static_type(),
+                    None::<gtk::Expression>,
+                    "repository"
+                );
+
+                let factory = gtk::BuilderListItemFactory::from_resource(
+                    None::<&gtk::BuilderScope>,
+                    "/com/github/PacView/ui/package_view/header.ui"
+                );
+
+                imp.section_sorter.set_expression(Some(expression));
+                imp.view.set_header_factory(Some(&factory));
+            } else {
+                imp.section_sorter.set_expression(None::<gtk::Expression>);
+                imp.view.set_header_factory(None::<&gtk::BuilderListItemFactory>);
+            }
         });
 
         // Search bar changed signal

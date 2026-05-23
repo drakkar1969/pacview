@@ -59,6 +59,13 @@
                 <property name="use-underline">true</property>
               </object>
             </child>
+            <child>
+              <object class="AdwSwitchRow" id="remember_grouping_row">
+                <property name="title">Remember _Grouping</property>
+                <property name="subtitle">Save package list grouping</property>
+                <property name="use-underline">true</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>

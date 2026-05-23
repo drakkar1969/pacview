@@ -33,6 +33,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/date_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/category_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/message_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/package_view/header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/repository_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/packages_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>

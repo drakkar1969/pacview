@@ -67,6 +67,8 @@ mod imp {
         #[template_child]
         pub(super) sort_button: TemplateChild<adw::SplitButton>,
         #[template_child]
+        pub(super) grouping_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) infopane_show_button: TemplateChild<gtk::Button>,
@@ -150,13 +152,9 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
-
-            obj.bind_gsettings();
-
             obj.setup_widgets();
-
+            obj.bind_gsettings();
             obj.setup_alpm(true);
-
             obj.setup_inotify();
         }
     }
@@ -310,6 +308,15 @@ mod imp {
                 if imp.infopane_show_button.is_visible() {
                     imp.infopane_show_button.emit_clicked();
                 }
+
+                glib::Propagation::Stop
+            });
+
+            // Package view grouping key binding
+            klass.add_binding(Key::G, ModifierType::ALT_MASK, |window| {
+                let imp = window.imp();
+
+                imp.grouping_button.set_active(!imp.grouping_button.is_active());
 
                 glib::Propagation::Stop
             });
@@ -616,6 +623,38 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind search button state to search bar enabled state
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        // Bind grouping button state to package view grouping property
+        imp.grouping_button.bind_property("active", &imp.package_view.get(), "grouping")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        // Bind property to package view sort prop
+        self.bind_property("package-sort-prop", &imp.package_view.get(), "sort-prop")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        // Set window parents
+        imp.backup_window.borrow().set_transient_for(Some(self));
+        imp.cache_window.borrow().set_transient_for(Some(self));
+        imp.groups_window.borrow().set_transient_for(Some(self));
+        imp.log_window.borrow().set_transient_for(Some(self));
+        imp.stats_window.borrow().set_transient_for(Some(self));
+    }
+
+    //---------------------------------------
     // Bind gsettings
     //---------------------------------------
     fn bind_gsettings(&self) {
@@ -648,6 +687,7 @@ impl PacViewWindow {
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
         settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
         settings.bind("remember-sort", prefs_dialog, "remember-sort").build();
+        settings.bind("remember-grouping", prefs_dialog, "remember-grouping").build();
         settings.bind("search-prop", prefs_dialog, "search-prop").build();
         settings.bind("search-exact", prefs_dialog, "search-exact").build();
         settings.bind("search-delay", prefs_dialog, "search-delay").build();
@@ -678,32 +718,18 @@ impl PacViewWindow {
         settings.bind("sort-ascending", &imp.package_view.get(), "sort-ascending")
             .set()
             .build();
-    }
 
-    //---------------------------------------
-    // Setup widgets
-    //---------------------------------------
-    fn setup_widgets(&self) {
-        let imp = self.imp();
+        // Load/save packave view grouping property
+        if prefs_dialog.remember_grouping() {
+            settings.bind("grouping", &imp.package_view.get(), "grouping")
+                .get()
+                .get_no_changes()
+                .build();
+        }
 
-        // Bind search button state to search bar enabled state
-        imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
-            .sync_create()
-            .bidirectional()
+        settings.bind("grouping", &imp.package_view.get(), "grouping")
+            .set()
             .build();
-
-        // Bind property to package view sort prop
-        self.bind_property("package-sort-prop", &imp.package_view.get(), "sort-prop")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        // Set window parents
-        imp.backup_window.borrow().set_transient_for(Some(self));
-        imp.cache_window.borrow().set_transient_for(Some(self));
-        imp.groups_window.borrow().set_transient_for(Some(self));
-        imp.log_window.borrow().set_transient_for(Some(self));
-        imp.stats_window.borrow().set_transient_for(Some(self));
     }
 
     //---------------------------------------

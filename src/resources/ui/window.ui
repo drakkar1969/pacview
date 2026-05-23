@@ -130,6 +130,12 @@
                             <property name="dropdown-tooltip">Sort Options</property>
                           </object>
                         </child>
+                        <child type="end">
+                          <object class="GtkToggleButton" id="grouping_button">
+                            <property name="icon-name">repository-symbolic</property>
+                            <property name="tooltip-text">Group by Repository</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>

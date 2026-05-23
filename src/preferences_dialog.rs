@@ -55,6 +55,8 @@ mod imp {
         #[template_child]
         pub(super) remember_sort_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) remember_grouping_row: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) search_prop_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) search_exact_row: TemplateChild<adw::SwitchRow>,
@@ -89,6 +91,8 @@ mod imp {
         auto_refresh: Cell<bool>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
+        #[property(get, set)]
+        remember_grouping: Cell<bool>,
         #[property(get, set, builder(SearchProp::default()))]
         search_prop: Cell<SearchProp>,
         #[property(get, set)]
@@ -252,6 +256,7 @@ impl PreferencesDialog {
                             settings.reset("aur-database-age");
                             settings.reset("auto-refresh");
                             settings.reset("remember-sort");
+                            settings.reset("remember-grouping");
                             settings.reset("search-prop");
                             settings.reset("search-exact");
                             settings.reset("search-delay");
@@ -320,6 +325,11 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("remember-sort", &imp.remember_sort_row.get(), "active")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("remember-grouping", &imp.remember_grouping_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();

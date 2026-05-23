@@ -61,8 +61,10 @@
                                   </object>
                                 </property>
                                 <property name="sorter">
-                                  <object class="GtkCustomSorter" id="sorter">
-                                  </object>
+                                  <object class="GtkCustomSorter" id="sorter"/>
+                                </property>
+                                <property name="section-sorter">
+                                  <object class="GtkStringSorter" id="section_sorter"/>
                                 </property>
                               </object>
                             </property>
@@ -70,6 +72,9 @@
                         </property>
                         <property name="factory">
                           <object class="GtkSignalListItemFactory" id="factory"/>
+                        </property>
+                        <property name="header-factory">
+                          <object class="GtkBuilderListItemFactory" id="header_factory"/>
                         </property>
                       </object>
                     </child>
