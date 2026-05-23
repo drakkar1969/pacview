@@ -23,7 +23,7 @@
                 <property name="valign">center</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="SearchTag" id="tag_prop"/>
+                  <object class="SearchTag" id="prop_tag"/>
                 </child>
               </object>
             </child>

@@ -59,7 +59,7 @@ mod imp {
         pub(super) search_image: TemplateChild<gtk::Image>,
 
         #[template_child]
-        pub(super) tag_prop: TemplateChild<SearchTag>,
+        pub(super) prop_tag: TemplateChild<SearchTag>,
 
         #[template_child]
         pub(super) search_text: TemplateChild<gtk::Text>,
@@ -300,7 +300,7 @@ impl SearchBar {
         self.connect_prop_notify(|bar| {
             let imp = bar.imp();
 
-            imp.tag_prop.set_text(bar.prop().as_ref());
+            imp.prop_tag.set_text(bar.prop().as_ref());
 
             if !imp.search_text.text().is_empty() {
                 bar.emit_by_name::<()>("changed", &[]);
@@ -317,7 +317,7 @@ impl SearchBar {
         });
 
         // Prop tag clicked signal
-        imp.tag_prop.connect_closure("clicked", false, closure_local!(
+        imp.prop_tag.connect_closure("clicked", false, closure_local!(
             #[weak(rename_to = bar)] self,
             move |_: SearchTag, shift: bool| {
                 if shift {
