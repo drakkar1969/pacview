@@ -202,7 +202,7 @@ mod imp {
             klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "search.cycle-prop");
             klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-prop");
 
-            // Search prop numbered shortcuts
+            // Search prop numbered key bindings
             for (i, prop) in SearchProp::iter().enumerate() {
                 let key = Key::from_name((i+1).to_string()).unwrap();
 
@@ -213,12 +213,8 @@ mod imp {
                 });
             }
 
-            // Search exact toggle shortcut
-            klass.add_binding(Key::W, ModifierType::CONTROL_MASK, |bar| {
-                bar.set_exact(!bar.exact());
-
-                glib::Propagation::Stop
-            });
+            // Search exact key binding
+            klass.add_binding_action(Key::W, ModifierType::CONTROL_MASK, "search.set-exact");
 
             // Reset search params key binding
             klass.add_binding_action(Key::R, ModifierType::CONTROL_MASK, "search.reset-params");
