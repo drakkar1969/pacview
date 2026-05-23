@@ -242,6 +242,10 @@
             <property name="title">Expand/Contract</property>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;A</property>
@@ -260,6 +264,10 @@
             <property name="title">Copy Value</property>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">Left Right</property>
