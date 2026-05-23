@@ -18,7 +18,7 @@ use crate::{
     package_item::PackageItem,
     pkg_data::{PkgFlags, PkgData},
     pkg_object::PkgObject,
-    search_bar::{SearchBar, SearchMode, SearchProp},
+    search_bar::{SearchBar, SearchProp},
     info_pane::InfoPane,
     utils::TokioRuntime,
 };
@@ -349,14 +349,11 @@ impl PackageView {
                     return true
                 }
 
-                let mode = search_bar.mode();
-                let prop = search_bar.prop();
-
                 let pkg: &PkgObject = item
                     .downcast_ref::<PkgObject>()
                     .expect("Failed to downcast to 'PkgObject'");
 
-                let search_props: &[String] = match prop {
+                let search_props: &[String] = match search_bar.prop() {
                     SearchProp::Name => &[pkg.name()],
                     SearchProp::NameDesc => &[pkg.name(), pkg.description().to_owned()],
                     SearchProp::Groups => pkg.groups(),
@@ -366,20 +363,12 @@ impl PackageView {
                     SearchProp::Files => pkg.files(),
                 };
 
-                match mode {
-                    SearchMode::Exact => {
-                        search_props.iter().any(|s| s.to_lowercase().eq(&view.search_term()))
-                    },
-                    SearchMode::All => {
-                        view.search_tokens().iter().all(|t| {
-                            search_props.iter().any(|s| s.to_lowercase().contains(t))
-                        })
-                    },
-                    SearchMode::Any => {
-                        view.search_tokens().iter().any(|t| {
-                            search_props.iter().any(|s| s.to_lowercase().contains(t))
-                        })
-                    },
+                if search_bar.exact() {
+                    search_props.iter().any(|s| s.to_lowercase().eq(&view.search_term()))
+                } else {
+                    view.search_tokens().iter().all(|t| {
+                        search_props.iter().any(|s| s.to_lowercase().contains(t))
+                    })
                 }
             }
         ));

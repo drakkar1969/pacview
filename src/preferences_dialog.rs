@@ -10,7 +10,7 @@ use strum::FromRepr;
 use crate::{
     APP_ID,
     window::PacViewWindow,
-    search_bar::{SearchMode, SearchProp},
+    search_bar::SearchProp,
     utils::StyleSchemes,
 };
 
@@ -55,9 +55,9 @@ mod imp {
         #[template_child]
         pub(super) remember_sort_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub(super) search_mode_row: TemplateChild<adw::ComboRow>,
-        #[template_child]
         pub(super) search_prop_row: TemplateChild<adw::ComboRow>,
+        #[template_child]
+        pub(super) search_exact_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) search_delay_row: TemplateChild<adw::SpinRow>,
         #[template_child]
@@ -89,10 +89,10 @@ mod imp {
         auto_refresh: Cell<bool>,
         #[property(get, set)]
         remember_sort: Cell<bool>,
-        #[property(get, set, builder(SearchMode::default()))]
-        search_mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
         search_prop: Cell<SearchProp>,
+        #[property(get, set)]
+        search_exact: Cell<bool>,
         #[property(get, set)]
         search_delay: Cell<f64>,
         #[property(get, set)]
@@ -252,8 +252,8 @@ impl PreferencesDialog {
                             settings.reset("aur-database-age");
                             settings.reset("auto-refresh");
                             settings.reset("remember-sort");
-                            settings.reset("search-mode");
                             settings.reset("search-prop");
+                            settings.reset("search-exact");
                             settings.reset("search-delay");
                             settings.reset("property-max-lines");
                             settings.reset("property-line-spacing");
@@ -324,20 +324,16 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
-        self.bind_property("search-mode", &imp.search_mode_row.get(), "selected")
-            .transform_to(|_, mode: SearchMode| Some(mode as u32))
-            .transform_from(|_, index: u32| {
-                Some(SearchMode::from_repr(index).unwrap_or_default())
-            })
-            .sync_create()
-            .bidirectional()
-            .build();
-
         self.bind_property("search-prop", &imp.search_prop_row.get(), "selected")
             .transform_to(|_, prop: SearchProp| Some(prop as u32))
             .transform_from(|_, index: u32| {
                 Some(SearchProp::from_repr(index).unwrap_or_default())
             })
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("search-exact", &imp.search_exact_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();

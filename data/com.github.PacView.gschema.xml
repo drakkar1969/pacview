@@ -47,13 +47,8 @@
       <range min="0" max="2000"/>
       <default>150</default>
     </key>
-    <key name="search-mode" type="s">
-      <choices>
-        <choice value='all'/>
-        <choice value='any'/>
-        <choice value='exact'/>
-      </choices>
-      <default>'all'</default>
+    <key name="search-exact" type="b">
+      <default>false</default>
     </key>
     <key name="search-prop" type="s">
       <choices>

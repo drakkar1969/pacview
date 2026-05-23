@@ -15,23 +15,6 @@ use strum::{FromRepr, EnumIter, IntoEnumIterator, AsRefStr};
 use crate::search_tag::SearchTag;
 
 //------------------------------------------------------------------------------
-// ENUM: SearchMode
-//------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter, AsRefStr)]
-#[strum(serialize_all = "lowercase")]
-#[repr(u32)]
-#[enum_type(name = "SearchMode")]
-pub enum SearchMode {
-    #[default]
-    #[enum_value(name = "Match all terms")]
-    All,
-    #[enum_value(name = "Match any term")]
-    Any,
-    #[enum_value(name = "Exact match")]
-    Exact,
-}
-
-//------------------------------------------------------------------------------
 // ENUM: SearchProp
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter, AsRefStr)]
@@ -76,8 +59,6 @@ mod imp {
         pub(super) search_image: TemplateChild<gtk::Image>,
 
         #[template_child]
-        pub(super) tag_mode: TemplateChild<SearchTag>,
-        #[template_child]
         pub(super) tag_prop: TemplateChild<SearchTag>,
 
         #[template_child]
@@ -85,7 +66,6 @@ mod imp {
 
         #[template_child]
         pub(super) clear_button: TemplateChild<gtk::Button>,
-
         #[template_child]
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
@@ -98,14 +78,14 @@ mod imp {
 
         #[property(get = Self::text)]
         text: PhantomData<GString>,
-        #[property(get, set, builder(SearchMode::default()))]
-        mode: Cell<SearchMode>,
         #[property(get, set, builder(SearchProp::default()))]
         prop: Cell<SearchProp>,
-        #[property(get, set, builder(SearchMode::default()))]
-        default_mode: Cell<SearchMode>,
+        #[property(get, set)]
+        exact: Cell<bool>,
         #[property(get, set, builder(SearchProp::default()))]
         default_prop: Cell<SearchProp>,
+        #[property(get, set)]
+        default_exact: Cell<bool>,
 
         #[property(get, set, default = 150, construct)]
         delay: Cell<u64>,
@@ -181,31 +161,11 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Search mode property action
-            klass.install_property_action("search.set-mode", "mode");
-
-            // Cycle search mode action
-            klass.install_action("search.cycle-mode", None, |bar, _, _| {
-                let new_mode = SearchMode::iter().cycle()
-                    .skip_while(|&mode| mode != bar.mode())
-                    .nth(1)
-                    .expect("Failed to get 'SearchMode'");
-
-                bar.set_mode(new_mode);
-            });
-
-            // Reverse cycle search mode action
-            klass.install_action("search.reverse-cycle-mode", None, |bar, _, _| {
-                let new_mode = SearchMode::iter().rev().cycle()
-                    .skip_while(|&mode| mode != bar.mode())
-                    .nth(1)
-                    .expect("Failed to get 'SearchMode'");
-
-                bar.set_mode(new_mode);
-            });
-
             // Search prop property action
             klass.install_property_action("search.set-prop", "prop");
+
+            // Search exact property action
+            klass.install_property_action("search.set-exact", "exact");
 
             // Cycle search property action
             klass.install_action("search.cycle-prop", None, |bar, _, _| {
@@ -229,8 +189,8 @@ mod imp {
 
             // Reset search params action
             klass.install_action("search.reset-params", None, |bar, _, _| {
-                bar.set_mode(bar.default_mode());
                 bar.set_prop(bar.default_prop());
+                bar.set_exact(bar.default_exact());
             });
         }
 
@@ -238,29 +198,6 @@ mod imp {
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Cycle search mode key bindings
-            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK, "search.cycle-mode");
-            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
-
-            // Search mode letter shortcuts
-            klass.add_binding(Key::L, ModifierType::CONTROL_MASK, |bar| {
-                bar.set_mode(SearchMode::All);
-
-                glib::Propagation::Stop
-            });
-
-            klass.add_binding(Key::N, ModifierType::CONTROL_MASK, |bar| {
-                bar.set_mode(SearchMode::Any);
-
-                glib::Propagation::Stop
-            });
-
-            klass.add_binding(Key::E, ModifierType::CONTROL_MASK, |bar| {
-                bar.set_mode(SearchMode::Exact);
-
-                glib::Propagation::Stop
-            });
-
             // Cycle search prop key bindings
             klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "search.cycle-prop");
             klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-prop");
@@ -275,6 +212,13 @@ mod imp {
                     glib::Propagation::Stop
                 });
             }
+
+            // Search exact toggle shortcut
+            klass.add_binding(Key::W, ModifierType::CONTROL_MASK, |bar| {
+                bar.set_exact(!bar.exact());
+
+                glib::Propagation::Stop
+            });
 
             // Reset search params key binding
             klass.add_binding_action(Key::R, ModifierType::CONTROL_MASK, "search.reset-params");
@@ -352,17 +296,6 @@ impl SearchBar {
             }
         });
 
-        // Search mode property notify signal
-        self.connect_mode_notify(|bar| {
-            let imp = bar.imp();
-
-            imp.tag_mode.set_text(bar.mode().as_ref());
-
-            if !imp.search_text.text().is_empty() {
-                bar.emit_by_name::<()>("changed", &[]);
-            }
-        });
-
         // Search prop property notify signal
         self.connect_prop_notify(|bar| {
             let imp = bar.imp();
@@ -374,17 +307,14 @@ impl SearchBar {
             }
         });
 
-        // Mode tag clicked signal
-        imp.tag_mode.connect_closure("clicked", false, closure_local!(
-            #[weak(rename_to = bar)] self,
-            move |_: SearchTag, shift: bool| {
-                if shift {
-                    bar.activate_action("search.reverse-cycle-mode", None).unwrap();
-                } else {
-                    bar.activate_action("search.cycle-mode", None).unwrap();
-                }
+        // Search exact property notify signal
+        self.connect_exact_notify(|bar| {
+            let imp = bar.imp();
+
+            if !imp.search_text.text().is_empty() {
+                bar.emit_by_name::<()>("changed", &[]);
             }
-        ));
+        });
 
         // Prop tag clicked signal
         imp.tag_prop.connect_closure("clicked", false, closure_local!(
@@ -460,7 +390,7 @@ impl SearchBar {
     }
 
     //---------------------------------------
-    // Setup sidgets
+    // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();

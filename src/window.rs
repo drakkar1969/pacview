@@ -590,19 +590,19 @@ impl PacViewWindow {
             }
         ));
 
-        // Preferences search mode property notify signal
-        prefs_dialog.connect_search_mode_notify(clone!(
-            #[weak] imp,
-            move |prefs_dialog| {
-                imp.search_bar.set_default_mode(prefs_dialog.search_mode());
-            }
-        ));
-
         // Preferences search prop property notify signal
         prefs_dialog.connect_search_prop_notify(clone!(
             #[weak] imp,
             move |prefs_dialog| {
                 imp.search_bar.set_default_prop(prefs_dialog.search_prop());
+            }
+        ));
+
+        // Preferences search exact property notify signal
+        prefs_dialog.connect_search_exact_notify(clone!(
+            #[weak] imp,
+            move |prefs_dialog| {
+                imp.search_bar.set_default_exact(prefs_dialog.search_exact());
             }
         ));
 
@@ -629,12 +629,12 @@ impl PacViewWindow {
         settings.bind("window-maximized", self, "maximized").build();
 
         // Load initial search bar settings
-        settings.bind("search-mode", &imp.search_bar.get(), "mode")
+        settings.bind("search-prop", &imp.search_bar.get(), "prop")
             .get()
             .get_no_changes()
             .build();
 
-        settings.bind("search-prop", &imp.search_bar.get(), "prop")
+        settings.bind("search-exact", &imp.search_bar.get(), "exact")
             .get()
             .get_no_changes()
             .build();
@@ -648,8 +648,8 @@ impl PacViewWindow {
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
         settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
         settings.bind("remember-sort", prefs_dialog, "remember-sort").build();
-        settings.bind("search-mode", prefs_dialog, "search-mode").build();
         settings.bind("search-prop", prefs_dialog, "search-prop").build();
+        settings.bind("search-exact", prefs_dialog, "search-exact").build();
         settings.bind("search-delay", prefs_dialog, "search-delay").build();
         settings.bind("property-max-lines", prefs_dialog, "property-max-lines").build();
         settings.bind("property-line-spacing", prefs_dialog, "property-line-spacing").build();
