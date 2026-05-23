@@ -204,13 +204,14 @@ mod imp {
 
             // Search prop numbered key bindings
             for (i, prop) in SearchProp::iter().enumerate() {
-                let key = Key::from_name((i+1).to_string()).unwrap();
+                let trigger = gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1));
+                let action = gtk::NamedAction::new("search.set-prop");
+                let args = Some(&prop.as_ref().to_variant());
 
-                klass.add_binding(key, ModifierType::CONTROL_MASK, move |bar| {
-                    bar.set_prop(prop);
+                let shortcut = gtk::Shortcut::new(trigger, Some(action));
+                shortcut.set_arguments(args);
 
-                    glib::Propagation::Stop
-                });
+                klass.add_shortcut(&shortcut);
             }
 
             // Search exact key binding
