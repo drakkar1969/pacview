@@ -356,7 +356,6 @@ impl PackageView {
 
                 imp.search_tokens.replace(
                     term.split_whitespace()
-                        .into_iter()
                         .map(ToOwned::to_owned)
                         .collect::<Vec<String>>()
                 );
@@ -550,7 +549,7 @@ impl PackageView {
         // Get AUR package info using cache
         let pkg_data = handle.cache_info(
             &mut *AUR_CACHE.lock().await,
-            &search_names.iter().map(|s| s.as_str()).collect::<Vec<&str>>()
+            &search_names.iter().map(String::as_str).collect::<Vec<&str>>()
         )
         .await?
         .iter()
