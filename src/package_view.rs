@@ -138,10 +138,9 @@ mod imp {
 
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
-        #[property(get, set)]
-        search_term: RefCell<String>,
-        #[property(get, set)]
-        search_tokens: RefCell<Vec<String>>,
+
+        pub(super) search_term: RefCell<String>,
+        pub(super) search_tokens: RefCell<Vec<String>>,
 
         pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
     }
@@ -351,19 +350,17 @@ impl PackageView {
 
         // Search bar changed signal
         imp.search_bar.connect_closure("changed", false, closure_local!(
-            #[weak(rename_to = view)] self,
+            #[weak] imp,
             move |bar: SearchBar| {
-                let imp = view.imp();
-
                 let term = bar.text().trim().to_lowercase();
 
-                view.set_search_tokens(
+                imp.search_tokens.replace(
                     term.split_whitespace()
                         .into_iter()
                         .map(ToOwned::to_owned)
                         .collect::<Vec<String>>()
                 );
-                view.set_search_term(term);
+                imp.search_term.replace(term);
 
                 imp.search_filter.changed(gtk::FilterChange::Different);
             }
@@ -459,7 +456,9 @@ impl PackageView {
             move |item| {
                 let imp = view.imp();
 
-                if view.search_term().is_empty() {
+                let search_term = imp.search_term.borrow();
+
+                if search_term.is_empty() {
                     return true
                 }
 
@@ -478,9 +477,9 @@ impl PackageView {
                 };
 
                 if imp.search_bar.exact() {
-                    search_props.iter().any(|s| s.eq_ignore_ascii_case(&view.search_term()))
+                    search_props.iter().any(|s| s.eq_ignore_ascii_case(&search_term))
                 } else {
-                    view.search_tokens().iter().all(|t| {
+                    imp.search_tokens.borrow().iter().all(|t| {
                         search_props.iter().any(|s| s.to_ascii_lowercase().contains(t))
                     })
                 }
@@ -587,8 +586,8 @@ impl PackageView {
     fn search_in_aur(&self, search_bar: &SearchBar) {
         let imp = self.imp();
 
-        let term = self.search_term();
-        let tokens = self.search_tokens();
+        let term = imp.search_term.borrow().to_owned();
+        let tokens = imp.search_tokens.borrow().to_owned();
         let prop = search_bar.prop();
 
         // Reset AUR search
