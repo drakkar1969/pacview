@@ -26,8 +26,8 @@ use crate::{
     package_view::{PackageView, PackageViewState},
     info_pane::InfoPane,
     repo_item::RepoItem,
-    status_item::StatusItem,
-    status_item_indicator::StatusItemState,
+    sidebar_item::SidebarItem,
+    sidebar_item_indicator::SidebarItemState,
     stats_window::StatsWindow,
     backup_window::BackupWindow,
     groups_window::GroupsWindow,
@@ -80,8 +80,8 @@ mod imp {
         pub(super) saved_status_id: Cell<PkgFlags>,
 
         pub(super) all_repo_item: RefCell<RepoItem>,
-        pub(super) all_status_item: RefCell<StatusItem>,
-        pub(super) update_item: RefCell<StatusItem>,
+        pub(super) all_status_item: RefCell<SidebarItem>,
+        pub(super) update_item: RefCell<SidebarItem>,
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
 
@@ -158,7 +158,7 @@ mod imp {
                 imp.saved_repo_id.replace(repo_id);
 
                 let status_id = imp.status_sidebar.selected_item()
-                    .and_downcast::<StatusItem>()
+                    .and_downcast::<SidebarItem>()
                     .map(|item| item.id())
                     .unwrap_or_default();
 
@@ -179,7 +179,7 @@ mod imp {
                 let imp = window.imp();
 
                 if AurDBFile::path().is_some() {
-                    imp.update_item.borrow().set_state(StatusItemState::Reset);
+                    imp.update_item.borrow().set_state(SidebarItemState::Reset);
                     imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
                     imp.package_view.count_label().set_label("");
@@ -470,8 +470,8 @@ impl PacViewWindow {
             #[weak] imp,
             move |sidebar, index| {
                 let id = sidebar.items().item(index)
-                    .and_downcast::<StatusItem>()
-                    .expect("Failed to downcast to 'StatusItem'")
+                    .and_downcast::<SidebarItem>()
+                    .expect("Failed to downcast to 'SidebarItem'")
                     .id();
 
                 imp.package_view.status_filter_changed(id);
@@ -783,7 +783,7 @@ impl PacViewWindow {
                 let flag = PkgFlags::from_bits_truncate(f.value());
                 let nick = f.nick();
 
-                let item = StatusItem::new(&format!("status-{nick}-symbolic"), f.name(), flag);
+                let item = SidebarItem::new(&format!("status-{nick}-symbolic"), f.name(), flag);
 
                 imp.status_section.append(item.clone());
 
@@ -897,7 +897,7 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 // Hide update count in sidebar
-                imp.update_item.borrow().set_state(StatusItemState::Reset);
+                imp.update_item.borrow().set_state(SidebarItemState::Reset);
 
                 // Show package view loading spinner
                 imp.package_view.set_state(PackageViewState::PackageLoad);
@@ -992,7 +992,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Reset sidebar update count
-        imp.update_item.borrow().set_state(StatusItemState::Checking);
+        imp.update_item.borrow().set_state(SidebarItemState::Checking);
 
         // Check for pacman updates
         let mut update_str = String::new();
@@ -1060,11 +1060,11 @@ impl PacViewWindow {
         // Show update status/count in sidebar
         let update_item = imp.update_item.borrow();
 
-        update_item.set_state(StatusItemState::Updates(error_msg, update_map.len() as u32));
+        update_item.set_state(SidebarItemState::Updates(error_msg, update_map.len() as u32));
 
         // If update item is selected, refresh package status filter
         if imp.status_sidebar.selected_item()
-            .and_downcast::<StatusItem>().as_ref() == Some(&*update_item) {
+            .and_downcast::<SidebarItem>().as_ref() == Some(&*update_item) {
                 imp.package_view.status_filter_changed(update_item.id());
             }
     }

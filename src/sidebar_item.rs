@@ -6,11 +6,11 @@ use gtk::prelude::*;
 
 use crate::{
     pkg_data::PkgFlags,
-    status_item_indicator::{StatusItemIndicator, StatusItemState}
+    sidebar_item_indicator::{SidebarItemIndicator, SidebarItemState}
 };
 
 //------------------------------------------------------------------------------
-// MODULE: StatusItem
+// MODULE: SidebarItem
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -19,8 +19,8 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, glib::Properties)]
-    #[properties(wrapper_type = super::StatusItem)]
-    pub struct StatusItem {
+    #[properties(wrapper_type = super::SidebarItem)]
+    pub struct SidebarItem {
         #[property(get, set, construct_only)]
         id: Cell<PkgFlags>,
     }
@@ -29,31 +29,31 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for StatusItem {
-        const NAME: &'static str = "StatusItem";
-        type Type = super::StatusItem;
+    impl ObjectSubclass for SidebarItem {
+        const NAME: &'static str = "SidebarItem";
+        type Type = super::SidebarItem;
         type ParentType = adw::SidebarItem;
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for StatusItem {}
-    impl SidebarItemImpl for StatusItem {}
+    impl ObjectImpl for SidebarItem {}
+    impl SidebarItemImpl for SidebarItem {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: StatusItem
+// IMPLEMENTATION: SidebarItem
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct StatusItem(ObjectSubclass<imp::StatusItem>)
+    pub struct SidebarItem(ObjectSubclass<imp::SidebarItem>)
         @extends adw::SidebarItem;
 }
 
-impl StatusItem {
+impl SidebarItem {
     //---------------------------------------
     // New function
     //---------------------------------------
     pub fn new(icon: &str, title: &str, id: PkgFlags) -> Self {
-        let indicator = StatusItemIndicator::default();
+        let indicator = SidebarItemIndicator::default();
 
         glib::Object::builder()
             .property("icon-name", icon)
@@ -88,16 +88,16 @@ impl StatusItem {
     //---------------------------------------
     // Public set state function
     //---------------------------------------
-    pub fn set_state(&self, state: StatusItemState) {
+    pub fn set_state(&self, state: SidebarItemState) {
         let indicator = self.suffix()
-            .and_downcast::<StatusItemIndicator>()
-            .expect("Could not downcast to 'StatusItemIndicator'");
+            .and_downcast::<SidebarItemIndicator>()
+            .expect("Could not downcast to 'SidebarItemIndicator'");
 
         indicator.set_state(state);
     }
 }
 
-impl Default for StatusItem {
+impl Default for SidebarItem {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

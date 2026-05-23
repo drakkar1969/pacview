@@ -3,24 +3,24 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 
 //------------------------------------------------------------------------------
-// ENUM: StatusItemState
+// ENUM: SidebarItemState
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 #[repr(u32)]
-pub enum StatusItemState {
+pub enum SidebarItemState {
     Updates(Option<String>, u32),
     Reset,
     Checking,
 }
 
-impl Default for StatusItemState {
+impl Default for SidebarItemState {
     fn default() -> Self {
         Self::Updates(None, 0)
     }
 }
 
 //------------------------------------------------------------------------------
-// MODULE: StatusItemIndicator
+// MODULE: SidebarItemIndicator
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -29,8 +29,8 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate)]
-    #[template(resource = "/com/github/PacView/ui/status_item_indicator.ui")]
-    pub struct StatusItemIndicator {
+    #[template(resource = "/com/github/PacView/ui/sidebar_item_indicator.ui")]
+    pub struct SidebarItemIndicator {
         #[template_child]
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
@@ -46,14 +46,14 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for StatusItemIndicator {
-        const NAME: &'static str = "StatusItemIndicator";
-        type Type = super::StatusItemIndicator;
+    impl ObjectSubclass for SidebarItemIndicator {
+        const NAME: &'static str = "SidebarItemIndicator";
+        type Type = super::SidebarItemIndicator;
         type ParentType = gtk::Box;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-            klass.set_css_name("StatusItemIndicator");
+            klass.set_css_name("SidebarItemIndicator");
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -61,29 +61,29 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for StatusItemIndicator {}
-    impl WidgetImpl for StatusItemIndicator {}
-    impl BoxImpl for StatusItemIndicator {}
+    impl ObjectImpl for SidebarItemIndicator {}
+    impl WidgetImpl for SidebarItemIndicator {}
+    impl BoxImpl for SidebarItemIndicator {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: StatusItemIndicator
+// IMPLEMENTATION: SidebarItemIndicator
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct StatusItemIndicator(ObjectSubclass<imp::StatusItemIndicator>)
+    pub struct SidebarItemIndicator(ObjectSubclass<imp::SidebarItemIndicator>)
         @extends gtk::Box, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
 }
 
-impl StatusItemIndicator {
+impl SidebarItemIndicator {
     //---------------------------------------
     // Public set state function
     //---------------------------------------
-    pub fn set_state(&self, state: StatusItemState) {
+    pub fn set_state(&self, state: SidebarItemState) {
         let imp = self.imp();
 
         match state {
-            StatusItemState::Updates(error, count) => {
+            SidebarItemState::Updates(error, count) => {
                 imp.spinner.set_visible(false);
 
                 imp.count_label.set_visible(count != 0);
@@ -96,12 +96,12 @@ impl StatusItemIndicator {
                     imp.error_button.set_visible(false);
                 }
             },
-            StatusItemState::Reset => {
+            SidebarItemState::Reset => {
                 imp.spinner.set_visible(false);
                 imp.count_label.set_visible(false);
                 imp.error_button.set_visible(false);
             }
-            StatusItemState::Checking => {
+            SidebarItemState::Checking => {
                 imp.error_button.set_visible(false);
                 imp.count_label.set_visible(false);
                 imp.spinner.set_visible(true);
@@ -110,7 +110,7 @@ impl StatusItemIndicator {
     }
 }
 
-impl Default for StatusItemIndicator {
+impl Default for SidebarItemIndicator {
     //---------------------------------------
     // Default constructor
     //---------------------------------------
