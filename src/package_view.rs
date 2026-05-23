@@ -67,6 +67,26 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/package_view.ui")]
     pub struct PackageView {
         #[template_child]
+        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
+        pub(super) grouping_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
+        pub(super) sort_button: TemplateChild<adw::SplitButton>,
+
+        #[property(get)]
+        #[template_child]
+        pub(super) search_bar: TemplateChild<SearchBar>,
+        #[property(get)]
+        #[template_child]
+        pub(super) sidebar_button: TemplateChild<gtk::Button>,
+        #[property(get)]
+        #[template_child]
+        pub(super) infopane_button: TemplateChild<gtk::Button>,
+        #[property(get)]
+        #[template_child]
+        pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
+
+        #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) loading_status: TemplateChild<adw::StatusPage>,
@@ -99,11 +119,13 @@ mod imp {
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
 
+        #[property(get)]
+        #[template_child]
+        pub(super) count_label: TemplateChild<gtk::Label>,
+
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
-        #[property(get, set, construct)]
-        search_bar: RefCell<SearchBar>,
         #[property(get, set, construct)]
         info_pane: RefCell<InfoPane>,
 
@@ -135,6 +157,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -159,6 +184,22 @@ mod imp {
 
     impl WidgetImpl for PackageView {}
     impl BinImpl for PackageView {}
+
+    impl PackageView {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Sort prop property action
+            klass.install_property_action("view.set-sort-prop", "sort-prop");
+
+            // Reset sort action
+            klass.install_action("view.reset-sort", None, |view, _, _| {
+                view.set_sort_prop(SortProp::default());
+                view.set_sort_ascending(true);
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -211,7 +252,16 @@ impl PackageView {
         imp.selection.connect_items_changed(clone!(
             #[weak(rename_to = view)] self,
             move |selection, _, _, _| {
-                view.imp().empty_status.set_visible(selection.n_items() == 0);
+                let imp = view.imp();
+
+                let n_items = selection.n_items();
+
+                imp.count_label.set_label(&format!(
+                    "{n_items} matching package{}",
+                    if n_items == 1 { "" } else { "s" }
+                ));
+
+                imp.empty_status.set_visible(n_items == 0);
             }
         ));
 
@@ -248,7 +298,23 @@ impl PackageView {
 
         // Sort ascending property notify signal
         self.connect_sort_ascending_notify(|view| {
-            view.imp().sorter.changed(gtk::SorterChange::Inverted);
+            let imp = view.imp();
+
+            let sort_asc = view.sort_ascending();
+
+            imp.sort_button.set_icon_name(
+                if sort_asc {
+                    "view-sort-ascending-symbolic"
+                } else {
+                    "view-sort-descending-symbolic"
+                }
+            );
+
+            imp.sort_button.set_tooltip_text(
+                Some(if sort_asc { "Sort Descending" } else { "Sort Ascending" })
+            );
+
+            imp.sorter.changed(gtk::SorterChange::Inverted);
         });
 
         // Grouping property notify signal
@@ -275,8 +341,16 @@ impl PackageView {
             }
         });
 
+        // Header sort button clicked signal
+        imp.sort_button.connect_clicked(clone!(
+            #[weak(rename_to = view)] self,
+            move |_| {
+                view.set_sort_ascending(!view.sort_ascending());
+            }
+        ));
+
         // Search bar changed signal
-        self.search_bar().connect_closure("changed", false, closure_local!(
+        imp.search_bar.connect_closure("changed", false, closure_local!(
             #[weak(rename_to = view)] self,
             move |bar: SearchBar| {
                 let imp = view.imp();
@@ -296,7 +370,7 @@ impl PackageView {
         ));
 
         // Search bar AUR Search signal
-        self.search_bar().connect_closure("aur-search", false, closure_local!(
+        imp.search_bar.connect_closure("aur-search", false, closure_local!(
             #[weak(rename_to = view)] self,
             move |search_bar: &SearchBar| {
                 view.search_in_aur(search_bar);
@@ -304,7 +378,7 @@ impl PackageView {
         ));
 
         // Search bar enabled property notify signal
-        self.search_bar().connect_enabled_notify(clone!(
+        imp.search_bar.connect_enabled_notify(clone!(
             #[weak(rename_to = view)] self,
             move |bar| {
                 if !bar.enabled() {
@@ -321,6 +395,18 @@ impl PackageView {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Bind search button state to search bar enabled state
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        // Bind grouping property to grouping button state
+        self.bind_property("grouping", &imp.grouping_button.get(), "active")
+            .sync_create()
+            .bidirectional()
+            .build();
 
         // Set list view sorter function
         imp.sorter.set_sort_func(clone!(
@@ -371,7 +457,7 @@ impl PackageView {
             #[weak(rename_to = view)] self,
             #[upgrade_or] false,
             move |item| {
-                let search_bar = view.search_bar();
+                let imp = view.imp();
 
                 if view.search_term().is_empty() {
                     return true
@@ -381,7 +467,7 @@ impl PackageView {
                     .downcast_ref::<PkgObject>()
                     .expect("Failed to downcast to 'PkgObject'");
 
-                let search_props: &[String] = match search_bar.prop() {
+                let search_props: &[String] = match imp.search_bar.prop() {
                     SearchProp::Name => &[pkg.name()],
                     SearchProp::NameDesc => &[pkg.name(), pkg.description().to_owned()],
                     SearchProp::Groups => pkg.groups(),
@@ -391,7 +477,7 @@ impl PackageView {
                     SearchProp::Files => pkg.files(),
                 };
 
-                if search_bar.exact() {
+                if imp.search_bar.exact() {
                     search_props.iter().any(|s| s.eq_ignore_ascii_case(&view.search_term()))
                 } else {
                     view.search_tokens().iter().all(|t| {
@@ -402,7 +488,7 @@ impl PackageView {
         ));
 
         // Set search bar key capture widget
-        self.search_bar().set_key_capture_widget(imp.view.upcast_ref());
+        imp.search_bar.set_key_capture_widget(imp.view.upcast_ref());
     }
 
     //---------------------------------------

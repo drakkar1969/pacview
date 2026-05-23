@@ -8,17 +8,13 @@
     <child>
       <object class="AdwBreakpoint" id="main_breakpoint">
         <setter object="main_split_view" property="collapsed">true</setter>
-        <setter object="infopane_show_button" property="visible">true</setter>
       </object>
     </child>
     <child>
       <object class="AdwBreakpoint" id="sidebar_breakpoint">
         <setter object="main_split_view" property="collapsed">true</setter>
         <setter object="sidebar_split_view" property="collapsed">true</setter>
-        <setter object="sidebar_menu_button" property="visible">false</setter>
-        <setter object="view_menu_button" property="visible">true</setter>
-        <setter object="sidebar_show_button" property="visible">true</setter>
-        <setter object="infopane_show_button" property="visible">true</setter>
+        <setter object="main_menu_button" property="visible">false</setter>
       </object>
     </child>
     <property name="content">
@@ -26,11 +22,11 @@
         <property name="min-sidebar-width">230</property>
         <property name="max-sidebar-width">230</property>
         <property name="sidebar">
-          <object class="AdwToolbarView" id="sidebar_toolbar_view">
+          <object class="AdwToolbarView" id="toolbar_view">
             <child type="top">
-              <object class="AdwHeaderBar" id="sidebar_header_bar">
+              <object class="AdwHeaderBar" id="header_bar">
                 <child type="end">
-                  <object class="GtkMenuButton" id="sidebar_menu_button">
+                  <object class="GtkMenuButton" id="main_menu_button">
                     <property name="icon-name">open-menu-symbolic</property>
                     <property name="primary">true</property>
                     <property name="tooltip-text">Main Menu</property>
@@ -79,88 +75,8 @@
               </object>
             </property>
             <property name="content">
-              <object class="AdwToolbarView" id="package_toolbar_view">
-                <property name="top-bar-style">raised</property>
-                <property name="bottom-bar-style">raised</property>
-                <child type="top">
-                  <object class="GtkBox">
-                    <property name="orientation">vertical</property>
-                    <child>
-                      <object class="AdwHeaderBar" id="package_header_bar">
-                        <property name="title-widget">
-                          <object class="AdwWindowTitle">
-                            <property name="title">Packages</property>
-                          </object>
-                        </property>
-                        <child>
-                          <object class="GtkButton" id="sidebar_show_button">
-                            <property name="visible">false</property>
-                            <property name="icon-name">sidebar-show-symbolic</property>
-                            <property name="tooltip-text">Show Sidebar</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkToggleButton" id="search_button">
-                            <property name="active">false</property>
-                            <property name="icon-name">edit-find-symbolic</property>
-                            <property name="tooltip-text">Toggle Search</property>
-                          </object>
-                        </child>
-                        <child type="end">
-                          <object class="GtkMenuButton" id="view_menu_button">
-                            <property name="visible">false</property>
-                            <property name="icon-name">open-menu-symbolic</property>
-                            <property name="primary">true</property>
-                            <property name="tooltip-text">Main Menu</property>
-                            <property name="menu-model">primary_menu</property>
-                          </object>
-                        </child>
-                        <child type="end">
-                          <object class="GtkButton" id="infopane_show_button">
-                            <property name="visible">false</property>
-                            <property name="icon-name">sidebar-show-right-symbolic</property>
-                            <property name="tooltip-text">Show Info Pane</property>
-                          </object>
-                        </child>
-                        <child type="end">
-                          <object class="AdwSplitButton" id="sort_button">
-                            <property name="icon-name">view-sort-ascending-symbolic</property>
-                            <property name="menu-model">sort_menu</property>
-                            <property name="tooltip-text">Sort Descending</property>
-                            <property name="dropdown-tooltip">Sort Options</property>
-                          </object>
-                        </child>
-                        <child type="end">
-                          <object class="GtkToggleButton" id="grouping_button">
-                            <property name="icon-name">repository-symbolic</property>
-                            <property name="tooltip-text">Group by Repository</property>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="SearchBar" id="search_bar">
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <property name="content">
-                  <object class="PackageView" id="package_view">
-                    <property name="vexpand">true</property>
-                    <property name="search-bar">search_bar</property>
-                    <property name="info-pane">info_pane</property>
-                  </object>
-                </property>
-                <child type="bottom">
-                  <object class="GtkLabel" id="package_count_label">
-                    <property name="margin-top">8</property>
-                    <property name="margin-bottom">8</property>
-                    <style>
-                      <class name="heading"/>
-                      <class name="dimmed"/>
-                    </style>
-                  </object>
-                </child>
+              <object class="PackageView" id="package_view">
+                <property name="info-pane">info_pane</property>
               </object>
             </property>
           </object>
@@ -234,54 +150,6 @@
       <item>
         <attribute name="label">About PacView</attribute>
         <attribute name="action">app.show-about</attribute>
-      </item>
-    </section>
-  </menu>
-
-  <!--// Package sort menu //-->
-  <menu id="sort_menu">
-    <section>
-      <attribute name="label">Sort Property</attribute>
-      <item>
-        <attribute name="label">Name</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">name</attribute>
-      </item>
-      <item>
-        <attribute name="label">Version</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">version</attribute>
-      </item>
-      <item>
-        <attribute name="label">Repository</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">repository</attribute>
-      </item>
-      <item>
-        <attribute name="label">Status</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">status</attribute>
-      </item>
-      <item>
-        <attribute name="label">Install Date</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">install-date</attribute>
-      </item>
-      <item>
-        <attribute name="label">Installed Size</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">installed-size</attribute>
-      </item>
-      <item>
-        <attribute name="label">Groups</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">groups</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Reset Sorting</attribute>
-        <attribute name="action">view.reset-sort</attribute>
       </item>
     </section>
   </menu>

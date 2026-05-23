@@ -23,8 +23,7 @@ use crate::{
     PacViewApplication,
     pkg_data::{PkgFlags, PkgData},
     pkg_object::PkgObject,
-    search_bar::SearchBar,
-    package_view::{PackageView, PackageViewState, SortProp},
+    package_view::{PackageView, PackageViewState},
     info_pane::InfoPane,
     repo_item::RepoItem,
     status_item::StatusItem,
@@ -63,17 +62,6 @@ mod imp {
         pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
 
         #[template_child]
-        pub(super) sidebar_show_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) sort_button: TemplateChild<adw::SplitButton>,
-        #[template_child]
-        pub(super) grouping_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
-        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
-        pub(super) infopane_show_button: TemplateChild<gtk::Button>,
-
-        #[template_child]
         pub(super) repo_sidebar: TemplateChild<adw::Sidebar>,
         #[template_child]
         pub(super) repo_section: TemplateChild<adw::SidebarSection>,
@@ -83,17 +71,9 @@ mod imp {
         pub(super) status_section: TemplateChild<adw::SidebarSection>,
 
         #[template_child]
-        pub(super) search_bar: TemplateChild<SearchBar>,
-        #[template_child]
         pub(super) package_view: TemplateChild<PackageView>,
         #[template_child]
-        pub(super) package_count_label: TemplateChild<gtk::Label>,
-
-        #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
-
-        #[property(get, set, builder(SortProp::default()))]
-        package_sort_prop: Cell<SortProp>,
 
         pub(super) repo_names: RefCell<Vec<String>>,
 
@@ -186,7 +166,7 @@ mod imp {
 
                 imp.saved_status_id.set(status_id);
 
-                imp.package_count_label.set_label("");
+                imp.package_view.count_label().set_label("");
 
                 window.setup_alpm(false);
             });
@@ -204,7 +184,7 @@ mod imp {
                     imp.update_item.borrow().set_state(StatusItemState::Reset);
                     imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
-                    imp.package_count_label.set_label("");
+                    imp.package_view.count_label().set_label("");
 
                     // Spawn tokio task to download AUR package names file
                     let _ = AurDBFile::download().await;
@@ -218,17 +198,6 @@ mod imp {
             // Package view copy list action
             klass.install_action("view.copy-list", None, |window, _, _| {
                  window.clipboard().set_text(&window.imp().package_view.copy_list());
-            });
-
-            // Package view sort prop property action
-            klass.install_property_action("view.set-sort-prop", "package-sort-prop");
-
-            // Package view reset sort action
-            klass.install_action("view.reset-sort", None, |window, _, _| {
-                let imp = window.imp();
-
-                imp.package_view.set_sort_prop(SortProp::default());
-                imp.package_view.set_sort_ascending(true);
             });
 
             // Show window/dialog actions
@@ -273,7 +242,7 @@ mod imp {
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Search start/stop key bindings
             klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
-                window.imp().search_bar.set_enabled(true);
+                window.imp().package_view.search_bar().set_enabled(true);
 
                 glib::Propagation::Stop
             });
@@ -284,7 +253,7 @@ mod imp {
                 if (imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar()) || (imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar()) {
                     glib::Propagation::Proceed
                 } else {
-                    window.imp().search_bar.set_enabled(false);
+                    window.imp().package_view.search_bar().set_enabled(false);
 
                     glib::Propagation::Stop
                 }
@@ -294,8 +263,8 @@ mod imp {
             klass.add_binding(Key::B, ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
-                if imp.sidebar_show_button.is_visible() {
-                    imp.sidebar_show_button.emit_clicked();
+                if imp.package_view.sidebar_button().is_visible() {
+                    imp.package_view.sidebar_button().emit_clicked();
                 }
 
                 glib::Propagation::Stop
@@ -305,8 +274,8 @@ mod imp {
             klass.add_binding(Key::I, ModifierType::CONTROL_MASK, |window| {
                 let imp = window.imp();
 
-                if imp.infopane_show_button.is_visible() {
-                    imp.infopane_show_button.emit_clicked();
+                if imp.package_view.infopane_button().is_visible() {
+                    imp.package_view.infopane_button().emit_clicked();
                 }
 
                 glib::Propagation::Stop
@@ -316,7 +285,7 @@ mod imp {
             klass.add_binding(Key::G, ModifierType::ALT_MASK, |window| {
                 let imp = window.imp();
 
-                imp.grouping_button.set_active(!imp.grouping_button.is_active());
+                imp.package_view.set_grouping(!imp.package_view.grouping());
 
                 glib::Propagation::Stop
             });
@@ -479,14 +448,6 @@ impl PacViewWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Header sort button clicked signal
-        imp.sort_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.package_view.set_sort_ascending(!imp.package_view.sort_ascending());
-            }
-        ));
-
         // Repo sidebar activated signal
         imp.repo_sidebar.connect_activated(clone!(
             #[weak] imp,
@@ -525,53 +486,24 @@ impl PacViewWindow {
             }
         ));
 
-        // Package view sort sort ascending property notify signal
-        imp.package_view.connect_sort_ascending_notify(clone!(
-            #[weak] imp,
-            move |view| {
-                let sort_asc = view.sort_ascending();
-
-                imp.sort_button.set_icon_name(
-                    if sort_asc {
-                        "view-sort-ascending-symbolic"
-                    } else {
-                        "view-sort-descending-symbolic"
-                    }
-                );
-
-                imp.sort_button.set_tooltip_text(
-                    Some(if sort_asc { "Sort Descending" } else { "Sort Ascending" })
-                );
-            }
-        ));
-
         // Package view n_items property notify signal
         imp.package_view.selection().connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
             move |selection, _, _, _| {
-                let n_items = selection.n_items();
-
-                window.imp().package_count_label.set_label(&format!(
-                    "{n_items} matching package{}",
-                    if n_items == 1 { "" } else { "s" }
-                ));
-
-                window.action_set_enabled("view.copy-list", n_items != 0);
+                window.action_set_enabled("view.copy-list", selection.n_items() != 0);
             }
         ));
 
-        let prefs_dialog = imp.prefs_dialog.borrow();
-
-        // Sidebar show button clicked signal
-        imp.sidebar_show_button.connect_clicked(clone!(
+        // Package view sidebar button clicked signal
+        imp.package_view.sidebar_button().connect_clicked(clone!(
             #[weak] imp,
             move |_| {
                 imp.sidebar_split_view.set_show_sidebar(true);
             }
         ));
 
-        // Infopane show button clicked signal
-        imp.infopane_show_button.connect_clicked(clone!(
+        // Package view infopane button clicked signal
+        imp.package_view.infopane_button().connect_clicked(clone!(
             #[weak] imp,
             move |_| {
                 imp.main_split_view.set_show_sidebar(true);
@@ -579,6 +511,8 @@ impl PacViewWindow {
         ));
 
         // Preferences infopane width property notify signal
+        let prefs_dialog = imp.prefs_dialog.borrow();
+
         prefs_dialog.connect_infopane_width_notify(clone!(
             #[weak(rename_to = window)] self,
             move |_| {
@@ -598,26 +532,28 @@ impl PacViewWindow {
         ));
 
         // Preferences search prop property notify signal
+        let search_bar = imp.package_view.search_bar();
+
         prefs_dialog.connect_search_prop_notify(clone!(
-            #[weak] imp,
+            #[weak] search_bar,
             move |prefs_dialog| {
-                imp.search_bar.set_default_prop(prefs_dialog.search_prop());
+                search_bar.set_default_prop(prefs_dialog.search_prop());
             }
         ));
 
         // Preferences search exact property notify signal
         prefs_dialog.connect_search_exact_notify(clone!(
-            #[weak] imp,
+            #[weak] search_bar,
             move |prefs_dialog| {
-                imp.search_bar.set_default_exact(prefs_dialog.search_exact());
+                search_bar.set_default_exact(prefs_dialog.search_exact());
             }
         ));
 
         // Preferences search delay property notify signal
         prefs_dialog.connect_search_delay_notify(clone!(
-            #[weak] imp,
+            #[weak] search_bar,
             move |prefs_dialog| {
-                imp.search_bar.set_delay(prefs_dialog.search_delay() as u64);
+                search_bar.set_delay(prefs_dialog.search_delay() as u64);
             }
         ));
     }
@@ -628,23 +564,13 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Bind search button state to search bar enabled state
-        imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
-            .sync_create()
-            .bidirectional()
-            .build();
+        // Set main breakpoint setter
+        imp.main_breakpoint.add_setter(&imp.package_view.infopane_button(), "visible", Some(&true.to_value()));
 
-        // Bind grouping button state to package view grouping property
-        imp.grouping_button.bind_property("active", &imp.package_view.get(), "grouping")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        // Bind property to package view sort prop
-        self.bind_property("package-sort-prop", &imp.package_view.get(), "sort-prop")
-            .sync_create()
-            .bidirectional()
-            .build();
+        // Set sidebar breakpoint setters
+        imp.sidebar_breakpoint.add_setter(&imp.package_view.main_menu_button(), "visible", Some(&true.to_value()));
+        imp.sidebar_breakpoint.add_setter(&imp.package_view.sidebar_button(), "visible", Some(&true.to_value()));
+        imp.sidebar_breakpoint.add_setter(&imp.package_view.infopane_button(), "visible", Some(&true.to_value()));
 
         // Set window parents
         imp.backup_window.borrow().set_transient_for(Some(self));
@@ -668,12 +594,12 @@ impl PacViewWindow {
         settings.bind("window-maximized", self, "maximized").build();
 
         // Load initial search bar settings
-        settings.bind("search-prop", &imp.search_bar.get(), "prop")
+        settings.bind("search-prop", &imp.package_view.search_bar(), "prop")
             .get()
             .get_no_changes()
             .build();
 
-        settings.bind("search-exact", &imp.search_bar.get(), "exact")
+        settings.bind("search-exact", &imp.package_view.search_bar(), "exact")
             .get()
             .get_no_changes()
             .build();
