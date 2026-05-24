@@ -133,10 +133,26 @@
             <property name="title">Copy Package List</property>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;alt&gt;A</property>
             <property name="title">Show All Packages</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;D</property>
+            <property name="title">Show Installed Packages</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;alt&gt;U</property>
+            <property name="title">Show Package Updates</property>
           </object>
         </child>
         <child>

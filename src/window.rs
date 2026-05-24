@@ -81,6 +81,7 @@ mod imp {
 
         pub(super) all_repo_item: RefCell<RepoItem>,
         pub(super) all_status_item: RefCell<SidebarItem>,
+        pub(super) installed_item: RefCell<SidebarItem>,
         pub(super) update_item: RefCell<SidebarItem>,
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
@@ -309,6 +310,26 @@ mod imp {
 
                 imp.all_repo_item.borrow().activate();
                 imp.all_status_item.borrow().activate();
+
+                glib::Propagation::Stop
+            });
+
+            // View show installed packages key binding
+            klass.add_binding(Key::D, ModifierType::ALT_MASK, |window| {
+                let imp = window.imp();
+
+                imp.all_repo_item.borrow().activate();
+                imp.installed_item.borrow().activate();
+
+                glib::Propagation::Stop
+            });
+
+            // View show updates key binding
+            klass.add_binding(Key::U, ModifierType::ALT_MASK, |window| {
+                let imp = window.imp();
+
+                imp.all_repo_item.borrow().activate();
+                imp.update_item.borrow().activate();
 
                 glib::Propagation::Stop
             });
@@ -794,6 +815,7 @@ impl PacViewWindow {
 
                 match flag {
                     PkgFlags::ALL => { imp.all_status_item.replace(item); },
+                    PkgFlags::INSTALLED => { imp.installed_item.replace(item); },
                     PkgFlags::UPDATES => { imp.update_item.replace(item); },
                     _ => {}
                 }
