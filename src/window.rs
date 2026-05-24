@@ -74,8 +74,6 @@ mod imp {
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
 
-        pub(super) repo_names: RefCell<Vec<String>>,
-
         pub(super) saved_repo_id: RefCell<Option<String>>,
         pub(super) saved_status_id: Cell<PkgFlags>,
 
@@ -729,9 +727,6 @@ impl PacViewWindow {
         // Populate sidebar
         self.alpm_populate_sidebar(&repo_names, first_load);
 
-        // Store repo names
-        imp.repo_names.replace(repo_names);
-
         // If AUR database download is enabled and AUR file does not exist, download it
         if imp.prefs_dialog.borrow().aur_database_download() && AurDBFile::path().as_ref()
             .is_some_and(|aur_file| fs::metadata(aur_file).is_err()) {
@@ -743,11 +738,11 @@ impl PacViewWindow {
                     async move {
                         let _ = AurDBFile::download().await;
 
-                        window.alpm_load_packages(paru_repos);
+                        window.alpm_load_packages(repo_names, paru_repos);
                     }
                 ));
             } else {
-                self.alpm_load_packages(paru_repos);
+                self.alpm_load_packages(repo_names, paru_repos);
             }
     }
 
@@ -816,7 +811,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, paru_repos: Vec<(String, PathBuf)>) {
+    fn alpm_load_packages(&self, repo_names: Vec<String>, paru_repos: Vec<(String, PathBuf)>) {
         let imp = self.imp();
 
         // Get pacman config
@@ -962,7 +957,7 @@ impl PacViewWindow {
                                 imp.log_window.borrow().populate();
 
                                 imp.stats_window.borrow()
-                                    .populate(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
+                                    .populate(&repo_names, &imp.package_view.pkg_model());
                             }
                         ));
 
