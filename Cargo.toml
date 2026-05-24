@@ -12,7 +12,7 @@ alpm-utils = "5"
 async-channel = "2"
 async-compression = { version = "0.4", features = ["tokio", "gzip"] }
 async-process = "2"
-fancy-regex = "0.17"
+fancy-regex = "0.18"
 futures = "0.3"
 futures-util = "0.3"
 gtk = { version = "0.11", package = "gtk4", features = ["v4_22"] }
