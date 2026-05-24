@@ -24,8 +24,16 @@ pkgsearchbar button.toggle:checked image {
 
 /* Search bar tags */
 searchtag {
-	background: color-mix(in srgb, currentColor 12%, transparent);
+	background: color-mix(in srgb, currentColor 10%, transparent);
 	border-radius: 6px;
+}
+
+searchtag:hover {
+	background: color-mix(in srgb, currentColor 15%, transparent);
+}
+
+searchtag:active {
+	background: color-mix(in srgb, currentColor 30%, transparent);
 }
 
 searchtag label {
