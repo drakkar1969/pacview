@@ -60,6 +60,8 @@ mod imp {
 
         #[template_child]
         pub(super) prop_tag: TemplateChild<SearchTag>,
+        #[template_child]
+        pub(super) exact_tag: TemplateChild<SearchTag>,
 
         #[template_child]
         pub(super) search_text: TemplateChild<gtk::Text>,
@@ -309,6 +311,8 @@ impl SearchBar {
         self.connect_exact_notify(|bar| {
             let imp = bar.imp();
 
+            imp.exact_tag.set_visible(bar.exact());
+
             if !imp.search_text.text().is_empty() {
                 bar.emit_by_name::<()>("changed", &[]);
             }
@@ -323,6 +327,14 @@ impl SearchBar {
                 } else {
                     bar.activate_action("search.cycle-prop", None).unwrap();
                 }
+            }
+        ));
+
+        // Exact tag clicked signal
+        imp.exact_tag.connect_closure("clicked", false, closure_local!(
+            #[weak(rename_to = bar)] self,
+            move |_: SearchTag, _: bool| {
+                bar.set_exact(!bar.exact());
             }
         ));
 

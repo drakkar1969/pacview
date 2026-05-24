@@ -25,6 +25,12 @@
                 <child>
                   <object class="SearchTag" id="prop_tag"/>
                 </child>
+                <child>
+                  <object class="SearchTag" id="exact_tag">
+                    <property name="visible">false</property>
+                    <property name="text">[ab]</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
