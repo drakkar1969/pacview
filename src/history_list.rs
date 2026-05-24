@@ -104,18 +104,17 @@ impl HistoryList {
     // Public functions
     //---------------------------------------
     pub fn init(&self, item: Option<PkgObject>) {
-        let mut list = self.imp().list.borrow_mut();
+        let imp = self.imp();
 
-        // Clear history and append item
-        list.clear();
-
-        let selected = item.map_or(gtk::INVALID_LIST_POSITION, |item| {
-            list.push(item);
+        let selected = if let Some(item) = item {
+            imp.list.replace(vec![item]);
 
             0
-        });
+        } else {
+            imp.list.replace(vec![]);
 
-        drop(list);
+            gtk::INVALID_LIST_POSITION
+        };
 
         self.set_selected(selected);
     }
@@ -133,24 +132,24 @@ impl HistoryList {
     }
 
     pub fn select_or_append(&self, item: PkgObject) {
-        let mut list = self.imp().list.borrow_mut();
+        let selected = {
+            let mut list = self.imp().list.borrow_mut();
 
-        let selected = list.iter().position(|pkg| pkg.name() == item.name())
-            .unwrap_or_else(|| {
-                // If selected item is not the last one, truncate the list
-                if let Some(i) = self.selected()
-                    .checked_add(1)
-                    .filter(|&i| i < list.len() as u32) {
-                        list.truncate(i as usize);
-                    }
+            list.iter().position(|pkg| pkg.name() == item.name())
+                .unwrap_or_else(|| {
+                    // If selected item is not the last one, truncate the list
+                    if let Some(i) = self.selected()
+                        .checked_add(1)
+                        .filter(|&i| i < list.len() as u32) {
+                            list.truncate(i as usize);
+                        }
 
-                // Append item and select it
-                list.push(item);
+                    // Append item and select it
+                    list.push(item);
 
-                list.len() - 1
-            });
-
-        drop(list);
+                    list.len() - 1
+                })
+        };
 
         self.set_selected(selected as u32);
     }
