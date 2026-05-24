@@ -34,11 +34,11 @@
               </object>
             </child>
             <child>
-              <object class="GtkBox" id="button_box">
+              <object class="GtkBox" id="control_box">
+                <property name="spacing">8</property>
                 <child>
-                  <object class="GtkButton" id="clear_button">
+                  <object class="GtkImage" id="clear_image">
                     <property name="visible">false</property>
-                    <property name="can-focus">false</property>
                     <property name="icon-name">edit-clear-symbolic</property>
                   </object>
                 </child>
@@ -55,7 +55,6 @@
                 <child>
                   <object class="GtkMenuButton" id="error_button">
                     <property name="visible">false</property>
-                    <property name="margin-start">6</property>
                     <property name="icon-name">info-outline-symbolic</property>
                     <property name="popover">error_popover</property>
                     <style>

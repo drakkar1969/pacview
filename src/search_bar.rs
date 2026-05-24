@@ -65,7 +65,7 @@ mod imp {
         pub(super) search_text: TemplateChild<gtk::Text>,
 
         #[template_child]
-        pub(super) clear_button: TemplateChild<gtk::Button>,
+        pub(super) clear_image: TemplateChild<gtk::Image>,
         #[template_child]
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
@@ -150,6 +150,7 @@ mod imp {
 
             obj.setup_signals();
             obj.setup_widgets();
+            obj.setup_controllers();
         }
     }
 
@@ -332,7 +333,7 @@ impl SearchBar {
             move |search_text| {
                 let text = search_text.text();
 
-                imp.clear_button.set_visible(!text.is_empty());
+                imp.clear_image.set_visible(!text.is_empty());
 
                 // Remove delay timer if present
                 if let Some(delay_id) = imp.search_delay_id.take() {
@@ -372,18 +373,6 @@ impl SearchBar {
                 }
             }
         ));
-
-        // Clear button clicked signal
-        imp.clear_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.search_text.set_text("");
-
-                if !imp.search_text.has_focus() {
-                    imp.search_text.grab_focus_without_selecting();
-                }
-            }
-        ));
     }
 
     //---------------------------------------
@@ -393,6 +382,32 @@ impl SearchBar {
         let imp = self.imp();
 
         imp.spinner.replace(Some(adw::SpinnerPaintable::new(Some(&imp.search_image.get()))));
+    }
+
+    //---------------------------------------
+    // Setup controllers
+    //---------------------------------------
+    fn setup_controllers(&self) {
+        let imp = self.imp();
+
+        let gesture_click = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_PRIMARY)
+            .build();
+
+        gesture_click.connect_released(clone!(
+            #[weak] imp,
+            move |_, n_press, _, _| {
+                if n_press == 1 {
+                    imp.search_text.set_text("");
+
+                    if !imp.search_text.has_focus() {
+                        imp.search_text.grab_focus_without_selecting();
+                    }
+                }
+            }
+        ));
+
+        imp.clear_image.add_controller(gesture_click);
     }
 
     //---------------------------------------
