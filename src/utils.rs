@@ -4,12 +4,10 @@ use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::time::Duration;
-use std::fmt::Write as _;
 
-use gtk::{gio, glib, pango};
+use gtk::{gio, glib};
 use gio::{AppInfo, AppLaunchContext};
-use gtk::prelude::{AppInfoExtManual, ToValue, WidgetExt};
-use pango::{FontDescription, FontMask, Weight};
+use gtk::prelude::{AppInfoExtManual, WidgetExt};
 use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use which::which_global;
@@ -273,75 +271,39 @@ impl AurDBFile {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: PangoUtils
+// STRUCT: Color
 //------------------------------------------------------------------------------
-pub struct PangoUtils;
+pub struct Color;
 
-impl PangoUtils {
+impl Color {
     //---------------------------------------
     // Pango color from style
     //---------------------------------------
-    pub fn color_from_style(style: &str) -> (u16, u16, u16, u16) {
+    pub fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
         let fc = |color: f32| -> u16 {
             (color * f32::from(u16::MAX)) as u16
         };
 
-        let label = gtk::Label::builder()
+        let color = gtk::Label::builder()
             .css_name("texttag")
             .css_classes([style])
-            .build();
-
-        let color = label.color();
+            .build()
+            .color();
 
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
 
-    //-----------------------------------
-    // Pango font str to CSS function
-    //-----------------------------------
-    pub fn font_str_to_css(font_str: &str) -> String {
-        let mut css = String::new();
+    //---------------------------------------
+    // Cairo color from style
+    //---------------------------------------
+    pub fn cairo_color_from_style(style: &str) -> (f64, f64, f64, f64) {
+        let color = gtk::Label::builder()
+            .css_name("texttag")
+            .css_classes([style])
+            .build()
+            .color();
 
-        let font_desc = FontDescription::from_string(font_str);
-
-        let mask = font_desc.set_fields();
-
-        if mask.contains(FontMask::FAMILY)
-            && let Some(family) = font_desc.family() {
-                write!(css, "font-family: {family}; ").unwrap();
-            }
-
-        if mask.contains(FontMask::SIZE) {
-            let font_size = font_desc.size()/pango::SCALE;
-
-            write!(css, "font-size: {}pt; ", font_size.max(0)).unwrap();
-        }
-
-        if mask.contains(FontMask::WEIGHT) {
-            let weight = match font_desc.weight() {
-                Weight::Normal => "normal",
-                Weight::Bold => "bold",
-                Weight::Thin => "100",
-                Weight::Ultralight => "200",
-                Weight::Light | Weight::Semilight => "300",
-                Weight::Book => "400",
-                Weight::Medium => "500",
-                Weight::Semibold => "600",
-                Weight::Ultrabold => "800",
-                Weight::Heavy | Weight::Ultraheavy => "900",
-                _ => unreachable!()
-            };
-
-            write!(css, "font-weight: {weight}; ").unwrap();
-        }
-
-        if mask.contains(FontMask::STYLE)
-            && let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style()
-                .to_value()) {
-                write!(css, "font-style: {}; ", value.nick()).unwrap();
-            }
-
-        css
+        (color.red() as f64, color.green() as f64, color.blue() as f64, color.alpha() as f64)
     }
 }
 

@@ -2,19 +2,21 @@ use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::fs;
 use std::time::Duration;
+use std::fmt::Write as _;
 
-use gtk::{gio, glib, gdk};
+use gtk::{gio, glib, gdk, pango};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
 use gdk::{Key, ModifierType};
+use pango::{FontDescription, FontMask, Weight};
 
 use sourceview5::prelude::*;
 
 use crate::{
     APP_ID,
     pkg_object::PkgObject,
-    utils::{PangoUtils, StyleSchemes, TokioRuntime}
+    utils::{StyleSchemes, TokioRuntime}
 };
 
 //------------------------------------------------------------------------------
@@ -159,7 +161,7 @@ impl SourceWindow {
     }
 
     //---------------------------------------
-    // Set style scheme helper function
+    // Set style scheme function
     //---------------------------------------
     fn set_style_scheme(&self, style_manager: &adw::StyleManager) {
         let settings = gio::Settings::new(APP_ID);
@@ -176,8 +178,56 @@ impl SourceWindow {
         self.buffer().set_style_scheme(scheme.as_ref());
     }
 
+    //-----------------------------------
+    // Font str to CSS function
+    //-----------------------------------
+    pub fn font_str_to_css(font_str: &str) -> String {
+        let mut css = String::new();
+
+        let font_desc = FontDescription::from_string(font_str);
+
+        let mask = font_desc.set_fields();
+
+        if mask.contains(FontMask::FAMILY)
+            && let Some(family) = font_desc.family() {
+                write!(css, "font-family: {family}; ").unwrap();
+            }
+
+        if mask.contains(FontMask::SIZE) {
+            let font_size = font_desc.size()/pango::SCALE;
+
+            write!(css, "font-size: {}pt; ", font_size.max(0)).unwrap();
+        }
+
+        if mask.contains(FontMask::WEIGHT) {
+            let weight = match font_desc.weight() {
+                Weight::Normal => "normal",
+                Weight::Bold => "bold",
+                Weight::Thin => "100",
+                Weight::Ultralight => "200",
+                Weight::Light | Weight::Semilight => "300",
+                Weight::Book => "400",
+                Weight::Medium => "500",
+                Weight::Semibold => "600",
+                Weight::Ultrabold => "800",
+                Weight::Heavy | Weight::Ultraheavy => "900",
+                _ => unreachable!()
+            };
+
+            write!(css, "font-weight: {weight}; ").unwrap();
+        }
+
+        if mask.contains(FontMask::STYLE)
+            && let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style()
+                .to_value()) {
+                write!(css, "font-style: {}; ", value.nick()).unwrap();
+            }
+
+        css
+    }
+
     //---------------------------------------
-    // Set font helper function
+    // Set font function
     //---------------------------------------
     fn set_font(style_manager: &adw::StyleManager, display: &gdk::Display) {
         let settings = gio::Settings::new(APP_ID);
@@ -189,7 +239,7 @@ impl SourceWindow {
             custom_font = style_manager.monospace_font_name();
         }
 
-        let css = PangoUtils::font_str_to_css(&custom_font);
+        let css = Self::font_str_to_css(&custom_font);
 
         let css_provider = gtk::CssProvider::new();
         css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
@@ -198,7 +248,7 @@ impl SourceWindow {
     }
 
     //---------------------------------------
-    // Download PKGBUILD helper function
+    // Download PKGBUILD function
     //---------------------------------------
     fn download_pkgbuild(&self) {
         let imp = self.imp();
