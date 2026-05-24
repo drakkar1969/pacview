@@ -549,32 +549,6 @@ impl PacViewWindow {
                 );
             }
         ));
-
-        // Preferences search prop property notify signal
-        let search_bar = imp.package_view.search_bar();
-
-        prefs_dialog.connect_search_prop_notify(clone!(
-            #[weak] search_bar,
-            move |prefs_dialog| {
-                search_bar.set_default_prop(prefs_dialog.search_prop());
-            }
-        ));
-
-        // Preferences search exact property notify signal
-        prefs_dialog.connect_search_exact_notify(clone!(
-            #[weak] search_bar,
-            move |prefs_dialog| {
-                search_bar.set_default_exact(prefs_dialog.search_exact());
-            }
-        ));
-
-        // Preferences search delay property notify signal
-        prefs_dialog.connect_search_delay_notify(clone!(
-            #[weak] search_bar,
-            move |prefs_dialog| {
-                search_bar.set_delay(prefs_dialog.search_delay() as u64);
-            }
-        ));
     }
 
     //---------------------------------------
@@ -597,6 +571,22 @@ impl PacViewWindow {
         imp.groups_window.borrow().set_transient_for(Some(self));
         imp.log_window.borrow().set_transient_for(Some(self));
         imp.stats_window.borrow().set_transient_for(Some(self));
+
+        // Bind preferences dialog properties to search bar
+        let prefs_dialog = imp.prefs_dialog.borrow();
+        let search_bar = imp.package_view.search_bar();
+
+        prefs_dialog.bind_property("search-prop", &search_bar, "default-prop")
+            .sync_create()
+            .build();
+
+        prefs_dialog.bind_property("search-exact", &search_bar, "default-exact")
+            .sync_create()
+            .build();
+
+        prefs_dialog.bind_property("search-delay", &search_bar, "delay")
+            .sync_create()
+            .build();
     }
 
     //---------------------------------------
