@@ -420,46 +420,6 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
-    // Resize window helper function
-    //---------------------------------------
-    fn resize_window(&self) {
-        let imp = self.imp();
-
-        let prefs_dialog = imp.prefs_dialog.borrow();
-
-        let sidebar_width = imp.sidebar_split_view.min_sidebar_width();
-        let infopane_width = prefs_dialog.infopane_width();
-
-        // Helper closure to convert sp to px
-        let to_px = |sp: f64| -> f64 {
-            imp.main_split_view.sidebar_width_unit().to_px(sp, None)
-        };
-
-        let min_packageview_width = 400.0;
-
-        self.set_width_request(to_px(infopane_width) as i32);
-
-        imp.main_split_view.set_min_sidebar_width(infopane_width);
-        imp.main_split_view.set_max_sidebar_width(infopane_width*2.0);
-
-        imp.main_breakpoint.set_condition(Some(
-            &adw::BreakpointCondition::new_length(
-                adw::BreakpointConditionLengthType::MaxWidth,
-                sidebar_width + infopane_width + min_packageview_width,
-                adw::LengthUnit::Sp
-            )
-        ));
-
-        imp.sidebar_breakpoint.set_condition(Some(
-            &adw::BreakpointCondition::new_length(
-                adw::BreakpointConditionLengthType::MaxWidth,
-                sidebar_width + infopane_width,
-                adw::LengthUnit::Sp
-            )
-        ));
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -532,8 +492,34 @@ impl PacViewWindow {
 
         prefs_dialog.connect_infopane_width_notify(clone!(
             #[weak(rename_to = window)] self,
-            move |_| {
-                window.resize_window();
+            move |prefs_dialog| {
+                let imp = window.imp();
+
+                let infopane_width = prefs_dialog.infopane_width();
+                let sidebar_width = imp.sidebar_split_view.min_sidebar_width();
+                let min_packageview_width = 400.0;
+
+                let unit = imp.main_split_view.sidebar_width_unit();
+
+                let main_condition = adw::BreakpointCondition::new_length(
+                    adw::BreakpointConditionLengthType::MaxWidth,
+                    sidebar_width + infopane_width + min_packageview_width,
+                    adw::LengthUnit::Sp
+                );
+
+                let sidebar_condition = adw::BreakpointCondition::new_length(
+                    adw::BreakpointConditionLengthType::MaxWidth,
+                    sidebar_width + infopane_width,
+                    adw::LengthUnit::Sp
+                );
+
+                window.set_width_request(unit.to_px(infopane_width, None) as i32);
+
+                imp.main_split_view.set_min_sidebar_width(infopane_width);
+                imp.main_split_view.set_max_sidebar_width(infopane_width*2.0);
+
+                imp.main_breakpoint.set_condition(Some(&main_condition));
+                imp.sidebar_breakpoint.set_condition(Some(&sidebar_condition));
             }
         ));
 
