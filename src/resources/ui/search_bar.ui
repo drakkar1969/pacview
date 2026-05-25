@@ -23,12 +23,8 @@
                 <property name="valign">center</property>
                 <property name="spacing">6</property>
                 <child>
-                  <object class="SearchTag" id="prop_tag"/>
-                </child>
-                <child>
-                  <object class="SearchTag" id="exact_tag">
-                    <property name="visible">false</property>
-                    <property name="text">[ab]</property>
+                  <object class="SearchTag" id="prop_tag">
+                    <property name="tooltip-text">Search Property</property>
                   </object>
                 </child>
               </object>
@@ -41,19 +37,29 @@
             </child>
             <child>
               <object class="GtkBox" id="control_box">
-                <property name="spacing">8</property>
+                <property name="spacing">6</property>
                 <child>
                   <object class="GtkImage" id="clear_image">
                     <property name="visible">false</property>
+                    <property name="margin-end">8</property>
                     <property name="icon-name">edit-clear-symbolic</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkToggleButton" id="exact_button">
+                    <property name="icon-name">xapp-search-entire-word-symbolic</property>
+                    <property name="tooltip-text">Match Whole Word Only</property>
+                    <style>
+                      <class name="flat"/>
+                    </style>
                   </object>
                 </child>
                 <child>
                   <object class="GtkMenuButton" id="filter_button">
                     <property name="icon-name">filter-symbolic</property>
                     <property name="menu-model">search_menu</property>
+                    <property name="tooltip-text">Search Options</property>
                     <style>
-                      <class name="circular"/>
                       <class name="flat"/>
                     </style>
                   </object>
@@ -64,7 +70,6 @@
                     <property name="icon-name">info-outline-symbolic</property>
                     <property name="popover">error_popover</property>
                     <style>
-                      <class name="circular"/>
                       <class name="flat"/>
                     </style>
                   </object>

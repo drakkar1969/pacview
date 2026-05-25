@@ -60,14 +60,14 @@ mod imp {
 
         #[template_child]
         pub(super) prop_tag: TemplateChild<SearchTag>,
-        #[template_child]
-        pub(super) exact_tag: TemplateChild<SearchTag>,
 
         #[template_child]
         pub(super) search_text: TemplateChild<gtk::Text>,
 
         #[template_child]
         pub(super) clear_image: TemplateChild<gtk::Image>,
+        #[template_child]
+        pub(super) exact_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
@@ -311,8 +311,6 @@ impl SearchBar {
         self.connect_exact_notify(|bar| {
             let imp = bar.imp();
 
-            imp.exact_tag.set_visible(bar.exact());
-
             if !imp.search_text.text().is_empty() {
                 bar.emit_by_name::<()>("changed", &[]);
             }
@@ -327,14 +325,6 @@ impl SearchBar {
                 } else {
                     bar.activate_action("search.cycle-prop", None).unwrap();
                 }
-            }
-        ));
-
-        // Exact tag clicked signal
-        imp.exact_tag.connect_closure("clicked", false, closure_local!(
-            #[weak(rename_to = bar)] self,
-            move |_: SearchTag, _: bool| {
-                bar.set_exact(!bar.exact());
             }
         ));
 
@@ -394,6 +384,12 @@ impl SearchBar {
         let imp = self.imp();
 
         imp.spinner.replace(Some(adw::SpinnerPaintable::new(Some(&imp.search_image.get()))));
+
+        // Bind exact property to button state
+        self.bind_property("exact", &imp.exact_button.get(), "active")
+            .bidirectional()
+            .sync_create()
+            .build();
     }
 
     //---------------------------------------
