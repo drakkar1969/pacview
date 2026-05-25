@@ -69,6 +69,8 @@ mod imp {
         #[template_child]
         pub(super) exact_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
+        pub(super) filter_button: TemplateChild<gtk::MenuButton>,
+        #[template_child]
         pub(super) error_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
         pub(super) error_label: TemplateChild<gtk::Label>,
@@ -201,6 +203,13 @@ mod imp {
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Show search options popup key binding
+            klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
+                window.imp().filter_button.popup();
+
+                glib::Propagation::Stop
+            });
+
             // Cycle search prop key bindings
             klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "search.cycle-prop");
             klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-prop");
