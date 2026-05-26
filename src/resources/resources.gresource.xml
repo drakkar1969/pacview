@@ -8,6 +8,7 @@
     <file alias="info-signed-symbolic.svg">icons/info-signed-symbolic.svg</file>
     <file alias="filter-symbolic.svg">icons/filter-symbolic.svg</file>
     <file alias="repository-symbolic.svg">icons/repository-symbolic.svg</file>
+    <file alias="search-exact-symbolic.svg">icons/search-exact-symbolic.svg</file>
     <file alias="status-all-symbolic.svg">icons/status-all-symbolic.svg</file>
     <file alias="status-explicit-symbolic.svg">icons/status-explicit-symbolic.svg</file>
     <file alias="status-dependency-symbolic.svg">icons/status-dependency-symbolic.svg</file>

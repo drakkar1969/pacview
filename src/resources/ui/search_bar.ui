@@ -47,7 +47,7 @@
                 </child>
                 <child>
                   <object class="GtkToggleButton" id="exact_button">
-                    <property name="icon-name">xapp-search-entire-word-symbolic</property>
+                    <property name="icon-name">search-exact-symbolic</property>
                     <property name="tooltip-text">Match Whole Word Only</property>
                     <style>
                       <class name="flat"/>
