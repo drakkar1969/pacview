@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
@@ -78,6 +78,8 @@ mod imp {
         search_mode: Cell<GroupsSearchMode>,
         #[property(get, set)]
         loading: Cell<bool>,
+
+        pub(super) search_term: RefCell<String>,
     }
 
     //---------------------------------------
@@ -191,6 +193,10 @@ impl GroupsWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |_| {
+                let term = imp.search_entry.text().trim().to_lowercase();
+
+                imp.search_term.replace(term);
+
                 imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
@@ -316,27 +322,32 @@ impl GroupsWindow {
             #[weak(rename_to = window)] self,
             #[upgrade_or] false,
             move |item| {
+                let search_term = window.imp().search_term.borrow();
+
+                if search_term.is_empty() {
+                    return true;
+                }
+
                 let obj = item
                     .downcast_ref::<GroupsObject>()
                     .expect("Failed to downcast to 'GroupsObject'");
 
-                let search_term = window.imp().search_entry.text().to_lowercase();
+                let is_match = |prop: &str| -> bool {
+                    prop.as_bytes()
+                        .windows(search_term.len())
+                        .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
+                };
 
-                if search_term.is_empty() {
-                    true
-                } else {
-                    match window.search_mode() {
-                        GroupsSearchMode::All => {
-                            obj.package().to_lowercase().contains(&search_term)
-                                || obj.groups().to_lowercase().contains(&search_term)
-                        },
-                        GroupsSearchMode::Groups => {
-                            obj.groups().to_lowercase().contains(&search_term)
-                        },
-                        GroupsSearchMode::Packages => {
-                            obj.package().to_lowercase().contains(&search_term)
-                        },
-                    }
+                match window.search_mode() {
+                    GroupsSearchMode::All => {
+                        is_match(&obj.package()) || is_match(&obj.groups())
+                    },
+                    GroupsSearchMode::Groups => {
+                        is_match(&obj.groups())
+                    },
+                    GroupsSearchMode::Packages => {
+                        is_match(&obj.package())
+                    },
                 }
             }
         ));

@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
@@ -88,6 +88,8 @@ mod imp {
         search_mode: Cell<BackupSearchMode>,
         #[property(get, set)]
         loading: Cell<bool>,
+
+        pub(super) search_term: RefCell<String>,
     }
 
     //---------------------------------------
@@ -239,6 +241,10 @@ impl BackupWindow {
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
             move |_| {
+                let term = imp.search_entry.text().trim().to_lowercase();
+
+                imp.search_term.replace(term);
+
                 imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
@@ -444,27 +450,32 @@ impl BackupWindow {
             #[weak(rename_to = window)] self,
             #[upgrade_or] false,
             move |item| {
-                let search_term = window.imp().search_entry.text().to_lowercase();
+                let search_term = window.imp().search_term.borrow();
 
                 if search_term.is_empty() {
-                    true
-                } else {
-                    let obj = item
-                        .downcast_ref::<BackupObject>()
-                        .expect("Failed to downcast to 'BackupObject'");
+                    return true;
+                }
 
-                    match window.search_mode() {
-                        BackupSearchMode::All => {
-                            obj.path().to_lowercase().contains(&search_term)
-                                || obj.package().to_lowercase().contains(&search_term)
-                        },
-                        BackupSearchMode::Packages => {
-                            obj.package().to_lowercase().contains(&search_term)
-                        },
-                        BackupSearchMode::Files => {
-                            obj.path().to_lowercase().contains(&search_term)
-                        },
-                    }
+                let obj = item
+                    .downcast_ref::<BackupObject>()
+                    .expect("Failed to downcast to 'BackupObject'");
+
+                let is_match = |prop: &str| -> bool {
+                    prop.as_bytes()
+                        .windows(search_term.len())
+                        .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
+                };
+
+                match window.search_mode() {
+                    BackupSearchMode::All => {
+                        is_match(&obj.path()) || is_match(&obj.package())
+                    },
+                    BackupSearchMode::Packages => {
+                        is_match(&obj.package())
+                    },
+                    BackupSearchMode::Files => {
+                        is_match(&obj.path())
+                    },
                 }
             }
         ));
