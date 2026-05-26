@@ -354,12 +354,12 @@ impl PackageView {
             move |bar: SearchBar| {
                 let term = bar.text().trim().to_lowercase();
 
-                imp.search_tokens.replace(
-                    term.split_whitespace()
-                        .map(ToOwned::to_owned)
-                        .collect::<Vec<String>>()
-                );
+                let tokens = term.split_whitespace()
+                    .map(ToOwned::to_owned)
+                    .collect::<Vec<String>>();
+
                 imp.search_term.replace(term);
+                imp.search_tokens.replace(tokens);
 
                 imp.search_filter.changed(gtk::FilterChange::Different);
             }
@@ -456,31 +456,36 @@ impl PackageView {
                 let imp = view.imp();
 
                 let search_term = imp.search_term.borrow();
+                let search_tokens = imp.search_tokens.borrow();
 
                 if search_term.is_empty() {
                     return true
                 }
 
-                let pkg: &PkgObject = item
+                let pkg = item
                     .downcast_ref::<PkgObject>()
                     .expect("Failed to downcast to 'PkgObject'");
 
-                let search_props: &[String] = match imp.search_bar.prop() {
-                    SearchProp::Name => &[pkg.name()],
-                    SearchProp::NameDesc => &[pkg.name(), pkg.description().to_owned()],
-                    SearchProp::Groups => pkg.groups(),
-                    SearchProp::Deps => pkg.depends(),
-                    SearchProp::Optdeps => pkg.optdepends(),
-                    SearchProp::Provides => pkg.provides(),
-                    SearchProp::Files => pkg.files(),
+                let is_match = |prop: &str| -> bool {
+                    if imp.search_bar.exact() {
+                        prop.eq_ignore_ascii_case(&search_term)
+                    } else {
+                        search_tokens.iter().all(|token| {
+                            prop.as_bytes()
+                                .windows(token.len())
+                                .any(|window| window.eq_ignore_ascii_case(token.as_bytes()))
+                        })
+                    }
                 };
 
-                if imp.search_bar.exact() {
-                    search_props.iter().any(|s| s.eq_ignore_ascii_case(&search_term))
-                } else {
-                    imp.search_tokens.borrow().iter().all(|t| {
-                        search_props.iter().any(|s| s.to_ascii_lowercase().contains(t))
-                    })
+                match imp.search_bar.prop() {
+                    SearchProp::Name => is_match(&pkg.name()),
+                    SearchProp::NameDesc => is_match(&pkg.name()) || is_match(pkg.description()),
+                    SearchProp::Groups => pkg.groups().iter().any(|s| is_match(s)),
+                    SearchProp::Deps => pkg.depends().iter().any(|s| is_match(s)),
+                    SearchProp::Optdeps => pkg.optdepends().iter().any(|s| is_match(s)),
+                    SearchProp::Provides => pkg.provides().iter().any(|s| is_match(s)),
+                    SearchProp::Files => pkg.files().iter().any(|s| is_match(s)),
                 }
             }
         ));
