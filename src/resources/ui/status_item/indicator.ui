@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// SidebarItemIndicator template //-->
-  <template class="SidebarItemIndicator" parent="GtkBox">
+  <object class="GtkBox" id="indicator">
     <style>
       <class name="status-row-indicator"/>
     </style>
@@ -37,7 +36,7 @@
         </style>
       </object>
     </child>
-  </template>
+  </object>
 
   <!--// Error popover //-->
   <object class="GtkPopover" id="error_popover">
