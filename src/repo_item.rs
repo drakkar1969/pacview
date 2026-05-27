@@ -66,18 +66,8 @@ impl RepoItem {
             .and_then(|section| section.sidebar())
             .expect("Could not get sidebar");
 
-        if let Some(index) = sidebar.items().iter::<glib::Object>()
-            .flatten()
-            .position(|obj| {
-                let item = obj
-                    .downcast::<Self>()
-                    .expect("Could not downcast to 'RepoItem'");
-
-                item.id() == self.id()
-            }) {
-                sidebar.set_selected(index as u32);
-                sidebar.emit_by_name::<()>("activated", &[&(index as u32)]);
-            }
+        sidebar.set_selected(self.index());
+        sidebar.emit_by_name::<()>("activated", &[&(self.index())]);
     }
 }
 
