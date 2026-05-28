@@ -303,7 +303,12 @@ impl Color {
             .build()
             .color();
 
-        (color.red() as f64, color.green() as f64, color.blue() as f64, color.alpha() as f64)
+        (
+            f64::from(color.red()),
+            f64::from(color.green()),
+            f64::from(color.blue()),
+            f64::from(color.alpha())
+        )
     }
 }
 

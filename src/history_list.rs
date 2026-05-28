@@ -118,15 +118,15 @@ impl HistoryList {
     pub fn init(&self, item: Option<PkgObject>) {
         let imp = self.imp();
 
-        let selected = if let Some(item) = item {
-            imp.list.replace(vec![item]);
-
-            0
-        } else {
+        let selected = item.map_or_else(|| {
             imp.list.replace(vec![]);
 
             gtk::INVALID_LIST_POSITION
-        };
+        }, |item| {
+            imp.list.replace(vec![item]);
+
+            0
+        });
 
         self.set_selected(selected);
     }
