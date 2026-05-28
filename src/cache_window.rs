@@ -317,14 +317,13 @@ impl CacheWindow {
 
         // Get cache size
         let size = 512u64 * Pacman::config().cache_dir.iter()
-            .map(|dir| {
-                fs::read_dir(dir).map_or(0, |read_dir| {
-                    read_dir.flatten()
-                        .filter_map(|entry| {
-                            entry.metadata().map(|metadata| metadata.blocks()).ok()
-                        })
-                        .sum()
-                })
+            .flat_map(|dir| {
+                fs::read_dir(dir).into_iter()
+                    .flatten()
+                    .flatten()
+                    .filter_map(|entry| {
+                        entry.metadata().map(|metadata| metadata.blocks()).ok()
+                    })
             })
             .sum::<u64>();
 

@@ -1,7 +1,6 @@
 use std::cell::{Cell, RefCell, OnceCell};
 use std::sync::LazyLock;
 use std::path::{Path, PathBuf};
-use std::rc::Rc;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 use std::fs;
@@ -663,15 +662,12 @@ impl PacViewWindow {
         Pacman::set_log(fs::read_to_string(&pacman_config.log_file).ok());
 
         // Load pacman cache
-        let mut cache_files: Vec<PathBuf> = vec![];
-
-        for dir in &pacman_config.cache_dir {
-            if let Ok(read_dir) = fs::read_dir(dir) {
-                let files = read_dir.into_iter().flatten().map(|entry| entry.path());
-
-                cache_files.extend(files);
-            }
-        }
+        let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
+            .flat_map(fs::read_dir)
+            .flatten()
+            .flatten()
+            .map(|entry| entry.path())
+            .collect();
 
         cache_files.sort_unstable();
 
@@ -688,18 +684,16 @@ impl PacViewWindow {
         imp.stats_window.borrow().clear();
 
         // Get paru repos
-        let mut paru_repos: Vec<(String, PathBuf)> = vec![];
-
-        if Paths::paru().is_ok()
-            && let Ok(read_dir) = fs::read_dir(user_cache_dir.join("paru/clone/repo")) {
-                let repos = read_dir.into_iter()
-                    .flatten()
-                    .map(|entry| {
-                        (entry.file_name().to_string_lossy().into_owned(), entry.path())
-                    });
-
-                paru_repos.extend(repos);
-            }
+        let paru_repos: Vec<(String, PathBuf)> = if Paths::paru().is_ok() {
+            fs::read_dir(user_cache_dir.join("paru/clone/repo"))
+                .into_iter()
+                .flatten()
+                .flatten()
+                .map(|entry| (entry.file_name().to_string_lossy().into_owned(), entry.path()))
+                .collect()
+        } else {
+            vec![]
+        };
 
         // Create repo names list
         let repo_names: Vec<String> = pacman_config.repos.iter()
@@ -824,24 +818,16 @@ impl PacViewWindow {
             };
 
             // Get paru repo package map
-            let mut paru_map: HashMap<String, Rc<String>> = HashMap::new();
-
-            for (name, path) in paru_repos {
-                let name_rc = Rc::new(name);
-
-                if let Ok(read_dir) = fs::read_dir(path) {
-                    let items = read_dir.into_iter()
+            let paru_map: HashMap<String, String> = paru_repos.into_iter()
+                .flat_map(|(name, path)| {
+                    fs::read_dir(path).into_iter()
                         .flatten()
-                        .map(|entry| {
-                            (
-                                entry.file_name().to_string_lossy().into_owned(),
-                                Rc::clone(&name_rc)
-                            )
-                        });
-
-                    paru_map.extend(items);
-                }
-            }
+                        .flatten()
+                        .map(move |entry| {
+                            (entry.file_name().to_string_lossy().into_owned(), name.clone())
+                        })
+                })
+                .collect();
 
             let syncdbs = alpm_handle.syncdbs();
             let localdb = alpm_handle.localdb();
@@ -858,7 +844,8 @@ impl PacViewWindow {
                                     .and_then(|sync_pkg| sync_pkg.db())
                                     .map_or("local", alpm::Db::name)
                             }
-                        }, |paru_repo| paru_repo);
+                        },
+                    |repo| repo.as_str());
 
                     PkgData::from_alpm(pkg, true, repository)
                 })
