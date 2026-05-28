@@ -808,14 +808,15 @@ impl PacViewWindow {
             let alpm_handle = alpm_utils::alpm_with_conf(pacman_config)?;
 
             // Load AUR package names from file if AUR download is enabled in preferences
-            let aur_names: HashSet<String> = if aur_download {
-                AurDBFile::path().as_ref()
+            let aur_file = if aur_download {
+                AurDBFile::path()
                     .and_then(|aur_file| fs::read_to_string(aur_file).ok())
-                    .map(|s| s.lines().map(ToOwned::to_owned).collect())
                     .unwrap_or_default()
             } else {
-                HashSet::default()
+                String::new()
             };
+
+            let aur_names: HashSet<&str> = aur_file.lines().collect();
 
             // Get paru repo package map
             let paru_map: HashMap<String, String> = paru_repos.into_iter()
