@@ -4,7 +4,7 @@ use std::fmt::Write as _;
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use strum::AsRefStr;
@@ -157,7 +157,7 @@ mod imp {
             klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
                 window.imp().search_bar.set_search_mode(true);
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Compare key binding
@@ -168,7 +168,7 @@ mod imp {
                     imp.compare_button.emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Open key binding
@@ -179,7 +179,7 @@ mod imp {
                     imp.open_button.emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Copy key binding
@@ -190,32 +190,32 @@ mod imp {
                     imp.copy_button.emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Status key bindings
             klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
                 window.imp().status_dropdown.set_selected(BackupStatus::All as u32);
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::M, ModifierType::ALT_MASK, |window| {
                 window.imp().status_dropdown.set_selected(BackupStatus::Modified as u32);
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::U, ModifierType::ALT_MASK, |window| {
                 window.imp().status_dropdown.set_selected(BackupStatus::Unmodified as u32);
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
                 window.imp().status_dropdown.set_selected(BackupStatus::Locked as u32);
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
         }
     }

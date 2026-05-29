@@ -7,7 +7,7 @@ use gtk::{glib, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::subclass::Signal;
-use glib::{clone, closure_local, GString};
+use glib::{clone, closure_local, GString, Propagation};
 use gdk::{Key, ModifierType};
 
 use strum::{FromRepr, EnumIter, IntoEnumIterator, AsRefStr};
@@ -207,7 +207,7 @@ mod imp {
             klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
                 window.imp().filter_button.popup();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Cycle search prop key bindings
@@ -438,7 +438,7 @@ impl SearchBar {
 
             controller.connect_key_pressed(clone!(
                 #[weak(rename_to = bar)] self,
-                #[upgrade_or] glib::Propagation::Proceed,
+                #[upgrade_or] Propagation::Proceed,
                 move |controller, _, _, state| {
                     if !(bar.enabled() || state.contains(ModifierType::ALT_MASK)
                         || state.contains(ModifierType::CONTROL_MASK))
@@ -446,7 +446,7 @@ impl SearchBar {
                             bar.set_enabled(true);
                         }
 
-                    glib::Propagation::Proceed
+                    Propagation::Proceed
                 }
             ));
 

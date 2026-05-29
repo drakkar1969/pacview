@@ -4,7 +4,7 @@ use std::fmt::Write as _;
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use strum::AsRefStr;
@@ -147,7 +147,7 @@ mod imp {
             klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
                 window.imp().search_bar.set_search_mode(true);
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Installed key binding
@@ -156,7 +156,7 @@ mod imp {
 
                 imp.installed_button.set_active(!imp.installed_button.is_active());
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Copy key binding
@@ -167,7 +167,7 @@ mod imp {
                     imp.copy_button.emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
         }
     }

@@ -4,8 +4,7 @@ use std::marker::PhantomData;
 use gtk::{glib, gdk, graphene};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, GString};
-use glib::RustClosure;
+use glib::{clone, GString, RustClosure, Propagation};
 use glib::subclass::Signal;
 use gdk::{Key, ModifierType};
 
@@ -184,83 +183,83 @@ mod imp {
             klass.add_binding(Key::A, ModifierType::CONTROL_MASK, |row| {
                 row.imp().value_widget.activate_action("text.select-all", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::A, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, |row| {
                 row.imp().value_widget.activate_action("text.select-none", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Copy key binding
             klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |row| {
                 row.imp().value_widget.activate_action("text.copy", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Expand/contract key bindings
             klass.add_binding(Key::plus, ModifierType::CONTROL_MASK, |row| {
                 row.imp().value_widget.activate_action("text.expand", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::KP_Add, ModifierType::CONTROL_MASK, |row| {
                 row.imp().value_widget.activate_action("text.expand", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::minus, ModifierType::CONTROL_MASK, |row| {
                 row.imp().value_widget.activate_action("text.contract", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::KP_Subtract, ModifierType::CONTROL_MASK, |row| {
                 row.imp().value_widget.activate_action("text.contract", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Previous/next link key bindings
             klass.add_binding(Key::Left, ModifierType::NO_MODIFIER_MASK, |row| {
                 row.imp().value_widget.activate_action("text.previous-link", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::KP_Left, ModifierType::NO_MODIFIER_MASK, |row| {
                 row.imp().value_widget.activate_action("text.previous-link", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::Right, ModifierType::NO_MODIFIER_MASK, |row| {
                 row.imp().value_widget.activate_action("text.next-link", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::KP_Right, ModifierType::NO_MODIFIER_MASK, |row| {
                 row.imp().value_widget.activate_action("text.next-link", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Activate link key bindings
             klass.add_binding(Key::Return, ModifierType::NO_MODIFIER_MASK, |row| {
                 row.imp().value_widget.activate_action("text.activate-link", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::KP_Enter, ModifierType::NO_MODIFIER_MASK, |row| {
                 row.imp().value_widget.activate_action("text.activate-link", None).unwrap();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
         }
 

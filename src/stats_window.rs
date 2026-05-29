@@ -3,7 +3,7 @@ use std::fmt::Write as _;
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use size::Size;
@@ -94,7 +94,7 @@ mod imp {
                     imp.copy_button.emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
         }
     }

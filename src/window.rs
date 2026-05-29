@@ -8,7 +8,7 @@ use std::fs;
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::clone;
+use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use alpm_utils::DbListExt;
@@ -239,18 +239,18 @@ mod imp {
             klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
                 window.imp().package_view.search_bar().set_enabled(true);
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::Escape, ModifierType::NO_MODIFIER_MASK, |window| {
                 let imp = window.imp();
 
                 if (imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar()) || (imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar()) {
-                    glib::Propagation::Proceed
+                    Propagation::Proceed
                 } else {
                     window.imp().package_view.search_bar().set_enabled(false);
 
-                    glib::Propagation::Stop
+                    Propagation::Stop
                 }
             });
 
@@ -262,7 +262,7 @@ mod imp {
                     imp.package_view.sidebar_button().emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Show infopane key binding
@@ -273,7 +273,7 @@ mod imp {
                     imp.package_view.infopane_button().emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Package view grouping key binding
@@ -282,7 +282,7 @@ mod imp {
 
                 imp.package_view.set_grouping(!imp.package_view.grouping());
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Show preferences key binding
@@ -307,7 +307,7 @@ mod imp {
                 imp.all_repo_item.borrow().activate();
                 imp.all_status_item.borrow().activate();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // View show installed packages key binding
@@ -317,7 +317,7 @@ mod imp {
                 imp.all_repo_item.borrow().activate();
                 imp.installed_item.borrow().activate();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // View show updates key binding
@@ -327,7 +327,7 @@ mod imp {
                 imp.all_repo_item.borrow().activate();
                 imp.update_item.borrow().activate();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Stats window key binding
@@ -352,46 +352,46 @@ mod imp {
             klass.add_binding(Key::I, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("info");
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::F, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("files");
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.set_visible_tab("log");
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Infopane previous/next key bindings
             klass.add_binding(Key::Left, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.display_prev();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             klass.add_binding(Key::Right, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.display_next();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Infopane show PKGBUILD key bindings
             klass.add_binding(Key::P, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.show_pkgbuild();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Infopane show hashes key bindings
             klass.add_binding(Key::H, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.show_hashes();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
         }
     }

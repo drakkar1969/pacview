@@ -4,7 +4,7 @@ use std::fmt::Write as _;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::{glib, gio};
-use glib::clone;
+use glib::{clone, Propagation};
 
 use crate::{
     pkg_object::PkgObject,
@@ -336,12 +336,12 @@ impl InfoFilesTab {
             gtk::ShortcutTrigger::parse_string("Escape"),
             Some(gtk::CallbackAction::new(clone!(
                 #[weak] imp,
-                #[upgrade_or] glib::Propagation::Proceed,
+                #[upgrade_or] Propagation::Proceed,
                 move |_, _| {
                     imp.files_search_entry.set_text("");
                     imp.files_view.grab_focus();
 
-                    glib::Propagation::Stop
+                    Propagation::Stop
                 }
             )))
         );

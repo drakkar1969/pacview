@@ -7,7 +7,7 @@ use std::fmt::Write as _;
 use gtk::{gio, glib, gdk, pango};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::clone;
+use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 use pango::{FontDescription, FontMask, Weight};
 
@@ -106,7 +106,7 @@ mod imp {
                     imp.save_button.emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Source url binding
@@ -117,14 +117,14 @@ mod imp {
                     imp.url_button.emit_clicked();
                 }
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
 
             // Refresh binding
             klass.add_binding(Key::F5, ModifierType::NO_MODIFIER_MASK, |window| {
                 window.imp().refresh_button.emit_clicked();
 
-                glib::Propagation::Stop
+                Propagation::Stop
             });
         }
 
