@@ -145,9 +145,9 @@ mod imp {
 
             self.tab_switcher.set_sensitive(pkg.is_some());
 
-            self.pkgbuild_button.set_sensitive(Paths::paru().is_ok() && pkg.is_some());
+            self.pkgbuild_button.set_visible(Paths::paru().is_ok() && pkg.is_some());
 
-            self.hashes_button.set_sensitive(
+            self.hashes_button.set_visible(
                 pkg.as_ref().is_some_and(|pkg| {
                     let validation = pkg.validation();
 
