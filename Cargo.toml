@@ -12,6 +12,7 @@ alpm-utils = "5"
 async-channel = "2"
 async-compression = { version = "0.4", features = ["tokio", "gzip"] }
 async-process = "2"
+configparser = "3.1.0"
 fancy-regex = "0.18"
 futures = "0.3"
 futures-util = "0.3"

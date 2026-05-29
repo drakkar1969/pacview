@@ -1,9 +1,11 @@
 use std::sync::{LazyLock, RwLock};
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::time::Duration;
+use std::env;
+use std::collections::HashMap;
 
 use gtk::{gio, glib};
 use gio::{AppInfo, AppLaunchContext};
@@ -16,6 +18,7 @@ use tokio::fs::File;
 use tokio_util::io::StreamReader;
 use futures_util::TryStreamExt;
 use async_compression::tokio::bufread::GzipDecoder;
+use configparser::ini::Ini;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -106,6 +109,65 @@ impl Pacman {
         let mut pacman_cache = Self::cache().write().unwrap();
 
         *pacman_cache = new_cache;
+    }
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: ParuConf
+//------------------------------------------------------------------------------
+pub struct ParuConf;
+
+impl ParuConf {
+    //---------------------------------------
+    // Config function
+    //---------------------------------------
+    fn config() -> &'static Result<Ini, String> {
+        static INI: LazyLock<Result<Ini, String>> = LazyLock::new(|| {
+            let mut ini = Ini::new();
+
+            env::var("PARU_CONF")
+                .map_err(|e| e.to_string())
+                .and_then(|var| ini.load(var))
+                .or_else(|_| ini.load(glib::user_config_dir().join("paru/paru.conf")))
+                .or_else(|_| ini.load(Path::new("/etc/paru.conf")))
+                .map(|_| ini)
+        });
+
+        &INI
+    }
+
+    //---------------------------------------
+    // Repo names functions
+    //---------------------------------------
+    pub fn repo_names() -> Vec<String> {
+        Self::config().as_ref()
+            .map(|ini| {
+                ini.sections()
+                    .into_iter()
+                    .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
+                    .collect()
+            })
+            .unwrap_or_default()
+    }
+
+    //---------------------------------------
+    // Local pkg map functions
+    //---------------------------------------
+    pub fn local_pkg_map() -> HashMap<String, String> {
+        Self::repo_names().into_iter()
+            .flat_map(|name| {
+                let path = glib::user_cache_dir().join(format!("paru/clone/repo/{name}"));
+
+                fs::read_dir(path)
+                    .into_iter()
+                    .flatten()
+                    .flatten()
+                    .map(move |entry| {
+                        (entry.file_name().to_string_lossy().into_owned(), name.clone())
+                    })
+
+            })
+            .collect()
     }
 }
 

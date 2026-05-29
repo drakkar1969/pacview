@@ -33,7 +33,7 @@ use crate::{
     cache_window::CacheWindow,
     config_dialog::ConfigDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Paths, Pacman, AurDBFile, AsyncCommand}
+    utils::{Paths, Pacman, ParuConf, AurDBFile, AsyncCommand}
 };
 
 //------------------------------------------------------------------------------
@@ -656,7 +656,6 @@ impl PacViewWindow {
         let imp = self.imp();
 
         let pacman_config = Pacman::config();
-        let user_cache_dir = glib::user_cache_dir();
 
         // Load pacman log
         Pacman::set_log(fs::read_to_string(&pacman_config.log_file).ok());
@@ -683,24 +682,11 @@ impl PacViewWindow {
         imp.groups_window.borrow().clear();
         imp.stats_window.borrow().clear();
 
-        // Get paru repos
-        let paru_repos: Vec<(String, PathBuf)> = if Paths::paru().is_ok() {
-            fs::read_dir(user_cache_dir.join("paru/clone/repo"))
-                .into_iter()
-                .flatten()
-                .flatten()
-                .map(|entry| (entry.file_name().to_string_lossy().into_owned(), entry.path()))
-                .collect()
-        } else {
-            vec![]
-        };
-
         // Create repo names list
         let repo_names: Vec<String> = pacman_config.repos.iter()
-            .map(|r| r.name.as_str())
-            .chain(paru_repos.iter().map(|(name, _)| name.as_str()))
-            .chain(["aur", "local"])
-            .map(ToOwned::to_owned)
+            .map(|r| r.name.clone())
+            .chain(ParuConf::repo_names())
+            .chain(["aur", "local"].map(ToOwned::to_owned))
             .collect();
 
         // Populate sidebar
@@ -717,11 +703,11 @@ impl PacViewWindow {
                     async move {
                         let _ = AurDBFile::download().await;
 
-                        window.alpm_load_packages(repo_names, paru_repos);
+                        window.alpm_load_packages(repo_names);
                     }
                 ));
             } else {
-                self.alpm_load_packages(repo_names, paru_repos);
+                self.alpm_load_packages(repo_names);
             }
     }
 
@@ -790,19 +776,18 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, repo_names: Vec<String>, paru_repos: Vec<(String, PathBuf)>) {
+    fn alpm_load_packages(&self, repo_names: Vec<String>) {
         let imp = self.imp();
 
         // Get pacman config
         let pacman_config = Pacman::config();
 
-        // Get AUR package names file
+        // Get AUR download preference
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
 
-        // Create async channel
+        // Create task to load package data
         let (sender, receiver) = async_channel::bounded(1);
 
-        // Create task to load package data
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
             let alpm_handle = alpm_utils::alpm_with_conf(pacman_config)?;
@@ -819,16 +804,7 @@ impl PacViewWindow {
             let aur_names: HashSet<&str> = aur_file.lines().collect();
 
             // Get paru repo package map
-            let paru_map: HashMap<String, String> = paru_repos.into_iter()
-                .flat_map(|(name, path)| {
-                    fs::read_dir(path).into_iter()
-                        .flatten()
-                        .flatten()
-                        .map(move |entry| {
-                            (entry.file_name().to_string_lossy().into_owned(), name.clone())
-                        })
-                })
-                .collect();
+            let paru_map = ParuConf::local_pkg_map();
 
             let syncdbs = alpm_handle.syncdbs();
             let localdb = alpm_handle.localdb();
@@ -836,17 +812,15 @@ impl PacViewWindow {
             // Load pacman local packages
             let local_data: Vec<PkgData> = localdb.pkgs().iter()
                 .map(|pkg| {
-                    let repository = paru_map.get(pkg.name())
-                        .map_or_else(|| {
-                            if aur_names.contains(pkg.name()) {
-                                "aur"
-                            } else {
-                                syncdbs.pkg(pkg.name()).ok()
-                                    .and_then(|sync_pkg| sync_pkg.db())
-                                    .map_or("local", alpm::Db::name)
-                            }
-                        },
-                    |repo| repo.as_str());
+                    let repository = if let Some(repo) = paru_map.get(pkg.name()) {
+                        repo.as_str()
+                    } else if aur_names.contains(pkg.name()) {
+                        "aur"
+                    } else {
+                        syncdbs.pkg(pkg.name()).ok()
+                            .and_then(|sync_pkg| sync_pkg.db())
+                            .map_or("local", alpm::Db::name)
+                    };
 
                     PkgData::from_alpm(pkg, true, repository)
                 })

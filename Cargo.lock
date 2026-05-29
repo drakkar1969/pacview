@@ -353,6 +353,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "configparser"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e57e3272f0190c3f1584272d613719ba5fc7df7f4942fe542e63d949cf3a649b"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1630,6 +1636,7 @@ dependencies = [
  "async-channel",
  "async-compression",
  "async-process",
+ "configparser",
  "fancy-regex",
  "futures",
  "futures-util",
