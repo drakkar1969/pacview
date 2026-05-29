@@ -213,7 +213,7 @@ impl PkgObject {
         String::new()
     }
 
-    pub fn pkgbuild_urls(&self) -> (String, String) {
+    pub fn pkgbuild_url(&self) -> Option<String> {
         let data = self.data();
         let name = if data.base.is_empty() { &data.name } else { &data.base };
         let repo = &data.repository;
@@ -222,33 +222,26 @@ impl PkgObject {
             "aur" => {
                 let domain = "https://aur.archlinux.org/cgit/aur.git";
 
-                let url = format!("{domain}/tree/PKGBUILD?h={name}");
-                let raw_url = format!("{domain}/plain/PKGBUILD?h={name}");
-
-                (url, raw_url)
+                Some(format!("{domain}/tree/PKGBUILD?h={name}"))
             }
             _ if Pacman::config().repos.iter().any(|r| &r.name == repo) => {
                 let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
 
-                let url = format!("{domain}/{name}/-/blob/main/PKGBUILD");
-                let raw_url = format!("{domain}/{name}/-/raw/main/PKGBUILD");
-
-                (url, raw_url)
+                Some(format!("{domain}/{name}/-/blob/main/PKGBUILD"))
             }
             "local" => {
-                (String::new(), String::new())
+                None
             }
             _ => {
-                let raw_url = Paths::paru().as_ref().ok().map_or_else(String::new, |_| {
-                    glib::user_cache_dir()
-                        .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
-                        .display()
-                        .to_string()
-                });
+                Paths::paru().as_ref().ok()
+                    .map(|_| {
+                        let raw_url = glib::user_cache_dir()
+                            .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
+                            .display()
+                            .to_string();
 
-                let url = format!("file://{raw_url}");
-
-                (url, raw_url)
+                        format!("file://{raw_url}")
+                    })
             }
         }
     }

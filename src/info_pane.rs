@@ -21,7 +21,8 @@ use crate::{
     pkg_data::{PkgFlags, PkgValidation},
     pkg_object::PkgObject,
     source_window::SourceWindow,
-    hash_window::HashWindow
+    hash_window::HashWindow,
+    utils::Paths
 };
 
 //------------------------------------------------------------------------------
@@ -144,7 +145,7 @@ mod imp {
 
             self.tab_switcher.set_sensitive(pkg.is_some());
 
-            self.pkgbuild_button.set_sensitive(pkg.is_some());
+            self.pkgbuild_button.set_sensitive(Paths::paru().is_ok() && pkg.is_some());
 
             self.hashes_button.set_sensitive(
                 pkg.as_ref().is_some_and(|pkg| {

@@ -1,9 +1,8 @@
-use std::cell::{RefCell, OnceCell};
+use std::cell::OnceCell;
 use std::marker::PhantomData;
-use std::fs;
-use std::time::Duration;
 use std::fmt::Write as _;
 
+use futures::io;
 use gtk::{gio, glib, gdk, pango};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -16,7 +15,7 @@ use sourceview5::prelude::*;
 use crate::{
     APP_ID,
     pkg_object::PkgObject,
-    utils::{StyleSchemes, TokioRuntime}
+    utils::{StyleSchemes, Paths, AsyncCommand}
 };
 
 //------------------------------------------------------------------------------
@@ -49,8 +48,6 @@ mod imp {
         buffer: PhantomData<sourceview5::Buffer>,
         #[property(get, set, construct_only)]
         pkg: OnceCell<PkgObject>,
-
-        pub(super) source_url: RefCell<String>,
     }
 
     //---------------------------------------
@@ -255,61 +252,28 @@ impl SourceWindow {
 
         imp.stack.set_visible_child_name("loading");
         imp.save_button.set_sensitive(false);
-        imp.url_button.set_sensitive(false);
 
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
             async move {
                 let imp = window.imp();
 
-                // Get PKGBUILD url
                 let pkg = window.pkg();
-                let (url, raw_url) = pkg.pkgbuild_urls();
+                let url = pkg.pkgbuild_url();
 
-                // Set URL label
-                imp.url_button.set_tooltip_text(Some(&url));
-                imp.source_url.replace(url);
+                // Set URL button tooltip
+                imp.url_button.set_tooltip_text(url.as_deref());
+                imp.url_button.set_sensitive(url.is_some());
 
-                // Spawn tokio task to download PKGBUILD
-                let result = if raw_url.is_empty() {
-                    Err(String::from("PKGBUILD not available"))
-                } else if raw_url.starts_with("https://") {
-                    TokioRuntime::runtime().spawn(
-                        async move {
-                            let client = reqwest::Client::builder()
-                                .redirect(reqwest::redirect::Policy::none())
-                                .build()
-                                .map_err(|error| error.to_string())?;
-
-                            let response = client
-                                .get(&raw_url)
-                                .timeout(Duration::from_secs(5))
-                                .send()
-                                .await
-                                .map_err(|error| error.to_string())?;
-
-                            let status = response.status();
-
-                            if status.is_success() {
-                                let pkgbuild = response.text()
-                                    .await
-                                    .map_err(|error| error.to_string())?;
-
-                                Ok(pkgbuild)
-                            } else {
-                                Err(status.to_string())
-                            }
-                        }
-                    )
-                    .await
-                    .expect("Failed to complete tokio task")
+                // Download PKGBUILD with paru
+                let result = if let Ok(paru_path) = Paths::paru().as_ref() {
+                    AsyncCommand::run(paru_path, &["-Gp", &pkg.name()]).await
                 } else {
-                    fs::read_to_string(raw_url)
-                        .map_err(|error| error.to_string())
+                    Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
                 };
 
                 match result {
-                    Ok(pkgbuild) => {
+                    Ok((Some(0), pkgbuild)) => {
                         let buffer = window.buffer();
 
                         buffer.set_text(&pkgbuild);
@@ -319,13 +283,20 @@ impl SourceWindow {
 
                         imp.stack.set_visible_child_name("text");
                         imp.save_button.set_sensitive(true);
-                        imp.url_button.set_sensitive(true);
-                    }
-                    Err(error) => {
-                        imp.error_status.set_description(Some(&error));
+                    },
+                    Ok((Some(1), _)) => {
+                        let error = "Failed to download PKGBUILD: paru error";
 
+                        imp.error_status.set_description(Some(error));
+                        imp.stack.set_visible_child_name("error");
+                    },
+                    Err(error) => {
+                        let error = format!("Failed to download PKGBUILD: {error}");
+
+                        imp.error_status.set_description(Some(&error));
                         imp.stack.set_visible_child_name("error");
                     }
+                    _ => {}
                 }
             }
         ));
@@ -388,17 +359,17 @@ impl SourceWindow {
 
         // Url button clicked signal
         imp.url_button.connect_clicked(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |_| {
-                let source_url = imp.source_url.borrow().to_owned();
-
-                glib::spawn_future_local(async move {
-                    let _ = gio::AppInfo::launch_default_for_uri_future(
-                        &source_url,
-                        None::<&gio::AppLaunchContext>
-                    )
-                    .await;
-                });
+                if let Some(source_url) = window.pkg().pkgbuild_url() {
+                    glib::spawn_future_local(async move {
+                        let _ = gio::AppInfo::launch_default_for_uri_future(
+                            &source_url,
+                            None::<&gio::AppLaunchContext>
+                        )
+                        .await;
+                    });
+                }
             }
         ));
 
