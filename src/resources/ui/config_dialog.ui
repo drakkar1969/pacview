@@ -15,6 +15,7 @@
                 <property name="label">_Open</property>
                 <property name="tooltip-text">Open Pacman Config</property>
                 <property name="use-underline">true</property>
+                <property name="action-name">conf.open-config</property>
               </object>
             </child>
           </object>
@@ -36,6 +37,7 @@
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
                         <property name="tooltip-text">Open</property>
+                        <property name="action-name">conf.open-rootdir</property>
                         <style>
                           <class name="flat"/>
                           <class name="circular"/>
@@ -56,6 +58,7 @@
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
                         <property name="tooltip-text">Open</property>
+                        <property name="action-name">conf.open-dbpath</property>
                         <style>
                           <class name="flat"/>
                           <class name="circular"/>
@@ -76,6 +79,7 @@
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
                         <property name="tooltip-text">Open</property>
+                        <property name="action-name">conf.open-cachedir</property>
                         <style>
                           <class name="flat"/>
                           <class name="circular"/>
@@ -96,6 +100,7 @@
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
                         <property name="tooltip-text">Open</property>
+                        <property name="action-name">conf.open-logfile</property>
                         <style>
                           <class name="flat"/>
                           <class name="circular"/>
@@ -116,6 +121,7 @@
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
                         <property name="tooltip-text">Open</property>
+                        <property name="action-name">conf.open-gpgdir</property>
                         <style>
                           <class name="flat"/>
                           <class name="circular"/>
@@ -136,6 +142,7 @@
                         <property name="valign">center</property>
                         <property name="icon-name">go-next-symbolic</property>
                         <property name="tooltip-text">Open</property>
+                        <property name="action-name">conf.open-hookdir</property>
                         <style>
                           <class name="flat"/>
                           <class name="circular"/>

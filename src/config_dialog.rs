@@ -1,7 +1,6 @@
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::clone;
 
 use crate::utils::AppInfoExt;
 
@@ -107,6 +106,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -114,21 +116,68 @@ mod imp {
         }
     }
 
-    impl ObjectImpl for ConfigDialog {
-        //---------------------------------------
-        // Constructor
-        //---------------------------------------
-        fn constructed(&self) {
-            self.parent_constructed();
-
-            let obj = self.obj();
-
-            obj.setup_signals();
-        }
-    }
+    impl ObjectImpl for ConfigDialog {}
 
     impl WidgetImpl for ConfigDialog {}
     impl AdwDialogImpl for ConfigDialog {}
+
+    impl ConfigDialog {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Open config action
+            klass.install_action_async("conf.open-config", None, async |_, _, _| {
+                AppInfoExt::open_with_default_app("/etc/pacman.conf").await;
+            });
+
+            // Open root dir action
+            klass.install_action_async("conf.open-rootdir", None, async |dialog, _, _| {
+                let root_dir = dialog.imp().rootdir_row.subtitle().unwrap_or_default();
+
+                AppInfoExt::open_with_default_app(&root_dir).await;
+            });
+
+            // Open DB path action
+            klass.install_action_async("conf.open-dbpath", None, async |dialog, _, _| {
+                let db_path = dialog.imp().dbpath_row.subtitle().unwrap_or_default();
+
+                AppInfoExt::open_with_default_app(&db_path).await;
+            });
+
+            // Open cache dir action
+            klass.install_action_async("conf.open-cachedir", None, async |dialog, _, _| {
+                let cache_dirs = dialog.imp().cachedir_row.subtitle().unwrap_or_default();
+
+                for dir in cache_dirs.split('\n') {
+                    AppInfoExt::open_with_default_app(dir).await;
+                }
+            });
+
+            // Open log file action
+            klass.install_action_async("conf.open-logfile", None, async |dialog, _, _| {
+                let log_file = dialog.imp().logfile_row.subtitle().unwrap_or_default();
+
+                AppInfoExt::open_with_default_app(&log_file).await;
+            });
+
+            // Open GPG dir action
+            klass.install_action_async("conf.open-gpgdir", None, async |dialog, _, _| {
+                let gpg_dir = dialog.imp().gpgdir_row.subtitle().unwrap_or_default();
+
+                AppInfoExt::open_with_default_app(&gpg_dir).await;
+            });
+
+            // Open hook dir action
+            klass.install_action_async("conf.open-hookdir", None, async |dialog, _, _| {
+                let hook_dirs = dialog.imp().hookdir_row.subtitle().unwrap_or_default();
+
+                for dir in hook_dirs.split('\n') {
+                    AppInfoExt::open_with_default_app(dir).await;
+                }
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -141,96 +190,6 @@ glib::wrapper! {
 }
 
 impl ConfigDialog {
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
-
-        // Config button clicked signal
-        imp.config_button.connect_clicked(|_| {
-            glib::spawn_future_local(async move {
-                AppInfoExt::open_with_default_app("/etc/pacman.conf").await;
-            });
-        });
-
-        // RootDir open button clicked signal
-        imp.rootdir_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let root_dir = imp.rootdir_row.subtitle().unwrap_or_default();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_with_default_app(&root_dir).await;
-                });
-            }
-        ));
-
-        // DBPath open button clicked signal
-        imp.dbpath_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let db_path = imp.dbpath_row.subtitle().unwrap_or_default();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_with_default_app(&db_path).await;
-                });
-            }
-        ));
-
-        // CacheDir open button clicked signal
-        imp.cachedir_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let cache_dirs = imp.cachedir_row.subtitle().unwrap_or_default();
-
-                for dir in cache_dirs.split('\n').map(ToOwned::to_owned) {
-                    glib::spawn_future_local(async move {
-                        AppInfoExt::open_with_default_app(&dir).await;
-                    });
-                }
-            }
-        ));
-
-        // LogFile open button clicked signal
-        imp.logfile_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let log_file = imp.logfile_row.subtitle().unwrap_or_default();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_with_default_app(&log_file).await;
-                });
-            }
-        ));
-
-        // GPGDir open button clicked signal
-        imp.gpgdir_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let gpg_dir = imp.gpgdir_row.subtitle().unwrap_or_default();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_with_default_app(&gpg_dir).await;
-                });
-            }
-        ));
-
-        // HookDir open button clicked signal
-        imp.hookdir_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let hook_dirs = imp.hookdir_row.subtitle().unwrap_or_default();
-
-                for dir in hook_dirs.split('\n').map(ToOwned::to_owned) {
-                    glib::spawn_future_local(async move {
-                        AppInfoExt::open_with_default_app(&dir).await;
-                    });
-                }
-            }
-        ));
-    }
-
     //---------------------------------------
     // Init dialog
     //---------------------------------------
