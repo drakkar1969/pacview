@@ -269,15 +269,6 @@ impl LogWindow {
     }
 
     //---------------------------------------
-    // Clear window
-    //---------------------------------------
-    pub fn clear(&self) {
-        self.set_loading(true);
-
-        self.imp().model.remove_all();
-    }
-
-    //---------------------------------------
     // Populate window
     //---------------------------------------
     pub fn populate(&self) {
@@ -310,7 +301,7 @@ impl LogWindow {
             });
 
         // Populate column view
-        imp.model.splice(0, 0, &log_lines.iter().rev()
+        imp.model.splice(0, imp.model.n_items(), &log_lines.iter().rev()
             .map(LogObject::new)
             .collect::<Vec<LogObject>>()
         );

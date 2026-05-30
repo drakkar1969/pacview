@@ -373,15 +373,6 @@ impl GroupsWindow {
     }
 
     //---------------------------------------
-    // Clear window
-    //---------------------------------------
-    pub fn clear(&self) {
-        self.set_loading(true);
-
-        self.imp().model.remove_all();
-    }
-
-    //---------------------------------------
     // Populate window
     //---------------------------------------
     pub fn populate(&self, pkg_model: &gio::ListStore) {
@@ -400,7 +391,7 @@ impl GroupsWindow {
             .collect();
 
         // Populate column view
-        imp.model.splice(0, 0, &pkg_list);
+        imp.model.splice(0, imp.model.n_items(), &pkg_list);
 
         self.set_loading(false);
     }

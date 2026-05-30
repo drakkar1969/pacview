@@ -295,25 +295,17 @@ impl CacheWindow {
     }
 
     //---------------------------------------
-    // Clear window
-    //---------------------------------------
-    pub fn clear(&self) {
-        self.set_loading(true);
-
-        self.imp().model.remove_all();
-    }
-
-    //---------------------------------------
     // Populate window
     //---------------------------------------
     pub fn populate(&self) {
         let imp = self.imp();
 
         // Get cache files
-        imp.model.splice(0, 0, &Pacman::cache().read().unwrap().iter()
+        let cache_files: Vec<CacheObject> = Pacman::cache().read().unwrap().iter()
             .map(|file| CacheObject::new(&file.display().to_string()))
-            .collect::<Vec<CacheObject>>()
-        );
+            .collect::<Vec<CacheObject>>();
+
+        imp.model.splice(0, imp.model.n_items(), &cache_files);
 
         // Get cache size
         let size = 512u64 * Pacman::config().cache_dir.iter()

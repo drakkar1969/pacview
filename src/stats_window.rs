@@ -147,13 +147,6 @@ impl StatsWindow {
     }
 
     //---------------------------------------
-    // Clear window
-    //---------------------------------------
-    pub fn clear(&self) {
-        self.imp().model.remove_all();
-    }
-
-    //---------------------------------------
     // Populate window
     //---------------------------------------
     pub fn populate(&self, repos: &[String], pkg_model: &gio::ListStore) {
@@ -215,7 +208,7 @@ impl StatsWindow {
             &format!("<b>{}</b>", Size::from_bytes(install_size_total))
         ));
 
-        imp.model.splice(0, 0, &stats_items);
+        imp.model.splice(0, imp.model.n_items(), &stats_items);
     }
 }
 

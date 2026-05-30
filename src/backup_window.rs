@@ -486,15 +486,6 @@ impl BackupWindow {
     }
 
     //---------------------------------------
-    // Clear window
-    //---------------------------------------
-    pub fn clear(&self) {
-        self.set_loading(true);
-
-        self.imp().model.remove_all();
-    }
-
-    //---------------------------------------
     // Populate window
     //---------------------------------------
     pub fn populate(&self, pkg_model: &gio::ListStore) {
@@ -514,7 +505,7 @@ impl BackupWindow {
             .collect();
 
         // Populate column view
-        imp.model.splice(0, 0, &backup_list);
+        imp.model.splice(0, imp.model.n_items(), &backup_list);
 
         // Set status dropdown selected item
         imp.status_dropdown.set_selected(0);

@@ -675,13 +675,6 @@ impl PacViewWindow {
         // Init config dialog
         imp.config_dialog.borrow().init(pacman_config);
 
-        // Clear windows
-        imp.backup_window.borrow().clear();
-        imp.log_window.borrow().clear();
-        imp.cache_window.borrow().clear();
-        imp.groups_window.borrow().clear();
-        imp.stats_window.borrow().clear();
-
         // Create repo names list
         let repo_names: Vec<String> = pacman_config.repos.iter()
             .map(|r| r.name.clone())
