@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell, OnceCell};
+use std::cell::{RefCell, OnceCell};
 use std::sync::LazyLock;
 use std::path::{Path, PathBuf};
 use std::collections::{HashMap, HashSet};
@@ -73,7 +73,6 @@ mod imp {
         pub(super) info_pane: TemplateChild<InfoPane>,
 
         pub(super) saved_repo_id: RefCell<Option<String>>,
-        pub(super) saved_status_id: Cell<PkgFlags>,
 
         pub(super) all_repo_item: RefCell<RepoItem>,
         pub(super) all_status_item: RefCell<StatusItem>,
@@ -153,13 +152,6 @@ mod imp {
                     .and_then(|item| item.id());
 
                 imp.saved_repo_id.replace(repo_id);
-
-                let status_id = imp.status_sidebar.selected_item()
-                    .and_downcast::<StatusItem>()
-                    .map(|item| item.id())
-                    .unwrap_or_default();
-
-                imp.saved_status_id.set(status_id);
 
                 imp.package_view.count_label().set_label("");
 
@@ -739,8 +731,6 @@ impl PacViewWindow {
 
         // If first load, add package status items (enumerate PkgStatusFlags)
         if first_load {
-            let saved_status_id = imp.saved_status_id.replace(PkgFlags::empty());
-
             let flags = glib::FlagsClass::new::<PkgFlags>();
 
             for f in flags.values() {
@@ -751,10 +741,9 @@ impl PacViewWindow {
 
                 imp.status_section.append(item.clone());
 
-                if (saved_status_id == PkgFlags::empty() && flag == PkgFlags::INSTALLED)
-                    || saved_status_id == flag {
-                        item.activate();
-                    }
+                if flag == PkgFlags::INSTALLED {
+                    item.activate();
+                }
 
                 match flag {
                     PkgFlags::ALL => { imp.all_status_item.replace(item); },
