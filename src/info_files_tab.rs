@@ -152,7 +152,7 @@ impl InfoFilesTab {
             }
         ));
 
-        // Files ppen button clicked signal
+        // Files open button clicked signal
         imp.files_open_button.connect_clicked(clone!(
             #[weak] imp,
             move |_| {
