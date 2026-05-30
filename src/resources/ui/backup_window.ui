@@ -113,7 +113,7 @@
               <object class="GtkStackPage">
                 <property name="name">view</property>
                 <property name="child">
-                  <object class="GtkScrolledWindow" id="scroll_window">
+                  <object class="GtkScrolledWindow">
                     <property name="hscrollbar-policy">never</property>
                     <property name="hexpand">true</property>
                     <property name="vexpand">true</property>
