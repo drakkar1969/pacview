@@ -28,20 +28,13 @@
                 <child>
                   <object class="AdwActionRow" id="rootdir_row">
                     <property name="title">RootDir</property>
-                    <property name="subtitle-selectable">true</property>
+                    <property name="action-name">conf.open-rootdir</property>
                     <style>
                       <class name="property"/>
                     </style>
                     <child>
-                      <object class="GtkButton" id="rootdir_open_button">
-                        <property name="valign">center</property>
+                      <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Open</property>
-                        <property name="action-name">conf.open-rootdir</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
                       </object>
                     </child>
                   </object>
@@ -49,20 +42,13 @@
                 <child>
                   <object class="AdwActionRow" id="dbpath_row">
                     <property name="title">DBPath</property>
-                    <property name="subtitle-selectable">true</property>
+                    <property name="action-name">conf.open-dbpath</property>
                     <style>
                       <class name="property"/>
                     </style>
                     <child>
-                      <object class="GtkButton" id="dbpath_open_button">
-                        <property name="valign">center</property>
+                      <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Open</property>
-                        <property name="action-name">conf.open-dbpath</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
                       </object>
                     </child>
                   </object>
@@ -70,20 +56,13 @@
                 <child>
                   <object class="AdwActionRow" id="cachedir_row">
                     <property name="title">CacheDir</property>
-                    <property name="subtitle-selectable">true</property>
+                    <property name="action-name">conf.open-cachedir</property>
                     <style>
                       <class name="property"/>
                     </style>
                     <child>
-                      <object class="GtkButton" id="cachedir_open_button">
-                        <property name="valign">center</property>
+                      <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Open</property>
-                        <property name="action-name">conf.open-cachedir</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
                       </object>
                     </child>
                   </object>
@@ -91,20 +70,13 @@
                 <child>
                   <object class="AdwActionRow" id="logfile_row">
                     <property name="title">LogFile</property>
-                    <property name="subtitle-selectable">true</property>
+                    <property name="action-name">conf.open-logfile</property>
                     <style>
                       <class name="property"/>
                     </style>
                     <child>
-                      <object class="GtkButton" id="logfile_open_button">
-                        <property name="valign">center</property>
+                      <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Open</property>
-                        <property name="action-name">conf.open-logfile</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
                       </object>
                     </child>
                   </object>
@@ -112,20 +84,13 @@
                 <child>
                   <object class="AdwActionRow" id="gpgdir_row">
                     <property name="title">GPGDir</property>
-                    <property name="subtitle-selectable">true</property>
+                    <property name="action-name">conf.open-gpgdir</property>
                     <style>
                       <class name="property"/>
                     </style>
                     <child>
-                      <object class="GtkButton" id="gpgdir_open_button">
-                        <property name="valign">center</property>
+                      <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Open</property>
-                        <property name="action-name">conf.open-gpgdir</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
                       </object>
                     </child>
                   </object>
@@ -133,20 +98,13 @@
                 <child>
                   <object class="AdwActionRow" id="hookdir_row">
                     <property name="title">HookDir</property>
-                    <property name="subtitle-selectable">true</property>
+                    <property name="action-name">conf.open-hookdir</property>
                     <style>
                       <class name="property"/>
                     </style>
                     <child>
-                      <object class="GtkButton" id="hookdir_open_button">
-                        <property name="valign">center</property>
+                      <object class="GtkImage">
                         <property name="icon-name">go-next-symbolic</property>
-                        <property name="tooltip-text">Open</property>
-                        <property name="action-name">conf.open-hookdir</property>
-                        <style>
-                          <class name="flat"/>
-                          <class name="circular"/>
-                        </style>
                       </object>
                     </child>
                   </object>
@@ -159,7 +117,6 @@
                 <child>
                   <object class="AdwActionRow" id="xfercommand_row">
                     <property name="title">XferCommand</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -168,7 +125,6 @@
                 <child>
                   <object class="AdwActionRow" id="paralleldownloads_row">
                     <property name="title">ParallelDownloads</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -177,7 +133,6 @@
                 <child>
                   <object class="AdwActionRow" id="disabledownloadtimeout_row">
                     <property name="title">DisableDownloadTimeout</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -186,7 +141,6 @@
                 <child>
                   <object class="AdwActionRow" id="downloaduser_row">
                     <property name="title">DownloadUser</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -195,7 +149,6 @@
                 <child>
                   <object class="AdwActionRow" id="architecture_row">
                     <property name="title">Architecture</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -209,7 +162,6 @@
                 <child>
                   <object class="AdwActionRow" id="disablesandbox_row">
                     <property name="title">DisableSandBox</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -218,7 +170,6 @@
                 <child>
                   <object class="AdwActionRow" id="disablesandboxfs_row">
                     <property name="title">DisableSandBoxFilesystem</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -227,7 +178,6 @@
                 <child>
                   <object class="AdwActionRow" id="disablesandboxsys_row">
                     <property name="title">DisableSandBoxSyscalls</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -241,7 +191,6 @@
                 <child>
                   <object class="AdwActionRow" id="holdpkg_row">
                     <property name="title">HoldPkg</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -250,7 +199,6 @@
                 <child>
                   <object class="AdwActionRow" id="ignorepkg_row">
                     <property name="title">IgnorePkg</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -259,7 +207,6 @@
                 <child>
                   <object class="AdwActionRow" id="ignoregroup_row">
                     <property name="title">IgnoreGroup</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -268,7 +215,6 @@
                 <child>
                   <object class="AdwActionRow" id="noupgrade_row">
                     <property name="title">NoUpgrade</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -277,7 +223,6 @@
                 <child>
                   <object class="AdwActionRow" id="noextract_row">
                     <property name="title">NoExtract</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -291,7 +236,6 @@
                 <child>
                   <object class="AdwActionRow" id="usesyslog_row">
                     <property name="title">UseSyslog</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -300,7 +244,6 @@
                 <child>
                   <object class="AdwActionRow" id="color_row">
                     <property name="title">Color</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -309,7 +252,6 @@
                 <child>
                   <object class="AdwActionRow" id="checkspace_row">
                     <property name="title">CheckSpace</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -318,7 +260,6 @@
                 <child>
                   <object class="AdwActionRow" id="cleanmethod_row">
                     <property name="title">CleanMethod</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -327,7 +268,6 @@
                 <child>
                   <object class="AdwActionRow" id="verbosepkglists_row">
                     <property name="title">VerbosePkgLists</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -336,7 +276,6 @@
                 <child>
                   <object class="AdwActionRow" id="ilovecandy_row">
                     <property name="title">ILoveCandy</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -350,7 +289,6 @@
                 <child>
                   <object class="AdwActionRow" id="siglevel_row">
                     <property name="title">SigLevel</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -359,7 +297,6 @@
                 <child>
                   <object class="AdwActionRow" id="localfilesiglevel_row">
                     <property name="title">LocalFileSigLevel</property>
-                    <property name="subtitle-selectable">true</property>
                     <style>
                       <class name="property"/>
                     </style>

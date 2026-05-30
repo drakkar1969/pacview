@@ -33,19 +33,6 @@ mod imp {
         pub(super) hookdir_row: TemplateChild<adw::ActionRow>,
 
         #[template_child]
-        pub(super) rootdir_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) dbpath_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) cachedir_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) logfile_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) gpgdir_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) hookdir_open_button: TemplateChild<gtk::Button>,
-
-        #[template_child]
         pub(super) xfercommand_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) paralleldownloads_row: TemplateChild<adw::ActionRow>,
@@ -231,13 +218,13 @@ impl ConfigDialog {
         imp.localfilesiglevel_row.set_subtitle(&config.local_file_sig_level.join(" | "));
         imp.remotefilesiglevel_row.set_subtitle(&config.remote_file_sig_level.join(" | "));
 
-        // Set open button sensitivity
-        imp.rootdir_open_button.set_sensitive(!config.root_dir.is_empty());
-        imp.dbpath_open_button.set_sensitive(!config.db_path.is_empty());
-        imp.cachedir_open_button.set_sensitive(!config.cache_dir.is_empty());
-        imp.logfile_open_button.set_sensitive(!config.log_file.is_empty());
-        imp.gpgdir_open_button.set_sensitive(!config.gpg_dir.is_empty());
-        imp.hookdir_open_button.set_sensitive(!config.hook_dir.is_empty());
+        // Set row sensitivity
+        imp.rootdir_row.set_activatable(!config.root_dir.is_empty());
+        imp.dbpath_row.set_activatable(!config.db_path.is_empty());
+        imp.cachedir_row.set_activatable(!config.cache_dir.is_empty());
+        imp.logfile_row.set_activatable(!config.log_file.is_empty());
+        imp.gpgdir_row.set_activatable(!config.gpg_dir.is_empty());
+        imp.hookdir_row.set_activatable(!config.hook_dir.is_empty());
     }
 }
 
