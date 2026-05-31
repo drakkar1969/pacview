@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// ConfigRow template //-->
+  <template class="ConfigRow" parent="AdwActionRow">
+    <style>
+      <class name="property"/>
+    </style>
+    <child>
+      <object class="GtkImage" id="suffix_image"/>
+    </child>
+  </template>
+</interface>

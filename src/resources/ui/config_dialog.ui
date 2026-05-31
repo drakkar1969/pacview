@@ -4,7 +4,6 @@
   <template class="ConfigDialog" parent="AdwDialog">
     <property name="content-width">550</property>
     <property name="content-height">600</property>
-    <property name="focus-widget">rootdir_row</property>
     <property name="title">Pacman Config</property>
     <child>
       <object class="AdwToolbarView" id="toolbar_view">
@@ -15,7 +14,7 @@
                 <property name="label">_Open</property>
                 <property name="tooltip-text">Open Pacman Config</property>
                 <property name="use-underline">true</property>
-                <property name="action-name">conf.open-config</property>
+                <property name="action-name">conf.config</property>
               </object>
             </child>
           </object>
@@ -23,294 +22,33 @@
         <property name="content">
           <object class="AdwPreferencesPage">
             <child>
-              <object class="AdwPreferencesGroup">
+              <object class="AdwPreferencesGroup" id="paths_group">
                 <property name="title">Paths</property>
-                <child>
-                  <object class="AdwActionRow" id="rootdir_row">
-                    <property name="title">RootDir</property>
-                    <property name="action-name">conf.open-rootdir</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="dbpath_row">
-                    <property name="title">DBPath</property>
-                    <property name="action-name">conf.open-dbpath</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="cachedir_row">
-                    <property name="title">CacheDir</property>
-                    <property name="action-name">conf.open-cachedir</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="logfile_row">
-                    <property name="title">LogFile</property>
-                    <property name="action-name">conf.open-logfile</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="gpgdir_row">
-                    <property name="title">GPGDir</property>
-                    <property name="action-name">conf.open-gpgdir</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="hookdir_row">
-                    <property name="title">HookDir</property>
-                    <property name="action-name">conf.open-hookdir</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">go-next-symbolic</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup">
+              <object class="AdwPreferencesGroup" id="download_group">
                 <property name="title">Download</property>
-                <child>
-                  <object class="AdwActionRow" id="xfercommand_row">
-                    <property name="title">XferCommand</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="paralleldownloads_row">
-                    <property name="title">ParallelDownloads</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="disabledownloadtimeout_row">
-                    <property name="title">DisableDownloadTimeout</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="downloaduser_row">
-                    <property name="title">DownloadUser</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="architecture_row">
-                    <property name="title">Architecture</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup">
+              <object class="AdwPreferencesGroup" id="sandbox_group">
                 <property name="title">SandBox</property>
-                <child>
-                  <object class="AdwActionRow" id="disablesandbox_row">
-                    <property name="title">DisableSandBox</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="disablesandboxfs_row">
-                    <property name="title">DisableSandBoxFilesystem</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="disablesandboxsys_row">
-                    <property name="title">DisableSandBoxSyscalls</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup">
+              <object class="AdwPreferencesGroup" id="packages_group">
                 <property name="title">Packages</property>
-                <child>
-                  <object class="AdwActionRow" id="holdpkg_row">
-                    <property name="title">HoldPkg</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="ignorepkg_row">
-                    <property name="title">IgnorePkg</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="ignoregroup_row">
-                    <property name="title">IgnoreGroup</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="noupgrade_row">
-                    <property name="title">NoUpgrade</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="noextract_row">
-                    <property name="title">NoExtract</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup">
+              <object class="AdwPreferencesGroup" id="misc_group">
                 <property name="title">Miscellaneous</property>
-                <child>
-                  <object class="AdwActionRow" id="usesyslog_row">
-                    <property name="title">UseSyslog</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="color_row">
-                    <property name="title">Color</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="checkspace_row">
-                    <property name="title">CheckSpace</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="cleanmethod_row">
-                    <property name="title">CleanMethod</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="verbosepkglists_row">
-                    <property name="title">VerbosePkgLists</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="ilovecandy_row">
-                    <property name="title">ILoveCandy</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
               </object>
             </child>
             <child>
-              <object class="AdwPreferencesGroup">
+              <object class="AdwPreferencesGroup" id="siglevel_group">
                 <property name="title">Signature Levels</property>
-                <child>
-                  <object class="AdwActionRow" id="siglevel_row">
-                    <property name="title">SigLevel</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="localfilesiglevel_row">
-                    <property name="title">LocalFileSigLevel</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="remotefilesiglevel_row">
-                    <property name="title">RemoteFileSigLevel</property>
-                    <property name="subtitle-selectable">true</property>
-                    <style>
-                      <class name="property"/>
-                    </style>
-                  </object>
-                </child>
               </object>
             </child>
           </object>

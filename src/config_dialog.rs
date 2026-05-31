@@ -1,8 +1,12 @@
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
+use glib::VariantTy;
 
-use crate::utils::AppInfoExt;
+use crate::{
+    config_row::ConfigRow,
+    utils::AppInfoExt
+};
 
 //------------------------------------------------------------------------------
 // MODULE: ConfigDialog
@@ -20,66 +24,17 @@ mod imp {
         pub(super) config_button: TemplateChild<gtk::Button>,
 
         #[template_child]
-        pub(super) rootdir_row: TemplateChild<adw::ActionRow>,
+        pub(super) paths_group: TemplateChild<adw::PreferencesGroup>,
         #[template_child]
-        pub(super) dbpath_row: TemplateChild<adw::ActionRow>,
+        pub(super) download_group: TemplateChild<adw::PreferencesGroup>,
         #[template_child]
-        pub(super) cachedir_row: TemplateChild<adw::ActionRow>,
+        pub(super) sandbox_group: TemplateChild<adw::PreferencesGroup>,
         #[template_child]
-        pub(super) logfile_row: TemplateChild<adw::ActionRow>,
+        pub(super) packages_group: TemplateChild<adw::PreferencesGroup>,
         #[template_child]
-        pub(super) gpgdir_row: TemplateChild<adw::ActionRow>,
+        pub(super) misc_group: TemplateChild<adw::PreferencesGroup>,
         #[template_child]
-        pub(super) hookdir_row: TemplateChild<adw::ActionRow>,
-
-        #[template_child]
-        pub(super) xfercommand_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) paralleldownloads_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) disabledownloadtimeout_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) downloaduser_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) architecture_row: TemplateChild<adw::ActionRow>,
-
-        #[template_child]
-        pub(super) disablesandbox_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) disablesandboxfs_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) disablesandboxsys_row: TemplateChild<adw::ActionRow>,
-
-        #[template_child]
-        pub(super) holdpkg_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) ignorepkg_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) ignoregroup_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) noupgrade_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) noextract_row: TemplateChild<adw::ActionRow>,
-
-        #[template_child]
-        pub(super) usesyslog_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) color_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) checkspace_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) cleanmethod_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) verbosepkglists_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) ilovecandy_row: TemplateChild<adw::ActionRow>,
-
-        #[template_child]
-        pub(super) siglevel_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) localfilesiglevel_row: TemplateChild<adw::ActionRow>,
-        #[template_child]
-        pub(super) remotefilesiglevel_row: TemplateChild<adw::ActionRow>,
+        pub(super) siglevel_group: TemplateChild<adw::PreferencesGroup>,
     }
 
     //---------------------------------------
@@ -114,55 +69,22 @@ mod imp {
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Open config action
-            klass.install_action_async("conf.open-config", None, async |_, _, _| {
+            klass.install_action_async("conf.config", None, async |_, _, _| {
                 AppInfoExt::open_with_default_app("/etc/pacman.conf").await;
             });
 
-            // Open root dir action
-            klass.install_action_async("conf.open-rootdir", None, async |dialog, _, _| {
-                let root_dir = dialog.imp().rootdir_row.subtitle().unwrap_or_default();
+            // Open path action
+            klass.install_action_async("conf.path", Some(VariantTy::STRING),
+                async |_, _, param| {
+                    let paths = param
+                        .and_then(|param| param.get::<String>())
+                        .expect("Could not get string from variant");
 
-                AppInfoExt::open_with_default_app(&root_dir).await;
-            });
-
-            // Open DB path action
-            klass.install_action_async("conf.open-dbpath", None, async |dialog, _, _| {
-                let db_path = dialog.imp().dbpath_row.subtitle().unwrap_or_default();
-
-                AppInfoExt::open_with_default_app(&db_path).await;
-            });
-
-            // Open cache dir action
-            klass.install_action_async("conf.open-cachedir", None, async |dialog, _, _| {
-                let cache_dirs = dialog.imp().cachedir_row.subtitle().unwrap_or_default();
-
-                for dir in cache_dirs.split('\n') {
-                    AppInfoExt::open_with_default_app(dir).await;
+                    for path in paths.split('\n') {
+                        AppInfoExt::open_with_default_app(path).await;
+                    }
                 }
-            });
-
-            // Open log file action
-            klass.install_action_async("conf.open-logfile", None, async |dialog, _, _| {
-                let log_file = dialog.imp().logfile_row.subtitle().unwrap_or_default();
-
-                AppInfoExt::open_with_default_app(&log_file).await;
-            });
-
-            // Open GPG dir action
-            klass.install_action_async("conf.open-gpgdir", None, async |dialog, _, _| {
-                let gpg_dir = dialog.imp().gpgdir_row.subtitle().unwrap_or_default();
-
-                AppInfoExt::open_with_default_app(&gpg_dir).await;
-            });
-
-            // Open hook dir action
-            klass.install_action_async("conf.open-hookdir", None, async |dialog, _, _| {
-                let hook_dirs = dialog.imp().hookdir_row.subtitle().unwrap_or_default();
-
-                for dir in hook_dirs.split('\n') {
-                    AppInfoExt::open_with_default_app(dir).await;
-                }
-            });
+            );
         }
     }
 }
@@ -178,53 +100,64 @@ glib::wrapper! {
 
 impl ConfigDialog {
     //---------------------------------------
+    // Add row helper function
+    //---------------------------------------
+    fn add_row(&self, group: &adw::PreferencesGroup, label: &str, property: &str, action_name: Option<&str>) {
+        group.add(&ConfigRow::new(label, property, action_name));
+    }
+
+    //---------------------------------------
     // Init dialog
     //---------------------------------------
     pub fn init(&self, config: &pacmanconf::Config) {
         let imp = self.imp();
 
-        // Populate config rows
-        imp.rootdir_row.set_subtitle(&config.root_dir);
-        imp.dbpath_row.set_subtitle(&config.db_path);
-        imp.cachedir_row.set_subtitle(&config.cache_dir.join("\n"));
-        imp.logfile_row.set_subtitle(&config.log_file);
-        imp.gpgdir_row.set_subtitle(&config.gpg_dir);
-        imp.hookdir_row.set_subtitle(&config.hook_dir.join("\n"));
+        // Add config rows
+        let mut group = &imp.paths_group;
 
-        imp.xfercommand_row.set_subtitle(&config.xfer_command);
-        imp.paralleldownloads_row.set_subtitle(&config.parallel_downloads.to_string());
-        imp.disabledownloadtimeout_row.set_subtitle(&config.disable_download_timeout.to_string());
-        imp.downloaduser_row.set_subtitle(&config.download_user.clone().unwrap_or_else(|| String::from("None")));
-        imp.architecture_row.set_subtitle(&config.architecture.join(" | "));
+        self.add_row(group, "RootDir", &config.root_dir, Some("conf.path"));
+        self.add_row(group, "DBPath", &config.db_path, Some("conf.path"));
+        self.add_row(group, "CacheDir", &config.cache_dir.join("\n"), Some("conf.path"));
+        self.add_row(group, "LogFile", &config.log_file, Some("conf.path"));
+        self.add_row(group, "GPGDir", &config.gpg_dir, Some("conf.path"));
+        self.add_row(group, "HookDir", &config.hook_dir.join("\n"), Some("conf.path"));
 
-        imp.disablesandbox_row.set_subtitle(&config.disable_sandbox.to_string());
-        imp.disablesandboxfs_row.set_subtitle(&config.disable_sandbox_filesystem.to_string());
-        imp.disablesandboxsys_row.set_subtitle(&config.disable_sandbox_syscalls.to_string());
+        group = &imp.download_group;
 
-        imp.holdpkg_row.set_subtitle(&config.hold_pkg.join(" | "));
-        imp.ignorepkg_row.set_subtitle(&config.ignore_pkg.join(" | "));
-        imp.ignoregroup_row.set_subtitle(&config.ignore_group.join(" | "));
-        imp.noupgrade_row.set_subtitle(&config.no_upgrade.join(" | "));
-        imp.noextract_row.set_subtitle(&config.no_extract.join(" | "));
+        self.add_row(group, "XferCommand", &config.xfer_command, None);
+        self.add_row(group, "ParallelDownloads", &config.parallel_downloads.to_string(), None);
+        self.add_row(group, "DisableDownloadTimeout", &config.disable_download_timeout.to_string(), None);
+        self.add_row(group, "DownloadUser", &config.download_user.clone().unwrap_or_else(|| String::from("None")), None);
+        self.add_row(group, "Architecture", &config.architecture.join(" | "), None);
 
-        imp.usesyslog_row.set_subtitle(&config.use_syslog.to_string());
-        imp.color_row.set_subtitle(&config.color.to_string());
-        imp.checkspace_row.set_subtitle(&config.check_space.to_string());
-        imp.cleanmethod_row.set_subtitle(&config.clean_method.join(" | "));
-        imp.verbosepkglists_row.set_subtitle(&config.verbose_pkg_lists.to_string());
-        imp.ilovecandy_row.set_subtitle(&config.chomp.to_string());
+        group = &imp.sandbox_group;
 
-        imp.siglevel_row.set_subtitle(&config.sig_level.join(" | "));
-        imp.localfilesiglevel_row.set_subtitle(&config.local_file_sig_level.join(" | "));
-        imp.remotefilesiglevel_row.set_subtitle(&config.remote_file_sig_level.join(" | "));
+        self.add_row(group, "DisableSandBox", &config.disable_sandbox.to_string(), None);
+        self.add_row(group, "DisableSandBoxFilesystem", &config.disable_sandbox_filesystem.to_string(), None);
+        self.add_row(group, "DisableSandBoxSyscalls", &config.disable_sandbox_syscalls.to_string(), None);
 
-        // Set row sensitivity
-        imp.rootdir_row.set_activatable(!config.root_dir.is_empty());
-        imp.dbpath_row.set_activatable(!config.db_path.is_empty());
-        imp.cachedir_row.set_activatable(!config.cache_dir.is_empty());
-        imp.logfile_row.set_activatable(!config.log_file.is_empty());
-        imp.gpgdir_row.set_activatable(!config.gpg_dir.is_empty());
-        imp.hookdir_row.set_activatable(!config.hook_dir.is_empty());
+        group = &imp.packages_group;
+
+        self.add_row(group, "HoldPkg", &config.hold_pkg.join(" | "), None);
+        self.add_row(group, "IgnorePkg", &config.ignore_pkg.join(" | "), None);
+        self.add_row(group, "IgnoreGroup", &config.ignore_group.join(" | "), None);
+        self.add_row(group, "NoUpgrade", &config.no_upgrade.join(" | "), None);
+        self.add_row(group, "NoExtract", &config.no_extract.join(" | "), None);
+
+        group = &imp.misc_group;
+
+        self.add_row(group, "UseSyslog", &config.use_syslog.to_string(), None);
+        self.add_row(group, "Color", &config.color.to_string(), None);
+        self.add_row(group, "CheckSpace", &config.check_space.to_string(), None);
+        self.add_row(group, "CleanMethod", &config.clean_method.join(" | "), None);
+        self.add_row(group, "VerbosePkgLists", &config.verbose_pkg_lists.to_string(), None);
+        self.add_row(group, "ILoveCandy", &config.chomp.to_string(), None);
+
+        group = &imp.siglevel_group;
+
+        self.add_row(group, "SigLevel", &config.sig_level.join(" | "), None);
+        self.add_row(group, "LocalFileSigLevel", &config.local_file_sig_level.join(" | "), None);
+        self.add_row(group, "RemoteFileSigLevel", &config.remote_file_sig_level.join(" | "), None);
     }
 }
 
