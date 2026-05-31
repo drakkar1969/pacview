@@ -104,7 +104,7 @@ mod imp {
                 BackupStatus::Modified => vec!["tag", "warning"],
                 BackupStatus::Unmodified => vec!["tag", "success"],
                 BackupStatus::Locked => vec!["tag", "error"],
-                _ => vec![]
+                BackupStatus::All => vec![]
             }
             .into_iter()
             .map(ToOwned::to_owned)

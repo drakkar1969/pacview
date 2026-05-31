@@ -651,6 +651,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     async fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
@@ -759,6 +760,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     async fn alpm_load_packages(&self, repo_names: Vec<String>) {
         let imp = self.imp();
 
@@ -1001,6 +1003,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup INotify
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     async fn setup_inotify(&self) {
         let imp = self.imp();
 
