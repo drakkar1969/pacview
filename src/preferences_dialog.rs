@@ -291,10 +291,6 @@ impl PreferencesDialog {
 
         // Bind properties to widgets
         self.bind_property("color-scheme", &imp.color_scheme_row.get(), "selected")
-            .transform_to(|_, scheme: ColorScheme| Some(scheme as u32))
-            .transform_from(|_, index: u32| {
-                Some(ColorScheme::from_repr(index).unwrap_or_default())
-            })
             .sync_create()
             .bidirectional()
             .build();
@@ -335,10 +331,6 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("search-prop", &imp.search_prop_row.get(), "selected")
-            .transform_to(|_, prop: SearchProp| Some(prop as u32))
-            .transform_from(|_, index: u32| {
-                Some(SearchProp::from_repr(index).unwrap_or_default())
-            })
             .sync_create()
             .bidirectional()
             .build();
