@@ -3,6 +3,7 @@ use std::path::{PathBuf, Path};
 use std::ffi::OsStr;
 use std::fs;
 use std::io;
+use std::process::Stdio;
 use std::time::Duration;
 use std::env;
 use std::collections::HashMap;
@@ -19,6 +20,7 @@ use tokio_util::io::StreamReader;
 use futures_util::TryStreamExt;
 use async_compression::tokio::bufread::GzipDecoder;
 use configparser::ini::Ini;
+use futures_util::AsyncWriteExt;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -212,13 +214,18 @@ impl AsyncCommand {
     }
 
     //---------------------------------------
-    // Spawn function
+    // Spawn pipe stdin function
     //---------------------------------------
-    pub fn spawn<I, S1, S2>(cmd: S1, args: I) -> io::Result<()>
+    pub async fn spawn_pipe_stdin<I, S1, S2>(cmd: S1, args: I, input: &str) -> io::Result<()>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
-        async_process::Command::new(cmd)
+        let mut child = async_process::Command::new(cmd)
             .args(args)
+            .stdin(Stdio::piped())
             .spawn()?;
+
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin.write_all(input.as_bytes()).await?;
+        }
 
         Ok(())
     }

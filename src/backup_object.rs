@@ -1,7 +1,5 @@
 use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
-use std::path::Path;
-use std::fs;
 use std::io;
 
 use gtk::glib;
@@ -141,34 +139,26 @@ impl BackupObject {
     //---------------------------------------
     #[allow(clippy::future_not_send)]
     pub async fn compare_with_original(&self) -> io::Result<()> {
-        let path = self.path();
+        let meld = Paths::meld().as_ref()
+            .map_err(|_| io::Error::other("Meld not found"))?;
 
-        // Download original file with paccat
-        let paccat_cmd = Paths::paccat().as_ref()
+        let paccat = Paths::paccat().as_ref()
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
-        let (status, content) = AsyncCommand::run(paccat_cmd, &[&self.package(), "--", &path])
+        let path = self.path();
+
+        // Download original file content with paccat
+        let (status, content) = AsyncCommand::run(paccat, &[&self.package(), "--", &path])
             .await?;
 
         if status != Some(0) {
             return Err(io::Error::other("Paccat error"))
         }
 
-        // Save original file to /tmp folder
-        let path = Path::new(&path);
+        // Compare backup file with original content
+        AsyncCommand::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content)
+            .await?;
 
-        let tmp_filename = path.file_name()
-            .ok_or_else(|| io::Error::other("Failed to retrieve filename"))?;
-
-        let mut tmp_path = std::env::temp_dir().join(tmp_filename);
-        tmp_path.add_extension("original");
-
-        fs::write(&tmp_path, content)?;
-
-        // Compare file with original
-        let meld_cmd = Paths::meld().as_ref()
-            .map_err(|_| io::Error::other("Meld not found"))?;
-
-        AsyncCommand::spawn(meld_cmd, [&tmp_path, path])
+        Ok(())
     }
 }
