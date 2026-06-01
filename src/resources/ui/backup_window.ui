@@ -50,6 +50,7 @@
                     <child>
                       <object class="GtkButton" id="compare_button">
                         <property name="tooltip-text">Compare with Original</property>
+                        <property name="action-name">backup.compare</property>
                         <property name="child">
                           <object class="GtkImage" id="compare_image">
                             <property name="icon-name">info-compare-symbolic</property>
@@ -64,6 +65,7 @@
                       <object class="GtkButton" id="open_button">
                         <property name="icon-name">document-open-symbolic</property>
                         <property name="tooltip-text">Open</property>
+                        <property name="action-name">backup.open</property>
                         <style>
                           <class name="flat"/>
                         </style>
@@ -73,6 +75,7 @@
                       <object class="GtkButton" id="copy_button">
                         <property name="icon-name">edit-copy-symbolic</property>
                         <property name="tooltip-text">Copy Backup List</property>
+                        <property name="action-name">backup.copy</property>
                         <style>
                           <class name="flat"/>
                         </style>

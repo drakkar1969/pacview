@@ -46,8 +46,6 @@ mod imp {
         #[template_child]
         pub(super) installed_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -132,6 +130,32 @@ mod imp {
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Search mode property action
             klass.install_property_action("search.set-mode", "search-mode");
+
+            // Copy action
+            klass.install_action("groups.copy", None, |window, _, _| {
+                let mut groups = String::new();
+                let mut output = String::from("## Pacman Groups\n|Package Name|Status|\n|---|---|\n");
+
+                for pkg in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<GroupsObject>().ok()) {
+                        let pkg_groups = pkg.groups();
+
+                        if pkg_groups != groups {
+                            writeln!(output, "|**{pkg_groups}**||").unwrap();
+
+                            groups = pkg_groups;
+                        }
+
+                        writeln!(output, "|{package}|{status}|",
+                            package=pkg.package(),
+                            status=pkg.status()
+                        )
+                        .unwrap();
+                    }
+
+                window.clipboard().set_text(&output);
+            });
         }
 
         //---------------------------------------
@@ -158,15 +182,7 @@ mod imp {
             });
 
             // Copy key binding
-            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "groups.copy");
         }
     }
 }
@@ -222,35 +238,6 @@ impl GroupsWindow {
             }
         ));
 
-        // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                let mut groups = String::new();
-                let mut output = String::from("## Pacman Groups\n|Package Name|Status|\n|---|---|\n");
-
-                for pkg in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<GroupsObject>().ok()) {
-                        let pkg_groups = pkg.groups();
-
-                        if pkg_groups != groups {
-                            writeln!(output, "|**{pkg_groups}**||").unwrap();
-
-                            groups = pkg_groups;
-                        }
-
-                        writeln!(output, "|{package}|{status}|",
-                            package=pkg.package(),
-                            status=pkg.status()
-                        )
-                        .unwrap();
-                    }
-
-                window.clipboard().set_text(&output);
-            }
-        ));
-
         // Loading property notify signal
         self.connect_loading_notify(|window| {
             let imp = window.imp();
@@ -294,7 +281,7 @@ impl GroupsWindow {
 
                 imp.footer_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections == 1 { "" } else { "s" }));
 
-                imp.copy_button.set_sensitive(n_items > 0);
+                window.action_set_enabled("groups.copy", n_items > 0);
             }
         ));
     }

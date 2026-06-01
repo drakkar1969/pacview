@@ -3,7 +3,6 @@ use std::fmt::Write as _;
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use size::Size;
@@ -28,9 +27,6 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/stats_window.ui")]
     pub struct StatsWindow {
         #[template_child]
-        pub(super) copy_button: TemplateChild<gtk::Button>,
-
-        #[template_child]
         pub(super) view: TemplateChild<gtk::ColumnView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
@@ -52,6 +48,9 @@ mod imp {
 
             klass.bind_template();
 
+            // Install actions
+            Self::install_actions(klass);
+
             // Add key bindings
             Self::bind_shortcuts(klass);
         }
@@ -70,7 +69,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_signals();
             obj.setup_widgets();
         }
     }
@@ -80,44 +78,11 @@ mod imp {
 
     impl StatsWindow {
         //---------------------------------------
-        // Bind shortcuts
+        // Install actions
         //---------------------------------------
-        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Close window binding
-            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
-
-            // Copy key binding
-            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
-        }
-    }
-}
-
-//------------------------------------------------------------------------------
-// IMPLEMENTATION: StatsWindow
-//------------------------------------------------------------------------------
-glib::wrapper! {
-    pub struct StatsWindow(ObjectSubclass<imp::StatsWindow>)
-        @extends adw::Window, gtk::Window, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
-}
-
-impl StatsWindow {
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        // Copy button clicked signal
-        self.imp().copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Copy action
+            klass.install_action("stats.copy", None, |window, _, _| {
                 let mut output = String::from("## Package Statistics\n|Repository|Packages|Installed|Explicit|Installed Size|\n|---|---|---|---|---|\n");
 
                 for stat in window.imp().selection.iter::<glib::Object>()
@@ -134,10 +99,32 @@ impl StatsWindow {
                     }
 
                 window.clipboard().set_text(&output);
-            }
-        ));
-    }
+            });
+        }
 
+        //---------------------------------------
+        // Bind shortcuts
+        //---------------------------------------
+        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Close window binding
+            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
+
+            // Copy key binding
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "stats.copy");
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
+// IMPLEMENTATION: StatsWindow
+//------------------------------------------------------------------------------
+glib::wrapper! {
+    pub struct StatsWindow(ObjectSubclass<imp::StatsWindow>)
+        @extends adw::Window, gtk::Window, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+}
+
+impl StatsWindow {
     //---------------------------------------
     // Setup widgets
     //---------------------------------------

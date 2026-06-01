@@ -323,7 +323,7 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
             <property name="title">Copy Backup List</property>
           </object>
         </child>
@@ -374,7 +374,7 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
             <property name="title">Copy Package List</property>
           </object>
         </child>
@@ -403,7 +403,7 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
             <property name="title">Copy Cache File List</property>
           </object>
         </child>
@@ -426,7 +426,7 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
             <property name="title">Copy Log Messages</property>
           </object>
         </child>
@@ -437,7 +437,7 @@
         <property name="title">Statistics Window</property>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;ctrl&gt;C</property>
+            <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
             <property name="title">Copy Statistics</property>
           </object>
         </child>

@@ -41,6 +41,7 @@
                       <object class="GtkButton" id="open_button">
                         <property name="icon-name">folder-open-symbolic</property>
                         <property name="tooltip-text">Open Cache Folder</property>
+                        <property name="action-name">cache.open</property>
                         <style>
                           <class name="flat"/>
                         </style>
@@ -50,6 +51,7 @@
                       <object class="GtkButton" id="copy_button">
                         <property name="icon-name">edit-copy-symbolic</property>
                         <property name="tooltip-text">Copy File List</property>
+                        <property name="action-name">cache.copy</property>
                         <style>
                           <class name="flat"/>
                         </style>

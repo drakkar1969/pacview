@@ -52,10 +52,6 @@ mod imp {
         #[template_child]
         pub(super) compare_image: TemplateChild<gtk::Image>,
         #[template_child]
-        pub(super) open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -141,7 +137,57 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Search mode property action
             klass.install_property_action("search.set-mode", "search-mode");
+
+            // Compare action
+            klass.install_action_async("backup.compare", None, async |window, _, _| {
+                let imp = window.imp();
+
+                let spinner = adw::SpinnerPaintable::new(Some(&imp.compare_button.get()));
+                imp.compare_image.set_paintable(Some(&spinner));
+
+                let item = imp.selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .expect("Failed to downcast to 'BackupObject'");
+
+                let _ = item.compare_with_original().await;
+
+                imp.compare_image.set_icon_name(Some("info-compare-symbolic"));
+            });
+
+            // Open action
+            klass.install_action_async("backup.open", None, async |window, _, _| {
+                if let Some(backup_file) = window.imp().selection.selected_item()
+                    .and_downcast::<BackupObject>() {
+                        AppInfoExt::open_with_default_app(&backup_file.path()).await;
+                    }
+            });
+
+            // Copy action
+            klass.install_action("backup.copy", None, |window, _, _| {
+                let mut package = String::new();
+                let mut output = String::from("## Backup Files\n|Filename|Status|\n|---|---|\n");
+
+                for backup in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<BackupObject>().ok()) {
+                        let backup_package = backup.package();
+
+                        if backup_package != package {
+                            writeln!(output, "|**{backup_package}**||").unwrap();
+
+                            package = backup_package;
+                        }
+
+                        writeln!(output, "|{path}|{status}|",
+                            path=backup.path(),
+                            status=backup.status_text()
+                        ).unwrap();
+                    }
+
+                window.clipboard().set_text(&output);
+            });
         }
 
         //---------------------------------------
@@ -159,37 +205,13 @@ mod imp {
             });
 
             // Compare key binding
-            klass.add_binding(Key::P, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.compare_button.is_visible() && imp.compare_button.is_sensitive() {
-                    imp.compare_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "backup.compare");
 
             // Open key binding
-            klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.open_button.is_sensitive() {
-                    imp.open_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::O, ModifierType::CONTROL_MASK, "backup.open");
 
             // Copy key binding
-            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "backup.copy");
 
             // Status key bindings
             klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
@@ -278,76 +300,6 @@ impl BackupWindow {
             }
         ));
 
-        // Compare button clicked signal
-        imp.compare_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |button| {
-                let spinner = adw::SpinnerPaintable::new(Some(button));
-
-                imp.compare_image.set_paintable(Some(&spinner));
-
-                let item = imp.selection.selected_item()
-                    .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'");
-
-                glib::spawn_future_local(
-                    async move {
-                        let _ = item.compare_with_original().await;
-
-                        imp.compare_image.set_icon_name(Some("info-compare-symbolic"));
-                    }
-                );
-            }
-        ));
-
-        // Open button clicked signal
-        imp.open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let backup_file = imp.selection.selected_item()
-                    .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'")
-                    .path();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_with_default_app(&backup_file).await;
-                });
-            }
-        ));
-
-        // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                let mut package = String::new();
-                let mut output = String::from("## Backup Files\n|Filename|Status|\n|---|---|\n");
-
-                for backup in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<BackupObject>().ok()) {
-                        let backup_package = backup.package();
-
-                        if backup_package != package {
-                            writeln!(output, "|**{backup_package}**||").unwrap();
-
-                            package = backup_package;
-                        }
-
-                        writeln!(output, "|{path}|{status}|",
-                            path=backup.path(),
-                            status=backup.status_text()
-                        ).unwrap();
-
-                        writeln!(output, "|{path}|{status}|",
-                            path=backup.path(),
-                            status=backup.status_text()
-                        ).unwrap();
-                    }
-
-                window.clipboard().set_text(&output);
-            }
-        ));
-
         // Loading property notify signal
         self.connect_loading_notify(|window| {
             let imp = window.imp();
@@ -391,38 +343,36 @@ impl BackupWindow {
 
                 imp.footer_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
 
-                imp.copy_button.set_sensitive(n_items > 0);
-
                 let status = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::All, |object| object.status());
 
-                imp.compare_button.set_sensitive(imp.compare_button.is_visible() && status == BackupStatus::Modified);
-                imp.open_button.set_sensitive(status != BackupStatus::Locked && status != BackupStatus::All);
+                window.action_set_enabled("backup.compare", imp.compare_button.is_visible() && status == BackupStatus::Modified);
+                window.action_set_enabled("backup.open", status != BackupStatus::Locked && status != BackupStatus::All);
+                window.action_set_enabled("backup.copy", n_items > 0);
             }
         ));
 
         // Selection selected item property notify signal
         imp.selection.connect_selected_item_notify(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |selection| {
+                let imp = window.imp();
+
                 let status = selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::All, |object| object.status());
 
-                imp.compare_button.set_sensitive(imp.compare_button.is_visible() && status == BackupStatus::Modified);
-
-                imp.open_button.set_sensitive(status != BackupStatus::Locked && status != BackupStatus::All);
+                window.action_set_enabled("backup.compare", imp.compare_button.is_visible() && status == BackupStatus::Modified);
+                window.action_set_enabled("backup.open", status != BackupStatus::Locked && status != BackupStatus::All);
             }
         ));
 
         // Column view activate signal
         imp.view.connect_activate(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             move |_, _| {
-                if imp.open_button.is_sensitive() {
-                    imp.open_button.emit_clicked();
-                }
+                window.activate_action("backup.open", None).unwrap();
             }
         ));
     }

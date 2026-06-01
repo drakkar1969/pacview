@@ -34,8 +34,6 @@ mod imp {
         #[template_child]
         pub(super) package_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -76,6 +74,9 @@ mod imp {
 
             klass.bind_template();
 
+            // Install actions
+            Self::install_actions(klass);
+
             // Add key bindings
             Self::bind_shortcuts(klass);
         }
@@ -106,6 +107,29 @@ mod imp {
 
     impl LogWindow {
         //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Copy action
+            klass.install_action("log.copy", None, |window, _, _| {
+                let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
+
+                for log in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<LogObject>().ok()) {
+                        let _ = writeln!(output, "|{date}|{time}|{category}|{message}|",
+                            date=log.date(),
+                            time=log.time(),
+                            category=log.category(),
+                            message=log.message()
+                        );
+                    }
+
+                window.clipboard().set_text(&output);
+            });
+        }
+
+        //---------------------------------------
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
@@ -129,15 +153,7 @@ mod imp {
             });
 
             // Copy key binding
-            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "log.copy");
         }
     }
 }
@@ -174,27 +190,6 @@ impl LogWindow {
             }
         ));
 
-        // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
-
-                for log in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<LogObject>().ok()) {
-                        let _ = writeln!(output, "|{date}|{time}|{category}|{message}|",
-                            date=log.date(),
-                            time=log.time(),
-                            category=log.category(),
-                            message=log.message()
-                        );
-                    }
-
-                window.clipboard().set_text(&output);
-            }
-        ));
-
         // Loading property notify signal
         self.connect_loading_notify(|window| {
             let imp = window.imp();
@@ -226,7 +221,7 @@ impl LogWindow {
 
                 imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
-                imp.copy_button.set_sensitive(n_items > 0);
+                window.action_set_enabled("log.copy", n_items > 0);
             }
         ));
     }

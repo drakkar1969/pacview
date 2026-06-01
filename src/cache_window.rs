@@ -35,10 +35,6 @@ mod imp {
         #[template_child]
         pub(super) signature_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -79,6 +75,9 @@ mod imp {
 
             klass.bind_template();
 
+            // Install actions
+            Self::install_actions(klass);
+
             // Add key bindings
             Self::bind_shortcuts(klass);
         }
@@ -109,6 +108,32 @@ mod imp {
 
     impl CacheWindow {
         //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Open action
+            klass.install_action_async("cache.open", None, async |window, _, _| {
+                if let Some(cache_file) = window.imp().selection.selected_item()
+                    .and_downcast::<CacheObject>() {
+                        AppInfoExt::open_containing_folder(&cache_file.path()).await;
+                    }
+            });
+
+            // Copy action
+            klass.install_action("cache.copy", None, |window, _, _| {
+                let mut output = String::from("## Cache Files\n|File|\n|---|\n");
+
+                for cache in window.imp().selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<CacheObject>().ok()) {
+                        let _ = writeln!(output, "|{}|", cache.path());
+                    }
+
+                window.clipboard().set_text(&output);
+            });
+        }
+
+        //---------------------------------------
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
@@ -132,26 +157,10 @@ mod imp {
             });
 
             // Open key binding
-            klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.open_button.is_sensitive() {
-                    imp.open_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::O, ModifierType::CONTROL_MASK, "cache.open");
 
             // Copy key binding
-            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.copy_button.is_sensitive() {
-                    imp.copy_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "cache.copy");
         }
     }
 }
@@ -188,37 +197,6 @@ impl CacheWindow {
             }
         ));
 
-        // Open button clicked signal
-        imp.open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let cache_file = imp.selection.selected_item()
-                    .and_downcast::<CacheObject>()
-                    .expect("Failed to downcast to 'CacheObject'")
-                    .path();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_containing_folder(&cache_file).await;
-                });
-            }
-        ));
-
-        // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                let mut output = String::from("## Cache Files\n|File|\n|---|\n");
-
-                for cache in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<CacheObject>().ok()) {
-                        let _ = writeln!(output, "|{}|", cache.path());
-                    }
-
-                window.clipboard().set_text(&output);
-            }
-        ));
-
         // Loading property notify signal
         self.connect_loading_notify(|window| {
             let imp = window.imp();
@@ -250,7 +228,16 @@ impl CacheWindow {
 
                 imp.footer_label.set_label(&format!("{n_items} file{}", if n_items == 1 { "" } else { "s" }));
 
-                imp.copy_button.set_sensitive(n_items > 0);
+                window.action_set_enabled("cache.open", n_items > 0);
+                window.action_set_enabled("cache.copy", n_items > 0);
+            }
+        ));
+
+        // Column view activate signal
+        imp.view.connect_activate(clone!(
+            #[weak(rename_to = window)] self,
+            move |_, _| {
+                window.activate_action("cache.open", None).unwrap();
             }
         ));
     }

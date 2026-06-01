@@ -21,6 +21,7 @@
                   <object class="GtkButton" id="copy_button">
                     <property name="icon-name">edit-copy-symbolic</property>
                     <property name="tooltip-text">Copy Package Statistics</property>
+                    <property name="action-name">stats.copy</property>
                     <style>
                       <class name="flat"/>
                     </style>
