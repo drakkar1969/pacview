@@ -203,24 +203,18 @@ impl InfoLogTab {
         imp.log_spinner.set_visible(false);
         imp.cache_spinner.set_visible(false);
 
-        // Populate log view
         glib::spawn_future_local(clone!(
             #[weak] imp,
             #[weak] pkg,
             async move {
+                // Populate log view
                 let log_lines: Vec<gtk::StringObject> = pkg.log_future().await.iter()
                     .map(|line| gtk::StringObject::new(line))
                     .collect();
 
                 imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-            }
-        ));
 
-        // Populate cache view
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            #[weak] pkg,
-            async move {
+                // Populate cache view
                 let cache_list: Vec<gtk::StringObject> = pkg.cache_future().await.iter()
                     .map(|cache_file| gtk::StringObject::new(cache_file))
                     .collect();
