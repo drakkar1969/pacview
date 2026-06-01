@@ -15,6 +15,7 @@
                 <property name="spacing">6</property>
                 <child>
                   <object class="GtkButton" id="save_button">
+                    <property name="action-name">source.save</property>
                     <property name="child">
                       <object class="AdwButtonContent">
                         <property name="icon-name">document-save-symbolic</property>
@@ -26,6 +27,7 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="url_button">
+                    <property name="action-name">source.url</property>
                     <property name="child">
                       <object class="AdwButtonContent">
                         <property name="icon-name">web-browser-symbolic</property>
@@ -39,6 +41,7 @@
             </child>
             <child type="end">
               <object class="GtkButton" id="refresh_button">
+                <property name="action-name">source.refresh</property>
                 <property name="icon-name">view-refresh-symbolic</property>
                 <property name="tooltip-text">Refresh</property>
               </object>

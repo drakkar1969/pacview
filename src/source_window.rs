@@ -6,7 +6,7 @@ use futures::io;
 use gtk::{gio, glib, gdk, pango};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, Propagation};
+use glib::clone;
 use gdk::{Key, ModifierType};
 use pango::{FontDescription, FontMask, Weight};
 
@@ -34,11 +34,7 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) save_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) url_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) refresh_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) source_view: TemplateChild<sourceview5::View>,
         #[template_child]
@@ -61,6 +57,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
 
             // Add key bindings
             Self::bind_shortcuts(klass);
@@ -89,6 +88,52 @@ mod imp {
 
     impl SourceWindow {
         //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Save action
+            klass.install_action_async("source.save", None, async |window, _, _| {
+                let file_dialog = gtk::FileDialog::builder()
+                    .modal(true)
+                    .title("Save PKGBUILD")
+                    .initial_name("PKGBUILD")
+                    .build();
+
+                let response = file_dialog.save_future(Some(&window)).await;
+
+                if let Ok(file) = response {
+                    let source_file = sourceview5::File::new();
+                    source_file.set_location(Some(&file));
+
+                    let file_saver = sourceview5::FileSaver::builder()
+                        .buffer(&window.buffer())
+                        .file(&source_file)
+                        .build();
+
+                    let (result, _) = file_saver.save_future(glib::Priority::DEFAULT);
+
+                    let _ = result.await;
+                }
+            });
+
+            // Url action
+            klass.install_action_async("source.url", None, async |window, _, _| {
+                if let Some(source_url) = window.pkg().pkgbuild_url() {
+                    let _ = gio::AppInfo::launch_default_for_uri_future(
+                        &source_url,
+                        None::<&gio::AppLaunchContext>
+                    )
+                    .await;
+                }
+            });
+
+            // Refresh action
+            klass.install_action_async("source.refresh", None, async |window, _, _| {
+                window.download_pkgbuild().await;
+            });
+        }
+
+        //---------------------------------------
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
@@ -96,33 +141,13 @@ mod imp {
             klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
 
             // Save binding
-            klass.add_binding(Key::S, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.save_button.is_sensitive() {
-                    imp.save_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::S, ModifierType::CONTROL_MASK, "source.save");
 
             // Source url binding
-            klass.add_binding(Key::U, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.url_button.is_sensitive() {
-                    imp.url_button.emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::U, ModifierType::CONTROL_MASK, "source.url");
 
             // Refresh binding
-            klass.add_binding(Key::F5, ModifierType::NO_MODIFIER_MASK, |window| {
-                window.imp().refresh_button.emit_clicked();
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::F5, ModifierType::NO_MODIFIER_MASK, "source.refresh");
         }
 
         //---------------------------------------
@@ -247,67 +272,58 @@ impl SourceWindow {
     //---------------------------------------
     // Download PKGBUILD function
     //---------------------------------------
-    fn download_pkgbuild(&self) {
+    async fn download_pkgbuild(&self) {
         let imp = self.imp();
 
         imp.stack.set_visible_child_name("loading");
-        imp.save_button.set_sensitive(false);
+        self.action_set_enabled("source.save", false);
 
-        glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
-            async move {
-                let imp = window.imp();
+        let pkg = self.pkg();
+        let url = pkg.pkgbuild_url();
 
-                let pkg = window.pkg();
-                let url = pkg.pkgbuild_url();
+        // Set URL button tooltip
+        imp.url_button.set_tooltip_text(url.as_deref());
+        self.action_set_enabled("source.url", url.is_some());
 
-                // Set URL button tooltip
-                imp.url_button.set_tooltip_text(url.as_deref());
-                imp.url_button.set_sensitive(url.is_some());
+        // Download PKGBUILD with paru
+        let result = if let Ok(paru_path) = Paths::paru().as_ref() {
+            AsyncCommand::run(paru_path, &["-Gp", &pkg.name()]).await
+        } else {
+            Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
+        };
 
-                // Download PKGBUILD with paru
-                let result = if let Ok(paru_path) = Paths::paru().as_ref() {
-                    AsyncCommand::run(paru_path, &["-Gp", &pkg.name()]).await
-                } else {
-                    Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
-                };
+        match result {
+            Ok((Some(0), pkgbuild)) => {
+                let buffer = self.buffer();
 
-                match result {
-                    Ok((Some(0), pkgbuild)) => {
-                        let buffer = window.buffer();
+                buffer.set_text(&pkgbuild);
 
-                        buffer.set_text(&pkgbuild);
+                // Position cursor at start
+                buffer.place_cursor(&buffer.iter_at_offset(0));
 
-                        // Position cursor at start
-                        buffer.place_cursor(&buffer.iter_at_offset(0));
+                imp.stack.set_visible_child_name("text");
+                self.action_set_enabled("source.save", true);
+            },
+            Ok((Some(1), _)) => {
+                let error = "Failed to download PKGBUILD: paru error";
 
-                        imp.stack.set_visible_child_name("text");
-                        imp.save_button.set_sensitive(true);
-                    },
-                    Ok((Some(1), _)) => {
-                        let error = "Failed to download PKGBUILD: paru error";
+                imp.error_status.set_description(Some(error));
+                imp.stack.set_visible_child_name("error");
+            },
+            Err(error) => {
+                let error = format!("Failed to download PKGBUILD: {error}");
 
-                        imp.error_status.set_description(Some(error));
-                        imp.stack.set_visible_child_name("error");
-                    },
-                    Err(error) => {
-                        let error = format!("Failed to download PKGBUILD: {error}");
-
-                        imp.error_status.set_description(Some(&error));
-                        imp.stack.set_visible_child_name("error");
-                    }
-                    _ => {}
-                }
+                imp.error_status.set_description(Some(&error));
+                imp.stack.set_visible_child_name("error");
             }
-        ));
+            _ => {}
+        }
     }
 
     //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        let imp = self.imp();
-
         // System color scheme signal
         let display = gtk::prelude::WidgetExt::display(self);
         let style_manager = adw::StyleManager::for_display(&display);
@@ -323,63 +339,6 @@ impl SourceWindow {
         style_manager.connect_monospace_font_name_notify(move |style_manager| {
             Self::set_font(style_manager, &display);
         });
-
-        // Save button clicked signal
-        imp.save_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                glib::spawn_future_local(clone!(
-                    #[weak] window,
-                    async move {
-                        let file_dialog = gtk::FileDialog::builder()
-                            .modal(true)
-                            .title("Save PKGBUILD")
-                            .initial_name("PKGBUILD")
-                            .build();
-
-                        let response = file_dialog.save_future(Some(&window)).await;
-
-                        if let Ok(file) = response {
-                            let source_file = sourceview5::File::new();
-                            source_file.set_location(Some(&file));
-
-                            let file_saver = sourceview5::FileSaver::builder()
-                                .buffer(&window.buffer())
-                                .file(&source_file)
-                                .build();
-
-                            let (result, _) = file_saver.save_future(glib::Priority::DEFAULT);
-
-                            let _ = result.await;
-                        }
-                    }
-                ));
-            }
-        ));
-
-        // Url button clicked signal
-        imp.url_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                if let Some(source_url) = window.pkg().pkgbuild_url() {
-                    glib::spawn_future_local(async move {
-                        let _ = gio::AppInfo::launch_default_for_uri_future(
-                            &source_url,
-                            None::<&gio::AppLaunchContext>
-                        )
-                        .await;
-                    });
-                }
-            }
-        ));
-
-        // Refresh button clicked signal
-        imp.refresh_button.connect_clicked(clone!(
-            #[weak(rename_to = window)] self,
-            move |_| {
-                window.download_pkgbuild();
-            }
-        ));
     }
 
     //---------------------------------------
@@ -404,6 +363,11 @@ impl SourceWindow {
         Self::set_font(&style_manager, &display);
 
         // Download PKGBUILD
-        self.download_pkgbuild();
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            async move {
+                window.download_pkgbuild().await;
+            }
+        ));
     }
 }
