@@ -194,6 +194,16 @@ mod imp {
                  window.clipboard().set_text(&window.imp().package_view.copy_list());
             });
 
+            // Show sidebar action
+            klass.install_action("win.show-sidebar", None, |window, _, _| {
+                window.imp().sidebar_split_view.set_show_sidebar(true);
+            });
+
+            // Show infopane action
+            klass.install_action("win.show-infopane", None, |window, _, _| {
+                window.imp().main_split_view.set_show_sidebar(true);
+            });
+
             // Show window/dialog actions
             klass.install_action("win.show-backup-files", None, |window, _, _| {
                 let imp = window.imp();
@@ -254,26 +264,10 @@ mod imp {
             });
 
             // Show sidebar key binding
-            klass.add_binding(Key::B, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.package_view.sidebar_button().is_visible() {
-                    imp.package_view.sidebar_button().emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::B, ModifierType::CONTROL_MASK, "win.show-sidebar");
 
             // Show infopane key binding
-            klass.add_binding(Key::I, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                if imp.package_view.infopane_button().is_visible() {
-                    imp.package_view.infopane_button().emit_clicked();
-                }
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::I, ModifierType::CONTROL_MASK, "win.show-infopane");
 
             // Package view grouping key binding
             klass.add_binding(Key::G, ModifierType::ALT_MASK, |window| {
@@ -465,22 +459,6 @@ impl PacViewWindow {
             #[weak(rename_to = window)] self,
             move |selection, _, _, _| {
                 window.action_set_enabled("win.copy-package-list", selection.n_items() != 0);
-            }
-        ));
-
-        // Package view sidebar button clicked signal
-        imp.package_view.sidebar_button().connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.sidebar_split_view.set_show_sidebar(true);
-            }
-        ));
-
-        // Package view infopane button clicked signal
-        imp.package_view.infopane_button().connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.main_split_view.set_show_sidebar(true);
             }
         ));
 
