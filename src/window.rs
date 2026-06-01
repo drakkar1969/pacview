@@ -190,7 +190,7 @@ mod imp {
             });
 
             // Package view copy list action
-            klass.install_action("view.copy-list", None, |window, _, _| {
+            klass.install_action("win.copy-package-list", None, |window, _, _| {
                  window.clipboard().set_text(&window.imp().package_view.copy_list());
             });
 
@@ -297,7 +297,7 @@ mod imp {
             klass.add_binding_action(Key::F7, ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
             // View copy list key binding
-            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::ALT_MASK, "view.copy-list");
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::ALT_MASK, "win.copy-package-list");
 
             // View show all packages key binding
             klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
@@ -464,7 +464,7 @@ impl PacViewWindow {
         imp.package_view.selection().connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
             move |selection, _, _, _| {
-                window.action_set_enabled("view.copy-list", selection.n_items() != 0);
+                window.action_set_enabled("win.copy-package-list", selection.n_items() != 0);
             }
         ));
 
