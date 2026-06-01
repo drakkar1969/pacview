@@ -1,6 +1,7 @@
 use gtk::glib;
 
 use itertools::Itertools;
+use alpm::PackageReason;
 
 //------------------------------------------------------------------------------
 // FLAGS: PkgFlags
@@ -97,10 +98,10 @@ impl PkgData {
         // Build PkgData
         let flags = if is_local {
             match pkg.reason() {
-                alpm::PackageReason::Explicit => PkgFlags::EXPLICIT,
-                _ if !pkg.required_by().is_empty() => PkgFlags::DEPENDENCY,
-                _ if !pkg.optional_for().is_empty() => PkgFlags::OPTIONAL,
-                _ => PkgFlags::ORPHAN
+                PackageReason::Explicit => PkgFlags::EXPLICIT,
+                PackageReason::Depend if !pkg.required_by().is_empty() => PkgFlags::DEPENDENCY,
+                PackageReason::Depend if !pkg.optional_for().is_empty() => PkgFlags::OPTIONAL,
+                PackageReason::Depend => PkgFlags::ORPHAN
             }
         } else {
             PkgFlags::NONE
