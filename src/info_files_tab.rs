@@ -34,10 +34,6 @@ mod imp {
         #[template_child]
         pub(super) files_filter_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) files_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) files_copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) files_view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) files_model: TemplateChild<gio::ListStore>,
@@ -60,10 +56,6 @@ mod imp {
         pub(super) backup_compare_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) backup_compare_image: TemplateChild<gtk::Image>,
-        #[template_child]
-        pub(super) backup_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) backup_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) backup_view: TemplateChild<gtk::ListView>,
         #[template_child]
@@ -88,6 +80,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -111,6 +106,75 @@ mod imp {
     }
     impl WidgetImpl for InfoFilesTab {}
     impl BoxImpl for InfoFilesTab {}
+
+    impl InfoFilesTab {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Open file action
+            klass.install_action_async("info.files-open", None, async |tab, _, _| {
+                if let Some(file) = tab.imp().files_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>() {
+                        AppInfoExt::open_with_default_app(&file.string()).await;
+                    }
+            });
+
+            // Copy files action
+            klass.install_action("info.files-copy", None, |tab, _, _| {
+                let mut output = String::new();
+
+                let _ = writeln!(output, "## {}\n|Files|\n|---|", tab.pkg_name());
+
+                for obj in tab.imp().files_selection.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|item| item.downcast::<gtk::StringObject>().ok()) {
+                        let _ = writeln!(output, "{}", obj.string());
+                    }
+
+                tab.clipboard().set_text(&output);
+            });
+
+            // Compare backup file action
+            klass.install_action_async("info.backup-compare", None, async |tab, _, _| {
+                let imp = tab.imp();
+
+                let spinner = adw::SpinnerPaintable::new(Some(&imp.backup_compare_button.get()));
+
+                imp.backup_compare_image.set_paintable(Some(&spinner));
+
+                let item = imp.backup_selection.selected_item()
+                    .and_downcast::<BackupObject>()
+                    .expect("Failed to downcast to 'BackupObject'");
+
+                let _ = item.compare_with_original().await;
+
+                imp.backup_compare_image.set_icon_name(Some("info-compare-symbolic"));
+            });
+
+            // Open backup file action
+            klass.install_action_async("info.backup-open", None, async |tab, _, _| {
+                if let Some(backup_file) = tab.imp().backup_selection.selected_item()
+                    .and_downcast::<BackupObject>() {
+                        AppInfoExt::open_with_default_app(&backup_file.path()).await;
+                    }
+            });
+
+            // Copy backup files action
+            klass.install_action("info.backup-copy", None, |tab, _, _| {
+                let mut output = String::new();
+
+                let _ = writeln!(output, "## {}\n|Backup Files|Status|\n|---|---|", tab.pkg_name());
+
+                for obj in tab.imp().backup_model.iter::<BackupObject>()
+                    .flatten() {
+                        let _ = writeln!(output, "{}|{}", obj.path(), obj.status_text());
+                    }
+
+                tab.clipboard().set_text(&output);
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -152,155 +216,65 @@ impl InfoFilesTab {
             }
         ));
 
-        // Files open button clicked signal
-        imp.files_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let file = imp.files_selection.selected_item()
-                    .and_downcast::<gtk::StringObject>()
-                    .expect("Failed to downcast to 'StringObject'")
-                    .string();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_with_default_app(&file).await;
-                });
-            }
-        ));
-
-        // Files copy button clicked signal
-        imp.files_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = tab)] self,
-            move |_| {
-                let mut output = String::new();
-
-                let _ = writeln!(output, "## {}\n|Files|\n|---|", tab.pkg_name());
-
-                for obj in tab.imp().files_selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<gtk::StringObject>().ok()) {
-                        let _ = writeln!(output, "{}", obj.string());
-                    }
-
-                tab.clipboard().set_text(&output);
-            }
-        ));
-
         // Files view activate signal
         imp.files_view.connect_activate(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |_, _| {
-                if imp.files_open_button.is_sensitive() {
-                    imp.files_open_button.emit_clicked();
-                }
+                tab.activate_action("info.files-open", None).unwrap();
             }
         ));
 
         // Files selection items changed signal
         imp.files_selection.connect_items_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |selection, _, _, _| {
+                let imp = tab.imp();
+
                 let n_items = selection.n_items();
 
                 imp.files_count_label.set_label(&n_items.to_string());
-                imp.files_search_entry.set_sensitive(n_items > 0);
-                imp.files_filter_button.set_sensitive(n_items > 0);
-                imp.files_open_button.set_sensitive(n_items > 0);
-                imp.files_copy_button.set_sensitive(n_items > 0);
-            }
-        ));
 
-        // Backup compare button clicked signal
-        imp.backup_compare_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |button| {
-                let spinner = adw::SpinnerPaintable::new(Some(button));
-
-                imp.backup_compare_image.set_paintable(Some(&spinner));
-
-                let item = imp.backup_selection.selected_item()
-                    .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'");
-
-                glib::spawn_future_local(
-                    async move {
-                        let _ = item.compare_with_original().await;
-
-                        imp.backup_compare_image.set_icon_name(Some("info-compare-symbolic"));
-                    }
-                );
-            }
-        ));
-
-        // Backup open button clicked signal
-        imp.backup_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let backup_file = imp.backup_selection.selected_item()
-                    .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'")
-                    .path();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_with_default_app(&backup_file).await;
-                });
-            }
-        ));
-
-        // Backup copy button clicked signal
-        imp.backup_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = tab)] self,
-            move |_| {
-                let mut output = String::new();
-
-                let _ = writeln!(output, "## {}\n|Backup Files|Status|\n|---|---|", tab.pkg_name());
-
-                for obj in tab.imp().backup_model.iter::<BackupObject>()
-                    .flatten() {
-                        let _ = writeln!(output, "{}|{}", obj.path(), obj.status_text());
-                    }
-
-                tab.clipboard().set_text(&output);
+                tab.action_set_enabled("info.files-open", n_items > 0);
+                tab.action_set_enabled("info.files-copy", n_items > 0);
             }
         ));
 
         // Backup view activate signal
         imp.backup_view.connect_activate(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |_, _| {
-                if imp.backup_open_button.is_sensitive() {
-                    imp.backup_open_button.emit_clicked();
-                }
+                tab.activate_action("info.backup-open", None).unwrap();
             }
         ));
 
         // Backup selection items changed signal
         imp.backup_selection.connect_items_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |selection, _, _, _| {
+                let imp = tab.imp();
+
                 let n_items = selection.n_items();
 
                 imp.backup_count_label.set_label(&n_items.to_string());
-                imp.backup_compare_button.set_sensitive(n_items > 0);
-                imp.backup_open_button.set_sensitive(n_items > 0);
-                imp.backup_copy_button.set_sensitive(n_items > 0);
+
+                tab.action_set_enabled("info.backup-compare", n_items > 0);
+                tab.action_set_enabled("info.backup-open", n_items > 0);
+                tab.action_set_enabled("info.backup-copy", n_items > 0);
             }
         ));
 
         // Backup selection selected item property notify signal
         imp.backup_selection.connect_selected_item_notify(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |selection| {
+                let imp = tab.imp();
+
                 let status = selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::Locked, |backup| backup.status());
 
-                imp.backup_compare_button.set_sensitive(
-                    imp.backup_compare_button.is_visible() && status == BackupStatus::Modified
-                );
-
-                imp.backup_open_button.set_sensitive(
-                    status != BackupStatus::Locked && status != BackupStatus::All
-                );
+                tab.action_set_enabled("info.backup-compare", imp.backup_compare_button.is_visible() && status == BackupStatus::Modified);
+                tab.action_set_enabled("info.backup-open", status != BackupStatus::Locked && status != BackupStatus::All);
             }
         ));
     }

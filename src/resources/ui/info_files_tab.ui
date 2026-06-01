@@ -58,6 +58,7 @@
               <object class="GtkButton" id="files_open_button">
                 <property name="icon-name">document-open-symbolic</property>
                 <property name="tooltip-text">Open</property>
+                <property name="action-name">info.files-open</property>
                 <style>
                   <class name="flat"/>
                 </style>
@@ -67,6 +68,7 @@
               <object class="GtkButton" id="files_copy_button">
                 <property name="icon-name">edit-copy-symbolic</property>
                 <property name="tooltip-text">Copy File List</property>
+                <property name="action-name">info.files-copy</property>
                 <style>
                   <class name="flat"/>
                 </style>
@@ -172,6 +174,7 @@
             <child>
               <object class="GtkButton" id="backup_compare_button">
                 <property name="tooltip-text">Compare with Original</property>
+                <property name="action-name">info.backup-compare</property>
                 <property name="child">
                   <object class="GtkImage" id="backup_compare_image">
                     <property name="icon-name">info-compare-symbolic</property>
@@ -186,6 +189,7 @@
               <object class="GtkButton" id="backup_open_button">
                 <property name="icon-name">document-open-symbolic</property>
                 <property name="tooltip-text">Open</property>
+                <property name="action-name">info.backup-open</property>
                 <style>
                   <class name="flat"/>
                 </style>
@@ -195,6 +199,7 @@
               <object class="GtkButton" id="backup_copy_button">
                 <property name="icon-name">edit-copy-symbolic</property>
                 <property name="tooltip-text">Copy Backup File List</property>
+                <property name="action-name">info.backup-copy</property>
                 <style>
                   <class name="flat"/>
                 </style>

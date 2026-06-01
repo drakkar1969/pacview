@@ -27,8 +27,6 @@ mod imp {
         #[template_child]
         pub(super) log_header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) log_copy_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) log_model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) log_selection: TemplateChild<gtk::NoSelection>,
@@ -39,10 +37,6 @@ mod imp {
         pub(super) cache_header_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) cache_count_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) cache_open_button: TemplateChild<gtk::Button>,
-        #[template_child]
-        pub(super) cache_copy_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) cache_view: TemplateChild<gtk::ListView>,
         #[template_child]
@@ -67,6 +61,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -89,6 +86,49 @@ mod imp {
     }
     impl WidgetImpl for InfoLogTab {}
     impl BoxImpl for InfoLogTab {}
+
+    impl InfoLogTab {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Copy log action
+            klass.install_action("info.log-copy", None, |tab, _, _| {
+                let mut output = String::new();
+
+                let _ = writeln!(output, "## {}\n|Log Messages|\n|---|", tab.pkg_name());
+
+                for obj in tab.imp().log_model.iter::<gtk::StringObject>()
+                    .flatten() {
+                        let _ = writeln!(output, "{}", obj.string());
+                    }
+
+                tab.clipboard().set_text(&output);
+            });
+
+            // Open cache action
+            klass.install_action_async("info.cache-open", None, async |tab, _, _| {
+                if let Some(cache_file) = tab.imp().cache_selection.selected_item()
+                    .and_downcast::<gtk::StringObject>() {
+                        AppInfoExt::open_containing_folder(&cache_file.string()).await;
+                    }
+            });
+
+            // Copy cache action
+            klass.install_action("info.cache-copy", None, |tab, _, _| {
+                let mut output = String::new();
+
+                let _ = writeln!(output, "## {}\n|Cache Files|\n|---|", tab.pkg_name());
+
+                for obj in tab.imp().cache_model.iter::<gtk::StringObject>()
+                    .flatten() {
+                        let _ = writeln!(output, "{}", obj.string());
+                    }
+
+                tab.clipboard().set_text(&output);
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -107,84 +147,36 @@ impl InfoLogTab {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Log copy button clicked signal
-        imp.log_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = tab)] self,
-            move |_| {
-                let mut output = String::new();
-
-                let _ = writeln!(output, "## {}\n|Log Messages|\n|---|", tab.pkg_name());
-
-                for obj in tab.imp().log_model.iter::<gtk::StringObject>()
-                    .flatten() {
-                        let _ = writeln!(output, "{}", obj.string());
-                    }
-
-                tab.clipboard().set_text(&output);
-            }
-        ));
-
         // Log selection items changed signal
         imp.log_selection.connect_items_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
 
-                imp.log_copy_button.set_sensitive(n_items > 0);
-            }
-        ));
-
-        // Cache open button clicked signal
-        imp.cache_open_button.connect_clicked(clone!(
-            #[weak] imp,
-            move |_| {
-                let cache_file = imp.cache_selection.selected_item()
-                    .and_downcast::<gtk::StringObject>()
-                    .expect("Failed to downcast to 'StringObject'")
-                    .string();
-
-                glib::spawn_future_local(async move {
-                    AppInfoExt::open_containing_folder(&cache_file).await;
-                });
-            }
-        ));
-
-        // Cache copy button clicked signal
-        imp.cache_copy_button.connect_clicked(clone!(
-            #[weak(rename_to = tab)] self,
-            move |_| {
-                let mut output = String::new();
-
-                let _ = writeln!(output, "## {}\n|Cache Files|\n|---|", tab.pkg_name());
-
-                for obj in tab.imp().cache_model.iter::<gtk::StringObject>()
-                    .flatten() {
-                        let _ = writeln!(output, "{}", obj.string());
-                    }
-
-                tab.clipboard().set_text(&output);
+                tab.action_set_enabled("info.log-copy", n_items > 0);
             }
         ));
 
         // Cache view activate signal
         imp.cache_view.connect_activate(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |_, _| {
-                if imp.cache_open_button.is_sensitive() {
-                    imp.cache_open_button.emit_clicked();
-                }
+                tab.activate_action("info.cache-open", None).unwrap();
             }
         ));
 
         // Cache selection items changed signal
         imp.cache_selection.connect_items_changed(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             move |selection, _, _, _| {
+                let imp = tab.imp();
+
                 let n_items = selection.n_items();
 
                 imp.cache_count_label.set_label(&n_items.to_string());
-                imp.cache_open_button.set_sensitive(n_items > 0);
-                imp.cache_copy_button.set_sensitive(n_items > 0);
+
+                tab.action_set_enabled("info.cache-open", n_items > 0);
+                tab.action_set_enabled("info.cache-copy", n_items > 0);
             }
         ));
     }
