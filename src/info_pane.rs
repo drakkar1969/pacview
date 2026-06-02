@@ -139,9 +139,9 @@ mod imp {
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Show PKGBUILD action
-            klass.install_action("infopane.show-pkgbuild", None, |infopane, _, _| {
-                if let Some(pkg) = infopane.pkg() {
-                    let parent = infopane.root()
+            klass.install_action("infopane.show-pkgbuild", None, |pane, _, _| {
+                if let Some(pkg) = pane.pkg() {
+                    let parent = pane.root()
                         .and_downcast::<gtk::Window>()
                         .expect("Failed to downcast to 'GtkWindow'");
 
@@ -152,15 +152,15 @@ mod imp {
             });
 
             // Show hashes action
-            klass.install_action("infopane.show-hashes", None, |infopane, _, _| {
-                if let Some(pkg) = infopane.pkg()
+            klass.install_action("infopane.show-hashes", None, |pane, _, _| {
+                if let Some(pkg) = pane.pkg()
                     .filter(|pkg| {
                         let validation = pkg.validation();
 
                         !(validation.intersects(PkgValidation::UNKNOWN)
                             || validation.intersects(PkgValidation::NONE))
                     }) {
-                        let parent = infopane.root()
+                        let parent = pane.root()
                             .and_downcast::<gtk::Window>()
                             .expect("Failed to downcast to 'GtkWindow'");
 
@@ -239,7 +239,7 @@ impl InfoPane {
         if let Some(pkg) = new_pkg {
             let pkg_history = self.imp().pkg_history.borrow();
 
-            // If link package is in infopane history, select it
+            // If link package is in history, select it
             // Otherwise append it after selected history package
             pkg_history.select_or_append(pkg);
 
@@ -256,25 +256,25 @@ impl InfoPane {
 
         // Previous button clicked signal
         imp.prev_button.connect_clicked(clone!(
-            #[weak(rename_to = infopane)] self,
+            #[weak(rename_to = pane)] self,
             move |_| {
-                infopane.display_prev();
+                pane.display_prev();
             }
         ));
 
         // Next button clicked signal
         imp.next_button.connect_clicked(clone!(
-            #[weak(rename_to = infopane)] self,
+            #[weak(rename_to = pane)] self,
             move |_| {
-                infopane.display_next();
+                pane.display_next();
             }
         ));
 
         // Copy button clicked signal
         imp.copy_button.connect_clicked(clone!(
-            #[weak(rename_to = infopane)] self,
+            #[weak(rename_to = pane)] self,
             move |_| {
-                if let Some(pkg) = infopane.pkg() {
+                if let Some(pkg) = pane.pkg() {
                     let mut output = String::from("## Package Information\n");
 
                     let _ = writeln!(output, "- **Name** : {}", pkg.name());
@@ -284,7 +284,7 @@ impl InfoPane {
                     let _ = writeln!(output, "- **Installed Size** : {}", pkg.install_size_string());
                     let _ = writeln!(output, "- **Status** : {}", pkg.status());
 
-                    let mut child = infopane.imp().listbox.first_child();
+                    let mut child = pane.imp().listbox.first_child();
 
                     while let Some(row) = child.and_downcast::<InfoRow>() {
                         if row.is_visible() {
@@ -299,7 +299,7 @@ impl InfoPane {
                         child = row.next_sibling();
                     }
 
-                    infopane.clipboard().set_text(&output);
+                    pane.clipboard().set_text(&output);
                 }
             }
         ));
@@ -355,9 +355,9 @@ impl InfoPane {
         let row = InfoRow::new(id, ptype);
 
         row.set_pkg_link_handler(closure_local!(
-            #[weak(rename_to = infopane)] self,
+            #[weak(rename_to = pane)] self,
             move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
-                infopane.pkg_link_handler(pkg_name, pkg_version);
+                pane.pkg_link_handler(pkg_name, pkg_version);
             }
         ));
 
