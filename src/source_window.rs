@@ -203,7 +203,7 @@ impl SourceWindow {
     //-----------------------------------
     // Font str to CSS function
     //-----------------------------------
-    pub fn font_str_to_css(font_str: &str) -> String {
+    fn font_str_to_css(font_str: &str) -> String {
         let mut css = String::new();
 
         let font_desc = FontDescription::from_string(font_str);
