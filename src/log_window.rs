@@ -32,8 +32,6 @@ mod imp {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) package_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -58,6 +56,8 @@ mod imp {
 
         #[property(get, set)]
         loading: Cell<bool>,
+        #[property(get, set)]
+        packages_only: Cell<bool>,
     }
 
     //---------------------------------------
@@ -110,6 +110,9 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Packages only property action
+            klass.install_property_action("log.packages-only", "packages-only");
+
             // Copy action
             klass.install_action("log.copy", None, |window, _, _| {
                 let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
@@ -144,13 +147,7 @@ mod imp {
             });
 
             // Filter package events key binding
-            klass.add_binding(Key::P, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                imp.package_button.set_active(!imp.package_button.is_active());
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "log.packages-only");
 
             // Copy key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "log.copy");
@@ -182,13 +179,10 @@ impl LogWindow {
             }
         ));
 
-        // Package button toggled signal
-        imp.package_button.connect_toggled(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.package_filter.changed(gtk::FilterChange::Different);
-            }
-        ));
+        // Packages only property notify signal
+        self.connect_packages_only_notify(|window| {
+            window.imp().package_filter.changed(gtk::FilterChange::Different);
+        });
 
         // Loading property notify signal
         self.connect_loading_notify(|window| {
@@ -243,10 +237,10 @@ impl LogWindow {
 
         // Set package filter function
         imp.package_filter.set_filter_func(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             #[upgrade_or] false,
             move |item| {
-                if imp.package_button.is_active() {
+                if window.packages_only() {
                     let msg = item
                         .downcast_ref::<LogObject>()
                         .expect("Failed to downcast to 'LogObject'")

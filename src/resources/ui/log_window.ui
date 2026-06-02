@@ -32,6 +32,7 @@
                       <object class="GtkToggleButton" id="package_button">
                         <property name="icon-name">package-x-generic-symbolic</property>
                         <property name="tooltip-text">Filter Package Events</property>
+                        <property name="action-name">log.packages-only</property>
                         <style>
                           <class name="flat"/>
                         </style>

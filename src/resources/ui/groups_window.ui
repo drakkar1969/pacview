@@ -32,6 +32,7 @@
                       <object class="GtkToggleButton" id="installed_button">
                         <property name="icon-name">status-installed-symbolic</property>
                         <property name="tooltip-text">Filter Installed Packages</property>
+                        <property name="action-name">groups.installed-only</property>
                         <style>
                           <class name="flat"/>
                         </style>

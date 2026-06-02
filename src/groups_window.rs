@@ -44,8 +44,6 @@ mod imp {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) installed_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -74,6 +72,8 @@ mod imp {
         search_mode: Cell<GroupsSearchMode>,
         #[property(get, set)]
         loading: Cell<bool>,
+        #[property(get, set)]
+        installed_only: Cell<bool>,
 
         pub(super) search_term: RefCell<String>,
     }
@@ -131,6 +131,9 @@ mod imp {
             // Search mode property action
             klass.install_property_action("search.set-mode", "search-mode");
 
+            // Installed only property action
+            klass.install_property_action("groups.installed-only", "installed-only");
+
             // Copy action
             klass.install_action("groups.copy", None, |window, _, _| {
                 let mut groups = String::new();
@@ -173,13 +176,7 @@ mod imp {
             });
 
             // Installed key binding
-            klass.add_binding(Key::I, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                imp.installed_button.set_active(!imp.installed_button.is_active());
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::I, ModifierType::CONTROL_MASK, "groups.installed-only");
 
             // Copy key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "groups.copy");
@@ -230,13 +227,10 @@ impl GroupsWindow {
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
 
-        // Installed button toggled signal
-        imp.installed_button.connect_toggled(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.installed_filter.changed(gtk::FilterChange::Different);
-            }
-        ));
+        // Installed only property notify signal
+        self.connect_installed_only_notify(|window| {
+            window.imp().installed_filter.changed(gtk::FilterChange::Different);
+        });
 
         // Loading property notify signal
         self.connect_loading_notify(|window| {
@@ -339,10 +333,10 @@ impl GroupsWindow {
 
         // Set installed filter function
         imp.installed_filter.set_filter_func(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             #[upgrade_or] false,
             move |item| {
-                if imp.installed_button.is_active() {
+                if window.installed_only() {
                     let status = item
                         .downcast_ref::<GroupsObject>()
                         .expect("Failed to downcast to 'GroupsObject'")

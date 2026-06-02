@@ -33,8 +33,6 @@ mod imp {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) signature_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -59,6 +57,8 @@ mod imp {
 
         #[property(get, set)]
         loading: Cell<bool>,
+        #[property(get, set)]
+        show_sigfiles: Cell<bool>,
     }
 
     //---------------------------------------
@@ -111,6 +111,9 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Show sigfiles property action
+            klass.install_property_action("cache.show-sigfiles", "show-sigfiles");
+
             // Open action
             klass.install_action_async("cache.open", None, async |window, _, _| {
                 if let Some(cache_file) = window.imp().selection.selected_item()
@@ -147,14 +150,8 @@ mod imp {
                 Propagation::Stop
             });
 
-            // Show sig files key binding
-            klass.add_binding(Key::G, ModifierType::CONTROL_MASK, |window| {
-                let imp = window.imp();
-
-                imp.signature_button.set_active(!imp.signature_button.is_active());
-
-                Propagation::Stop
-            });
+            // Show sigfiles key binding
+            klass.add_binding_action(Key::G, ModifierType::CONTROL_MASK, "cache.show-sigfiles");
 
             // Open key binding
             klass.add_binding_action(Key::O, ModifierType::CONTROL_MASK, "cache.open");
@@ -189,13 +186,10 @@ impl CacheWindow {
             }
         ));
 
-        // Signature button toggled signal
-        imp.signature_button.connect_toggled(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.signature_filter.changed(gtk::FilterChange::Different);
-            }
-        ));
+        // Show sigfiles property notify signal
+        self.connect_show_sigfiles_notify(|window| {
+            window.imp().signature_filter.changed(gtk::FilterChange::Different);
+        });
 
         // Loading property notify signal
         self.connect_loading_notify(|window| {
@@ -259,10 +253,10 @@ impl CacheWindow {
 
         // Set signature filter function
         imp.signature_filter.set_filter_func(clone!(
-            #[weak] imp,
+            #[weak(rename_to = window)] self,
             #[upgrade_or] false,
             move |item| {
-                if imp.signature_button.is_active() {
+                if window.show_sigfiles() {
                     true
                 } else {
                     let obj = item
