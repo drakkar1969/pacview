@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::fmt::Write as _;
 
 use gtk::subclass::prelude::*;
@@ -31,8 +31,6 @@ mod imp {
         pub(super) files_count_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) files_search_entry: TemplateChild<gtk::SearchEntry>,
-        #[template_child]
-        pub(super) files_filter_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) files_view: TemplateChild<gtk::ListView>,
         #[template_child]
@@ -67,6 +65,8 @@ mod imp {
 
         #[property(get, set)]
         pkg_name: RefCell<String>,
+        #[property(get, set)]
+        files_show_folders: Cell<bool>,
     }
 
     //---------------------------------------
@@ -112,6 +112,8 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Files show folders property action
+            klass.install_property_action("info.files-show-folders", "files-show-folders");
             // Open file action
             klass.install_action_async("info.files-open", None, async |tab, _, _| {
                 if let Some(file) = tab.imp().files_selection.selected_item()
@@ -208,13 +210,10 @@ impl InfoFilesTab {
             }
         ));
 
-        // Files filter button toggled signal
-        imp.files_filter_button.connect_toggled(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.files_folder_filter.changed(gtk::FilterChange::Different);
-            }
-        ));
+        // Files show folders property notify signal
+        self.connect_files_show_folders_notify(|window| {
+            window.imp().files_folder_filter.changed(gtk::FilterChange::Different);
+        });
 
         // Files view activate signal
         imp.files_view.connect_activate(clone!(
@@ -290,10 +289,10 @@ impl InfoFilesTab {
 
         // Set files folder filter function
         imp.files_folder_filter.set_filter_func(clone!(
-            #[weak] imp,
+            #[weak(rename_to = tab)] self,
             #[upgrade_or] false,
             move |item| {
-                if imp.files_filter_button.is_active() {
+                if tab.files_show_folders() {
                     true
                 } else {
                     let obj = item
