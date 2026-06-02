@@ -138,6 +138,37 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Copy info action
+            klass.install_action("infopane.copy-info", None, |pane, _, _| {
+                if let Some(pkg) = pane.pkg() {
+                    let mut output = String::from("## Package Information\n");
+
+                    let _ = writeln!(output, "- **Name** : {}", pkg.name());
+                    let _ = writeln!(output, "- **Version** : {}", pkg.version());
+                    let _ = writeln!(output, "- **Description** : {}", pkg.description());
+                    let _ = writeln!(output, "- **Repository** : {}", pkg.repository());
+                    let _ = writeln!(output, "- **Installed Size** : {}", pkg.install_size_string());
+                    let _ = writeln!(output, "- **Status** : {}", pkg.status());
+
+                    let mut child = pane.imp().listbox.first_child();
+
+                    while let Some(row) = child.and_downcast::<InfoRow>() {
+                        if row.is_visible() {
+                            let label = row.label();
+                            let value = row.value();
+
+                            if !(label.is_empty() || value.is_empty()) {
+                                let _ = writeln!(output, "- **{label}** : {value}");
+                            }
+                        }
+
+                        child = row.next_sibling();
+                    }
+
+                    pane.clipboard().set_text(&output);
+                }
+            });
+
             // Show PKGBUILD action
             klass.install_action("infopane.show-pkgbuild", None, |pane, _, _| {
                 if let Some(pkg) = pane.pkg() {
@@ -267,40 +298,6 @@ impl InfoPane {
             #[weak(rename_to = pane)] self,
             move |_| {
                 pane.display_next();
-            }
-        ));
-
-        // Copy button clicked signal
-        imp.copy_button.connect_clicked(clone!(
-            #[weak(rename_to = pane)] self,
-            move |_| {
-                if let Some(pkg) = pane.pkg() {
-                    let mut output = String::from("## Package Information\n");
-
-                    let _ = writeln!(output, "- **Name** : {}", pkg.name());
-                    let _ = writeln!(output, "- **Version** : {}", pkg.version());
-                    let _ = writeln!(output, "- **Description** : {}", pkg.description());
-                    let _ = writeln!(output, "- **Repository** : {}", pkg.repository());
-                    let _ = writeln!(output, "- **Installed Size** : {}", pkg.install_size_string());
-                    let _ = writeln!(output, "- **Status** : {}", pkg.status());
-
-                    let mut child = pane.imp().listbox.first_child();
-
-                    while let Some(row) = child.and_downcast::<InfoRow>() {
-                        if row.is_visible() {
-                            let label = row.label();
-                            let value = row.value();
-
-                            if !(label.is_empty() || value.is_empty()) {
-                                let _ = writeln!(output, "- **{label}** : {value}");
-                            }
-                        }
-
-                        child = row.next_sibling();
-                    }
-
-                    pane.clipboard().set_text(&output);
-                }
             }
         ));
     }
