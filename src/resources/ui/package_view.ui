@@ -61,6 +61,7 @@
                   <object class="GtkToggleButton" id="grouping_button">
                     <property name="icon-name">repository-symbolic</property>
                     <property name="tooltip-text">Group by Repository</property>
+                    <property name="action-name">view.set-grouping</property>
                   </object>
                 </child>
               </object>

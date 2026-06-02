@@ -200,6 +200,9 @@ mod imp {
                 view.set_sort_prop(SortProp::default());
                 view.set_sort_ascending(true);
             });
+
+            // Grouping property action
+            klass.install_property_action("view.set-grouping", "grouping");
         }
     }
 }
@@ -389,12 +392,6 @@ impl PackageView {
 
         // Bind search button state to search bar enabled state
         imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        // Bind grouping property to grouping button state
-        self.bind_property("grouping", &imp.grouping_button.get(), "active")
             .sync_create()
             .bidirectional()
             .build();
