@@ -192,6 +192,9 @@ mod imp {
             // Sort prop property action
             klass.install_property_action("view.set-sort-prop", "sort-prop");
 
+            // Sort ascending property action
+            klass.install_property_action("view.set-sort-ascending", "sort-ascending");
+
             // Reset sort action
             klass.install_action("view.reset-sort", None, |view, _, _| {
                 view.set_sort_prop(SortProp::default());
@@ -339,14 +342,6 @@ impl PackageView {
                 imp.view.set_header_factory(None::<&gtk::BuilderListItemFactory>);
             }
         });
-
-        // Header sort button clicked signal
-        imp.sort_button.connect_clicked(clone!(
-            #[weak(rename_to = view)] self,
-            move |_| {
-                view.set_sort_ascending(!view.sort_ascending());
-            }
-        ));
 
         // Search bar changed signal
         imp.search_bar.connect_closure("changed", false, closure_local!(

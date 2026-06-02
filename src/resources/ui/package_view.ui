@@ -54,6 +54,7 @@
                     <property name="menu-model">sort_menu</property>
                     <property name="tooltip-text">Sort Descending</property>
                     <property name="dropdown-tooltip">Sort Options</property>
+                    <property name="action-name">view.set-sort-ascending</property>
                   </object>
                 </child>
                 <child type="end">
