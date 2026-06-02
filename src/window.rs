@@ -372,20 +372,6 @@ mod imp {
 
                 Propagation::Stop
             });
-
-            // Infopane show PKGBUILD key bindings
-            klass.add_binding(Key::P, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.show_pkgbuild();
-
-                Propagation::Stop
-            });
-
-            // Infopane show hashes key bindings
-            klass.add_binding(Key::H, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.show_hashes();
-
-                Propagation::Stop
-            });
         }
     }
 }

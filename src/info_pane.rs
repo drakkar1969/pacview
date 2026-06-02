@@ -561,7 +561,10 @@ impl InfoPane {
         }
     }
 
-    pub fn show_pkgbuild(&self) {
+    //---------------------------------------
+    // Show PKGBUILD function
+    //---------------------------------------
+    fn show_pkgbuild(&self) {
         if let Some(pkg) = self.pkg() {
             let parent = self.root()
                 .and_downcast::<gtk::Window>()
@@ -573,7 +576,10 @@ impl InfoPane {
         }
     }
 
-    pub fn show_hashes(&self) {
+    //---------------------------------------
+    // Show hashes function
+    //---------------------------------------
+    fn show_hashes(&self) {
         if let Some(pkg) = self.pkg()
             .filter(|pkg| {
                 let validation = pkg.validation();
