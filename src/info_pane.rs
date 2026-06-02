@@ -106,6 +106,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -131,6 +134,43 @@ mod imp {
     impl WidgetImpl for InfoPane {}
     impl BinImpl for InfoPane {}
     impl InfoPane {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Show PKGBUILD action
+            klass.install_action("infopane.show-pkgbuild", None, |infopane, _, _| {
+                if let Some(pkg) = infopane.pkg() {
+                    let parent = infopane.root()
+                        .and_downcast::<gtk::Window>()
+                        .expect("Failed to downcast to 'GtkWindow'");
+
+                    let source_window = SourceWindow::new(&parent, &pkg);
+
+                    source_window.present();
+                }
+            });
+
+            // Show hashes action
+            klass.install_action("infopane.show-hashes", None, |infopane, _, _| {
+                if let Some(pkg) = infopane.pkg()
+                    .filter(|pkg| {
+                        let validation = pkg.validation();
+
+                        !(validation.intersects(PkgValidation::UNKNOWN)
+                            || validation.intersects(PkgValidation::NONE))
+                    }) {
+                        let parent = infopane.root()
+                            .and_downcast::<gtk::Window>()
+                            .expect("Failed to downcast to 'GtkWindow'");
+
+                        let hash_window = HashWindow::new(&parent, &pkg);
+
+                        hash_window.present();
+                    }
+            });
+        }
+
         //---------------------------------------
         // Property getter/setter
         //---------------------------------------
@@ -227,22 +267,6 @@ impl InfoPane {
             #[weak(rename_to = infopane)] self,
             move |_| {
                 infopane.display_next();
-            }
-        ));
-
-        // PKGBUILD button clicked signal
-        imp.pkgbuild_button.connect_clicked(clone!(
-            #[weak(rename_to = infopane)] self,
-            move |_| {
-                infopane.show_pkgbuild();
-            }
-        ));
-
-        // Hashes button clicked signal
-        imp.hashes_button.connect_clicked(clone!(
-            #[weak(rename_to = infopane)] self,
-            move |_| {
-                infopane.show_hashes();
             }
         ));
 
@@ -559,42 +583,6 @@ impl InfoPane {
         if imp.tab_switcher.is_sensitive() {
             imp.tab_stack.set_visible_child_name(tab);
         }
-    }
-
-    //---------------------------------------
-    // Show PKGBUILD function
-    //---------------------------------------
-    fn show_pkgbuild(&self) {
-        if let Some(pkg) = self.pkg() {
-            let parent = self.root()
-                .and_downcast::<gtk::Window>()
-                .expect("Failed to downcast to 'GtkWindow'");
-
-            let source_window = SourceWindow::new(&parent, &pkg);
-
-            source_window.present();
-        }
-    }
-
-    //---------------------------------------
-    // Show hashes function
-    //---------------------------------------
-    fn show_hashes(&self) {
-        if let Some(pkg) = self.pkg()
-            .filter(|pkg| {
-                let validation = pkg.validation();
-
-                !(validation.intersects(PkgValidation::UNKNOWN)
-                    || validation.intersects(PkgValidation::NONE))
-            }) {
-                let parent = self.root()
-                    .and_downcast::<gtk::Window>()
-                    .expect("Failed to downcast to 'GtkWindow'");
-
-                let hash_window = HashWindow::new(&parent, &pkg);
-
-                hash_window.present();
-            }
     }
 }
 
