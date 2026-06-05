@@ -352,9 +352,9 @@ impl PackageView {
             move |bar: SearchBar| {
                 let term = bar.text().trim().to_lowercase();
 
-                let tokens = term.split_whitespace()
+                let tokens: Vec<String> = term.split_whitespace()
                     .map(ToOwned::to_owned)
-                    .collect::<Vec<String>>();
+                    .collect();
 
                 imp.search_term.replace(term);
                 imp.search_tokens.replace(tokens);

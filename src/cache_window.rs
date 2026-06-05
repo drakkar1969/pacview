@@ -284,7 +284,7 @@ impl CacheWindow {
         // Get cache files
         let cache_files: Vec<CacheObject> = Pacman::cache().read().unwrap().iter()
             .map(|file| CacheObject::new(&file.display().to_string()))
-            .collect::<Vec<CacheObject>>();
+            .collect();
 
         imp.model.splice(0, imp.model.n_items(), &cache_files);
 

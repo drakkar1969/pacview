@@ -505,7 +505,7 @@ impl PkgObject {
                                 format!("[{}  {}]  {} {} {}", &caps[1], &caps[2], &caps[3], &caps[4], &caps[5])
                             })
                     })
-                    .collect::<Vec<String>>()
+                    .collect()
                 })
             })
             .await
@@ -533,7 +533,7 @@ impl PkgObject {
                             })
                     })
                     .map(|path| path.display().to_string())
-                    .collect::<Vec<String>>()
+                    .collect()
             })
             .await
             .expect("Failed to complete task")

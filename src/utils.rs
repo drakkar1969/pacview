@@ -331,7 +331,7 @@ impl AurDBFile {
 
                 tokio::io::copy(&mut decoder, &mut out_file).await?;
 
-                Ok::<(), io::Error>(())
+                Ok(())
             }
         )
         .await
@@ -430,6 +430,6 @@ impl StyleSchemes {
                 scheme_manager.scheme(id)
                     .filter(|scheme| Self::is_variant_dark(scheme) == dark)
             })
-            .collect::<Vec<StyleScheme>>()
+            .collect()
     }
 }
