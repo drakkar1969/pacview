@@ -281,6 +281,8 @@ impl CacheWindow {
     pub fn populate(&self) {
         let imp = self.imp();
 
+        self.set_loading(true);
+
         // Get cache files
         let cache_files: Vec<CacheObject> = Pacman::cache().read().unwrap().iter()
             .map(|file| CacheObject::new(&file.display().to_string()))

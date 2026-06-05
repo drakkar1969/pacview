@@ -441,6 +441,8 @@ impl BackupWindow {
     pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
+        self.set_loading(true);
+
         // Get backup list
         let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
             .flatten()

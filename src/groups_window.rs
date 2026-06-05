@@ -359,6 +359,8 @@ impl GroupsWindow {
     pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
+        self.set_loading(true);
+
         // Get list of packages with groups
         let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
             .flatten()

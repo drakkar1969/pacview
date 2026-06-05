@@ -263,6 +263,8 @@ impl LogWindow {
     pub fn populate(&self) {
         let imp = self.imp();
 
+        self.set_loading(true);
+
         // Read log lines
         let log_lines: Vec<LogLine> = Pacman::log().read().unwrap().as_ref()
             .map_or(vec![], |log| {
