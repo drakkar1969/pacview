@@ -68,6 +68,8 @@ mod imp {
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
         text: PhantomData<GString>,
+        #[property(get = Self::selected_text, nullable)]
+        selected_text: PhantomData<Option<GString>>,
 
         #[property(get, set)]
         can_expand: Cell<bool>,
@@ -98,7 +100,6 @@ mod imp {
         pub(super) link_list: RefCell<Vec<TextTag>>,
         pub(super) comment_list: RefCell<Vec<TextTag>>,
 
-        pub(super) cursor: RefCell<String>,
         pub(super) pressed_link: RefCell<Option<TextTag>>,
 
         pub(super) is_selecting: Cell<bool>,
@@ -173,10 +174,16 @@ mod imp {
     }
 
     impl WidgetImpl for TextWidget {
+        //---------------------------------------
+        // Request mode function
+        //---------------------------------------
         fn request_mode(&self) -> gtk::SizeRequestMode {
             gtk::SizeRequestMode::HeightForWidth
         }
 
+        //---------------------------------------
+        // Measure function
+        //---------------------------------------
         fn measure(&self, orientation: gtk::Orientation, for_size: i32) -> (i32, i32, i32, i32) {
             let layout = self.layout.get().unwrap();
 
@@ -240,6 +247,9 @@ mod imp {
             }
         }
 
+        //---------------------------------------
+        // Size allocate function
+        //---------------------------------------
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
             let layout = self.layout.get().unwrap();
 
@@ -535,6 +545,15 @@ mod imp {
 
             obj.set_expanded(false);
         }
+
+        //---------------------------------------
+        // Selected text property getter
+        //---------------------------------------
+        fn selected_text(&self) -> Option<GString> {
+            let (start, end) = self.selection_start.get().zip(self.selection_end.get())?;
+
+            self.text().get(start.min(end)..start.max(end)).map(GString::from)
+        }
     }
 }
 
@@ -762,17 +781,6 @@ impl TextWidget {
     }
 
     //---------------------------------------
-    // Action helper functions
-    //---------------------------------------
-    fn selected_text(&self) -> Option<String> {
-        let imp = self.imp();
-
-        let (start, end) = imp.selection_start.get().zip(imp.selection_end.get())?;
-
-        self.text().get(start.min(end)..start.max(end)).map(String::from)
-    }
-
-    //---------------------------------------
     // Update pango colors helper function
     //---------------------------------------
     fn update_pango_colors(&self) {
@@ -835,11 +843,11 @@ impl TextWidget {
             };
 
             // Update cursor if necessary
-            if cursor != *imp.cursor.borrow() {
-                imp.draw_area.set_cursor_from_name(Some(cursor));
-
-                imp.cursor.replace(cursor.to_owned());
-            }
+            if Some(cursor) != imp.draw_area.cursor()
+                .and_then(|cursor| cursor.name())
+                .as_deref() {
+                    imp.draw_area.set_cursor_from_name(Some(cursor));
+                }
         }
     }
 
