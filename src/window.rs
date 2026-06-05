@@ -128,15 +128,8 @@ mod imp {
             obj.setup_signals();
             obj.setup_widgets();
             obj.bind_gsettings();
-
-            glib::spawn_future_local(clone!(
-                #[weak] obj,
-                async move {
-                    obj.setup_alpm(true).await;
-
-                    obj.setup_inotify().await;
-                }
-            ));
+            obj.setup_alpm(true);
+            obj.setup_inotify();
         }
     }
 
@@ -151,7 +144,7 @@ mod imp {
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Refresh action
-            klass.install_action_async("win.refresh", None, async |window, _, _| {
+            klass.install_action("win.refresh", None, |window, _, _| {
                 let imp = window.imp();
 
                 let repo_id = imp.repo_sidebar.selected_item()
@@ -162,7 +155,7 @@ mod imp {
 
                 imp.package_view.count_label().set_label("");
 
-                window.setup_alpm(false).await;
+                window.setup_alpm(false);
             });
 
             // Check for updates action
@@ -615,8 +608,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm
     //---------------------------------------
-    #[allow(clippy::future_not_send)]
-    async fn setup_alpm(&self, first_load: bool) {
+    fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
         let pacman_config = Pacman::config();
@@ -650,16 +642,22 @@ impl PacViewWindow {
         self.alpm_populate_sidebar(&repo_names, first_load);
 
         // If AUR database download is enabled and AUR file does not exist, download it
-        if imp.prefs_dialog.borrow().aur_database_download()
-            && AurDBFile::path().is_some_and(|file| fs::metadata(file).is_err()) {
+        if imp.prefs_dialog.borrow().aur_database_download() && AurDBFile::path().as_ref()
+            .is_some_and(|aur_file| fs::metadata(aur_file).is_err()) {
                 imp.package_view.set_state(PackageViewState::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
 
-                let _ = AurDBFile::download().await;
-            }
+                glib::spawn_future_local(clone!(
+                    #[weak(rename_to = window)] self,
+                    async move {
+                        let _ = AurDBFile::download().await;
 
-        // Load alpm packages
-        self.alpm_load_packages(repo_names).await;
+                        window.alpm_load_packages(repo_names);
+                    }
+                ));
+            } else {
+                self.alpm_load_packages(repo_names);
+            }
     }
 
     //---------------------------------------
@@ -724,33 +722,16 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    #[allow(clippy::future_not_send)]
-    async fn alpm_load_packages(&self, repo_names: Vec<String>) {
+    fn alpm_load_packages(&self, repo_names: Vec<String>) {
         let imp = self.imp();
-
-        // Hide update count in sidebar
-        imp.update_item.borrow().set_state(StatusItemState::Reset);
-
-        // Show package view loading spinner
-        imp.package_view.set_state(PackageViewState::PackageLoad);
-
-        // Clear info pane package
-        imp.info_pane.set_pkg(None::<PkgObject>);
-
-        // Get AUR download preference
-        let aur_download = imp.prefs_dialog.borrow().aur_database_download();
 
         // Get pacman config
         let pacman_config = Pacman::config();
 
-        // Initialize PkgObject alpm handle
-        PkgObject::with_alpm_handle(|handle| {
-            let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
+        // Get AUR download preference
+        let aur_download = imp.prefs_dialog.borrow().aur_database_download();
 
-            handle.replace(alpm_handle);
-        });
-
-        // Spawn task to load package data
+        // Create task to load package data
         let (sender, receiver) = async_channel::bounded(1);
 
         let alpm_future = gio::spawn_blocking(move || {
@@ -809,74 +790,98 @@ impl PacViewWindow {
             Ok(())
         });
 
-        // Process load task messages
-        while let Ok((pkg_data, is_local_data)) = receiver.recv().await {
-            // Add packages to package view
-            let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
-                .map(PkgObject::new)
-                .collect();
+        // Attach package load task receiver
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            async move {
+                let imp = window.imp();
 
-            imp.package_view.splice_packages(&pkg_chunk, is_local_data);
+                // Hide update count in sidebar
+                imp.update_item.borrow().set_state(StatusItemState::Reset);
 
-            // Hide loading spinner and focus package view
-            if is_local_data {
-                imp.package_view.set_state(PackageViewState::Normal);
+                // Show package view loading spinner
+                imp.package_view.set_state(PackageViewState::PackageLoad);
 
-                imp.package_view.view().grab_focus();
-            }
-        }
+                // Clear info pane package
+                imp.info_pane.set_pkg(None::<PkgObject>);
 
-        // Await load task
-        let result: alpm::Result<()> = alpm_future.await
-            .expect("Failed to complete task");
+                // Initialize PkgObject alpm handle
+                PkgObject::with_alpm_handle(|handle| {
+                    let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
 
-        match result {
-            Ok(()) => {
-                // Populate windows
-                glib::idle_add_local_once(clone!(
-                    #[weak] imp,
-                    move || {
-                        imp.backup_window.borrow()
-                            .populate(&imp.package_view.pkg_model());
+                    handle.replace(alpm_handle);
+                });
 
-                        imp.cache_window.borrow().populate();
+                // Process task messages
+                while let Ok((pkg_data, is_local_data)) = receiver.recv().await {
+                    // Add packages to package view
+                    let pkg_chunk: Vec<PkgObject> = pkg_data.into_iter()
+                        .map(PkgObject::new)
+                        .collect();
 
-                        imp.groups_window.borrow()
-                            .populate(&imp.package_view.pkg_model());
+                    imp.package_view.splice_packages(&pkg_chunk, is_local_data);
 
-                        imp.log_window.borrow().populate();
+                    // Hide loading spinner and focus package view
+                    if is_local_data {
+                        imp.package_view.set_state(PackageViewState::Normal);
 
-                        imp.stats_window.borrow()
-                            .populate(&repo_names, &imp.package_view.pkg_model());
+                        imp.package_view.view().grab_focus();
                     }
-                ));
-
-                // Get package updates
-                self.get_package_updates().await;
-
-                // Check AUR package names file age
-                let (max_age, aur_download) = {
-                    let prefs_dialog = imp.prefs_dialog.borrow();
-
-                    (prefs_dialog.aur_database_age() as u64, prefs_dialog.aur_database_download())
-                };
-
-                if aur_download && AurDBFile::out_of_date(max_age) {
-                    let _ = AurDBFile::download().await;
                 }
-            },
-            Err(error) => {
-                let warning_dialog = adw::AlertDialog::builder()
-                    .heading("Alpm Error")
-                    .body(error.to_string().to_title_case())
-                    .default_response("ok")
-                    .build();
 
-                warning_dialog.add_responses(&[("ok", "_Ok")]);
+                // Await package load task
+                let result: alpm::Result<()> = alpm_future.await
+                    .expect("Failed to complete task");
 
-                warning_dialog.present(Some(self));
+                match result {
+                    Ok(()) => {
+                        // Populate windows
+                        glib::idle_add_local_once(clone!(
+                            #[weak] imp,
+                            move || {
+                                imp.backup_window.borrow()
+                                    .populate(&imp.package_view.pkg_model());
+
+                                imp.cache_window.borrow().populate();
+
+                                imp.groups_window.borrow()
+                                    .populate(&imp.package_view.pkg_model());
+
+                                imp.log_window.borrow().populate();
+
+                                imp.stats_window.borrow()
+                                    .populate(&repo_names, &imp.package_view.pkg_model());
+                            }
+                        ));
+
+                        // Get package updates
+                        window.get_package_updates().await;
+
+                        // Check AUR package names file age
+                        let (max_age, aur_download) = {
+                            let prefs_dialog = imp.prefs_dialog.borrow();
+
+                            (prefs_dialog.aur_database_age() as u64, prefs_dialog.aur_database_download())
+                        };
+
+                        if aur_download && AurDBFile::out_of_date(max_age) {
+                            let _ = AurDBFile::download().await;
+                        }
+                    },
+                    Err(error) => {
+                        let warning_dialog = adw::AlertDialog::builder()
+                            .heading("Alpm Error")
+                            .body(error.to_string().to_title_case())
+                            .default_response("ok")
+                            .build();
+
+                        warning_dialog.add_responses(&[("ok", "_Ok")]);
+
+                        warning_dialog.present(Some(&window));
+                    }
+                }
             }
-        }
+        ));
     }
 
     //---------------------------------------
@@ -967,8 +972,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup INotify
     //---------------------------------------
-    #[allow(clippy::future_not_send)]
-    async fn setup_inotify(&self) {
+    fn setup_inotify(&self) {
         let imp = self.imp();
 
         // Create async channel
@@ -995,12 +999,16 @@ impl PacViewWindow {
                 imp.notify_debouncer.set(debouncer).unwrap();
 
                 // Attach receiver for async channel
-                while receiver.recv().await == Ok(()) {
-                    if imp.prefs_dialog.borrow().auto_refresh() {
-                        gtk::prelude::WidgetExt::activate_action(self, "win.refresh", None)
-                            .unwrap();
+                glib::spawn_future_local(clone!(
+                    #[weak(rename_to = window)] self,
+                    async move {
+                        while receiver.recv().await == Ok(()) {
+                            if window.imp().prefs_dialog.borrow().auto_refresh() {
+                                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
+                            }
+                        }
                     }
-                }
+                ));
             }
         }
     }
