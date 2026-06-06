@@ -272,6 +272,7 @@ impl SourceWindow {
     //---------------------------------------
     // Download PKGBUILD function
     //---------------------------------------
+    #[allow(clippy::future_not_send)]
     async fn download_pkgbuild(&self) {
         let imp = self.imp();
 

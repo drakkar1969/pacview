@@ -778,7 +778,7 @@ impl PacViewWindow {
                 .expect("Failed to send through channel");
 
             // Load pacman sync packages
-            for db in syncdbs.iter() {
+            for db in syncdbs {
                 let mut sync_data: Vec<PkgData> = Vec::with_capacity(db.pkgs().len());
 
                 sync_data.extend(
