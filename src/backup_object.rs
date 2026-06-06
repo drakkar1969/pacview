@@ -10,7 +10,7 @@ use strum::{FromRepr, AsRefStr};
 
 use crate::{
     pkg_object::PkgBackup,
-    utils::{Paths, AsyncCommand}
+    utils::{Paths, TokioUtils}
 };
 
 //------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ impl BackupObject {
         let path = self.path();
 
         // Download original file content with paccat
-        let (status, content) = AsyncCommand::run(paccat, &[&self.package(), "--", &path])
+        let (status, content) = TokioUtils::run(paccat, &[&self.package(), "--", &path])
             .await?;
 
         if status != Some(0) {
@@ -156,7 +156,7 @@ impl BackupObject {
         }
 
         // Compare backup file with original content
-        AsyncCommand::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content)
+        TokioUtils::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content)
             .await?;
 
         Ok(())

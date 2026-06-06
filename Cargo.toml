@@ -11,7 +11,6 @@ alpm = "5"
 alpm-utils = "5"
 async-channel = "2"
 async-compression = { version = "0.4", features = ["tokio", "gzip"] }
-async-process = "2"
 configparser = "3.1.0"
 fancy-regex = "0.18"
 futures = "0.3"
@@ -29,7 +28,7 @@ reqwest = { version = "0.13", features = ["stream"] }
 size = "0.5"
 sourceview5 = { version = "0.11", features = ["v5_18"] }
 strum = { version = "0.28", features = ["derive"] }
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+tokio = { version = "1", features = ["rt-multi-thread", "process", "macros"] }
 tokio-util = "0.7"
 url = "2"
 which = "8"

@@ -33,7 +33,7 @@ use crate::{
     cache_window::CacheWindow,
     config_dialog::ConfigDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Paths, Pacman, ParuConf, AurDBFile, AsyncCommand}
+    utils::{Paths, Pacman, ParuConf, AurDBFile, TokioUtils}
 };
 
 //------------------------------------------------------------------------------
@@ -899,11 +899,11 @@ impl PacViewWindow {
         let mut update_str = String::new();
         let mut error_msg: Option<String> = None;
 
-        let pacman_handle = AsyncCommand::run("/usr/bin/checkupdates", &[""]);
+        let pacman_handle = TokioUtils::run("/usr/bin/checkupdates", &[""]);
 
         let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
             // Check for AUR updates
-            let aur_handle = AsyncCommand::run(paru_path, &["-Qu", "--mode=ap"]);
+            let aur_handle = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"]);
 
             join!(pacman_handle, aur_handle)
         } else {

@@ -15,7 +15,7 @@ use sourceview5::prelude::*;
 use crate::{
     APP_ID,
     pkg_object::PkgObject,
-    utils::{StyleSchemes, Paths, AsyncCommand}
+    utils::{StyleSchemes, Paths, TokioUtils}
 };
 
 //------------------------------------------------------------------------------
@@ -288,7 +288,7 @@ impl SourceWindow {
 
         // Download PKGBUILD with paru
         let result = if let Ok(paru_path) = Paths::paru().as_ref() {
-            AsyncCommand::run(paru_path, &["-Gp", &pkg.name()]).await
+            TokioUtils::run(paru_path, &["-Gp", &pkg.name()]).await
         } else {
             Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
         };

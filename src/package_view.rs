@@ -20,7 +20,7 @@ use crate::{
     pkg_object::PkgObject,
     search_bar::{SearchBar, SearchProp},
     info_pane::InfoPane,
-    utils::TokioRuntime,
+    utils::TokioUtils,
 };
 
 //------------------------------------------------------------------------------
@@ -610,7 +610,7 @@ impl PackageView {
             #[weak] search_bar,
             async move {
                 // Spawn tokio task to search AUR
-                let result = TokioRuntime::runtime().spawn(
+                let result = TokioUtils::runtime().spawn(
                     async move {
                         tokio::select! {
                             () = cancel_token_clone.cancelled() => Ok(vec![]),

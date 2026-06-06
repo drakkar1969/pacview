@@ -1,6 +1,6 @@
 use std::sync::{LazyLock, RwLock};
 use std::path::{PathBuf, Path};
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::fs;
 use std::io;
 use std::process::Stdio;
@@ -20,7 +20,7 @@ use tokio_util::io::StreamReader;
 use futures_util::TryStreamExt;
 use async_compression::tokio::bufread::GzipDecoder;
 use configparser::ini::Ini;
-use futures_util::AsyncWriteExt;
+use tokio::io::AsyncWriteExt;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -174,11 +174,11 @@ impl ParuConf {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: TokioRuntime
+// STRUCT: TokioUtils
 //------------------------------------------------------------------------------
-pub struct TokioRuntime;
+pub struct TokioUtils;
 
-impl TokioRuntime {
+impl TokioUtils {
     //---------------------------------------
     // Runtime function
     //---------------------------------------
@@ -189,28 +189,33 @@ impl TokioRuntime {
 
         &RUNTIME
     }
-}
 
-//------------------------------------------------------------------------------
-// STRUCT: AsyncCommand
-//------------------------------------------------------------------------------
-pub struct AsyncCommand;
-
-impl AsyncCommand {
     //---------------------------------------
     // Run function
     //---------------------------------------
     pub async fn run<I, S1, S2>(cmd: S1, args: I) -> io::Result<(Option<i32>, String)>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
-        let output = async_process::Command::new(cmd)
-            .args(args)
-            .output()
-            .await?;
+        let cmd_owned = cmd.as_ref().to_os_string();
 
-        let stdout = String::from_utf8(output.stdout)
-            .map_err(io::Error::other)?;
+        let args_owned: Vec<OsString> = args.into_iter()
+            .map(|s| s.as_ref().to_os_string())
+            .collect();
 
-        Ok((output.status.code(), stdout))
+        Self::runtime().spawn(
+            async move {
+                let output = tokio::process::Command::new(cmd_owned)
+                    .args(args_owned)
+                    .output()
+                    .await?;
+
+                let stdout = String::from_utf8(output.stdout)
+                    .map_err(io::Error::other)?;
+
+                Ok((output.status.code(), stdout))
+            }
+        )
+        .await
+        .expect("Failed to complete tokio task")
     }
 
     //---------------------------------------
@@ -218,16 +223,30 @@ impl AsyncCommand {
     //---------------------------------------
     pub async fn spawn_pipe_stdin<I, S1, S2>(cmd: S1, args: I, input: &str) -> io::Result<()>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
-        let mut child = async_process::Command::new(cmd)
-            .args(args)
-            .stdin(Stdio::piped())
-            .spawn()?;
+        let cmd_owned = cmd.as_ref().to_os_string();
 
-        if let Some(mut stdin) = child.stdin.take() {
-            stdin.write_all(input.as_bytes()).await?;
-        }
+        let args_owned: Vec<OsString> = args.into_iter()
+            .map(|s| s.as_ref().to_os_string())
+            .collect();
 
-        Ok(())
+        let input_owned = input.to_owned();
+
+        Self::runtime().spawn(
+            async move {
+                let mut child = tokio::process::Command::new(cmd_owned)
+                    .args(args_owned)
+                    .stdin(Stdio::piped())
+                    .spawn()?;
+
+                if let Some(mut stdin) = child.stdin.take() {
+                    stdin.write_all(input_owned.as_bytes()).await?;
+                }
+
+                Ok(())
+            }
+        )
+        .await
+        .expect("Failed to complete tokio task")
     }
 }
 
@@ -311,7 +330,7 @@ impl AurDBFile {
             .ok_or_else(|| io::Error::other("Failed to retrieve AUR database path"))?;
 
         // Spawn tokio task to download AUR file
-        TokioRuntime::runtime().spawn(
+        TokioUtils::runtime().spawn(
             async move {
                 let response = reqwest::Client::new()
                     .get("https://aur.archlinux.org/packages.gz")
