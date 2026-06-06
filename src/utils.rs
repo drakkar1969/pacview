@@ -247,7 +247,7 @@ impl TokioUtils {
                             // Re-reap the process handle to prevent zombie processes
                             let _ = child.wait().await; 
 
-                            return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Process cancelled"));
+                            return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Cancelled by user"));
                         }
                     }
                 }
