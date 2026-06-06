@@ -908,33 +908,33 @@ impl PacViewWindow {
 
         // Create and store update cancel token
         let cancel_token = CancellationToken::new();
-        let cancel_token_alpm = cancel_token.clone();
-        let cancel_token_aur = cancel_token.clone();
+        let alpm_token = cancel_token.clone();
+        let aur_token = cancel_token.clone();
 
         imp.update_cancel_token.replace(Some(cancel_token));
 
         // Check for pacman updates
-        let mut update_str = String::new();
+        let mut update_output = String::new();
         let mut error_msg: Option<String> = None;
 
-        let pacman_handle = TokioUtils::run("/usr/bin/checkupdates", &[""], Some(cancel_token_alpm));
+        let alpm_task = TokioUtils::run("/usr/bin/checkupdates", &[""], Some(alpm_token));
 
-        let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
+        let (alpm_result, aur_result) = if let Ok(paru_path) = Paths::paru().as_ref() {
             // Check for AUR updates
-            let aur_handle = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], Some(cancel_token_aur));
+            let aur_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], Some(aur_token));
 
-            join!(pacman_handle, aur_handle)
+            join!(alpm_task, aur_task)
         } else {
-            (pacman_handle.await, Ok((None, String::new())))
+            (alpm_task.await, Ok((None, String::new())))
         };
 
         // Remove stored update cancel token
         imp.update_cancel_token.replace(None);
 
         // Get pacman update results
-        match pacman_res {
+        match alpm_result {
             Ok((Some(0), stdout)) => {
-                update_str.push_str(&stdout);
+                update_output.push_str(&stdout);
             },
             Ok((Some(1), _)) => {
                 error_msg = Some(String::from("Failed to retrieve pacman updates: checkupdates error"));
@@ -946,9 +946,9 @@ impl PacViewWindow {
         }
 
         // Get AUR update results
-        match aur_res {
+        match aur_result {
             Ok((Some(0), stdout)) => {
-                update_str.push_str(&stdout);
+                update_output.push_str(&stdout);
             },
             Err(error) if error_msg.is_none() => {
                 error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
@@ -962,7 +962,7 @@ impl PacViewWindow {
                 .expect("Failed to compile Regex")
         });
 
-        let update_map: HashMap<String, String> = update_str.lines()
+        let update_map: HashMap<String, String> = update_output.lines()
             .filter_map(|s| {
                 EXPR.captures(s)
                     .map(|caps| (caps[1].to_string(), caps[2].to_string()))
