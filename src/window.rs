@@ -16,6 +16,7 @@ use heck::ToTitleCase;
 use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     APP_ID,
@@ -78,6 +79,8 @@ mod imp {
         pub(super) all_status_item: RefCell<StatusItem>,
         pub(super) installed_item: RefCell<StatusItem>,
         pub(super) update_item: RefCell<StatusItem>,
+
+        pub(super) update_cancel_token: RefCell<Option<CancellationToken>>,
 
         pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
 
@@ -155,11 +158,15 @@ mod imp {
 
                 imp.package_view.count_label().set_label("");
 
+                window.cancel_package_updates();
+
                 window.setup_alpm(false);
             });
 
             // Check for updates action
             klass.install_action_async("win.check-updates", None, async |window, _, _| {
+                window.cancel_package_updates();
+
                 window.get_package_updates().await;
             });
 
@@ -172,6 +179,8 @@ mod imp {
                     imp.package_view.set_state(PackageViewState::AURDownload);
                     imp.info_pane.set_pkg(None::<PkgObject>);
                     imp.package_view.count_label().set_label("");
+
+                    window.cancel_package_updates();
 
                     // Spawn tokio task to download AUR package names file
                     let _ = AurDBFile::download().await;
@@ -879,6 +888,15 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Cancel package updates
+    //---------------------------------------
+    fn cancel_package_updates(&self) {
+        if let Some(token) = self.imp().update_cancel_token.take() {
+            token.cancel();
+        }
+    }
+
+    //---------------------------------------
     // Setup alpm: get package updates
     //---------------------------------------
     #[allow(clippy::future_not_send)]
@@ -888,20 +906,30 @@ impl PacViewWindow {
         // Reset sidebar update count
         imp.update_item.borrow().set_state(StatusItemState::Checking);
 
+        // Create and store update cancel token
+        let cancel_token = CancellationToken::new();
+        let cancel_token_alpm = cancel_token.clone();
+        let cancel_token_aur = cancel_token.clone();
+
+        imp.update_cancel_token.replace(Some(cancel_token));
+
         // Check for pacman updates
         let mut update_str = String::new();
         let mut error_msg: Option<String> = None;
 
-        let pacman_handle = TokioUtils::run("/usr/bin/checkupdates", &[""]);
+        let pacman_handle = TokioUtils::run("/usr/bin/checkupdates", &[""], Some(cancel_token_alpm));
 
         let (pacman_res, aur_res) = if let Ok(paru_path) = Paths::paru().as_ref() {
             // Check for AUR updates
-            let aur_handle = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"]);
+            let aur_handle = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], Some(cancel_token_aur));
 
             join!(pacman_handle, aur_handle)
         } else {
             (pacman_handle.await, Ok((None, String::new())))
         };
+
+        // Remove stored update cancel token
+        imp.update_cancel_token.replace(None);
 
         // Get pacman update results
         match pacman_res {

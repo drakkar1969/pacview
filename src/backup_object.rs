@@ -148,7 +148,7 @@ impl BackupObject {
         let path = self.path();
 
         // Download original file content with paccat
-        let (status, content) = TokioUtils::run(paccat, &[&self.package(), "--", &path])
+        let (status, content) = TokioUtils::run(paccat, &[&self.package(), "--", &path], None)
             .await?;
 
         if status != Some(0) {

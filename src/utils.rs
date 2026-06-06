@@ -16,11 +16,13 @@ use sourceview5::{StyleScheme, StyleSchemeManager};
 use which::which_global;
 use tokio::runtime::Runtime;
 use tokio::fs::File;
+use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use tokio_util::io::StreamReader;
+use tokio_util::sync::CancellationToken;
 use futures_util::TryStreamExt;
 use async_compression::tokio::bufread::GzipDecoder;
 use configparser::ini::Ini;
-use tokio::io::AsyncWriteExt;
+use regex::Regex;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -193,7 +195,7 @@ impl TokioUtils {
     //---------------------------------------
     // Run function
     //---------------------------------------
-    pub async fn run<I, S1, S2>(cmd: S1, args: I) -> io::Result<(Option<i32>, String)>
+    pub async fn run<I, S1, S2>(cmd: S1, args: I, token: Option<CancellationToken>) -> io::Result<(Option<i32>, String)>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         let cmd_owned = cmd.as_ref().to_os_string();
 
@@ -203,15 +205,49 @@ impl TokioUtils {
 
         Self::runtime().spawn(
             async move {
-                let output = tokio::process::Command::new(cmd_owned)
+                // Spawn process
+                let mut child = tokio::process::Command::new(cmd_owned)
                     .args(args_owned)
-                    .output()
-                    .await?;
+                    .stdout(Stdio::piped())
+                    .spawn()?;
 
-                let stdout = String::from_utf8(output.stdout)
-                    .map_err(io::Error::other)?;
+                let mut stdout_pipe = child.stdout.take().unwrap();
 
-                Ok((output.status.code(), stdout))
+                // Resolve cancellation token
+                let cancellation_future = async {
+                    if let Some(token) = token {
+                        token.cancelled().await;
+                    } else {
+                        std::future::pending::<()>().await; 
+                    }
+                };
+
+                // Wait for process or cancellation
+                tokio::select! {
+                    result = child.wait() => {
+                        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
+                                .expect("Failed to compile Regex")
+                        });
+
+                        let status = result?.code();
+
+                        let mut buffer = vec![];
+
+                        stdout_pipe.read_to_end(&mut buffer).await?;
+
+                        let stdout = String::from_utf8(buffer)
+                            .map(|stdout| EXPR.replace_all(&stdout, "").into_owned())
+                            .map_err(io::Error::other)?;
+
+                        Ok((status, stdout))
+                    }
+                    () = cancellation_future => {
+                        let _ = child.kill().await;
+
+                        Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Process cancelled"))
+                    }
+                }
             }
         )
         .await
