@@ -147,11 +147,10 @@ mod imp {
                 let spinner = adw::SpinnerPaintable::new(Some(&imp.compare_button.get()));
                 imp.compare_image.set_paintable(Some(&spinner));
 
-                let item = imp.selection.selected_item()
-                    .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'");
-
-                let _ = item.compare_with_original().await;
+                if let Some(backup_file) = imp.selection.selected_item()
+                    .and_downcast::<BackupObject>() {
+                        let _ = backup_file.compare_with_original().await;
+                    }
 
                 imp.compare_image.set_icon_name(Some("info-compare-symbolic"));
             });

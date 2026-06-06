@@ -891,7 +891,9 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Reset sidebar update count
-        imp.update_item.borrow().set_state(StatusItemState::Checking);
+        let update_item = imp.update_item.borrow();
+
+        update_item.set_state(StatusItemState::Checking);
 
         // Check for pacman updates
         let mut update_str = String::new();
@@ -957,15 +959,12 @@ impl PacViewWindow {
         }
 
         // Show update status/count in sidebar
-        let update_item = imp.update_item.borrow();
-
         update_item.set_state(StatusItemState::Updates(error_msg, update_map.len() as u32));
 
         // If update item is selected, refresh package status filter
-        if imp.status_sidebar.selected_item()
-            .and_downcast::<StatusItem>().as_ref() == Some(&*update_item) {
-                imp.package_view.status_filter_changed(update_item.id());
-            }
+        if imp.status_sidebar.selected() == update_item.index() {
+            imp.package_view.status_filter_changed(update_item.id());
+        }
     }
 
     //---------------------------------------

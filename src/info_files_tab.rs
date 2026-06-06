@@ -145,11 +145,10 @@ mod imp {
 
                 imp.backup_compare_image.set_paintable(Some(&spinner));
 
-                let item = imp.backup_selection.selected_item()
-                    .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'");
-
-                let _ = item.compare_with_original().await;
+                if let Some(backup_file) = imp.backup_selection.selected_item()
+                    .and_downcast::<BackupObject>() {
+                        let _ = backup_file.compare_with_original().await;
+                    }
 
                 imp.backup_compare_image.set_icon_name(Some("info-compare-symbolic"));
             });
