@@ -1,4 +1,4 @@
-use std::cell::OnceCell;
+use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::fmt::Write as _;
 
@@ -11,6 +11,7 @@ use gdk::{Key, ModifierType};
 use pango::{FontDescription, FontMask, Weight};
 
 use sourceview5::prelude::*;
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     APP_ID,
@@ -36,6 +37,10 @@ mod imp {
         #[template_child]
         pub(super) url_button: TemplateChild<gtk::Button>,
         #[template_child]
+        pub(super) cancel_button: TemplateChild<gtk::Button>,
+        #[template_child]
+        pub(super) refresh_button: TemplateChild<gtk::Button>,
+        #[template_child]
         pub(super) source_view: TemplateChild<sourceview5::View>,
         #[template_child]
         pub(super) error_status: TemplateChild<adw::StatusPage>,
@@ -44,6 +49,8 @@ mod imp {
         buffer: PhantomData<sourceview5::Buffer>,
         #[property(get, set, construct_only)]
         pkg: OnceCell<PkgObject>,
+
+        pub(super) cancel_token: RefCell<Option<CancellationToken>>,
     }
 
     //---------------------------------------
@@ -127,8 +134,15 @@ mod imp {
                 }
             });
 
+            // Cancel action
+            klass.install_action_async("source.cancel", None, async |window, _, _| {
+                window.cancel_download();
+            });
+
             // Refresh action
             klass.install_action_async("source.refresh", None, async |window, _, _| {
+                window.cancel_download();
+
                 window.download_pkgbuild().await;
             });
         }
@@ -270,6 +284,15 @@ impl SourceWindow {
     }
 
     //---------------------------------------
+    // Cancel download function
+    //---------------------------------------
+    fn cancel_download(&self) {
+        if let Some(token) = self.imp().cancel_token.take() {
+            token.cancel();
+        }
+    }
+
+    //---------------------------------------
     // Download PKGBUILD function
     //---------------------------------------
     #[allow(clippy::future_not_send)]
@@ -286,9 +309,22 @@ impl SourceWindow {
         imp.url_button.set_tooltip_text(url.as_deref());
         self.action_set_enabled("source.url", url.is_some());
 
+        // Set cancel/refresh state
+        imp.cancel_button.set_visible(true);
+        imp.refresh_button.set_visible(false);
+        self.action_set_enabled("source.cancel", true);
+        self.action_set_enabled("source.refresh", false);
+
+        // Create and store cancel token
+        let cancel_token = CancellationToken::new();
+
+        let cancel_token_clone = cancel_token.clone();
+
+        imp.cancel_token.replace(Some(cancel_token));
+
         // Download PKGBUILD with paru
         let result = if let Ok(paru_path) = Paths::paru().as_ref() {
-            TokioUtils::run(paru_path, &["-Gp", &pkg.name()], None).await
+            TokioUtils::run(paru_path, &["-Gp", &pkg.name()], Some(cancel_token_clone)).await
         } else {
             Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
         };
@@ -319,6 +355,15 @@ impl SourceWindow {
             }
             _ => {}
         }
+
+        // Remove stored cancel token
+        imp.cancel_token.replace(None);
+
+        // Set cancel/refresh state
+        imp.cancel_button.set_visible(false);
+        imp.refresh_button.set_visible(true);
+        self.action_set_enabled("source.cancel", false);
+        self.action_set_enabled("source.refresh", true);
     }
 
     //---------------------------------------
