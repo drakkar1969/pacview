@@ -2,7 +2,7 @@
 <interface>
   <!--// BackupWindow template //-->
   <template class="BackupWindow" parent="AdwWindow">
-    <property name="default-width">900</property>
+    <property name="default-width">800</property>
     <property name="default-height">640</property>
     <property name="modal">true</property>
     <property name="hide-on-close">true</property>
