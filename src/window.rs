@@ -839,6 +839,9 @@ impl PacViewWindow {
 
                 match result {
                     Ok(()) => {
+                        // Get package updates
+                        window.get_package_updates().await;
+
                         // Populate windows
                         glib::idle_add_local_once(clone!(
                             #[weak] imp,
@@ -852,9 +855,6 @@ impl PacViewWindow {
                                 imp.stats_window.borrow().populate(&repo_names, &pkg_model);
                             }
                         ));
-
-                        // Get package updates
-                        window.get_package_updates().await;
 
                         // Check AUR package names file age
                         let (max_age, aur_download) = {
@@ -891,9 +891,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Reset sidebar update count
-        let update_item = imp.update_item.borrow();
-
-        update_item.set_state(StatusItemState::Checking);
+        imp.update_item.borrow().set_state(StatusItemState::Checking);
 
         // Check for pacman updates
         let mut update_str = String::new();
@@ -959,6 +957,8 @@ impl PacViewWindow {
         }
 
         // Show update status/count in sidebar
+        let update_item = imp.update_item.borrow();
+
         update_item.set_state(StatusItemState::Updates(error_msg, update_map.len() as u32));
 
         // If update item is selected, refresh package status filter
