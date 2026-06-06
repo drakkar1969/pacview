@@ -8,8 +8,7 @@
       <object class="AdwToolbarView">
         <property name="top-bar-style">raised</property>
         <child type="top">
-          <object class="AdwHeaderBar">
-          </object>
+          <object class="AdwHeaderBar"/>
         </child>
         <property name="content">
           <object class="GtkListBox">

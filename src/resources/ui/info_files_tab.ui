@@ -105,8 +105,7 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkCustomFilter" id="files_folder_filter">
-                              </object>
+                              <object class="GtkCustomFilter" id="files_folder_filter"/>
                             </child>
                           </object>
                         </property>

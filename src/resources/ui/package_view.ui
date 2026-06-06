@@ -67,8 +67,7 @@
               </object>
             </child>
             <child>
-              <object class="SearchBar" id="search_bar">
-              </object>
+              <object class="SearchBar" id="search_bar"/>
             </child>
           </object>
         </child>

@@ -118,8 +118,7 @@
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkCustomFilter" id="signature_filter">
-                                      </object>
+                                      <object class="GtkCustomFilter" id="signature_filter"/>
                                     </child>
                                   </object>
                                 </property>

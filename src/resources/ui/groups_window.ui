@@ -132,8 +132,7 @@
                                     <property name="filter">
                                       <object class="GtkEveryFilter" id="main_filter">
                                         <child>
-                                          <object class="GtkCustomFilter" id="search_filter">
-                                          </object>
+                                          <object class="GtkCustomFilter" id="search_filter"/>
                                         </child>
                                         <child>
                                           <object class="GtkCustomFilter" id="installed_filter"/>
