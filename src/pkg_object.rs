@@ -347,13 +347,26 @@ impl PkgObject {
     //---------------------------------------
     // Alpm handle associated function
     //---------------------------------------
-    pub fn with_alpm_handle<F, R>(f: F) -> R
+    fn with_alpm_handle<F, R>(f: F) -> R
     where F: FnOnce(&RefCell<Option<Alpm>>) -> R {
         thread_local! {
             static ALPM_HANDLE: RefCell<Option<Alpm>> = const { RefCell::new(None) };
         }
 
         ALPM_HANDLE.with(f)
+    }
+
+    //---------------------------------------
+    // Init alpm handle associated function
+    //---------------------------------------
+    pub fn init_alpm_handle() {
+        Self::with_alpm_handle(|handle| {
+            let pacman_config = Pacman::config();
+
+            let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
+
+            handle.replace(alpm_handle);
+        });
     }
 
     //---------------------------------------
