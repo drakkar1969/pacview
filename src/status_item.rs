@@ -11,17 +11,17 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: StatusItemState
 //------------------------------------------------------------------------------
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 #[repr(u32)]
 pub enum StatusItemState {
-    Updates(Option<String>, u32),
+    Updates(usize, Option<String>),
     Reset,
     Checking,
 }
 
 impl Default for StatusItemState {
     fn default() -> Self {
-        Self::Updates(None, 0)
+        Self::Updates(0, None)
     }
 }
 
@@ -129,35 +129,22 @@ impl StatusItem {
     pub fn set_state(&self, state: StatusItemState) {
         let imp = self.imp();
 
-        let error_button = imp.error_button.borrow();
-        let spinner = imp.spinner.borrow();
         let count_label = imp.count_label.borrow();
+        let error_button = imp.error_button.borrow();
         let error_label = imp.error_label.borrow();
 
-        match state {
-            StatusItemState::Updates(error, count) => {
-                spinner.set_visible(false);
+        imp.spinner.borrow().set_visible(state == StatusItemState::Checking);
 
-                count_label.set_visible(count != 0);
-                count_label.set_label(&count.to_string());
+        if let StatusItemState::Updates(count, error) = state {
+            count_label.set_visible(count != 0);
+            count_label.set_label(&count.to_string());
 
-                if let Some(error) = error {
-                    error_label.set_label(&error);
-                    error_button.set_visible(true);
-                } else {
-                    error_button.set_visible(false);
-                }
-            },
-            StatusItemState::Reset => {
-                spinner.set_visible(false);
-                count_label.set_visible(false);
-                error_button.set_visible(false);
-            }
-            StatusItemState::Checking => {
-                error_button.set_visible(false);
-                count_label.set_visible(false);
-                spinner.set_visible(true);
-            }
+            error_button.set_visible(error.is_some());
+            error_label.set_label(&error.unwrap_or_default());
+        } else {
+            count_label.set_visible(false);
+
+            error_button.set_visible(false);
         }
     }
 }

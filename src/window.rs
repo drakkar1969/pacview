@@ -954,7 +954,7 @@ impl PacViewWindow {
         // Show update status/count in sidebar
         let update_item = imp.update_item.borrow();
 
-        update_item.set_state(StatusItemState::Updates(error_msg, update_map.len() as u32));
+        update_item.set_state(StatusItemState::Updates(update_map.len(), error_msg));
 
         // If update item is selected, refresh package status filter
         if imp.status_sidebar.selected() == update_item.index() {
