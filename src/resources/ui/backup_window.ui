@@ -157,16 +157,10 @@
                                     <property name="filter">
                                       <object class="GtkEveryFilter" id="main_filter">
                                         <child>
-                                          <object class="GtkCustomFilter" id="search_filter">
-                                          </object>
+                                          <object class="GtkCustomFilter" id="search_filter"/>
                                         </child>
                                         <child>
-                                          <object class="GtkStringFilter" id="status_filter">
-                                            <property name="expression">
-                                              <lookup name="status-text" type="BackupObject"/>
-                                            </property>
-                                            <property name="match-mode">exact</property>
-                                          </object>
+                                          <object class="GtkCustomFilter" id="status_filter"/>
                                         </child>
                                       </object>
                                     </property>

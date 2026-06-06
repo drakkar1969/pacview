@@ -23,11 +23,11 @@ use crate::{
 pub enum BackupStatus {
     All,
     Modified,
-    Unmodified,
     #[default]
     #[strum(serialize = "access denied")]
     #[enum_value(name = "Access Denied")]
     Locked,
+    Unmodified,
 }
 
 //------------------------------------------------------------------------------
@@ -100,9 +100,8 @@ mod imp {
         fn status_css_classes(&self) -> Vec<String> {
             match self.status() {
                 BackupStatus::Modified => vec!["tag", "warning"],
-                BackupStatus::Unmodified => vec!["tag", "success"],
                 BackupStatus::Locked => vec!["tag", "error"],
-                BackupStatus::All => vec![]
+                _ => vec![]
             }
             .into_iter()
             .map(ToOwned::to_owned)
@@ -110,7 +109,13 @@ mod imp {
         }
 
         fn status_text(&self) -> String {
-            self.status().as_ref().to_owned()
+            let status = self.status();
+
+            if status == BackupStatus::Modified || status == BackupStatus::Locked {
+                status.as_ref().to_owned()
+            } else {
+                String::new()
+            }
         }
     }
 }

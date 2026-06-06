@@ -71,7 +71,7 @@ mod imp {
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
-        pub(super) status_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) status_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
 
@@ -286,14 +286,8 @@ impl BackupWindow {
         // Status dropdown selected property notify signal
         imp.status_dropdown.connect_selected_item_notify(clone!(
             #[weak] imp,
-            move |dropdown| {
-                let status = BackupStatus::from_repr(dropdown.selected()).unwrap_or_default();
-
-                if status == BackupStatus::All {
-                    imp.status_filter.set_search(None);
-                } else {
-                    imp.status_filter.set_search(Some(status.as_ref()));
-                }
+            move |_| {
+                imp.status_filter.changed(gtk::FilterChange::Different);
 
                 imp.view.grab_focus();
             }
@@ -423,6 +417,25 @@ impl BackupWindow {
                     BackupSearchMode::Files => {
                         is_match(&obj.path())
                     },
+                }
+            }
+        ));
+
+        imp.status_filter.set_filter_func(clone!(
+            #[weak] imp,
+            #[upgrade_or] false,
+            move |item| {
+                let obj = item
+                    .downcast_ref::<BackupObject>()
+                    .expect("Failed to downcast to 'BackupObject'");
+
+                let status = BackupStatus::from_repr(imp.status_dropdown.selected())
+                    .unwrap_or_default();
+
+                if status == BackupStatus::All {
+                    true
+                } else {
+                    obj.status() == status
                 }
             }
         ));
