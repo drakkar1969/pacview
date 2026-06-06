@@ -35,8 +35,6 @@ mod imp {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) url_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) refresh_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) source_view: TemplateChild<sourceview5::View>,
@@ -303,7 +301,6 @@ impl SourceWindow {
         let url = pkg.pkgbuild_url();
 
         // Set URL button tooltip
-        imp.url_button.set_tooltip_text(url.as_deref());
         self.action_set_enabled("source.url", url.is_some());
 
         // Set loading property
