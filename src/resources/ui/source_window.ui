@@ -40,21 +40,10 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkBox">
-                <child>
-                  <object class="GtkButton" id="cancel_button">
-                    <property name="action-name">source.cancel</property>
-                    <property name="icon-name">process-stop-symbolic</property>
-                    <property name="tooltip-text">Cancel Download</property>
-                  </object>
-                </child>
-                <child>
-                <object class="GtkButton" id="refresh_button">
-                  <property name="action-name">source.refresh</property>
-                  <property name="icon-name">view-refresh-symbolic</property>
-                  <property name="tooltip-text">Refresh</property>
-                </object>
-                </child>
+              <object class="GtkButton" id="refresh_button">
+                <property name="action-name">source.refresh</property>
+                <property name="icon-name">view-refresh-symbolic</property>
+                <property name="tooltip-text">Refresh</property>
               </object>
             </child>
           </object>

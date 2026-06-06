@@ -1,4 +1,4 @@
-use std::cell::{RefCell, OnceCell};
+use std::cell::{Cell, RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::fmt::Write as _;
 
@@ -37,8 +37,6 @@ mod imp {
         #[template_child]
         pub(super) url_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) cancel_button: TemplateChild<gtk::Button>,
-        #[template_child]
         pub(super) refresh_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) source_view: TemplateChild<sourceview5::View>,
@@ -49,6 +47,8 @@ mod imp {
         buffer: PhantomData<sourceview5::Buffer>,
         #[property(get, set, construct_only)]
         pkg: OnceCell<PkgObject>,
+        #[property(get, set)]
+        loading: Cell<bool>,
 
         pub(super) cancel_token: RefCell<Option<CancellationToken>>,
     }
@@ -134,16 +134,13 @@ mod imp {
                 }
             });
 
-            // Cancel action
-            klass.install_action_async("source.cancel", None, async |window, _, _| {
-                window.cancel_download();
-            });
-
             // Refresh action
             klass.install_action_async("source.refresh", None, async |window, _, _| {
                 window.cancel_download();
 
-                window.download_pkgbuild().await;
+                if !window.loading() {
+                    window.download_pkgbuild().await;
+                }
             });
         }
 
@@ -309,11 +306,8 @@ impl SourceWindow {
         imp.url_button.set_tooltip_text(url.as_deref());
         self.action_set_enabled("source.url", url.is_some());
 
-        // Set cancel/refresh state
-        imp.cancel_button.set_visible(true);
-        imp.refresh_button.set_visible(false);
-        self.action_set_enabled("source.cancel", true);
-        self.action_set_enabled("source.refresh", false);
+        // Set loading property
+        self.set_loading(true);
 
         // Create and store cancel token
         let cancel_token = CancellationToken::new();
@@ -359,11 +353,8 @@ impl SourceWindow {
         // Remove stored cancel token
         imp.cancel_token.replace(None);
 
-        // Set cancel/refresh state
-        imp.cancel_button.set_visible(false);
-        imp.refresh_button.set_visible(true);
-        self.action_set_enabled("source.cancel", false);
-        self.action_set_enabled("source.refresh", true);
+        // Set loading property
+        self.set_loading(false);
     }
 
     //---------------------------------------
@@ -391,6 +382,31 @@ impl SourceWindow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind loading property to widgets
+        self.bind_property("loading", &imp.refresh_button.get(), "icon_name")
+            .transform_to(|_, loading: bool| {
+                if loading {
+                    Some("process-stop-symbolic")
+                } else {
+                    Some("view-refresh-symbolic")
+                }
+            })
+            .sync_create()
+            .build();
+
+        self.bind_property("loading", &imp.refresh_button.get(), "tooltip-text")
+            .transform_to(|_, loading: bool| {
+                if loading {
+                    Some("Cancel Download")
+                } else {
+                    Some("Refresh")
+                }
+            })
+            .sync_create()
+            .build();
+
         // Set syntax highlighting language
         let buffer = self.buffer();
 
