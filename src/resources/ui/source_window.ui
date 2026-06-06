@@ -30,7 +30,7 @@
                     <property name="action-name">source.url</property>
                     <property name="child">
                       <object class="AdwButtonContent">
-                        <property name="icon-name">web-browser-symbolic</property>
+                        <property name="icon-name">help-website-symbolic</property>
                         <property name="label">So_urce</property>
                         <property name="use-underline">true</property>
                       </object>
