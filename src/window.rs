@@ -747,7 +747,9 @@ impl PacViewWindow {
                 String::new()
             };
 
-            let aur_names: HashSet<&str> = aur_file.lines().collect();
+            let n_lines = aur_file.lines().count();
+            let mut aur_names: HashSet<&str> = HashSet::with_capacity(n_lines);
+            aur_names.extend(aur_file.lines());
 
             // Get paru repo package map
             let paru_map = ParuConf::local_pkg_map();
@@ -776,16 +778,18 @@ impl PacViewWindow {
                 .expect("Failed to send through channel");
 
             // Load pacman sync packages
-            let sync_data: Vec<PkgData> = syncdbs.iter()
-                .flat_map(|db| {
+            for db in syncdbs.iter() {
+                let mut sync_data: Vec<PkgData> = Vec::with_capacity(db.pkgs().len());
+
+                sync_data.extend(
                     db.pkgs().iter()
                         .filter(|pkg| localdb.pkg(pkg.name()).is_err())
                         .map(|pkg| PkgData::from_alpm(pkg, false, db.name()))
-                })
-                .collect();
+                );
 
-            sender.send_blocking((sync_data, false))
-                .expect("Failed to send through channel");
+                sender.send_blocking((sync_data, false))
+                    .expect("Failed to send through channel");
+            }
 
             Ok(())
         });
@@ -839,18 +843,13 @@ impl PacViewWindow {
                         glib::idle_add_local_once(clone!(
                             #[weak] imp,
                             move || {
-                                imp.backup_window.borrow()
-                                    .populate(&imp.package_view.pkg_model());
+                                let pkg_model = imp.package_view.pkg_model();
 
+                                imp.backup_window.borrow().populate(&pkg_model);
                                 imp.cache_window.borrow().populate();
-
-                                imp.groups_window.borrow()
-                                    .populate(&imp.package_view.pkg_model());
-
+                                imp.groups_window.borrow().populate(&pkg_model);
                                 imp.log_window.borrow().populate();
-
-                                imp.stats_window.borrow()
-                                    .populate(&repo_names, &imp.package_view.pkg_model());
+                                imp.stats_window.borrow().populate(&repo_names, &pkg_model);
                             }
                         ));
 
