@@ -184,7 +184,7 @@ mod imp {
 
             // Package view copy list action
             klass.install_action("win.copy-package-list", None, |window, _, _| {
-                 window.clipboard().set_text(&window.imp().package_view.copy_list());
+                 window.imp().package_view.copy_list();
             });
 
             // Show sidebar action
