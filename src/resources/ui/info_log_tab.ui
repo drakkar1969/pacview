@@ -44,7 +44,7 @@
     </child>
     <child>
       <object class="GtkOverlay">
-        <child>
+        <property name="child">
           <object class="GtkScrolledWindow">
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
@@ -71,7 +71,7 @@
               </object>
             </property>
           </object>
-        </child>
+        </property>
         <child type="overlay">
           <object class="AdwSpinner" id="log_spinner">
             <property name="visible">false</property>
@@ -142,7 +142,7 @@
     </child>
     <child>
       <object class="GtkOverlay">
-        <child>
+        <property name="child">
           <object class="GtkScrolledWindow">
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
@@ -169,7 +169,7 @@
               </object>
             </property>
           </object>
-        </child>
+        </property>
         <child type="overlay">
           <object class="AdwSpinner" id="cache_spinner">
             <property name="visible">false</property>
