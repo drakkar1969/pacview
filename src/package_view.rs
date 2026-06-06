@@ -227,7 +227,7 @@ impl PackageView {
         imp.factory.connect_setup(|_, obj| {
             let item = obj
                 .downcast_ref::<gtk::ListItem>()
-                .expect("Could not downcast to 'GtkLIstItem'");
+                .expect("Failed to downcast to 'GtkLIstItem'");
 
             let package_item = PackageItem::default();
 
@@ -240,15 +240,15 @@ impl PackageView {
         imp.factory.connect_bind(|_, obj| {
             let item = obj
                 .downcast_ref::<gtk::ListItem>()
-                .expect("Could not downcast to 'GtkListItem'");
+                .expect("Failed to downcast to 'GtkListItem'");
 
             let child = item.child()
                 .and_downcast::<PackageItem>()
-                .expect("Could not downcast to 'PackageItem'");
+                .expect("Failed to downcast to 'PackageItem'");
 
             let pkg = item.item()
                 .and_downcast::<PkgObject>()
-                .expect("Could not downcast to 'PkgObject'");
+                .expect("Failed to downcast to 'PkgObject'");
 
             child.bind(&pkg);
         });

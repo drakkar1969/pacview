@@ -64,7 +64,7 @@ impl RepoItem {
     pub fn activate(&self) {
         let sidebar = self.section()
             .and_then(|section| section.sidebar())
-            .expect("Could not get sidebar");
+            .expect("Failed to get item sidebar");
 
         sidebar.set_selected(self.index());
         sidebar.emit_by_name::<()>("activated", &[&(self.index())]);

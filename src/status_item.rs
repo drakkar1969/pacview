@@ -79,7 +79,7 @@ impl StatusItem {
 
         // Create status item
         let indicator = builder.object::<gtk::Box>("indicator")
-            .expect("Could not get object from builder");
+            .expect("Failed to get object from builder");
 
         let obj: Self = glib::Object::builder()
             .property("icon-name", icon)
@@ -92,16 +92,16 @@ impl StatusItem {
         let imp = obj.imp();
 
         let error_button = builder.object::<gtk::MenuButton>("error_button")
-            .expect("Could not get object from builder");
+            .expect("Failed to get object from builder");
 
         let spinner = builder.object::<adw::Spinner>("spinner")
-            .expect("Could not get object from builder");
+            .expect("Failed to get object from builder");
 
         let count_label = builder.object::<gtk::Label>("count_label")
-            .expect("Could not get object from builder");
+            .expect("Failed to get object from builder");
 
         let error_label = builder.object::<gtk::Label>("error_label")
-            .expect("Could not get object from builder");
+            .expect("Failed to get object from builder");
 
         imp.error_button.replace(error_button);
         imp.spinner.replace(spinner);
@@ -117,7 +117,7 @@ impl StatusItem {
     pub fn activate(&self) {
         let sidebar = self.section()
             .and_then(|section| section.sidebar())
-            .expect("Could not get sidebar");
+            .expect("Failed to get item sidebar");
 
         sidebar.set_selected(self.index());
         sidebar.emit_by_name::<()>("activated", &[&(self.index())]);

@@ -78,7 +78,7 @@ mod imp {
                 async |_, _, param| {
                     let paths = param
                         .and_then(|param| param.get::<String>())
-                        .expect("Could not get string from variant");
+                        .expect("Failed to get string from variant");
 
                     for path in paths.split('\n') {
                         AppInfoExt::open_with_default_app(path).await;
