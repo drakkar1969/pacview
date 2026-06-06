@@ -211,6 +211,7 @@ impl TokioUtils {
                     .stdout(Stdio::piped())
                     .spawn()?;
 
+                // Get stdout pipe
                 let mut stdout_pipe = child.stdout.take().unwrap();
 
                 // Resolve cancellation token
@@ -222,32 +223,57 @@ impl TokioUtils {
                     }
                 };
 
-                // Wait for process or cancellation
-                tokio::select! {
-                    result = child.wait() => {
+                tokio::pin!(cancellation_future);
+
+                // Loop: read stdout or wait for process or check for cancellation
+                let mut exit_status = None;
+                let mut buffer = vec![];
+
+                while exit_status.is_none() {
+                    tokio::select! {
+                        read = stdout_pipe.read_buf(&mut buffer) => {
+                            // EOF
+                            if read? == 0 {
+                                break;
+                            }
+                        }
+                        status = child.wait() => {
+                            exit_status = Some(status?);
+                        }
+                        () = &mut cancellation_future => {
+                            // Kill the process immediately
+                            child.kill().await?;
+
+                            // Re-reap the process handle to prevent zombie processes
+                            let _ = child.wait().await; 
+
+                            return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Process cancelled"));
+                        }
+                    }
+                }
+
+                // Get status code
+                let code = match exit_status {
+                    Some(status) => status,
+                    None => child.wait().await?
+                }
+                .code();
+
+                // Finish reading stdout
+                stdout_pipe.read_to_end(&mut buffer).await?;
+
+                let stdout = String::from_utf8(buffer)
+                    .map(|stdout| {
                         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                             Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
                                 .expect("Failed to compile Regex")
                         });
 
-                        let status = result?.code();
+                        EXPR.replace_all(&stdout, "").into_owned()
+                    })
+                    .map_err(io::Error::other)?;
 
-                        let mut buffer = vec![];
-
-                        stdout_pipe.read_to_end(&mut buffer).await?;
-
-                        let stdout = String::from_utf8(buffer)
-                            .map(|stdout| EXPR.replace_all(&stdout, "").into_owned())
-                            .map_err(io::Error::other)?;
-
-                        Ok((status, stdout))
-                    }
-                    () = cancellation_future => {
-                        let _ = child.kill().await;
-
-                        Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Process cancelled"))
-                    }
-                }
+                Ok((code, stdout))
             }
         )
         .await
