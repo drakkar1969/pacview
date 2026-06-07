@@ -98,8 +98,8 @@ mod imp {
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Copy info action
-            klass.install_action("infopane.copy-info", None, |pane, _, _| {
-                if let Some(pkg) = pane.pkg() {
+            klass.install_action("infopane.copy-info", None, |tab, _, _| {
+                if let Some(pkg) = tab.pkg() {
                     let mut output = String::from("## Package Information\n");
 
                     let _ = writeln!(output, "- **Name** : {}", pkg.name());
@@ -109,7 +109,7 @@ mod imp {
                     let _ = writeln!(output, "- **Installed Size** : {}", pkg.install_size_string());
                     let _ = writeln!(output, "- **Status** : {}", pkg.status());
 
-                    let mut child = pane.imp().listbox.first_child();
+                    let mut child = tab.imp().listbox.first_child();
 
                     while let Some(row) = child.and_downcast::<InfoRow>() {
                         if row.is_visible() {
@@ -124,14 +124,14 @@ mod imp {
                         child = row.next_sibling();
                     }
 
-                    pane.clipboard().set_text(&output);
+                    tab.clipboard().set_text(&output);
                 }
             });
 
             // Show PKGBUILD action
-            klass.install_action("infopane.show-pkgbuild", None, |pane, _, _| {
-                if let Some(pkg) = pane.pkg() {
-                    let parent = pane.root()
+            klass.install_action("infopane.show-pkgbuild", None, |tab, _, _| {
+                if let Some(pkg) = tab.pkg() {
+                    let parent = tab.root()
                         .and_downcast::<gtk::Window>()
                         .expect("Failed to downcast to 'GtkWindow'");
 
@@ -142,15 +142,15 @@ mod imp {
             });
 
             // Show hashes action
-            klass.install_action("infopane.show-hashes", None, |pane, _, _| {
-                if let Some(pkg) = pane.pkg()
+            klass.install_action("infopane.show-hashes", None, |tab, _, _| {
+                if let Some(pkg) = tab.pkg()
                     .filter(|pkg| {
                         let validation = pkg.validation();
 
                         !(validation.intersects(PkgValidation::UNKNOWN)
                             || validation.intersects(PkgValidation::NONE))
                     }) {
-                        let parent = pane.root()
+                        let parent = tab.root()
                             .and_downcast::<gtk::Window>()
                             .expect("Failed to downcast to 'GtkWindow'");
 
