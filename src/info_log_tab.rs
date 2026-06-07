@@ -7,8 +7,7 @@ use gtk::{glib, gio};
 use glib::clone;
 
 use crate::{
-    pkg_object::PkgObject,
-    utils::AppInfoExt
+    pkg_object::PkgObject
 };
 
 //------------------------------------------------------------------------------
@@ -25,26 +24,13 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_log_tab.ui")]
     pub struct InfoLogTab {
         #[template_child]
-        pub(super) log_header_label: TemplateChild<gtk::Label>,
+        pub(super) header_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) log_model: TemplateChild<gio::ListStore>,
+        pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub(super) log_selection: TemplateChild<gtk::NoSelection>,
+        pub(super) selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
-        pub(super) log_spinner: TemplateChild<adw::Spinner>,
-
-        #[template_child]
-        pub(super) cache_header_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) cache_count_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) cache_view: TemplateChild<gtk::ListView>,
-        #[template_child]
-        pub(super) cache_model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub(super) cache_selection: TemplateChild<gtk::SingleSelection>,
-        #[template_child]
-        pub(super) cache_spinner: TemplateChild<adw::Spinner>,
+        pub(super) spinner: TemplateChild<adw::Spinner>,
 
         #[property(get, set)]
         pkg_name: RefCell<String>,
@@ -92,35 +78,13 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Copy log action
+            // Copy action
             klass.install_action("info.log-copy", None, |tab, _, _| {
                 let mut output = String::new();
 
                 let _ = writeln!(output, "## {}\n|Log Messages|\n|---|", tab.pkg_name());
 
-                for obj in tab.imp().log_model.iter::<gtk::StringObject>()
-                    .flatten() {
-                        let _ = writeln!(output, "{}", obj.string());
-                    }
-
-                tab.clipboard().set_text(&output);
-            });
-
-            // Open cache action
-            klass.install_action_async("info.cache-open", None, async |tab, _, _| {
-                if let Some(cache_file) = tab.imp().cache_selection.selected_item()
-                    .and_downcast::<gtk::StringObject>() {
-                        AppInfoExt::open_containing_folder(&cache_file.string()).await;
-                    }
-            });
-
-            // Copy cache action
-            klass.install_action("info.cache-copy", None, |tab, _, _| {
-                let mut output = String::new();
-
-                let _ = writeln!(output, "## {}\n|Cache Files|\n|---|", tab.pkg_name());
-
-                for obj in tab.imp().cache_model.iter::<gtk::StringObject>()
+                for obj in tab.imp().model.iter::<gtk::StringObject>()
                     .flatten() {
                         let _ = writeln!(output, "{}", obj.string());
                     }
@@ -147,8 +111,8 @@ impl InfoLogTab {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Log selection items changed signal
-        imp.log_selection.connect_items_changed(clone!(
+        // Selection items changed signal
+        imp.selection.connect_items_changed(clone!(
             #[weak(rename_to = tab)] self,
             move |selection, _, _, _| {
                 let n_items = selection.n_items();
@@ -156,70 +120,36 @@ impl InfoLogTab {
                 tab.action_set_enabled("info.log-copy", n_items > 0);
             }
         ));
-
-        // Cache view activate signal
-        imp.cache_view.connect_activate(clone!(
-            #[weak(rename_to = tab)] self,
-            move |_, _| {
-                tab.activate_action("info.cache-open", None).unwrap();
-            }
-        ));
-
-        // Cache selection items changed signal
-        imp.cache_selection.connect_items_changed(clone!(
-            #[weak(rename_to = tab)] self,
-            move |selection, _, _, _| {
-                let imp = tab.imp();
-
-                let n_items = selection.n_items();
-
-                imp.cache_count_label.set_label(&n_items.to_string());
-
-                tab.action_set_enabled("info.cache-open", n_items > 0);
-                tab.action_set_enabled("info.cache-copy", n_items > 0);
-            }
-        ));
     }
 
     //---------------------------------------
-    // Pause views function
+    // Pause view function
     //---------------------------------------
-    pub fn pause_views(&self) {
+    pub fn pause_view(&self) {
         let imp = self.imp();
 
-        imp.log_spinner.set_visible(true);
-        imp.log_model.remove_all();
-
-        imp.cache_spinner.set_visible(true);
-        imp.cache_model.remove_all();
+        imp.spinner.set_visible(true);
+        imp.model.remove_all();
     }
 
     //---------------------------------------
-    // Update views function
+    // Update view function
     //---------------------------------------
-    pub fn update_views(&self, pkg: &PkgObject) {
+    pub fn update_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        imp.log_spinner.set_visible(false);
-        imp.cache_spinner.set_visible(false);
+        imp.spinner.set_visible(false);
 
         glib::spawn_future_local(clone!(
             #[weak] imp,
             #[weak] pkg,
             async move {
-                // Populate log view
+                // Populate view
                 let log_lines: Vec<gtk::StringObject> = pkg.log_future().await.iter()
                     .map(|line| gtk::StringObject::new(line))
                     .collect();
 
-                imp.log_model.splice(0, imp.log_model.n_items(), &log_lines);
-
-                // Populate cache view
-                let cache_list: Vec<gtk::StringObject> = pkg.cache_future().await.iter()
-                    .map(|cache_file| gtk::StringObject::new(cache_file))
-                    .collect();
-
-                imp.cache_model.splice(0, imp.cache_model.n_items(), &cache_list);
+                imp.model.splice(0, imp.model.n_items(), &log_lines);
             }
         ));
 

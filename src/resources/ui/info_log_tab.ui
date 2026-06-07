@@ -6,15 +6,15 @@
     <property name="margin-bottom">24</property>
     <property name="margin-start">24</property>
     <property name="margin-end">24</property>
-    <property name="spacing">8</property>
+    <property name="spacing">12</property>
     <child>
-      <object class="GtkCenterBox" id="log_header_box">
+      <object class="GtkCenterBox" id="header_box">
         <property name="margin-start">4</property>
         <property name="start-widget">
           <object class="GtkBox">
             <property name="spacing">12</property>
             <child>
-              <object class="GtkLabel" id="log_header_label">
+              <object class="GtkLabel" id="header_label">
                 <property name="valign">baseline-fill</property>
                 <property name="xalign">0</property>
                 <property name="label">Log Messages</property>
@@ -29,7 +29,7 @@
           <object class="GtkBox">
             <property name="spacing">6</property>
             <child>
-              <object class="GtkButton" id="log_copy_button">
+              <object class="GtkButton" id="copy_button">
                 <property name="icon-name">edit-copy-symbolic</property>
                 <property name="tooltip-text">Copy Log Messages</property>
                 <property name="action-name">info.log-copy</property>
@@ -49,15 +49,15 @@
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
             <property name="child">
-              <object class="GtkListView" id="log_view">
+              <object class="GtkListView" id="view">
                 <style>
                   <class name="card-list"/>
                 </style>
                 <property name="tab-behavior">item</property>
                 <property name="model">
-                  <object class="GtkNoSelection" id="log_selection">
+                  <object class="GtkNoSelection" id="selection">
                     <property name="model">
-                      <object class="GListStore" id="log_model">
+                      <object class="GListStore" id="model">
                         <property name="item-type">GtkStringObject</property>
                       </object>
                     </property>
@@ -73,105 +73,7 @@
           </object>
         </property>
         <child type="overlay">
-          <object class="AdwSpinner" id="log_spinner">
-            <property name="visible">false</property>
-            <style>
-              <class name="dimmed"/>
-            </style>
-          </object>
-        </child>
-      </object>
-    </child>
-    <child>
-      <object class="GtkCenterBox" id="cache_header_box">
-        <property name="margin-start">4</property>
-        <property name="margin-top">20</property>
-        <property name="start-widget">
-          <object class="GtkBox">
-            <property name="spacing">12</property>
-            <child>
-              <object class="GtkLabel" id="cache_header_label">
-                <property name="valign">baseline-fill</property>
-                <property name="xalign">0</property>
-                <property name="label">Cache Files</property>
-                <style>
-                  <class name="heading"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="cache_count_label">
-                <property name="valign">center</property>
-                <attributes>
-                  <attribute name="scale" value="0.66"/>
-                </attributes>
-                <style>
-                  <class name="count-superscript"/>
-                  <class name="numeric"/>
-                </style>
-              </object>
-            </child>
-          </object>
-        </property>
-        <property name="end-widget">
-          <object class="GtkBox">
-            <property name="spacing">6</property>
-            <child>
-              <object class="GtkButton" id="cache_open_button">
-                <property name="icon-name">folder-open-symbolic</property>
-                <property name="tooltip-text">Open Cache Folder</property>
-                <property name="action-name">info.cache-open</property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkButton" id="cache_copy_button">
-                <property name="icon-name">edit-copy-symbolic</property>
-                <property name="tooltip-text">Copy Cache File List</property>
-                <property name="action-name">info.cache-copy</property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-          </object>
-        </property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkOverlay">
-        <property name="child">
-          <object class="GtkScrolledWindow">
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
-            <property name="child">
-              <object class="GtkListView" id="cache_view">
-                <style>
-                  <class name="card-list"/>
-                </style>
-                <property name="tab-behavior">item</property>
-                <property name="model">
-                  <object class="GtkSingleSelection" id="cache_selection">
-                    <property name="model">
-                      <object class="GListStore" id="cache_model">
-                        <property name="item-type">GtkStringObject</property>
-                      </object>
-                    </property>
-                  </object>
-                </property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/info_pane/cache_item.ui</property>
-                  </object>
-                </property>
-              </object>
-            </property>
-          </object>
-        </property>
-        <child type="overlay">
-          <object class="AdwSpinner" id="cache_spinner">
+          <object class="AdwSpinner" id="spinner">
             <property name="visible">false</property>
             <style>
               <class name="dimmed"/>

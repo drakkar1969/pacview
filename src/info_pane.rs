@@ -536,8 +536,8 @@ impl InfoPane {
                 delay_id.remove();
 
                 // Clear files/log views
-                imp.files_tab.pause_views();
-                imp.log_tab.pause_views();
+                imp.files_tab.pause_view();
+                imp.log_tab.pause_view();
             }
 
             // Start delay timer
@@ -547,8 +547,8 @@ impl InfoPane {
                     #[weak] imp,
                     move || {
                         // Populate files/log views
-                        imp.files_tab.update_views(&pkg);
-                        imp.log_tab.update_views(&pkg);
+                        imp.files_tab.update_view(&pkg);
+                        imp.log_tab.update_view(&pkg);
 
                         imp.update_delay_id.take();
                     }

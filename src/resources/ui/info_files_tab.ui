@@ -6,15 +6,15 @@
     <property name="margin-bottom">24</property>
     <property name="margin-start">24</property>
     <property name="margin-end">24</property>
-    <property name="spacing">8</property>
+    <property name="spacing">12</property>
     <child>
-      <object class="GtkCenterBox" id="files_header_box">
+      <object class="GtkCenterBox" id="header_box">
         <property name="margin-start">4</property>
         <property name="start-widget">
           <object class="GtkBox">
             <property name="spacing">12</property>
             <child>
-              <object class="GtkLabel" id="files_header_label">
+              <object class="GtkLabel" id="header_label">
                 <property name="valign">baseline-fill</property>
                 <property name="xalign">0</property>
                 <property name="label">Files</property>
@@ -24,7 +24,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel" id="files_count_label">
+              <object class="GtkLabel" id="count_label">
                 <property name="valign">center</property>
                 <attributes>
                   <attribute name="scale" value="0.66"/>
@@ -38,7 +38,7 @@
           </object>
         </property>
         <property name="center-widget">
-          <object class="GtkSearchEntry" id="files_search_entry">
+          <object class="GtkSearchEntry" id="search_entry">
             <property name="placeholder-text">Search for files</property>
           </object>
         </property>
@@ -46,7 +46,7 @@
           <object class="GtkBox">
             <property name="spacing">6</property>
             <child>
-              <object class="GtkToggleButton" id="files_filter_button">
+              <object class="GtkToggleButton" id="filter_button">
                 <property name="icon-name">folder-symbolic</property>
                 <property name="tooltip-text">Show Directories</property>
                 <property name="action-name">info.files-show-folders</property>
@@ -56,7 +56,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="files_open_button">
+              <object class="GtkButton" id="open_button">
                 <property name="icon-name">document-open-symbolic</property>
                 <property name="tooltip-text">Open</property>
                 <property name="action-name">info.files-open</property>
@@ -66,7 +66,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton" id="files_copy_button">
+              <object class="GtkButton" id="copy_button">
                 <property name="icon-name">edit-copy-symbolic</property>
                 <property name="tooltip-text">Copy File List</property>
                 <property name="action-name">info.files-copy</property>
@@ -86,31 +86,31 @@
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
             <property name="child">
-              <object class="GtkListView" id="files_view">
+              <object class="GtkListView" id="view">
                 <style>
                   <class name="card-list"/>
                 </style>
                 <property name="tab-behavior">item</property>
                 <property name="model">
-                  <object class="GtkSingleSelection" id="files_selection">
+                  <object class="GtkSingleSelection" id="selection">
                     <property name="model">
-                      <object class="GtkFilterListModel" id="files_filter_model">
+                      <object class="GtkFilterListModel" id="filter_model">
                         <property name="filter">
                           <object class="GtkEveryFilter">
                             <child>
-                              <object class="GtkStringFilter" id="files_search_filter">
+                              <object class="GtkStringFilter" id="search_filter">
                                 <property name="expression">
                                   <lookup name="string" type="GtkStringObject"/>
                                 </property>
                               </object>
                             </child>
                             <child>
-                              <object class="GtkCustomFilter" id="files_folder_filter"/>
+                              <object class="GtkCustomFilter" id="folder_filter"/>
                             </child>
                           </object>
                         </property>
                         <property name="model">
-                          <object class="GListStore" id="files_model">
+                          <object class="GListStore" id="model">
                             <property name="item-type">GtkStringObject</property>
                           </object>
                         </property>
@@ -128,119 +128,7 @@
           </object>
         </property>
         <child type="overlay">
-          <object class="AdwSpinner" id="files_spinner">
-            <property name="visible">false</property>
-            <style>
-              <class name="dimmed"/>
-            </style>
-          </object>
-        </child>
-      </object>
-    </child>
-    <child>
-      <object class="GtkCenterBox" id="backup_header_box">
-        <property name="margin-start">4</property>
-        <property name="margin-top">20</property>
-        <property name="start-widget">
-          <object class="GtkBox">
-            <property name="spacing">12</property>
-            <child>
-              <object class="GtkLabel" id="backup_header_label">
-                <property name="valign">baseline-fill</property>
-                <property name="xalign">0</property>
-                <property name="label">Backup Files</property>
-                <style>
-                  <class name="heading"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="backup_count_label">
-                <property name="valign">center</property>
-                <attributes>
-                  <attribute name="scale" value="0.66"/>
-                </attributes>
-                <style>
-                  <class name="count-superscript"/>
-                  <class name="numeric"/>
-                </style>
-              </object>
-            </child>
-          </object>
-        </property>
-        <property name="end-widget">
-          <object class="GtkBox">
-            <property name="spacing">6</property>
-            <child>
-              <object class="GtkButton" id="backup_compare_button">
-                <property name="tooltip-text">Compare with Original</property>
-                <property name="action-name">info.backup-compare</property>
-                <property name="child">
-                  <object class="GtkImage" id="backup_compare_image">
-                    <property name="icon-name">info-compare-symbolic</property>
-                  </object>
-                </property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkButton" id="backup_open_button">
-                <property name="icon-name">document-open-symbolic</property>
-                <property name="tooltip-text">Open</property>
-                <property name="action-name">info.backup-open</property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-            <child>
-              <object class="GtkButton" id="backup_copy_button">
-                <property name="icon-name">edit-copy-symbolic</property>
-                <property name="tooltip-text">Copy Backup File List</property>
-                <property name="action-name">info.backup-copy</property>
-                <style>
-                  <class name="flat"/>
-                </style>
-              </object>
-            </child>
-          </object>
-        </property>
-      </object>
-    </child>
-    <child>
-      <object class="GtkOverlay">
-        <child>
-          <object class="GtkScrolledWindow">
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
-            <property name="child">
-              <object class="GtkListView" id="backup_view">
-                <style>
-                  <class name="card-list"/>
-                </style>
-                <property name="tab-behavior">item</property>
-                <property name="model">
-                  <object class="GtkSingleSelection" id="backup_selection">
-                    <property name="model">
-                      <object class="GListStore" id="backup_model">
-                        <property name="item-type">BackupObject</property>
-                      </object>
-                    </property>
-                  </object>
-                </property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/info_pane/backup_item.ui</property>
-                  </object>
-                </property>
-              </object>
-            </property>
-          </object>
-        </child>
-        <child type="overlay">
-          <object class="AdwSpinner" id="backup_spinner">
+          <object class="AdwSpinner" id="spinner">
             <property name="visible">false</property>
             <style>
               <class name="dimmed"/>

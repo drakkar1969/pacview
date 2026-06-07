@@ -74,7 +74,7 @@
                         <property name="child">
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
-                            <property name="spacing">8</property>
+                            <property name="spacing">12</property>
                             <child>
                               <object class="GtkCenterBox" id="header_box">
                                 <property name="margin-start">28</property>

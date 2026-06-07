@@ -111,7 +111,6 @@ mod imp {
         pub(super) backup: OnceCell<Vec<PkgBackup>>,
 
         pub(super) log: TokioOnceCell<Vec<String>>,
-        pub(super) cache: TokioOnceCell<Vec<String>>,
     }
 
     //---------------------------------------
@@ -520,33 +519,6 @@ impl PkgObject {
                     })
                     .collect()
                 })
-            })
-            .await
-            .expect("Failed to complete task")
-        })
-        .await
-    }
-
-    #[allow(clippy::future_not_send)]
-    pub async fn cache_future(&self) -> &Vec<String> {
-        self.imp().cache.get_or_init(async || {
-            let pkg_name = self.name();
-
-            gio::spawn_blocking(move || {
-                let pacman_cache = Pacman::cache().read().unwrap();
-
-                pacman_cache.iter()
-                    .filter(|&path| {
-                        path.file_name()
-                            .and_then(|filename| filename.to_str())
-                            .is_some_and(|filename| {
-                                filename.ends_with(".pkg.tar.zst")
-                                    && filename.rsplitn(4, '-').last()
-                                        .is_some_and(|name| name == pkg_name)
-                            })
-                    })
-                    .map(|path| path.display().to_string())
-                    .collect()
             })
             .await
             .expect("Failed to complete task")
