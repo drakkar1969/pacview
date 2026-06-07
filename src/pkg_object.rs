@@ -30,10 +30,10 @@ pub struct PkgBackup {
 }
 
 impl PkgBackup {
-    fn new(path: &str, hash: &str) -> Self {
+    fn new(path: String, hash: String) -> Self {
         Self {
-            path: path.to_owned(),
-            hash: hash.to_owned()
+            path,
+            hash
         }
     }
 
@@ -467,7 +467,7 @@ impl PkgObject {
                                 let mut path = root_dir.to_owned();
                                 path.push_str(backup.name());
 
-                                PkgBackup::new(&path, backup.hash())
+                                PkgBackup::new(path, backup.hash().to_owned())
                             })
                             .collect();
 

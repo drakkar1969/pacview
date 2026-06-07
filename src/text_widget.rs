@@ -36,9 +36,9 @@ struct TextTag {
 }
 
 impl TextTag {
-    fn new(text: &str, version: &str, start: u32, end: u32) -> Self {
+    fn new(text: String, version: &str, start: u32, end: u32) -> Self {
         Self {
-            text: text.to_owned(),
+            text,
             version: version.to_owned(),
             start,
             end
@@ -461,7 +461,7 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag::new(text, "", 0, text.len() as u32));
+                    link_list.push(TextTag::new(text.to_owned(), "", 0, text.len() as u32));
                 },
                 PropType::Packager => {
                     static EXPR: LazyLock<Regex> = LazyLock::new(|| {
@@ -471,7 +471,7 @@ mod imp {
 
                     if let Some(m) = EXPR.find(text) {
                         link_list.push(TextTag::new(
-                            &format!("mailto:{}", m.as_str()),
+                            format!("mailto:{}", m.as_str()),
                             "",
                             m.start() as u32,
                             m.end() as u32
@@ -492,7 +492,7 @@ mod imp {
                             .filter_map(|caps| {
                                 if let Some((m1, m2)) = caps.get(1).zip(caps.get(2)) {
                                     Some(TextTag::new(
-                                        &format!("pkg://{}", m1.as_str()),
+                                        format!("pkg://{}", m1.as_str()),
                                         m2.as_str(),
                                         m1.start() as u32,
                                         m1.end() as u32
@@ -508,7 +508,7 @@ mod imp {
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .map(|(i, s)| {
                                 TextTag::new(
-                                    s,
+                                    s.to_owned(),
                                     "",
                                     i as u32,
                                     i.checked_add(comment_len).map(|i| i as u32).unwrap_or_default()
