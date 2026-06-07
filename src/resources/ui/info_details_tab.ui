@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// InfoDetailsTab template //-->
+  <template class="InfoDetailsTab" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <property name="spacing">12</property>
+    <child>
+      <object class="GtkCenterBox" id="header_box">
+        <property name="margin-start">28</property>
+        <property name="margin-end">24</property>
+        <property name="start-widget">
+          <object class="GtkBox">
+            <child>
+              <object class="GtkLabel" id="header_label">
+                <property name="valign">baseline-fill</property>
+                <property name="xalign">0</property>
+                <property name="label">Package Information</property>
+                <style>
+                  <class name="heading"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="count_label">
+                <property name="valign">baseline-fill</property>
+                <property name="xalign">0</property>
+                <style>
+                  <class name="heading"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+        <property name="end-widget">
+          <object class="GtkBox">
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkButton" id="copy_button">
+                <property name="icon-name">edit-copy-symbolic</property>
+                <property name="tooltip-text">Copy Package Information</property>
+                <property name="action-name">infopane.copy-info</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox">
+        <property name="margin-start">24</property>
+        <property name="margin-end">24</property>
+        <style>
+          <class name="card"/>
+        </style>
+        <child>
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin-top">16</property>
+            <property name="margin-bottom">16</property>
+            <property name="margin-start">16</property>
+            <property name="margin-end">16</property>
+            <property name="spacing">14</property>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="valign">start</property>
+                    <property name="margin-top">4</property>
+                    <property name="icon-name">package-x-generic-symbolic</property>
+                    <property name="icon-size">large</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="hexpand">true</property>
+                    <property name="spacing">4</property>
+                    <child>
+                      <object class="GtkLabel" id="name_label">
+                        <property name="xalign">0</property>
+                        <property name="ellipsize">end</property>
+                        <property name="selectable">true</property>
+                        <style>
+                          <class name="title-4"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="desc_label">
+                        <property name="hexpand">true</property>
+                        <property name="xalign">0</property>
+                        <property name="ellipsize">end</property>
+                        <property name="selectable">true</property>
+                        <style>
+                          <class name="caption-heading"/>
+                          <class name="dimmed"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="status_label">
+                    <property name="valign">start</property>
+                    <property name="xalign">0</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel" id="repo_label">
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="tag"/>
+                      <class name="accent"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="size_label">
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="tag"/>
+                      <class name="accent"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="version_label">
+                    <property name="xalign">0</property>
+                    <property name="ellipsize">end</property>
+                    <style>
+                      <class name="tag"/>
+                      <class name="accent"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="update_label">
+                    <property name="hexpand">true</property>
+                    <property name="halign">end</property>
+                    <property name="xalign">0</property>
+                    <property name="ellipsize">end</property>
+                    <style>
+                      <class name="tag"/>
+                      <class name="warning"/>
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox">
+                <property name="margin-top">16</property>
+                <property name="spacing">12</property>
+                <child>
+                  <object class="GtkButton" id="pkgbuild_button">
+                    <property name="label">_Pkgbuild</property>
+                    <property name="use-underline">true</property>
+                    <property name="action-name">infopane.show-pkgbuild</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="hashes_button">
+                    <property name="label">_Hashes</property>
+                    <property name="use-underline">true</property>
+                    <property name="action-name">infopane.show-hashes</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkScrolledWindow">
+        <property name="hexpand">true</property>
+        <property name="vexpand">true</property>
+        <property name="margin-top">12</property>
+        <property name="child">
+          <object class="GtkListBox" id="listbox">
+            <property name="margin-top">2</property>
+            <property name="margin-bottom">24</property>
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="selection-mode">none</property>
+            <property name="tab-behavior">item</property>
+            <style>
+              <class name="boxed-list"/>
+            </style>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>

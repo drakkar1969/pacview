@@ -7,6 +7,7 @@ mod status_item;
 mod package_view;
 mod package_item;
 mod info_pane;
+mod info_details_tab;
 mod info_files_tab;
 mod info_log_tab;
 mod hash_window;
