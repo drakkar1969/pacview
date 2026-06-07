@@ -266,15 +266,23 @@ impl InfoPane {
     }
 
     pub fn display_prev(&self) {
-        self.imp().pkg_history.borrow().select_previous();
+        let history = self.imp().pkg_history.borrow();
 
-        self.update_display();
+        if history.peek_previous() {
+            history.select_previous();
+
+            self.update_display();
+        }
     }
 
     pub fn display_next(&self) {
-        self.imp().pkg_history.borrow().select_next();
+        let history = self.imp().pkg_history.borrow();
 
-        self.update_display();
+        if history.peek_next() {
+            history.select_next();
+
+            self.update_display();
+        }
     }
 
     //---------------------------------------
