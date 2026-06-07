@@ -134,7 +134,11 @@
                                       <object class="GtkCustomSorter" id="sorter"/>
                                     </property>
                                     <property name="section-sorter">
-                                      <object class="GtkStringSorter" id="section_sorter"/>
+                                      <object class="GtkStringSorter" id="section_sorter">
+                                        <property name="expression">
+                                          <lookup name="repository" type="PkgObject"/>
+                                        </property>
+                                      </object>
                                     </property>
                                   </object>
                                 </property>
@@ -144,7 +148,9 @@
                               <object class="GtkSignalListItemFactory" id="factory"/>
                             </property>
                             <property name="header-factory">
-                              <object class="GtkBuilderListItemFactory" id="header_factory"/>
+                              <object class="GtkBuilderListItemFactory" id="header_factory">
+                                <property name="resource">/com/github/PacView/ui/package_view/header.ui</property>
+                              </object>
                             </property>
                           </object>
                         </child>

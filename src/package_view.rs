@@ -105,6 +105,8 @@ mod imp {
         pub(super) aur_model: TemplateChild<gio::ListStore>,
 
         #[template_child]
+        pub(super) sort_model: TemplateChild<gtk::SortListModel>,
+        #[template_child]
         pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub(super) repo_filter: TemplateChild<gtk::StringFilter>,
@@ -114,6 +116,8 @@ mod imp {
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) factory: TemplateChild<gtk::SignalListItemFactory>,
+        #[template_child]
+        pub(super) header_factory: TemplateChild<gtk::BuilderListItemFactory>,
         #[template_child]
         pub(super) sorter: TemplateChild<gtk::CustomSorter>,
         #[template_child]
@@ -327,22 +331,11 @@ impl PackageView {
             let imp = view.imp();
 
             if view.grouping() {
-                let expression = gtk::PropertyExpression::new(
-                    PkgObject::static_type(),
-                    None::<gtk::Expression>,
-                    "repository"
-                );
-
-                let factory = gtk::BuilderListItemFactory::from_resource(
-                    None::<&gtk::BuilderScope>,
-                    "/com/github/PacView/ui/package_view/header.ui"
-                );
-
-                imp.section_sorter.set_expression(Some(expression));
-                imp.view.set_header_factory(Some(&factory));
+                imp.view.set_header_factory(Some(&imp.header_factory.get()));
+                imp.sort_model.set_section_sorter(Some(&imp.section_sorter.get()));
             } else {
-                imp.section_sorter.set_expression(None::<gtk::Expression>);
                 imp.view.set_header_factory(None::<&gtk::BuilderListItemFactory>);
+                imp.sort_model.set_section_sorter(None::<&gtk::StringSorter>);
             }
         });
 
