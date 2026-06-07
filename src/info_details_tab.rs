@@ -12,7 +12,7 @@ use crate::{
     pkg_data::{PkgFlags, PkgValidation},
     pkg_object::PkgObject,
     info_row::{PropID, PropType, ValueType, InfoRow},
-    text_widget::{INSTALLED_LABEL, TextWidget},
+    text_widget::{INSTALLED_LABEL, LINK_SPACER, TextWidget},
     source_window::SourceWindow,
     hash_window::HashWindow,
     utils::Paths,
@@ -114,7 +114,7 @@ mod imp {
                     while let Some(row) = child.and_downcast::<InfoRow>() {
                         if row.is_visible() {
                             let label = row.label();
-                            let value = row.value();
+                            let value = row.value().replace(LINK_SPACER, " ");
 
                             if !(label.is_empty() || value.is_empty()) {
                                 let _ = writeln!(output, "- **{label}** : {value}");
