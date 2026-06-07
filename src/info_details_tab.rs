@@ -352,31 +352,40 @@ impl InfoDetailsTab {
     }
 
     //---------------------------------------
-    // Public setup details listbox function
+    // Public setup details function
     //---------------------------------------
-    pub fn setup_details_listbox(&self, link_handler: RustClosure) {
+    pub fn setup_details(&self, link_handler: RustClosure) {
         // Add info rows
-        self.add_info_row(PropID::Popularity, PropType::Text, None);
-        self.add_info_row(PropID::OutOfDate, PropType::Error, None);
-        self.add_info_row(PropID::PackageUrl, PropType::Link, Some(&link_handler));
-        self.add_info_row(PropID::Url, PropType::Link, Some(&link_handler));
-        self.add_info_row(PropID::Groups, PropType::Text, None);
-        self.add_info_row(PropID::Dependencies, PropType::LinkList, Some(&link_handler));
-        self.add_info_row(PropID::Optional, PropType::LinkList, Some(&link_handler));
-        self.add_info_row(PropID::Make, PropType::LinkList, Some(&link_handler));
-        self.add_info_row(PropID::RequiredBy, PropType::LinkList, Some(&link_handler));
-        self.add_info_row(PropID::OptionalFor, PropType::LinkList, Some(&link_handler));
-        self.add_info_row(PropID::Provides, PropType::Text, None);
-        self.add_info_row(PropID::ConflictsWith, PropType::LinkList, Some(&link_handler));
-        self.add_info_row(PropID::Replaces, PropType::LinkList, Some(&link_handler));
-        self.add_info_row(PropID::Licenses, PropType::Text, None);
-        self.add_info_row(PropID::Architecture, PropType::Text, None);
-        self.add_info_row(PropID::Packager, PropType::Packager, Some(&link_handler));
-        self.add_info_row(PropID::BuildDate, PropType::Text, None);
-        self.add_info_row(PropID::InstallDate, PropType::Text, None);
-        self.add_info_row(PropID::DownloadSize, PropType::Text, None);
-        self.add_info_row(PropID::InstallScript, PropType::Text, None);
-        self.add_info_row(PropID::Validation, PropType::Text, None);
+        for (id, ptype) in [
+            (PropID::Popularity, PropType::Text),
+            (PropID::OutOfDate, PropType::Error),
+            (PropID::PackageUrl, PropType::Link),
+            (PropID::Url, PropType::Link),
+            (PropID::Groups, PropType::Text),
+            (PropID::Dependencies, PropType::LinkList),
+            (PropID::Optional, PropType::LinkList),
+            (PropID::Make, PropType::LinkList),
+            (PropID::RequiredBy, PropType::LinkList),
+            (PropID::OptionalFor, PropType::LinkList),
+            (PropID::Provides, PropType::Text),
+            (PropID::ConflictsWith, PropType::LinkList),
+            (PropID::Replaces, PropType::LinkList),
+            (PropID::Licenses, PropType::Text),
+            (PropID::Architecture, PropType::Text),
+            (PropID::Packager, PropType::Packager),
+            (PropID::BuildDate, PropType::Text),
+            (PropID::InstallDate, PropType::Text),
+            (PropID::DownloadSize, PropType::Text),
+            (PropID::InstallScript, PropType::Text),
+            (PropID::Validation, PropType::Text)
+        ] {
+            let handler = [PropType::Link, PropType::LinkList, PropType::Packager]
+                .contains(&ptype)
+                .then_some(&link_handler);
+
+            self.add_info_row(id, ptype, handler);
+
+        }
     }
 
     //---------------------------------------
