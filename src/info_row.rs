@@ -289,7 +289,7 @@ impl InfoRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(id: PropID, ptype: PropType) -> Self {
+    pub fn new(id: PropID, ptype: PropType, link_handler: Option<&RustClosure>) -> Self {
         let obj: Self = glib::Object::builder().build();
 
         let imp = obj.imp();
@@ -297,14 +297,11 @@ impl InfoRow {
         imp.prop_label.set_label(id.as_ref());
         imp.value_widget.set_ptype(ptype);
 
-        obj
-    }
+        if let Some(handler) = link_handler {
+            imp.value_widget.connect_closure("package-link", false, handler.clone());
+        }
 
-    //---------------------------------------
-    // Public set package link handler function
-    //---------------------------------------
-    pub fn set_pkg_link_handler(&self, handler: RustClosure) {
-        self.imp().value_widget.connect_closure("package-link", false, handler);
+        obj
     }
 
     //---------------------------------------

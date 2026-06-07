@@ -176,12 +176,10 @@ impl InfoDetailsTab {
     //---------------------------------------
     // Add info row function
     //---------------------------------------
-    fn add_info_row(&self, id: PropID, ptype: PropType, pkg_link_handler: &RustClosure) {
+    fn add_info_row(&self, id: PropID, ptype: PropType, link_handler: Option<&RustClosure>) {
         let imp = self.imp();
 
-        let row = InfoRow::new(id, ptype);
-
-        row.set_pkg_link_handler(pkg_link_handler.clone());
+        let row = InfoRow::new(id, ptype, link_handler);
 
         row.connect_closure("selection-widget", false, closure_local!(
             #[weak] imp,
@@ -356,29 +354,29 @@ impl InfoDetailsTab {
     //---------------------------------------
     // Public setup details listbox function
     //---------------------------------------
-    pub fn setup_details_listbox(&self, pkg_link_handler: RustClosure) {
+    pub fn setup_details_listbox(&self, link_handler: RustClosure) {
         // Add info rows
-        self.add_info_row(PropID::Popularity, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::OutOfDate, PropType::Error, &pkg_link_handler);
-        self.add_info_row(PropID::PackageUrl, PropType::Link, &pkg_link_handler);
-        self.add_info_row(PropID::Url, PropType::Link, &pkg_link_handler);
-        self.add_info_row(PropID::Groups, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::Dependencies, PropType::LinkList, &pkg_link_handler);
-        self.add_info_row(PropID::Optional, PropType::LinkList, &pkg_link_handler);
-        self.add_info_row(PropID::Make, PropType::LinkList, &pkg_link_handler);
-        self.add_info_row(PropID::RequiredBy, PropType::LinkList, &pkg_link_handler);
-        self.add_info_row(PropID::OptionalFor, PropType::LinkList, &pkg_link_handler);
-        self.add_info_row(PropID::Provides, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::ConflictsWith, PropType::LinkList, &pkg_link_handler);
-        self.add_info_row(PropID::Replaces, PropType::LinkList, &pkg_link_handler);
-        self.add_info_row(PropID::Licenses, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::Architecture, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::Packager, PropType::Packager, &pkg_link_handler);
-        self.add_info_row(PropID::BuildDate, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::InstallDate, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::DownloadSize, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::InstallScript, PropType::Text, &pkg_link_handler);
-        self.add_info_row(PropID::Validation, PropType::Text, &pkg_link_handler);
+        self.add_info_row(PropID::Popularity, PropType::Text, None);
+        self.add_info_row(PropID::OutOfDate, PropType::Error, None);
+        self.add_info_row(PropID::PackageUrl, PropType::Link, Some(&link_handler));
+        self.add_info_row(PropID::Url, PropType::Link, Some(&link_handler));
+        self.add_info_row(PropID::Groups, PropType::Text, None);
+        self.add_info_row(PropID::Dependencies, PropType::LinkList, Some(&link_handler));
+        self.add_info_row(PropID::Optional, PropType::LinkList, Some(&link_handler));
+        self.add_info_row(PropID::Make, PropType::LinkList, Some(&link_handler));
+        self.add_info_row(PropID::RequiredBy, PropType::LinkList, Some(&link_handler));
+        self.add_info_row(PropID::OptionalFor, PropType::LinkList, Some(&link_handler));
+        self.add_info_row(PropID::Provides, PropType::Text, None);
+        self.add_info_row(PropID::ConflictsWith, PropType::LinkList, Some(&link_handler));
+        self.add_info_row(PropID::Replaces, PropType::LinkList, Some(&link_handler));
+        self.add_info_row(PropID::Licenses, PropType::Text, None);
+        self.add_info_row(PropID::Architecture, PropType::Text, None);
+        self.add_info_row(PropID::Packager, PropType::Packager, Some(&link_handler));
+        self.add_info_row(PropID::BuildDate, PropType::Text, None);
+        self.add_info_row(PropID::InstallDate, PropType::Text, None);
+        self.add_info_row(PropID::DownloadSize, PropType::Text, None);
+        self.add_info_row(PropID::InstallScript, PropType::Text, None);
+        self.add_info_row(PropID::Validation, PropType::Text, None);
     }
 
     //---------------------------------------
