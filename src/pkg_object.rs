@@ -162,7 +162,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public data field getters
+    // Data field properties
     //---------------------------------------
     #[inline]
     fn data(&self) -> &PkgData {
@@ -344,7 +344,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Alpm handle associated function
+    // Alpm handle function
     //---------------------------------------
     fn with_alpm_handle<F, R>(f: F) -> R
     where F: FnOnce(&RefCell<Option<Alpm>>) -> R {
@@ -356,7 +356,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Init alpm handle associated function
+    // Init alpm handle function
     //---------------------------------------
     pub fn init_alpm_handle() {
         Self::with_alpm_handle(|handle| {
@@ -369,7 +369,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Get alpm package helper functions
+    // Alpm package helper functions
     //---------------------------------------
     fn alpm_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
         let data = self.data();
@@ -388,7 +388,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public getters from alpm handle
+    // Properties from alpm handle
     //---------------------------------------
     pub fn required_by(&self) -> &[String] {
         self.imp().required_by.get_or_init(|| {
@@ -493,7 +493,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Public future getters from alpm handle
+    // Future properties
     //---------------------------------------
     #[allow(clippy::future_not_send)]
     pub async fn log_future(&self) -> &Vec<String> {
@@ -527,7 +527,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Date to string associated function
+    // Date to string helper function
     //---------------------------------------
     fn date_to_string(date: i64) -> GString {
         if date == 0 {
@@ -540,7 +540,7 @@ impl PkgObject {
     }
 
     //---------------------------------------
-    // Satisfier associated functions
+    // Satisfier functions
     //---------------------------------------
     pub fn has_local_satisfier(search_term: &str) -> bool {
         Self::with_alpm_handle(|handle| {
