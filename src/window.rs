@@ -364,13 +364,13 @@ mod imp {
 
             // Infopane previous/next key bindings
             klass.add_binding(Key::Left, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.display_prev();
+                window.imp().info_pane.activate_action("info.previous", None).unwrap();
 
                 Propagation::Stop
             });
 
             klass.add_binding(Key::Right, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.display_next();
+                window.imp().info_pane.activate_action("info.next", None).unwrap();
 
                 Propagation::Stop
             });

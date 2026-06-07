@@ -71,6 +71,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -96,6 +99,33 @@ mod imp {
     impl WidgetImpl for InfoPane {}
     impl BinImpl for InfoPane {}
     impl InfoPane {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Previous action
+            klass.install_action("info.previous", None, |pane, _, _| {
+                let history = pane.imp().pkg_history.borrow();
+
+                if history.peek_previous() {
+                    history.select_previous();
+
+                    pane.update_display();
+                }
+            });
+
+            // Next action
+            klass.install_action("info.next", None, |pane, _, _| {
+                let history = pane.imp().pkg_history.borrow();
+
+                if history.peek_next() {
+                    history.select_next();
+
+                    pane.update_display();
+                }
+            });
+        }
+
         //---------------------------------------
         // Property getter/setter
         //---------------------------------------
@@ -160,8 +190,6 @@ impl InfoPane {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        let imp = self.imp();
-
         // Pkg property notify signal
         self.connect_pkg_notify(|pane| {
             let imp = pane.imp();
@@ -174,22 +202,6 @@ impl InfoPane {
 
             imp.tab_switcher.set_sensitive(pkg_is_some);
         });
-
-        // Previous button clicked signal
-        imp.prev_button.connect_clicked(clone!(
-            #[weak(rename_to = pane)] self,
-            move |_| {
-                pane.display_prev();
-            }
-        ));
-
-        // Next button clicked signal
-        imp.next_button.connect_clicked(clone!(
-            #[weak(rename_to = pane)] self,
-            move |_| {
-                pane.display_next();
-            }
-        ));
     }
 
     //---------------------------------------
@@ -219,7 +231,7 @@ impl InfoPane {
     }
 
     //---------------------------------------
-    // Public display functions
+    // Public update display function
     //---------------------------------------
     pub fn update_display(&self) {
         let imp = self.imp();
@@ -265,28 +277,8 @@ impl InfoPane {
         }
     }
 
-    pub fn display_prev(&self) {
-        let history = self.imp().pkg_history.borrow();
-
-        if history.peek_previous() {
-            history.select_previous();
-
-            self.update_display();
-        }
-    }
-
-    pub fn display_next(&self) {
-        let history = self.imp().pkg_history.borrow();
-
-        if history.peek_next() {
-            history.select_next();
-
-            self.update_display();
-        }
-    }
-
     //---------------------------------------
-    // Other public functions
+    // Set visible tab public function
     //---------------------------------------
     pub fn set_visible_tab(&self, tab: &str) {
         let imp = self.imp();
