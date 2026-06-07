@@ -98,7 +98,7 @@ mod imp {
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Copy info action
-            klass.install_action("infopane.copy-info", None, |tab, _, _| {
+            klass.install_action("info.details-copy", None, |tab, _, _| {
                 if let Some(pkg) = tab.pkg() {
                     let mut output = String::from("## Package Information\n");
 
@@ -129,7 +129,7 @@ mod imp {
             });
 
             // Show PKGBUILD action
-            klass.install_action("infopane.show-pkgbuild", None, |tab, _, _| {
+            klass.install_action("info.show-pkgbuild", None, |tab, _, _| {
                 if let Some(pkg) = tab.pkg() {
                     let parent = tab.root()
                         .and_downcast::<gtk::Window>()
@@ -142,7 +142,7 @@ mod imp {
             });
 
             // Show hashes action
-            klass.install_action("infopane.show-hashes", None, |tab, _, _| {
+            klass.install_action("info.show-hashes", None, |tab, _, _| {
                 if let Some(pkg) = tab.pkg()
                     .filter(|pkg| {
                         let validation = pkg.validation();

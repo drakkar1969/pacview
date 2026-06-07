@@ -38,7 +38,7 @@
               <object class="GtkButton" id="copy_button">
                 <property name="icon-name">edit-copy-symbolic</property>
                 <property name="tooltip-text">Copy Package Information</property>
-                <property name="action-name">infopane.copy-info</property>
+                <property name="action-name">info.details-copy</property>
                 <style>
                   <class name="flat"/>
                 </style>
@@ -164,14 +164,14 @@
                   <object class="GtkButton" id="pkgbuild_button">
                     <property name="label">_Pkgbuild</property>
                     <property name="use-underline">true</property>
-                    <property name="action-name">infopane.show-pkgbuild</property>
+                    <property name="action-name">info.show-pkgbuild</property>
                   </object>
                 </child>
                 <child>
                   <object class="GtkButton" id="hashes_button">
                     <property name="label">_Hashes</property>
                     <property name="use-underline">true</property>
-                    <property name="action-name">infopane.show-hashes</property>
+                    <property name="action-name">info.show-hashes</property>
                   </object>
                 </child>
               </object>
