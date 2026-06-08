@@ -362,30 +362,25 @@ impl PreferencesDialog {
 
         self.bind_property("pkgbuild-style-scheme", &imp.pkgbuild_style_scheme_row.get(), "selected")
             .transform_to(|binding, id: String| {
-                let index = binding.target()
-                    .and_downcast::<adw::ComboRow>()
-                    .and_then(|row| row.model())
-                    .and_then(|model| {
-                        model.iter::<sourceview5::StyleScheme>()
-                            .flatten()
-                            .position(|scheme| {
-                                scheme.id() == id
-                                    || StyleSchemes::variant_id(&scheme.id())
-                                        .is_some_and(|variant_id| variant_id == id)
-                            })
+                binding.target()
+                    .and_downcast::<adw::ComboRow>()?
+                    .model()?
+                    .iter::<sourceview5::StyleScheme>()
+                    .flatten()
+                    .position(|scheme| {
+                        scheme.id() == id
+                            || StyleSchemes::variant_id(&scheme.id())
+                                .is_some_and(|variant_id| variant_id == id)
                     })
-                    .unwrap_or_default();
-
-                Some(index as u32)
+                    .map(|index| index as u32)
             })
-            .transform_from(|binding, _: u32| {
-                let id = binding.target()
-                    .and_downcast::<adw::ComboRow>()
-                    .and_then(|row| row.selected_item())
+            .transform_from(|binding, index: u32| {
+                binding.target()
+                    .and_downcast::<adw::ComboRow>()?
+                    .model()?
+                    .item(index)
                     .and_downcast::<sourceview5::StyleScheme>()
-                    .map_or_else(glib::GString::new, |scheme| scheme.id());
-
-                Some(id)
+                    .map(|scheme| scheme.id())
             })
             .sync_create()
             .bidirectional()
