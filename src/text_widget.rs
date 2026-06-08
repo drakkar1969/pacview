@@ -1,12 +1,14 @@
 use std::cell::{Cell, RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::sync::{OnceLock, LazyLock};
+use std::rc::Rc;
 
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, GString};
 use glib::subclass::Signal;
+use pango::{Layout, AttrList, Attribute, AttrColor, AttrFloat, AttrInt, Underline, Weight, WrapMode};
 
 use fancy_regex::Regex as FancyRegex;
 use regex::Regex;
@@ -22,24 +24,24 @@ use crate::{
 // CONST variables
 //------------------------------------------------------------------------------
 pub const INSTALLED_LABEL: &str = " [INSTALLED]";
-pub const LINK_SPACER: &str = "     ";
+pub const LINK_SPACER: &str = "   ";
 
 //------------------------------------------------------------------------------
-// STRUCT: Marker
+// STRUCT: TextTag
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
-struct TextTag {
+pub struct TextTag {
     text: String,
-    version: String,
+    version: Option<String>,
     start: u32,
     end: u32,
 }
 
 impl TextTag {
-    fn new(text: String, version: &str, start: u32, end: u32) -> Self {
+    fn new(text: String, version: Option<&str>, start: u32, end: u32) -> Self {
         Self {
             text,
-            version: version.to_owned(),
+            version: version.map(ToOwned::to_owned),
             start,
             end
         }
@@ -61,15 +63,11 @@ mod imp {
     pub struct TextWidget {
         #[template_child]
         pub(super) draw_area: TemplateChild<gtk::DrawingArea>,
-        #[template_child]
-        pub(super) popover_menu: TemplateChild<gtk::PopoverMenu>,
 
         #[property(get, set, builder(PropType::default()))]
         ptype: Cell<PropType>,
         #[property(get = Self::text, set = Self::set_text)]
         text: PhantomData<GString>,
-        #[property(get = Self::selected_text, nullable)]
-        selected_text: PhantomData<Option<GString>>,
 
         #[property(get, set)]
         can_expand: Cell<bool>,
@@ -86,8 +84,8 @@ mod imp {
         #[property(get, set)]
         has_selection: Cell<bool>,
 
-        pub(super) layout: OnceCell<pango::Layout>,
-        pub(super) layout_attributes: RefCell<pango::AttrList>,
+        pub(super) layout: OnceCell<Layout>,
+        pub(super) layout_attributes: RefCell<AttrList>,
         pub(super) layout_max_index: Cell<usize>,
 
         pub(super) link_fg_color: Cell<(u16, u16, u16, u16)>,
@@ -100,14 +98,12 @@ mod imp {
         pub(super) link_list: RefCell<Vec<TextTag>>,
         pub(super) comment_list: RefCell<Vec<TextTag>>,
 
-        pub(super) pressed_link: RefCell<Option<TextTag>>,
+        pub(super) active_link_index: Cell<Option<usize>>,
 
-        pub(super) is_selecting: Cell<bool>,
-        pub(super) is_clicked: Cell<bool>,
         pub(super) selection_start: Cell<Option<usize>>,
         pub(super) selection_end: Cell<Option<usize>>,
 
-        pub(super) focus_link_index: Cell<Option<usize>>,
+        pub(super) is_selecting: Cell<bool>,
     }
 
     //---------------------------------------
@@ -121,9 +117,6 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
-
-            // Install actions
-            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -261,189 +254,6 @@ mod imp {
 
     impl TextWidget {
         //---------------------------------------
-        // Install actions
-        //---------------------------------------
-        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Selection actions
-            klass.install_action("text.select-all", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                imp.selection_start.set(Some(0));
-                imp.selection_end.set(Some(widget.text().len()));
-
-                widget.set_has_selection(true);
-
-                imp.draw_area.queue_draw();
-            });
-
-            klass.install_action("text.select-none", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                imp.selection_start.set(None);
-                imp.selection_end.set(None);
-
-                widget.set_has_selection(false);
-
-                imp.draw_area.queue_draw();
-            });
-
-            // Copy action
-            klass.install_action("text.copy", None, |widget, _, _| {
-                if let Some(text) = widget.selected_text() {
-                    widget.clipboard().set_text(&text);
-                }
-            });
-
-            // Expand/contract actions
-            klass.install_action("text.expand", None, |widget, _, _| {
-                if widget.can_expand() && !widget.expanded() {
-                    widget.set_expanded(true);
-                }
-            });
-
-            klass.install_action("text.contract", None, |widget, _, _| {
-                if widget.can_expand() && widget.expanded() {
-                    widget.set_expanded(false);
-                }
-            });
-
-            // Link actions
-            klass.install_action("text.previous-link", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                if let Some(new_index) = imp.focus_link_index.get()
-                    .and_then(|i| i.checked_sub(1)) {
-                        imp.focus_link_index.set(Some(new_index));
-
-                        imp.draw_area.queue_draw();
-                    }
-            });
-
-            klass.install_action("text.next-link", None, |widget, _, _| {
-                let imp = widget.imp();
-
-                let link_list = imp.link_list.borrow();
-
-                if let Some(new_index) = imp.focus_link_index.get()
-                    .and_then(|i| i.checked_add(1))
-                    .filter(|&i| link_list.get(i)
-                        .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
-                    ) {
-                        imp.focus_link_index.set(Some(new_index));
-
-                        imp.draw_area.queue_draw();
-                    }
-            });
-
-            klass.install_action("text.activate-link", None, |widget, _, _| {
-                if let Some(focus_link) = widget.focus_link() {
-                    widget.handle_link(&focus_link);
-                }
-            });
-        }
-
-        //---------------------------------------
-        // Layout format helper functions
-        //---------------------------------------
-        fn link_attributes(&self) -> pango::AttrList {
-            let attr_list = pango::AttrList::new();
-
-            let (red, green, blue, alpha) = self.link_fg_color.get();
-
-            let link_list = self.link_list.borrow();
-
-            for link in link_list.as_slice() {
-                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(link.start);
-                attr.set_end_index(link.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                attr.set_start_index(link.start);
-                attr.set_end_index(link.end);
-
-                attr_list.insert(attr);
-
-                if self.obj().underline_links() {
-                    let mut attr = pango::AttrInt::new_underline(pango::Underline::Single);
-                    attr.set_start_index(link.start);
-                    attr.set_end_index(link.end);
-
-                    attr_list.insert(attr);
-                }
-            }
-
-            attr_list
-        }
-
-        fn comment_attributes(&self) -> pango::AttrList {
-            let attr_list = pango::AttrList::new();
-
-            let (red, green, blue, alpha) = self.comment_fg_color.get();
-
-            let comment_list = self.comment_list.borrow();
-
-            for comment in comment_list.as_slice() {
-                let mut attr = pango::AttrInt::new_weight(pango::Weight::Semibold);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrColor::new_foreground(red, green, blue);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrInt::new_foreground_alpha(alpha);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-
-                let mut attr = pango::AttrFloat::new_scale(0.75);
-                attr.set_start_index(comment.start);
-                attr.set_end_index(comment.end);
-
-                attr_list.insert(attr);
-            }
-
-            attr_list
-        }
-
-        pub(super) fn set_layout_attributes(&self) {
-            let layout = self.layout.get().unwrap();
-
-            let attr_list = pango::AttrList::new();
-
-            // Add font weight attribute
-            let weight = if self.ptype.get() == PropType::Title {
-                pango::Weight::Bold
-            } else {
-                pango::Weight::Normal
-            };
-
-            let mut attr = pango::AttrInt::new_weight(weight);
-            attr.set_start_index(pango::ATTR_INDEX_FROM_TEXT_BEGINNING);
-            attr.set_end_index(pango::ATTR_INDEX_TO_TEXT_END);
-
-            attr_list.insert(attr);
-
-            // Add link attributes
-            attr_list.splice(&self.link_attributes(), 0, 0);
-
-            // Add comment attributes
-            attr_list.splice(&self.comment_attributes(), 0, 0);
-
-            layout.set_attributes(Some(&attr_list));
-
-            // Store attributes
-            self.layout_attributes.replace(attr_list);
-        }
-
-        //---------------------------------------
         // Text property getter/setter
         //---------------------------------------
         fn text(&self) -> GString {
@@ -461,7 +271,7 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag::new(text.to_owned(), "", 0, text.len() as u32));
+                    link_list.push(TextTag::new(text.to_owned(), None, 0, text.len() as u32));
                 },
                 PropType::Packager => {
                     static EXPR: LazyLock<Regex> = LazyLock::new(|| {
@@ -472,7 +282,7 @@ mod imp {
                     if let Some(m) = EXPR.find(text) {
                         link_list.push(TextTag::new(
                             format!("mailto:{}", m.as_str()),
-                            "",
+                            None,
                             m.start() as u32,
                             m.end() as u32
                         ));
@@ -493,7 +303,7 @@ mod imp {
                                 if let Some((m1, m2)) = caps.get(1).zip(caps.get(2)) {
                                     Some(TextTag::new(
                                         format!("pkg://{}", m1.as_str()),
-                                        m2.as_str(),
+                                        Some(m2.as_str()),
                                         m1.start() as u32,
                                         m1.end() as u32
                                     ))
@@ -503,16 +313,22 @@ mod imp {
                             })
                         );
 
-                        let comment_len = INSTALLED_LABEL.len();
+                        let comment_len = INSTALLED_LABEL.len() as u32;
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
-                            .map(|(i, s)| {
-                                TextTag::new(
-                                    s.to_owned(),
-                                    "",
-                                    i as u32,
-                                    i.checked_add(comment_len).map(|i| i as u32).unwrap_or_default()
-                                )
+                            .filter_map(|(i, s)| {
+                                let start = i as u32;
+
+                                if let Some(end) = start.checked_add(comment_len) {
+                                    Some(TextTag::new(
+                                        s.to_owned(),
+                                        None,
+                                        start,
+                                        end
+                                    ))
+                                } else {
+                                    None
+                                }
                             })
                         );
                     }
@@ -520,9 +336,9 @@ mod imp {
                 _ => {}
             }
 
-            // Set focused link index
+            // Set active link index
             if !link_list.is_empty() {
-                self.focus_link_index.set(Some(0));
+                self.active_link_index.set(Some(0));
             }
 
             // Store link/comment lists
@@ -535,24 +351,12 @@ mod imp {
             layout.set_text(text);
 
             // Format pango layout text
-            self.set_layout_attributes();
+            obj.set_layout_attributes();
 
             // Reset selection
-            self.selection_start.set(None);
-            self.selection_end.set(None);
-
-            obj.set_has_selection(false);
+            obj.select_none();
 
             obj.set_expanded(false);
-        }
-
-        //---------------------------------------
-        // Selected text property getter
-        //---------------------------------------
-        fn selected_text(&self) -> Option<GString> {
-            let (start, end) = self.selection_start.get().zip(self.selection_end.get())?;
-
-            self.text().get(start.min(end)..start.max(end)).map(GString::from)
         }
     }
 }
@@ -567,6 +371,22 @@ glib::wrapper! {
 }
 
 impl TextWidget {
+    //---------------------------------------
+    // Update colors helper function
+    //---------------------------------------
+    fn update_colors(&self) {
+        let imp = self.imp();
+
+        // Update pango color variables
+        imp.link_fg_color.set(Color::pango_color_from_style("link"));
+        imp.comment_fg_color.set(Color::pango_color_from_style("comment"));
+        imp.sel_bg_color.set(Color::pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(Color::pango_color_from_style("selection-focus"));
+
+        // Update cairo error color
+        imp.cairo_error_color.set(Color::cairo_color_from_style("error"));
+    }
+
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -600,10 +420,8 @@ impl TextWidget {
 
         // Underline links property notify signal
         self.connect_underline_links_notify(|widget| {
-            let imp = widget.imp();
-
-            imp.set_layout_attributes();
-            imp.draw_area.queue_draw();
+            widget.set_layout_attributes();
+            widget.imp().draw_area.queue_draw();
         });
 
         // Focused property notify signal
@@ -611,13 +429,17 @@ impl TextWidget {
             widget.imp().draw_area.queue_draw();
         });
 
-        // System color scheme signal
         let style_manager = adw::StyleManager::for_display(&self.display());
 
+        // System color scheme signal
         style_manager.connect_dark_notify(clone!(
             #[weak(rename_to = widget)] self,
             move |_| {
-                widget.update_pango_colors();
+                widget.update_colors();
+
+                widget.set_layout_attributes();
+
+                widget.imp().draw_area.queue_draw();
             }
         ));
 
@@ -625,7 +447,11 @@ impl TextWidget {
         style_manager.connect_accent_color_notify(clone!(
             #[weak(rename_to = widget)] self,
             move |_| {
-                widget.update_pango_colors();
+                widget.update_colors();
+
+                widget.set_layout_attributes();
+
+                widget.imp().draw_area.queue_draw();
             }
         ));
     }
@@ -653,38 +479,25 @@ impl TextWidget {
     // Setup widget
     //---------------------------------------
     fn setup_widget(&self) {
-        let imp = self.imp();
-
         // Reset selection
-        imp.selection_start.set(None);
-        imp.selection_end.set(None);
+        self.select_none();
 
-        // Initialize pango colors
-        imp.link_fg_color.set(Color::pango_color_from_style("link"));
-        imp.comment_fg_color.set(Color::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(Color::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(Color::pango_color_from_style("selection-focus"));
-
-        // Initialize cairo error color
-        imp.cairo_error_color.set(Color::cairo_color_from_style("error"));
+        // Update colors
+        self.update_colors();
     }
 
     //---------------------------------------
     // Layout format helper functions
     //---------------------------------------
-    fn focus_link(&self) -> Option<TextTag> {
-        let imp = self.imp();
+    fn add_attr(&self, list: &AttrList, mut attr: Attribute, start: u32, end: u32) {
+        attr.set_start_index(start);
+        attr.set_end_index(end);
 
-        let link_list = imp.link_list.borrow();
-        let focus_index = imp.focus_link_index.get()?;
-
-        link_list.get(focus_index).cloned()
+        list.insert(attr);
     }
 
-    fn selection_attributes(&self, start: usize, end: usize) -> pango::AttrList {
+    fn add_selection_attrs(&self, attr_list: &AttrList, start: u32, end: u32) {
         let imp = self.imp();
-
-        let attr_list = pango::AttrList::new();
 
         let (red, green, blue, alpha) = if self.focused() {
             imp.sel_focus_bg_color.get()
@@ -692,39 +505,58 @@ impl TextWidget {
             imp.sel_bg_color.get()
         };
 
-        let mut attr = pango::AttrColor::new_background(red, green, blue);
-        attr.set_start_index(start as u32);
-        attr.set_end_index(end as u32);
-
-        attr_list.insert(attr);
-
-        let mut attr = pango::AttrInt::new_background_alpha(alpha);
-        attr.set_start_index(start as u32);
-        attr.set_end_index(end as u32);
-
-        attr_list.insert(attr);
-
-        attr_list
+        self.add_attr(attr_list, AttrColor::new_background(red, green, blue).into(), start, end);
+        self.add_attr(attr_list, AttrInt::new_background_alpha(alpha).into(), start, end);
     }
 
-    fn focus_link_attributes(&self) -> pango::AttrList {
-        let attr_list = pango::AttrList::new();
-
-        if let Some(link) = self.focus_link() {
+    fn add_active_link_attrs(&self, attr_list: &AttrList) {
+        if let Some(link) = self.active_link() {
             let underline = if self.underline_links() {
-                pango::Underline::Double
+                Underline::Double
             } else {
-                pango::Underline::Single
+                Underline::Single
             };
 
-            let mut attr = pango::AttrInt::new_underline(underline);
-            attr.set_start_index(link.start);
-            attr.set_end_index(link.end);
+            self.add_attr(attr_list, AttrInt::new_underline(underline).into(), link.start, link.end);
+        }
+    }
 
-            attr_list.insert(attr);
+    fn set_layout_attributes(&self) {
+        let imp = self.imp();
+
+        let layout = imp.layout.get().unwrap();
+
+        let link_list = imp.link_list.borrow();
+        let comment_list = imp.comment_list.borrow();
+
+        let attr_list = AttrList::new();
+
+        // Add link attributes
+        let (red, green, blue, alpha) = imp.link_fg_color.get();
+
+        for link in link_list.as_slice() {
+            self.add_attr(&attr_list, AttrColor::new_foreground(red, green, blue).into(), link.start, link.end);
+            self.add_attr(&attr_list, AttrInt::new_foreground_alpha(alpha).into(), link.start, link.end);
+
+            if self.underline_links() {
+                self.add_attr(&attr_list, AttrInt::new_underline(Underline::Single).into(), link.start, link.end);
+            }
         }
 
-        attr_list
+        // Add comment attributes
+        let (red, green, blue, alpha) = imp.comment_fg_color.get();
+
+        for comment in comment_list.as_slice() {
+            self.add_attr(&attr_list, AttrInt::new_weight(Weight::Semibold).into(), comment.start, comment.end);
+            self.add_attr(&attr_list, AttrColor::new_foreground(red, green, blue).into(), comment.start, comment.end);
+            self.add_attr(&attr_list, AttrInt::new_foreground_alpha(alpha).into(), comment.start, comment.end);
+            self.add_attr(&attr_list, AttrFloat::new_scale(0.75).into(), comment.start, comment.end);
+        }
+
+        layout.set_attributes(Some(&attr_list));
+
+        // Store attributes
+        imp.layout_attributes.replace(attr_list);
     }
 
     //---------------------------------------
@@ -735,7 +567,7 @@ impl TextWidget {
 
         // Create pango layout
         let layout = imp.draw_area.create_pango_layout(None);
-        layout.set_wrap(pango::WrapMode::Word);
+        layout.set_wrap(WrapMode::Word);
         layout.set_line_spacing(1.3);
 
         imp.layout.set(layout).unwrap();
@@ -750,15 +582,17 @@ impl TextWidget {
                 let attr_list = imp.layout_attributes.borrow().copy().unwrap();
 
                 // Update pango layout selection attributes
-                if let Some((start, end)) = imp.selection_start.get().zip(imp.selection_end.get())
+                let (sel_start, sel_end) = widget.selection_indices();
+
+                if let Some((start, end)) = sel_start.zip(sel_end)
                     .filter(|&(start, end)| start != end)
                     .map(|(start, end)| (start.min(end), start.max(end))) {
-                        attr_list.splice(&widget.selection_attributes(start, end), 0, 0);
+                        widget.add_selection_attrs(&attr_list, start as u32, end as u32);
                     }
 
-                // Update pango layout focus link attributes
+                // Update pango layout active link attributes
                 if widget.focused() && [PropType::Link, PropType::LinkList, PropType::Packager].contains(&widget.ptype()) {
-                    attr_list.splice(&widget.focus_link_attributes(), 0, 0);
+                    widget.add_active_link_attrs(&attr_list);
                 }
 
                 layout.set_attributes(Some(&attr_list));
@@ -769,7 +603,12 @@ impl TextWidget {
                 } else {
                     let color = widget.color();
 
-                    (f64::from(color.red()), f64::from(color.green()), f64::from(color.blue()), f64::from(color.alpha()))
+                    (
+                        f64::from(color.red()),
+                        f64::from(color.green()),
+                        f64::from(color.blue()),
+                        f64::from(color.alpha())
+                    )
                 };
 
                 context.set_source_rgba(red, green, blue, alpha);
@@ -781,25 +620,128 @@ impl TextWidget {
     }
 
     //---------------------------------------
-    // Update pango colors helper function
+    // Selection helper functions
     //---------------------------------------
-    fn update_pango_colors(&self) {
+    pub fn selected_text(&self) -> Option<GString> {
+        let (sel_start, sel_end) = self.selection_indices();
+
+        let (start, end) = sel_start.zip(sel_end)?;
+
+        self.text().get(start.min(end)..start.max(end)).map(GString::from)
+    }
+
+    fn selection_indices(&self) -> (Option<usize>, Option<usize>) {
         let imp = self.imp();
 
-        // Update pango color variables
-        imp.link_fg_color.set(Color::pango_color_from_style("link"));
-        imp.comment_fg_color.set(Color::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(Color::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(Color::pango_color_from_style("selection-focus"));
+        (imp.selection_start.get(), imp.selection_end.get())
+    }
 
-        // Initialize cairo error color
-        imp.cairo_error_color.set(Color::cairo_color_from_style("error"));
+    pub fn select_all(&self) {
+        let imp = self.imp();
 
-        // Format pango layout text
-        imp.set_layout_attributes();
+        imp.selection_start.set(Some(0));
+        imp.selection_end.set(Some(self.text().len()));
 
-        // Redraw widget
+        self.set_has_selection(true);
         imp.draw_area.queue_draw();
+    }
+
+    pub fn select_none(&self) {
+        let imp = self.imp();
+
+        imp.selection_start.set(None);
+        imp.selection_end.set(None);
+
+        self.set_has_selection(false);
+        imp.draw_area.queue_draw();
+    }
+
+    fn select_range(&self, start: Option<usize>, end: Option<usize>, redraw: bool) {
+        let imp = self.imp();
+
+        imp.selection_start.set(start);
+        imp.selection_end.set(end);
+
+        if redraw {
+            self.set_has_selection(true);
+            imp.draw_area.queue_draw();
+        }
+    }
+
+    fn mark_selection_end(&self, end: Option<usize>) {
+        let imp = self.imp();
+
+        imp.selection_end.set(end);
+
+        if !self.has_selection() {
+            self.set_has_selection(true);
+        }
+
+        imp.draw_area.queue_draw();
+    }
+
+    //---------------------------------------
+    // Link helper functions
+    //---------------------------------------
+    pub fn active_link(&self) -> Option<TextTag> {
+        let imp = self.imp();
+
+        let link_list = imp.link_list.borrow();
+        let index = imp.active_link_index.get()?;
+
+        link_list.get(index).cloned()
+    }
+
+    pub fn select_previous_link(&self) {
+        let imp = self.imp();
+
+        if let Some(new_index) = imp.active_link_index.get()
+            .and_then(|i| i.checked_sub(1)) {
+                imp.active_link_index.set(Some(new_index));
+
+                imp.draw_area.queue_draw();
+            }
+    }
+
+    pub fn select_next_link(&self) {
+        let imp = self.imp();
+
+        let link_list = imp.link_list.borrow();
+
+        if let Some(new_index) = imp.active_link_index.get()
+            .and_then(|i| i.checked_add(1))
+            .filter(|&i| link_list.get(i)
+                .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
+            ) {
+                imp.active_link_index.set(Some(new_index));
+
+                imp.draw_area.queue_draw();
+            }
+    }
+
+    pub fn handle_link(&self, link: &TextTag) {
+        let link_url = link.text.clone();
+
+        if let Ok(url) = Url::parse(&link_url) {
+            let scheme = url.scheme();
+
+            if scheme == "pkg" {
+                if let Some(pkg_name) = url.domain() {
+                    self.emit_by_name::<()>(
+                        "package-link",
+                        &[&pkg_name, &link.version.clone().unwrap_or_default()]
+                    );
+                }
+            } else {
+                glib::spawn_future_local(async move {
+                    let _ = gio::AppInfo::launch_default_for_uri_future(
+                        &link_url,
+                        None::<&gio::AppLaunchContext>
+                    )
+                    .await;
+                });
+            }
+        }
     }
 
     //---------------------------------------
@@ -851,33 +793,14 @@ impl TextWidget {
         }
     }
 
-    fn handle_link(&self, link: &TextTag) {
-        let link_url = link.text.clone();
-
-        if let Ok(url) = Url::parse(&link_url) {
-            let url_scheme = url.scheme();
-
-            if url_scheme == "pkg" {
-                let pkg_name = url.domain().unwrap_or_default();
-
-                self.emit_by_name::<()>("package-link", &[&pkg_name, &link.version]);
-            } else {
-                glib::spawn_future_local(async move {
-                    let _ = gio::AppInfo::launch_default_for_uri_future(
-                        &link_url,
-                        None::<&gio::AppLaunchContext>
-                    )
-                    .await;
-                });
-            }
-        }
-    }
-
     //---------------------------------------
     // Setup controllers
     //---------------------------------------
     fn setup_controllers(&self) {
         let imp = self.imp();
+
+        let is_clicked: Rc<Cell<bool>> = Rc::new(Cell::new(false));
+        let pressed_link: Rc<RefCell<Option<TextTag>>> = Rc::new(RefCell::new(None));
 
         // Mouse motion controller
         let motion_controller = gtk::EventControllerMotion::new();
@@ -898,20 +821,22 @@ impl TextWidget {
 
         imp.draw_area.add_controller(motion_controller);
 
-        // Mouse drag controller
-        let drag_controller = gtk::GestureDrag::new();
+        // Mouse drag gesture
+        let drag_gesture = gtk::GestureDrag::new();
 
-        drag_controller.connect_drag_begin(clone!(
+        let is_clicked_clone = Rc::clone(&is_clicked);
+
+        drag_gesture.connect_drag_begin(clone!(
             #[weak(rename_to = widget)] self,
             move |_, x, y| {
                 let imp = widget.imp();
 
                 if widget.link_at_xy(x, y).is_none() {
-                    if !imp.is_clicked.get() {
+                    if !is_clicked_clone.get() {
                         let (_, index) = widget.index_at_xy(x, y);
 
-                        imp.selection_start.set(Some(index));
-                        imp.selection_end.set(None);
+                        // Set selection start without redrawing
+                        widget.select_range(Some(index), None, false);
                     }
 
                     imp.is_selecting.set(true);
@@ -919,65 +844,53 @@ impl TextWidget {
             }
         ));
 
-        drag_controller.connect_drag_update(clone!(
+        drag_gesture.connect_drag_update(clone!(
             #[weak(rename_to = widget)] self,
             move |controller, x, y| {
-                let imp = widget.imp();
-
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let (_, index) = widget.index_at_xy(start_x + x, start_y + y);
 
-                    imp.selection_end.set(Some(index));
-
-                    if !widget.has_selection() {
-                        widget.set_has_selection(true);
-                    }
-
-                    imp.draw_area.queue_draw();
+                    // Update selection end
+                    widget.mark_selection_end(Some(index));
                 }
             }
         ));
 
-        drag_controller.connect_drag_end(clone!(
+        drag_gesture.connect_drag_end(clone!(
             #[weak(rename_to = widget)] self,
             move |_, _, _| {
                 let imp = widget.imp();
 
-                // Redraw if necessary to hide selection
-                let start = imp.selection_start.get();
-                let end = imp.selection_end.get();
+                // Hide selection if necessary
+                let (start, end) = widget.selection_indices();
 
                 if end.is_none() || start == end {
-                    imp.selection_start.set(None);
-                    imp.selection_end.set(None);
-
-                    widget.set_has_selection(false);
-
-                    imp.draw_area.queue_draw();
+                    widget.select_none();
                 }
 
                 imp.is_selecting.set(false);
             }
         ));
 
-        imp.draw_area.add_controller(drag_controller);
+        imp.draw_area.add_controller(drag_gesture);
 
-        // Mouse click gesture controller
+        // Mouse click gesture
         let click_gesture = gtk::GestureClick::builder()
             .button(gdk::BUTTON_PRIMARY)
             .build();
 
+        let pressed_link_clone = Rc::clone(&pressed_link);
+        let is_clicked_clone = Rc::clone(&is_clicked);
+
         click_gesture.connect_pressed(clone!(
             #[weak(rename_to = widget)] self,
             move |_, n, x, y| {
-                let imp = widget.imp();
-
                 let link = widget.link_at_xy(x, y);
 
                 if link.is_none() {
                     if n == 2 {
-                        // Double click: select word under cursor and redraw widget
-                        imp.is_clicked.set(true);
+                        // Double click: select word under cursor
+                        is_clicked_clone.set(true);
 
                         let (_, index) = widget.index_at_xy(x, y);
 
@@ -1002,38 +915,29 @@ impl TextWidget {
                             .and_then(|end| end.checked_add(index))
                             .unwrap_or(text.len());
 
-                        imp.selection_start.set(Some(start));
-                        imp.selection_end.set(Some(end));
-
-                        widget.set_has_selection(true);
-
-                        imp.draw_area.queue_draw();
+                        widget.select_range(Some(start), Some(end), true);
                     } else if n == 3 {
-                        // Triple click: select all text and redraw widget
-                        imp.is_clicked.set(true);
+                        // Triple click: select all text
+                        is_clicked_clone.set(true);
 
-                        imp.selection_start.set(Some(0));
-                        imp.selection_end.set(Some(widget.text().len()));
-
-                        widget.set_has_selection(true);
-
-                        imp.draw_area.queue_draw();
+                        widget.select_all();
                     }
                 }
 
-                imp.pressed_link.replace(link);
+                pressed_link_clone.replace(link);
             }
         ));
+
+        let pressed_link_clone = Rc::clone(&pressed_link);
+        let is_clicked_clone = Rc::clone(&is_clicked);
 
         click_gesture.connect_released(clone!(
             #[weak(rename_to = widget)] self,
             move |_, _, x, y| {
-                let imp = widget.imp();
-
-                imp.is_clicked.set(false);
+                is_clicked_clone.set(false);
 
                 // Launch link if any
-                if let Some(link) = imp.pressed_link.take()
+                if let Some(link) = pressed_link_clone.take()
                     .filter(|pressed| widget.link_at_xy(x, y).as_ref() == Some(pressed)) {
                         widget.handle_link(&link);
                     }
@@ -1041,21 +945,5 @@ impl TextWidget {
         ));
 
         imp.draw_area.add_controller(click_gesture);
-    }
-
-    //---------------------------------------
-    // Public popup menu function
-    //---------------------------------------
-    pub fn popup_menu(&self, x: f64, y: f64) {
-        let imp = self.imp();
-
-        // Enable/disable copy action
-        self.action_set_enabled("text.copy", self.selected_text().is_some());
-
-        // Show popover menu
-        let rect = gdk::Rectangle::new(x as i32, y as i32, 0, 0);
-
-        imp.popover_menu.set_pointing_to(Some(&rect));
-        imp.popover_menu.popup();
     }
 }

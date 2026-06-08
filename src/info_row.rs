@@ -1,11 +1,10 @@
-use std::sync::OnceLock;
+use std::cell::Cell;
 use std::marker::PhantomData;
 
-use gtk::{glib, gdk, graphene};
+use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, GString, RustClosure, Propagation};
-use glib::subclass::Signal;
+use glib::{clone, GString, RustClosure};
 use gdk::{Key, ModifierType};
 
 use strum::AsRefStr;
@@ -73,7 +72,6 @@ pub enum PropID {
 pub enum PropType {
     #[default]
     Text,
-    Title,
     Link,
     Packager,
     LinkList,
@@ -119,6 +117,8 @@ mod imp {
         label: PhantomData<GString>,
         #[property(get = Self::value)]
         value: PhantomData<GString>,
+        #[property(get, set)]
+        has_selection: Cell<bool>,
     }
 
     //---------------------------------------
@@ -133,6 +133,9 @@ mod imp {
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
 
+            // Install actions
+            Self::install_actions(klass);
+
             // Add key bindings
             Self::bind_shortcuts(klass);
         }
@@ -145,20 +148,6 @@ mod imp {
     #[glib::derived_properties]
     impl ObjectImpl for InfoRow {
         //---------------------------------------
-        // Signals
-        //---------------------------------------
-        fn signals() -> &'static [Signal] {
-            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
-                vec![
-                    Signal::builder("selection-widget")
-                        .param_types([TextWidget::static_type()])
-                        .build(),
-                ]
-            })
-        }
-
-        //---------------------------------------
         // Constructor
         //---------------------------------------
         fn constructed(&self) {
@@ -167,6 +156,7 @@ mod imp {
             let obj = self.obj();
 
             obj.setup_signals();
+            obj.setup_widgets();
             obj.setup_controllers();
         }
     }
@@ -176,91 +166,89 @@ mod imp {
 
     impl InfoRow {
         //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            // Selection actions
+            klass.install_action("text.select-all", None, |row, _, _| {
+                row.imp().value_widget.select_all();
+            });
+
+            klass.install_action("text.select-none", None, |row, _, _| {
+                row.imp().value_widget.select_none();
+            });
+
+            // Copy action
+            klass.install_action("text.copy", None, |row, _, _| {
+                if let Some(text) = row.imp().value_widget.selected_text() {
+                    row.clipboard().set_text(&text);
+                }
+            });
+
+            // Expand/contract actions
+            klass.install_action("text.expand", None, |row, _, _| {
+                let widget = &row.imp().value_widget;
+
+                if widget.can_expand() && !widget.expanded() {
+                    widget.set_expanded(true);
+                }
+            });
+
+            klass.install_action("text.contract", None, |row, _, _| {
+                let widget = &row.imp().value_widget;
+
+                if widget.can_expand() && widget.expanded() {
+                    widget.set_expanded(false);
+                }
+            });
+
+            // Link actions
+            klass.install_action("text.previous-link", None, |row, _, _| {
+                row.imp().value_widget.select_previous_link();
+            });
+
+            klass.install_action("text.next-link", None, |row, _, _| {
+                row.imp().value_widget.select_next_link();
+            });
+
+            klass.install_action("text.activate-link", None, |row, _, _| {
+                let widget = &row.imp().value_widget;
+
+                if let Some(link) = widget.active_link() {
+                    widget.handle_link(&link);
+                }
+            });
+        }
+
+        //---------------------------------------
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Select all/none key bindings
-            klass.add_binding(Key::A, ModifierType::CONTROL_MASK, |row| {
-                row.imp().value_widget.activate_action("text.select-all", None).unwrap();
+            klass.add_binding_action(Key::A, ModifierType::CONTROL_MASK, "text.select-all");
 
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::A, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, |row| {
-                row.imp().value_widget.activate_action("text.select-none", None).unwrap();
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::A, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "text.select-none");
 
             // Copy key binding
-            klass.add_binding(Key::C, ModifierType::CONTROL_MASK, |row| {
-                row.imp().value_widget.activate_action("text.copy", None).unwrap();
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK, "text.copy");
 
             // Expand/contract key bindings
-            klass.add_binding(Key::plus, ModifierType::CONTROL_MASK, |row| {
-                row.imp().value_widget.activate_action("text.expand", None).unwrap();
+            klass.add_binding_action(Key::plus, ModifierType::CONTROL_MASK, "text.expand");
+            klass.add_binding_action(Key::KP_Add, ModifierType::CONTROL_MASK, "text.expand");
 
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::KP_Add, ModifierType::CONTROL_MASK, |row| {
-                row.imp().value_widget.activate_action("text.expand", None).unwrap();
-
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::minus, ModifierType::CONTROL_MASK, |row| {
-                row.imp().value_widget.activate_action("text.contract", None).unwrap();
-
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::KP_Subtract, ModifierType::CONTROL_MASK, |row| {
-                row.imp().value_widget.activate_action("text.contract", None).unwrap();
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::minus, ModifierType::CONTROL_MASK, "text.contract");
+            klass.add_binding_action(Key::KP_Subtract, ModifierType::CONTROL_MASK, "text.contract");
 
             // Previous/next link key bindings
-            klass.add_binding(Key::Left, ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().value_widget.activate_action("text.previous-link", None).unwrap();
+            klass.add_binding_action(Key::Left, ModifierType::NO_MODIFIER_MASK, "text.previous-link");
+            klass.add_binding_action(Key::KP_Left, ModifierType::NO_MODIFIER_MASK, "text.previous-link");
 
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::KP_Left, ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().value_widget.activate_action("text.previous-link", None).unwrap();
-
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::Right, ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().value_widget.activate_action("text.next-link", None).unwrap();
-
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::KP_Right, ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().value_widget.activate_action("text.next-link", None).unwrap();
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::Right, ModifierType::NO_MODIFIER_MASK, "text.next-link");
+            klass.add_binding_action(Key::KP_Right, ModifierType::NO_MODIFIER_MASK, "text.next-link");
 
             // Activate link key bindings
-            klass.add_binding(Key::Return, ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().value_widget.activate_action("text.activate-link", None).unwrap();
-
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::KP_Enter, ModifierType::NO_MODIFIER_MASK, |row| {
-                row.imp().value_widget.activate_action("text.activate-link", None).unwrap();
-
-                Propagation::Stop
-            });
+            klass.add_binding_action(Key::Return, ModifierType::NO_MODIFIER_MASK, "text.activate-link");
+            klass.add_binding_action(Key::KP_Enter, ModifierType::NO_MODIFIER_MASK, "text.activate-link");
         }
 
         //---------------------------------------
@@ -305,90 +293,6 @@ impl InfoRow {
     }
 
     //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        let imp = self.imp();
-
-        // Row has focus property notify
-        self.connect_has_focus_notify(|row| {
-            row.imp().value_widget.set_focused(row.has_focus());
-        });
-
-        // Value widget can expand property notify
-        imp.value_widget.connect_can_expand_notify(clone!(
-            #[weak] imp,
-            move |widget| {
-                imp.expand_image.set_visible(widget.can_expand());
-            }
-        ));
-
-        // Value widget expanded property notify
-        imp.value_widget.connect_expanded_notify(clone!(
-            #[weak] imp,
-            move |widget| {
-                if widget.expanded() {
-                    imp.prop_box.add_css_class("active");
-                } else {
-                    imp.prop_box.remove_css_class("active");
-                }
-            }
-        ));
-
-        // Value widget has selection property notify
-        imp.value_widget.connect_has_selection_notify(clone!(
-            #[weak(rename_to = row)] self,
-            move |widget| {
-                row.emit_by_name::<()>("selection-widget", &[&widget]);
-            }
-        ));
-    }
-
-    //---------------------------------------
-    // Setup controllers
-    //---------------------------------------
-    fn setup_controllers(&self) {
-        let imp = self.imp();
-
-        // Popup menu controller
-        let popup_gesture = gtk::GestureClick::builder()
-            .button(gdk::BUTTON_SECONDARY)
-            .build();
-
-        popup_gesture.connect_pressed(clone!(
-            #[weak(rename_to = row)] self,
-            move |_, _, x, y| {
-                let value_widget = &row.imp().value_widget;
-
-                if let Some(point) = row.compute_point(
-                    &value_widget.get(),
-                    &graphene::Point::new(x as f32, y as f32)
-                ) {
-                    value_widget.popup_menu(f64::from(point.x()), f64::from(point.y()));
-                }
-            }
-        ));
-
-        self.add_controller(popup_gesture);
-
-        // Label click controller
-        let click_gesture = gtk::GestureClick::builder()
-            .button(gdk::BUTTON_PRIMARY)
-            .build();
-
-        click_gesture.connect_released(clone!(
-            #[weak] imp,
-            move |_, n, _, _| {
-                if n == 1 {
-                    imp.value_widget.set_expanded(!imp.value_widget.expanded());
-                }
-            }
-        ));
-
-        imp.prop_box.add_controller(click_gesture);
-    }
-
-    //---------------------------------------
     // Public set value function
     //---------------------------------------
     pub fn set_value(&self, value: ValueType) {
@@ -416,5 +320,86 @@ impl InfoRow {
                 }
             }
         }
+    }
+
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        let imp = self.imp();
+
+        // Value widget expanded property notify
+        imp.value_widget.connect_expanded_notify(clone!(
+            #[weak] imp,
+            move |widget| {
+                if widget.expanded() {
+                    imp.prop_box.add_css_class("active");
+                } else {
+                    imp.prop_box.remove_css_class("active");
+                }
+            }
+        ));
+
+        // Has selection property notify signal
+        self.connect_has_selection_notify(|row| {
+            row.action_set_enabled("text.copy", row.has_selection());
+        });
+    }
+
+    //---------------------------------------
+    // Setup widgets
+    //---------------------------------------
+    fn setup_widgets(&self) {
+        let imp = self.imp();
+
+        // Bind has focus property to value widget focused property
+        self.bind_property("has-focus", &imp.value_widget.get(), "focused")
+            .sync_create()
+            .build();
+
+        // Bind value widget has selection property to has selection property
+        imp.value_widget.bind_property("has-selection", self, "has-selection")
+            .sync_create()
+            .build();
+
+        // Bind value widget can expand property to expand image visibility
+        imp.value_widget.bind_property("can-expand", &imp.expand_image.get(), "visible")
+            .sync_create()
+            .build();
+    }
+
+    //---------------------------------------
+    // Setup controllers
+    //---------------------------------------
+    fn setup_controllers(&self) {
+        let imp = self.imp();
+
+        // Label expand area click gesture
+        let click_gesture = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_PRIMARY)
+            .build();
+
+        click_gesture.connect_released(clone!(
+            #[weak] imp,
+            move |_, n, _, _| {
+                if n == 1 {
+                    imp.value_widget.set_expanded(!imp.value_widget.expanded());
+                }
+            }
+        ));
+
+        imp.prop_box.add_controller(click_gesture);
+
+        // Mouse drag gesture (needed to ensure row gets focus on drag)
+        let drag_gesture = gtk::GestureDrag::new();
+
+        drag_gesture.connect_drag_begin(clone!(
+            #[weak(rename_to = row)] self,
+            move |_, _, _| {
+                row.grab_focus();
+            }
+        ));
+
+        self.add_controller(drag_gesture);
     }
 }

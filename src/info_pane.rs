@@ -152,41 +152,6 @@ glib::wrapper! {
 
 impl InfoPane {
     //---------------------------------------
-    // InfoRow pkg link handler
-    //---------------------------------------
-    fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
-        // Find link package in pacman databases or AUR search results
-        let pkg_link = pkg_name.to_owned() + pkg_version;
-
-        let pkg_model = self.package_view().pkg_model();
-        let aur_model = self.package_view().aur_model();
-
-        let new_pkg = PkgObject::find_satisfier(&pkg_link, &pkg_model)
-            .or_else(|| {
-                aur_model.iter::<PkgObject>()
-                    .flatten()
-                    .find(|pkg| pkg.name() == pkg_name)
-                    .or_else(|| {
-                        aur_model.iter::<PkgObject>()
-                            .flatten()
-                            .find(|pkg| pkg.provides().iter().any(|s| s == &pkg_link))
-                    })
-            });
-
-        // If link package found
-        if let Some(pkg) = new_pkg {
-            let history = self.imp().pkg_history.borrow();
-
-            // If link package is in history, select it
-            // Otherwise append it after selected history package
-            history.select_or_append(pkg);
-
-            // Display link package
-            self.update_display();
-        }
-    }
-
-    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -228,6 +193,41 @@ impl InfoPane {
                 pane.pkg_link_handler(pkg_name, pkg_version);
             }
         ));
+    }
+
+    //---------------------------------------
+    // InfoRow pkg link handler
+    //---------------------------------------
+    fn pkg_link_handler(&self, pkg_name: &str, pkg_version: &str) {
+        // Find link package in pacman databases or AUR search results
+        let pkg_link = pkg_name.to_owned() + pkg_version;
+
+        let pkg_model = self.package_view().pkg_model();
+        let aur_model = self.package_view().aur_model();
+
+        let new_pkg = PkgObject::find_satisfier(&pkg_link, &pkg_model)
+            .or_else(|| {
+                aur_model.iter::<PkgObject>()
+                    .flatten()
+                    .find(|pkg| pkg.name() == pkg_name)
+                    .or_else(|| {
+                        aur_model.iter::<PkgObject>()
+                            .flatten()
+                            .find(|pkg| pkg.provides().iter().any(|s| s == &pkg_link))
+                    })
+            });
+
+        // If link package found
+        if let Some(pkg) = new_pkg {
+            let history = self.imp().pkg_history.borrow();
+
+            // If link package is in history, select it
+            // Otherwise append it after selected history package
+            history.select_or_append(pkg);
+
+            // Display link package
+            self.update_display();
+        }
     }
 
     //---------------------------------------

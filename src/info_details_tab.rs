@@ -6,13 +6,13 @@ use std::fmt::Write as _;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::glib;
-use glib::{closure_local, RustClosure};
+use glib::{clone, RustClosure};
 
 use crate::{
     pkg_data::{PkgFlags, PkgValidation},
     pkg_object::PkgObject,
     info_row::{PropID, PropType, ValueType, InfoRow},
-    text_widget::{INSTALLED_LABEL, LINK_SPACER, TextWidget},
+    text_widget::{INSTALLED_LABEL, LINK_SPACER},
     source_window::SourceWindow,
     hash_window::HashWindow,
     utils::Paths,
@@ -63,7 +63,7 @@ mod imp {
         pkg: RefCell<Option<PkgObject>>,
 
         pub(super) info_row_map: RefCell<HashMap<PropID, InfoRow>>,
-        pub(super) sel_widget: RefCell<Option<TextWidget>>,
+        pub(super) selection_row: RefCell<Option<InfoRow>>,
     }
 
     //---------------------------------------
@@ -181,16 +181,16 @@ impl InfoDetailsTab {
 
         let row = InfoRow::new(id, ptype, link_handler);
 
-        row.connect_closure("selection-widget", false, closure_local!(
+        row.connect_has_selection_notify(clone!(
             #[weak] imp,
-            move |_: InfoRow, widget: TextWidget| {
-                if widget.has_selection() {
-                    if imp.sel_widget.borrow().as_ref().is_none_or(|w| w != &widget)
-                        && let Some(prev_widget) = imp.sel_widget.replace(Some(widget)) {
-                            prev_widget.activate_action("text.select-none", None).unwrap();
+            move |row| {
+                if row.has_selection() {
+                    if imp.selection_row.borrow().as_ref().is_none_or(|sel| sel != row)
+                        && let Some(prev_row) = imp.selection_row.replace(Some(row.clone())) {
+                            prev_row.activate_action("text.select-none", None).unwrap();
                         }
-                } else if imp.sel_widget.borrow().as_ref().is_some_and(|w| w == &widget) {
-                    imp.sel_widget.replace(None);
+                } else if imp.selection_row.borrow().as_ref().is_some_and(|sel| sel == row) {
+                    imp.selection_row.replace(None);
                 }
             }
         ));

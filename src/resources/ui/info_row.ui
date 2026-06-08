@@ -8,44 +8,66 @@
     <property name="hexpand">true</property>
     <property name="activatable">false</property>
     <property name="child">
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="margin-start">12</property>
-        <property name="margin-end">6</property>
-        <property name="margin-top">6</property>
-        <property name="margin-bottom">8</property>
-        <property name="spacing">2</property>
-        <child>
-          <object class="GtkBox" id="prop_box">
-            <property name="spacing">12</property>
-            <style>
-              <class name="property"/>
-            </style>
+      <object class="GtkPopoverBin">
+        <property name="handle-input">true</property>
+        <property name="menu-model">popover_menu</property>
+        <property name="child">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin-start">12</property>
+            <property name="margin-end">6</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">8</property>
+            <property name="spacing">2</property>
             <child>
-              <object class="GtkLabel" id="prop_label">
-                <property name="hexpand">true</property>
-                <property name="xalign">0</property>
+              <object class="GtkBox" id="prop_box">
+                <property name="spacing">12</property>
                 <style>
-                  <class name="caption"/>
-                  <class name="dimmed"/>
+                  <class name="property"/>
                 </style>
+                <child>
+                  <object class="GtkLabel" id="prop_label">
+                    <property name="hexpand">true</property>
+                    <property name="xalign">0</property>
+                    <style>
+                      <class name="caption"/>
+                      <class name="dimmed"/>
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkImage" id="expand_image">
+                    <property name="valign">center</property>
+                    <property name="margin-end">6</property>
+                    <property name="icon-name">expander-symbolic</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="GtkImage" id="expand_image">
-                <property name="valign">center</property>
-                <property name="margin-end">6</property>
-                <property name="icon-name">expander-symbolic</property>
+              <object class="TextWidget" id="value_widget">
+                <property name="hexpand">true</property>
               </object>
             </child>
           </object>
-        </child>
-        <child>
-          <object class="TextWidget" id="value_widget">
-            <property name="hexpand">true</property>
-          </object>
-        </child>
+        </property>
       </object>
     </property>
   </template>
+
+  <!--// Popover menu //-->
+  <menu id="popover_menu">
+    <section>
+      <item>
+        <attribute name="label">Copy</attribute>
+        <attribute name="action">text.copy</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">Select All</attribute>
+        <attribute name="action">text.select-all</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>
