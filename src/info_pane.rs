@@ -51,6 +51,8 @@ mod imp {
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         pkg: PhantomData<Option<PkgObject>>,
+        #[property(get, set, default = "info", construct)]
+        active_tab: RefCell<String>,
 
         #[property(get, set)]
         package_view: OnceCell<PackageView>,
@@ -186,6 +188,11 @@ impl InfoPane {
             .sync_create()
             .build();
 
+        // Bind active tab property to visible page
+        self.bind_property("active-tab", &imp.tab_stack.get(), "visible-child-name")
+            .sync_create()
+            .build();
+
         // Setup info tab details listbox
         imp.info_tab.setup_details(closure_local!(
             #[weak(rename_to = pane)] self,
@@ -274,17 +281,6 @@ impl InfoPane {
             );
 
             imp.update_delay_id.replace(Some(delay_id));
-        }
-    }
-
-    //---------------------------------------
-    // Set visible tab public function
-    //---------------------------------------
-    pub fn set_visible_tab(&self, tab: &str) {
-        let imp = self.imp();
-
-        if imp.tab_switcher.is_sensitive() {
-            imp.tab_stack.set_visible_child_name(tab);
         }
     }
 }

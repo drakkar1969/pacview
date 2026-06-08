@@ -345,19 +345,19 @@ mod imp {
 
             // Infopane set tab shortcuts
             klass.add_binding(Key::I, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_visible_tab("info");
+                window.imp().info_pane.set_active_tab("info");
 
                 Propagation::Stop
             });
 
             klass.add_binding(Key::F, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_visible_tab("files");
+                window.imp().info_pane.set_active_tab("files");
 
                 Propagation::Stop
             });
 
             klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_visible_tab("log");
+                window.imp().info_pane.set_active_tab("log");
 
                 Propagation::Stop
             });
