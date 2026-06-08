@@ -61,8 +61,6 @@ mod imp {
         #[template_child]
         pub(super) search_exact_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
-        pub(super) search_delay_row: TemplateChild<adw::SpinRow>,
-        #[template_child]
         pub(super) property_max_lines_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) property_line_spacing_row: TemplateChild<adw::SpinRow>,
@@ -97,8 +95,6 @@ mod imp {
         search_prop: Cell<SearchProp>,
         #[property(get, set)]
         search_exact: Cell<bool>,
-        #[property(get, set)]
-        search_delay: Cell<f64>,
         #[property(get, set)]
         property_line_spacing: Cell<f64>,
         #[property(get, set)]
@@ -259,7 +255,6 @@ impl PreferencesDialog {
                             settings.reset("remember-grouping");
                             settings.reset("search-prop");
                             settings.reset("search-exact");
-                            settings.reset("search-delay");
                             settings.reset("property-max-lines");
                             settings.reset("property-line-spacing");
                             settings.reset("underline-links");
@@ -336,11 +331,6 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("search-exact", &imp.search_exact_row.get(), "active")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        self.bind_property("search-delay", &imp.search_delay_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();

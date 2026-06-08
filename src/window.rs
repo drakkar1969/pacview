@@ -530,10 +530,6 @@ impl PacViewWindow {
         prefs_dialog.bind_property("search-exact", &search_bar, "default-exact")
             .sync_create()
             .build();
-
-        prefs_dialog.bind_property("search-delay", &search_bar, "delay")
-            .sync_create()
-            .build();
     }
 
     //---------------------------------------
@@ -572,7 +568,6 @@ impl PacViewWindow {
         settings.bind("remember-grouping", prefs_dialog, "remember-grouping").build();
         settings.bind("search-prop", prefs_dialog, "search-prop").build();
         settings.bind("search-exact", prefs_dialog, "search-exact").build();
-        settings.bind("search-delay", prefs_dialog, "search-delay").build();
         settings.bind("property-max-lines", prefs_dialog, "property-max-lines").build();
         settings.bind("property-line-spacing", prefs_dialog, "property-line-spacing").build();
         settings.bind("underline-links", prefs_dialog, "underline-links").build();

@@ -91,9 +91,6 @@ mod imp {
         #[property(get, set)]
         default_exact: Cell<bool>,
 
-        #[property(get, set, default = 150, construct)]
-        delay: Cell<u64>,
-
         #[property(get, set)]
         searching: Cell<bool>,
 
@@ -359,7 +356,7 @@ impl SearchBar {
                 } else {
                     // Start delay timer
                     let delay_id = glib::timeout_add_local_once(
-                        Duration::from_millis(bar.delay()),
+                        Duration::from_millis(150),
                         clone!(
                             #[weak] imp,
                             move || {
