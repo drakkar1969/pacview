@@ -596,7 +596,7 @@ impl PacViewWindow {
             .set()
             .build();
 
-        // Load/save packave view grouping property
+        // Load/save package view grouping property
         if prefs_dialog.remember_grouping() {
             settings.bind("grouping", &imp.package_view.get(), "grouping")
                 .get()
