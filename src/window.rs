@@ -58,6 +58,8 @@ mod imp {
         pub(super) sidebar_split_view: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
         pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
+        #[template_child]
+        pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
 
         #[template_child]
         pub(super) repo_sidebar: TemplateChild<adw::Sidebar>,
@@ -504,13 +506,21 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Set main breakpoint setter
-        imp.main_breakpoint.add_setter(&imp.package_view.infopane_button(), "visible", Some(&true.to_value()));
+        // Add main breakpoint setters
+        imp.main_breakpoint.add_setters(&[
+            (&imp.main_split_view.get().upcast::<glib::Object>(), "collapsed", true),
+            (&imp.package_view.infopane_button().upcast(), "visible", true)
+        ]);
 
-        // Set sidebar breakpoint setters
-        imp.sidebar_breakpoint.add_setter(&imp.package_view.main_menu_button(), "visible", Some(&true.to_value()));
-        imp.sidebar_breakpoint.add_setter(&imp.package_view.sidebar_button(), "visible", Some(&true.to_value()));
-        imp.sidebar_breakpoint.add_setter(&imp.package_view.infopane_button(), "visible", Some(&true.to_value()));
+        // Add sidebar breakpoint setters
+        imp.sidebar_breakpoint.add_setters(&[
+            (&imp.main_split_view.get().upcast::<glib::Object>(), "collapsed", true),
+            (&imp.sidebar_split_view.get().upcast(), "collapsed", true),
+            (&imp.main_menu_button.get().upcast(), "visible", false),
+            (&imp.package_view.main_menu_button().upcast(), "visible", true),
+            (&imp.package_view.sidebar_button().upcast(), "visible", true),
+            (&imp.package_view.infopane_button().upcast(), "visible", true)
+        ]);
 
         // Set window parents
         imp.backup_window.borrow().set_transient_for(Some(self));
