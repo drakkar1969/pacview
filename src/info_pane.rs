@@ -194,12 +194,14 @@ impl InfoPane {
             .build();
 
         // Setup info tab details listbox
-        imp.info_tab.setup_details(closure_local!(
+        let pkg_link_handler = closure_local!(
             #[weak(rename_to = pane)] self,
             move |_: TextWidget, pkg_name: &str, pkg_version: &str| {
                 pane.pkg_link_handler(pkg_name, pkg_version);
             }
-        ));
+        );
+
+        imp.info_tab.setup_details(pkg_link_handler);
     }
 
     //---------------------------------------

@@ -174,9 +174,46 @@ glib::wrapper! {
 
 impl InfoDetailsTab {
     //---------------------------------------
+    // Public setup details function
+    //---------------------------------------
+    pub fn setup_details(&self, pkg_link_handler: RustClosure) {
+        // Add info rows
+        for (id, ptype) in [
+            (PropID::Popularity, PropType::Text),
+            (PropID::OutOfDate, PropType::Error),
+            (PropID::PackageUrl, PropType::Link),
+            (PropID::Url, PropType::Link),
+            (PropID::Groups, PropType::Text),
+            (PropID::Dependencies, PropType::LinkList),
+            (PropID::Optional, PropType::LinkList),
+            (PropID::Make, PropType::LinkList),
+            (PropID::RequiredBy, PropType::LinkList),
+            (PropID::OptionalFor, PropType::LinkList),
+            (PropID::Provides, PropType::Text),
+            (PropID::ConflictsWith, PropType::LinkList),
+            (PropID::Replaces, PropType::LinkList),
+            (PropID::Licenses, PropType::Text),
+            (PropID::Architecture, PropType::Text),
+            (PropID::Packager, PropType::Packager),
+            (PropID::BuildDate, PropType::Text),
+            (PropID::InstallDate, PropType::Text),
+            (PropID::DownloadSize, PropType::Text),
+            (PropID::InstallScript, PropType::Text),
+            (PropID::Validation, PropType::Text)
+        ] {
+            let handler = [PropType::Link, PropType::LinkList, PropType::Packager]
+                .contains(&ptype)
+                .then_some(pkg_link_handler.clone());
+
+            self.add_info_row(id, ptype, handler);
+
+        }
+    }
+
+    //---------------------------------------
     // Add info row function
     //---------------------------------------
-    fn add_info_row(&self, id: PropID, ptype: PropType, link_handler: Option<&RustClosure>) {
+    fn add_info_row(&self, id: PropID, ptype: PropType, link_handler: Option<RustClosure>) {
         let imp = self.imp();
 
         let row = InfoRow::new(id, ptype, link_handler);
@@ -185,10 +222,11 @@ impl InfoDetailsTab {
             #[weak] imp,
             move |row| {
                 if row.has_selection() {
-                    if imp.selection_row.borrow().as_ref().is_none_or(|sel| sel != row)
-                        && let Some(prev_row) = imp.selection_row.replace(Some(row.clone())) {
+                    if imp.selection_row.borrow().as_ref().is_none_or(|sel| sel != row) {
+                        if let Some(prev_row) = imp.selection_row.replace(Some(row.clone())) {
                             prev_row.activate_action("text.select-none", None).unwrap();
                         }
+                    }
                 } else if imp.selection_row.borrow().as_ref().is_some_and(|sel| sel == row) {
                     imp.selection_row.replace(None);
                 }
@@ -349,43 +387,6 @@ impl InfoDetailsTab {
             !(validation.intersects(PkgValidation::UNKNOWN)
                 || validation.intersects(PkgValidation::NONE))
         });
-    }
-
-    //---------------------------------------
-    // Public setup details function
-    //---------------------------------------
-    pub fn setup_details(&self, link_handler: RustClosure) {
-        // Add info rows
-        for (id, ptype) in [
-            (PropID::Popularity, PropType::Text),
-            (PropID::OutOfDate, PropType::Error),
-            (PropID::PackageUrl, PropType::Link),
-            (PropID::Url, PropType::Link),
-            (PropID::Groups, PropType::Text),
-            (PropID::Dependencies, PropType::LinkList),
-            (PropID::Optional, PropType::LinkList),
-            (PropID::Make, PropType::LinkList),
-            (PropID::RequiredBy, PropType::LinkList),
-            (PropID::OptionalFor, PropType::LinkList),
-            (PropID::Provides, PropType::Text),
-            (PropID::ConflictsWith, PropType::LinkList),
-            (PropID::Replaces, PropType::LinkList),
-            (PropID::Licenses, PropType::Text),
-            (PropID::Architecture, PropType::Text),
-            (PropID::Packager, PropType::Packager),
-            (PropID::BuildDate, PropType::Text),
-            (PropID::InstallDate, PropType::Text),
-            (PropID::DownloadSize, PropType::Text),
-            (PropID::InstallScript, PropType::Text),
-            (PropID::Validation, PropType::Text)
-        ] {
-            let handler = [PropType::Link, PropType::LinkList, PropType::Packager]
-                .contains(&ptype)
-                .then_some(&link_handler);
-
-            self.add_info_row(id, ptype, handler);
-
-        }
     }
 
     //---------------------------------------

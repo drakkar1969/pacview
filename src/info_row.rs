@@ -277,7 +277,7 @@ impl InfoRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(id: PropID, ptype: PropType, link_handler: Option<&RustClosure>) -> Self {
+    pub fn new(id: PropID, ptype: PropType, pkg_link_handler: Option<RustClosure>) -> Self {
         let obj: Self = glib::Object::builder().build();
 
         let imp = obj.imp();
@@ -285,8 +285,8 @@ impl InfoRow {
         imp.prop_label.set_label(id.as_ref());
         imp.value_widget.set_ptype(ptype);
 
-        if let Some(handler) = link_handler {
-            imp.value_widget.connect_closure("package-link", false, handler.clone());
+        if let Some(handler) = pkg_link_handler {
+            imp.value_widget.connect_closure("package-link", false, handler);
         }
 
         obj
