@@ -41,9 +41,9 @@ mod imp {
         //---------------------------------------
         fn get_icon(&self) -> String {
             if self.path.borrow().ends_with(".sig") {
-                "info-signed-symbolic"
+                "cache-sig-symbolic"
             } else {
-                "info-archive-symbolic"
+                "cache-pkg-symbolic"
             }.to_owned()
         }
     }

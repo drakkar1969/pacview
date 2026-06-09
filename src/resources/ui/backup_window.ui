@@ -53,7 +53,7 @@
                         <property name="action-name">backup.compare</property>
                         <property name="child">
                           <object class="GtkImage" id="compare_image">
-                            <property name="icon-name">info-compare-symbolic</property>
+                            <property name="icon-name">backup-compare-symbolic</property>
                           </object>
                         </property>
                         <style>

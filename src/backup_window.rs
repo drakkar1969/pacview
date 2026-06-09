@@ -152,7 +152,7 @@ mod imp {
                         let _ = backup_file.compare_with_original().await;
                     }
 
-                imp.compare_image.set_icon_name(Some("info-compare-symbolic"));
+                imp.compare_image.set_icon_name(Some("backup-compare-symbolic"));
             });
 
             // Open action
