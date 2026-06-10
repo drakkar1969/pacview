@@ -854,9 +854,6 @@ impl PacViewWindow {
 
                 match result {
                     Ok(()) => {
-                        // Get package updates
-                        window.get_package_updates().await;
-
                         // Populate windows
                         glib::idle_add_local_once(clone!(
                             #[weak] imp,
@@ -870,6 +867,9 @@ impl PacViewWindow {
                                 imp.stats_window.borrow().populate(&repo_names, &pkg_model);
                             }
                         ));
+
+                        // Get package updates
+                        window.get_package_updates().await;
 
                         // Check AUR package names file age
                         let (max_age, aur_download) = {
