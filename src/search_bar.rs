@@ -70,10 +70,6 @@ mod imp {
         pub(super) exact_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) filter_button: TemplateChild<gtk::MenuButton>,
-        #[template_child]
-        pub(super) error_button: TemplateChild<gtk::MenuButton>,
-        #[template_child]
-        pub(super) error_label: TemplateChild<gtk::Label>,
 
         pub(super) has_capture_widget: Cell<bool>,
 
@@ -253,20 +249,16 @@ impl SearchBar {
     // Public set AUR status function
     //---------------------------------------
     pub fn set_aur_status(&self, status: Result<(), String>) {
-        let imp = self.imp();
-
         if let Err(mut error) = status {
             self.add_css_class("error");
 
             error.pop();
 
-            imp.error_label.set_label(&error);
-            imp.error_button.set_visible(true);
+            self.set_tooltip_text(Some(&format!("AUR Error: {}", error)));
         } else {
             self.remove_css_class("error");
 
-            imp.error_label.set_label("");
-            imp.error_button.set_visible(false);
+            self.set_tooltip_text(None);
         }
     }
 
