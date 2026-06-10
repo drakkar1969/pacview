@@ -49,13 +49,9 @@
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkButton" id="compare_button">
+                        <property name="icon-name">backup-compare-symbolic</property>
                         <property name="tooltip-text">Compare with Original</property>
                         <property name="action-name">backup.compare</property>
-                        <property name="child">
-                          <object class="GtkImage" id="compare_image">
-                            <property name="icon-name">backup-compare-symbolic</property>
-                          </object>
-                        </property>
                         <style>
                           <class name="flat"/>
                         </style>

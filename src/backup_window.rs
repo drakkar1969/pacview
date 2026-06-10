@@ -50,8 +50,6 @@ mod imp {
         #[template_child]
         pub(super) compare_button: TemplateChild<gtk::Button>,
         #[template_child]
-        pub(super) compare_image: TemplateChild<gtk::Image>,
-        #[template_child]
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
@@ -142,17 +140,10 @@ mod imp {
 
             // Compare action
             klass.install_action_async("backup.compare", None, async |window, _, _| {
-                let imp = window.imp();
-
-                let spinner = adw::SpinnerPaintable::new(Some(&imp.compare_button.get()));
-                imp.compare_image.set_paintable(Some(&spinner));
-
-                if let Some(backup_file) = imp.selection.selected_item()
+                if let Some(backup_file) = window.imp().selection.selected_item()
                     .and_downcast::<BackupObject>() {
                         let _ = backup_file.compare_with_original().await;
                     }
-
-                imp.compare_image.set_icon_name(Some("backup-compare-symbolic"));
             });
 
             // Open action
