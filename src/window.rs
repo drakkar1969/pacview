@@ -69,6 +69,8 @@ mod imp {
         pub(super) status_sidebar: TemplateChild<adw::Sidebar>,
         #[template_child]
         pub(super) status_section: TemplateChild<adw::SidebarSection>,
+        #[template_child]
+        pub(super) update_section: TemplateChild<adw::SidebarSection>,
 
         #[template_child]
         pub(super) package_view: TemplateChild<PackageView>,
@@ -717,7 +719,11 @@ impl PacViewWindow {
 
                 let item = StatusItem::new(&format!("status-{nick}-symbolic"), f.name(), flag);
 
-                imp.status_section.append(item.clone());
+                if flag == PkgFlags::UPDATES {
+                    imp.update_section.append(item.clone());
+                } else {
+                    imp.status_section.append(item.clone());
+                }
 
                 if flag == PkgFlags::INSTALLED {
                     item.activate();

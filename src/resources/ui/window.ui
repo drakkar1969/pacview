@@ -53,6 +53,9 @@
                         <property name="title">Package Status</property>
                       </object>
                     </child>
+                    <child>
+                      <object class="AdwSidebarSection" id="update_section"/>
+                    </child>
                   </object>
                 </child>
               </object>
