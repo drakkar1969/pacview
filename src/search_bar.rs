@@ -254,7 +254,7 @@ impl SearchBar {
 
             error.pop();
 
-            self.set_tooltip_text(Some(&format!("AUR Error: {}", error)));
+            self.set_tooltip_text(Some(&format!("AUR Error: {error}")));
         } else {
             self.remove_css_class("error");
 

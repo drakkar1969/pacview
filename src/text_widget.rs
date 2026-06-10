@@ -300,16 +300,15 @@ mod imp {
                         link_list.extend(EXPR.captures_iter(text)
                             .flatten()
                             .filter_map(|caps| {
-                                if let Some((m1, m2)) = caps.get(1).zip(caps.get(2)) {
-                                    Some(TextTag::new(
-                                        format!("pkg://{}", m1.as_str()),
-                                        Some(m2.as_str()),
-                                        m1.start() as u32,
-                                        m1.end() as u32
-                                    ))
-                                } else {
-                                    None
-                                }
+                                caps.get(1).zip(caps.get(2))
+                                    .map(|(m1, m2)| {
+                                        TextTag::new(
+                                            format!("pkg://{}", m1.as_str()),
+                                            Some(m2.as_str()),
+                                            m1.start() as u32,
+                                            m1.end() as u32
+                                        )
+                                    })
                             })
                         );
 
@@ -319,16 +318,15 @@ mod imp {
                             .filter_map(|(i, s)| {
                                 let start = i as u32;
 
-                                if let Some(end) = start.checked_add(comment_len) {
-                                    Some(TextTag::new(
-                                        s.to_owned(),
-                                        None,
-                                        start,
-                                        end
-                                    ))
-                                } else {
-                                    None
-                                }
+                                start.checked_add(comment_len)
+                                    .map(|end| {
+                                        TextTag::new(
+                                            s.to_owned(),
+                                            None,
+                                            start,
+                                            end
+                                        )
+                                    })
                             })
                         );
                     }
