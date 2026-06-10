@@ -1,4 +1,4 @@
-use std::cell::{RefCell, OnceCell};
+use std::cell::RefCell;
 use std::sync::LazyLock;
 use std::path::{Path, PathBuf};
 use std::collections::{HashMap, HashSet};
@@ -86,7 +86,7 @@ mod imp {
 
         pub(super) update_cancel_token: RefCell<Option<CancellationToken>>,
 
-        pub(super) notify_debouncer: OnceCell<Debouncer<INotifyWatcher, NoCache>>,
+        pub(super) notify_debouncer: RefCell<Option<Debouncer<INotifyWatcher, NoCache>>>,
 
         pub(super) prefs_dialog: RefCell<PreferencesDialog>,
 
@@ -487,6 +487,14 @@ impl PacViewWindow {
 
                 imp.main_breakpoint.set_condition(Some(&main_condition));
                 imp.sidebar_breakpoint.set_condition(Some(&sidebar_condition));
+            }
+        ));
+
+        // Preferences auto refresh property notify
+        prefs_dialog.connect_auto_refresh_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |_| {
+                window.setup_inotify();
             }
         ));
 
@@ -1007,41 +1015,49 @@ impl PacViewWindow {
     fn setup_inotify(&self) {
         let imp = self.imp();
 
-        // Create async channel
-        let (sender, receiver) = async_channel::bounded(1);
+        let auto_refresh = imp.prefs_dialog.borrow().auto_refresh();
 
-        // Create new watcher
-        if let Ok(mut debouncer) = new_debouncer(
-            Duration::from_secs(2),
-            None,
-            move |result: DebounceEventResult| {
-                if result.unwrap_or_default().iter()
-                    .map(|event| event.kind)
-                    .any(|kind| kind.is_create() || kind.is_modify() || kind.is_remove()) {
-                        sender.send_blocking(())
-                            .expect("Failed to send through channel");
-                    }
-            }
-        ) {
-            // Watch pacman local db path
-            let path = Path::new(&Pacman::config().db_path).join("local");
+        if auto_refresh && imp.notify_debouncer.borrow().is_none() {
+            // Create async channel
+            let (sender, receiver) = async_channel::bounded(1);
 
-            if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
-                // Store debouncer
-                imp.notify_debouncer.set(debouncer).unwrap();
+            // Create new watcher
+            if let Ok(mut debouncer) = new_debouncer(
+                Duration::from_secs(2),
+                None,
+                move |result: DebounceEventResult| {
+                    if result.unwrap_or_default().iter()
+                        .map(|event| event.kind)
+                        .any(|kind| kind.is_create() || kind.is_modify() || kind.is_remove()) {
+                            sender.send_blocking(())
+                                .expect("Failed to send through channel");
+                        }
+                }
+            ) {
+                // Watch pacman local db path
+                let path = Path::new(&Pacman::config().db_path).join("local");
 
-                // Attach receiver for async channel
-                glib::spawn_future_local(clone!(
-                    #[weak(rename_to = window)] self,
-                    async move {
-                        while receiver.recv().await == Ok(()) {
-                            if window.imp().prefs_dialog.borrow().auto_refresh() {
-                                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
+                if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
+                    // Store debouncer
+                    imp.notify_debouncer.replace(Some(debouncer));
+
+                    // Attach receiver for async channel
+                    glib::spawn_future_local(clone!(
+                        #[weak(rename_to = window)] self,
+                        async move {
+                            while receiver.recv().await == Ok(()) {
+                                gtk::prelude::WidgetExt::activate_action(
+                                    &window,
+                                    "win.refresh",
+                                    None
+                                ).unwrap();
                             }
                         }
-                    }
-                ));
+                    ));
+                }
             }
+        } else {
+            imp.notify_debouncer.replace(None);
         }
     }
 }
