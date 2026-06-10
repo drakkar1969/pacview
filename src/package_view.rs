@@ -45,7 +45,6 @@ pub enum PackageViewState {
 pub enum SortProp {
     #[default]
     Name,
-    Version,
     Repository,
     Status,
     InstallDate,
@@ -404,7 +403,6 @@ impl PackageView {
 
                 let sort = match view.sort_prop() {
                     SortProp::Name => { pkg_a.name().partial_cmp(&pkg_b.name()) },
-                    SortProp::Version => { pkg_a.version().partial_cmp(&pkg_b.version()) },
                     SortProp::Repository => { pkg_a.repository().partial_cmp(&pkg_b.repository()) },
                     SortProp::Status => { pkg_a.status().partial_cmp(pkg_b.status()) },
                     SortProp::InstallDate => { pkg_a.install_date().partial_cmp(&pkg_b.install_date()) },

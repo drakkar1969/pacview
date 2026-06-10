@@ -282,11 +282,6 @@
         <attribute name="target">name</attribute>
       </item>
       <item>
-        <attribute name="label">Version</attribute>
-        <attribute name="action">view.set-sort-prop</attribute>
-        <attribute name="target">version</attribute>
-      </item>
-      <item>
         <attribute name="label">Repository</attribute>
         <attribute name="action">view.set-sort-prop</attribute>
         <attribute name="target">repository</attribute>
