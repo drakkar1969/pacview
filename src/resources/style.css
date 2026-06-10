@@ -52,12 +52,6 @@ searchtag label {
 	padding: 0 0.5em;
 }
 
-/* Sidebar status row error button */
-.status-row-indicator menubutton > button {
-	min-height: 28px;
-	min-width: 28px;
-}
-
 /* Package view labels */
 label.tag {
 	border-radius: 6px;
