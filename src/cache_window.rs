@@ -266,7 +266,7 @@ impl CacheWindow {
             })
             .sum::<u64>();
 
-        imp.size_label.set_label(&format!("Cache Size on Disk: {}", Size::from_bytes(size)));
+        imp.size_label.set_label(&format!("Cache size on disk: {}", Size::from_bytes(size)));
 
         self.set_loading(false);
     }
