@@ -23,10 +23,10 @@ use crate::{
 pub enum BackupStatus {
     All,
     Modified,
-    #[default]
     #[strum(serialize = "access denied")]
     #[enum_value(name = "Access Denied")]
     Locked,
+    #[default]
     Unmodified,
 }
 
@@ -51,10 +51,8 @@ mod imp {
         package: RefCell<String>,
 
         // Read only properties
-        #[property(get = Self::file_hash, nullable)]
-        file_hash: OnceCell<Option<String>>,
         #[property(get = Self::status, builder(BackupStatus::default()))]
-        status: PhantomData<BackupStatus>,
+        status: OnceCell<BackupStatus>,
 
         #[property(get = Self::status_css_classes)]
         status_css_classes: PhantomData<Vec<String>>,
@@ -78,22 +76,19 @@ mod imp {
         //---------------------------------------
         // Property getters
         //---------------------------------------
-        fn file_hash(&self) -> Option<String> {
-            self.file_hash.get_or_init(|| {
+        fn status(&self) -> BackupStatus {
+            *self.status.get_or_init(|| {
                 let path = self.path.borrow();
 
-                alpm::compute_md5sum(path.as_str()).ok()
-            })
-            .to_owned()
-        }
+                let file_hash = alpm::compute_md5sum(path.as_str());
 
-        fn status(&self) -> BackupStatus {
-            self.obj().file_hash().map_or(BackupStatus::Locked, |file_hash| {
-                if file_hash == self.obj().hash() {
-                    BackupStatus::Unmodified
-                } else {
-                    BackupStatus::Modified
-                }
+                file_hash.map_or(BackupStatus::Locked, |file_hash| {
+                    if file_hash == self.obj().hash() {
+                        BackupStatus::Unmodified
+                    } else {
+                        BackupStatus::Modified
+                    }
+                })
             })
         }
 
