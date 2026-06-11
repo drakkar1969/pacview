@@ -1,7 +1,6 @@
 use std::cell::{Cell, RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::sync::{OnceLock, LazyLock};
-use std::rc::Rc;
 
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
@@ -104,6 +103,8 @@ mod imp {
         pub(super) selection_end: Cell<Option<usize>>,
 
         pub(super) is_selecting: Cell<bool>,
+        pub(super) is_clicked: Cell<bool>,
+        pub(super) pressed_link: RefCell<Option<TextTag>>,
     }
 
     //---------------------------------------
@@ -795,9 +796,6 @@ impl TextWidget {
     fn setup_controllers(&self) {
         let imp = self.imp();
 
-        let is_clicked: Rc<Cell<bool>> = Rc::new(Cell::new(false));
-        let pressed_link: Rc<RefCell<Option<TextTag>>> = Rc::new(RefCell::new(None));
-
         // Mouse motion controller
         let motion_controller = gtk::EventControllerMotion::new();
 
@@ -820,15 +818,13 @@ impl TextWidget {
         // Mouse drag gesture
         let drag_gesture = gtk::GestureDrag::new();
 
-        let is_clicked_clone = Rc::clone(&is_clicked);
-
         drag_gesture.connect_drag_begin(clone!(
             #[weak(rename_to = widget)] self,
             move |_, x, y| {
                 let imp = widget.imp();
 
                 if widget.link_at_xy(x, y).is_none() {
-                    if !is_clicked_clone.get() {
+                    if !imp.is_clicked.get() {
                         let (_, index) = widget.index_at_xy(x, y);
 
                         // Set selection start without redrawing
@@ -875,18 +871,17 @@ impl TextWidget {
             .button(gdk::BUTTON_PRIMARY)
             .build();
 
-        let pressed_link_clone = Rc::clone(&pressed_link);
-        let is_clicked_clone = Rc::clone(&is_clicked);
-
         click_gesture.connect_pressed(clone!(
             #[weak(rename_to = widget)] self,
             move |_, n, x, y| {
+                let imp = widget.imp();
+
                 let link = widget.link_at_xy(x, y);
 
                 if link.is_none() {
                     if n == 2 {
                         // Double click: select word under cursor
-                        is_clicked_clone.set(true);
+                        imp.is_clicked.set(true);
 
                         let (_, index) = widget.index_at_xy(x, y);
 
@@ -914,26 +909,25 @@ impl TextWidget {
                         widget.select_range(Some(start), Some(end), true);
                     } else if n == 3 {
                         // Triple click: select all text
-                        is_clicked_clone.set(true);
+                        imp.is_clicked.set(true);
 
                         widget.select_all();
                     }
                 }
 
-                pressed_link_clone.replace(link);
+                imp.pressed_link.replace(link);
             }
         ));
-
-        let pressed_link_clone = Rc::clone(&pressed_link);
-        let is_clicked_clone = Rc::clone(&is_clicked);
 
         click_gesture.connect_released(clone!(
             #[weak(rename_to = widget)] self,
             move |_, _, x, y| {
-                is_clicked_clone.set(false);
+                let imp = widget.imp();
+
+                imp.is_clicked.set(false);
 
                 // Launch link if any
-                if let Some(link) = pressed_link_clone.take()
+                if let Some(link) = imp.pressed_link.take()
                     .filter(|pressed| widget.link_at_xy(x, y).as_ref() == Some(pressed)) {
                         widget.handle_link(&link);
                     }
