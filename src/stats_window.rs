@@ -5,11 +5,11 @@ use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use gdk::{Key, ModifierType};
 
+use itertools::Itertools;
 use size::Size;
 use heck::ToTitleCase;
 
 use crate::{
-    pkg_data::PkgFlags,
     pkg_object::PkgObject,
     stats_object::StatsObject
 };
@@ -146,29 +146,34 @@ impl StatsWindow {
         let mut install_size_total = 0;
         let mut explicit_count_total = 0;
 
-        // Iterate repos
+        let pkg_list: Vec<_> = pkg_model.iter::<PkgObject>()
+            .flatten()
+            .map(|pkg| (pkg.repository(), pkg.status().to_owned(), pkg.install_size()))
+            .collect();
+
         for repo in repos {
-            let mut pkg_count = 0;
-            let mut install_count = 0;
-            let mut install_size = 0;
-            let mut explicit_count = 0;
+            let map = pkg_list.iter()
+                .filter(|(repository, _, _)| repository == repo)
+                .into_group_map_by(|(_, status, _)| status);
 
-            // Iterate packages in repo
-            for pkg in pkg_model.iter::<PkgObject>()
-                .flatten()
-                .filter(|pkg| &pkg.repository() == repo) {
-                    pkg_count += 1;
+            let pkg_count: usize = map.values()
+                .map(|value| value.len())
+                .sum();
 
-                    if pkg.flags().intersects(PkgFlags::INSTALLED) {
-                        install_count += 1;
-                        install_size += pkg.install_size();
-                    }
+            let (install_count, install_size) = map.iter()
+                .filter(|(key, _)| !key.is_empty())
+                .map(|(_, value)| {
+                    (value.len(), value.iter().map(|(_, _, size)| *size).sum::<i64>())
+                })
+                .reduce(|(acc_n, acc_size), (n, size)| (acc_n + n, acc_size + size))
+                .unwrap_or_default();
 
-                    if pkg.flags().intersects(PkgFlags::EXPLICIT) {
-                        explicit_count += 1;
-                    }
-                }
+            let explicit_count: usize = map.iter()
+                .filter(|(key, _)| **key == "explicit")
+                .map(|(_, value)| value.len())
+                .sum();
 
+            // Update total counts
             pkg_count_total += pkg_count;
             install_count_total += install_count;
             install_size_total += install_size;
