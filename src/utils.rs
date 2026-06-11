@@ -431,7 +431,7 @@ impl Color {
     //---------------------------------------
     pub fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
         let fc = |color: f32| -> u16 {
-            (color * f32::from(u16::MAX)) as u16
+            (color * f32::from(u16::MAX)).round() as u16
         };
 
         let color = gtk::Label::builder()
