@@ -13,6 +13,7 @@ use gio::{AppInfo, AppLaunchContext};
 use gtk::prelude::{AppInfoExtManual, WidgetExt};
 use sourceview5::{StyleScheme, StyleSchemeManager};
 
+use walkdir::WalkDir;
 use which::which_global;
 use tokio::runtime::Runtime;
 use tokio::fs::File;
@@ -162,9 +163,8 @@ impl ParuConf {
             .flat_map(|name| {
                 let path = glib::user_cache_dir().join(format!("paru/clone/repo/{name}"));
 
-                fs::read_dir(path)
+                WalkDir::new(path)
                     .into_iter()
-                    .flatten()
                     .flatten()
                     .map(move |entry| {
                         (entry.file_name().to_string_lossy().into_owned(), name.clone())
