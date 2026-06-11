@@ -9,7 +9,6 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use regex::Regex;
-use rayon::prelude::*;
 
 use crate::{
     utils::Pacman,
@@ -265,39 +264,66 @@ impl LogWindow {
 
         self.set_loading(true);
 
-        // Read log lines
-        let log_lines: Vec<LogLine> = Pacman::log().read().unwrap().as_ref()
-            .map_or(vec![], |log| {
-                // Strip ANSI control sequences from log
-                static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
-                });
+        // Clear view
+        imp.model.remove_all();
 
+        // Spawn task to read log
+        let (sender, receiver) = async_channel::bounded(1);
+
+        gio::spawn_blocking(move || {
+            if let Some(log) = Pacman::log().read().unwrap().as_ref() {
                 // Parse log lines
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)").expect("Failed to compile Regex")
+                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
+                        .expect("Failed to compile Regex")
                 });
 
-                ANSI_EXPR.replace_all(log, "").par_lines()
-                    .filter_map(|line| {
-                        EXPR.captures(line)
-                            .map(|caps| LogLine {
-                                date: caps[1].to_string(),
-                                time: caps[2].to_string(),
-                                category: caps[3].to_string(),
-                                message: caps[4].trim().to_string()
-                            })
-                    })
-                    .collect()
-            });
+                let log_lines: Vec<_> = log
+                    .split('\n')
+                    .collect();
 
-        // Populate column view
-        imp.model.splice(0, imp.model.n_items(), &log_lines.iter().rev()
-            .map(LogObject::new)
-            .collect::<Vec<LogObject>>()
-        );
+                let mut first = true;
 
-        self.set_loading(false);
+                for chunk in log_lines.chunks(1000) {
+                    let lines: Vec<LogLine> = chunk.into_iter()
+                        .filter_map(|line| {
+                            EXPR.captures(line)
+                                .map(|caps| LogLine {
+                                    date: caps[1].to_string(),
+                                    time: caps[2].to_string(),
+                                    category: caps[3].to_string(),
+                                    message: caps[4].trim().to_string()
+                                })
+                        })
+                        .collect();
+
+                    sender.send_blocking((lines, first))
+                        .expect("Failed to send through channel");
+
+                    if first { first = false };
+                }
+            }
+        });
+
+        // Attach package load task receiver
+        glib::spawn_future_local(clone!(
+            #[weak(rename_to = window)] self,
+            async move {
+                let imp = window.imp();
+
+                // Populate column view
+                while let Ok((log_lines, first)) = receiver.recv().await {
+                    imp.model.splice(0, 0, &log_lines.iter().rev()
+                        .map(LogObject::new)
+                        .collect::<Vec<LogObject>>()
+                    );
+
+                    if first {
+                        window.set_loading(false);
+                    }
+                }
+            }
+        ));
     }
 }
 

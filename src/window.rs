@@ -17,6 +17,7 @@ use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 use tokio_util::sync::CancellationToken;
+use walkdir::WalkDir;
 
 use crate::{
     APP_ID,
@@ -638,17 +639,26 @@ impl PacViewWindow {
         let pacman_config = Pacman::config();
 
         // Load pacman log
-        Pacman::set_log(fs::read_to_string(&pacman_config.log_file).ok());
+        static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
+            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
+        });
+
+        let log_lines = fs::read_to_string(&pacman_config.log_file).ok()
+            .map(|log| ANSI_EXPR.replace_all(&log, "").into_owned());
+
+        Pacman::set_log(log_lines);
 
         // Load pacman cache
-        let mut cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
-            .flat_map(fs::read_dir)
+        let cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
+            .flat_map(|dir| {
+                WalkDir::new(dir)
+                    .min_depth(1)
+                    .sort_by_file_name()
+                    .into_iter()
+            })
             .flatten()
-            .flatten()
-            .map(|entry| entry.path())
+            .map(|entry| entry.path().to_owned())
             .collect();
-
-        cache_files.sort_unstable();
 
         Pacman::set_cache(cache_files);
 
