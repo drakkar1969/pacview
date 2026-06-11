@@ -1,7 +1,6 @@
 use std::cell::Cell;
 use std::path::Path;
 use std::fmt::Write as _;
-use std::fs;
 use std::os::unix::fs::MetadataExt;
 
 use gtk::{glib, gio, gdk};
@@ -11,6 +10,7 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use size::Size;
+use walkdir::WalkDir;
 
 use crate::{
     cache_object::CacheObject,
@@ -293,8 +293,8 @@ impl CacheWindow {
         // Get cache size
         let size = 512u64 * Pacman::config().cache_dir.iter()
             .flat_map(|dir| {
-                fs::read_dir(dir).into_iter()
-                    .flatten()
+                WalkDir::new(dir)
+                    .into_iter()
                     .flatten()
                     .filter_map(|entry| {
                         entry.metadata().map(|metadata| metadata.blocks()).ok()
