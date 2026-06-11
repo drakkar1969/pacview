@@ -1,5 +1,4 @@
 use std::cell::RefCell;
-use std::marker::PhantomData;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -19,8 +18,6 @@ mod imp {
     pub struct CacheObject {
         #[property(get, set, construct_only)]
         path: RefCell<String>,
-        #[property(get = Self::get_icon)]
-        icon: PhantomData<String>,
     }
 
     //---------------------------------------
@@ -34,19 +31,6 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for CacheObject {}
-
-    impl CacheObject {
-        //---------------------------------------
-        // Property getter
-        //---------------------------------------
-        fn get_icon(&self) -> String {
-            if self.path.borrow().ends_with(".sig") {
-                "cache-sig-symbolic"
-            } else {
-                "cache-pkg-symbolic"
-            }.to_owned()
-        }
-    }
 }
 
 //------------------------------------------------------------------------------

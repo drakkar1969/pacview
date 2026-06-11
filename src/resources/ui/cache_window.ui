@@ -29,16 +29,6 @@
                     <property name="margin-end">6</property>
                     <property name="spacing">6</property>
                     <child>
-                      <object class="GtkToggleButton" id="signature_button">
-                        <property name="icon-name">cache-sig-symbolic</property>
-                        <property name="tooltip-text">Show Signature Files</property>
-                        <property name="action-name">cache.show-sigfiles</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkButton" id="open_button">
                         <property name="icon-name">folder-open-symbolic</property>
                         <property name="tooltip-text">Open Cache Folder</property>
@@ -109,17 +99,10 @@
                             <property name="model">
                               <object class="GtkFilterListModel" id="filter_model">
                                 <property name="filter">
-                                  <object class="GtkEveryFilter">
-                                    <child>
-                                      <object class="GtkStringFilter" id="search_filter">
-                                        <property name="expression">
-                                          <lookup name="path" type="CacheObject"/>
-                                        </property>
-                                      </object>
-                                    </child>
-                                    <child>
-                                      <object class="GtkCustomFilter" id="signature_filter"/>
-                                    </child>
+                                  <object class="GtkStringFilter" id="search_filter">
+                                    <property name="expression">
+                                      <lookup name="path" type="CacheObject"/>
+                                    </property>
                                   </object>
                                 </property>
                                 <property name="model">

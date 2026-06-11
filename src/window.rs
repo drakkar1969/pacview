@@ -655,6 +655,9 @@ impl PacViewWindow {
                     .min_depth(1)
                     .sort_by_file_name()
                     .into_iter()
+                    .filter_entry(|entry| {
+                        entry.path().to_str().is_some_and(|path| path.ends_with("zst"))
+                    })
             })
             .flatten()
             .map(|entry| entry.path().to_owned())

@@ -8,11 +8,7 @@
         <property name="spacing">6</property>
         <child>
           <object class="GtkImage">
-            <binding name="icon-name">
-              <lookup name="icon" type="CacheObject">
-                <lookup name="item">GtkListItem</lookup>
-              </lookup>
-            </binding>
+            <property name="icon-name">cache-pkg-symbolic</property>
           </object>
         </child>
         <child>
