@@ -350,7 +350,7 @@ mod imp {
             layout.set_text(text);
 
             // Format pango layout text
-            obj.set_layout_attributes();
+            obj.init_layout_attributes();
 
             // Reset selection
             obj.select_none();
@@ -419,7 +419,7 @@ impl TextWidget {
 
         // Underline links property notify signal
         self.connect_underline_links_notify(|widget| {
-            widget.set_layout_attributes();
+            widget.init_layout_attributes();
             widget.imp().draw_area.queue_draw();
         });
 
@@ -436,7 +436,7 @@ impl TextWidget {
             move |_| {
                 widget.update_colors();
 
-                widget.set_layout_attributes();
+                widget.init_layout_attributes();
 
                 widget.imp().draw_area.queue_draw();
             }
@@ -448,7 +448,7 @@ impl TextWidget {
             move |_| {
                 widget.update_colors();
 
-                widget.set_layout_attributes();
+                widget.init_layout_attributes();
 
                 widget.imp().draw_area.queue_draw();
             }
@@ -488,11 +488,13 @@ impl TextWidget {
     //---------------------------------------
     // Layout format helper functions
     //---------------------------------------
-    fn add_attr(&self, list: &AttrList, mut attr: Attribute, start: u32, end: u32) {
-        attr.set_start_index(start);
-        attr.set_end_index(end);
+    fn attr<T: IsAttribute>(&self, attr: T, start: u32, end: u32) -> Attribute {
+        let mut base_attr: Attribute = attr.upcast();
 
-        list.insert(attr);
+        base_attr.set_start_index(start);
+        base_attr.set_end_index(end);
+
+        base_attr
     }
 
     fn add_selection_attrs(&self, attr_list: &AttrList, start: u32, end: u32) {
@@ -504,23 +506,21 @@ impl TextWidget {
             imp.sel_bg_color.get()
         };
 
-        self.add_attr(attr_list, AttrColor::new_background(red, green, blue).into(), start, end);
-        self.add_attr(attr_list, AttrInt::new_background_alpha(alpha).into(), start, end);
+        attr_list.insert(self.attr(AttrColor::new_background(red, green, blue), start, end));
+        attr_list.insert(self.attr(AttrInt::new_background_alpha(alpha), start, end));
     }
 
-    fn add_focused_link_attrs(&self, attr_list: &AttrList) {
-        if let Some(link) = self.focused_link() {
-            let underline = if self.underline_links() {
-                Underline::Double
-            } else {
-                Underline::Single
-            };
+    fn add_focused_link_attrs(&self, attr_list: &AttrList, link: &TextTag) {
+        let underline = if self.underline_links() {
+            Underline::Double
+        } else {
+            Underline::Single
+        };
 
-            self.add_attr(attr_list, AttrInt::new_underline(underline).into(), link.start, link.end);
-        }
+        attr_list.insert(self.attr(AttrInt::new_underline(underline), link.start, link.end));
     }
 
-    fn set_layout_attributes(&self) {
+    fn init_layout_attributes(&self) {
         let imp = self.imp();
 
         let layout = imp.layout.get().unwrap();
@@ -534,11 +534,11 @@ impl TextWidget {
         let (red, green, blue, alpha) = imp.link_fg_color.get();
 
         for link in link_list.as_slice() {
-            self.add_attr(&attr_list, AttrColor::new_foreground(red, green, blue).into(), link.start, link.end);
-            self.add_attr(&attr_list, AttrInt::new_foreground_alpha(alpha).into(), link.start, link.end);
+            attr_list.insert(self.attr(AttrColor::new_foreground(red, green, blue), link.start, link.end));
+            attr_list.insert(self.attr(AttrInt::new_foreground_alpha(alpha), link.start, link.end));
 
             if self.underline_links() {
-                self.add_attr(&attr_list, AttrInt::new_underline(Underline::Single).into(), link.start, link.end);
+                attr_list.insert(self.attr(AttrInt::new_underline(Underline::Single), link.start, link.end));
             }
         }
 
@@ -546,10 +546,10 @@ impl TextWidget {
         let (red, green, blue, alpha) = imp.comment_fg_color.get();
 
         for comment in comment_list.as_slice() {
-            self.add_attr(&attr_list, AttrInt::new_weight(Weight::Semibold).into(), comment.start, comment.end);
-            self.add_attr(&attr_list, AttrColor::new_foreground(red, green, blue).into(), comment.start, comment.end);
-            self.add_attr(&attr_list, AttrInt::new_foreground_alpha(alpha).into(), comment.start, comment.end);
-            self.add_attr(&attr_list, AttrFloat::new_scale(0.75).into(), comment.start, comment.end);
+            attr_list.insert(self.attr(AttrInt::new_weight(Weight::Semibold), comment.start, comment.end));
+            attr_list.insert(self.attr(AttrColor::new_foreground(red, green, blue), comment.start, comment.end));
+            attr_list.insert(self.attr(AttrInt::new_foreground_alpha(alpha), comment.start, comment.end));
+            attr_list.insert(self.attr(AttrFloat::new_scale(0.75), comment.start, comment.end));
         }
 
         layout.set_attributes(Some(&attr_list));
@@ -569,15 +569,13 @@ impl TextWidget {
         layout.set_wrap(WrapMode::Word);
         layout.set_line_spacing(1.3);
 
-        imp.layout.set(layout).unwrap();
-
         // Connect drawing area draw function
         imp.draw_area.set_draw_func(clone!(
             #[weak(rename_to = widget)] self,
+            #[weak] layout,
             move |_, context, _, _| {
                 let imp = widget.imp();
 
-                let layout = imp.layout.get().unwrap();
                 let attr_list = imp.layout_attributes.borrow().copy().unwrap();
 
                 // Update pango layout selection attributes
@@ -590,8 +588,8 @@ impl TextWidget {
                     }
 
                 // Update pango layout focused link attributes
-                if widget.focused() && [PropType::Link, PropType::LinkList, PropType::Packager].contains(&widget.ptype()) {
-                    widget.add_focused_link_attrs(&attr_list);
+                if widget.focused() && let Some(link) = widget.focused_link() {
+                    widget.add_focused_link_attrs(&attr_list, &link);
                 }
 
                 layout.set_attributes(Some(&attr_list));
@@ -613,9 +611,11 @@ impl TextWidget {
                 context.set_source_rgba(red, green, blue, alpha);
                 context.move_to(0.0, 0.0);
 
-                pangocairo::functions::show_layout(context, layout);
+                pangocairo::functions::show_layout(context, &layout);
             }
         ));
+
+        imp.layout.set(layout).unwrap();
     }
 
     //---------------------------------------
