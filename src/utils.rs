@@ -8,7 +8,7 @@ use std::time::Duration;
 use std::env;
 use std::collections::HashMap;
 
-use gtk::{gio, glib};
+use gtk::{gio, glib, gdk};
 use gio::{AppInfo, AppLaunchContext};
 use gtk::prelude::{AppInfoExtManual, WidgetExt};
 use sourceview5::{StyleScheme, StyleSchemeManager};
@@ -427,6 +427,17 @@ pub struct Color;
 
 impl Color {
     //---------------------------------------
+    // Color from style helper
+    //---------------------------------------
+    fn color_from_style(style: &str) -> gdk::RGBA {
+        gtk::Label::builder()
+            .css_name("texttag")
+            .css_classes([style])
+            .build()
+            .color()
+    }
+
+    //---------------------------------------
     // Pango color from style
     //---------------------------------------
     pub fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
@@ -434,11 +445,7 @@ impl Color {
             (color * f32::from(u16::MAX)).round() as u16
         };
 
-        let color = gtk::Label::builder()
-            .css_name("texttag")
-            .css_classes([style])
-            .build()
-            .color();
+        let color = Self::color_from_style(style);
 
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
@@ -447,11 +454,7 @@ impl Color {
     // Cairo color from style
     //---------------------------------------
     pub fn cairo_color_from_style(style: &str) -> (f64, f64, f64, f64) {
-        let color = gtk::Label::builder()
-            .css_name("texttag")
-            .css_classes([style])
-            .build()
-            .color();
+        let color = Self::color_from_style(style);
 
         (
             f64::from(color.red()),
