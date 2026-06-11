@@ -204,17 +204,17 @@ mod imp {
 
             // Link actions
             klass.install_action("text.previous-link", None, |row, _, _| {
-                row.imp().value_widget.select_previous_link();
+                row.imp().value_widget.focus_previous_link();
             });
 
             klass.install_action("text.next-link", None, |row, _, _| {
-                row.imp().value_widget.select_next_link();
+                row.imp().value_widget.focus_next_link();
             });
 
             klass.install_action("text.activate-link", None, |row, _, _| {
                 let widget = &row.imp().value_widget;
 
-                if let Some(link) = widget.active_link() {
+                if let Some(link) = widget.focused_link() {
                     widget.handle_link(&link);
                 }
             });

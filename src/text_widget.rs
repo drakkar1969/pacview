@@ -98,7 +98,7 @@ mod imp {
         pub(super) link_list: RefCell<Vec<TextTag>>,
         pub(super) comment_list: RefCell<Vec<TextTag>>,
 
-        pub(super) active_link_index: Cell<Option<usize>>,
+        pub(super) focused_link_index: Cell<Option<usize>>,
 
         pub(super) selection_start: Cell<Option<usize>>,
         pub(super) selection_end: Cell<Option<usize>>,
@@ -334,9 +334,9 @@ mod imp {
                 _ => {}
             }
 
-            // Set active link index
+            // Set focused link index
             if !link_list.is_empty() {
-                self.active_link_index.set(Some(0));
+                self.focused_link_index.set(Some(0));
             }
 
             // Store link/comment lists
@@ -507,8 +507,8 @@ impl TextWidget {
         self.add_attr(attr_list, AttrInt::new_background_alpha(alpha).into(), start, end);
     }
 
-    fn add_active_link_attrs(&self, attr_list: &AttrList) {
-        if let Some(link) = self.active_link() {
+    fn add_focused_link_attrs(&self, attr_list: &AttrList) {
+        if let Some(link) = self.focused_link() {
             let underline = if self.underline_links() {
                 Underline::Double
             } else {
@@ -588,9 +588,9 @@ impl TextWidget {
                         widget.add_selection_attrs(&attr_list, start as u32, end as u32);
                     }
 
-                // Update pango layout active link attributes
+                // Update pango layout focused link attributes
                 if widget.focused() && [PropType::Link, PropType::LinkList, PropType::Packager].contains(&widget.ptype()) {
-                    widget.add_active_link_attrs(&attr_list);
+                    widget.add_focused_link_attrs(&attr_list);
                 }
 
                 layout.set_attributes(Some(&attr_list));
@@ -681,37 +681,37 @@ impl TextWidget {
     //---------------------------------------
     // Link helper functions
     //---------------------------------------
-    pub fn active_link(&self) -> Option<TextTag> {
+    pub fn focused_link(&self) -> Option<TextTag> {
         let imp = self.imp();
 
         let link_list = imp.link_list.borrow();
-        let index = imp.active_link_index.get()?;
+        let index = imp.focused_link_index.get()?;
 
         link_list.get(index).cloned()
     }
 
-    pub fn select_previous_link(&self) {
+    pub fn focus_previous_link(&self) {
         let imp = self.imp();
 
-        if let Some(new_index) = imp.active_link_index.get()
+        if let Some(new_index) = imp.focused_link_index.get()
             .and_then(|i| i.checked_sub(1)) {
-                imp.active_link_index.set(Some(new_index));
+                imp.focused_link_index.set(Some(new_index));
 
                 imp.draw_area.queue_draw();
             }
     }
 
-    pub fn select_next_link(&self) {
+    pub fn focus_next_link(&self) {
         let imp = self.imp();
 
         let link_list = imp.link_list.borrow();
 
-        if let Some(new_index) = imp.active_link_index.get()
+        if let Some(new_index) = imp.focused_link_index.get()
             .and_then(|i| i.checked_add(1))
             .filter(|&i| link_list.get(i)
                 .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
             ) {
-                imp.active_link_index.set(Some(new_index));
+                imp.focused_link_index.set(Some(new_index));
 
                 imp.draw_area.queue_draw();
             }
@@ -721,9 +721,7 @@ impl TextWidget {
         let link_url = link.text.clone();
 
         if let Ok(url) = Url::parse(&link_url) {
-            let scheme = url.scheme();
-
-            if scheme == "pkg" {
+            if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     self.emit_by_name::<()>(
                         "package-link",
