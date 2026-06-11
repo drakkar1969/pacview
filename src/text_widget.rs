@@ -337,9 +337,7 @@ mod imp {
             }
 
             // Set focused link index
-            if !link_list.is_empty() {
-                self.focused_link_index.set(Some(0));
-            }
+            self.focused_link_index.set((!link_list.is_empty()).then_some(0));
 
             // Store link/comment lists
             self.link_list.replace(link_list);
@@ -617,6 +615,7 @@ impl TextWidget {
             }
         ));
 
+        // Store pango layout
         imp.layout.set(layout).unwrap();
     }
 
