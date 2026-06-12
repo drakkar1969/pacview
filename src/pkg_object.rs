@@ -11,7 +11,6 @@ use alpm::{Alpm, Package};
 use alpm_utils::DbListExt;
 use regex::Regex;
 use size::Size;
-use rayon::prelude::*;
 use sourceview5::prelude::ListModelExtManual;
 use tokio::sync::OnceCell as TokioOnceCell;
 
@@ -445,7 +444,7 @@ impl PkgObject {
                             })
                             .collect();
 
-                        files.par_sort_unstable();
+                        files.sort_unstable();
 
                         files
                     })
