@@ -288,7 +288,7 @@ impl LogWindow {
 
                 let mut first = true;
 
-                for chunk in log_lines.chunks(1000) {
+                for chunk in log_lines.rchunks(1000) {
                     let lines: Vec<LogLine> = chunk.into_iter()
                         .filter_map(|line| {
                             EXPR.captures(line)
@@ -317,7 +317,7 @@ impl LogWindow {
 
                 // Populate column view
                 while let Ok((log_lines, first)) = receiver.recv().await {
-                    imp.model.splice(0, 0, &log_lines.iter().rev()
+                    imp.model.splice(imp.model.n_items(), 0, &log_lines.iter().rev()
                         .map(LogObject::new)
                         .collect::<Vec<LogObject>>()
                     );
