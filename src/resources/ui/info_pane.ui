@@ -44,8 +44,11 @@
                         <property name="margin-start">12</property>
                         <property name="margin-end">12</property>
                         <property name="stack">tab_stack</property>
-                        <property name="display-mode">labels</property>
+                        <property name="display-mode">both</property>
                         <property name="homogeneous">true</property>
+                        <style>
+                          <class name="flat"/>
+                        </style>
                       </object>
                     </property>
                     <child>
@@ -68,11 +71,12 @@
                 </child>
                 <property name="content">
                   <object class="AdwViewStack" id="tab_stack">
-                    <property name="margin-top">20</property>
+                    <property name="margin-top">16</property>
                     <child>
                       <object class="AdwViewStackPage">
                         <property name="name">info</property>
                         <property name="title">Info</property>
+                        <property name="icon-name">info-outline-symbolic</property>
                         <property name="child">
                           <object class="InfoDetailsTab" id="info_tab"/>
                         </property>
@@ -82,6 +86,7 @@
                       <object class="AdwViewStackPage">
                         <property name="name">files</property>
                         <property name="title">Files</property>
+                        <property name="icon-name">view-list-bullet-symbolic</property>
                         <property name="child">
                           <object class="InfoFilesTab" id="files_tab"/>
                         </property>
@@ -91,6 +96,7 @@
                       <object class="AdwViewStackPage">
                         <property name="name">log</property>
                         <property name="title">Log</property>
+                        <property name="icon-name">document-edit-symbolic</property>
                         <property name="child">
                           <object class="InfoLogTab" id="log_tab"/>
                         </property>
