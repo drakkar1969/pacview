@@ -1,5 +1,6 @@
-use std::cell::Cell;
+use std::{cell::Cell, os::unix::fs::MetadataExt};
 use std::sync::LazyLock;
+use std::fs;
 use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
@@ -9,6 +10,7 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use regex::Regex;
+use size::Size;
 
 use crate::{
     utils::Pacman,
@@ -52,6 +54,8 @@ mod imp {
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) size_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
         loading: Cell<bool>,
@@ -322,6 +326,13 @@ impl LogWindow {
                         window.set_loading(false);
                     }
                 }
+
+                // Get log file size
+                let size = 512u64 * fs::metadata(&Pacman::config().log_file)
+                    .map(|metadata| metadata.blocks())
+                    .unwrap_or_default();
+
+                imp.size_label.set_label(&format!("Log file size: {}", Size::from_bytes(size)));
             }
         ));
     }
