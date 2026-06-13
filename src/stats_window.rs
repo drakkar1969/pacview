@@ -139,56 +139,57 @@ impl StatsWindow {
     pub fn populate(&self, repos: &[String], pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        let mut stats_items: Vec<StatsObject> = Vec::with_capacity(repos.len() + 1);
-
         let mut pkg_count_total = 0;
         let mut install_count_total = 0;
         let mut install_size_total = 0;
         let mut explicit_count_total = 0;
 
-        let pkg_list: Vec<_> = pkg_model.iter::<PkgObject>()
+        let pkg_list: Vec<(String, String, i64)> = pkg_model.iter::<PkgObject>()
             .flatten()
             .map(|pkg| (pkg.repository(), pkg.status().to_owned(), pkg.install_size()))
             .collect();
 
-        for repo in repos {
-            let map = pkg_list.iter()
-                .filter(|(repository, _, _)| repository == repo)
-                .into_group_map_by(|(_, status, _)| status);
+        // Build stats list per repo
+        let mut stats_items: Vec<StatsObject> = repos.iter()
+            .map(|repo| {
+                let map = pkg_list.iter()
+                    .filter(|(repository, _, _)| repository == repo)
+                    .into_group_map_by(|(_, status, _)| status);
 
-            let pkg_count: usize = map.values()
-                .map(|value| value.len())
-                .sum();
+                let pkg_count: usize = map.values()
+                    .map(|value| value.len())
+                    .sum();
 
-            let (install_count, install_size) = map.iter()
-                .filter(|(key, _)| !key.is_empty())
-                .map(|(_, value)| {
-                    (value.len(), value.iter().map(|(_, _, size)| *size).sum::<i64>())
-                })
-                .reduce(|(acc_n, acc_size), (n, size)| (acc_n + n, acc_size + size))
-                .unwrap_or_default();
+                let (install_count, install_size) = map.iter()
+                    .filter(|(key, _)| !key.is_empty())
+                    .map(|(_, value)| {
+                        (value.len(), value.iter().map(|(_, _, size)| *size).sum::<i64>())
+                    })
+                    .reduce(|(acc_n, acc_size), (n, size)| (acc_n + n, acc_size + size))
+                    .unwrap_or_default();
 
-            let explicit_count: usize = map.iter()
-                .filter(|(key, _)| **key == "explicit")
-                .map(|(_, value)| value.len())
-                .sum();
+                let explicit_count: usize = map.iter()
+                    .filter(|(key, _)| **key == "explicit")
+                    .map(|(_, value)| value.len())
+                    .sum();
 
-            // Update total counts
-            pkg_count_total += pkg_count;
-            install_count_total += install_count;
-            install_size_total += install_size;
-            explicit_count_total += explicit_count;
+                // Update total counts
+                pkg_count_total += pkg_count;
+                install_count_total += install_count;
+                install_size_total += install_size;
+                explicit_count_total += explicit_count;
 
-            // Add repo item to stats view
-            stats_items.push(StatsObject::new(
-                Some("repository-symbolic"),
-                &(if *repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
-                &pkg_count.to_string(),
-                &install_count.to_string(),
-                &explicit_count.to_string(),
-                &Size::from_bytes(install_size).to_string()
-            ));
-        }
+                // Add repo item to stats view
+                StatsObject::new(
+                    Some("repository-symbolic"),
+                    &(if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
+                    &pkg_count.to_string(),
+                    &install_count.to_string(),
+                    &explicit_count.to_string(),
+                    &Size::from_bytes(install_size).to_string()
+                )
+            })
+            .collect();
 
         // Add item with totals to stats view
         stats_items.push(StatsObject::new(
