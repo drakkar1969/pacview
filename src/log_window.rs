@@ -58,8 +58,6 @@ mod imp {
         pub(super) size_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
-        loading: Cell<bool>,
-        #[property(get, set)]
         packages_only: Cell<bool>,
     }
 
@@ -187,19 +185,6 @@ impl LogWindow {
             window.imp().package_filter.changed(gtk::FilterChange::Different);
         });
 
-        // Loading property notify signal
-        self.connect_loading_notify(|window| {
-            let imp = window.imp();
-
-            imp.stack.set_visible_child_name(
-                if imp.selection.n_items() == 0 {
-                    if window.loading() { "loading" } else { "empty" }
-                } else {
-                    "view"
-                }
-            );
-        });
-
         // Selection items changed signal
         imp.selection.connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
@@ -209,11 +194,7 @@ impl LogWindow {
                 let n_items = selection.n_items();
 
                 imp.stack.set_visible_child_name(
-                    if n_items == 0 {
-                        if window.loading() { "loading" } else { "empty" }
-                    } else {
-                        "view"
-                    }
+                    if n_items == 0 { "empty" } else { "view" }
                 );
 
                 imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
@@ -266,8 +247,6 @@ impl LogWindow {
     pub fn populate(&self) {
         let imp = self.imp();
 
-        self.set_loading(true);
-
         // Clear view
         imp.model.remove_all();
 
@@ -286,8 +265,6 @@ impl LogWindow {
                     .split('\n')
                     .collect();
 
-                let mut first = true;
-
                 for chunk in log_lines.rchunks(1000) {
                     let lines: Vec<LogLine> = chunk.iter()
                         .filter_map(|line| {
@@ -301,10 +278,8 @@ impl LogWindow {
                         })
                         .collect();
 
-                    sender.send_blocking((lines, first))
+                    sender.send_blocking(lines)
                         .expect("Failed to send through channel");
-
-                    if first { first = false }
                 }
             }
         });
@@ -316,15 +291,11 @@ impl LogWindow {
                 let imp = window.imp();
 
                 // Populate column view
-                while let Ok((log_lines, first)) = receiver.recv().await {
+                while let Ok(log_lines) = receiver.recv().await {
                     imp.model.splice(imp.model.n_items(), 0, &log_lines.iter().rev()
                         .map(LogObject::new)
                         .collect::<Vec<LogObject>>()
                     );
-
-                    if first {
-                        window.set_loading(false);
-                    }
                 }
 
                 // Get log file size

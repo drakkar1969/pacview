@@ -78,8 +78,6 @@ mod imp {
 
         #[property(get, set, builder(BackupSearchMode::default()))]
         search_mode: Cell<BackupSearchMode>,
-        #[property(get, set)]
-        loading: Cell<bool>,
 
         pub(super) search_term: RefCell<String>,
     }
@@ -284,19 +282,6 @@ impl BackupWindow {
             }
         ));
 
-        // Loading property notify signal
-        self.connect_loading_notify(|window| {
-            let imp = window.imp();
-
-            imp.stack.set_visible_child_name(
-                if imp.section_sort_model.n_items() == 0 {
-                    if window.loading() { "loading" } else { "empty" }
-                } else {
-                    "view"
-                }
-            );
-        });
-
         // Section sort model items changed signal
         imp.section_sort_model.connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
@@ -318,11 +303,7 @@ impl BackupWindow {
                 }
 
                 imp.stack.set_visible_child_name(
-                    if n_items == 0 {
-                        if window.loading() { "loading" } else { "empty" }
-                    } else {
-                        "view"
-                    }
+                    if n_items == 0 { "empty" } else { "view" }
                 );
 
                 imp.footer_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
@@ -444,8 +425,6 @@ impl BackupWindow {
     pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        self.set_loading(true);
-
         // Get backup list
         let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
             .flatten()
@@ -464,8 +443,6 @@ impl BackupWindow {
 
         // Set status dropdown selected item
         imp.status_dropdown.set_selected(0);
-
-        self.set_loading(false);
     }
 }
 

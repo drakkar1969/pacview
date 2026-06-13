@@ -1,4 +1,3 @@
-use std::cell::Cell;
 use std::fmt::Write as _;
 use std::os::unix::fs::MetadataExt;
 
@@ -25,8 +24,7 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::CacheWindow)]
+    #[derive(Default, gtk::CompositeTemplate)]
     #[template(resource = "/com/github/PacView/ui/cache_window.ui")]
     pub struct CacheWindow {
         #[template_child]
@@ -51,9 +49,6 @@ mod imp {
         pub(super) footer_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) size_label: TemplateChild<gtk::Label>,
-
-        #[property(get, set)]
-        loading: Cell<bool>,
     }
 
     //---------------------------------------
@@ -82,7 +77,6 @@ mod imp {
         }
     }
 
-    #[glib::derived_properties]
     impl ObjectImpl for CacheWindow {
         //---------------------------------------
         // Constructor
@@ -175,19 +169,6 @@ impl CacheWindow {
             }
         ));
 
-        // Loading property notify signal
-        self.connect_loading_notify(|window| {
-            let imp = window.imp();
-
-            imp.stack.set_visible_child_name(
-                if imp.selection.n_items() == 0 {
-                    if window.loading() { "loading" } else { "empty" }
-                } else {
-                    "view"
-                }
-            );
-        });
-
         // Selection items changed signal
         imp.selection.connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
@@ -197,11 +178,7 @@ impl CacheWindow {
                 let n_items = selection.n_items();
 
                 imp.stack.set_visible_child_name(
-                    if n_items == 0 {
-                        if window.loading() { "loading" } else { "empty" }
-                    } else {
-                        "view"
-                    }
+                    if n_items == 0 { "empty" } else { "view" }
                 );
 
                 imp.footer_label.set_label(&format!("{n_items} file{}", if n_items == 1 { "" } else { "s" }));
@@ -245,8 +222,6 @@ impl CacheWindow {
     pub fn populate(&self) {
         let imp = self.imp();
 
-        self.set_loading(true);
-
         // Get cache files
         let cache_files: Vec<CacheObject> = Pacman::cache().read().unwrap().iter()
             .map(|file| CacheObject::new(&file.display().to_string()))
@@ -267,8 +242,6 @@ impl CacheWindow {
             .sum::<u64>();
 
         imp.size_label.set_label(&format!("Cache size on disk: {}", Size::from_bytes(size)));
-
-        self.set_loading(false);
     }
 }
 

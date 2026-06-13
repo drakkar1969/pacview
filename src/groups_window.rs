@@ -71,8 +71,6 @@ mod imp {
         #[property(get, set, builder(GroupsSearchMode::default()))]
         search_mode: Cell<GroupsSearchMode>,
         #[property(get, set)]
-        loading: Cell<bool>,
-        #[property(get, set)]
         installed_only: Cell<bool>,
 
         pub(super) search_term: RefCell<String>,
@@ -232,19 +230,6 @@ impl GroupsWindow {
             window.imp().installed_filter.changed(gtk::FilterChange::Different);
         });
 
-        // Loading property notify signal
-        self.connect_loading_notify(|window| {
-            let imp = window.imp();
-
-            imp.stack.set_visible_child_name(
-                if imp.section_sort_model.n_items() == 0 {
-                    if window.loading() { "loading" } else { "empty" }
-                } else {
-                    "view"
-                }
-            );
-        });
-
         // Section sort model items changed signal
         imp.section_sort_model.connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
@@ -266,11 +251,7 @@ impl GroupsWindow {
                 }
 
                 imp.stack.set_visible_child_name(
-                    if n_items == 0 {
-                        if window.loading() { "loading" } else { "empty" }
-                    } else {
-                        "view"
-                    }
+                    if n_items == 0 { "empty" } else { "view" }
                 );
 
                 imp.footer_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections == 1 { "" } else { "s" }));
@@ -359,8 +340,6 @@ impl GroupsWindow {
     pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        self.set_loading(true);
-
         // Get list of packages with groups
         let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
             .flatten()
@@ -375,8 +354,6 @@ impl GroupsWindow {
 
         // Populate column view
         imp.model.splice(0, imp.model.n_items(), &pkg_list);
-
-        self.set_loading(false);
     }
 }
 
