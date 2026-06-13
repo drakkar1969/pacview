@@ -430,6 +430,7 @@ impl Color {
     // Color from style helper
     //---------------------------------------
     fn color_from_style(style: &str) -> gdk::RGBA {
+        // Return RGBA colors (f32, range: 0.0 to 1.0)
         gtk::Label::builder()
             .css_name("texttag")
             .css_classes([style])
@@ -447,6 +448,7 @@ impl Color {
 
         let color = Self::color_from_style(style);
 
+        // Return u16 colors (range 0-255)
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
 
@@ -456,6 +458,7 @@ impl Color {
     pub fn cairo_color_from_style(style: &str) -> (f64, f64, f64, f64) {
         let color = Self::color_from_style(style);
 
+        // Return f64 colors (range 0.0-1.0)
         (
             f64::from(color.red()),
             f64::from(color.green()),
