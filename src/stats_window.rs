@@ -157,7 +157,7 @@ impl StatsWindow {
                     .into_group_map_by(|(_, status, _)| status);
 
                 let pkg_count: usize = map.values()
-                    .map(|value| value.len())
+                    .map(Vec::len)
                     .sum();
 
                 let (install_count, install_size) = map.iter()

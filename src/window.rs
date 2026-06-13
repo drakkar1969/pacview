@@ -636,12 +636,12 @@ impl PacViewWindow {
     fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
-        let pacman_config = Pacman::config();
-
         // Load pacman log
         static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
         });
+
+        let pacman_config = Pacman::config();
 
         let log_lines = fs::read_to_string(&pacman_config.log_file).ok()
             .map(|log| ANSI_EXPR.replace_all(&log, "").into_owned());

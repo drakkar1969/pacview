@@ -289,7 +289,7 @@ impl LogWindow {
                 let mut first = true;
 
                 for chunk in log_lines.rchunks(1000) {
-                    let lines: Vec<LogLine> = chunk.into_iter()
+                    let lines: Vec<LogLine> = chunk.iter()
                         .filter_map(|line| {
                             EXPR.captures(line)
                                 .map(|caps| LogLine {
@@ -304,7 +304,7 @@ impl LogWindow {
                     sender.send_blocking((lines, first))
                         .expect("Failed to send through channel");
 
-                    if first { first = false };
+                    if first { first = false }
                 }
             }
         });
