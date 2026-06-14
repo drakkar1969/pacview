@@ -30,16 +30,16 @@ pub const LINK_SPACER: &str = "   ";
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub struct TextTag {
-    text: String,
+    link: String,
     version: Option<String>,
     start: u32,
     end: u32,
 }
 
 impl TextTag {
-    fn new(text: String, version: Option<&str>, start: u32, end: u32) -> Self {
+    fn new(link: String, version: Option<&str>, start: u32, end: u32) -> Self {
         Self {
-            text,
+            link,
             version: version.map(ToOwned::to_owned),
             start,
             end
@@ -276,6 +276,7 @@ mod imp {
                     link_list.push(TextTag::new(text.to_owned(), None, 0, text.len() as u32));
                 },
                 PropType::Packager => {
+                    // Parse email address
                     static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                         Regex::new(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}")
                             .expect("Failed to compile Regex")
@@ -294,6 +295,7 @@ mod imp {
                     if text.is_empty() {
                         text = "None";
                     } else {
+                        // Parse package links
                         static EXPR: LazyLock<FancyRegex> = LazyLock::new(|| {
                             FancyRegex::new(&format!(r"(?<=^|{spacer})([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|{spacer}|$)", spacer=regex::escape(LINK_SPACER)))
                                 .expect("Failed to compile Regex")
@@ -302,33 +304,27 @@ mod imp {
                         link_list.extend(EXPR.captures_iter(text)
                             .flatten()
                             .filter_map(|caps| {
-                                caps.get(1).zip(caps.get(2))
-                                    .map(|(m1, m2)| {
-                                        TextTag::new(
-                                            format!("pkg://{}", m1.as_str()),
-                                            Some(m2.as_str()),
-                                            m1.start() as u32,
-                                            m1.end() as u32
-                                        )
-                                    })
+                                let m1 = caps.get(1)?;
+                                let m2 = caps.get(2)?;
+
+                                Some(TextTag::new(
+                                    format!("pkg://{}", m1.as_str()),
+                                    Some(m2.as_str()),
+                                    m1.start() as u32,
+                                    m1.end() as u32
+                                ))
                             })
                         );
 
+                        // Parse optdeps installed comments
                         let comment_len = INSTALLED_LABEL.len() as u32;
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .filter_map(|(i, s)| {
                                 let start = i as u32;
+                                let end = start.checked_add(comment_len)?;
 
-                                start.checked_add(comment_len)
-                                    .map(|end| {
-                                        TextTag::new(
-                                            s.to_owned(),
-                                            None,
-                                            start,
-                                            end
-                                        )
-                                    })
+                                Some(TextTag::new(s.to_owned(), None, start, end))
                             })
                         );
                     }
@@ -517,14 +513,14 @@ impl TextWidget {
         attr_list.insert(self.attr(AttrInt::new_background_alpha(alpha), start, end));
     }
 
-    fn add_focused_link_attrs(&self, attr_list: &AttrList, link: &TextTag) {
+    fn add_focused_link_attrs(&self, attr_list: &AttrList, tag: &TextTag) {
         let underline = if self.underline_links() {
             Underline::Double
         } else {
             Underline::Single
         };
 
-        attr_list.insert(self.attr(AttrInt::new_underline(underline), link.start, link.end));
+        attr_list.insert(self.attr(AttrInt::new_underline(underline), tag.start, tag.end));
     }
 
     fn init_layout_attributes(&self) {
@@ -719,15 +715,15 @@ impl TextWidget {
             }
     }
 
-    pub fn handle_link(&self, link: &TextTag) {
-        let link_url = link.text.clone();
+    pub fn handle_link(&self, tag: &TextTag) {
+        let link_url = tag.link.clone();
 
         if let Ok(url) = Url::parse(&link_url) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     self.emit_by_name::<()>(
                         "package-link",
-                        &[&pkg_name, &link.version.clone().unwrap_or_default()]
+                        &[&pkg_name, &tag.version.clone().unwrap_or_default()]
                     );
                 }
             } else {
