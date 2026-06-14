@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use gtk::glib;
 
 use itertools::Itertools;
@@ -38,20 +40,24 @@ pub enum PkgValidation {
     SIGNATURE = 1 << 3,
 }
 
-impl PkgValidation {
-    pub fn to_string(&self) -> String {
+impl Display for PkgValidation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let flags_class = glib::FlagsClass::new::<Self>();
 
-        self.iter()
+        let display = self.iter()
             .map(|flag| {
                 flags_class
                     .value(flag.bits())
                     .map_or("None", glib::FlagsValue::name)
             })
             .collect::<Vec<&str>>()
-            .join(" | ")
-    }
+            .join(" | ");
 
+        write!(f, "{}", display)
+    }
+}
+
+impl PkgValidation {
     pub fn is_valid(&self) -> bool {
         !(self.intersects(PkgValidation::UNKNOWN) || self.intersects(PkgValidation::NONE))
     }
