@@ -257,7 +257,7 @@ impl LogWindow {
             if let Some(log) = Pacman::log().read().unwrap().as_ref() {
                 // Parse log lines
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[(.+?)\] (.+)")
+                    Regex::new(r"\[([^T]+)T([^+]+)\+.+?\] \[(.+?)\] (.+)")
                         .expect("Failed to compile Regex")
                 });
 
