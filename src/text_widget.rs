@@ -297,7 +297,7 @@ mod imp {
                     } else {
                         // Parse package links
                         static EXPR: LazyLock<FancyRegex> = LazyLock::new(|| {
-                            FancyRegex::new(&format!(r"(?<=^|{spacer})([a-zA-Z0-9@._+-]+)([><=]*[a-zA-Z0-9@._+-:]*)(?=:|{spacer}|$)", spacer=regex::escape(LINK_SPACER)))
+                            FancyRegex::new(&format!(r"(?:^|{spacer})([a-z0-9@._+-]+)([><=]*[a-zA-Z0-9._+-]*)(?=:|{spacer}|$)", spacer=regex::escape(LINK_SPACER)))
                                 .expect("Failed to compile Regex")
                         });
 
