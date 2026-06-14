@@ -166,7 +166,7 @@ impl PkgObject {
     fn data(&self) -> &PkgData {
         self.imp().data.get().unwrap()
     }
-    
+
     pub fn is_installed(&self) -> bool {
         self.data().flags.intersects(PkgFlags::INSTALLED)
     }

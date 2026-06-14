@@ -219,7 +219,7 @@ impl TokioUtils {
                     if let Some(token) = token {
                         token.cancelled().await;
                     } else {
-                        std::future::pending::<()>().await; 
+                        std::future::pending::<()>().await;
                     }
                 };
 
@@ -245,7 +245,7 @@ impl TokioUtils {
                             child.kill().await?;
 
                             // Re-reap the process handle to prevent zombie processes
-                            let _ = child.wait().await; 
+                            let _ = child.wait().await;
 
                             return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Cancelled by user"));
                         }
