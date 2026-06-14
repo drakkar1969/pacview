@@ -379,6 +379,12 @@ impl PkgObject {
         }
     }
 
+    fn alpm_local_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
+        let data = self.data();
+
+        handle.localdb().pkg(data.name.as_str()).ok()
+    }
+
     fn alpm_sync_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
         let data = self.data();
 
@@ -430,7 +436,7 @@ impl PkgObject {
         self.imp().files.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
                 handle.borrow().as_ref()
-                    .and_then(|handle| self.alpm_pkg(handle))
+                    .and_then(|handle| self.alpm_local_pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
 
@@ -456,7 +462,7 @@ impl PkgObject {
         self.imp().backup.get_or_init(|| {
             Self::with_alpm_handle(|handle| {
                 handle.borrow().as_ref()
-                    .and_then(|handle| self.alpm_pkg(handle))
+                    .and_then(|handle| self.alpm_local_pkg(handle))
                     .map(|pkg| {
                         let root_dir = &Pacman::config().root_dir;
 
