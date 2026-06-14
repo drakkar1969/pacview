@@ -994,11 +994,8 @@ impl PacViewWindow {
                 .expect("Failed to compile Regex")
         });
 
-        let update_map: HashMap<String, String> = update_output.lines()
-            .filter_map(|s| {
-                EXPR.captures(s)
-                    .map(|caps| (caps[1].to_string(), caps[2].to_string()))
-            })
+        let update_map: HashMap<String, String> = EXPR.captures_iter(&update_output)
+            .map(|caps| (caps[1].to_string(), caps[2].to_string()))
             .collect();
 
         // Update status of packages with updates
