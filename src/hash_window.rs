@@ -1,6 +1,5 @@
 use gtk::{glib, gdk};
-use adw::{prelude::ActionRowExt, subclass::prelude::*};
-use gtk::prelude::*;
+use adw::{prelude::*, subclass::prelude::*};
 use gdk::{Key, ModifierType};
 
 use crate::pkg_object::PkgObject;

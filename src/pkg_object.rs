@@ -4,14 +4,13 @@ use std::cmp::Ordering;
 
 use gtk::{glib, gio};
 use gtk::subclass::prelude::*;
-use gtk::prelude::ObjectExt;
+use gtk::prelude::{ObjectExt, ListModelExtManual};
 use glib::GString;
 
 use alpm::{Alpm, Package};
 use alpm_utils::DbListExt;
 use regex::Regex;
 use size::Size;
-use sourceview5::prelude::ListModelExtManual;
 use tokio::sync::OnceCell as TokioOnceCell;
 
 use crate::{
