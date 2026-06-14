@@ -427,7 +427,7 @@ impl BackupWindow {
         // Get backup list
         let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
             .flatten()
-            .filter(|pkg| pkg.is_installed())
+            .filter(PkgObject::is_installed)
             .flat_map(|pkg| {
                 let pkg_name = pkg.name();
 

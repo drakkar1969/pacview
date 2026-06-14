@@ -11,7 +11,7 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: StatusItemState
 //------------------------------------------------------------------------------
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 #[repr(u32)]
 pub enum StatusItemState {
     Updates(usize, Option<String>),

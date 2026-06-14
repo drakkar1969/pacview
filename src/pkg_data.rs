@@ -53,13 +53,13 @@ impl Display for PkgValidation {
             .collect::<Vec<&str>>()
             .join(" | ");
 
-        write!(f, "{}", display)
+        write!(f, "{display}")
     }
 }
 
 impl PkgValidation {
-    pub fn is_valid(&self) -> bool {
-        !(self.intersects(PkgValidation::UNKNOWN) || self.intersects(PkgValidation::NONE))
+    pub fn is_valid(self) -> bool {
+        !(self.intersects(Self::UNKNOWN) || self.intersects(Self::NONE))
     }
 }
 
