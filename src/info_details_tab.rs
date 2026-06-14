@@ -235,9 +235,12 @@ impl InfoDetailsTab {
     // Set info row function
     //---------------------------------------
     fn set_info_row(&self, id: PropID, value: ValueType) {
-        if let Some(row) = self.imp().info_row_map.borrow().get(&id) {
-            row.set_value(value);
-        }
+        let map = self.imp().info_row_map.borrow();
+
+        let row = map.get(&id)
+            .expect("Failed to retrieve info row from map");
+
+        row.set_value(value);
     }
 
     //---------------------------------------
