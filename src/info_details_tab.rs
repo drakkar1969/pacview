@@ -9,7 +9,7 @@ use gtk::glib;
 use glib::{clone, RustClosure};
 
 use crate::{
-    pkg_data::{PkgFlags, PkgValidation},
+    pkg_data::PkgValidation,
     pkg_object::PkgObject,
     info_row::{PropID, PropType, ValueType, InfoRow},
     text_widget::{INSTALLED_LABEL, LINK_SPACER},
@@ -250,9 +250,9 @@ impl InfoDetailsTab {
     //---------------------------------------
     // Installed optdeps function
     //---------------------------------------
-    fn installed_optdeps(flags: PkgFlags, optdepends: &[String]) -> Cow<'_, [String]> {
-        if !optdepends.is_empty() && flags.intersects(PkgFlags::INSTALLED) {
-            optdepends.iter()
+    fn installed_optdeps(pkg: &PkgObject) -> Cow<'_, [String]> {
+        if !pkg.optdepends().is_empty() && pkg.is_installed() {
+            pkg.optdepends().iter()
                 .map(|dep| {
                     if dep.split_once([':'])
                         .is_some_and(|(name, _)| PkgObject::has_local_satisfier(name)) {
@@ -263,7 +263,7 @@ impl InfoDetailsTab {
                 })
                 .collect()
         } else {
-            Cow::Borrowed(optdepends)
+            Cow::Borrowed(pkg.optdepends())
         }
     }
 
@@ -293,7 +293,7 @@ impl InfoDetailsTab {
         self.set_info_row(PropID::Dependencies, ValueType::Vec(pkg.depends()));
 
         // Optdepends
-        self.set_info_row(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(pkg.flags(), pkg.optdepends())));
+        self.set_info_row(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(pkg)));
 
         // Makedepends
         self.set_info_row(PropID::Make, ValueType::VecOpt(pkg.makedepends()));

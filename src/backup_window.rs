@@ -10,7 +10,6 @@ use gdk::{Key, ModifierType};
 use strum::AsRefStr;
 
 use crate::{
-    pkg_data::PkgFlags,
     pkg_object::PkgObject,
     backup_object::{BackupObject, BackupStatus},
     utils::{Paths, AppInfoExt}
@@ -428,7 +427,7 @@ impl BackupWindow {
         // Get backup list
         let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
             .flatten()
-            .filter(|pkg| pkg.flags().intersects(PkgFlags::INSTALLED))
+            .filter(|pkg| pkg.is_installed())
             .flat_map(|pkg| {
                 let pkg_name = pkg.name();
 

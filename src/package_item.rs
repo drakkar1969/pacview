@@ -3,10 +3,7 @@ use gtk::prelude::{GObjectPropertyExpressionExt, WidgetExt};
 use gtk::glib;
 use glib::closure;
 
-use crate::{
-    pkg_data::PkgFlags,
-    pkg_object::PkgObject
-};
+use crate::pkg_object::PkgObject;
 
 //------------------------------------------------------------------------------
 // MODULE: PackageItem
@@ -103,7 +100,7 @@ impl PackageItem {
         imp.repository_label.set_label(&pkg.repository());
         imp.version_label.set_label(&pkg.version());
 
-        imp.status_label.set_visible(pkg.flags().intersects(PkgFlags::INSTALLED));
+        imp.status_label.set_visible(pkg.is_installed());
         imp.status_label.set_css_classes(&pkg.status_css_classes());
         imp.status_label.set_label(pkg.status());
 
