@@ -38,6 +38,21 @@ pub enum PkgValidation {
     SIGNATURE = 1 << 3,
 }
 
+impl PkgValidation {
+    pub fn to_string(&self) -> String {
+        let flags_class = glib::FlagsClass::new::<Self>();
+
+        self.iter()
+            .map(|flag| {
+                flags_class
+                    .value(flag.bits())
+                    .map_or("None", glib::FlagsValue::name)
+            })
+            .collect::<Vec<&str>>()
+            .join(" | ")
+    }
+}
+
 impl Default for PkgValidation {
     fn default() -> Self {
         Self::NONE

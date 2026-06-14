@@ -268,22 +268,6 @@ impl InfoDetailsTab {
     }
 
     //---------------------------------------
-    // Package validation function
-    //---------------------------------------
-    fn validation(flags: PkgValidation) -> String {
-        let validation_flags_class = glib::FlagsClass::new::<PkgValidation>();
-
-        flags.iter()
-            .map(|flag| {
-                validation_flags_class
-                    .value(flag.bits())
-                    .map_or("NONE", glib::FlagsValue::name)
-            })
-            .collect::<Vec<&str>>()
-            .join(" | ")
-    }
-
-    //---------------------------------------
     // Update listbox function
     //---------------------------------------
     fn update_listbox(&self, pkg: &PkgObject) {
@@ -348,7 +332,7 @@ impl InfoDetailsTab {
         self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));
 
         // Validation
-        self.set_info_row(PropID::Validation, ValueType::Str(&Self::validation(pkg.validation())));
+        self.set_info_row(PropID::Validation, ValueType::Str(&pkg.validation().to_string()));
     }
 
     //---------------------------------------
