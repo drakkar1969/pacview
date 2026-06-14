@@ -1,4 +1,4 @@
-use std::{cell::Cell, os::unix::fs::MetadataExt};
+use std::cell::Cell;
 use std::sync::LazyLock;
 use std::fs;
 use std::fmt::Write as _;
@@ -299,8 +299,8 @@ impl LogWindow {
                 }
 
                 // Get log file size
-                let size = 512u64 * fs::metadata(&Pacman::config().log_file)
-                    .map(|metadata| metadata.blocks())
+                let size = fs::metadata(&Pacman::config().log_file)
+                    .map(|metadata| metadata.len())
                     .unwrap_or_default();
 
                 imp.size_label.set_label(&format!("Log file size: {}", Size::from_bytes(size)));
