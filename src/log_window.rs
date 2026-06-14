@@ -261,9 +261,7 @@ impl LogWindow {
                         .expect("Failed to compile Regex")
                 });
 
-                let log_lines: Vec<_> = log
-                    .split('\n')
-                    .collect();
+                let log_lines: Vec<&str> = log.lines().collect();
 
                 for chunk in log_lines.rchunks(1000) {
                     let lines: Vec<LogLine> = chunk.iter()
