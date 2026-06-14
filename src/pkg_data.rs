@@ -51,6 +51,10 @@ impl PkgValidation {
             .collect::<Vec<&str>>()
             .join(" | ")
     }
+
+    pub fn is_valid(&self) -> bool {
+        !(self.intersects(PkgValidation::UNKNOWN) || self.intersects(PkgValidation::NONE))
+    }
 }
 
 impl Default for PkgValidation {

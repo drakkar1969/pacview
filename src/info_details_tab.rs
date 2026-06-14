@@ -9,7 +9,6 @@ use gtk::glib;
 use glib::{clone, RustClosure};
 
 use crate::{
-    pkg_data::PkgValidation,
     pkg_object::PkgObject,
     info_row::{PropID, PropType, ValueType, InfoRow},
     text_widget::{INSTALLED_LABEL, LINK_SPACER},
@@ -144,12 +143,7 @@ mod imp {
             // Show hashes action
             klass.install_action("info.show-hashes", None, |tab, _, _| {
                 if let Some(pkg) = tab.pkg()
-                    .filter(|pkg| {
-                        let validation = pkg.validation();
-
-                        !(validation.intersects(PkgValidation::UNKNOWN)
-                            || validation.intersects(PkgValidation::NONE))
-                    }) {
+                    .filter(|pkg| pkg.validation().is_valid()) {
                         let parent = tab.root()
                             .and_downcast::<gtk::Window>()
                             .expect("Failed to downcast to 'GtkWindow'");
@@ -365,12 +359,7 @@ impl InfoDetailsTab {
         // Update button states
         imp.pkgbuild_button.set_visible(Paths::paru().is_ok());
 
-        imp.hashes_button.set_visible({
-            let validation = pkg.validation();
-
-            !(validation.intersects(PkgValidation::UNKNOWN)
-                || validation.intersects(PkgValidation::NONE))
-        });
+        imp.hashes_button.set_visible(pkg.validation().is_valid());
     }
 
     //---------------------------------------
