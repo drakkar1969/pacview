@@ -153,7 +153,7 @@ impl PkgData {
             name: pkg.name.clone(),
             version: pkg.version.clone(),
             description: pkg.description.as_deref().unwrap_or_default().to_owned(),
-            popularity: format!("{:.2?} ({} votes)", pkg.popularity, pkg.num_votes),
+            popularity: format!("{:.2?} ({} vote{})", pkg.popularity, pkg.num_votes, if pkg.num_votes == 1 { "" } else { "s" }),
             out_of_date: pkg.out_of_date.unwrap_or_default(),
             url: pkg.url.as_deref().unwrap_or_default().to_owned(),
             licenses: sorted_vec(&pkg.license),
