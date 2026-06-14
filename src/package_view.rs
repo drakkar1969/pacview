@@ -689,14 +689,15 @@ impl PackageView {
         for pkg in self.imp().selection.iter::<glib::Object>()
             .flatten()
             .filter_map(|item| item.downcast::<PkgObject>().ok()) {
-                let _ = writeln!(output, "|{name}|{version}|{repo}|{status}|{size}|{groups}|",
+                writeln!(output, "|{name}|{version}|{repo}|{status}|{size}|{groups}|",
                     name=pkg.name(),
                     version=pkg.version(),
                     repo=pkg.repository(),
                     status=pkg.status(),
                     size=pkg.install_size_string(),
                     groups=pkg.groups().join(" | ")
-                );
+                )
+                .unwrap();
             }
 
         self.clipboard().set_text(&output);

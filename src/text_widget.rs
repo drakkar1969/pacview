@@ -925,7 +925,7 @@ impl TextWidget {
 
                 // Launch link if any
                 if let Some(link) = imp.pressed_link.take()
-                    .filter(|pressed| widget.link_at_xy(x, y).as_ref() == Some(pressed)) {
+                    && widget.link_at_xy(x, y).as_ref() == Some(&link) {
                         widget.handle_link(&link);
                     }
             }

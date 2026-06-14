@@ -150,9 +150,8 @@ impl HistoryList {
             list.iter().position(|item| item == &new_item)
                 .unwrap_or_else(|| {
                     // If selected item is not the last one, truncate the list
-                    if let Some(i) = self.selected()
-                        .checked_add(1)
-                        .filter(|&i| i < list.len() as u32) {
+                    if let Some(i) = self.selected().checked_add(1)
+                        && i < list.len() as u32 {
                             list.truncate(i as usize);
                         }
 

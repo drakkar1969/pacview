@@ -142,16 +142,15 @@ mod imp {
 
             // Show hashes action
             klass.install_action("info.show-hashes", None, |tab, _, _| {
-                if let Some(pkg) = tab.pkg()
-                    .filter(|pkg| pkg.validation().is_valid()) {
-                        let parent = tab.root()
-                            .and_downcast::<gtk::Window>()
-                            .expect("Failed to downcast to 'GtkWindow'");
+                if let Some(pkg) = tab.pkg() && pkg.validation().is_valid() {
+                    let parent = tab.root()
+                        .and_downcast::<gtk::Window>()
+                        .expect("Failed to downcast to 'GtkWindow'");
 
-                        let hash_window = HashWindow::new(&parent, &pkg);
+                    let hash_window = HashWindow::new(&parent, &pkg);
 
-                        hash_window.present();
-                    }
+                    hash_window.present();
+                }
             });
         }
     }
