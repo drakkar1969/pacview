@@ -384,15 +384,11 @@ impl PkgObject {
     }
 
     fn alpm_local_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
-        let data = self.data();
-
-        handle.localdb().pkg(data.name.as_str()).ok()
+        handle.localdb().pkg(self.data().name.as_str()).ok()
     }
 
     fn alpm_sync_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
-        let data = self.data();
-
-        handle.syncdbs().pkg(data.name.as_str()).ok()
+        handle.syncdbs().pkg(self.data().name.as_str()).ok()
     }
 
     //---------------------------------------
