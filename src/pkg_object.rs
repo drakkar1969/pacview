@@ -497,7 +497,7 @@ impl PkgObject {
     pub async fn log_future(&self) -> &Vec<String> {
         self.imp().log.get_or_init(async || {
             static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                Regex::new(r"\[(.+?)T(.+?)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) (.+?) (.+)").expect("Failed to compile Regex")
+                Regex::new(r"\[([^T]+)T([^+]+)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) (.+?) (.+)").expect("Failed to compile Regex")
             });
 
             let pkg_name = self.name();
