@@ -99,8 +99,9 @@ impl SearchTag {
     //---------------------------------------
     fn setup_controllers(&self) {
         // Click controller
-        let gesture_click = gtk::GestureClick::new();
-        gesture_click.set_button(gdk::BUTTON_PRIMARY);
+        let gesture_click = gtk::GestureClick::builder()
+            .button(gdk::BUTTON_PRIMARY)
+            .build();
 
         gesture_click.connect_released(clone!(
             #[weak(rename_to = tag)] self,
