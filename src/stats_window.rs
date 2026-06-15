@@ -161,7 +161,7 @@ impl StatsWindow {
                     .sum();
 
                 let (install_count, install_size) = map.iter()
-                    .filter(|(key, _)| !key.is_empty())
+                    .filter(|&(&key, _)| !key.is_empty())
                     .map(|(_, value)| {
                         (value.len(), value.iter().map(|(_, _, size)| *size).sum::<i64>())
                     })
@@ -169,7 +169,7 @@ impl StatsWindow {
                     .unwrap_or_default();
 
                 let explicit_count: usize = map.iter()
-                    .filter(|(key, _)| **key == "explicit")
+                    .filter(|&(&key, _)| key == "explicit")
                     .map(|(_, value)| value.len())
                     .sum();
 

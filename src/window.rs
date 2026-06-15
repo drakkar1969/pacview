@@ -823,7 +823,7 @@ impl PacViewWindow {
 
                 sync_data.extend(
                     db.pkgs().iter()
-                        .filter(|pkg| localdb.pkg(pkg.name()).is_err())
+                        .filter(|&pkg| localdb.pkg(pkg.name()).is_err())
                         .map(|pkg| PkgData::from_alpm(pkg, false, db.name()))
                 );
 
