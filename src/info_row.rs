@@ -212,11 +212,7 @@ mod imp {
             });
 
             klass.install_action("text.activate-link", None, |row, _, _| {
-                let widget = &row.imp().value_widget;
-
-                if let Some(link) = widget.focused_link() {
-                    widget.handle_link(&link);
-                }
+                row.imp().value_widget.handle_focused_link();
             });
         }
 

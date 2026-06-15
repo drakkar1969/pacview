@@ -32,12 +32,12 @@ pub const LINK_SPACER: &str = "   ";
 pub struct TextTag {
     link: String,
     version: Option<String>,
-    start: u32,
-    end: u32,
+    start: usize,
+    end: usize,
 }
 
 impl TextTag {
-    fn new(link: String, version: Option<&str>, start: u32, end: u32) -> Self {
+    fn new(link: String, version: Option<&str>, start: usize, end: usize) -> Self {
         Self {
             link,
             version: version.map(ToOwned::to_owned),
@@ -105,7 +105,7 @@ mod imp {
 
         pub(super) is_selecting: Cell<bool>,
         pub(super) is_clicked: Cell<bool>,
-        pub(super) pressed_link: RefCell<Option<TextTag>>,
+        pub(super) pressed_link_index: Cell<Option<usize>>,
     }
 
     //---------------------------------------
@@ -273,7 +273,7 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag::new(text.to_owned(), None, 0, text.len() as u32));
+                    link_list.push(TextTag::new(text.to_owned(), None, 0, text.len()));
                 },
                 PropType::Packager => {
                     // Parse email address
@@ -286,8 +286,8 @@ mod imp {
                         link_list.push(TextTag::new(
                             format!("mailto:{}", m.as_str()),
                             None,
-                            m.start() as u32,
-                            m.end() as u32
+                            m.start(),
+                            m.end()
                         ));
                     }
                 },
@@ -310,18 +310,18 @@ mod imp {
                                 Some(TextTag::new(
                                     format!("pkg://{}", m1.as_str()),
                                     Some(m2.as_str()),
-                                    m1.start() as u32,
-                                    m1.end() as u32
+                                    m1.start(),
+                                    m1.end()
                                 ))
                             })
                         );
 
                         // Parse optdeps installed comments
-                        let comment_len = INSTALLED_LABEL.len() as u32;
+                        let comment_len = INSTALLED_LABEL.len() as usize;
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .filter_map(|(i, s)| {
-                                let start = i as u32;
+                                let start = i;
                                 let end = start.checked_add(comment_len)?;
 
                                 Some(TextTag::new(s.to_owned(), None, start, end))
@@ -491,36 +491,43 @@ impl TextWidget {
     //---------------------------------------
     // Layout format helper functions
     //---------------------------------------
-    fn attr<T: IsAttribute>(&self, attr: T, start: u32, end: u32) -> Attribute {
+    fn attr<T: IsAttribute>(&self, attr: T, start: usize, end: usize) -> Attribute {
         let mut base_attr: Attribute = attr.upcast();
 
-        base_attr.set_start_index(start);
-        base_attr.set_end_index(end);
+        base_attr.set_start_index(start as u32);
+        base_attr.set_end_index(end as u32);
 
         base_attr
     }
 
-    fn add_selection_attrs(&self, attr_list: &AttrList, start: u32, end: u32) {
-        let imp = self.imp();
+    fn add_selection_attrs(&self, attr_list: &AttrList) {
+        if let (Some(start), Some(end)) = self.selection_indices() && start != end {
+            let imp = self.imp();
 
-        let (red, green, blue, alpha) = if self.focused() {
-            imp.sel_focus_bg_color.get()
-        } else {
-            imp.sel_bg_color.get()
-        };
+            let min = start.min(end);
+            let max = start.max(end);
 
-        attr_list.insert(self.attr(AttrColor::new_background(red, green, blue), start, end));
-        attr_list.insert(self.attr(AttrInt::new_background_alpha(alpha), start, end));
+            let (red, green, blue, alpha) = if self.focused() {
+                imp.sel_focus_bg_color.get()
+            } else {
+                imp.sel_bg_color.get()
+            };
+
+            attr_list.insert(self.attr(AttrColor::new_background(red, green, blue), min, max));
+            attr_list.insert(self.attr(AttrInt::new_background_alpha(alpha), min, max));
+        }
     }
 
-    fn add_focused_link_attrs(&self, attr_list: &AttrList, tag: &TextTag) {
-        let underline = if self.underline_links() {
-            Underline::Double
-        } else {
-            Underline::Single
-        };
+    fn add_focused_link_attrs(&self, attr_list: &AttrList) {
+        if let Some(link) = self.focused_link() {
+            let underline = if self.underline_links() {
+                Underline::Double
+            } else {
+                Underline::Single
+            };
 
-        attr_list.insert(self.attr(AttrInt::new_underline(underline), tag.start, tag.end));
+            attr_list.insert(self.attr(AttrInt::new_underline(underline), link.start, link.end));
+        }
     }
 
     fn init_layout_attributes(&self) {
@@ -582,17 +589,11 @@ impl TextWidget {
                 let attr_list = imp.layout_attributes.borrow().copy().unwrap();
 
                 // Update pango layout selection attributes
-                let (sel_start, sel_end) = widget.selection_indices();
-
-                if let Some((start, end)) = sel_start.zip(sel_end)
-                    .filter(|&(start, end)| start != end)
-                    .map(|(start, end)| (start.min(end), start.max(end))) {
-                        widget.add_selection_attrs(&attr_list, start as u32, end as u32);
-                    }
+                widget.add_selection_attrs(&attr_list);
 
                 // Update pango layout focused link attributes
-                if widget.focused() && let Some(link) = widget.focused_link() {
-                    widget.add_focused_link_attrs(&attr_list, &link);
+                if widget.focused() {
+                    widget.add_focused_link_attrs(&attr_list);
                 }
 
                 layout.set_attributes(Some(&attr_list));
@@ -679,13 +680,13 @@ impl TextWidget {
     //---------------------------------------
     // Link helper functions
     //---------------------------------------
-    pub fn focused_link(&self) -> Option<TextTag> {
+    fn focused_link(&self) -> Option<TextTag> {
         let imp = self.imp();
 
         let link_list = imp.link_list.borrow();
-        let index = imp.focused_link_index.get()?;
+        let link_index = imp.focused_link_index.get()?;
 
-        link_list.get(index).cloned()
+        link_list.get(link_index).cloned()
     }
 
     pub fn focus_previous_link(&self) {
@@ -707,7 +708,7 @@ impl TextWidget {
         if let Some(new_index) = imp.focused_link_index.get()
             .and_then(|i| i.checked_add(1))
             .filter(|&i| link_list.get(i)
-                .is_some_and(|link| link.end <= imp.layout_max_index.get() as u32)
+                .is_some_and(|link| link.end <= imp.layout_max_index.get())
             ) {
                 imp.focused_link_index.set(Some(new_index));
 
@@ -715,21 +716,19 @@ impl TextWidget {
             }
     }
 
-    pub fn handle_link(&self, tag: &TextTag) {
-        let link_url = tag.link.clone();
-
-        if let Ok(url) = Url::parse(&link_url) {
+    pub fn handle_focused_link(&self) {
+        if let Some(link) = self.focused_link() && let Ok(url) = Url::parse(&link.link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     self.emit_by_name::<()>(
                         "package-link",
-                        &[&pkg_name, &tag.version.clone().unwrap_or_default()]
+                        &[&pkg_name, &link.version.unwrap_or_default()]
                     );
                 }
             } else {
                 glib::spawn_future_local(async move {
                     let _ = gio::AppInfo::launch_default_for_uri_future(
-                        &link_url,
+                        &link.link,
                         None::<&gio::AppLaunchContext>
                     )
                     .await;
@@ -755,13 +754,12 @@ impl TextWidget {
         (inside, index as usize)
     }
 
-    fn link_at_xy(&self, x: f64, y: f64) -> Option<TextTag> {
+    fn link_index_at_xy(&self, x: f64, y: f64) -> Option<usize> {
         let (inside, index) = self.index_at_xy(x, y);
 
         if inside {
             return self.imp().link_list.borrow().iter()
-                .find(|&link| link.start <= index as u32 && link.end > index as u32)
-                .cloned()
+                .position(|link| link.start <= index && link.end > index)
         }
 
         None
@@ -772,7 +770,7 @@ impl TextWidget {
 
         if !imp.is_selecting.get() {
             // Get cursor
-            let cursor = if self.link_at_xy(x, y).is_some() {
+            let cursor = if self.link_index_at_xy(x, y).is_some() {
                 "pointer"
             } else {
                 "text"
@@ -820,7 +818,7 @@ impl TextWidget {
             move |_, x, y| {
                 let imp = widget.imp();
 
-                if widget.link_at_xy(x, y).is_none() {
+                if widget.link_index_at_xy(x, y).is_none() {
                     if !imp.is_clicked.get() {
                         let (_, index) = widget.index_at_xy(x, y);
 
@@ -873,9 +871,9 @@ impl TextWidget {
             move |_, n, x, y| {
                 let imp = widget.imp();
 
-                let link = widget.link_at_xy(x, y);
+                let link_index = widget.link_index_at_xy(x, y);
 
-                if link.is_none() {
+                if link_index.is_none() {
                     if n == 2 {
                         // Double click: select word under cursor
                         imp.is_clicked.set(true);
@@ -912,7 +910,7 @@ impl TextWidget {
                     }
                 }
 
-                imp.pressed_link.replace(link);
+                imp.pressed_link_index.set(link_index);
             }
         ));
 
@@ -924,10 +922,9 @@ impl TextWidget {
                 imp.is_clicked.set(false);
 
                 // Launch link if any
-                if let Some(link) = imp.pressed_link.take()
-                    && widget.link_at_xy(x, y).as_ref() == Some(&link) {
-                        widget.handle_link(&link);
-                    }
+                if widget.link_index_at_xy(x, y) == imp.pressed_link_index.take() {
+                    widget.handle_focused_link();
+                }
             }
         ));
 
