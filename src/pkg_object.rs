@@ -500,7 +500,7 @@ impl PkgObject {
     // Future properties
     //---------------------------------------
     #[allow(clippy::future_not_send)]
-    pub async fn log_future(&self) -> &Vec<String> {
+    pub async fn log_future(&self) -> &[String] {
         self.imp().log.get_or_init(async || {
             static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                 Regex::new(r"\[([^T]+)T([^+]+)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) (.+?) (.+)").expect("Failed to compile Regex")

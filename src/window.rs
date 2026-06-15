@@ -994,8 +994,12 @@ impl PacViewWindow {
                 .expect("Failed to compile Regex")
         });
 
-        let update_map: HashMap<String, String> = EXPR.captures_iter(&update_output)
-            .map(|caps| (caps[1].to_string(), caps[2].to_string()))
+        let update_map: HashMap<&str, &str> = EXPR.captures_iter(&update_output)
+            .map(|caps| {
+                let (_, [name, version]) = caps.extract();
+
+                (name, version)
+            })
             .collect();
 
         // Update status of packages with updates
@@ -1004,7 +1008,7 @@ impl PacViewWindow {
         }
 
         // Update info pane package if it has update
-        if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name())) {
+        if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name().as_str())) {
             imp.info_pane.update_display();
         }
 

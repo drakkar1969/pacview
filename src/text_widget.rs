@@ -37,10 +37,10 @@ pub struct TextTag {
 }
 
 impl TextTag {
-    fn new(link: String, version: Option<&str>, start: usize, end: usize) -> Self {
+    fn new(link: String, version: Option<String>, start: usize, end: usize) -> Self {
         Self {
             link,
-            version: version.map(ToOwned::to_owned),
+            version,
             start,
             end
         }
@@ -309,7 +309,7 @@ mod imp {
 
                                 Some(TextTag::new(
                                     format!("pkg://{}", m1.as_str()),
-                                    Some(m2.as_str()),
+                                    Some(m2.as_str().to_owned()),
                                     m1.start(),
                                     m1.end()
                                 ))
