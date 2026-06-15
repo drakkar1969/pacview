@@ -10,7 +10,7 @@ use strum::{FromRepr, AsRefStr};
 
 use crate::{
     pkg_object::PkgBackup,
-    utils::{Paths, TokioUtils}
+    utils::{Paths, Pacman, TokioUtils}
 };
 
 //------------------------------------------------------------------------------
@@ -78,7 +78,7 @@ mod imp {
         //---------------------------------------
         fn status(&self) -> BackupStatus {
             *self.status.get_or_init(|| {
-                let path = self.path.borrow();
+                let path = Pacman::config().root_dir.clone() + &self.path.borrow();
 
                 let file_hash = alpm::compute_md5sum(path.as_str());
 
@@ -145,7 +145,7 @@ impl BackupObject {
         let paccat = Paths::paccat().as_ref()
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
-        let path = self.path();
+        let path = Pacman::config().root_dir.clone() + &self.path();
 
         // Download original file content with paccat
         let (status, content) = TokioUtils::run(paccat, &[&self.package(), "--", &path], None)

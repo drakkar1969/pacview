@@ -12,7 +12,7 @@ use strum::AsRefStr;
 use crate::{
     pkg_object::PkgObject,
     backup_object::{BackupObject, BackupStatus},
-    utils::{Paths, AppInfoExt}
+    utils::{Paths, Pacman, AppInfoExt}
 };
 
 //------------------------------------------------------------------------------
@@ -147,7 +147,9 @@ mod imp {
             klass.install_action_async("backup.open", None, async |window, _, _| {
                 if let Some(backup_file) = window.imp().selection.selected_item()
                     .and_downcast::<BackupObject>() {
-                        AppInfoExt::open_with_default_app(&backup_file.path()).await;
+                        let path = Pacman::config().root_dir.clone() + &backup_file.path();
+
+                        AppInfoExt::open_with_default_app(&path).await;
                     }
             });
 

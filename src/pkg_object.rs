@@ -438,15 +438,9 @@ impl PkgObject {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.alpm_local_pkg(handle))
                     .map(|pkg| {
-                        let root_dir = &Pacman::config().root_dir;
-
                         let mut files: Vec<String> = pkg.files().files()
                             .iter()
-                            .map(|file| {
-                                let mut path = root_dir.to_owned();
-                                path.push_str(&String::from_utf8_lossy(file.name()));
-                                path
-                            })
+                            .map(|file| String::from_utf8_lossy(file.name()).into_owned())
                             .collect();
 
                         files.sort_unstable();
@@ -464,14 +458,9 @@ impl PkgObject {
                 handle.borrow().as_ref()
                     .and_then(|handle| self.alpm_local_pkg(handle))
                     .map(|pkg| {
-                        let root_dir = &Pacman::config().root_dir;
-
                         let mut backup: Vec<PkgBackup> = pkg.backup().iter()
                             .map(|backup| {
-                                let mut path = root_dir.to_owned();
-                                path.push_str(backup.name());
-
-                                PkgBackup::new(path, backup.hash().to_owned())
+                                PkgBackup::new(backup.name().into(), backup.hash().into())
                             })
                             .collect();
 

@@ -8,7 +8,7 @@ use glib::{clone, Propagation};
 
 use crate::{
     pkg_object::PkgObject,
-    utils::AppInfoExt
+    utils::{Pacman, AppInfoExt}
 };
 
 //------------------------------------------------------------------------------
@@ -101,7 +101,9 @@ mod imp {
             klass.install_action_async("info.files-open", None, async |tab, _, _| {
                 if let Some(file) = tab.imp().selection.selected_item()
                     .and_downcast::<gtk::StringObject>() {
-                        AppInfoExt::open_with_default_app(&file.string()).await;
+                        let path = Pacman::config().root_dir.clone() + &file.string();
+
+                        AppInfoExt::open_with_default_app(&path).await;
                     }
             });
 
