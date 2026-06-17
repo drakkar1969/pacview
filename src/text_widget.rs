@@ -317,7 +317,7 @@ mod imp {
                         );
 
                         // Parse optdeps installed comments
-                        let comment_len = INSTALLED_LABEL.len() as usize;
+                        let comment_len = INSTALLED_LABEL.len();
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .filter_map(|(i, s)| {

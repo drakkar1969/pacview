@@ -216,11 +216,13 @@ impl InfoDetailsTab {
             move |row| {
                 if row.has_selection() {
                     if imp.selection_row.borrow().as_ref().is_none_or(|sel| sel != row) {
-                        if let Some(prev_row) = imp.selection_row.replace(Some(row.clone())) {
-                            prev_row.activate_action("text.select-none", None).unwrap();
+                        let prev_row = imp.selection_row.replace(Some(row.clone()));
+
+                        if let Some(row) = prev_row {
+                            row.activate_action("text.select-none", None).unwrap();
                         }
                     }
-                } else if imp.selection_row.borrow().as_ref().is_some_and(|sel| sel == row) {
+                } else if imp.selection_row.borrow().as_ref() == Some(row) {
                     imp.selection_row.replace(None);
                 }
             }

@@ -995,9 +995,9 @@ impl PacViewWindow {
 
         let update_map: HashMap<&str, &str> = EXPR.captures_iter(&update_output)
             .map(|caps| {
-                let (_, [name, version]) = caps.extract();
+                let (_, item) = caps.extract();
 
-                (name, version)
+                item.into()
             })
             .collect();
 
