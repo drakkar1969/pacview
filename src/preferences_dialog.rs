@@ -352,11 +352,7 @@ impl PreferencesDialog {
                     .model()?
                     .iter::<sourceview5::StyleScheme>()
                     .flatten()
-                    .position(|scheme| {
-                        scheme.id() == id
-                            || StyleSchemes::variant_id(&scheme.id())
-                                .is_some_and(|variant_id| variant_id == id)
-                    })
+                    .position(|scheme| StyleSchemes::scheme_matches_id(&scheme, &id))
                     .map(|index| index as u32)
             })
             .transform_from(|binding, index: u32| {

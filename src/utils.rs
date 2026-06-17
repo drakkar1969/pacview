@@ -475,22 +475,16 @@ pub struct StyleSchemes;
 
 impl StyleSchemes {
     //-----------------------------------
-    // Is variant dark functions
+    // Is variant dark helper function
     //-----------------------------------
-    pub fn is_variant_dark(scheme: &StyleScheme) -> bool {
+    fn is_variant_dark(scheme: &StyleScheme) -> bool {
         scheme.metadata("variant").is_some_and(|variant| variant == "dark")
     }
 
-    pub fn is_variant_dark_by_id(id: &str) -> bool {
-        StyleSchemeManager::default()
-            .scheme(id)
-            .is_some_and(|scheme| Self::is_variant_dark(&scheme))
-    }
-
     //-----------------------------------
-    // Variant function
+    // Variant id helper function
     //-----------------------------------
-    pub fn variant_id(id: &str) -> Option<glib::GString> {
+    fn variant_id(id: &str) -> Option<glib::GString> {
         let scheme_manager = StyleSchemeManager::default();
 
         let scheme = scheme_manager.scheme(id)?;
@@ -518,5 +512,29 @@ impl StyleSchemes {
                     .filter(|scheme| Self::is_variant_dark(scheme) == dark)
             })
             .collect()
+    }
+
+    //-----------------------------------
+    // Scheme function
+    //-----------------------------------
+    pub fn scheme(id: &str, dark: bool) -> Option<StyleScheme> {
+        let scheme_manager = StyleSchemeManager::default();
+
+        scheme_manager.scheme(id)
+            .filter(|scheme| Self::is_variant_dark(scheme) == dark)
+            .or_else(|| {
+                let variant_id = Self::variant_id(id);
+
+                variant_id.and_then(|id| scheme_manager.scheme(&id))
+            })
+    }
+
+    //-----------------------------------
+    // Scheme matches id function
+    //-----------------------------------
+    pub fn scheme_matches_id(scheme: &StyleScheme, id: &str) -> bool {
+        scheme.id() == id
+            || Self::variant_id(&scheme.id())
+                .is_some_and(|variant_id| variant_id == id)
     }
 }

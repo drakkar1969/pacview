@@ -199,12 +199,7 @@ impl SourceWindow {
 
         let id = settings.string("pkgbuild-style-scheme");
 
-        let scheme_manager = sourceview5::StyleSchemeManager::default();
-
-        let scheme = (StyleSchemes::is_variant_dark_by_id(&id) == style_manager.is_dark())
-            .then_some(id.clone())
-            .or_else(|| StyleSchemes::variant_id(&id))
-            .and_then(|id| scheme_manager.scheme(&id));
+        let scheme = StyleSchemes::scheme(&id, style_manager.is_dark());
 
         self.buffer().set_style_scheme(scheme.as_ref());
     }
