@@ -207,6 +207,11 @@
                 <property name="title">Style Sc_heme</property>
                 <property name="subtitle">Color scheme for syntax highlighting</property>
                 <property name="use-underline">true</property>
+                <property name="model">
+                  <object class="GListStore">
+                    <property name="item-type">GtkSourceStyleScheme</property>
+                  </object>
+                </property>
                 <property name="expression">
                   <lookup type="GtkSourceStyleScheme" name="name"/>
                 </property>

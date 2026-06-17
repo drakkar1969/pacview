@@ -274,11 +274,6 @@ impl PreferencesDialog {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Create style scheme combo row model
-        let scheme_model = gio::ListStore::new::<sourceview5::StyleScheme>();
-
-        imp.pkgbuild_style_scheme_row.set_model(Some(&scheme_model));
-
         // Populate PKGBUILD style scheme combo row
         let style_manager = adw::StyleManager::for_display(&self.display());
 
