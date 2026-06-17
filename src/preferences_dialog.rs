@@ -161,14 +161,14 @@ impl PreferencesDialog {
     // Populate style schemes helper function
     //---------------------------------------
     fn populate_style_schemes(&self, style_manager: &adw::StyleManager) {
-        let schemes = StyleSchemes::schemes(style_manager.is_dark());
-
         if let Some(model) = self.imp().pkgbuild_style_scheme_row.model()
             .and_downcast_ref::<gio::ListStore>() {
-                model.splice(0, model.n_items(), &schemes);
-            }
+                let schemes = StyleSchemes::schemes(style_manager.is_dark());
 
-        self.notify_pkgbuild_style_scheme();
+                model.splice(0, model.n_items(), &schemes);
+
+                self.notify_pkgbuild_style_scheme();
+            }
     }
 
     //---------------------------------------
@@ -187,22 +187,18 @@ impl PreferencesDialog {
             }
         ));
 
-        // Color scheme row selected property notify signal
-        imp.color_scheme_row.connect_selected_notify(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |row| {
-                let color_scheme = match ColorScheme::from_repr(row.selected())
-                    .unwrap_or_default() {
-                        ColorScheme::Default => adw::ColorScheme::PreferLight,
-                        ColorScheme::Light => adw::ColorScheme::ForceLight,
-                        ColorScheme::Dark => adw::ColorScheme::ForceDark,
-                    };
+        // Color scheme property notify signal
+        self.connect_color_scheme_notify(|dialog| {
+            let color_scheme = match dialog.color_scheme() {
+                ColorScheme::Light => adw::ColorScheme::ForceLight,
+                ColorScheme::Dark => adw::ColorScheme::ForceDark,
+                _ => adw::ColorScheme::Default
+            };
 
-                let style_manager = adw::StyleManager::for_display(&dialog.display());
+            let style_manager = adw::StyleManager::for_display(&dialog.display());
 
-                style_manager.set_color_scheme(color_scheme);
-            }
-        ));
+            style_manager.set_color_scheme(color_scheme);
+        });
 
         // PKGBUILD custom font row activated signal
         imp.pkgbuild_custom_font_row.connect_activated(clone!(
@@ -355,11 +351,10 @@ impl PreferencesDialog {
                     .position(|scheme| StyleSchemes::scheme_matches_id(&scheme, &id))
                     .map(|index| index as u32)
             })
-            .transform_from(|binding, index: u32| {
+            .transform_from(|binding, _: u32| {
                 binding.target()
                     .and_downcast::<adw::ComboRow>()?
-                    .model()?
-                    .item(index)
+                    .selected_item()
                     .and_downcast::<sourceview5::StyleScheme>()
                     .map(|scheme| scheme.id())
             })
