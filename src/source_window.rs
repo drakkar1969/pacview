@@ -368,37 +368,25 @@ impl SourceWindow {
         style_manager.connect_monospace_font_name_notify(move |style_manager| {
             Self::set_font(style_manager, &display);
         });
+
+        // Loading property notify signal
+        self.connect_loading_notify(|window| {
+            let imp = window.imp();
+
+            if window.loading() {
+                imp.refresh_button.set_icon_name("process-stop-symbolic");
+                imp.refresh_button.set_tooltip_text(Some("Cancel Download"));
+            } else {
+                imp.refresh_button.set_icon_name("view-refresh-symbolic");
+                imp.refresh_button.set_tooltip_text(Some("Refresh"));
+            }
+        });
     }
 
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
-        let imp = self.imp();
-
-        // Bind loading property to widgets
-        self.bind_property("loading", &imp.refresh_button.get(), "icon_name")
-            .transform_to(|_, loading: bool| {
-                if loading {
-                    Some("process-stop-symbolic")
-                } else {
-                    Some("view-refresh-symbolic")
-                }
-            })
-            .sync_create()
-            .build();
-
-        self.bind_property("loading", &imp.refresh_button.get(), "tooltip-text")
-            .transform_to(|_, loading: bool| {
-                if loading {
-                    Some("Cancel Download")
-                } else {
-                    Some("Refresh")
-                }
-            })
-            .sync_create()
-            .build();
-
         // Set syntax highlighting language
         let buffer = self.buffer();
 
