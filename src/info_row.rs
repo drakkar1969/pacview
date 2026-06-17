@@ -212,7 +212,9 @@ mod imp {
             });
 
             klass.install_action("text.activate-link", None, |row, _, _| {
-                row.imp().value_widget.handle_focused_link();
+                let value_widget = &row.imp().value_widget;
+
+                value_widget.handle_link(value_widget.focused_link());
             });
         }
 

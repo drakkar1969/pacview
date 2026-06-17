@@ -680,7 +680,7 @@ impl TextWidget {
     //---------------------------------------
     // Link helper functions
     //---------------------------------------
-    fn focused_link(&self) -> Option<TextTag> {
+    pub fn focused_link(&self) -> Option<TextTag> {
         let imp = self.imp();
 
         let link_list = imp.link_list.borrow();
@@ -716,8 +716,8 @@ impl TextWidget {
             }
     }
 
-    pub fn handle_focused_link(&self) {
-        if let Some(link) = self.focused_link() && let Ok(url) = Url::parse(&link.link) {
+    pub fn handle_link(&self, link: Option<TextTag>) {
+        if let Some(link) = link && let Ok(url) = Url::parse(&link.link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     self.emit_by_name::<()>(
@@ -922,9 +922,15 @@ impl TextWidget {
                 imp.is_clicked.set(false);
 
                 // Launch link if any
-                if widget.link_index_at_xy(x, y) == imp.pressed_link_index.take() {
-                    widget.handle_focused_link();
-                }
+                let link = imp.pressed_link_index.take()
+                    .filter(|index| widget.link_index_at_xy(x, y).as_ref() == Some(index))
+                    .and_then(|index| {
+                        let link_list = imp.link_list.borrow();
+
+                        link_list.get(index).cloned()
+                    });
+
+                widget.handle_link(link);
             }
         ));
 
