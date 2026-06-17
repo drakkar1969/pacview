@@ -137,7 +137,6 @@ mod imp {
             obj.setup_widgets();
             obj.bind_gsettings();
             obj.setup_alpm(true);
-            obj.setup_inotify();
         }
     }
 
