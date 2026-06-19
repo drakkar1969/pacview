@@ -894,11 +894,7 @@ impl PacViewWindow {
                         window.get_package_updates().await;
 
                         // Check AUR package names file age
-                        let (max_age, aur_download) = {
-                            let prefs_dialog = imp.prefs_dialog.borrow();
-
-                            (prefs_dialog.aur_database_age() as u64, prefs_dialog.aur_database_download())
-                        };
+                        let max_age = imp.prefs_dialog.borrow().aur_database_age() as u64;
 
                         if aur_download && AurDBFile::out_of_date(max_age) {
                             let _ = AurDBFile::download().await;
