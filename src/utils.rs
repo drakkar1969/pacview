@@ -541,9 +541,9 @@ impl StyleSchemes {
         scheme_manager.scheme(id)
             .filter(|scheme| Self::is_variant_dark(scheme) == dark)
             .or_else(|| {
-                let variant_id = Self::variant_id(id);
+                let variant_id = Self::variant_id(id)?;
 
-                variant_id.and_then(|id| scheme_manager.scheme(&id))
+                scheme_manager.scheme(&variant_id)
             })
     }
 

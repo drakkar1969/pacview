@@ -190,9 +190,9 @@ impl PreferencesDialog {
         // Color scheme property notify signal
         self.connect_color_scheme_notify(|dialog| {
             let color_scheme = match dialog.color_scheme() {
+                ColorScheme::Default => adw::ColorScheme::Default,
                 ColorScheme::Light => adw::ColorScheme::ForceLight,
-                ColorScheme::Dark => adw::ColorScheme::ForceDark,
-                _ => adw::ColorScheme::Default
+                ColorScheme::Dark => adw::ColorScheme::ForceDark
             };
 
             let style_manager = adw::StyleManager::for_display(&dialog.display());
