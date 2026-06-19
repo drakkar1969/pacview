@@ -368,6 +368,24 @@ impl AurDBFile {
     }
 
     //---------------------------------------
+    // Not found function
+    //---------------------------------------
+    pub fn not_found() -> bool {
+        Self::path()
+            .is_some_and(|aur_file| fs::metadata(aur_file).is_err())
+    }
+
+    //---------------------------------------
+    // Load function
+    //--------------------------------------
+    pub fn load() -> String {
+        Self::path()
+            .and_then(|aur_file| fs::read_to_string(aur_file).ok())
+            .unwrap_or_default()
+
+    }
+
+    //---------------------------------------
     // Out of date function
     //---------------------------------------
     pub fn out_of_date(max_age: u64) -> bool {

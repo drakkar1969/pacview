@@ -680,22 +680,23 @@ impl PacViewWindow {
         self.alpm_populate_sidebar(&repo_names, first_load);
 
         // If AUR database download is enabled and AUR file does not exist, download it
-        if imp.prefs_dialog.borrow().aur_database_download() && AurDBFile::path().as_ref()
-            .is_some_and(|aur_file| fs::metadata(aur_file).is_err()) {
-                imp.package_view.set_state(PackageViewState::AURDownload);
-                imp.info_pane.set_pkg(None::<PkgObject>);
+        let aur_download = imp.prefs_dialog.borrow().aur_database_download();
 
-                glib::spawn_future_local(clone!(
-                    #[weak(rename_to = window)] self,
-                    async move {
-                        let _ = AurDBFile::download().await;
+        if aur_download && AurDBFile::not_found() {
+            imp.package_view.set_state(PackageViewState::AURDownload);
+            imp.info_pane.set_pkg(None::<PkgObject>);
 
-                        window.alpm_load_packages(repo_names);
-                    }
-                ));
-            } else {
-                self.alpm_load_packages(repo_names);
-            }
+            glib::spawn_future_local(clone!(
+                #[weak(rename_to = window)] self,
+                async move {
+                    let _ = AurDBFile::download().await;
+
+                    window.alpm_load_packages(repo_names, aur_download);
+                }
+            ));
+        } else {
+            self.alpm_load_packages(repo_names, aur_download);
+        }
     }
 
     //---------------------------------------
@@ -764,12 +765,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, repo_names: Vec<String>) {
-        let imp = self.imp();
-
-        // Get AUR download preference
-        let aur_download = imp.prefs_dialog.borrow().aur_database_download();
-
+    fn alpm_load_packages(&self, repo_names: Vec<String>, aur_download: bool) {
         // Create task to load package data
         let (sender, receiver) = async_channel::bounded(1);
 
@@ -781,9 +777,7 @@ impl PacViewWindow {
 
             // Load AUR package names from file if AUR download is enabled in preferences
             let aur_file = if aur_download {
-                AurDBFile::path()
-                    .and_then(|aur_file| fs::read_to_string(aur_file).ok())
-                    .unwrap_or_default()
+                AurDBFile::load()
             } else {
                 String::new()
             };
