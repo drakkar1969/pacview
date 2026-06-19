@@ -77,6 +77,8 @@ mod imp {
 
         #[property(get, set, builder(BackupSearchMode::default()))]
         search_mode: Cell<BackupSearchMode>,
+        #[property(get, set)]
+        can_compare: Cell<bool>,
 
         pub(super) search_term: RefCell<String>,
     }
@@ -313,7 +315,7 @@ impl BackupWindow {
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::All, |object| object.status());
 
-                window.action_set_enabled("backup.compare", imp.compare_button.is_visible() && status == BackupStatus::Modified);
+                window.action_set_enabled("backup.compare", window.can_compare() && status == BackupStatus::Modified);
                 window.action_set_enabled("backup.open", status != BackupStatus::Locked && status != BackupStatus::All);
                 window.action_set_enabled("backup.copy", n_items > 0);
             }
@@ -323,13 +325,11 @@ impl BackupWindow {
         imp.selection.connect_selected_item_notify(clone!(
             #[weak(rename_to = window)] self,
             move |selection| {
-                let imp = window.imp();
-
                 let status = selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::All, |object| object.status());
 
-                window.action_set_enabled("backup.compare", imp.compare_button.is_visible() && status == BackupStatus::Modified);
+                window.action_set_enabled("backup.compare", window.can_compare() && status == BackupStatus::Modified);
                 window.action_set_enabled("backup.open", status != BackupStatus::Locked && status != BackupStatus::All);
             }
         ));
@@ -356,6 +356,11 @@ impl BackupWindow {
         // Bind search button state to search bar visibility
         imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
             .bidirectional()
+            .sync_create()
+            .build();
+
+        // Bind can compare property to compare button visibility
+        self.bind_property("can-compare", &imp.compare_button.get(), "visible")
             .sync_create()
             .build();
 
@@ -414,7 +419,7 @@ impl BackupWindow {
         ));
 
         // Set backup compare button visibility
-        imp.compare_button.set_visible(Paths::paccat().is_ok() && Paths::meld().is_ok());
+        self.set_can_compare(Paths::paccat().is_ok() && Paths::meld().is_ok());
 
         // Set initial focus on view
         imp.view.grab_focus();
