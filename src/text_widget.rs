@@ -550,6 +550,8 @@ impl TextWidget {
             if self.underline_links() {
                 attr_list.insert(self.attr(AttrInt::new_underline(Underline::Single), link.start, link.end));
             }
+
+            attr_list.insert(self.attr(AttrInt::new_allow_breaks(false), link.start, link.end));
         }
 
         // Add comment attributes
