@@ -665,7 +665,9 @@ impl PacViewWindow {
         Pacman::set_cache(cache_files);
 
         // Init config dialog
-        imp.config_dialog.borrow().init(pacman_config);
+        let config_dialog = ConfigDialog::new(pacman_config);
+
+        imp.config_dialog.replace(config_dialog);
 
         // Create repo names list
         let repo_names: Vec<String> = pacman_config.repos.iter()
