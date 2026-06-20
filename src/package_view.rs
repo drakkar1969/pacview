@@ -265,8 +265,7 @@ impl PackageView {
                 let n_items = selection.n_items();
 
                 imp.count_label.set_label(&format!(
-                    "{n_items} matching package{}",
-                    if n_items == 1 { "" } else { "s" }
+                    "{n_items} matching package{}", if n_items == 1 { "" } else { "s" }
                 ));
 
                 imp.empty_status.set_visible(n_items == 0);
