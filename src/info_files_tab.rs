@@ -250,12 +250,18 @@ impl InfoFilesTab {
 
         imp.spinner.set_visible(false);
 
-        // Populate view
-        let files_list: Vec<gtk::StringObject> = pkg.files().iter()
-            .map(|file| gtk::StringObject::new(file))
-            .collect();
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            #[weak] pkg,
+            async move {
+                // Populate view
+                let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+                    .map(|file| gtk::StringObject::new(file))
+                    .collect();
 
-        imp.model.splice(0, imp.model.n_items(), &files_list);
+                imp.model.splice(0, imp.model.n_items(), &files_list);
+            }
+        ));
 
         self.set_pkg_name(pkg.name());
     }
