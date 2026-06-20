@@ -340,20 +340,26 @@ impl GroupsWindow {
     pub fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        // Get list of packages with groups
-        let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
-            .flatten()
-            .flat_map(|pkg| {
-                pkg.groups().iter()
-                    .map(|group| {
-                        GroupsObject::new(&pkg.name(), pkg.status(), &pkg.status_css_classes(), group)
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            #[weak] pkg_model,
+            async move {
+                // Get list of packages with groups
+                let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .flat_map(|pkg| {
+                        pkg.groups().iter()
+                            .map(|group| {
+                                GroupsObject::new(&pkg.name(), pkg.status(), &pkg.status_css_classes(), group)
+                            })
+                            .collect::<Vec<GroupsObject>>()
                     })
-                    .collect::<Vec<GroupsObject>>()
-            })
-            .collect();
+                    .collect();
 
-        // Populate column view
-        imp.model.splice(0, imp.model.n_items(), &pkg_list);
+                // Populate column view
+                imp.model.splice(0, imp.model.n_items(), &pkg_list);
+            }
+        ));
     }
 }
 

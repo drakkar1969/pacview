@@ -222,26 +222,33 @@ impl CacheWindow {
     pub fn populate(&self) {
         let imp = self.imp();
 
-        // Get cache files
-        let cache_files: Vec<CacheObject> = Pacman::cache().read().unwrap().iter()
-            .map(|file| CacheObject::new(&file.display().to_string()))
-            .collect();
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            async move {
+                // Get cache files
+                let cache_files: Vec<CacheObject> = Pacman::cache().read().unwrap().iter()
+                    .map(|file| CacheObject::new(&file.display().to_string()))
+                    .collect();
 
-        imp.model.splice(0, imp.model.n_items(), &cache_files);
+                imp.model.splice(0, imp.model.n_items(), &cache_files);
 
-        // Get cache size
-        let size = 512u64 * Pacman::config().cache_dir.iter()
-            .flat_map(|dir| {
-                WalkDir::new(dir)
-                    .into_iter()
-                    .flatten()
-                    .filter_map(|entry| {
-                        entry.metadata().map(|metadata| metadata.blocks()).ok()
+                // Get cache size
+                let size = 512u64 * Pacman::config().cache_dir.iter()
+                    .flat_map(|dir| {
+                        WalkDir::new(dir)
+                            .into_iter()
+                            .flatten()
+                            .filter_map(|entry| {
+                                entry.metadata().map(|metadata| metadata.blocks()).ok()
+                            })
                     })
-            })
-            .sum::<u64>();
+                    .sum::<u64>();
 
-        imp.size_label.set_label(&format!("Cache size on disk: {}", Size::from_bytes(size)));
+                imp.size_label.set_label(
+                    &format!("Cache size on disk: {}", Size::from_bytes(size))
+                );
+            }
+        ));
     }
 }
 

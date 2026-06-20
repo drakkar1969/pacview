@@ -4,6 +4,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use gdk::{Key, ModifierType};
+use glib::clone;
 
 use itertools::Itertools;
 use size::Size;
@@ -139,69 +140,77 @@ impl StatsWindow {
     pub fn populate(&self, repos: &[String], pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
-        let mut pkg_count_total = 0;
-        let mut install_count_total = 0;
-        let mut install_size_total = 0;
-        let mut explicit_count_total = 0;
+        let repos = repos.to_owned();
 
-        let pkg_list: Vec<(String, String, i64)> = pkg_model.iter::<PkgObject>()
-            .flatten()
-            .map(|pkg| (pkg.repository(), pkg.status().to_owned(), pkg.install_size()))
-            .collect();
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            #[weak] pkg_model,
+            async move {
+                let mut pkg_count_total = 0;
+                let mut install_count_total = 0;
+                let mut install_size_total = 0;
+                let mut explicit_count_total = 0;
 
-        // Build stats list per repo
-        let mut stats_items: Vec<StatsObject> = repos.iter()
-            .map(|repo| {
-                let map = pkg_list.iter()
-                    .filter(|(repository, _, _)| repository == repo)
-                    .into_group_map_by(|(_, status, _)| status);
+                let pkg_list: Vec<(String, String, i64)> = pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .map(|pkg| (pkg.repository(), pkg.status().to_owned(), pkg.install_size()))
+                    .collect();
 
-                let pkg_count: usize = map.values()
-                    .map(Vec::len)
-                    .sum();
+                // Build stats list per repo
+                let mut stats_items: Vec<StatsObject> = repos.iter()
+                    .map(|repo| {
+                        let map = pkg_list.iter()
+                            .filter(|(repository, _, _)| repository == repo)
+                            .into_group_map_by(|(_, status, _)| status);
 
-                let (install_count, install_size) = map.iter()
-                    .filter(|&(&key, _)| !key.is_empty())
-                    .map(|(_, value)| {
-                        (value.len(), value.iter().map(|(_, _, size)| *size).sum::<i64>())
+                        let pkg_count: usize = map.values()
+                            .map(Vec::len)
+                            .sum();
+
+                        let (install_count, install_size) = map.iter()
+                            .filter(|&(&key, _)| !key.is_empty())
+                            .map(|(_, value)| {
+                                (value.len(), value.iter().map(|(_, _, size)| *size).sum::<i64>())
+                            })
+                            .reduce(|(acc_n, acc_size), (n, size)| (acc_n + n, acc_size + size))
+                            .unwrap_or_default();
+
+                        let explicit_count: usize = map.iter()
+                            .filter(|&(&key, _)| key == "explicit")
+                            .map(|(_, value)| value.len())
+                            .sum();
+
+                        // Update total counts
+                        pkg_count_total += pkg_count;
+                        install_count_total += install_count;
+                        install_size_total += install_size;
+                        explicit_count_total += explicit_count;
+
+                        // Add repo item to stats view
+                        StatsObject::new(
+                            Some("repository-symbolic"),
+                            &(if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
+                            &pkg_count.to_string(),
+                            &install_count.to_string(),
+                            &explicit_count.to_string(),
+                            &Size::from_bytes(install_size).to_string()
+                        )
                     })
-                    .reduce(|(acc_n, acc_size), (n, size)| (acc_n + n, acc_size + size))
-                    .unwrap_or_default();
+                    .collect();
 
-                let explicit_count: usize = map.iter()
-                    .filter(|&(&key, _)| key == "explicit")
-                    .map(|(_, value)| value.len())
-                    .sum();
+                // Add item with totals to stats view
+                stats_items.push(StatsObject::new(
+                    None,
+                    "<b>Total</b>",
+                    &format!("<b>{pkg_count_total}</b>"),
+                    &format!("<b>{install_count_total}</b>"),
+                    &format!("<b>{explicit_count_total}</b>"),
+                    &format!("<b>{}</b>", Size::from_bytes(install_size_total))
+                ));
 
-                // Update total counts
-                pkg_count_total += pkg_count;
-                install_count_total += install_count;
-                install_size_total += install_size;
-                explicit_count_total += explicit_count;
-
-                // Add repo item to stats view
-                StatsObject::new(
-                    Some("repository-symbolic"),
-                    &(if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
-                    &pkg_count.to_string(),
-                    &install_count.to_string(),
-                    &explicit_count.to_string(),
-                    &Size::from_bytes(install_size).to_string()
-                )
-            })
-            .collect();
-
-        // Add item with totals to stats view
-        stats_items.push(StatsObject::new(
-            None,
-            "<b>Total</b>",
-            &format!("<b>{pkg_count_total}</b>"),
-            &format!("<b>{install_count_total}</b>"),
-            &format!("<b>{explicit_count_total}</b>"),
-            &format!("<b>{}</b>", Size::from_bytes(install_size_total))
+                imp.model.splice(0, imp.model.n_items(), &stats_items);
+            }
         ));
-
-        imp.model.splice(0, imp.model.n_items(), &stats_items);
     }
 }
 

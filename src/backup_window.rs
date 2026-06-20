@@ -434,23 +434,29 @@ impl BackupWindow {
         let imp = self.imp();
 
         // Get backup list
-        let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
-            .flatten()
-            .filter(PkgObject::is_installed)
-            .flat_map(|pkg| {
-                let pkg_name = pkg.name();
+        glib::spawn_future_local(clone!(
+            #[weak] imp,
+            #[weak] pkg_model,
+            async move {
+                let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
+                    .flatten()
+                    .filter(PkgObject::is_installed)
+                    .flat_map(|pkg| {
+                        let pkg_name = pkg.name();
 
-                pkg.backup().iter()
-                    .map(|backup| BackupObject::new(backup, &pkg_name))
-                    .collect::<Vec<BackupObject>>()
-            })
-            .collect();
+                        pkg.backup().iter()
+                            .map(|backup| BackupObject::new(backup, &pkg_name))
+                            .collect::<Vec<BackupObject>>()
+                    })
+                    .collect();
 
-        // Populate column view
-        imp.model.splice(0, imp.model.n_items(), &backup_list);
+                // Populate column view
+                imp.model.splice(0, imp.model.n_items(), &backup_list);
 
-        // Set status dropdown selected item
-        imp.status_dropdown.set_selected(0);
+                // Set status dropdown selected item
+                imp.status_dropdown.set_selected(0);
+            }
+        ));
     }
 }
 
