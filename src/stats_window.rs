@@ -147,10 +147,10 @@ impl StatsWindow {
             #[weak] imp,
             #[weak] pkg_model,
             async move {
-                let mut pkg_count_total = 0;
-                let mut install_count_total = 0;
-                let mut install_size_total = 0;
-                let mut explicit_count_total = 0;
+                let mut pkgs_total = 0;
+                let mut inst_total = 0;
+                let mut size_total = 0;
+                let mut expl_total = 0;
 
                 let pkg_list: Vec<(String, String, i64)> = pkg_model.iter::<PkgObject>()
                     .flatten()
@@ -164,37 +164,44 @@ impl StatsWindow {
                             .filter(|(repository, _, _)| repository == repo)
                             .into_group_map_by(|(_, status, _)| status);
 
-                        let pkg_count: usize = map.values()
+                        let pkgs: usize = map.values()
                             .map(Vec::len)
                             .sum();
 
-                        let (install_count, install_size) = map.iter()
+                        let (inst, size): (usize, i64) = map.iter()
                             .filter(|&(&key, _)| !key.is_empty())
                             .map(|(_, value)| {
-                                (value.len(), value.iter().map(|(_, _, size)| *size).sum::<i64>())
+                                let inst = value.len();
+                                let size = value.iter()
+                                    .map(|(_, _, size)| *size)
+                                    .sum();
+
+                                (inst, size)
                             })
-                            .reduce(|(acc_n, acc_size), (n, size)| (acc_n + n, acc_size + size))
+                            .reduce(|(acc_inst, acc_size), (inst, size)| {
+                                (acc_inst + inst, acc_size + size)
+                            })
                             .unwrap_or_default();
 
-                        let explicit_count: usize = map.iter()
+                        let expl: usize = map.iter()
                             .filter(|&(&key, _)| key == "explicit")
                             .map(|(_, value)| value.len())
                             .sum();
 
                         // Update total counts
-                        pkg_count_total += pkg_count;
-                        install_count_total += install_count;
-                        install_size_total += install_size;
-                        explicit_count_total += explicit_count;
+                        pkgs_total += pkgs;
+                        inst_total += inst;
+                        size_total += size;
+                        expl_total += expl;
 
                         // Add repo item to stats view
                         StatsObject::new(
                             Some("repository-symbolic"),
                             &(if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() }),
-                            &pkg_count.to_string(),
-                            &install_count.to_string(),
-                            &explicit_count.to_string(),
-                            &Size::from_bytes(install_size).to_string()
+                            &pkgs.to_string(),
+                            &inst.to_string(),
+                            &expl.to_string(),
+                            &Size::from_bytes(size).to_string()
                         )
                     })
                     .collect();
@@ -203,10 +210,10 @@ impl StatsWindow {
                 stats_items.push(StatsObject::new(
                     None,
                     "<b>Total</b>",
-                    &format!("<b>{pkg_count_total}</b>"),
-                    &format!("<b>{install_count_total}</b>"),
-                    &format!("<b>{explicit_count_total}</b>"),
-                    &format!("<b>{}</b>", Size::from_bytes(install_size_total))
+                    &format!("<b>{pkgs_total}</b>"),
+                    &format!("<b>{inst_total}</b>"),
+                    &format!("<b>{expl_total}</b>"),
+                    &format!("<b>{}</b>", Size::from_bytes(size_total))
                 ));
 
                 imp.model.splice(0, imp.model.n_items(), &stats_items);
