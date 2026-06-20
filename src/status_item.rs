@@ -82,6 +82,7 @@ impl StatusItem {
             .property("icon-name", icon)
             .property("title", title)
             .property("id", id)
+            .property("drag-motion-activate", false)
             .property("suffix", &indicator)
             .build();
 

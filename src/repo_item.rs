@@ -55,6 +55,7 @@ impl RepoItem {
             .property("icon-name", icon)
             .property("title", title)
             .property("id", id)
+            .property("drag-motion-activate", false)
             .build()
     }
 
