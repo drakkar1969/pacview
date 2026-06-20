@@ -82,11 +82,11 @@ mod imp {
             klass.install_action("info.log-copy", None, |tab, _, _| {
                 let mut output = String::new();
 
-                let _ = writeln!(output, "## {}\n|Log Messages|\n|---|", tab.pkg_name());
+                writeln!(output, "## {}\n|Log Messages|\n|---|", tab.pkg_name()).unwrap();
 
                 for obj in tab.imp().model.iter::<gtk::StringObject>()
                     .flatten() {
-                        let _ = writeln!(output, "{}", obj.string());
+                        writeln!(output, "{}", obj.string()).unwrap();
                     }
 
                 tab.clipboard().set_text(&output);

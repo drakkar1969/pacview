@@ -101,12 +101,13 @@ mod imp {
                 if let Some(pkg) = tab.pkg() {
                     let mut output = String::from("## Package Information\n");
 
-                    let _ = writeln!(output, "- **Name** : {}", pkg.name());
-                    let _ = writeln!(output, "- **Version** : {}", pkg.version());
-                    let _ = writeln!(output, "- **Description** : {}", pkg.description());
-                    let _ = writeln!(output, "- **Repository** : {}", pkg.repository());
-                    let _ = writeln!(output, "- **Installed Size** : {}", pkg.install_size_string());
-                    let _ = writeln!(output, "- **Status** : {}", pkg.status());
+                    writeln!(output, "- **Name** : {}", pkg.name()).unwrap();
+                    writeln!(output, "- **Version** : {}", pkg.version()).unwrap();
+                    writeln!(output, "- **Description** : {}", pkg.description()).unwrap();
+                    writeln!(output, "- **Repository** : {}", pkg.repository()).unwrap();
+                    writeln!(output, "- **Installed Size** : {}", pkg.install_size_string())
+                        .unwrap();
+                    writeln!(output, "- **Status** : {}", pkg.status()).unwrap();
 
                     let mut child = tab.imp().listbox.first_child();
 
@@ -116,7 +117,7 @@ mod imp {
                             let value = row.value().replace(LINK_SPACER, " ");
 
                             if !(label.is_empty() || value.is_empty()) {
-                                let _ = writeln!(output, "- **{label}** : {value}");
+                                writeln!(output, "- **{label}** : {value}").unwrap();
                             }
                         }
 

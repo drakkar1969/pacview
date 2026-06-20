@@ -89,14 +89,15 @@ mod imp {
                 for stat in window.imp().selection.iter::<glib::Object>()
                     .flatten()
                     .filter_map(|item| item.downcast::<StatsObject>().ok()) {
-                        let _ = writeln!(output,
+                        writeln!(output,
                             "|{repository}|{packages}|{installed}|{explicit}|{size}|",
                             repository=stat.repository(),
                             packages=stat.packages(),
                             installed=stat.installed(),
                             explicit=stat.explicit(),
                             size=stat.size()
-                        );
+                        )
+                        .unwrap();
                     }
 
                 window.clipboard().set_text(&output);

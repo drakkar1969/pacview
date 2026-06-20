@@ -121,12 +121,13 @@ mod imp {
                 for log in window.imp().selection.iter::<glib::Object>()
                     .flatten()
                     .filter_map(|item| item.downcast::<LogObject>().ok()) {
-                        let _ = writeln!(output, "|{date}|{time}|{category}|{message}|",
+                        writeln!(output, "|{date}|{time}|{category}|{message}|",
                             date=log.date(),
                             time=log.time(),
                             category=log.category(),
                             message=log.message()
-                        );
+                        )
+                        .unwrap();
                     }
 
                 window.clipboard().set_text(&output);

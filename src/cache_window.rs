@@ -115,7 +115,7 @@ mod imp {
                 for cache in window.imp().selection.iter::<glib::Object>()
                     .flatten()
                     .filter_map(|item| item.downcast::<CacheObject>().ok()) {
-                        let _ = writeln!(output, "|{}|", cache.path());
+                        writeln!(output, "|{}|", cache.path()).unwrap();
                     }
 
                 window.clipboard().set_text(&output);
