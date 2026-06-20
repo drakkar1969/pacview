@@ -942,7 +942,7 @@ impl PacViewWindow {
 
         let alpm_task = TokioUtils::run("/usr/bin/checkupdates", &[""], Some(alpm_token));
 
-        let (alpm_result, aur_result) = if let Ok(paru_path) = Paths::paru().as_ref() {
+        let (alpm_result, aur_result) = if let Ok(paru_path) = Paths::paru() {
             // Check for AUR updates
             let aur_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], Some(aur_token));
 

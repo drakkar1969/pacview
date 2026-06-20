@@ -925,7 +925,7 @@ impl TextWidget {
 
                 // Launch link if any
                 let link = imp.pressed_link_index.take()
-                    .filter(|index| widget.link_index_at_xy(x, y).as_ref() == Some(index))
+                    .filter(|&index| widget.link_index_at_xy(x, y) == Some(index))
                     .and_then(|index| {
                         let link_list = imp.link_list.borrow();
 
