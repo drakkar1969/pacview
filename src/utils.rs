@@ -392,16 +392,17 @@ impl AurDBFile {
     //---------------------------------------
     pub fn out_of_date(max_age: u64) -> bool {
         // Get AUR package names file age
-        let file_time = Self::path().as_ref()
-            .and_then(|aur_file| fs::metadata(aur_file).ok())
-            .and_then(|metadata| metadata.modified().ok())
-            .and_then(|file_time| {
+        let file_age = Self::path()
+            .and_then(|aur_file| {
+                let metadata = fs::metadata(aur_file).ok()?;
+                let file_time = metadata.modified().ok()?;
+
                 let now = std::time::SystemTime::now();
 
                 now.duration_since(file_time).ok()
             });
 
-        file_time.is_none_or(|time| time >= Duration::from_hours(max_age))
+        file_age.is_none_or(|age| age >= Duration::from_hours(max_age))
     }
 
     //---------------------------------------
