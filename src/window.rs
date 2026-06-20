@@ -78,6 +78,8 @@ mod imp {
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
 
+        pub(super) repo_names: RefCell<Vec<String>>,
+
         pub(super) saved_repo_id: RefCell<Option<String>>,
 
         pub(super) all_repo_item: RefCell<RepoItem>,
@@ -214,27 +216,27 @@ mod imp {
             klass.install_action("win.show-backup-files", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.backup_window.borrow().present();
+                imp.backup_window.borrow().show(&imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
-                window.imp().cache_window.borrow().present();
+                window.imp().cache_window.borrow().show();
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.groups_window.borrow().present();
+                imp.groups_window.borrow().show(&imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
-                window.imp().log_window.borrow().present();
+                window.imp().log_window.borrow().show();
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_window.borrow().present();
+                imp.stats_window.borrow().show(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
@@ -679,6 +681,16 @@ impl PacViewWindow {
         // Populate sidebar
         self.alpm_populate_sidebar(&repo_names, first_load);
 
+        // Store repo names
+        imp.repo_names.replace(repo_names);
+
+        // Reset windows
+        imp.backup_window.borrow().set_is_loaded(false);
+        imp.cache_window.borrow().set_is_loaded(false);
+        imp.groups_window.borrow().set_is_loaded(false);
+        imp.log_window.borrow().set_is_loaded(false);
+        imp.stats_window.borrow().set_is_loaded(false);
+
         // If AUR database download is enabled and AUR file does not exist, download it
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
 
@@ -691,11 +703,11 @@ impl PacViewWindow {
                 async move {
                     let _ = AurDBFile::download().await;
 
-                    window.alpm_load_packages(repo_names, aur_download);
+                    window.alpm_load_packages(aur_download);
                 }
             ));
         } else {
-            self.alpm_load_packages(repo_names, aur_download);
+            self.alpm_load_packages(aur_download);
         }
     }
 
@@ -765,7 +777,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, repo_names: Vec<String>, aur_download: bool) {
+    fn alpm_load_packages(&self, aur_download: bool) {
         // Create task to load package data
         let (sender, receiver) = async_channel::bounded(1);
 
@@ -870,20 +882,6 @@ impl PacViewWindow {
 
                 match result {
                     Ok(()) => {
-                        // Populate windows
-                        glib::idle_add_local_once(clone!(
-                            #[weak] imp,
-                            move || {
-                                let pkg_model = imp.package_view.pkg_model();
-
-                                imp.backup_window.borrow().populate(&pkg_model);
-                                imp.cache_window.borrow().populate();
-                                imp.groups_window.borrow().populate(&pkg_model);
-                                imp.log_window.borrow().populate();
-                                imp.stats_window.borrow().populate(&repo_names, &pkg_model);
-                            }
-                        ));
-
                         // Get package updates
                         window.get_package_updates().await;
 

@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
@@ -24,7 +25,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::StatsWindow)]
     #[template(resource = "/com/github/PacView/ui/stats_window.ui")]
     pub struct StatsWindow {
         #[template_child]
@@ -33,6 +35,9 @@ mod imp {
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::NoSelection>,
+
+        #[property(get, set)]
+        is_loaded: Cell<bool>,
     }
 
     //---------------------------------------
@@ -61,6 +66,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for StatsWindow {
         //---------------------------------------
         // Constructor
@@ -138,7 +144,7 @@ impl StatsWindow {
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub fn populate(&self, repos: &[String], pkg_model: &gio::ListStore) {
+    fn populate(&self, repos: &[String], pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         let repos = repos.to_owned();
@@ -219,6 +225,19 @@ impl StatsWindow {
                 imp.model.splice(0, imp.model.n_items(), &stats_items);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Show window
+    //---------------------------------------
+    pub fn show(&self, repos: &[String], pkg_model: &gio::ListStore) {
+        if !self.is_loaded() {
+            self.populate(repos, pkg_model);
+
+            self.set_is_loaded(true);
+        }
+
+        self.present();
     }
 }
 

@@ -58,6 +58,8 @@ mod imp {
         pub(super) size_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
+        is_loaded: Cell<bool>,
+        #[property(get, set)]
         packages_only: Cell<bool>,
     }
 
@@ -245,7 +247,7 @@ impl LogWindow {
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub fn populate(&self) {
+    fn populate(&self) {
         let imp = self.imp();
 
         // Clear view
@@ -305,6 +307,19 @@ impl LogWindow {
                 imp.size_label.set_label(&format!("Log file size: {}", Size::from_bytes(size)));
             }
         ));
+    }
+
+    //---------------------------------------
+    // Show window
+    //---------------------------------------
+    pub fn show(&self) {
+        if !self.is_loaded() {
+            self.populate();
+
+            self.set_is_loaded(true);
+        }
+
+        self.present();
     }
 }
 

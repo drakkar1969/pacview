@@ -75,6 +75,8 @@ mod imp {
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
 
+        #[property(get, set)]
+        is_loaded: Cell<bool>,
         #[property(get, set, builder(BackupSearchMode::default()))]
         search_mode: Cell<BackupSearchMode>,
         #[property(get, set)]
@@ -430,7 +432,7 @@ impl BackupWindow {
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub fn populate(&self, pkg_model: &gio::ListStore) {
+    fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
 
         // Get backup list
@@ -457,6 +459,19 @@ impl BackupWindow {
                 imp.status_dropdown.set_selected(0);
             }
         ));
+    }
+
+    //---------------------------------------
+    // Show window
+    //---------------------------------------
+    pub fn show(&self, pkg_model: &gio::ListStore) {
+        if !self.is_loaded() {
+            self.populate(pkg_model);
+
+            self.set_is_loaded(true);
+        }
+
+        self.present();
     }
 }
 

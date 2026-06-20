@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::fmt::Write as _;
 use std::os::unix::fs::MetadataExt;
 
@@ -24,7 +25,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::CacheWindow)]
     #[template(resource = "/com/github/PacView/ui/cache_window.ui")]
     pub struct CacheWindow {
         #[template_child]
@@ -49,6 +51,9 @@ mod imp {
         pub(super) footer_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) size_label: TemplateChild<gtk::Label>,
+
+        #[property(get, set)]
+        is_loaded: Cell<bool>,
     }
 
     //---------------------------------------
@@ -77,6 +82,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for CacheWindow {
         //---------------------------------------
         // Constructor
@@ -219,7 +225,7 @@ impl CacheWindow {
     //---------------------------------------
     // Populate window
     //---------------------------------------
-    pub fn populate(&self) {
+    fn populate(&self) {
         let imp = self.imp();
 
         glib::spawn_future_local(clone!(
@@ -249,6 +255,19 @@ impl CacheWindow {
                 );
             }
         ));
+    }
+
+    //---------------------------------------
+    // Show window
+    //---------------------------------------
+    pub fn show(&self) {
+        if !self.is_loaded() {
+            self.populate();
+
+            self.set_is_loaded(true);
+        }
+
+        self.present();
     }
 }
 
