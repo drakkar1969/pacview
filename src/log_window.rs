@@ -283,7 +283,7 @@ impl LogWindow {
             }
         });
 
-        // Attach package load task receiver
+        // Attach log task receiver
         glib::spawn_future_local(clone!(
             #[weak(rename_to = window)] self,
             async move {
