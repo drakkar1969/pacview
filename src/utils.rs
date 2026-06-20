@@ -1,4 +1,5 @@
 use std::sync::{LazyLock, RwLock};
+use std::rc::Rc;
 use std::path::{PathBuf, Path};
 use std::ffi::{OsStr, OsString};
 use std::fs;
@@ -158,16 +159,17 @@ impl ParuConf {
     //---------------------------------------
     // Local pkg map functions
     //---------------------------------------
-    pub fn local_pkg_map() -> HashMap<String, String> {
+    pub fn local_pkg_map() -> HashMap<String, Rc<String>> {
         Self::repo_names().into_iter()
-            .flat_map(|name| {
-                let path = glib::user_cache_dir().join(format!("paru/clone/repo/{name}"));
+            .flat_map(|repo| {
+                let path = glib::user_cache_dir().join(format!("paru/clone/repo/{repo}"));
+                let repo_rc = Rc::new(repo);
 
                 WalkDir::new(path)
                     .into_iter()
                     .flatten()
                     .map(move |entry| {
-                        (entry.file_name().to_string_lossy().into_owned(), name.clone())
+                        (entry.file_name().to_string_lossy().into_owned(), Rc::clone(&repo_rc))
                     })
 
             })
