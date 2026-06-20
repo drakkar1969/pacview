@@ -47,7 +47,7 @@
             <property name="title">Package List</property>
             <child>
               <object class="AdwSwitchRow" id="auto_refresh_row">
-                <property name="title">Auto _Refresh</property>
+                <property name="title">_Auto Refresh</property>
                 <property name="subtitle">Refresh window when local pacman database changes</property>
                 <property name="use-underline">true</property>
               </object>
@@ -143,7 +143,7 @@
             </child>
             <child>
               <object class="AdwSwitchRow" id="search_exact_row">
-                <property name="title">Exact Match by Default</property>
+                <property name="title">_Exact Match by Default</property>
                 <property name="subtitle">Default to matching whole word only</property>
                 <property name="use-underline">true</property>
               </object>
