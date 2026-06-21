@@ -1,4 +1,4 @@
-use std::cell::{Cell, RefCell, OnceCell};
+use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::fmt::Write as _;
 
@@ -44,7 +44,9 @@ mod imp {
         #[property(get = Self::buffer)]
         buffer: PhantomData<sourceview5::Buffer>,
         #[property(get, set, construct_only)]
-        pkg: OnceCell<PkgObject>,
+        pkg_name: RefCell<String>,
+        #[property(get, set, nullable, construct_only)]
+        pkgbuild_url: RefCell<Option<String>>,
         #[property(get, set)]
         loading: Cell<bool>,
 
@@ -123,9 +125,9 @@ mod imp {
 
             // Url action
             klass.install_action_async("source.url", None, async |window, _, _| {
-                if let Some(source_url) = window.pkg().pkgbuild_url() {
+                if let Some(url) = window.pkgbuild_url() {
                     let _ = gio::AppInfo::launch_default_for_uri_future(
-                        &source_url,
+                        &url,
                         None::<&gio::AppLaunchContext>
                     )
                     .await;
@@ -184,10 +186,13 @@ impl SourceWindow {
     // New function
     //---------------------------------------
     pub fn new(parent: &impl IsA<gtk::Window>, pkg: &PkgObject) -> Self {
+        let pkg_name = pkg.name();
+
         glib::Object::builder()
             .property("transient-for", parent)
-            .property("title", format!("{}  \u{2022}  PKGBUILD", &pkg.name()))
-            .property("pkg", pkg)
+            .property("title", format!("{}  \u{2022}  PKGBUILD", &pkg_name))
+            .property("pkg-name", pkg_name)
+            .property("pkgbuild-url", pkg.pkgbuild_url())
             .build()
     }
 
@@ -292,12 +297,6 @@ impl SourceWindow {
         imp.stack.set_visible_child_name("loading");
         self.action_set_enabled("source.save", false);
 
-        let pkg = self.pkg();
-        let url = pkg.pkgbuild_url();
-
-        // Set URL button tooltip
-        self.action_set_enabled("source.url", url.is_some());
-
         // Set loading property
         self.set_loading(true);
 
@@ -310,7 +309,8 @@ impl SourceWindow {
 
         // Download PKGBUILD with paru
         let result = if let Ok(paru_path) = Paths::paru() {
-            TokioUtils::run(paru_path, &["-Gp", &pkg.name()], Some(cancel_token_clone)).await
+            TokioUtils::run(paru_path, &["-Gp", &self.pkg_name()], Some(cancel_token_clone))
+                .await
         } else {
             Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
         };
@@ -387,6 +387,9 @@ impl SourceWindow {
     // Setup widgets
     //---------------------------------------
     fn setup_widgets(&self) {
+        // Set source url action state
+        self.action_set_enabled("source.url", self.pkgbuild_url().is_some());
+
         // Set syntax highlighting language
         let buffer = self.buffer();
 
