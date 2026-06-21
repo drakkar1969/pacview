@@ -328,8 +328,8 @@ impl PackageView {
                 imp.view.set_header_factory(Some(&imp.header_factory.get()));
                 imp.sort_model.set_section_sorter(Some(&imp.section_sorter.get()));
             } else {
-                imp.view.set_header_factory(None::<&gtk::BuilderListItemFactory>);
-                imp.sort_model.set_section_sorter(None::<&gtk::StringSorter>);
+                imp.view.set_header_factory(None::<&gtk::ListItemFactory>);
+                imp.sort_model.set_section_sorter(None::<&gtk::Sorter>);
             }
         });
 
