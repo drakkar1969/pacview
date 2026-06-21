@@ -290,11 +290,7 @@ impl PackageView {
                 let pkg = view.imp().selection.item(index)
                     .and_downcast::<PkgObject>();
 
-                let info_pane = view.info_pane();
-
-                if pkg != info_pane.pkg() {
-                    info_pane.set_pkg(pkg);
-                }
+                view.info_pane().set_pkg(pkg);
             }
         ));
 
