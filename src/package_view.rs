@@ -228,32 +228,32 @@ impl PackageView {
 
         // Factory setup signal
         imp.factory.connect_setup(|_, obj| {
-            let item = obj
+            let list_item = obj
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Failed to downcast to 'GtkLIstItem'");
 
             let package_item = PackageItem::default();
 
-            package_item.setup(item);
+            package_item.setup(list_item);
 
-            item.set_child(Some(&package_item));
+            list_item.set_child(Some(&package_item));
         });
 
         // Factory bind signal
         imp.factory.connect_bind(|_, obj| {
-            let item = obj
+            let list_item = obj
                 .downcast_ref::<gtk::ListItem>()
                 .expect("Failed to downcast to 'GtkListItem'");
 
-            let child = item.child()
+            let package_item = list_item.child()
                 .and_downcast::<PackageItem>()
                 .expect("Failed to downcast to 'PackageItem'");
 
-            let pkg = item.item()
+            let pkg = list_item.item()
                 .and_downcast::<PkgObject>()
                 .expect("Failed to downcast to 'PkgObject'");
 
-            child.bind(&pkg);
+            package_item.bind(&pkg);
         });
 
         // List view selection items changed signal
