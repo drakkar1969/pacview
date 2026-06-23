@@ -261,13 +261,18 @@ impl CacheWindow {
     // Show window
     //---------------------------------------
     pub fn show(&self) {
-        if !self.is_loaded() {
-            self.populate();
-
-            self.set_is_loaded(true);
-        }
-
         self.present();
+
+        glib::idle_add_local_once(clone!(
+            #[weak(rename_to = window)] self,
+            move || {
+                if !window.is_loaded() {
+                    window.populate();
+
+                    window.set_is_loaded(true);
+                }
+            }
+        ));
     }
 }
 

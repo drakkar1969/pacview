@@ -368,13 +368,19 @@ impl GroupsWindow {
     // Show window
     //---------------------------------------
     pub fn show(&self, pkg_model: &gio::ListStore) {
-        if !self.is_loaded() {
-            self.populate(pkg_model);
-
-            self.set_is_loaded(true);
-        }
-
         self.present();
+
+        glib::idle_add_local_once(clone!(
+            #[weak(rename_to = window)] self,
+            #[weak] pkg_model,
+            move || {
+                if !window.is_loaded() {
+                    window.populate(&pkg_model);
+
+                    window.set_is_loaded(true);
+                }
+            }
+        ));
     }
 }
 
