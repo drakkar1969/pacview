@@ -168,7 +168,7 @@ impl PkgObject {
     }
 
     pub fn is_installed(&self) -> bool {
-        self.data().flags.intersects(PkgFlags::INSTALLED)
+        self.data().is_installed
     }
 
     pub fn base(&self) -> &str {

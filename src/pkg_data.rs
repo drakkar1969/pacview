@@ -75,6 +75,7 @@ impl Default for PkgValidation {
 #[derive(Default, Debug)]
 pub struct PkgData {
     pub flags: PkgFlags,
+    pub is_installed: bool,
     pub base: String,
     pub name: String,
     pub version: String,
@@ -134,6 +135,7 @@ impl PkgData {
 
         Self {
             flags,
+            is_installed: is_local,
             base: pkg.base().map(String::from).unwrap_or_default(),
             name: pkg.name().to_owned(),
             version: pkg.version().to_string(),
@@ -174,6 +176,7 @@ impl PkgData {
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,
+            is_installed: false,
             base: pkg.package_base.clone(),
             name: pkg.name.clone(),
             version: pkg.version.clone(),
