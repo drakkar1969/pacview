@@ -259,6 +259,7 @@ impl GroupsWindow {
                 imp.footer_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections == 1 { "" } else { "s" }));
 
                 window.action_set_enabled("groups.copy", n_items > 0);
+                window.action_set_enabled("groups.installed-only", n_items > 0);
             }
         ));
     }

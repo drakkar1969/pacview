@@ -203,6 +203,7 @@ impl LogWindow {
                 imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
                 window.action_set_enabled("log.copy", n_items > 0);
+                window.action_set_enabled("log.packages-only", n_items > 0);
             }
         ));
     }
