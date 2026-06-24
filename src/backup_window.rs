@@ -315,8 +315,7 @@ impl BackupWindow {
 
                 let status = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BAckupObject'")
-                    .status();
+                    .map_or(BackupStatus::Locked, |backup| backup.status());
 
                 window.action_set_enabled("backup.compare", window.can_compare() && status == BackupStatus::Modified);
                 window.action_set_enabled("backup.open", status != BackupStatus::Locked);
@@ -330,8 +329,7 @@ impl BackupWindow {
             move |selection| {
                 let status = selection.selected_item()
                     .and_downcast::<BackupObject>()
-                    .expect("Failed to downcast to 'BAckupObject'")
-                    .status();
+                    .map_or(BackupStatus::Locked, |backup| backup.status());
 
                 window.action_set_enabled("backup.compare", window.can_compare() && status == BackupStatus::Modified);
                 window.action_set_enabled("backup.open", status != BackupStatus::Locked);
