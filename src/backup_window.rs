@@ -250,6 +250,19 @@ impl BackupWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Is loaded property notify signal
+        self.connect_is_loaded_notify(|window| {
+            let imp = window.imp();
+
+            imp.stack.set_visible_child_name(
+                if window.is_loaded() {
+                    if imp.section_sort_model.n_items() == 0 { "empty" } else { "view" }
+                } else {
+                    "loading"
+                }
+            );
+        });
+
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
@@ -308,7 +321,11 @@ impl BackupWindow {
                 }
 
                 imp.stack.set_visible_child_name(
-                    if n_items == 0 { "empty" } else { "view" }
+                    if window.is_loaded() {
+                        if n_items == 0 { "empty" } else { "view" }
+                    } else {
+                        "loading"
+                    }
                 );
 
                 imp.footer_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
