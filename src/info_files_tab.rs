@@ -179,6 +179,7 @@ impl InfoFilesTab {
 
                 imp.count_label.set_label(&n_items.to_string());
 
+                tab.action_set_enabled("info.files-show-folders", n_items > 0);
                 tab.action_set_enabled("info.files-open", n_items > 0);
                 tab.action_set_enabled("info.files-copy", n_items > 0);
             }
