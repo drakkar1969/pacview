@@ -422,16 +422,16 @@ impl BackupWindow {
             #[weak] imp,
             #[upgrade_or] false,
             move |item| {
-                let obj = item
-                    .downcast_ref::<BackupObject>()
-                    .expect("Failed to downcast to 'BackupObject'");
-
                 let status = BackupStatus::from_repr(imp.status_dropdown.selected())
                     .unwrap_or_default();
 
                 if status == BackupStatus::All {
                     true
                 } else {
+                    let obj = item
+                        .downcast_ref::<BackupObject>()
+                        .expect("Failed to downcast to 'BackupObject'");
+
                     obj.status() == status
                 }
             }
