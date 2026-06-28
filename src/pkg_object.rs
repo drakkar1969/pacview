@@ -376,7 +376,7 @@ impl PkgObject {
     fn alpm_pkg<'a>(&self, handle: &'a Alpm) -> Option<&'a Package> {
         let data = self.data();
 
-        if data.flags.intersects(PkgFlags::INSTALLED) {
+        if data.is_installed {
             handle.localdb().pkg(data.name.as_str()).ok()
         } else {
             handle.syncdbs().pkg(data.name.as_str()).ok()
