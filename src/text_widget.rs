@@ -179,56 +179,47 @@ mod imp {
         //---------------------------------------
         // Measure function
         //---------------------------------------
-        fn measure(&self, orientation: gtk::Orientation, for_size: i32) -> (i32, i32, i32, i32) {
+        fn measure(&self, orientation: gtk::Orientation, for_size: i32) -> (i32, i32, i32, i32)
+        {
             let layout = self.layout.get().unwrap();
-
-            let measure_layout = layout.copy();
+            let original_width = layout.width();
 
             if orientation == gtk::Orientation::Horizontal {
-                measure_layout.set_width(pango::SCALE);
+                layout.set_width(pango::SCALE);
 
-                let width = measure_layout.pixel_size().0;
+                let width = layout.pixel_size().0;
+
+                layout.set_width(original_width);
 
                 (width, width, -1, -1)
             } else {
                 if for_size == -1 {
                     // Calculate minimum height
-                    measure_layout.set_width(-1);
+                    layout.set_width(-1);
                 } else {
                     // Calculate natural height
-                    measure_layout.set_width(for_size * pango::SCALE);
+                    layout.set_width(for_size * pango::SCALE);
                 }
 
-                let obj = self.obj();
-
-                let max_lines = obj.max_lines();
-                let total_lines = measure_layout.line_count();
-                let layout_text_len = layout.text().len();
+                let max_lines = self.max_lines.get();
+                let total_lines = layout.line_count();
 
                 // Set widget can expand property
-                obj.set_can_expand(max_lines < total_lines);
+                self.obj().set_can_expand(max_lines < total_lines);
 
                 // Calculate pango layout height
-                let layout_height = if obj.expanded() {
-                    // Set layout max index
-                    self.layout_max_index.set(layout_text_len);
-
-                    // Get layout height
-                    measure_layout.pixel_size().1
+                let layout_height = if self.expanded.get() {
+                    layout.pixel_size().1
                 } else {
-                    // Set layout max index
-                    let max_index = measure_layout.line_readonly(0.max(max_lines - 1))
-                        .map_or(layout_text_len, |line| (line.start_index() + line.length()) as usize);
-
-                    self.layout_max_index.set(max_index);
-
-                    // Get layout height
-                    let mut rect = measure_layout.line_readonly(0)
-                        .map_or_else(|| pango::Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
+                    let mut rect = layout.line_readonly(0)
+                        .map_or_else(|| pango::Rectangle::new(0, 0, 0, 0), |line| {
+                            line.extents().1
+                        });
 
                     let n_lines = total_lines.min(max_lines);
 
-                    let line_spacing = (rect.height() as f32 * measure_layout.line_spacing()).round() as i32;
+                    let line_spacing = (rect.height() as f32 * layout.line_spacing())
+                        .round() as i32;
 
                     rect.set_height(0.max(n_lines - 1) * line_spacing + rect.height());
 
@@ -237,8 +228,12 @@ mod imp {
                     rect.height()
                 };
 
+                layout.set_width(original_width);
+
                 // Note: add 2 to ensure double underline visible on last line
-                (layout_height + 2, layout_height + 2, -1, -1)
+                let final_height = layout_height + 2;
+
+                (final_height, final_height, -1, -1)
             }
         }
 
@@ -247,7 +242,23 @@ mod imp {
         //---------------------------------------
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
             let layout = self.layout.get().unwrap();
+            let layout_text_len = layout.text().len();
 
+            // Set layout max index
+            if self.expanded.get() {
+                self.layout_max_index.set(layout_text_len);
+            } else {
+                let max_lines = self.max_lines.get();
+
+                let max_index = layout.line_readonly(0.max(max_lines - 1))
+                    .map_or(layout_text_len, |line| {
+                        (line.start_index() + line.length()) as usize
+                    });
+
+                self.layout_max_index.set(max_index);
+            }
+
+            // Set layout width
             layout.set_width(width * pango::SCALE);
 
             self.draw_area.allocate(width, height, baseline, None);
