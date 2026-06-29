@@ -15,8 +15,7 @@ use url::Url;
 
 use crate::{
     APP_ID,
-    info_row::PropType,
-    utils::Color
+    info_row::PropType
 };
 
 //------------------------------------------------------------------------------
@@ -377,16 +376,48 @@ glib::wrapper! {
 
 impl TextWidget {
     //---------------------------------------
-    // Update colors helper function
+    // Color helper functions
     //---------------------------------------
+    fn color_from_style(style: &str) -> gdk::RGBA {
+        // Return RGBA colors (f32, range: 0.0 to 1.0)
+        gtk::Label::builder()
+            .css_name("texttag")
+            .css_classes([style])
+            .build()
+            .color()
+    }
+
+    fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
+        let fc = |color: f32| -> u16 {
+            (color * f32::from(u16::MAX)).round() as u16
+        };
+
+        let color = Self::color_from_style(style);
+
+        // Return u16 colors (range 0-255)
+        (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
+    }
+
+    fn cairo_color_from_style(style: &str) -> (f64, f64, f64, f64) {
+        let color = Self::color_from_style(style);
+
+        // Return f64 colors (range 0.0-1.0)
+        (
+            f64::from(color.red()),
+            f64::from(color.green()),
+            f64::from(color.blue()),
+            f64::from(color.alpha())
+        )
+    }
+
     fn update_colors(&self) {
         let imp = self.imp();
 
         // Update pango colors
-        imp.link_fg_color.set(Color::pango_color_from_style("link"));
-        imp.comment_fg_color.set(Color::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(Color::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(Color::pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(Self::pango_color_from_style("link"));
+        imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
+        imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
+        imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
 
         // Update cairo colors
         let color = self.color();
@@ -397,7 +428,7 @@ impl TextWidget {
             f64::from(color.blue()),
             f64::from(color.alpha())
         ));
-        imp.cairo_error_color.set(Color::cairo_color_from_style("error"));
+        imp.cairo_error_color.set(Self::cairo_color_from_style("error"));
     }
 
     //---------------------------------------

@@ -9,9 +9,9 @@ use std::time::Duration;
 use std::env;
 use std::collections::HashMap;
 
-use gtk::{gio, glib, gdk};
+use gtk::{gio, glib};
 use gio::{AppInfo, AppLaunchContext};
-use gtk::prelude::{AppInfoExtManual, WidgetExt};
+use gtk::prelude::AppInfoExtManual;
 use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use walkdir::WalkDir;
@@ -440,54 +440,6 @@ impl AurDBFile {
         )
         .await
         .expect("Failed to complete tokio task")
-    }
-}
-
-//------------------------------------------------------------------------------
-// STRUCT: Color
-//------------------------------------------------------------------------------
-pub struct Color;
-
-impl Color {
-    //---------------------------------------
-    // Color from style helper
-    //---------------------------------------
-    fn color_from_style(style: &str) -> gdk::RGBA {
-        // Return RGBA colors (f32, range: 0.0 to 1.0)
-        gtk::Label::builder()
-            .css_name("texttag")
-            .css_classes([style])
-            .build()
-            .color()
-    }
-
-    //---------------------------------------
-    // Pango color from style
-    //---------------------------------------
-    pub fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
-        let fc = |color: f32| -> u16 {
-            (color * f32::from(u16::MAX)).round() as u16
-        };
-
-        let color = Self::color_from_style(style);
-
-        // Return u16 colors (range 0-255)
-        (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
-    }
-
-    //---------------------------------------
-    // Cairo color from style
-    //---------------------------------------
-    pub fn cairo_color_from_style(style: &str) -> (f64, f64, f64, f64) {
-        let color = Self::color_from_style(style);
-
-        // Return f64 colors (range 0.0-1.0)
-        (
-            f64::from(color.red()),
-            f64::from(color.green()),
-            f64::from(color.blue()),
-            f64::from(color.alpha())
-        )
     }
 }
 
