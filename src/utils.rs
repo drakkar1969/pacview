@@ -180,6 +180,99 @@ impl ParuConf {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: AurDBFile
+//------------------------------------------------------------------------------
+pub struct AurDBFile;
+
+impl AurDBFile {
+    //---------------------------------------
+    // Path function
+    //---------------------------------------
+    pub fn path() -> Option<&'static PathBuf> {
+        static AUR_FILE: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
+            let cache_dir = glib::user_cache_dir().join("pacview");
+
+            fs::create_dir_all(&cache_dir)
+                .map(|()| cache_dir.join("aur_packages"))
+                .ok()
+        });
+
+        AUR_FILE.as_ref()
+    }
+
+    //---------------------------------------
+    // Not found function
+    //---------------------------------------
+    pub fn not_found() -> bool {
+        Self::path()
+            .is_some_and(|aur_file| fs::metadata(aur_file).is_err())
+    }
+
+    //---------------------------------------
+    // Load function
+    //--------------------------------------
+    pub fn load() -> String {
+        Self::path()
+            .and_then(|aur_file| fs::read_to_string(aur_file).ok())
+            .unwrap_or_default()
+
+    }
+
+    //---------------------------------------
+    // Out of date function
+    //---------------------------------------
+    pub fn out_of_date(max_age: u64) -> bool {
+        // Get AUR package names file age
+        let file_age = Self::path()
+            .and_then(|aur_file| {
+                let metadata = fs::metadata(aur_file).ok()?;
+                let file_time = metadata.modified().ok()?;
+
+                let now = std::time::SystemTime::now();
+
+                now.duration_since(file_time).ok()
+            });
+
+        file_age.is_none_or(|age| age >= Duration::from_hours(max_age))
+    }
+
+    //---------------------------------------
+    // Download async function
+    //---------------------------------------
+    pub async fn download() -> Result<(), io::Error> {
+        let aur_file = Self::path()
+            .ok_or_else(|| io::Error::other("Failed to retrieve AUR database path"))?;
+
+        // Spawn tokio task to download AUR file
+        TokioUtils::runtime().spawn(
+            async move {
+                let response = reqwest::Client::new()
+                    .get("https://aur.archlinux.org/packages.gz")
+                    .timeout(Duration::from_secs(5))
+                    .send()
+                    .await
+                    .map_err(io::Error::other)?;
+
+                let stream = response
+                    .bytes_stream()
+                    .map_err(io::Error::other);
+
+                let stream_reader = StreamReader::new(stream);
+                let mut decoder = GzipDecoder::new(stream_reader);
+
+                let mut out_file = File::create(aur_file).await?;
+
+                tokio::io::copy(&mut decoder, &mut out_file).await?;
+
+                Ok(())
+            }
+        )
+        .await
+        .expect("Failed to complete tokio task")
+    }
+}
+
+//------------------------------------------------------------------------------
 // STRUCT: TokioUtils
 //------------------------------------------------------------------------------
 pub struct TokioUtils;
@@ -347,99 +440,6 @@ impl AppInfoExt {
             .is_err() {
                 Self::open_containing_folder(&path).await;
             }
-    }
-}
-
-//------------------------------------------------------------------------------
-// STRUCT: AurDBFile
-//------------------------------------------------------------------------------
-pub struct AurDBFile;
-
-impl AurDBFile {
-    //---------------------------------------
-    // Path function
-    //---------------------------------------
-    pub fn path() -> Option<&'static PathBuf> {
-        static AUR_FILE: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
-            let cache_dir = glib::user_cache_dir().join("pacview");
-
-            fs::create_dir_all(&cache_dir)
-                .map(|()| cache_dir.join("aur_packages"))
-                .ok()
-        });
-
-        AUR_FILE.as_ref()
-    }
-
-    //---------------------------------------
-    // Not found function
-    //---------------------------------------
-    pub fn not_found() -> bool {
-        Self::path()
-            .is_some_and(|aur_file| fs::metadata(aur_file).is_err())
-    }
-
-    //---------------------------------------
-    // Load function
-    //--------------------------------------
-    pub fn load() -> String {
-        Self::path()
-            .and_then(|aur_file| fs::read_to_string(aur_file).ok())
-            .unwrap_or_default()
-
-    }
-
-    //---------------------------------------
-    // Out of date function
-    //---------------------------------------
-    pub fn out_of_date(max_age: u64) -> bool {
-        // Get AUR package names file age
-        let file_age = Self::path()
-            .and_then(|aur_file| {
-                let metadata = fs::metadata(aur_file).ok()?;
-                let file_time = metadata.modified().ok()?;
-
-                let now = std::time::SystemTime::now();
-
-                now.duration_since(file_time).ok()
-            });
-
-        file_age.is_none_or(|age| age >= Duration::from_hours(max_age))
-    }
-
-    //---------------------------------------
-    // Download async function
-    //---------------------------------------
-    pub async fn download() -> Result<(), io::Error> {
-        let aur_file = Self::path()
-            .ok_or_else(|| io::Error::other("Failed to retrieve AUR database path"))?;
-
-        // Spawn tokio task to download AUR file
-        TokioUtils::runtime().spawn(
-            async move {
-                let response = reqwest::Client::new()
-                    .get("https://aur.archlinux.org/packages.gz")
-                    .timeout(Duration::from_secs(5))
-                    .send()
-                    .await
-                    .map_err(io::Error::other)?;
-
-                let stream = response
-                    .bytes_stream()
-                    .map_err(io::Error::other);
-
-                let stream_reader = StreamReader::new(stream);
-                let mut decoder = GzipDecoder::new(stream_reader);
-
-                let mut out_file = File::create(aur_file).await?;
-
-                tokio::io::copy(&mut decoder, &mut out_file).await?;
-
-                Ok(())
-            }
-        )
-        .await
-        .expect("Failed to complete tokio task")
     }
 }
 
