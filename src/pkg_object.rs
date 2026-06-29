@@ -197,21 +197,21 @@ impl PkgObject {
 
     pub fn package_url(&self) -> String {
         let data = self.data();
-
         let repo = &data.repository;
 
-        if repo == "aur" {
-            return format!("https://aur.archlinux.org/packages/{}", data.name);
+        match repo.as_str() {
+            "aur" => {
+                format!("https://aur.archlinux.org/packages/{}", data.name)
+            }
+            _ if Pacman::config().repos.iter().any(|r| &r.name == repo) => {
+                format!("https://www.archlinux.org/packages/{}/{}/{}/",
+                    repo, data.architecture, data.name)
+            }
+            _ => {
+                String::new()
+            }
         }
 
-        if Pacman::config().repos.iter().any(|r| &r.name == repo) {
-            return format!(
-                "https://www.archlinux.org/packages/{}/{}/{}/",
-                repo, data.architecture, data.name
-            );
-        }
-
-        String::new()
     }
 
     pub fn pkgbuild_url(&self) -> Option<String> {
