@@ -110,49 +110,49 @@ impl ConfigDialog {
         // Add config rows
         let mut group = &imp.paths_group;
 
-        dialog.add_row(group, "RootDir", &config.root_dir, Some("conf.path"));
-        dialog.add_row(group, "DBPath", &config.db_path, Some("conf.path"));
-        dialog.add_row(group, "CacheDir", &config.cache_dir.join("\n"), Some("conf.path"));
-        dialog.add_row(group, "LogFile", &config.log_file, Some("conf.path"));
-        dialog.add_row(group, "GPGDir", &config.gpg_dir, Some("conf.path"));
-        dialog.add_row(group, "HookDir", &config.hook_dir.join("\n"), Some("conf.path"));
+        Self::add_row(group, "RootDir", &config.root_dir, Some("conf.path"));
+        Self::add_row(group, "DBPath", &config.db_path, Some("conf.path"));
+        Self::add_row(group, "CacheDir", &config.cache_dir.join("\n"), Some("conf.path"));
+        Self::add_row(group, "LogFile", &config.log_file, Some("conf.path"));
+        Self::add_row(group, "GPGDir", &config.gpg_dir, Some("conf.path"));
+        Self::add_row(group, "HookDir", &config.hook_dir.join("\n"), Some("conf.path"));
 
         group = &imp.download_group;
 
-        dialog.add_row(group, "XferCommand", &config.xfer_command, None);
-        dialog.add_row(group, "ParallelDownloads", &config.parallel_downloads.to_string(), None);
-        dialog.add_row(group, "DisableDownloadTimeout", &config.disable_download_timeout.to_string(), None);
-        dialog.add_row(group, "DownloadUser", &config.download_user.clone().unwrap_or_else(|| String::from("None")), None);
-        dialog.add_row(group, "Architecture", &config.architecture.join(" | "), None);
+        Self::add_row(group, "XferCommand", &config.xfer_command, None);
+        Self::add_row(group, "ParallelDownloads", &config.parallel_downloads.to_string(), None);
+        Self::add_row(group, "DisableDownloadTimeout", &config.disable_download_timeout.to_string(), None);
+        Self::add_row(group, "DownloadUser", &config.download_user.clone().unwrap_or_else(|| String::from("None")), None);
+        Self::add_row(group, "Architecture", &config.architecture.join(" | "), None);
 
         group = &imp.sandbox_group;
 
-        dialog.add_row(group, "DisableSandBox", &config.disable_sandbox.to_string(), None);
-        dialog.add_row(group, "DisableSandBoxFilesystem", &config.disable_sandbox_filesystem.to_string(), None);
-        dialog.add_row(group, "DisableSandBoxSyscalls", &config.disable_sandbox_syscalls.to_string(), None);
+        Self::add_row(group, "DisableSandBox", &config.disable_sandbox.to_string(), None);
+        Self::add_row(group, "DisableSandBoxFilesystem", &config.disable_sandbox_filesystem.to_string(), None);
+        Self::add_row(group, "DisableSandBoxSyscalls", &config.disable_sandbox_syscalls.to_string(), None);
 
         group = &imp.packages_group;
 
-        dialog.add_row(group, "HoldPkg", &config.hold_pkg.join(" | "), None);
-        dialog.add_row(group, "IgnorePkg", &config.ignore_pkg.join(" | "), None);
-        dialog.add_row(group, "IgnoreGroup", &config.ignore_group.join(" | "), None);
-        dialog.add_row(group, "NoUpgrade", &config.no_upgrade.join(" | "), None);
-        dialog.add_row(group, "NoExtract", &config.no_extract.join(" | "), None);
+        Self::add_row(group, "HoldPkg", &config.hold_pkg.join(" | "), None);
+        Self::add_row(group, "IgnorePkg", &config.ignore_pkg.join(" | "), None);
+        Self::add_row(group, "IgnoreGroup", &config.ignore_group.join(" | "), None);
+        Self::add_row(group, "NoUpgrade", &config.no_upgrade.join(" | "), None);
+        Self::add_row(group, "NoExtract", &config.no_extract.join(" | "), None);
 
         group = &imp.misc_group;
 
-        dialog.add_row(group, "UseSyslog", &config.use_syslog.to_string(), None);
-        dialog.add_row(group, "Color", &config.color.to_string(), None);
-        dialog.add_row(group, "CheckSpace", &config.check_space.to_string(), None);
-        dialog.add_row(group, "CleanMethod", &config.clean_method.join(" | "), None);
-        dialog.add_row(group, "VerbosePkgLists", &config.verbose_pkg_lists.to_string(), None);
-        dialog.add_row(group, "ILoveCandy", &config.chomp.to_string(), None);
+        Self::add_row(group, "UseSyslog", &config.use_syslog.to_string(), None);
+        Self::add_row(group, "Color", &config.color.to_string(), None);
+        Self::add_row(group, "CheckSpace", &config.check_space.to_string(), None);
+        Self::add_row(group, "CleanMethod", &config.clean_method.join(" | "), None);
+        Self::add_row(group, "VerbosePkgLists", &config.verbose_pkg_lists.to_string(), None);
+        Self::add_row(group, "ILoveCandy", &config.chomp.to_string(), None);
 
         group = &imp.siglevel_group;
 
-        dialog.add_row(group, "SigLevel", &config.sig_level.join(" | "), None);
-        dialog.add_row(group, "LocalFileSigLevel", &config.local_file_sig_level.join(" | "), None);
-        dialog.add_row(group, "RemoteFileSigLevel", &config.remote_file_sig_level.join(" | "), None);
+        Self::add_row(group, "SigLevel", &config.sig_level.join(" | "), None);
+        Self::add_row(group, "LocalFileSigLevel", &config.local_file_sig_level.join(" | "), None);
+        Self::add_row(group, "RemoteFileSigLevel", &config.remote_file_sig_level.join(" | "), None);
 
         dialog
     }
@@ -160,7 +160,7 @@ impl ConfigDialog {
     //---------------------------------------
     // Add row helper function
     //---------------------------------------
-    fn add_row(&self, group: &adw::PreferencesGroup, label: &str, property: &str, action_name: Option<&str>) {
+    fn add_row(group: &adw::PreferencesGroup, label: &str, property: &str, action_name: Option<&str>) {
         group.add(&ConfigRow::new(label, property, action_name));
     }
 }

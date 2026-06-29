@@ -491,7 +491,7 @@ impl TextWidget {
     //---------------------------------------
     // Layout format helper functions
     //---------------------------------------
-    fn attr<T: IsAttribute>(&self, attr: T, start: usize, end: usize) -> Attribute {
+    fn attr<T: IsAttribute>(attr: T, start: usize, end: usize) -> Attribute {
         let mut base_attr: Attribute = attr.upcast();
 
         base_attr.set_start_index(start as u32);
@@ -513,8 +513,8 @@ impl TextWidget {
                 imp.sel_bg_color.get()
             };
 
-            attr_list.insert(self.attr(AttrColor::new_background(red, green, blue), min, max));
-            attr_list.insert(self.attr(AttrInt::new_background_alpha(alpha), min, max));
+            attr_list.insert(Self::attr(AttrColor::new_background(red, green, blue), min, max));
+            attr_list.insert(Self::attr(AttrInt::new_background_alpha(alpha), min, max));
         }
     }
 
@@ -526,7 +526,7 @@ impl TextWidget {
                 Underline::Single
             };
 
-            attr_list.insert(self.attr(AttrInt::new_underline(underline), link.start, link.end));
+            attr_list.insert(Self::attr(AttrInt::new_underline(underline), link.start, link.end));
         }
     }
 
@@ -544,24 +544,24 @@ impl TextWidget {
         let (red, green, blue, alpha) = imp.link_fg_color.get();
 
         for link in link_list.as_slice() {
-            attr_list.insert(self.attr(AttrColor::new_foreground(red, green, blue), link.start, link.end));
-            attr_list.insert(self.attr(AttrInt::new_foreground_alpha(alpha), link.start, link.end));
+            attr_list.insert(Self::attr(AttrColor::new_foreground(red, green, blue), link.start, link.end));
+            attr_list.insert(Self::attr(AttrInt::new_foreground_alpha(alpha), link.start, link.end));
 
             if self.underline_links() {
-                attr_list.insert(self.attr(AttrInt::new_underline(Underline::Single), link.start, link.end));
+                attr_list.insert(Self::attr(AttrInt::new_underline(Underline::Single), link.start, link.end));
             }
 
-            attr_list.insert(self.attr(AttrInt::new_allow_breaks(false), link.start, link.end));
+            attr_list.insert(Self::attr(AttrInt::new_allow_breaks(false), link.start, link.end));
         }
 
         // Add comment attributes
         let (red, green, blue, alpha) = imp.comment_fg_color.get();
 
         for comment in comment_list.as_slice() {
-            attr_list.insert(self.attr(AttrInt::new_weight(Weight::Semibold), comment.start, comment.end));
-            attr_list.insert(self.attr(AttrColor::new_foreground(red, green, blue), comment.start, comment.end));
-            attr_list.insert(self.attr(AttrInt::new_foreground_alpha(alpha), comment.start, comment.end));
-            attr_list.insert(self.attr(AttrFloat::new_scale(0.75), comment.start, comment.end));
+            attr_list.insert(Self::attr(AttrInt::new_weight(Weight::Semibold), comment.start, comment.end));
+            attr_list.insert(Self::attr(AttrColor::new_foreground(red, green, blue), comment.start, comment.end));
+            attr_list.insert(Self::attr(AttrInt::new_foreground_alpha(alpha), comment.start, comment.end));
+            attr_list.insert(Self::attr(AttrFloat::new_scale(0.75), comment.start, comment.end));
         }
 
         layout.set_attributes(Some(&attr_list));

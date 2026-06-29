@@ -170,7 +170,7 @@ impl InfoDetailsTab {
     //---------------------------------------
     // Public setup details function
     //---------------------------------------
-    pub fn setup_details(&self, pkg_link_handler: RustClosure) {
+    pub fn setup_details(&self, pkg_link_handler: &RustClosure) {
         // Add info rows
         for (id, ptype) in [
             (PropID::Popularity, PropType::Text),
@@ -200,7 +200,6 @@ impl InfoDetailsTab {
                 .then_some(pkg_link_handler.clone());
 
             self.add_info_row(id, ptype, handler);
-
         }
     }
 

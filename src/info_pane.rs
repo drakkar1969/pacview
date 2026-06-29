@@ -201,7 +201,7 @@ impl InfoPane {
             }
         );
 
-        imp.info_tab.setup_details(pkg_link_handler);
+        imp.info_tab.setup_details(&pkg_link_handler);
     }
 
     //---------------------------------------
