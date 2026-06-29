@@ -131,12 +131,14 @@ impl ParuConf {
         static INI: LazyLock<Result<Ini, String>> = LazyLock::new(|| {
             let mut ini = Ini::new();
 
+            // Attempt to load paru config file
             env::var("PARU_CONF")
                 .map_err(|e| e.to_string())
                 .and_then(|var| ini.load(var))
                 .or_else(|_| ini.load(glib::user_config_dir().join("paru/paru.conf")))
-                .or_else(|_| ini.load(Path::new("/etc/paru.conf")))
-                .map(|_| ini)
+                .or_else(|_| ini.load(Path::new("/etc/paru.conf")))?;
+
+            Ok(ini)
         });
 
         &INI
