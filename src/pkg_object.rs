@@ -171,44 +171,40 @@ impl PkgObject {
         self.data().is_installed
     }
 
-    pub fn base(&self) -> &str {
-        &self.data().base
+    pub fn description(&self) -> Option<&str> {
+        self.data().description.as_deref()
     }
 
-    pub fn description(&self) -> &str {
-        &self.data().description
+    pub fn popularity(&self) -> Option<&str> {
+        self.data().popularity.as_deref()
     }
 
-    pub fn popularity(&self) -> &str {
-        &self.data().popularity
-    }
-
-    pub fn out_of_date(&self) -> i64 {
+    pub fn out_of_date(&self) -> Option<i64> {
         self.data().out_of_date
     }
 
-    pub fn out_of_date_string(&self) -> GString {
+    pub fn out_of_date_string(&self) -> Option<GString> {
         Self::date_to_string(self.data().out_of_date)
     }
 
-    pub fn url(&self) -> &str {
-        &self.data().url
+    pub fn url(&self) -> Option<&str> {
+        self.data().url.as_deref()
     }
 
-    pub fn package_url(&self) -> String {
+    pub fn package_url(&self) -> Option<String> {
         let data = self.data();
         let repo = &data.repository;
 
         match repo.as_str() {
             "aur" => {
-                format!("https://aur.archlinux.org/packages/{}", data.name)
+                Some(format!("https://aur.archlinux.org/packages/{}", data.name))
             }
             _ if Pacman::config().repos.iter().any(|r| &r.name == repo) => {
-                format!("https://www.archlinux.org/packages/{}/{}/{}/",
-                    repo, data.architecture, data.name)
+                Some(format!("https://www.archlinux.org/packages/{}/{}/{}/",
+                    repo, data.architecture.clone().unwrap_or_default(), data.name))
             }
             _ => {
-                String::new()
+                None
             }
         }
 
@@ -216,7 +212,7 @@ impl PkgObject {
 
     pub fn pkgbuild_url(&self) -> Option<String> {
         let data = self.data();
-        let name = if data.base.is_empty() { &data.name } else { &data.base };
+        let name = data.base.as_ref().unwrap_or(&data.name);
         let repo = &data.repository;
 
         match repo.as_str() {
@@ -297,27 +293,27 @@ impl PkgObject {
         &self.data().replaces
     }
 
-    pub fn architecture(&self) -> &str {
-        &self.data().architecture
+    pub fn architecture(&self) -> Option<&str> {
+        self.data().architecture.as_deref()
     }
 
-    pub fn packager(&self) -> &str {
-        &self.data().packager
+    pub fn packager(&self) -> Option<&str> {
+        self.data().packager.as_deref()
     }
 
     pub fn build_date(&self) -> i64 {
         self.data().build_date
     }
 
-    pub fn build_date_string(&self) -> GString {
-        Self::date_to_string(self.data().build_date)
+    pub fn build_date_string(&self) -> Option<GString> {
+        Self::date_to_string(Some(self.data().build_date))
     }
 
-    pub fn install_date(&self) -> i64 {
+    pub fn install_date(&self) -> Option<i64> {
         self.data().install_date
     }
 
-    pub fn install_date_string(&self) -> GString {
+    pub fn install_date_string(&self) -> Option<GString> {
         Self::date_to_string(self.data().install_date)
     }
 
@@ -337,8 +333,8 @@ impl PkgObject {
         Size::from_bytes(self.data().install_size).to_string()
     }
 
-    pub fn has_script(&self) -> &str {
-        &self.data().has_script
+    pub fn has_script(&self) -> Option<&str> {
+        self.data().has_script.as_deref()
     }
 
     pub fn validation(&self) -> PkgValidation {
@@ -522,14 +518,14 @@ impl PkgObject {
     //---------------------------------------
     // Date to string helper function
     //---------------------------------------
-    fn date_to_string(date: i64) -> GString {
-        if date == 0 {
-            GString::new()
-        } else {
-            glib::DateTime::from_unix_local(date)
-                .and_then(|datetime| datetime.format("%c"))
-                .expect("Failed to format DateTime")
-        }
+    fn date_to_string(date: Option<i64>) -> Option<GString> {
+        date
+            .filter(|&date| date != 0)
+            .map(|date| {
+                glib::DateTime::from_unix_local(date)
+                    .and_then(|datetime| datetime.format("%c"))
+                    .expect("Failed to format DateTime")
+            })
     }
 
     //---------------------------------------

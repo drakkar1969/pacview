@@ -458,7 +458,7 @@ impl PackageView {
 
                 match imp.search_bar.prop() {
                     SearchProp::Name => is_match(&pkg.name()),
-                    SearchProp::NameDesc => is_match(&pkg.name()) || is_match(pkg.description()),
+                    SearchProp::NameDesc => is_match(&pkg.name()) || is_match(pkg.description().unwrap_or_default()),
                     SearchProp::Groups => pkg.groups().iter().any(|s| is_match(s)),
                     SearchProp::Deps => pkg.depends().iter().any(|s| is_match(s)),
                     SearchProp::Optdeps => pkg.optdepends().iter().any(|s| is_match(s)),

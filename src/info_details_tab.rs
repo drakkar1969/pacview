@@ -103,7 +103,7 @@ mod imp {
 
                     writeln!(output, "- **Name** : {}", pkg.name()).unwrap();
                     writeln!(output, "- **Version** : {}", pkg.version()).unwrap();
-                    writeln!(output, "- **Description** : {}", pkg.description()).unwrap();
+                    writeln!(output, "- **Description** : {}", pkg.description().unwrap_or_default()).unwrap();
                     writeln!(output, "- **Repository** : {}", pkg.repository()).unwrap();
                     writeln!(output, "- **Installed Size** : {}", pkg.install_size_string())
                         .unwrap();
@@ -274,10 +274,10 @@ impl InfoDetailsTab {
         self.set_info_row(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
         // Out of Date
-        self.set_info_row(PropID::OutOfDate, ValueType::StrOptNum(&pkg.out_of_date_string(), pkg.out_of_date()));
+        self.set_info_row(PropID::OutOfDate, ValueType::StrOpt(pkg.out_of_date_string().as_deref()));
 
         // Package URL
-        self.set_info_row(PropID::PackageUrl, ValueType::StrOpt(&pkg.package_url()));
+        self.set_info_row(PropID::PackageUrl, ValueType::StrOpt(pkg.package_url().as_deref()));
 
         // URL
         self.set_info_row(PropID::Url, ValueType::StrOpt(pkg.url()));
@@ -316,13 +316,13 @@ impl InfoDetailsTab {
         self.set_info_row(PropID::Licenses, ValueType::VecOptJoin(pkg.licenses()));
 
         // Packager
-        self.set_info_row(PropID::Packager, ValueType::Str(pkg.packager()));
+        self.set_info_row(PropID::Packager, ValueType::StrOpt(pkg.packager()));
 
         // Build date
-        self.set_info_row(PropID::BuildDate, ValueType::StrOptNum(&pkg.build_date_string(), pkg.build_date()));
+        self.set_info_row(PropID::BuildDate, ValueType::StrOpt(pkg.build_date_string().as_deref()));
 
         // Install date
-        self.set_info_row(PropID::InstallDate, ValueType::StrOptNum(&pkg.install_date_string(), pkg.install_date()));
+        self.set_info_row(PropID::InstallDate, ValueType::StrOpt(pkg.install_date_string().as_deref()));
 
         // Download size
         self.set_info_row(PropID::DownloadSize, ValueType::StrOptNum(&pkg.download_size_string(), pkg.download_size()));
@@ -345,7 +345,7 @@ impl InfoDetailsTab {
 
         // Show package information
         imp.name_label.set_label(&pkg.name());
-        imp.desc_label.set_label(pkg.description());
+        imp.desc_label.set_label(pkg.description().unwrap_or_default());
 
         imp.status_label.set_css_classes(&pkg.status_css_classes());
         imp.status_label.set_label(pkg.status());
