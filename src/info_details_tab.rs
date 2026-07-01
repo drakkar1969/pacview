@@ -168,9 +168,9 @@ glib::wrapper! {
 
 impl InfoDetailsTab {
     //---------------------------------------
-    // Public setup details function
+    // Public add info rows function
     //---------------------------------------
-    pub fn setup_details(&self, pkg_link_handler: &RustClosure) {
+    pub fn add_info_rows(&self, pkg_link_handler: &RustClosure) {
         // Add info rows
         for (id, ptype) in [
             (PropID::Popularity, PropType::Text),
@@ -195,42 +195,35 @@ impl InfoDetailsTab {
             (PropID::InstallScript, PropType::Text),
             (PropID::Validation, PropType::Text)
         ] {
+            let imp = self.imp();
+
             let handler = [PropType::Link, PropType::LinkList, PropType::Packager]
                 .contains(&ptype)
                 .then_some(pkg_link_handler.clone());
 
-            self.add_info_row(id, ptype, handler);
-        }
-    }
+            let row = InfoRow::new(id, ptype, handler);
 
-    //---------------------------------------
-    // Add info row function
-    //---------------------------------------
-    fn add_info_row(&self, id: PropID, ptype: PropType, link_handler: Option<RustClosure>) {
-        let imp = self.imp();
+            row.connect_has_selection_notify(clone!(
+                #[weak] imp,
+                move |row| {
+                    if row.has_selection() {
+                        if imp.selection_row.borrow().as_ref().is_none_or(|sel| sel != row) {
+                            let prev_row = imp.selection_row.replace(Some(row.clone()));
 
-        let row = InfoRow::new(id, ptype, link_handler);
-
-        row.connect_has_selection_notify(clone!(
-            #[weak] imp,
-            move |row| {
-                if row.has_selection() {
-                    if imp.selection_row.borrow().as_ref().is_none_or(|sel| sel != row) {
-                        let prev_row = imp.selection_row.replace(Some(row.clone()));
-
-                        if let Some(row) = prev_row {
-                            row.activate_action("text.select-none", None).unwrap();
+                            if let Some(row) = prev_row {
+                                row.activate_action("text.select-none", None).unwrap();
+                            }
                         }
+                    } else if imp.selection_row.borrow().as_ref() == Some(row) {
+                        imp.selection_row.replace(None);
                     }
-                } else if imp.selection_row.borrow().as_ref() == Some(row) {
-                    imp.selection_row.replace(None);
                 }
-            }
-        ));
+            ));
 
-        imp.listbox.append(&row);
+            imp.listbox.append(&row);
 
-        imp.info_row_map.borrow_mut().insert(id, row);
+            imp.info_row_map.borrow_mut().insert(id, row);
+        }
     }
 
     //---------------------------------------
