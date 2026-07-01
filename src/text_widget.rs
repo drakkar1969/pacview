@@ -91,7 +91,6 @@ mod imp {
         pub(super) sel_bg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) sel_focus_bg_color: Cell<(u16, u16, u16, u16)>,
 
-        pub(super) cairo_default_color: Cell<(f64, f64, f64, f64)>,
         pub(super) cairo_error_color: Cell<(f64, f64, f64, f64)>,
 
         pub(super) link_list: RefCell<Vec<TextTag>>,
@@ -420,14 +419,6 @@ impl TextWidget {
         imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
 
         // Update cairo colors
-        let color = self.color();
-
-        imp.cairo_default_color.set((
-            f64::from(color.red()),
-            f64::from(color.green()),
-            f64::from(color.blue()),
-            f64::from(color.alpha())
-        ));
         imp.cairo_error_color.set(Self::cairo_color_from_style("error"));
     }
 
@@ -644,7 +635,14 @@ impl TextWidget {
                 let (red, green, blue, alpha) = if widget.ptype() == PropType::Error {
                     imp.cairo_error_color.get()
                 } else {
-                    imp.cairo_default_color.get()
+                    let color = widget.color();
+
+                    (
+                        f64::from(color.red()),
+                        f64::from(color.green()),
+                        f64::from(color.blue()),
+                        f64::from(color.alpha())
+                    )
                 };
 
                 context.set_source_rgba(red, green, blue, alpha);
