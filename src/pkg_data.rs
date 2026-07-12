@@ -173,8 +173,6 @@ impl PkgData {
             slice.iter().map(String::from).sorted_unstable().collect()
         }
 
-        println!("{:?}", pkg.package_base);
-
         // Build PkgData
         Self {
             flags: PkgFlags::NONE,
