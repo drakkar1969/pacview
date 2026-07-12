@@ -634,6 +634,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm
     //---------------------------------------
+    #[allow(clippy::items_after_statements)]
     fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
@@ -921,6 +922,7 @@ impl PacViewWindow {
     // Setup alpm: get package updates
     //---------------------------------------
     #[allow(clippy::future_not_send)]
+    #[allow(clippy::items_after_statements)]
     async fn get_package_updates(&self) {
         let imp = self.imp();
 
