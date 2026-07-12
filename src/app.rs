@@ -3,7 +3,10 @@ use gtk::prelude::*;
 use adw::subclass::prelude::*;
 use adw::prelude::AdwDialogExt;
 
-use crate::window::PacViewWindow;
+use crate::{
+    window::PacViewWindow,
+    utils::TaskTracker
+};
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewApplication
@@ -45,11 +48,19 @@ mod imp {
         fn activate(&self) {
             let application = self.obj();
 
-            // Show main window
+            // Create main window
             let window = application.active_window().unwrap_or_else(|| {
                 PacViewWindow::new(&application).upcast()
             });
 
+            // Cancel all pending tasks on close
+            window.connect_close_request(|_| {
+                TaskTracker::cancel_all();
+
+                glib::Propagation::Proceed
+            });
+
+            // Show main window
             window.present();
         }
     }

@@ -273,6 +273,72 @@ impl AurDBFile {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: TaskTracker
+//------------------------------------------------------------------------------
+pub struct TaskTracker {
+    map: HashMap<u64, CancellationToken>,
+    next_id: u64
+}
+
+impl TaskTracker {
+    //---------------------------------------
+    // Tracker function
+    //---------------------------------------
+    fn tracker() -> &'static RwLock<Self> {
+        static TRACKER: LazyLock<RwLock<TaskTracker>> = LazyLock::new(|| {
+            RwLock::new(TaskTracker { map: HashMap::new(), next_id: 0 })
+        });
+
+        &TRACKER
+    }
+
+    //---------------------------------------
+    // Add token function
+    //---------------------------------------
+    pub fn add_token(token: CancellationToken) -> u64 {
+        let mut tracker = Self::tracker().write().unwrap();
+
+        let id = tracker.next_id;
+        tracker.next_id += 1;
+
+        tracker.map.insert(id, token);
+
+        id
+    }
+
+    //---------------------------------------
+    // Remove token function
+    //---------------------------------------
+    pub fn remove_token(id: u64) {
+        let mut tracker = Self::tracker().write().unwrap();
+
+        tracker.map.remove(&id);
+    }
+
+    //---------------------------------------
+    // Cancel token function
+    //---------------------------------------
+    pub fn cancel_token(id: u64) {
+        let mut tracker = Self::tracker().write().unwrap();
+
+        if let Some(token) = tracker.map.remove(&id) {
+            token.cancel();
+        }
+    }
+
+    //---------------------------------------
+    // Cancel all function
+    //---------------------------------------
+    pub fn cancel_all() {
+        let mut tracker = Self::tracker().write().unwrap();
+
+        for (_, token) in tracker.map.drain() {
+            token.cancel();
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
 // STRUCT: TokioUtils
 //------------------------------------------------------------------------------
 pub struct TokioUtils;
@@ -292,7 +358,7 @@ impl TokioUtils {
     //---------------------------------------
     // Run function
     //---------------------------------------
-    pub async fn run<I, S1, S2>(cmd: S1, args: I, token: Option<CancellationToken>) -> io::Result<(Option<i32>, String)>
+    pub async fn run<I, S1, S2>(cmd: S1, args: I, token: CancellationToken) -> io::Result<(Option<i32>, String)>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         let cmd_owned = cmd.as_ref().to_os_string();
 
@@ -311,17 +377,6 @@ impl TokioUtils {
                 // Get stdout pipe
                 let mut stdout_pipe = child.stdout.take().unwrap();
 
-                // Resolve cancellation token
-                let cancellation_future = async {
-                    if let Some(token) = token {
-                        token.cancelled().await;
-                    } else {
-                        std::future::pending::<()>().await;
-                    }
-                };
-
-                tokio::pin!(cancellation_future);
-
                 // Loop: read stdout or wait for process or check for cancellation
                 let mut exit_status = None;
                 let mut buffer = vec![];
@@ -337,7 +392,7 @@ impl TokioUtils {
                         status = child.wait() => {
                             exit_status = Some(status?);
                         }
-                        () = &mut cancellation_future => {
+                        () = token.cancelled() => {
                             // Kill the process immediately
                             child.kill().await?;
 

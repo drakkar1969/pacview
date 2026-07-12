@@ -20,7 +20,7 @@ use crate::{
     pkg_object::PkgObject,
     search_bar::{SearchBar, SearchProp},
     info_pane::InfoPane,
-    utils::TokioUtils,
+    utils::{TokioUtils, TaskTracker},
 };
 
 //------------------------------------------------------------------------------
@@ -145,7 +145,7 @@ mod imp {
         pub(super) search_term: RefCell<String>,
         pub(super) search_tokens: RefCell<Vec<String>>,
 
-        pub(super) search_cancel_token: RefCell<Option<CancellationToken>>
+        pub(super) search_cancel_id: Cell<Option<u64>>
     }
 
     //---------------------------------------
@@ -557,8 +557,8 @@ impl PackageView {
     // Cancel AUR search function
     //---------------------------------------
     fn cancel_aur_search(&self) {
-        if let Some(token) = self.imp().search_cancel_token.take() {
-            token.cancel();
+        if let Some(id) = self.imp().search_cancel_id.take() {
+            TaskTracker::cancel_token(id);
         }
     }
 
@@ -585,10 +585,11 @@ impl PackageView {
 
         // Create and store search cancel token
         let cancel_token = CancellationToken::new();
-
         let cancel_token_clone = cancel_token.clone();
 
-        imp.search_cancel_token.replace(Some(cancel_token));
+        let cancel_id = TaskTracker::add_token(cancel_token);
+
+        imp.search_cancel_id.set(Some(cancel_id));
 
         // Search AUR
         glib::spawn_future_local(clone!(
@@ -626,7 +627,9 @@ impl PackageView {
                 }
 
                 // Remove stored search cancel token
-                imp.search_cancel_token.replace(None);
+                if let Some(id) = imp.search_cancel_id.take() {
+                    TaskTracker::remove_token(id);
+                }
 
                 // Hide search spinner
                 search_bar.set_searching(false);

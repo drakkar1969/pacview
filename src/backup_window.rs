@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::fmt::Write as _;
+use std::io;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
@@ -8,11 +9,12 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use strum::AsRefStr;
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     pkg_object::PkgObject,
     backup_object::{BackupObject, BackupStatus},
-    utils::{Paths, Pacman, AppInfoExt}
+    utils::{Paths, Pacman, AppInfoExt, TokioUtils, TaskTracker}
 };
 
 //------------------------------------------------------------------------------
@@ -83,6 +85,8 @@ mod imp {
         can_compare: Cell<bool>,
 
         pub(super) search_term: RefCell<String>,
+
+        pub(super) compare_cancel_id: Cell<Option<u64>>
     }
 
     //---------------------------------------
@@ -143,7 +147,7 @@ mod imp {
             klass.install_action_async("backup.compare", None, async |window, _, _| {
                 if let Some(backup_file) = window.imp().selection.selected_item()
                     .and_downcast::<BackupObject>() {
-                        let _ = backup_file.compare_with_original().await;
+                        let _ = window.compare_with_original(&backup_file).await;
                     }
             });
 
@@ -442,6 +446,49 @@ impl BackupWindow {
 
         // Set initial focus on view
         imp.view.grab_focus();
+    }
+
+    //---------------------------------------
+    // Async compare with original function
+    //---------------------------------------
+    #[allow(clippy::future_not_send)]
+    pub async fn compare_with_original(&self, backup: &BackupObject) -> io::Result<()> {
+        let imp = self.imp();
+
+        let meld = Paths::meld().as_ref()
+            .map_err(|_| io::Error::other("Meld not found"))?;
+
+        let paccat = Paths::paccat().as_ref()
+            .map_err(|_| io::Error::other("Paccat not found"))?;
+
+        let path = Pacman::config().root_dir.clone() + &backup.path();
+
+        // Create and store compare cancel token
+        let cancel_token = CancellationToken::new();
+        let cancel_token_clone = cancel_token.clone();
+
+        let cancel_id = TaskTracker::add_token(cancel_token);
+
+        imp.compare_cancel_id.set(Some(cancel_id));
+
+        // Download original file content with paccat
+        let (status, content) = TokioUtils::run(paccat, &[&backup.package(), "--", &path], cancel_token_clone)
+            .await?;
+
+        if status != Some(0) {
+            return Err(io::Error::other("Paccat error"))
+        }
+
+        // Compare backup file with original content
+        TokioUtils::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content)
+            .await?;
+
+        // Remove stored compare cancel token
+        if let Some(id) = imp.compare_cancel_id.take() {
+            TaskTracker::remove_token(id);
+        }
+
+        Ok(())
     }
 
     //---------------------------------------

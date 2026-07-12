@@ -1,4 +1,4 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::sync::LazyLock;
 use std::path::{Path, PathBuf};
 use std::collections::{HashMap, HashSet};
@@ -35,7 +35,7 @@ use crate::{
     cache_window::CacheWindow,
     config_dialog::ConfigDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Paths, Pacman, ParuConf, AurDBFile, TokioUtils}
+    utils::{Paths, Pacman, ParuConf, AurDBFile, TokioUtils, TaskTracker}
 };
 
 //------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ mod imp {
         pub(super) installed_item: RefCell<StatusItem>,
         pub(super) update_item: RefCell<StatusItem>,
 
-        pub(super) update_cancel_token: RefCell<Option<CancellationToken>>,
+        pub(super) update_cancel_id: Cell<Option<u64>>,
 
         pub(super) notify_debouncer: RefCell<Option<Debouncer<INotifyWatcher, NoCache>>>,
 
@@ -912,8 +912,8 @@ impl PacViewWindow {
     // Cancel package updates
     //---------------------------------------
     fn cancel_package_updates(&self) {
-        if let Some(token) = self.imp().update_cancel_token.take() {
-            token.cancel();
+        if let Some(id) = self.imp().update_cancel_id.take() {
+            TaskTracker::cancel_token(id);
         }
     }
 
@@ -929,20 +929,22 @@ impl PacViewWindow {
 
         // Create and store update cancel token
         let cancel_token = CancellationToken::new();
-        let alpm_token = cancel_token.clone();
-        let aur_token = cancel_token.clone();
+        let alpm_cancel_token = cancel_token.clone();
+        let aur_cancel_token = cancel_token.clone();
 
-        imp.update_cancel_token.replace(Some(cancel_token));
+        let cancel_id = TaskTracker::add_token(cancel_token);
+
+        imp.update_cancel_id.set(Some(cancel_id));
 
         // Check for pacman updates
         let mut update_output = String::new();
         let mut error_msg: Option<String> = None;
 
-        let alpm_task = TokioUtils::run("/usr/bin/checkupdates", &[""], Some(alpm_token));
+        let alpm_task = TokioUtils::run("/usr/bin/checkupdates", &[""], alpm_cancel_token);
 
         let (alpm_result, aur_result) = if let Ok(paru_path) = Paths::paru() {
             // Check for AUR updates
-            let aur_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], Some(aur_token));
+            let aur_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], aur_cancel_token);
 
             join!(alpm_task, aur_task)
         } else {
@@ -950,7 +952,9 @@ impl PacViewWindow {
         };
 
         // Remove stored update cancel token
-        imp.update_cancel_token.replace(None);
+        if let Some(id) = imp.update_cancel_id.take() {
+            TaskTracker::remove_token(id);
+        }
 
         // Get pacman update results
         match alpm_result {

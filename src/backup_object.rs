@@ -1,6 +1,5 @@
 use std::cell::{RefCell, OnceCell};
 use std::marker::PhantomData;
-use std::io;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -10,7 +9,7 @@ use strum::{FromRepr, AsRefStr};
 
 use crate::{
     pkg_object::PkgBackup,
-    utils::{Paths, Pacman, TokioUtils}
+    utils::Pacman
 };
 
 //------------------------------------------------------------------------------
@@ -132,33 +131,5 @@ impl BackupObject {
             .property("hash", backup.hash())
             .property("package", package)
             .build()
-    }
-
-    //---------------------------------------
-    // Async compare with original function
-    //---------------------------------------
-    #[allow(clippy::future_not_send)]
-    pub async fn compare_with_original(&self) -> io::Result<()> {
-        let meld = Paths::meld().as_ref()
-            .map_err(|_| io::Error::other("Meld not found"))?;
-
-        let paccat = Paths::paccat().as_ref()
-            .map_err(|_| io::Error::other("Paccat not found"))?;
-
-        let path = Pacman::config().root_dir.clone() + &self.path();
-
-        // Download original file content with paccat
-        let (status, content) = TokioUtils::run(paccat, &[&self.package(), "--", &path], None)
-            .await?;
-
-        if status != Some(0) {
-            return Err(io::Error::other("Paccat error"))
-        }
-
-        // Compare backup file with original content
-        TokioUtils::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content)
-            .await?;
-
-        Ok(())
     }
 }
