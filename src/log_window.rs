@@ -10,7 +10,7 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use itertools::Itertools;
-use strum::{EnumIter, IntoEnumIterator};
+use strum::{EnumIter, IntoEnumIterator, AsRefStr};
 use regex::Regex;
 use size::Size;
 
@@ -22,7 +22,7 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: LogSearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, AsRefStr)]
 #[repr(u32)]
 #[enum_type(name = "LogSearchMode")]
 pub enum LogSearchMode {
@@ -66,7 +66,9 @@ mod imp {
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
-        pub(super) footer_label: TemplateChild<gtk::Label>,
+        pub(super) count_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) mode_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) size_label: TemplateChild<gtk::Label>,
 
@@ -227,13 +229,17 @@ impl LogWindow {
         self.connect_search_mode_notify(|window| {
             let imp = window.imp();
 
-            let text = match window.search_mode() {
+            let mode = window.search_mode();
+
+            let placeholder = match mode {
                 LogSearchMode::All => "Search for messages",
                 LogSearchMode::Packages => "Search for packages",
                 LogSearchMode::Exact => "Search for packages (exact)"
             };
 
-            imp.search_entry.set_placeholder_text(Some(text));
+            imp.search_entry.set_placeholder_text(Some(placeholder));
+
+            imp.mode_label.set_label(&format!("Search Mode: {}", mode.as_ref()));
 
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
@@ -250,7 +256,7 @@ impl LogWindow {
                     if n_items == 0 { "empty" } else { "view" }
                 );
 
-                imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
+                imp.count_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
                 window.action_set_enabled("log.copy", n_items > 0);
             }
