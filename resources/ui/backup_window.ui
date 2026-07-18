@@ -204,16 +204,32 @@
           </object>
         </property>
         <child type="bottom">
-          <object class="GtkLabel" id="footer_label">
+          <object class="GtkCenterBox">
             <property name="margin-start">12</property>
             <property name="margin-end">12</property>
             <property name="margin-top">10</property>
             <property name="margin-bottom">10</property>
-            <property name="xalign">0</property>
-            <style>
-              <class name="caption-heading"/>
-              <class name="dimmed"/>
-            </style>
+            <child type="start">
+              <object class="GtkLabel" id="count_label">
+                <property name="xalign">0</property>
+                <style>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </child>
+            <child type="center">
+              <object class="GtkLabel" id="mode_label">
+                <property name="margin-start">36</property>
+                <property name="margin-end">36</property>
+                <property name="xalign">0</property>
+                <property name="label">Search Mode: All</property>
+                <style>
+                  <class name="caption-heading"/>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </child>
           </object>
         </child>
       </object>

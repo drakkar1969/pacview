@@ -21,7 +21,6 @@ use crate::{
 // ENUM: BackupSearchMode
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, AsRefStr)]
-#[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "BackupSearchMode")]
 pub enum BackupSearchMode {
@@ -75,7 +74,9 @@ mod imp {
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
 
         #[template_child]
-        pub(super) footer_label: TemplateChild<gtk::Label>,
+        pub(super) count_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) mode_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
         is_loaded: Cell<bool>,
@@ -309,11 +310,15 @@ impl BackupWindow {
 
             let search_mode = window.search_mode();
 
-            if search_mode == BackupSearchMode::All {
-                imp.search_entry.set_placeholder_text(Some("Search all"));
+            let placeholder = if search_mode == BackupSearchMode::All {
+                String::from("Search all")
             } else {
-                imp.search_entry.set_placeholder_text(Some(&format!("Search for {}", search_mode.as_ref())));
-            }
+                format!("Search for {}", search_mode.as_ref().to_ascii_lowercase())
+            };
+
+            imp.search_entry.set_placeholder_text(Some(&placeholder));
+
+            imp.mode_label.set_label(&format!("Search Mode: {}", search_mode.as_ref()));
 
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
@@ -356,7 +361,7 @@ impl BackupWindow {
                     }
                 );
 
-                imp.footer_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
+                imp.count_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
 
                 let status = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
