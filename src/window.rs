@@ -362,12 +362,6 @@ mod imp {
                 Propagation::Stop
             });
 
-            klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_active_tab("log");
-
-                Propagation::Stop
-            });
-
             // Infopane previous/next key bindings
             klass.add_binding(Key::Left, ModifierType::ALT_MASK, |window| {
                 window.imp().info_pane.activate_action("info.previous", None).unwrap();

@@ -1,5 +1,4 @@
 use std::cell::{RefCell, OnceCell};
-use std::sync::LazyLock;
 use std::cmp::Ordering;
 
 use gtk::{glib, gio};
@@ -9,9 +8,7 @@ use glib::GString;
 
 use alpm::{Alpm, Package};
 use alpm_utils::DbListExt;
-use regex::Regex;
 use size::Size;
-use tokio::sync::OnceCell as TokioOnceCell;
 
 use crate::{
     utils::{Paths, Pacman},
@@ -107,8 +104,6 @@ mod imp {
 
         pub(super) files: OnceCell<Vec<String>>,
         pub(super) backup: OnceCell<Vec<PkgBackup>>,
-
-        pub(super) log: TokioOnceCell<Vec<String>>,
     }
 
     //---------------------------------------
@@ -479,40 +474,6 @@ impl PkgObject {
                 .map(|pkg| PkgHashes::new(pkg.base64_sig(), pkg.sha256sum(), pkg.md5sum()))
                 .unwrap_or_default()
         })
-    }
-
-    //---------------------------------------
-    // Future properties
-    //---------------------------------------
-    #[allow(clippy::future_not_send)]
-    pub async fn log_future(&self) -> &[String] {
-        self.imp().log.get_or_init(async || {
-            static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                Regex::new(r"\[([^T]+)T([^+]+)\+.+?\] \[ALPM\] (installed|removed|upgraded|downgraded) (.+?) (.+)").expect("Failed to compile Regex")
-            });
-
-            let pkg_name = self.name();
-
-            gio::spawn_blocking(move || {
-                let pacman_log = Pacman::log().read().unwrap();
-
-                pacman_log.as_ref().map_or(vec![], |log| {
-                    log.lines().rev()
-                        .filter(|&line| line.contains(&pkg_name))
-                        .filter_map(|line| {
-                            let caps = EXPR.captures(line)?;
-
-                            (caps[4] == pkg_name).then(|| {
-                                format!("[{}  {}]  {} {} {}", &caps[1], &caps[2], &caps[3], &caps[4], &caps[5])
-                            })
-                    })
-                    .collect()
-                })
-            })
-            .await
-            .expect("Failed to complete task")
-        })
-        .await
     }
 
     //---------------------------------------

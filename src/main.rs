@@ -9,7 +9,6 @@ mod package_item;
 mod info_pane;
 mod info_details_tab;
 mod info_files_tab;
-mod info_log_tab;
 mod hash_window;
 mod info_row;
 mod history_list;

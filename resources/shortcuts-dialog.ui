@@ -227,12 +227,6 @@
             <property name="title">View Files Tab</property>
           </object>
         </child>
-        <child>
-          <object class="AdwShortcutsItem">
-            <property name="accelerator">&lt;alt&gt;L</property>
-            <property name="title">View Log Tab</property>
-          </object>
-        </child>
       </object>
     </child>
     <child>

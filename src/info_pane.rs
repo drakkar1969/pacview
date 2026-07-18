@@ -11,7 +11,6 @@ use crate::{
     package_view::PackageView,
     info_details_tab::InfoDetailsTab,
     info_files_tab::InfoFilesTab,
-    info_log_tab::InfoLogTab,
     history_list::HistoryList,
     pkg_object::PkgObject,
     text_widget::TextWidget
@@ -46,8 +45,6 @@ mod imp {
         pub(super) info_tab: TemplateChild<InfoDetailsTab>,
         #[template_child]
         pub(super) files_tab: TemplateChild<InfoFilesTab>,
-        #[template_child]
-        pub(super) log_tab: TemplateChild<InfoLogTab>,
 
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         pkg: PhantomData<Option<PkgObject>>,
@@ -262,9 +259,8 @@ impl InfoPane {
             if let Some(delay_id) = imp.update_delay_id.take() {
                 delay_id.remove();
 
-                // Clear files/log tabs
+                // Clear files tab
                 imp.files_tab.pause_view();
-                imp.log_tab.pause_view();
             }
 
             // Start delay timer
@@ -273,9 +269,8 @@ impl InfoPane {
                 clone!(
                     #[weak] imp,
                     move || {
-                        // Populate files/log tabs
+                        // Populate files tab
                         imp.files_tab.update_view(&pkg);
-                        imp.log_tab.update_view(&pkg);
 
                         imp.update_delay_id.take();
                     }

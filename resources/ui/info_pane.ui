@@ -92,16 +92,6 @@
                         </property>
                       </object>
                     </child>
-                    <child>
-                      <object class="AdwViewStackPage">
-                        <property name="name">log</property>
-                        <property name="title">Log</property>
-                        <property name="icon-name">document-edit-symbolic</property>
-                        <property name="child">
-                          <object class="InfoLogTab" id="log_tab"/>
-                        </property>
-                      </object>
-                    </child>
                   </object>
                 </property>
               </object>
