@@ -7,7 +7,7 @@ use gtk::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
-use strum::AsRefStr;
+use strum::{EnumIter, IntoEnumIterator, AsRefStr};
 
 use crate::{
     groups_object::GroupsObject,
@@ -17,7 +17,7 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: GroupsSearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, AsRefStr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, AsRefStr)]
 #[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "GroupsSearchMode")]
@@ -131,6 +131,26 @@ mod imp {
             // Search mode property action
             klass.install_property_action("search.set-mode", "search-mode");
 
+            // Cycle search mode action
+            klass.install_action("search.cycle-mode", None, |window, _, _| {
+                let new_mode = GroupsSearchMode::iter().cycle()
+                    .skip_while(|&mode| mode != window.search_mode())
+                    .nth(1)
+                    .expect("Failed to get 'GroupsSearchMode'");
+
+                window.set_search_mode(new_mode);
+            });
+
+            // Reverse cycle search mode action
+            klass.install_action("search.reverse-cycle-mode", None, |window, _, _| {
+                let new_mode = GroupsSearchMode::iter().rev().cycle()
+                    .skip_while(|&mode| mode != window.search_mode())
+                    .nth(1)
+                    .expect("Failed to get 'GroupsSearchMode'");
+
+                window.set_search_mode(new_mode);
+            });
+
             // Installed only property action
             klass.install_property_action("groups.installed-only", "installed-only");
 
@@ -174,6 +194,10 @@ mod imp {
 
                 Propagation::Stop
             });
+
+            // Cycle search mode key bindings
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK, "search.cycle-mode");
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
 
             // Installed key binding
             klass.add_binding_action(Key::I, ModifierType::CONTROL_MASK, "groups.installed-only");

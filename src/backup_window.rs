@@ -8,7 +8,7 @@ use gtk::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
-use strum::AsRefStr;
+use strum::{EnumIter, IntoEnumIterator, AsRefStr};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
@@ -20,7 +20,7 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: BackupSearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, AsRefStr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter, AsRefStr)]
 #[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "BackupSearchMode")]
@@ -143,6 +143,26 @@ mod imp {
             // Search mode property action
             klass.install_property_action("search.set-mode", "search-mode");
 
+            // Cycle search mode action
+            klass.install_action("search.cycle-mode", None, |window, _, _| {
+                let new_mode = BackupSearchMode::iter().cycle()
+                    .skip_while(|&mode| mode != window.search_mode())
+                    .nth(1)
+                    .expect("Failed to get 'BackupSearchMode'");
+
+                window.set_search_mode(new_mode);
+            });
+
+            // Reverse cycle search mode action
+            klass.install_action("search.reverse-cycle-mode", None, |window, _, _| {
+                let new_mode = BackupSearchMode::iter().rev().cycle()
+                    .skip_while(|&mode| mode != window.search_mode())
+                    .nth(1)
+                    .expect("Failed to get 'BackupSearchMode'");
+
+                window.set_search_mode(new_mode);
+            });
+
             // Compare action
             klass.install_action_async("backup.compare", None, async |window, _, _| {
                 if let Some(backup_file) = window.imp().selection.selected_item()
@@ -200,6 +220,10 @@ mod imp {
 
                 Propagation::Stop
             });
+
+            // Cycle search mode key bindings
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK, "search.cycle-mode");
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
 
             // Compare key binding
             klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "backup.compare");

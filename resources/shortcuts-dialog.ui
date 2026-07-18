@@ -305,6 +305,12 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;M</property>
+            <property name="title">Cycle Search Mode</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;P</property>
             <property name="title">Compare Backup File with Original</property>
           </object>
@@ -358,6 +364,12 @@
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;F</property>
             <property name="title">Search for Packages or Groups</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;M</property>
+            <property name="title">Cycle Search Mode</property>
           </object>
         </child>
         <child>
