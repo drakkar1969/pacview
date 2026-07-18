@@ -210,12 +210,12 @@
         <attribute name="target">all</attribute>
       </item>
       <item>
-        <attribute name="label">Package Events Only</attribute>
+        <attribute name="label">Packages</attribute>
         <attribute name="action">search.set-mode</attribute>
         <attribute name="target">packages</attribute>
       </item>
       <item>
-        <attribute name="label">Package Events Only (Exact)</attribute>
+        <attribute name="label">Packages (Exact)</attribute>
         <attribute name="action">search.set-mode</attribute>
         <attribute name="target">exact</attribute>
       </item>

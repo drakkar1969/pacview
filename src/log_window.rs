@@ -296,7 +296,7 @@ impl LogWindow {
                 if window.search_mode() == LogSearchMode::All {
                     is_match(&msg)
                 } else {
-                    let Some((prefix, msg, _)) = msg.splitn(3, ' ').collect_tuple() else {
+                    let Some((prefix, package, _)) = msg.splitn(3, ' ').collect_tuple() else {
                         return false;
                     };
 
@@ -305,9 +305,9 @@ impl LogWindow {
                     }
 
                     if window.search_mode() == LogSearchMode::Packages {
-                        is_match(msg)
+                        is_match(package)
                     } else {
-                        msg.eq_ignore_ascii_case(&search_term)
+                        package.eq_ignore_ascii_case(&search_term)
                     }
                 }
             }
