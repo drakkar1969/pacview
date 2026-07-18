@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::sync::LazyLock;
 use std::fs;
 use std::fmt::Write as _;
@@ -9,6 +9,7 @@ use gtk::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
+use itertools::Itertools;
 use regex::Regex;
 use size::Size;
 
@@ -16,6 +17,19 @@ use crate::{
     utils::Pacman,
     log_object::{LogLine, LogObject}
 };
+
+//------------------------------------------------------------------------------
+// ENUM: LogSearchMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "LogSearchMode")]
+pub enum LogSearchMode {
+    #[default]
+    All,
+    Packages,
+    Exact,
+}
 
 //------------------------------------------------------------------------------
 // MODULE: LogWindow
@@ -48,9 +62,7 @@ mod imp {
         #[template_child]
         pub(super) selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
-        pub(super) search_filter: TemplateChild<gtk::StringFilter>,
-        #[template_child]
-        pub(super) package_filter: TemplateChild<gtk::CustomFilter>,
+        pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
@@ -59,8 +71,10 @@ mod imp {
 
         #[property(get, set)]
         is_loaded: Cell<bool>,
-        #[property(get, set)]
-        packages_only: Cell<bool>,
+        #[property(get, set, builder(LogSearchMode::default()))]
+        search_mode: Cell<LogSearchMode>,
+
+        pub(super) search_term: RefCell<String>,
     }
 
     //---------------------------------------
@@ -113,8 +127,8 @@ mod imp {
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Packages only property action
-            klass.install_property_action("log.packages-only", "packages-only");
+            // Search mode property action
+            klass.install_property_action("search.set-mode", "search-mode");
 
             // Copy action
             klass.install_action("log.copy", None, |window, _, _| {
@@ -150,9 +164,6 @@ mod imp {
                 Propagation::Stop
             });
 
-            // Filter package events key binding
-            klass.add_binding_action(Key::P, ModifierType::CONTROL_MASK, "log.packages-only");
-
             // Copy key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "log.copy");
         }
@@ -178,14 +189,28 @@ impl LogWindow {
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
-            move |entry| {
-                imp.search_filter.set_search(Some(&entry.text()));
+            move |_| {
+                let term = imp.search_entry.text().trim().to_lowercase();
+
+                imp.search_term.replace(term);
+
+                imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
-        // Packages only property notify signal
-        self.connect_packages_only_notify(|window| {
-            window.imp().package_filter.changed(gtk::FilterChange::Different);
+        // Search mode property notify signal
+        self.connect_search_mode_notify(|window| {
+            let imp = window.imp();
+
+            let text = match window.search_mode() {
+                LogSearchMode::All => "Search for messages",
+                LogSearchMode::Packages => "Search for packages",
+                LogSearchMode::Exact => "Search for packages (exact)"
+            };
+
+            imp.search_entry.set_placeholder_text(Some(text));
+
+            imp.search_filter.changed(gtk::FilterChange::Different);
         });
 
         // Selection items changed signal
@@ -203,7 +228,6 @@ impl LogWindow {
                 imp.footer_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
                 window.action_set_enabled("log.copy", n_items > 0);
-                window.action_set_enabled("log.packages-only", n_items > 0);
             }
         ));
     }
@@ -214,8 +238,9 @@ impl LogWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
-        // Set search bar key capture widget
+        // Set search bar key capture widget and connect entry
         imp.search_bar.set_key_capture_widget(Some(&imp.view.get()));
+        imp.search_bar.connect_entry(&imp.search_entry.get());
 
         // Bind search button state to search bar visibility
         imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
@@ -223,20 +248,44 @@ impl LogWindow {
             .sync_create()
             .build();
 
-        // Set package filter function
-        imp.package_filter.set_filter_func(clone!(
+        // Set search filter function
+        imp.search_filter.set_filter_func(clone!(
             #[weak(rename_to = window)] self,
             #[upgrade_or] false,
             move |item| {
-                if window.packages_only() {
-                    let msg = item
-                        .downcast_ref::<LogObject>()
-                        .expect("Failed to downcast to 'LogObject'")
-                        .message();
+                let search_term = window.imp().search_term.borrow();
 
-                    msg.starts_with("installed ") || msg.starts_with("removed ") || msg.starts_with("upgraded ") || msg.starts_with("downgraded ")
+                if search_term.is_empty() {
+                    return true;
+                }
+
+                let msg = item
+                    .downcast_ref::<LogObject>()
+                    .expect("Failed to downcast to 'LogObject'")
+                    .message();
+
+                let is_match = |prop: &str| -> bool {
+                    prop.as_bytes()
+                        .windows(search_term.len())
+                        .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
+                };
+
+                if window.search_mode() == LogSearchMode::All {
+                    is_match(&msg)
                 } else {
-                    true
+                    let Some((prefix, msg, _)) = msg.splitn(3, ' ').collect_tuple() else {
+                        return false;
+                    };
+
+                    if !(prefix == "installed" || prefix == "removed" || prefix == "upgraded" || prefix == "downgraded") {
+                        return false;
+                    }
+
+                    if window.search_mode() == LogSearchMode::Packages {
+                        is_match(msg)
+                    } else {
+                        msg.eq_ignore_ascii_case(&search_term)
+                    }
                 }
             }
         ));
