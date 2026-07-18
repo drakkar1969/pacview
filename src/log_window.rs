@@ -10,6 +10,7 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use itertools::Itertools;
+use strum::{EnumIter, IntoEnumIterator};
 use regex::Regex;
 use size::Size;
 
@@ -21,7 +22,7 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: LogSearchMode
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, EnumIter)]
 #[repr(u32)]
 #[enum_type(name = "LogSearchMode")]
 pub enum LogSearchMode {
@@ -130,6 +131,26 @@ mod imp {
             // Search mode property action
             klass.install_property_action("search.set-mode", "search-mode");
 
+            // Cycle search mode action
+            klass.install_action("search.cycle-mode", None, |window, _, _| {
+                let new_mode = LogSearchMode::iter().cycle()
+                    .skip_while(|&mode| mode != window.search_mode())
+                    .nth(1)
+                    .expect("Failed to get 'LogSearchMode'");
+
+                window.set_search_mode(new_mode);
+            });
+
+            // Reverse cycle search mode action
+            klass.install_action("search.reverse-cycle-mode", None, |window, _, _| {
+                let new_mode = LogSearchMode::iter().rev().cycle()
+                    .skip_while(|&mode| mode != window.search_mode())
+                    .nth(1)
+                    .expect("Failed to get 'LogSearchMode'");
+
+                window.set_search_mode(new_mode);
+            });
+
             // Copy action
             klass.install_action("log.copy", None, |window, _, _| {
                 let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
@@ -163,6 +184,10 @@ mod imp {
 
                 Propagation::Stop
             });
+
+            // Cycle search mode key bindings
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK, "search.cycle-mode");
+            klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
 
             // Copy key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "log.copy");

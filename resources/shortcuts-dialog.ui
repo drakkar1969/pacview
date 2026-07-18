@@ -408,6 +408,12 @@
         </child>
         <child>
           <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;M</property>
+            <property name="title">Cycle Search Mode</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
             <property name="title">Copy Log Messages</property>
           </object>
