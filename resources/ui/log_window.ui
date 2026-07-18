@@ -52,7 +52,7 @@
                     <child>
                       <object class="GtkSearchEntry" id="search_entry">
                         <property name="width-request">350</property>
-                        <property name="placeholder-text">Search in messages</property>
+                        <property name="placeholder-text">Search for messages</property>
                       </object>
                     </child>
                     <child>
