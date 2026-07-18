@@ -39,7 +39,7 @@
         </property>
         <property name="center-widget">
           <object class="GtkSearchEntry" id="search_entry">
-            <property name="placeholder-text">Search for files</property>
+            <property name="placeholder-text">Search</property>
           </object>
         </property>
         <property name="end-widget">

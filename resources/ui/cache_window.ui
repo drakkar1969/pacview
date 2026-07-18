@@ -57,7 +57,7 @@
                 <property name="child">
                   <object class="GtkSearchEntry" id="search_entry">
                     <property name="width-request">350</property>
-                    <property name="placeholder-text">Search for files</property>
+                    <property name="placeholder-text">Search</property>
                   </object>
                 </property>
               </object>

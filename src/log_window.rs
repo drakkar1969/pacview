@@ -231,14 +231,6 @@ impl LogWindow {
 
             let mode = window.search_mode();
 
-            let placeholder = match mode {
-                LogSearchMode::All => "Search for messages",
-                LogSearchMode::Packages => "Search for packages",
-                LogSearchMode::Exact => "Search for packages (exact)"
-            };
-
-            imp.search_entry.set_placeholder_text(Some(placeholder));
-
             imp.mode_label.set_label(&format!("Search Mode: {}", mode.as_ref()));
 
             imp.search_filter.changed(gtk::FilterChange::Different);

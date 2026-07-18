@@ -243,14 +243,6 @@ impl GroupsWindow {
 
             let search_mode = window.search_mode();
 
-            let placeholder = if search_mode == GroupsSearchMode::All {
-                String::from("Search all")
-            } else {
-                format!("Search for {}", search_mode.as_ref().to_ascii_lowercase())
-            };
-
-            imp.search_entry.set_placeholder_text(Some(&placeholder));
-
             imp.mode_label.set_label(&format!("Search Mode: {}", search_mode.as_ref()));
 
             imp.search_filter.changed(gtk::FilterChange::Different);
