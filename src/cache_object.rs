@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::path::Path;
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
@@ -18,6 +19,8 @@ mod imp {
     pub struct CacheObject {
         #[property(get, set, construct_only)]
         path: RefCell<String>,
+        #[property(get, set, construct_only)]
+        filename: RefCell<String>,
     }
 
     //---------------------------------------
@@ -46,8 +49,14 @@ impl CacheObject {
     //---------------------------------------
     pub fn new(path: &str) -> Self {
         // Build CacheObject
+        let filename = Path::new(path)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or_default();
+
         glib::Object::builder()
             .property("path", path)
+            .property("filename", filename)
             .build()
     }
 }

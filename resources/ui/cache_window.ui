@@ -81,11 +81,7 @@
                             <property name="model">
                               <object class="GtkFilterListModel" id="filter_model">
                                 <property name="filter">
-                                  <object class="GtkStringFilter" id="search_filter">
-                                    <property name="expression">
-                                      <lookup name="path" type="CacheObject"/>
-                                    </property>
-                                  </object>
+                                  <object class="GtkCustomFilter" id="search_filter"/>
                                 </property>
                                 <property name="model">
                                   <object class="GListStore" id="model">

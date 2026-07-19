@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::fmt::Write as _;
 use std::os::unix::fs::MetadataExt;
 
@@ -45,7 +45,7 @@ mod imp {
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]
-        pub(super) search_filter: TemplateChild<gtk::StringFilter>,
+        pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
 
         #[template_child]
         pub(super) footer_label: TemplateChild<gtk::Label>,
@@ -54,6 +54,8 @@ mod imp {
 
         #[property(get, set)]
         is_loaded: Cell<bool>,
+
+        pub(super) search_term: RefCell<String>,
     }
 
     //---------------------------------------
@@ -170,8 +172,12 @@ impl CacheWindow {
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
-            move |entry| {
-                imp.search_filter.set_search(Some(&entry.text()));
+            move |_| {
+                let term = imp.search_entry.text().trim().to_lowercase();
+
+                imp.search_term.replace(term);
+
+                imp.search_filter.changed(gtk::FilterChange::Different);
             }
         ));
 
@@ -218,6 +224,26 @@ impl CacheWindow {
             .sync_create()
             .build();
 
+        // Set search filter function
+        imp.search_filter.set_filter_func(clone!(
+            #[weak(rename_to = window)] self,
+            #[upgrade_or] false,
+            move |item| {
+                let search_term = window.imp().search_term.borrow();
+
+                if search_term.is_empty() {
+                    return true;
+                }
+
+                let obj = item
+                    .downcast_ref::<CacheObject>()
+                    .expect("Failed to downcast to 'CacheObject'");
+
+                obj.filename().as_bytes()
+                    .windows(search_term.len())
+                    .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
+            }
+        ));
         // Set initial focus on view
         imp.view.grab_focus();
     }
