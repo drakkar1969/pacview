@@ -403,6 +403,11 @@ impl BackupWindow {
             .sync_create()
             .build();
 
+        // Bind search bar visibility to mode label visibility
+        imp.search_button.bind_property("active", &imp.mode_label.get(), "visible")
+            .sync_create()
+            .build();
+
         // Bind can compare property to compare button visibility
         self.bind_property("can-compare", &imp.compare_button.get(), "visible")
             .sync_create()

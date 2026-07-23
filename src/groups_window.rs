@@ -301,6 +301,11 @@ impl GroupsWindow {
             .sync_create()
             .build();
 
+        // Bind search bar visibility to mode label visibility
+        imp.search_button.bind_property("active", &imp.mode_label.get(), "visible")
+            .sync_create()
+            .build();
+
         // Set search filter function
         imp.search_filter.set_filter_func(clone!(
             #[weak(rename_to = window)] self,
