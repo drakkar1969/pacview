@@ -24,7 +24,7 @@
                       <object class="GtkToggleButton" id="search_button">
                         <property name="active">false</property>
                         <property name="icon-name">edit-find-symbolic</property>
-                        <property name="tooltip-text">Toggle Search</property>
+                        <property name="tooltip-text">Search</property>
                       </object>
                     </child>
                     <child>
