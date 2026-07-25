@@ -238,10 +238,8 @@ impl GroupsWindow {
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
-            move |_| {
-                let term = imp.search_entry.text().trim().to_lowercase();
-
-                imp.search_term.replace(term);
+            move |entry| {
+                imp.search_term.replace(entry.text().trim().to_lowercase());
 
                 imp.search_filter.changed(gtk::FilterChange::Different);
             }
