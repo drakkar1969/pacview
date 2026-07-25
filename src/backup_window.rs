@@ -292,6 +292,16 @@ impl BackupWindow {
             );
         });
 
+        // Search bar search mode enabled signal
+        imp.search_bar.connect_search_mode_enabled_notify(clone!(
+            #[weak] imp,
+            move |bar| {
+                if !bar.is_search_mode() {
+                    imp.view.grab_focus();
+                }
+            }
+        ));
+
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
