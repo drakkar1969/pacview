@@ -4,7 +4,7 @@ use std::fmt::Write as _;
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use gtk::{glib, gio};
-use glib::{clone, Propagation};
+use glib::clone;
 
 use crate::{
     pkg_object::PkgObject,
@@ -29,7 +29,12 @@ mod imp {
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
         #[template_child]
+        pub(super) search_button: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
+        pub(super) search_bar: TemplateChild<gtk::SearchBar>,
+        #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+
         #[template_child]
         pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
@@ -195,6 +200,12 @@ impl InfoFilesTab {
         // Set search entry key capture widget
         imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
 
+        // Bind search button state to search bar visibility
+        imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
+            .bidirectional()
+            .sync_create()
+            .build();
+
         // Set folder filter function
         imp.folder_filter.set_filter_func(clone!(
             #[weak(rename_to = tab)] self,
@@ -211,26 +222,6 @@ impl InfoFilesTab {
                 }
             }
         ));
-
-        // Add keyboard shortcut to cancel search
-        let shortcut = gtk::Shortcut::new(
-            gtk::ShortcutTrigger::parse_string("Escape"),
-            Some(gtk::CallbackAction::new(clone!(
-                #[weak] imp,
-                #[upgrade_or] Propagation::Proceed,
-                move |_, _| {
-                    imp.search_entry.set_text("");
-                    imp.view.grab_focus();
-
-                    Propagation::Stop
-                }
-            )))
-        );
-
-        let controller = gtk::ShortcutController::new();
-        controller.add_shortcut(shortcut);
-
-        imp.search_entry.add_controller(controller);
     }
 
     //---------------------------------------
