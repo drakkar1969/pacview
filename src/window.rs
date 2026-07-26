@@ -637,7 +637,7 @@ impl PacViewWindow {
             Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
         });
 
-        let pacman_config = Pacman::config();
+        let pacman_config = Pacman::config().read().unwrap();
 
         let log_lines = fs::read_to_string(&pacman_config.log_file).ok()
             .map(|log| ANSI_EXPR.replace_all(&log, "").into_owned());
@@ -662,7 +662,7 @@ impl PacViewWindow {
         Pacman::set_cache(cache_files);
 
         // Init config dialog
-        let config_dialog = ConfigDialog::new(pacman_config);
+        let config_dialog = ConfigDialog::new(&pacman_config);
 
         imp.config_dialog.replace(config_dialog);
 
@@ -778,9 +778,9 @@ impl PacViewWindow {
 
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
-            let pacman_config = Pacman::config();
+            let pacman_config = Pacman::config().read().unwrap();
 
-            let alpm_handle = alpm_utils::alpm_with_conf(pacman_config)?;
+            let alpm_handle = alpm_utils::alpm_with_conf(&pacman_config)?;
 
             // Load AUR package names from file if AUR download is enabled in preferences
             let aur_file = if aur_download {
@@ -1038,7 +1038,7 @@ impl PacViewWindow {
                 }
             ) {
                 // Watch pacman local db path
-                let path = Path::new(&Pacman::config().db_path).join("local");
+                let path = Path::new(&Pacman::config().read().unwrap().db_path).join("local");
 
                 if debouncer.watch(&path, RecursiveMode::Recursive).is_ok() {
                     // Store debouncer

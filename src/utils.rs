@@ -75,9 +75,9 @@ impl Pacman {
     //---------------------------------------
     // Config function
     //---------------------------------------
-    pub fn config() -> &'static pacmanconf::Config {
-        static PACMAN_CONFIG: LazyLock<pacmanconf::Config> = LazyLock::new(|| {
-            pacmanconf::Config::new().expect("Failed to get pacman config")
+    pub fn config() -> &'static RwLock<pacmanconf::Config> {
+        static PACMAN_CONFIG: LazyLock<RwLock<pacmanconf::Config>> = LazyLock::new(|| {
+            RwLock::new(pacmanconf::Config::new().expect("Failed to get pacman config"))
         });
 
         &PACMAN_CONFIG

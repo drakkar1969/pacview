@@ -194,7 +194,7 @@ impl PkgObject {
             "aur" => {
                 Some(format!("https://aur.archlinux.org/packages/{}", data.name))
             }
-            _ if Pacman::config().repos.iter().any(|r| &r.name == repo) => {
+            _ if Pacman::config().read().unwrap().repos.iter().any(|r| &r.name == repo) => {
                 Some(format!("https://www.archlinux.org/packages/{}/{}/{}/",
                     repo, data.architecture.clone().unwrap_or_default(), data.name))
             }
@@ -216,7 +216,7 @@ impl PkgObject {
 
                 Some(format!("{domain}/tree/PKGBUILD?h={name}"))
             }
-            _ if Pacman::config().repos.iter().any(|r| &r.name == repo) => {
+            _ if Pacman::config().read().unwrap().repos.iter().any(|r| &r.name == repo) => {
                 let domain = "https://gitlab.archlinux.org/archlinux/packaging/packages";
 
                 Some(format!("{domain}/{name}/-/blob/main/PKGBUILD"))
@@ -353,9 +353,9 @@ impl PkgObject {
     //---------------------------------------
     pub fn init_alpm_handle() {
         Self::with_alpm_handle(|handle| {
-            let pacman_config = Pacman::config();
+            let pacman_config = Pacman::config().read().unwrap();
 
-            let alpm_handle = alpm_utils::alpm_with_conf(pacman_config).ok();
+            let alpm_handle = alpm_utils::alpm_with_conf(&pacman_config).ok();
 
             handle.replace(alpm_handle);
         });

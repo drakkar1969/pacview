@@ -77,7 +77,7 @@ mod imp {
         //---------------------------------------
         fn status(&self) -> BackupStatus {
             *self.status.get_or_init(|| {
-                let path = Pacman::config().root_dir.clone() + &self.path.borrow();
+                let path = Pacman::config().read().unwrap().root_dir.clone() + &self.path.borrow();
 
                 let file_hash = alpm::compute_md5sum(path.as_str());
 

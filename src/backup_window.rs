@@ -176,7 +176,8 @@ mod imp {
             klass.install_action_async("backup.open", None, async |window, _, _| {
                 if let Some(backup_file) = window.imp().selection.selected_item()
                     .and_downcast::<BackupObject>() {
-                        let path = Pacman::config().root_dir.clone() + &backup_file.path();
+                        let path = Pacman::config().read().unwrap().root_dir.clone() +
+                            &backup_file.path();
 
                         AppInfoExt::open_with_default_app(&path).await;
                     }
@@ -498,7 +499,7 @@ impl BackupWindow {
         let paccat = Paths::paccat().as_ref()
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
-        let path = Pacman::config().root_dir.clone() + &backup.path();
+        let path = Pacman::config().read().unwrap().root_dir.clone() + &backup.path();
 
         // Create and store compare cancel token
         let cancel_token = CancellationToken::new();

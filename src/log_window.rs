@@ -386,7 +386,7 @@ impl LogWindow {
                 }
 
                 // Get log file size
-                let size = fs::metadata(&Pacman::config().log_file)
+                let size = fs::metadata(&Pacman::config().read().unwrap().log_file)
                     .map(|metadata| metadata.len())
                     .unwrap_or_default();
 

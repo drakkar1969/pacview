@@ -273,7 +273,7 @@ impl CacheWindow {
                 imp.model.splice(0, imp.model.n_items(), &cache_files);
 
                 // Get cache size
-                let size = 512u64 * Pacman::config().cache_dir.iter()
+                let size = 512u64 * Pacman::config().read().unwrap().cache_dir.iter()
                     .flat_map(|dir| {
                         WalkDir::new(dir)
                             .into_iter()
