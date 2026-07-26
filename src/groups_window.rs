@@ -285,7 +285,10 @@ impl GroupsWindow {
                     if n_items == 0 { "empty" } else { "view" }
                 );
 
-                imp.count_label.set_label(&format!("{n_items} packages in {n_sections} group{}", if n_sections == 1 { "" } else { "s" }));
+                imp.count_label.set_label(&format!("{n_items} package{} in {n_sections} group{}",
+                    if n_items == 1 { "" } else { "s" },
+                    if n_sections == 1 { "" } else { "s" }
+                ));
 
                 window.action_set_enabled("groups.copy", n_items > 0);
                 window.action_set_enabled("groups.installed-only", n_items > 0);

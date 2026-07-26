@@ -361,7 +361,10 @@ impl BackupWindow {
                     }
                 );
 
-                imp.count_label.set_label(&format!("{n_items} files in {n_sections} package{}", if n_sections == 1 { "" } else { "s" }));
+                imp.count_label.set_label(&format!("{n_items} file{} in {n_sections} package{}",
+                    if n_items == 1 { "" } else { "s" },
+                    if n_sections == 1 { "" } else { "s" }
+                ));
 
                 let status = imp.selection.selected_item()
                     .and_downcast::<BackupObject>()
