@@ -99,6 +99,19 @@
       </item>
     </section>
     <section>
+      <submenu>
+        <attribute name="label">Root Dir</attribute>
+        <item>
+          <attribute name="label">Change Root Dir…</attribute>
+          <attribute name="action">win.change-root-dir</attribute>
+        </item>
+        <item>
+          <attribute name="label">Reset to Default</attribute>
+          <attribute name="action">win.reset-root-dir</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
       <item>
         <attribute name="label">Copy Package List</attribute>
         <attribute name="action">win.copy-package-list</attribute>

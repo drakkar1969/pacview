@@ -197,6 +197,77 @@ mod imp {
                 }
             });
 
+            // Change root dir action
+            klass.install_action_async("win.change-root-dir", None, async |window, _, _| {
+                let root_dir = Pacman::config().read().unwrap().root_dir.clone();
+
+                let dialog = gtk::FileDialog::builder()
+                    .initial_folder(&gio::File::for_path(&root_dir))
+                    .build();
+
+                if let Ok(folder) = dialog.select_folder_future(Some(&window)).await {
+                    let result = folder.path()
+                        .map_or_else(|| Err("Path not found".into()), |path| {
+                            Pacman::set_root_dir(&path).map_err(|err| err.to_string())
+                        });
+
+                    match result {
+                        Ok(()) => {
+                            // Set action states
+                            window.action_set_enabled("win.check-updates", Pacman::is_default_root_dir());
+                            window.action_set_enabled("win.update-aur-database", Pacman::is_default_root_dir());
+
+                            // Refresh packages
+                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                                .unwrap();
+                        }
+
+                        Err(error) => {
+                            // Show warning dialog
+                            let warning_dialog = adw::AlertDialog::builder()
+                                .follows_content_size(true)
+                                .heading("PacmanConf Error")
+                                .body(error)
+                                .default_response("ok")
+                                .build();
+
+                            warning_dialog.add_responses(&[("ok", "_Ok")]);
+
+                            warning_dialog.present(Some(&window));
+                        }
+                    }
+                }
+            });
+
+            // Reset root dir action
+            klass.install_action("win.reset-root-dir", None, |window, _, _| {
+                match Pacman::set_root_dir(Path::new("/")).map_err(|err| err.to_string()) {
+                    Ok(()) => {
+                        // Set action states
+                        window.action_set_enabled("win.check-updates", true);
+                        window.action_set_enabled("win.update-aur-database", true);
+
+                        // Refresh packages
+                        gtk::prelude::WidgetExt::activate_action(window, "win.refresh", None)
+                            .unwrap();
+                    }
+
+                    Err(error) => {
+                        // Show warning dialog
+                        let warning_dialog = adw::AlertDialog::builder()
+                            .follows_content_size(true)
+                            .heading("PacmanConf Error")
+                            .body(error)
+                            .default_response("ok")
+                            .build();
+
+                        warning_dialog.add_responses(&[("ok", "_Ok")]);
+
+                        warning_dialog.present(Some(window));
+                    }
+                }
+            });
+
             // Package view copy list action
             klass.install_action("win.copy-package-list", None, |window, _, _| {
                  window.imp().package_view.copy_list();
@@ -297,6 +368,12 @@ mod imp {
 
             // View update AUR database key binding
             klass.add_binding_action(Key::F7, ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
+
+            // Change root dir key binding
+            klass.add_binding_action(Key::R, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, "win.change-root-dir");
+
+            // Reset root dir key binding
+            klass.add_binding_action(Key::D, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, "win.reset-root-dir");
 
             // View copy list key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::ALT_MASK, "win.copy-package-list");
@@ -767,6 +844,9 @@ impl PacViewWindow {
                 }
             }
         }
+
+        // If using custom root dir, disable update row
+        imp.update_item.borrow().set_enabled(Pacman::is_default_root_dir());
     }
 
     //---------------------------------------
@@ -877,8 +957,10 @@ impl PacViewWindow {
 
                 match result {
                     Ok(()) => {
-                        // Get package updates
-                        window.get_package_updates().await;
+                        if Pacman::is_default_root_dir() {
+                            // Get package updates
+                            window.get_package_updates().await;
+                        }
 
                         // Check AUR package names file age
                         let max_age = imp.prefs_dialog.borrow().aur_database_age() as u64;

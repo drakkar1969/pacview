@@ -84,6 +84,31 @@ impl Pacman {
     }
 
     //---------------------------------------
+    // Set root dir function
+    //---------------------------------------
+    pub fn set_root_dir(root_dir: &Path) -> Result<(), pacmanconf::Error> {
+        let mut pacman_config = Self::config().write().unwrap();
+
+        let conf_path = root_dir.join("etc/pacman.conf");
+
+        let config = pacmanconf::Config::options()
+            .root_dir(root_dir.display().to_string())
+            .pacman_conf(conf_path.display().to_string())
+            .read()?;
+
+        *pacman_config = config;
+
+        Ok(())
+    }
+
+    //---------------------------------------
+    // Is default root dir function
+    //---------------------------------------
+    pub fn is_default_root_dir() -> bool {
+        Self::config().read().unwrap().root_dir == "/"
+    }
+
+    //---------------------------------------
     // Log functions
     //---------------------------------------
     pub fn log() -> &'static RwLock<Option<String>> {

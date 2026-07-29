@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
@@ -5,7 +7,7 @@ use glib::VariantTy;
 
 use crate::{
     config_row::ConfigRow,
-    utils::AppInfoExt
+    utils::{AppInfoExt, Pacman}
 };
 
 //------------------------------------------------------------------------------
@@ -70,7 +72,12 @@ mod imp {
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Open config action
             klass.install_action_async("conf.config", None, async |_, _, _| {
-                AppInfoExt::open_with_default_app("/etc/pacman.conf").await;
+                let conf_path = Path::new(&Pacman::config().read().unwrap().root_dir)
+                    .join("etc/pacman.conf")
+                    .display()
+                    .to_string();
+
+                AppInfoExt::open_with_default_app(&conf_path).await;
             });
 
             // Open path action
