@@ -911,9 +911,7 @@ impl PacViewWindow {
 
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
-            let pacman_config = Pacman::config().read().unwrap();
-
-            let alpm_handle = alpm_utils::alpm_with_conf(&pacman_config)?;
+            let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap())?;
 
             // Load AUR package names from file if AUR download is enabled in preferences
             let aur_file = if aur_download {

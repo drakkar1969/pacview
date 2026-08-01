@@ -82,7 +82,7 @@ mod imp {
             // Select root dir action
             klass.install_action_async("dialog.select-rootdir", None, async |dialog, _, _| {
                 let folder_dialog = gtk::FileDialog::builder()
-                    .initial_folder(&gio::File::for_path(&dialog.root_dir()))
+                    .initial_folder(&gio::File::for_path(dialog.root_dir()))
                     .build();
 
                 let parent = dialog.root().and_downcast::<gtk::Window>();
@@ -135,7 +135,7 @@ mod imp {
                 let file_dialog = gtk::FileDialog::builder()
                     .filters(&filters)
                     .default_filter(&conf_filter)
-                    .initial_file(&gio::File::for_path(&dialog.config_path()))
+                    .initial_file(&gio::File::for_path(dialog.config_path()))
                     .build();
 
                 let parent = dialog.root().and_downcast::<gtk::Window>();

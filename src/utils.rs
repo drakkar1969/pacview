@@ -107,7 +107,7 @@ impl Pacman {
 
         let mut path = Self::config_path().write().unwrap();
 
-        *path = config_path.to_owned();
+        config_path.clone_into(&mut path);
 
         Ok(())
     }

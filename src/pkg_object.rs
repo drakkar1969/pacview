@@ -353,9 +353,7 @@ impl PkgObject {
     //---------------------------------------
     pub fn init_alpm_handle() {
         Self::with_alpm_handle(|handle| {
-            let pacman_config = Pacman::config().read().unwrap();
-
-            let alpm_handle = alpm_utils::alpm_with_conf(&pacman_config).ok();
+            let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap()).ok();
 
             handle.replace(alpm_handle);
         });
