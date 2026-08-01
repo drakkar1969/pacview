@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// RootDirDialog template //-->
+  <template class="RootDirDialog" parent="AdwAlertDialog">
+    <property name="heading">Mount Root Directory</property>
+    <property name="body-use-markup">true</property>
+    <property name="default-response">cancel</property>
+    <responses>
+      <response id="cancel">Cancel</response>
+      <response id="mount" appearance="suggested">Mount</response>
+    </responses>
+    <property name="extra-child">
+      <object class="GtkBox">
+        <property name="width-request">550</property>
+        <property name="orientation">vertical</property>
+        <property name="margin-bottom">20</property>
+        <property name="spacing">24</property>
+        <child>
+          <object class="GtkLabel" id="body_label">
+            <property name="wrap">true</property>
+            <style>
+              <class name="dimmed"/>
+            </style>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Root Directory</property>
+            <child>
+              <object class="AdwActionRow" id="rootdir_row">
+                <property name="activatable">true</property>
+                <property name="action-name">dialog.select-rootdir</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="margin-end">12</property>
+                        <property name="icon-name">go-next-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="rootdir_reset_box">
+                        <property name="sensitive">false</property>
+                        <property name="valign">center</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <object class="GtkSeparator"/>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="rootdir_reset_button">
+                            <property name="icon-name">edit-undo-symbolic</property>
+                            <property name="action-name">dialog.reset-rootdir</property>
+                            <style>
+                              <class name="flat"/>
+                            </style>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Pacman Config</property>
+            <child>
+              <object class="AdwSwitchRow" id="defaultconfig_row">
+                <property name="title">Use default path for pacman config</property>
+                <property name="subtitle">Defaults to “ROOTDIR/etc/pacman.conf”</property>
+                <property name="active">true</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="configpath_row">
+                <property name="sensitive">false</property>
+                <property name="activatable">true</property>
+                <property name="action-name">dialog.select-configpath</property>
+                <child>
+                  <object class="GtkImage">
+                    <property name="icon-name">go-next-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>

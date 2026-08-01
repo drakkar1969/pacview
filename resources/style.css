@@ -120,3 +120,8 @@ listview.card-list {
 textview.card-list border {
 	background-color: transparent;
 }
+
+/* Action row disabled image opacity */
+row:disabled image {
+	opacity: var(--disabled-opacity);
+}

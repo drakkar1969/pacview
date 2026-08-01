@@ -113,6 +113,22 @@
       <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;shift&gt;&lt;alt&gt;M</property>
+            <property name="title">Mount Root Directory</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;shift&gt;&lt;alt&gt;R</property>
+            <property name="title">Reset Root Directory</property>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwShortcutsSection">
+        <child>
+          <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;&lt;alt&gt;C</property>
             <property name="title">Copy Package List</property>
           </object>

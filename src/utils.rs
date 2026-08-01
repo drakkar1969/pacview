@@ -84,19 +84,30 @@ impl Pacman {
     }
 
     //---------------------------------------
+    // Config path function
+    //---------------------------------------
+    pub fn config_path() -> &'static RwLock<String> {
+        static CONFIG_PATH: LazyLock<RwLock<String>> = LazyLock::new(|| {
+            RwLock::new(String::from("/etc/pacman.conf"))
+        });
+
+        &CONFIG_PATH
+    }
+
+    //---------------------------------------
     // Set root dir function
     //---------------------------------------
-    pub fn set_root_dir(root_dir: &Path) -> Result<(), pacmanconf::Error> {
+    pub fn set_root_dir(root_dir: &str, config_path: &str) -> Result<(), pacmanconf::Error> {
         let mut pacman_config = Self::config().write().unwrap();
 
-        let conf_path = root_dir.join("etc/pacman.conf");
-
-        let config = pacmanconf::Config::options()
-            .root_dir(root_dir.display().to_string())
-            .pacman_conf(conf_path.display().to_string())
+        *pacman_config = pacmanconf::Config::options()
+            .root_dir(root_dir)
+            .pacman_conf(config_path)
             .read()?;
 
-        *pacman_config = config;
+        let mut path = Self::config_path().write().unwrap();
+
+        *path = config_path.to_owned();
 
         Ok(())
     }

@@ -100,10 +100,10 @@
     </section>
     <section>
       <submenu>
-        <attribute name="label">Root Dir</attribute>
+        <attribute name="label">Root Directory</attribute>
         <item>
-          <attribute name="label">Change Root Dir…</attribute>
-          <attribute name="action">win.change-root-dir</attribute>
+          <attribute name="label">Mount Root Directory…</attribute>
+          <attribute name="action">win.mount-root-dir</attribute>
         </item>
         <item>
           <attribute name="label">Reset to Default</attribute>

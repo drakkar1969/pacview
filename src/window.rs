@@ -34,6 +34,7 @@ use crate::{
     log_window::LogWindow,
     cache_window::CacheWindow,
     config_dialog::ConfigDialog,
+    rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
     utils::{Paths, Pacman, ParuConf, AurDBFile, TokioUtils, TaskTracker}
 };
@@ -100,6 +101,7 @@ mod imp {
         pub(super) stats_window: RefCell<StatsWindow>,
 
         pub(super) config_dialog: RefCell<ConfigDialog>,
+        pub(super) rootdir_dialog: RefCell<RootDirDialog>,
      }
 
     //---------------------------------------
@@ -197,21 +199,27 @@ mod imp {
                 }
             });
 
-            // Change root dir action
-            klass.install_action_async("win.change-root-dir", None, async |window, _, _| {
+            // Mount root dir action
+            klass.install_action_async("win.mount-root-dir", None, async |window, _, _| {
+                let dialog = window.imp().rootdir_dialog.borrow();
+
                 let root_dir = Pacman::config().read().unwrap().root_dir.clone();
 
-                let dialog = gtk::FileDialog::builder()
-                    .initial_folder(&gio::File::for_path(&root_dir))
-                    .build();
+                let config_path = Pacman::config_path().read().unwrap().clone();
 
-                if let Ok(folder) = dialog.select_folder_future(Some(&window)).await {
-                    let result = folder.path()
-                        .map_or_else(|| Err("Path not found".into()), |path| {
-                            Pacman::set_root_dir(&path).map_err(|err| err.to_string())
-                        });
+                let default_config_path = Path::new(&root_dir)
+                    .join("etc/pacman.conf")
+                    .display()
+                    .to_string();
 
-                    match result {
+                dialog.set_root_dir(root_dir);
+
+                dialog.set_default_config(config_path == default_config_path);
+
+                dialog.set_config_path(config_path);
+
+                if dialog.clone().choose_future(Some(&window)).await == "mount" {
+                    match Pacman::set_root_dir(&dialog.root_dir(), &dialog.config_path()) {
                         Ok(()) => {
                             // Set action states
                             window.action_set_enabled("win.check-updates", Pacman::is_default_root_dir());
@@ -227,7 +235,7 @@ mod imp {
                             let warning_dialog = adw::AlertDialog::builder()
                                 .follows_content_size(true)
                                 .heading("PacmanConf Error")
-                                .body(error)
+                                .body(error.to_string())
                                 .default_response("ok")
                                 .build();
 
@@ -241,31 +249,47 @@ mod imp {
 
             // Reset root dir action
             klass.install_action("win.reset-root-dir", None, |window, _, _| {
-                match Pacman::set_root_dir(Path::new("/")).map_err(|err| err.to_string()) {
-                    Ok(()) => {
-                        // Set action states
-                        window.action_set_enabled("win.check-updates", true);
-                        window.action_set_enabled("win.update-aur-database", true);
+                let dialog = adw::AlertDialog::builder()
+                    .heading("Reset Root Directory?")
+                    .body("Reset the root directory to the default value (“/”).")
+                    .default_response("delete")
+                    .build();
 
-                        // Refresh packages
-                        gtk::prelude::WidgetExt::activate_action(window, "win.refresh", None)
-                            .unwrap();
-                    }
+                dialog.add_responses(&[("cancel", "Cancel"), ("reset", "Reset")]);
+                dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
-                    Err(error) => {
-                        // Show warning dialog
-                        let warning_dialog = adw::AlertDialog::builder()
-                            .follows_content_size(true)
-                            .heading("PacmanConf Error")
-                            .body(error)
-                            .default_response("ok")
-                            .build();
+                dialog.connect_response(Some("reset"), clone!(
+                    #[weak] window,
+                    move |_, _| {
+                        match Pacman::set_root_dir("/", "/etc/pacman.conf") {
+                            Ok(()) => {
+                                // Set action states
+                                window.action_set_enabled("win.check-updates", true);
+                                window.action_set_enabled("win.update-aur-database", true);
 
-                        warning_dialog.add_responses(&[("ok", "_Ok")]);
+                                // Refresh packages
+                                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                                    .unwrap();
+                            }
 
-                        warning_dialog.present(Some(window));
-                    }
-                }
+                            Err(error) => {
+                                // Show warning dialog
+                                let warning_dialog = adw::AlertDialog::builder()
+                                    .follows_content_size(true)
+                                    .heading("PacmanConf Error")
+                                    .body(error.to_string())
+                                    .default_response("ok")
+                                    .build();
+
+                                warning_dialog.add_responses(&[("ok", "_Ok")]);
+
+                                warning_dialog.present(Some(&window));
+                            }
+                        }
+                    })
+                );
+
+                dialog.present(Some(window));
             });
 
             // Package view copy list action
@@ -369,11 +393,11 @@ mod imp {
             // View update AUR database key binding
             klass.add_binding_action(Key::F7, ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
 
-            // Change root dir key binding
-            klass.add_binding_action(Key::R, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, "win.change-root-dir");
+            // Mount root dir key binding
+            klass.add_binding_action(Key::M, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, "win.mount-root-dir");
 
             // Reset root dir key binding
-            klass.add_binding_action(Key::D, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, "win.reset-root-dir");
+            klass.add_binding_action(Key::R, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, "win.reset-root-dir");
 
             // View copy list key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::ALT_MASK, "win.copy-package-list");
