@@ -41,6 +41,7 @@ mod imp {
         #[template_child]
         pub(super) tab_stack: TemplateChild<adw::ViewStack>,
 
+        #[property(get)]
         #[template_child]
         pub(super) info_tab: TemplateChild<InfoDetailsTab>,
         #[template_child]
