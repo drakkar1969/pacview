@@ -11,7 +11,7 @@
     </responses>
     <property name="extra-child">
       <object class="GtkBox">
-        <property name="width-request">550</property>
+        <property name="width-request">500</property>
         <property name="orientation">vertical</property>
         <property name="margin-bottom">20</property>
         <property name="spacing">24</property>
