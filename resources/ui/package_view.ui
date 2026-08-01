@@ -37,7 +37,6 @@
                     <property name="icon-name">open-menu-symbolic</property>
                     <property name="primary">true</property>
                     <property name="tooltip-text">Main Menu</property>
-                    <property name="menu-model">primary_menu</property>
                   </object>
                 </child>
                 <child type="end">
@@ -202,75 +201,6 @@
       </object>
     </child>
   </template>
-
-  <!--// Primary menu //-->
-  <menu id="primary_menu">
-    <section>
-      <item>
-        <attribute name="label">Refresh</attribute>
-        <attribute name="action">win.refresh</attribute>
-      </item>
-      <item>
-        <attribute name="label">Check for Updates</attribute>
-        <attribute name="action">win.check-updates</attribute>
-      </item>
-      <item>
-        <attribute name="label">Update AUR Database</attribute>
-        <attribute name="action">win.update-aur-database</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Copy Package List</attribute>
-        <attribute name="action">win.copy-package-list</attribute>
-      </item>
-    </section>
-    <section>
-      <submenu>
-        <attribute name="label">View</attribute>
-        <item>
-          <attribute name="label">Statistics</attribute>
-          <attribute name="action">win.show-stats</attribute>
-        </item>
-        <item>
-          <attribute name="label">Backup Files</attribute>
-          <attribute name="action">win.show-backup-files</attribute>
-        </item>
-        <item>
-          <attribute name="label">Pacman Log</attribute>
-          <attribute name="action">win.show-pacman-log</attribute>
-        </item>
-        <item>
-          <attribute name="label">Pacman Cache</attribute>
-          <attribute name="action">win.show-pacman-cache</attribute>
-        </item>
-        <item>
-          <attribute name="label">Pacman Groups</attribute>
-          <attribute name="action">win.show-pacman-groups</attribute>
-        </item>
-        <item>
-          <attribute name="label">Pacman Config</attribute>
-          <attribute name="action">win.show-pacman-config</attribute>
-        </item>
-      </submenu>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">Preferences</attribute>
-        <attribute name="action">win.show-preferences</attribute>
-      </item>
-      <item>
-        <attribute name="label">Keyboard Shortcuts</attribute>
-        <attribute name="action">app.shortcuts</attribute>
-      </item>
-    </section>
-    <section>
-      <item>
-        <attribute name="label">About PacView</attribute>
-        <attribute name="action">app.show-about</attribute>
-      </item>
-    </section>
-  </menu>
 
   <!--// Package sort menu //-->
   <menu id="sort_menu">

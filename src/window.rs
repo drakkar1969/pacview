@@ -637,6 +637,14 @@ impl PacViewWindow {
             (&imp.package_view.infopane_button().upcast(), "visible", true)
         ]);
 
+        // Setup main menu
+        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/main_menu/menu.ui");
+
+        let menu = builder.object::<gio::MenuModel>("main_menu");
+
+        imp.main_menu_button.set_menu_model(menu.as_ref());
+        imp.package_view.main_menu_button().set_menu_model(menu.as_ref());
+
         // Set window parents
         imp.backup_window.borrow().set_transient_for(Some(self));
         imp.cache_window.borrow().set_transient_for(Some(self));
