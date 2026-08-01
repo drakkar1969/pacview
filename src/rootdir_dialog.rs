@@ -205,7 +205,7 @@ impl RootDirDialog {
             .bidirectional()
             .build();
 
-        imp.body_label.set_markup("Set the default root directory for pacman to install to. This option is used if you want to install a package on a temporary mounted partition which is 'owned' by another system, or for a chroot install.\n\n<b>NOTE:</b> If database path or log file are not specified on either the command line or in pacman.conf(5), their default location will be inside this root path.");
+        imp.body_label.set_markup("Set the default root directory for pacman. This option is used if you want to manage packages on a temporary mounted partition which is 'owned' by another system, or for a chroot install.\n\n<b>NOTE:</b> If database path or log file are not specified on either the command line or in pacman.conf(5), their default location will be inside this root path.");
     }
 }
 
