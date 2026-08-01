@@ -12,7 +12,7 @@
             <child>
               <object class="AdwHeaderBar" id="header_bar">
                 <property name="title-widget">
-                  <object class="AdwWindowTitle" id="window_title">
+                  <object class="AdwWindowTitle">
                     <property name="title">Packages</property>
                   </object>
                 </property>
@@ -63,6 +63,33 @@
                     <property name="action-name">view.set-grouping</property>
                   </object>
                 </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkRevealer" id="rootdir_revealer">
+                <property name="transition-duration">150</property>
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="halign">center</property>
+                    <property name="margin-bottom">10</property>
+                    <property name="spacing">8</property>
+                    <style>
+                      <class name="warning"/>
+                    </style>
+                    <child>
+                      <object class="GtkImage">
+                        <property name="icon-name">folder-open-symbolic</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="rootdir_label">
+                        <style>
+                          <class name="caption-heading"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </property>
               </object>
             </child>
             <child>

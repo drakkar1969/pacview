@@ -66,14 +66,16 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/package_view.ui")]
     pub struct PackageView {
         #[template_child]
-        pub(super) window_title: TemplateChild<adw::WindowTitle>,
-
-        #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) grouping_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) sort_button: TemplateChild<adw::SplitButton>,
+
+        #[template_child]
+        pub(super) rootdir_revealer: TemplateChild<gtk::Revealer>,
+        #[template_child]
+        pub(super) rootdir_label: TemplateChild<gtk::Label>,
 
         #[property(get)]
         #[template_child]
@@ -710,13 +712,9 @@ impl PackageView {
     pub fn set_root_dir_indicator(&self, root_dir: Option<&str>) {
         let imp = self.imp();
 
-        imp.window_title.set_subtitle(root_dir.unwrap_or_default());
+        imp.rootdir_label.set_label(root_dir.unwrap_or_default());
 
-        if root_dir.is_some() {
-            imp.window_title.add_css_class("warning");
-        } else {
-            imp.window_title.remove_css_class("warning");
-        }
+        imp.rootdir_revealer.set_reveal_child(root_dir.is_some());
     }
 }
 
