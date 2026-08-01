@@ -225,6 +225,11 @@ mod imp {
                             window.action_set_enabled("win.check-updates", Pacman::is_default_root_dir());
                             window.action_set_enabled("win.update-aur-database", Pacman::is_default_root_dir());
 
+                            // Set root dir visual indicator
+                            if !Pacman::is_default_root_dir() {
+                                window.imp().package_view.set_root_dir_indicator(Some(&dialog.root_dir()));
+                            }
+
                             // Refresh packages
                             gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
                                 .unwrap();
@@ -266,6 +271,9 @@ mod imp {
                                 // Set action states
                                 window.action_set_enabled("win.check-updates", true);
                                 window.action_set_enabled("win.update-aur-database", true);
+
+                                // Set root dir visual indicator
+                                window.imp().package_view.set_root_dir_indicator(None);
 
                                 // Refresh packages
                                 gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
