@@ -252,7 +252,7 @@ mod imp {
                     .default_response("delete")
                     .build();
 
-                dialog.add_responses(&[("cancel", "Cancel"), ("reset", "Reset")]);
+                dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
                 dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
                 if dialog.choose_future(Some(&window)).await == "reset" {

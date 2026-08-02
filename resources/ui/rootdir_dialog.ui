@@ -6,8 +6,8 @@
     <property name="body-use-markup">true</property>
     <property name="default-response">cancel</property>
     <responses>
-      <response id="cancel">Cancel</response>
-      <response id="mount" appearance="suggested">Mount</response>
+      <response id="cancel">_Cancel</response>
+      <response id="mount" appearance="suggested">_Mount</response>
     </responses>
     <property name="extra-child">
       <object class="GtkBox">
