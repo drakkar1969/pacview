@@ -1,9 +1,10 @@
 use std::cell::{Cell, RefCell};
-use std::path::Path;
 
 use gtk::{glib, gio};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
+
+use crate::utils::Pacman;
 
 //------------------------------------------------------------------------------
 // MODULE: RootDirDialog
@@ -98,12 +99,9 @@ mod imp {
                         dialog.set_root_dir(root_dir);
 
                         if dialog.default_config() {
-                            let conf_path = Path::new(&dialog.root_dir())
-                                .join("etc/pacman.conf")
-                                .display()
-                                .to_string();
+                            let config_path = Pacman::default_config_path(&dialog.root_dir());
 
-                            dialog.set_config_path(conf_path);
+                            dialog.set_config_path(config_path);
                         }
                     }
             });
@@ -163,10 +161,7 @@ impl RootDirDialog {
     // New function
     //---------------------------------------
     pub fn new(root_dir: &str, config_path: &str) -> Self {
-        let default_config_path = Path::new(root_dir)
-            .join("etc/pacman.conf")
-            .display()
-            .to_string();
+        let default_config_path = Pacman::default_config_path(root_dir);
 
         glib::Object::builder()
             .property("root-dir", root_dir)
@@ -186,12 +181,9 @@ impl RootDirDialog {
             let default = dialog.default_config();
 
             if default {
-                let conf_path = Path::new(&dialog.root_dir())
-                    .join("etc/pacman.conf")
-                    .display()
-                    .to_string();
+                let config_path = Pacman::default_config_path(&dialog.root_dir());
 
-                dialog.set_config_path(conf_path);
+                dialog.set_config_path(config_path);
             }
 
             imp.configpath_row.set_sensitive(!default);
