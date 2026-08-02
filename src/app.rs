@@ -95,7 +95,11 @@ impl PacViewApplication {
     fn setup_actions(&self) {
         // Quit action
         let quit_action = gio::ActionEntry::builder("quit-app")
-            .activate(move |app: &Self, _, _| app.quit())
+            .activate(move |app: &Self, _, _| {
+                TaskTracker::cancel_all();
+
+                app.quit()
+            })
             .build();
 
         // Show about dialog action
