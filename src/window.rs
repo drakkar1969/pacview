@@ -884,9 +884,6 @@ impl PacViewWindow {
                 }
             }
         }
-
-        // If using custom root dir, disable update row
-        imp.update_item.borrow().set_enabled(Pacman::is_default_root_dir());
     }
 
     //---------------------------------------
@@ -995,10 +992,8 @@ impl PacViewWindow {
 
                 match result {
                     Ok(()) => {
-                        if Pacman::is_default_root_dir() {
-                            // Get package updates
-                            window.get_package_updates().await;
-                        }
+                        // Get package updates
+                        window.get_package_updates().await;
 
                         // Check AUR package names file age
                         let max_age = imp.prefs_dialog.borrow().aur_database_age() as u64;
@@ -1110,19 +1105,17 @@ impl PacViewWindow {
             }
         );
 
-        let (alpm_result, paru_result) = if let Ok(paru_path) = Paths::paru() {
-            // Check for paru updates
-            let paru_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_cancel_token);
+        let (alpm_result, paru_result) = if let Ok(paru_path) = Paths::paru()
+            && Pacman::is_default_root_dir() {
+                // Check for paru updates
+                let paru_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_cancel_token);
 
-            join!(alpm_task, paru_task)
-        } else {
-            (alpm_task.await, Ok((None, String::new())))
-        };
+                join!(alpm_task, paru_task)
+            } else {
+                (alpm_task.await, Ok((None, String::new())))
+            };
 
-        let (alpm_result, paru_result) = (
-            alpm_result.expect("Failed to complete tokio task"),
-            paru_result
-        );
+        let alpm_result = alpm_result.expect("Failed to complete tokio task");
 
         // Remove stored update cancel token
         if let Some(id) = imp.update_cancel_id.take() {
