@@ -97,12 +97,20 @@ impl Pacman {
     //---------------------------------------
     // Set root dir function
     //---------------------------------------
-    pub fn set_root_dir(root_dir: &str, config_path: &str) -> Result<(), pacmanconf::Error> {
+    pub fn set_root_dir(root_dir: &str, config_path: Option<&str>) -> Result<(), pacmanconf::Error> {
         let mut pacman_config = Self::config().write().unwrap();
+
+        let config_path = config_path
+            .map_or_else(|| {
+                Path::new(root_dir)
+                    .join("etc/pacman.conf")
+                    .display()
+                    .to_string()
+            }, ToOwned::to_owned);
 
         *pacman_config = pacmanconf::Config::options()
             .root_dir(root_dir)
-            .pacman_conf(config_path)
+            .pacman_conf(&config_path)
             .read()?;
 
         let mut path = Self::config_path().write().unwrap();

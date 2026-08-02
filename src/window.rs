@@ -208,7 +208,7 @@ mod imp {
                 if dialog.clone().choose_future(Some(&window)).await == "mount" {
                     let root_dir = dialog.root_dir();
 
-                    match Pacman::set_root_dir(&root_dir, &dialog.config_path()) {
+                    match Pacman::set_root_dir(&root_dir, Some(&dialog.config_path())) {
                         Ok(()) => {
                             // Set action states
                             let is_default_root_dir = Pacman::is_default_root_dir();
@@ -255,7 +255,7 @@ mod imp {
                 dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
                 if dialog.choose_future(Some(&window)).await == "reset" {
-                    match Pacman::set_root_dir("/", "/etc/pacman.conf") {
+                    match Pacman::set_root_dir("/", None) {
                         Ok(()) => {
                             // Set action states
                             window.action_set_enabled("win.check-updates", true);
