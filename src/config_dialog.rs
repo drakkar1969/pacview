@@ -104,12 +104,14 @@ impl ConfigDialog {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(config: &pacmanconf::Config) -> Self {
+    pub fn new() -> Self {
         let dialog: Self = glib::Object::builder().build();
 
         let imp = dialog.imp();
 
         // Add config rows
+        let config = Pacman::config().read().unwrap();
+
         let mut group = &imp.paths_group;
 
         Self::add_row(group, "RootDir", &config.root_dir, Some("conf.path"));

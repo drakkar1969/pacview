@@ -100,8 +100,6 @@ mod imp {
         pub(super) groups_window: RefCell<GroupsWindow>,
         pub(super) log_window: RefCell<LogWindow>,
         pub(super) stats_window: RefCell<StatsWindow>,
-
-        pub(super) config_dialog: RefCell<ConfigDialog>,
      }
 
     //---------------------------------------
@@ -330,7 +328,9 @@ mod imp {
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
-                window.imp().config_dialog.borrow().present(Some(window));
+                let config_dialog = ConfigDialog::new();
+
+                config_dialog.present(Some(window));
             });
 
             klass.install_action("win.show-preferences", None, |window, _, _| {
@@ -777,11 +777,6 @@ impl PacViewWindow {
             .collect();
 
         Pacman::set_cache(cache_files);
-
-        // Init config dialog
-        let config_dialog = ConfigDialog::new(&pacman_config);
-
-        imp.config_dialog.replace(config_dialog);
 
         // Create repo names list
         let repo_names: Vec<String> = pacman_config.repos.iter()
