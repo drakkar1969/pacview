@@ -675,10 +675,10 @@ impl PackageView {
         imp.pkg_model.splice(position, removals, pkg_slice);
     }
 
-    pub fn show_updates(&self, update_map: &HashMap<&str, &str>) {
+    pub fn show_updates(&self, update_map: &HashMap<String, String>) {
         for pkg in self.imp().pkg_model.iter::<PkgObject>().flatten() {
-            if let Some(&new_version) = update_map.get(&pkg.name().as_str()) {
-                pkg.set_update_version(Some(new_version));
+            if let Some(new_version) = update_map.get(&pkg.name()) {
+                pkg.set_update_version(Some(new_version.to_owned()));
             }
         }
     }

@@ -11,6 +11,7 @@ use adw::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
+use itertools::Itertools;
 use alpm_utils::DbListExt;
 use heck::ToTitleCase;
 use regex::Regex;
@@ -1032,6 +1033,50 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Setup alpm: get alpm updates helper
+    //---------------------------------------
+    async fn get_alpm_updates() -> alpm::Result<HashMap<String, String>> {
+        TokioUtils::runtime().spawn_blocking(move || {
+            // Get pacman config
+            let pacman_config = Pacman::config().read().unwrap();
+
+            // Create temp alpm handle for cached database sync
+            let mut alpm_sync = alpm::Alpm::new(
+                pacman_config.root_dir.clone(),
+                glib::user_cache_dir().join("pacview").display().to_string()
+            )?;
+
+            alpm_utils::configure_alpm(&mut alpm_sync, &pacman_config)?;
+
+            // Remove alpm database lock file
+            let _ = fs::remove_file(glib::user_cache_dir().join("pacview/db.lck"));
+
+            // Update alpm sync databases
+            let sync_dbs_mut = alpm_sync.syncdbs_mut();
+            sync_dbs_mut.update(false)?;
+
+            // Get alpm sync databases
+            let sync_dbs = alpm_sync.syncdbs();
+
+            // Get alpm local database
+            let alpm_local = alpm_utils::alpm_with_conf(&pacman_config)?;
+
+            let local_db = alpm_local.localdb();
+
+            // Return update map (package name, update version)
+            Ok(local_db.pkgs().iter()
+                .filter_map(|pkg| {
+                    sync_dbs.pkg(pkg.name()).ok()
+                        .filter(|sync_pkg| sync_pkg.version().vercmp(pkg.version()).is_gt())
+                        .map(|sync_pkg| (pkg.name().to_owned(), sync_pkg.version().to_string()))
+                })
+                .collect())
+        })
+        .await
+        .expect("Failed to complete tokio task")
+    }
+
+    //---------------------------------------
     // Setup alpm: get package updates
     //---------------------------------------
     #[allow(clippy::future_not_send)]
@@ -1045,26 +1090,39 @@ impl PacViewWindow {
         // Create and store update cancel token
         let cancel_token = CancellationToken::new();
         let alpm_cancel_token = cancel_token.clone();
-        let aur_cancel_token = cancel_token.clone();
+        let paru_cancel_token = cancel_token.clone();
 
         let cancel_id = TaskTracker::add_token(cancel_token);
 
         imp.update_cancel_id.set(Some(cancel_id));
 
-        // Check for pacman updates
-        let mut update_output = String::new();
+        // Check for updates
+        let mut update_map: HashMap<String, String> = HashMap::new();
         let mut error_msg: Option<String> = None;
 
-        let alpm_task = TokioUtils::run("/usr/bin/checkupdates", &[""], alpm_cancel_token);
+        // Check for pacman updates
+        let alpm_task = TokioUtils::runtime().spawn(
+            async move {
+                tokio::select! {
+                    () = alpm_cancel_token.cancelled() => Ok(HashMap::new()),
+                    alpm_map = Self::get_alpm_updates() => alpm_map
+                }
+            }
+        );
 
-        let (alpm_result, aur_result) = if let Ok(paru_path) = Paths::paru() {
-            // Check for AUR updates
-            let aur_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], aur_cancel_token);
+        let (alpm_result, paru_result) = if let Ok(paru_path) = Paths::paru() {
+            // Check for paru updates
+            let paru_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_cancel_token);
 
-            join!(alpm_task, aur_task)
+            join!(alpm_task, paru_task)
         } else {
             (alpm_task.await, Ok((None, String::new())))
         };
+
+        let (alpm_result, paru_result) = (
+            alpm_result.expect("Failed to complete tokio task"),
+            paru_result
+        );
 
         // Remove stored update cancel token
         if let Some(id) = imp.update_cancel_id.take() {
@@ -1073,42 +1131,41 @@ impl PacViewWindow {
 
         // Get pacman update results
         match alpm_result {
-            Ok((Some(0), stdout)) => {
-                update_output.push_str(&stdout);
-            },
-            Ok((Some(1), _)) => {
-                error_msg = Some(String::from("Failed to retrieve pacman updates: checkupdates error"));
-            },
+            Ok(alpm_map) => {
+                update_map.extend(alpm_map);
+            }
+
             Err(error) => {
                 error_msg = Some(format!("Failed to retrieve pacman updates: {error}"));
             }
-            _ => {}
         }
 
-        // Get AUR update results
-        match aur_result {
+        // Get paru update results
+        match paru_result {
             Ok((Some(0), stdout)) => {
-                update_output.push_str(&stdout);
-            },
+                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                    Regex::new(r"([a-z0-9@._+-]+)[\s]+[a-zA-Z0-9._+-:]+[\s]+->[ \t]+([a-zA-Z0-9._+-:]+)")
+                        .expect("Failed to compile Regex")
+                });
+
+                update_map.extend(EXPR.captures_iter(&stdout)
+                    .map(|caps| {
+                        let (_, item): (&str, [&str; 2]) = caps.extract();
+
+                        item.into_iter()
+                            .map(ToOwned::to_owned)
+                            .collect_tuple()
+                            .expect("Failed to unwrap update array into tuple")
+                    }
+                ));
+            }
+
             Err(error) if error_msg.is_none() => {
                 error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
-            },
+            }
+
             _ => {}
         }
-
-        // Create map with updates (name, version)
-        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r"([a-z0-9@._+-]+)[\s]+[a-zA-Z0-9._+-:]+[\s]+->[ \t]+([a-zA-Z0-9._+-:]+)")
-                .expect("Failed to compile Regex")
-        });
-
-        let update_map: HashMap<&str, &str> = EXPR.captures_iter(&update_output)
-            .map(|caps| {
-                let (_, item) = caps.extract();
-
-                item.into()
-            })
-            .collect();
 
         // Update status of packages with updates
         if !update_map.is_empty() {
@@ -1116,7 +1173,7 @@ impl PacViewWindow {
         }
 
         // Update info pane package if it has update
-        if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name().as_str())) {
+        if imp.info_pane.pkg().is_some_and(|pkg| update_map.contains_key(&pkg.name())) {
             imp.info_pane.update_display();
         }
 
