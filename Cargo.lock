@@ -1483,6 +1483,7 @@ dependencies = [
  "fancy-regex",
  "futures",
  "futures-util",
+ "gio",
  "glib-build-tools",
  "gtk4",
  "heck",

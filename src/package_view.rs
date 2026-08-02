@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::cmp::Ordering;
 use std::fmt::Write as _;
 
-use gtk::{glib, gio};
+use gtk::glib;
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, closure_local};
@@ -664,7 +664,7 @@ impl PackageView {
     }
 
     //---------------------------------------
-    // Public package functions
+    // Public splice packages function
     //---------------------------------------
     pub fn splice_packages(&self, pkg_slice: &[PkgObject], clear: bool) {
         let imp = self.imp();
@@ -675,10 +675,20 @@ impl PackageView {
         imp.pkg_model.splice(position, removals, pkg_slice);
     }
 
+    //---------------------------------------
+    // Public show updates function
+    //---------------------------------------
     pub fn show_updates(&self, update_map: &HashMap<String, String>) {
-        for pkg in self.imp().pkg_model.iter::<PkgObject>().flatten() {
-            if let Some(new_version) = update_map.get(&pkg.name()) {
-                pkg.set_update_version(Some(new_version.to_owned()));
+        let imp = self.imp();
+
+        for (name, version) in update_map {
+            if let Some(pkg) = imp.pkg_model
+                .find_with_equal_func(|obj| {
+                    obj.downcast_ref::<PkgObject>().is_some_and(|pkg| pkg.name().as_str() == name)
+                })
+                .and_then(|index| imp.pkg_model.item(index).and_downcast::<PkgObject>())
+            {
+                pkg.set_update_version(Some(version.to_owned()));
             }
         }
     }
