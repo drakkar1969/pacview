@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
@@ -72,12 +70,9 @@ mod imp {
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Open config action
             klass.install_action_async("conf.config", None, async |_, _, _| {
-                let conf_path = Path::new(&Pacman::config().read().unwrap().root_dir)
-                    .join("etc/pacman.conf")
-                    .display()
-                    .to_string();
+                let config_path = Pacman::config_path().read().unwrap();
 
-                AppInfoExt::open_with_default_app(&conf_path).await;
+                AppInfoExt::open_with_default_app(&config_path).await;
             });
 
             // Open path action
