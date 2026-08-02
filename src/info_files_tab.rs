@@ -208,7 +208,7 @@ impl InfoFilesTab {
         let imp = self.imp();
 
         // Set search entry key capture widget
-        imp.search_entry.set_key_capture_widget(Some(&imp.view.get()));
+        imp.search_bar.set_key_capture_widget(Some(&imp.view.get()));
 
         // Bind search button state to search bar visibility
         imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
