@@ -101,7 +101,6 @@ mod imp {
         pub(super) stats_window: RefCell<StatsWindow>,
 
         pub(super) config_dialog: RefCell<ConfigDialog>,
-        pub(super) rootdir_dialog: RefCell<RootDirDialog>,
      }
 
     //---------------------------------------
@@ -201,33 +200,25 @@ mod imp {
 
             // Mount root dir action
             klass.install_action_async("win.mount-root-dir", None, async |window, _, _| {
-                let dialog = window.imp().rootdir_dialog.borrow();
-
-                let root_dir = Pacman::config().read().unwrap().root_dir.clone();
-
-                let config_path = Pacman::config_path().read().unwrap().clone();
-
-                let default_config_path = Path::new(&root_dir)
-                    .join("etc/pacman.conf")
-                    .display()
-                    .to_string();
-
-                dialog.set_root_dir(root_dir);
-
-                dialog.set_default_config(config_path == default_config_path);
-
-                dialog.set_config_path(config_path);
+                let dialog = RootDirDialog::new(
+                    &Pacman::config().read().unwrap().root_dir,
+                    &Pacman::config_path().read().unwrap().clone()
+                );
 
                 if dialog.clone().choose_future(Some(&window)).await == "mount" {
-                    match Pacman::set_root_dir(&dialog.root_dir(), &dialog.config_path()) {
+                    let root_dir = dialog.root_dir();
+
+                    match Pacman::set_root_dir(&root_dir, &dialog.config_path()) {
                         Ok(()) => {
                             // Set action states
-                            window.action_set_enabled("win.check-updates", Pacman::is_default_root_dir());
-                            window.action_set_enabled("win.update-aur-database", Pacman::is_default_root_dir());
+                            let is_default_root_dir = Pacman::is_default_root_dir();
+
+                            window.action_set_enabled("win.check-updates", is_default_root_dir);
+                            window.action_set_enabled("win.update-aur-database", is_default_root_dir);
 
                             // Set root dir visual indicator
-                            if !Pacman::is_default_root_dir() {
-                                window.imp().package_view.set_root_dir_indicator(Some(&dialog.root_dir()));
+                            if !is_default_root_dir {
+                                window.imp().package_view.set_root_dir_indicator(Some(&root_dir));
                             }
 
                             // Refresh packages
@@ -253,7 +244,7 @@ mod imp {
             });
 
             // Reset root dir action
-            klass.install_action("win.reset-root-dir", None, |window, _, _| {
+            klass.install_action_async("win.reset-root-dir", None, async |window, _, _| {
                 let dialog = adw::AlertDialog::builder()
                     .heading("Reset Root Directory?")
                     .body("Reset the root directory to the default value (“/”).")
@@ -263,41 +254,36 @@ mod imp {
                 dialog.add_responses(&[("cancel", "Cancel"), ("reset", "Reset")]);
                 dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
 
-                dialog.connect_response(Some("reset"), clone!(
-                    #[weak] window,
-                    move |_, _| {
-                        match Pacman::set_root_dir("/", "/etc/pacman.conf") {
-                            Ok(()) => {
-                                // Set action states
-                                window.action_set_enabled("win.check-updates", true);
-                                window.action_set_enabled("win.update-aur-database", true);
+                if dialog.choose_future(Some(&window)).await == "reset" {
+                    match Pacman::set_root_dir("/", "/etc/pacman.conf") {
+                        Ok(()) => {
+                            // Set action states
+                            window.action_set_enabled("win.check-updates", true);
+                            window.action_set_enabled("win.update-aur-database", true);
 
-                                // Set root dir visual indicator
-                                window.imp().package_view.set_root_dir_indicator(None);
+                            // Set root dir visual indicator
+                            window.imp().package_view.set_root_dir_indicator(None);
 
-                                // Refresh packages
-                                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                                    .unwrap();
-                            }
-
-                            Err(error) => {
-                                // Show warning dialog
-                                let warning_dialog = adw::AlertDialog::builder()
-                                    .follows_content_size(true)
-                                    .heading("PacmanConf Error")
-                                    .body(error.to_string())
-                                    .default_response("ok")
-                                    .build();
-
-                                warning_dialog.add_responses(&[("ok", "_Ok")]);
-
-                                warning_dialog.present(Some(&window));
-                            }
+                            // Refresh packages
+                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                                .unwrap();
                         }
-                    })
-                );
 
-                dialog.present(Some(window));
+                        Err(error) => {
+                            // Show warning dialog
+                            let warning_dialog = adw::AlertDialog::builder()
+                                .follows_content_size(true)
+                                .heading("PacmanConf Error")
+                                .body(error.to_string())
+                                .default_response("ok")
+                                .build();
+
+                            warning_dialog.add_responses(&[("ok", "_Ok")]);
+
+                            warning_dialog.present(Some(&window));
+                        }
+                    }
+                }
             });
 
             // Package view copy list action

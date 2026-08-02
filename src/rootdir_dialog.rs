@@ -160,6 +160,22 @@ glib::wrapper! {
 
 impl RootDirDialog {
     //---------------------------------------
+    // New function
+    //---------------------------------------
+    pub fn new(root_dir: &str, config_path: &str) -> Self {
+        let default_config_path = Path::new(root_dir)
+            .join("etc/pacman.conf")
+            .display()
+            .to_string();
+
+        glib::Object::builder()
+            .property("root-dir", root_dir)
+            .property("default-config", config_path == default_config_path)
+            .property("config-path", config_path)
+            .build()
+    }
+
+    //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
@@ -205,15 +221,7 @@ impl RootDirDialog {
             .bidirectional()
             .build();
 
+        // Set body label text
         imp.body_label.set_markup("Set the default root directory for pacman. This option is used if you want to manage packages on a temporary mounted partition which is 'owned' by another system, or for a chroot install.\n\n<b>NOTE:</b> If database path or log file are not specified on either the command line or in pacman.conf(5), their default location will be inside this root path.");
-    }
-}
-
-impl Default for RootDirDialog {
-    //---------------------------------------
-    // Default constructor
-    //---------------------------------------
-    fn default() -> Self {
-        glib::Object::builder().build()
     }
 }
