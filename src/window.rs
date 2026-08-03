@@ -246,7 +246,7 @@ mod imp {
             klass.install_action_async("win.reset-root-dir", None, async |window, _, _| {
                 let dialog = adw::AlertDialog::builder()
                     .heading("Reset Root Directory?")
-                    .body("Reset the root directory to the default value (“/”).")
+                    .body("Reset the root directory to the default value.")
                     .default_response("delete")
                     .build();
 
