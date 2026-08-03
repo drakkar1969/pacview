@@ -172,9 +172,9 @@ pub struct ParuConf;
 
 impl ParuConf {
     //---------------------------------------
-    // Config function
+    // Config file function
     //---------------------------------------
-    fn config() -> &'static Result<Ini, String> {
+    fn config_file() -> &'static Result<Ini, String> {
         static INI: LazyLock<Result<Ini, String>> = LazyLock::new(|| {
             let mut ini = Ini::new();
 
@@ -195,7 +195,7 @@ impl ParuConf {
     // Repo names functions
     //---------------------------------------
     pub fn repo_names() -> Vec<String> {
-        Self::config().as_ref()
+        Self::config_file().as_ref()
             .map(|ini| {
                 ini.sections()
                     .into_iter()
