@@ -94,9 +94,9 @@ impl HashWindow {
 
         let hashes = pkg.hashes();
 
-        update_row(&imp.base64_row, hashes.base64_sig());
-        update_row(&imp.sha256_row, hashes.sha256sum());
-        update_row(&imp.md5_row, hashes.md5sum());
+        update_row(&imp.base64_row, hashes.base64_sig.as_deref());
+        update_row(&imp.sha256_row, hashes.sha256sum.as_deref());
+        update_row(&imp.md5_row, hashes.md5sum.as_deref());
 
         obj
     }

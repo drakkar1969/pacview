@@ -35,17 +35,6 @@ pub struct TextTag {
     end: usize,
 }
 
-impl TextTag {
-    fn new(link: String, version: Option<String>, start: usize, end: usize) -> Self {
-        Self {
-            link,
-            version,
-            start,
-            end
-        }
-    }
-}
-
 //------------------------------------------------------------------------------
 // MODULE: TextWidget
 //------------------------------------------------------------------------------
@@ -282,7 +271,12 @@ mod imp {
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag::new(text.to_owned(), None, 0, text.len()));
+                    link_list.push(TextTag {
+                        link: text.to_owned(),
+                        version: None,
+                        start: 0,
+                        end: text.len()
+                    });
                 },
                 PropType::Packager => {
                     // Parse email address
@@ -292,12 +286,12 @@ mod imp {
                     });
 
                     if let Some(m) = EXPR.find(text) {
-                        link_list.push(TextTag::new(
-                            format!("mailto:{}", m.as_str()),
-                            None,
-                            m.start(),
-                            m.end()
-                        ));
+                        link_list.push(TextTag {
+                            link: format!("mailto:{}", m.as_str()),
+                            version: None,
+                            start: m.start(),
+                            end: m.end()
+                        });
                     }
                 },
                 PropType::LinkList => {
@@ -316,12 +310,12 @@ mod imp {
                                 let m1 = caps.get(1)?;
                                 let m2 = caps.get(2)?;
 
-                                Some(TextTag::new(
-                                    format!("pkg://{}", m1.as_str()),
-                                    Some(m2.as_str().to_owned()),
-                                    m1.start(),
-                                    m1.end()
-                                ))
+                                Some(TextTag {
+                                    link: format!("pkg://{}", m1.as_str()),
+                                    version: Some(m2.as_str().to_owned()),
+                                    start: m1.start(),
+                                    end: m1.end()
+                                })
                             })
                         );
 
@@ -333,7 +327,12 @@ mod imp {
                                 let start = i;
                                 let end = start.checked_add(comment_len)?;
 
-                                Some(TextTag::new(s.to_owned(), None, start, end))
+                                Some(TextTag {
+                                    link: s.to_owned(),
+                                    version: None,
+                                    start,
+                                    end
+                                })
                             })
                         );
                     }

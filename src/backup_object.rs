@@ -127,8 +127,8 @@ impl BackupObject {
     //---------------------------------------
     pub fn new(backup: &PkgBackup, package: &str) -> Self {
         glib::Object::builder()
-            .property("path", backup.path())
-            .property("hash", backup.hash())
+            .property("path", &backup.path)
+            .property("hash", &backup.hash)
             .property("package", package)
             .build()
     }
