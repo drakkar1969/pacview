@@ -768,12 +768,10 @@ impl PacViewWindow {
                     .min_depth(1)
                     .sort_by_file_name()
                     .into_iter()
-                    .filter_entry(|entry| {
-                        entry.path().to_str().is_some_and(|path| path.ends_with("zst"))
-                    })
+                    .filter_entry(|entry| entry.path().extension().is_some_and(|ext| ext == "zst"))
             })
             .flatten()
-            .map(|entry| entry.path().to_owned())
+            .map(|entry| entry.into_path())
             .collect();
 
         Pacman::set_cache(cache_files);
