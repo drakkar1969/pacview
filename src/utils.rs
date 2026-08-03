@@ -108,12 +108,10 @@ impl Pacman {
     // Set root dir function
     //---------------------------------------
     pub fn set_root_dir(root_dir: &str, config_path: Option<&str>) -> Result<(), pacmanconf::Error> {
-        let mut pacman_config = Self::config().write().unwrap();
-
         let config_path = config_path
             .map_or_else(|| Self::default_config_path(root_dir), ToOwned::to_owned);
 
-        *pacman_config = pacmanconf::Config::options()
+        *Self::config().write().unwrap() = pacmanconf::Config::options()
             .root_dir(root_dir)
             .pacman_conf(&config_path)
             .read()?;

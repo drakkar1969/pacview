@@ -70,7 +70,7 @@ mod imp {
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Open config action
             klass.install_action_async("conf.config", None, async |_, _, _| {
-                let config_path = Pacman::config_path().read().unwrap();
+                let config_path = Pacman::config_path().read().unwrap().clone();
 
                 AppInfoExt::open_with_default_app(&config_path).await;
             });

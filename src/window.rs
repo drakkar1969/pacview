@@ -785,6 +785,9 @@ impl PacViewWindow {
             .chain(["aur", "local"].map(ToOwned::to_owned))
             .collect();
 
+        // Drop pacman config
+        drop(pacman_config);
+
         // Populate sidebar
         self.alpm_populate_sidebar(&repo_names, first_load);
 
@@ -1038,6 +1041,12 @@ impl PacViewWindow {
 
             alpm_utils::configure_alpm(&mut alpm_sync, &pacman_config)?;
 
+            // Create local alpm handle
+            let alpm_local = alpm_utils::alpm_with_conf(&pacman_config)?;
+
+            // Drop pacman config
+            drop(pacman_config);
+
             // Remove alpm database lock file
             let _ = fs::remove_file(glib::user_cache_dir().join("pacview/db.lck"));
 
@@ -1045,12 +1054,8 @@ impl PacViewWindow {
             let sync_dbs_mut = alpm_sync.syncdbs_mut();
             sync_dbs_mut.update(false)?;
 
-            // Get alpm sync databases
+            // Get alpm local/sync databases
             let sync_dbs = alpm_sync.syncdbs();
-
-            // Get alpm local database
-            let alpm_local = alpm_utils::alpm_with_conf(&pacman_config)?;
-
             let local_db = alpm_local.localdb();
 
             // Return update map (package name, update version)

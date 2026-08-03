@@ -98,7 +98,7 @@ impl PacViewApplication {
             .activate(move |app: &Self, _, _| {
                 TaskTracker::cancel_all();
 
-                app.quit()
+                app.quit();
             })
             .build();
 
