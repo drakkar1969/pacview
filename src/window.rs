@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::sync::LazyLock;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 use std::fs;
@@ -18,7 +18,6 @@ use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 use tokio_util::sync::CancellationToken;
-use walkdir::WalkDir;
 
 use crate::{
     APP_ID,
@@ -749,42 +748,12 @@ impl PacViewWindow {
     fn setup_alpm(&self, first_load: bool) {
         let imp = self.imp();
 
-        // Load pacman log
-        static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
-            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
-        });
-
-        let pacman_config = Pacman::config().read().unwrap();
-
-        let log_lines = fs::read_to_string(&pacman_config.log_file).ok()
-            .map(|log| ANSI_EXPR.replace_all(&log, "").into_owned());
-
-        Pacman::set_log(log_lines);
-
-        // Load pacman cache
-        let cache_files: Vec<PathBuf> = pacman_config.cache_dir.iter()
-            .flat_map(|dir| {
-                WalkDir::new(dir)
-                    .min_depth(1)
-                    .sort_by_file_name()
-                    .into_iter()
-                    .filter_entry(|entry| entry.path().extension().is_some_and(|ext| ext == "zst"))
-            })
-            .flatten()
-            .map(|entry| entry.into_path())
-            .collect();
-
-        Pacman::set_cache(cache_files);
-
         // Create repo names list
-        let repo_names: Vec<String> = pacman_config.repos.iter()
+        let repo_names: Vec<String> = Pacman::config().read().unwrap().repos.iter()
             .map(|r| r.name.clone())
             .chain(ParuConf::repo_names())
             .chain(["aur", "local"].map(ToOwned::to_owned))
             .collect();
-
-        // Drop pacman config
-        drop(pacman_config);
 
         // Populate sidebar
         self.alpm_populate_sidebar(&repo_names, first_load);

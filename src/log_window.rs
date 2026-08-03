@@ -343,8 +343,16 @@ impl LogWindow {
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
-            if let Some(log) = Pacman::log().read().unwrap().as_ref() {
-                // Parse log lines
+            // Load pacman log (strip control chars)
+            static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
+            });
+
+            let log = fs::read_to_string(&Pacman::config().read().unwrap().log_file)
+                .map(|log| ANSI_EXPR.replace_all(&log, "").into_owned());
+
+            // Parse log lines
+            if let Ok(log) = log {
                 static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                     Regex::new(r"\[([^T]+)T([^+]+)\+.+?\] \[(.+?)\] (.+)")
                         .expect("Failed to compile Regex")

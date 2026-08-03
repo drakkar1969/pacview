@@ -129,40 +129,6 @@ impl Pacman {
     pub fn is_default_root_dir() -> bool {
         Self::config().read().unwrap().root_dir == "/"
     }
-
-    //---------------------------------------
-    // Log functions
-    //---------------------------------------
-    pub fn log() -> &'static RwLock<Option<String>> {
-        static PACMAN_LOG: LazyLock<RwLock<Option<String>>> = LazyLock::new(|| {
-            RwLock::new(None)
-        });
-
-        &PACMAN_LOG
-    }
-
-    pub fn set_log(new_log: Option<String>) {
-        let mut pacman_log = Self::log().write().unwrap();
-
-        *pacman_log = new_log;
-    }
-
-    //---------------------------------------
-    // Cache functions
-    //---------------------------------------
-    pub fn cache() -> &'static RwLock<Vec<PathBuf>> {
-        static PACMAN_CACHE: LazyLock<RwLock<Vec<PathBuf>>> = LazyLock::new(|| {
-            RwLock::new(vec![])
-        });
-
-        &PACMAN_CACHE
-    }
-
-    pub fn set_cache(new_cache: Vec<PathBuf>) {
-        let mut pacman_cache = Self::cache().write().unwrap();
-
-        *pacman_cache = new_cache;
-    }
 }
 
 //------------------------------------------------------------------------------
