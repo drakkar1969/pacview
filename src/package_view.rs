@@ -682,12 +682,10 @@ impl PackageView {
         let imp = self.imp();
 
         for (name, version) in update_map {
-            if let Some(pkg) = imp.pkg_model
-                .find_with_equal_func(|obj| {
-                    obj.downcast_ref::<PkgObject>().is_some_and(|pkg| pkg.name().as_str() == name)
-                })
-                .and_then(|index| imp.pkg_model.item(index).and_downcast::<PkgObject>())
-            {
+            if let Some(pkg) = imp.pkg_model.find_with_equal_func(|obj| {
+                obj.downcast_ref::<PkgObject>().is_some_and(|pkg| pkg.name().as_str() == name)
+            })
+            .and_then(|index| imp.pkg_model.item(index).and_downcast::<PkgObject>()) {
                 pkg.set_update_version(Some(version.to_owned()));
             }
         }
