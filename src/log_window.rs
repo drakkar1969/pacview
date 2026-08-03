@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::sync::LazyLock;
 use std::fs;
+use std::io::{BufRead, BufReader};
 use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
@@ -331,6 +332,30 @@ impl LogWindow {
     }
 
     //---------------------------------------
+    // Parse log line helper function
+    //---------------------------------------
+    fn parse_log_line(line: &str) -> Option<LogLine> {
+        // Extract timestamp
+        let (timestamp, rest) = line.strip_prefix('[')?
+            .split_once("] ")?;
+
+        // Extract date and time from timestamp
+        let (date, time_with_tz) = timestamp.split_once('T')?;
+        let (time, _) = time_with_tz.split_once('+')?;
+
+        // Extract category and message
+        let (category, message) = rest.strip_prefix('[')?
+            .split_once("] ")?;
+
+        Some(LogLine {
+            date: date.to_owned(),
+            time: time.to_owned(),
+            category: category.to_owned(),
+            message: message.to_owned()
+        })
+    }
+
+    //---------------------------------------
     // Populate window
     //---------------------------------------
     fn populate(&self) {
@@ -343,39 +368,39 @@ impl LogWindow {
         let (sender, receiver) = async_channel::bounded(1);
 
         gio::spawn_blocking(move || {
-            // Load pacman log (strip control chars)
+            // Read log file (strip ANSI codes)
             static ANSI_EXPR: LazyLock<Regex> = LazyLock::new(|| {
                 Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
             });
 
-            let log = fs::read_to_string(&Pacman::config().read().unwrap().log_file)
-                .map(|log| ANSI_EXPR.replace_all(&log, "").into_owned());
+            let Ok(log_file) = fs::File::open(&Pacman::config().read().unwrap().log_file) else {
+                return;
+            };
+
+            let reader = BufReader::new(log_file);
+
+            let mut log_lines: Vec<String> = reader.lines()
+                .map_while(Result::ok)
+                .map(|mut line| {
+                    // Strip ANSI codes
+                    if line.contains('\x1b') {
+                        line = ANSI_EXPR.replace_all(&line, "").into_owned();
+                    }
+
+                    line
+                })
+                .collect();
+
+            log_lines.reverse();
 
             // Parse log lines
-            if let Ok(log) = log {
-                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"\[([^T]+)T([^+]+)\+.+?\] \[(.+?)\] (.+)")
-                        .expect("Failed to compile Regex")
-                });
-
-                let log_lines: Vec<&str> = log.lines().collect();
-
-                for chunk in log_lines.rchunks(1000) {
-                    let lines: Vec<LogLine> = chunk.iter()
-                        .filter_map(|line| {
-                            EXPR.captures(line)
-                                .map(|caps| LogLine {
-                                    date: caps[1].to_string(),
-                                    time: caps[2].to_string(),
-                                    category: caps[3].to_string(),
-                                    message: caps[4].trim().to_owned()
-                                })
-                        })
-                        .collect();
-
-                    sender.send_blocking(lines)
-                        .expect("Failed to send through channel");
-                }
+            for chunk in log_lines.chunks(1000) {
+                sender.send_blocking(
+                    chunk.iter()
+                        .filter_map(|line| Self::parse_log_line(line))
+                        .collect::<Vec<LogLine>>()
+                )
+                .expect("Failed to send through channel");
             }
         });
 
@@ -387,7 +412,7 @@ impl LogWindow {
 
                 // Populate column view
                 while let Ok(log_lines) = receiver.recv().await {
-                    imp.model.splice(imp.model.n_items(), 0, &log_lines.iter().rev()
+                    imp.model.splice(imp.model.n_items(), 0, &log_lines.iter()
                         .map(LogObject::new)
                         .collect::<Vec<LogObject>>()
                     );
