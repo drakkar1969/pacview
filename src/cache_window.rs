@@ -275,17 +275,15 @@ impl CacheWindow {
                             .min_depth(1)
                             .sort_by_file_name()
                             .into_iter()
-                            .filter_entry(|entry| {
-                                entry.path().extension().is_some_and(|ext| ext == "zst")
-                            })
                     })
                     .flatten()
-                    .map(|entry| {
+                    .filter_map(|entry| {
                         if let Ok(size) = entry.metadata().map(|metadata| metadata.blocks()) {
                             cache_size += size
                         }
 
-                        CacheObject::new(&entry.path().display().to_string())
+                        entry.path().extension().is_some_and(|ext| ext == "zst")
+                            .then(|| CacheObject::new(&entry.path().display().to_string()))
                     })
                     .collect();
 
