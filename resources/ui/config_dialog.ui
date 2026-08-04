@@ -20,38 +20,7 @@
           </object>
         </child>
         <property name="content">
-          <object class="AdwPreferencesPage">
-            <child>
-              <object class="AdwPreferencesGroup" id="paths_group">
-                <property name="title">Paths</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup" id="download_group">
-                <property name="title">Download</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup" id="sandbox_group">
-                <property name="title">SandBox</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup" id="packages_group">
-                <property name="title">Packages</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup" id="misc_group">
-                <property name="title">Miscellaneous</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup" id="siglevel_group">
-                <property name="title">Signature Levels</property>
-              </object>
-            </child>
-          </object>
+          <object class="AdwPreferencesPage" id="options_page"/>
         </property>
       </object>
     </child>
