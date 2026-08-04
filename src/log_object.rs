@@ -14,6 +14,32 @@ pub struct LogLine {
     pub message: String
 }
 
+impl LogLine {
+    //---------------------------------------
+    // Parse function
+    //---------------------------------------
+    pub fn parse(line: &str) -> Option<Self> {
+        // Extract timestamp
+        let (timestamp, rest) = line.strip_prefix('[')?
+            .split_once("] ")?;
+
+        // Extract date and time from timestamp
+        let (date, time_with_tz) = timestamp.split_once('T')?;
+        let (time, _) = time_with_tz.split_once('+')?;
+
+        // Extract category and message
+        let (category, message) = rest.strip_prefix('[')?
+            .split_once("] ")?;
+
+        Some(Self {
+            date: date.to_owned(),
+            time: time.to_owned(),
+            category: category.to_owned(),
+            message: message.to_owned()
+        })
+    }
+}
+
 //------------------------------------------------------------------------------
 // MODULE: LogObject
 //------------------------------------------------------------------------------

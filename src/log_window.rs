@@ -332,30 +332,6 @@ impl LogWindow {
     }
 
     //---------------------------------------
-    // Parse log line helper function
-    //---------------------------------------
-    fn parse_log_line(line: &str) -> Option<LogLine> {
-        // Extract timestamp
-        let (timestamp, rest) = line.strip_prefix('[')?
-            .split_once("] ")?;
-
-        // Extract date and time from timestamp
-        let (date, time_with_tz) = timestamp.split_once('T')?;
-        let (time, _) = time_with_tz.split_once('+')?;
-
-        // Extract category and message
-        let (category, message) = rest.strip_prefix('[')?
-            .split_once("] ")?;
-
-        Some(LogLine {
-            date: date.to_owned(),
-            time: time.to_owned(),
-            category: category.to_owned(),
-            message: message.to_owned()
-        })
-    }
-
-    //---------------------------------------
     // Populate window
     //---------------------------------------
     fn populate(&self) {
@@ -397,7 +373,7 @@ impl LogWindow {
             for chunk in log_lines.chunks(1000) {
                 sender.send_blocking(
                     chunk.iter()
-                        .filter_map(|line| Self::parse_log_line(line))
+                        .filter_map(|line| LogLine::parse(line))
                         .collect::<Vec<LogLine>>()
                 )
                 .expect("Failed to send through channel");
