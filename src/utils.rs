@@ -215,9 +215,9 @@ impl AurDBFile {
         static AUR_FILE: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
             let cache_dir = glib::user_cache_dir().join("pacview");
 
-            fs::create_dir_all(&cache_dir)
-                .map(|()| cache_dir.join("aur_packages"))
-                .ok()
+            fs::create_dir_all(&cache_dir).ok()?;
+
+            Some(cache_dir.join("aur_packages"))
         });
 
         AUR_FILE.as_ref()
@@ -439,6 +439,7 @@ impl TokioUtils {
 
                 let stdout = String::from_utf8(buffer)
                     .map(|stdout| {
+                        // Strip ANSI codes
                         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                             Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
                                 .expect("Failed to compile Regex")
