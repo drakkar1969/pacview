@@ -278,9 +278,7 @@ impl CacheWindow {
                     })
                     .flatten()
                     .filter_map(|entry| {
-                        if let Ok(size) = entry.metadata().map(|metadata| metadata.blocks()) {
-                            cache_size += size
-                        }
+                        cache_size += entry.metadata().ok()?.blocks();
 
                         entry.path().extension().is_some_and(|ext| ext == "zst")
                             .then(|| CacheObject::new(&entry.path().display().to_string()))
