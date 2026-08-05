@@ -181,7 +181,12 @@ impl ParuConf {
                 let repo_rc = Rc::new(repo);
 
                 WalkDir::new(path)
+                    .min_depth(1)
+                    .max_depth(1)
                     .into_iter()
+                    .filter_entry(|entry| {
+                        entry.file_type().is_dir() && entry.file_name() != ".git"
+                    })
                     .flatten()
                     .map(move |entry| {
                         (entry.file_name().to_string_lossy().into_owned(), Rc::clone(&repo_rc))
