@@ -219,10 +219,9 @@ impl SourceWindow {
 
         let mask = font_desc.set_fields();
 
-        if mask.contains(FontMask::FAMILY)
-            && let Some(family) = font_desc.family() {
-                write!(css, "font-family: {family}; ").unwrap();
-            }
+        if mask.contains(FontMask::FAMILY) && let Some(family) = font_desc.family() {
+            write!(css, "font-family: {family}; ").unwrap();
+        }
 
         if mask.contains(FontMask::SIZE) {
             let font_size = font_desc.size()/pango::SCALE;

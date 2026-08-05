@@ -1,6 +1,7 @@
 use std::cell::{Cell, RefCell};
 use std::sync::LazyLock;
 use std::fs;
+use std::io;
 use std::io::{BufRead, BufReader};
 use std::fmt::Write as _;
 
@@ -349,9 +350,7 @@ impl LogWindow {
                 Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)").expect("Failed to compile Regex")
             });
 
-            let Ok(log_file) = fs::File::open(&Pacman::config().read().unwrap().log_file) else {
-                return;
-            };
+            let log_file = fs::File::open(&Pacman::config().read().unwrap().log_file)?;
 
             let reader = BufReader::new(log_file);
 
@@ -378,6 +377,8 @@ impl LogWindow {
                 )
                 .expect("Failed to send through channel");
             }
+
+            Ok::<(), io::Error>(())
         });
 
         // Attach log task receiver
