@@ -543,7 +543,7 @@ impl BackupWindow {
         imp.compare_cancel_id.set(Some(cancel_id));
 
         // Download original file content with paccat
-        let (status, content) = TokioUtils::run(paccat, &[&backup.package(), "--", &path], cancel_token_clone)
+        let (status, content) = TokioUtils::run(paccat, &[&backup.package(), "--", &path], cancel_token_clone, false)
             .await?;
 
         if status != Some(0) {

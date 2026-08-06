@@ -1051,8 +1051,8 @@ impl PacViewWindow {
 
         // Create and store update cancel token
         let cancel_token = CancellationToken::new();
-        let alpm_cancel_token = cancel_token.clone();
-        let paru_cancel_token = cancel_token.clone();
+        let alpm_token = cancel_token.clone();
+        let paru_token = cancel_token.clone();
 
         let cancel_id = TaskTracker::add_token(cancel_token);
 
@@ -1066,7 +1066,7 @@ impl PacViewWindow {
         let alpm_task = TokioUtils::runtime().spawn(
             async move {
                 tokio::select! {
-                    () = alpm_cancel_token.cancelled() => Ok(HashMap::new()),
+                    () = alpm_token.cancelled() => Ok(HashMap::new()),
                     alpm_map = Self::get_alpm_updates() => alpm_map
                 }
             }
@@ -1075,7 +1075,7 @@ impl PacViewWindow {
         let (alpm_result, paru_result) = if let Ok(paru_path) = Paths::paru()
             && Pacman::is_default_root_dir() {
                 // Check for paru updates
-                let paru_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_cancel_token);
+                let paru_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_token, true);
 
                 join!(alpm_task, paru_task)
             } else {

@@ -309,7 +309,7 @@ impl SourceWindow {
 
         // Download PKGBUILD with paru
         let result = if let Ok(paru_path) = Paths::paru() {
-            TokioUtils::run(paru_path, &["-Gp", &self.pkg_name()], cancel_token_clone).await
+            TokioUtils::run(paru_path, &["-Gp", &self.pkg_name()], cancel_token_clone, false).await
         } else {
             Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
         };

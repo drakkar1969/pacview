@@ -380,7 +380,8 @@ impl TokioUtils {
     //---------------------------------------
     // Run function
     //---------------------------------------
-    pub async fn run<I, S1, S2>(cmd: S1, args: I, token: CancellationToken) -> io::Result<(Option<i32>, String)>
+    pub async fn run<I, S1, S2>(cmd: S1, args: I, token: CancellationToken, strip_ansi: bool)
+    -> io::Result<(Option<i32>, String)>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         let cmd_owned = cmd.as_ref().to_os_string();
 
@@ -437,8 +438,12 @@ impl TokioUtils {
                 stdout_pipe.read_to_end(&mut buffer).await?;
 
                 // Strip ANSI codes from stdout
-                let stdout = String::from_utf8(strip_ansi_escapes::strip(buffer))
-                    .map_err(io::Error::other)?;
+                let stdout = if strip_ansi {
+                    String::from_utf8(strip_ansi_escapes::strip(buffer))
+                } else {
+                    String::from_utf8(buffer)
+                }
+                .map_err(io::Error::other)?;
 
                 Ok((code, stdout))
             }
