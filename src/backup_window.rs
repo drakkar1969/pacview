@@ -84,6 +84,8 @@ mod imp {
         search_mode: Cell<BackupSearchMode>,
         #[property(get, set)]
         can_compare: Cell<bool>,
+        #[property(get, set)]
+        comparing: Cell<bool>,
 
         pub(super) search_term: RefCell<String>,
 
@@ -166,10 +168,16 @@ mod imp {
 
             // Compare action
             klass.install_action_async("backup.compare", None, async |window, _, _| {
-                if let Some(backup_file) = window.imp().selection.selected_item()
-                    .and_downcast::<BackupObject>() {
-                        let _ = window.compare_with_original(&backup_file).await;
-                    }
+                window.cancel_compare();
+
+                if !window.comparing() {
+                    let backup_file = window.imp().selection.selected_item();
+
+                    if let Some(file) = backup_file
+                        .and_downcast::<BackupObject>() {
+                            let _ = window.compare_with_original(&file).await;
+                        }
+                }
             });
 
             // Open action
@@ -397,6 +405,19 @@ impl BackupWindow {
                 window.activate_action("backup.open", None).unwrap();
             }
         ));
+
+        // Comparing property notify signal
+        self.connect_comparing_notify(|window| {
+            let imp = window.imp();
+
+            if window.comparing() {
+                imp.compare_button.set_icon_name("process-stop-symbolic");
+                imp.compare_button.set_tooltip_text(Some("Cancel Comparison"));
+            } else {
+                imp.compare_button.set_icon_name("backup-compare-symbolic");
+                imp.compare_button.set_tooltip_text(Some("Compare with Original"));
+            }
+        });
     }
 
     //---------------------------------------
@@ -487,11 +508,23 @@ impl BackupWindow {
     }
 
     //---------------------------------------
+    // Cancel compare function
+    //---------------------------------------
+    fn cancel_compare(&self) {
+        if let Some(id) = self.imp().compare_cancel_id.take() {
+            TaskTracker::cancel_token(id);
+        }
+    }
+
+    //---------------------------------------
     // Async compare with original function
     //---------------------------------------
     #[allow(clippy::future_not_send)]
     pub async fn compare_with_original(&self, backup: &BackupObject) -> io::Result<()> {
         let imp = self.imp();
+
+        // Set comparing property
+        self.set_comparing(true);
 
         let meld = Paths::meld().as_ref()
             .map_err(|_| io::Error::other("Meld not found"))?;
@@ -525,6 +558,9 @@ impl BackupWindow {
         if let Some(id) = imp.compare_cancel_id.take() {
             TaskTracker::remove_token(id);
         }
+
+        // Set comparing property
+        self.set_comparing(false);
 
         Ok(())
     }
