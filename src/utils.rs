@@ -24,7 +24,6 @@ use tokio_util::sync::CancellationToken;
 use futures_util::TryStreamExt;
 use async_compression::tokio::bufread::GzipDecoder;
 use configparser::ini::Ini;
-use regex::Regex;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -437,16 +436,8 @@ impl TokioUtils {
                 // Finish reading stdout
                 stdout_pipe.read_to_end(&mut buffer).await?;
 
-                let stdout = String::from_utf8(buffer)
-                    .map(|stdout| {
-                        // Strip ANSI codes
-                        static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                            Regex::new(r"\x1b(?:\[[0-9;]*m|\(B)")
-                                .expect("Failed to compile Regex")
-                        });
-
-                        EXPR.replace_all(&stdout, "").into_owned()
-                    })
+                // Strip ANSI codes from stdout
+                let stdout = String::from_utf8(strip_ansi_escapes::strip(buffer))
                     .map_err(io::Error::other)?;
 
                 Ok((code, stdout))
