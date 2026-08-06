@@ -48,7 +48,7 @@ mod imp {
         #[property(get, set, nullable, construct_only)]
         pkgbuild_url: RefCell<Option<String>>,
         #[property(get, set)]
-        loading: Cell<bool>,
+        downloading: Cell<bool>,
 
         pub(super) cancel_id: Cell<Option<u64>>,
     }
@@ -138,7 +138,7 @@ mod imp {
             klass.install_action_async("source.refresh", None, async |window, _, _| {
                 window.cancel_download();
 
-                if !window.loading() {
+                if !window.downloading() {
                     window.download_pkgbuild().await;
                 }
             });
@@ -296,8 +296,8 @@ impl SourceWindow {
         imp.stack.set_visible_child_name("loading");
         self.action_set_enabled("source.save", false);
 
-        // Set loading property
-        self.set_loading(true);
+        // Set downloading property
+        self.set_downloading(true);
 
         // Create and store cancel token
         let cancel_token = CancellationToken::new();
@@ -346,8 +346,8 @@ impl SourceWindow {
             TaskTracker::remove_token(id);
         }
 
-        // Set loading property
-        self.set_loading(false);
+        // Set downloading property
+        self.set_downloading(false);
     }
 
     //---------------------------------------
@@ -370,11 +370,11 @@ impl SourceWindow {
             Self::set_font(style_manager, &display);
         });
 
-        // Loading property notify signal
-        self.connect_loading_notify(|window| {
+        // Downloading property notify signal
+        self.connect_downloading_notify(|window| {
             let imp = window.imp();
 
-            if window.loading() {
+            if window.downloading() {
                 imp.refresh_button.set_icon_name("process-stop-symbolic");
                 imp.refresh_button.set_tooltip_text(Some("Cancel Download"));
             } else {
