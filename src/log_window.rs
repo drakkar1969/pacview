@@ -160,8 +160,7 @@ mod imp {
                 let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
 
                 for log in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<LogObject>().ok()) {
+                    .filter_map(|item| item.ok().and_downcast::<LogObject>()) {
                         writeln!(output, "|{date}|{time}|{category}|{message}|",
                             date=log.date(),
                             time=log.time(),

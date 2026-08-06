@@ -197,8 +197,7 @@ mod imp {
                 let mut output = String::from("## Backup Files\n|Filename|Status|\n|---|---|\n");
 
                 for backup in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<BackupObject>().ok()) {
+                    .filter_map(|item| item.ok().and_downcast::<BackupObject>()) {
                         let backup_package = backup.package();
 
                         if backup_package != package {

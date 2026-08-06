@@ -121,8 +121,7 @@ mod imp {
                 let mut output = String::from("## Cache Files\n|File|\n|---|\n");
 
                 for cache in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<CacheObject>().ok()) {
+                    .filter_map(|item| item.ok().and_downcast::<CacheObject>()) {
                         writeln!(output, "|{}|", cache.path()).unwrap();
                     }
 

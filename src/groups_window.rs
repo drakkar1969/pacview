@@ -161,8 +161,7 @@ mod imp {
                 let mut output = String::from("## Pacman Groups\n|Package Name|Status|\n|---|---|\n");
 
                 for pkg in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<GroupsObject>().ok()) {
+                    .filter_map(|item| item.ok().and_downcast::<GroupsObject>()) {
                         let pkg_groups = pkg.groups();
 
                         if pkg_groups != groups {

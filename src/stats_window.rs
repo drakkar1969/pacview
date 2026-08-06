@@ -93,8 +93,7 @@ mod imp {
                 let mut output = String::from("## Package Statistics\n|Repository|Packages|Installed|Explicit|Installed Size|\n|---|---|---|---|---|\n");
 
                 for stat in window.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<StatsObject>().ok()) {
+                    .filter_map(|item| item.ok().and_downcast::<StatsObject>()) {
                         writeln!(output,
                             "|{repository}|{packages}|{installed}|{explicit}|{size}|",
                             repository=stat.repository(),

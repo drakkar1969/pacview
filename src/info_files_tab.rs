@@ -119,8 +119,7 @@ mod imp {
                 writeln!(output, "## {}\n|Files|\n|---|", tab.pkg_name()).unwrap();
 
                 for obj in tab.imp().selection.iter::<glib::Object>()
-                    .flatten()
-                    .filter_map(|item| item.downcast::<gtk::StringObject>().ok()) {
+                    .filter_map(|item| item.ok().and_downcast::<gtk::StringObject>()) {
                         writeln!(output, "{}", obj.string()).unwrap();
                     }
 

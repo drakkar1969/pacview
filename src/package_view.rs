@@ -698,8 +698,7 @@ impl PackageView {
         let mut output = String::from("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n");
 
         for pkg in self.imp().selection.iter::<glib::Object>()
-            .flatten()
-            .filter_map(|item| item.downcast::<PkgObject>().ok()) {
+            .filter_map(|item| item.ok().and_downcast::<PkgObject>()) {
                 writeln!(output, "|{name}|{version}|{repo}|{status}|{size}|{groups}|",
                     name=pkg.name(),
                     version=pkg.version(),
