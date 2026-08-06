@@ -95,9 +95,9 @@ impl Pacman {
     }
 
     //---------------------------------------
-    // Default config path function
+    // Default config path for root function
     //---------------------------------------
-    pub fn default_config_path(root_dir: &str) -> String {
+    pub fn default_config_path_for_root(root_dir: &str) -> String {
         Path::new(root_dir)
             .join("etc/pacman.conf")
             .display()
@@ -109,7 +109,7 @@ impl Pacman {
     //---------------------------------------
     pub fn set_root_dir(root_dir: &str, config_path: Option<&str>) -> Result<(), pacmanconf::Error> {
         let config_path = config_path
-            .map_or_else(|| Self::default_config_path(root_dir), ToOwned::to_owned);
+            .map_or_else(|| Self::default_config_path_for_root(root_dir), ToOwned::to_owned);
 
         *Self::config().write().unwrap() = pacmanconf::Config::options()
             .root_dir(root_dir)

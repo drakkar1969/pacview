@@ -96,10 +96,10 @@ mod imp {
 
                         imp.rootdir_reset_box.set_sensitive(root_dir != "/");
 
-                        dialog.set_root_dir(root_dir);
+                        dialog.set_root_dir(root_dir.as_str());
 
                         if dialog.default_config() {
-                            let config_path = Pacman::default_config_path(&dialog.root_dir());
+                            let config_path = Pacman::default_config_path_for_root(&root_dir);
 
                             dialog.set_config_path(config_path);
                         }
@@ -161,7 +161,7 @@ impl RootDirDialog {
     // New function
     //---------------------------------------
     pub fn new(root_dir: &str, config_path: &str) -> Self {
-        let default_config_path = Pacman::default_config_path(root_dir);
+        let default_config_path = Pacman::default_config_path_for_root(root_dir);
 
         glib::Object::builder()
             .property("root-dir", root_dir)
@@ -181,7 +181,7 @@ impl RootDirDialog {
             let default = dialog.default_config();
 
             if default {
-                let config_path = Pacman::default_config_path(&dialog.root_dir());
+                let config_path = Pacman::default_config_path_for_root(&dialog.root_dir());
 
                 dialog.set_config_path(config_path);
             }
