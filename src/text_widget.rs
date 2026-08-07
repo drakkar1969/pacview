@@ -9,7 +9,6 @@ use glib::{clone, GString};
 use glib::subclass::Signal;
 use pango::{Layout, AttrList, Attribute, AttrColor, AttrFloat, AttrInt, Underline, Weight, WrapMode};
 
-use fancy_regex::Regex as FancyRegex;
 use regex::Regex;
 use url::Url;
 
@@ -254,6 +253,57 @@ mod imp {
 
     impl TextWidget {
         //---------------------------------------
+        // Parse link tag helper function
+        //---------------------------------------
+        fn parse_link_tag(text: &str, index: usize) -> Option<TextTag> {
+            let input = text.get(index..)?;
+
+            // Package name
+            let pkg_len = input.bytes()
+                .take_while(|&byte| {
+                    matches!(byte as char, 'a'..='z' | '0'..='9' | '@' | '.' | '_' | '+' | '-')
+                })
+                .count();
+
+            let pkg_name = input.get(..pkg_len).filter(|_| pkg_len != 0)?;
+
+            // Optional version or comment
+            let remainder = input.get(pkg_len..)?;
+
+            let ops_len = remainder.bytes()
+                .take_while(|&byte| matches!(byte as char, '>' | '<' | '='))
+                .count();
+
+            let ver_len = remainder.get(ops_len..)?.bytes()
+                .take_while(|&byte| {
+                    matches!(byte as char, 'a'..='z' | 'A'..='Z' | '0'..='9' | '.' | '_' | '+' | '-')
+                })
+                .count();
+
+            let version_len = ops_len + ver_len;
+
+            let version = remainder.get(..version_len)
+                .filter(|_| version_len != 0)
+                .map(ToOwned::to_owned);
+
+            // Look-ahead check
+            let after = remainder.get(version_len..)?;
+
+            let after_valid = after.is_empty()
+                || after.starts_with(':')
+                || (!LINK_SPACER.is_empty() && after.starts_with(LINK_SPACER));
+
+            after_valid.then(|| {
+                TextTag {
+                    link: format!("pkg://{pkg_name}"),
+                    version,
+                    start: index,
+                    end: index + pkg_len,
+                }
+            })
+        }
+
+        //---------------------------------------
         // Text property getter/setter
         //---------------------------------------
         fn text(&self) -> GString {
@@ -299,24 +349,18 @@ mod imp {
                         text = "None";
                     } else {
                         // Parse package links
-                        static EXPR: LazyLock<FancyRegex> = LazyLock::new(|| {
-                            FancyRegex::new(&format!(r"(?:^|{spacer})([a-z0-9@._+-]+)([><=]*[a-zA-Z0-9._+-]*)(?=:|{spacer}|$)", spacer=regex::escape(LINK_SPACER)))
-                                .expect("Failed to compile Regex")
-                        });
+                        let spacer_len = LINK_SPACER.len();
 
-                        link_list.extend(EXPR.captures_iter(text)
-                            .flatten()
-                            .filter_map(|caps| {
-                                let m1 = caps.get(1)?;
-                                let m2 = caps.get(2)?;
-
-                                Some(TextTag {
-                                    link: format!("pkg://{}", m1.as_str()),
-                                    version: Some(m2.as_str().to_owned()),
-                                    start: m1.start(),
-                                    end: m1.end()
-                                })
+                        let link_indices = std::iter::once(0).chain(
+                            (!LINK_SPACER.is_empty()).then(|| {
+                                text.match_indices(LINK_SPACER).map(|(i, _)| i + spacer_len)
                             })
+                            .into_iter()
+                            .flatten()
+                        );
+
+                        link_list.extend(
+                            link_indices.filter_map(|index| Self::parse_link_tag(text, index))
                         );
 
                         // Parse optdeps installed comments
@@ -325,7 +369,7 @@ mod imp {
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .filter_map(|(i, s)| {
                                 let start = i;
-                                let end = start.checked_add(comment_len)?;
+                                let end = start + comment_len;
 
                                 Some(TextTag {
                                     link: s.to_owned(),
