@@ -3,7 +3,7 @@ use std::cmp::Ordering;
 
 use gtk::{glib, gio};
 use gtk::subclass::prelude::*;
-use gtk::prelude::{ObjectExt, ListModelExtManual};
+use gtk::prelude::{ObjectExt, ListModelExt, Cast, CastNone};
 use glib::GString;
 
 use alpm::{Alpm, Package};
@@ -485,9 +485,10 @@ impl PkgObject {
             let db_pkg = handle.localdb().pkgs().find_satisfier(search_term)
                 .or_else(|| handle.syncdbs().find_satisfier(search_term))?;
 
-            pkg_model.iter::<Self>()
-                .flatten()
-                .find(|pkg| pkg.name() == db_pkg.name())
+            pkg_model.find_with_equal_func(|obj| {
+                obj.downcast_ref::<PkgObject>().is_some_and(|pkg| pkg.name() == db_pkg.name())
+            })
+            .and_then(|index| pkg_model.item(index).and_downcast::<PkgObject>())
         })
     }
 }
