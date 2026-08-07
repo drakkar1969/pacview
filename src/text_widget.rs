@@ -24,12 +24,21 @@ pub const INSTALLED_LABEL: &str = " [INSTALLED]";
 pub const LINK_SPACER: &str = "   ";
 
 //------------------------------------------------------------------------------
-// STRUCT: TextTag
+// STRUCT: LinkTag
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct TextTag {
+pub struct LinkTag {
     link: String,
     version: Option<String>,
+    start: usize,
+    end: usize,
+}
+
+//------------------------------------------------------------------------------
+// STRUCT: CommentTag
+//------------------------------------------------------------------------------
+#[derive(Debug)]
+pub struct CommentTag {
     start: usize,
     end: usize,
 }
@@ -81,8 +90,8 @@ mod imp {
 
         pub(super) cairo_error_color: Cell<(f64, f64, f64, f64)>,
 
-        pub(super) link_list: RefCell<Vec<TextTag>>,
-        pub(super) comment_list: RefCell<Vec<TextTag>>,
+        pub(super) link_list: RefCell<Vec<LinkTag>>,
+        pub(super) comment_list: RefCell<Vec<CommentTag>>,
 
         pub(super) focused_link_index: Cell<Option<usize>>,
 
@@ -255,7 +264,7 @@ mod imp {
         //---------------------------------------
         // Parse link tag helper function
         //---------------------------------------
-        fn parse_link_tag(text: &str, index: usize) -> Option<TextTag> {
+        fn parse_link_tag(text: &str, index: usize) -> Option<LinkTag> {
             let input = text.get(index..)?;
 
             // Package name
@@ -294,7 +303,7 @@ mod imp {
                 || (!LINK_SPACER.is_empty() && after.starts_with(LINK_SPACER));
 
             after_valid.then(|| {
-                TextTag {
+                LinkTag {
                     link: format!("pkg://{pkg_name}"),
                     version,
                     start: index,
@@ -316,12 +325,12 @@ mod imp {
             let mut text = text;
 
             // Create link/comment lists
-            let mut link_list: Vec<TextTag> = vec![];
-            let mut comment_list: Vec<TextTag> = vec![];
+            let mut link_list: Vec<LinkTag> = vec![];
+            let mut comment_list: Vec<CommentTag> = vec![];
 
             match obj.ptype() {
                 PropType::Link => {
-                    link_list.push(TextTag {
+                    link_list.push(LinkTag {
                         link: text.to_owned(),
                         version: None,
                         start: 0,
@@ -336,7 +345,7 @@ mod imp {
                     });
 
                     if let Some(m) = EXPR.find(text) {
-                        link_list.push(TextTag {
+                        link_list.push(LinkTag {
                             link: format!("mailto:{}", m.as_str()),
                             version: None,
                             start: m.start(),
@@ -367,15 +376,10 @@ mod imp {
                         let comment_len = INSTALLED_LABEL.len();
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
-                            .filter_map(|(i, s)| {
-                                let start = i;
-                                let end = start + comment_len;
-
-                                Some(TextTag {
-                                    link: s.to_owned(),
-                                    version: None,
-                                    start,
-                                    end
+                            .filter_map(|(i, _)| {
+                                Some(CommentTag {
+                                    start: i,
+                                    end: i + comment_len
                                 })
                             })
                         );
@@ -763,7 +767,7 @@ impl TextWidget {
     //---------------------------------------
     // Link helper functions
     //---------------------------------------
-    pub fn focused_link(&self) -> Option<TextTag> {
+    pub fn focused_link(&self) -> Option<LinkTag> {
         let imp = self.imp();
 
         let link_list = imp.link_list.borrow();
@@ -799,7 +803,7 @@ impl TextWidget {
             }
     }
 
-    pub fn handle_link(&self, link: Option<TextTag>) {
+    pub fn handle_link(&self, link: Option<LinkTag>) {
         if let Some(link) = link && let Ok(url) = Url::parse(&link.link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
