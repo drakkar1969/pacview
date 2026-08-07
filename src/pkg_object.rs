@@ -9,6 +9,7 @@ use glib::GString;
 use alpm::{Alpm, Package};
 use alpm_utils::DbListExt;
 use size::Size;
+use walkdir::WalkDir;
 
 use crate::{
     utils::{Paths, Pacman},
@@ -186,15 +187,23 @@ impl PkgObject {
                 None
             }
             _ => {
-                Paths::paru().as_ref().ok()
-                    .map(|_| {
-                        let raw_url = glib::user_cache_dir()
-                            .join(format!("paru/clone/repo/{repo}/{name}/PKGBUILD"))
-                            .display()
-                            .to_string();
+                Paths::paru().as_ref().ok().and_then(|_| {
+                    let repo_dir = glib::user_cache_dir()
+                        .join(format!("paru/clone/repo/{repo}"));
 
-                        format!("file://{raw_url}")
-                    })
+                    let key = format!("{name}/PKGBUILD");
+
+                    WalkDir::new(repo_dir)
+                        .min_depth(1)
+                        .into_iter()
+                        .flatten()
+                        .filter(|entry| entry.file_name() == "PKGBUILD")
+                        .find_map(|entry| {
+                            entry.path().ends_with(&key).then(|| {
+                                format!("file://{}", entry.path().display())
+                            })
+                        })
+                })
             }
         }
     }
