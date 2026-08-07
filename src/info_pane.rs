@@ -214,14 +214,17 @@ impl InfoPane {
 
         let new_pkg = PkgObject::find_satisfier(&pkg_link, &pkg_model)
             .or_else(|| {
-                aur_model.iter::<PkgObject>()
-                    .flatten()
-                    .find(|pkg| pkg.name() == pkg_name)
-                    .or_else(|| {
-                        aur_model.iter::<PkgObject>()
-                            .flatten()
-                            .find(|pkg| pkg.provides().iter().any(|s| s == &pkg_link))
-                    })
+                aur_model.find_with_equal_func(|obj| {
+                    obj.downcast_ref::<PkgObject>().is_some_and(|pkg| pkg.name() == pkg_name)
+                })
+                .and_then(|index| pkg_model.item(index).and_downcast::<PkgObject>())
+            })
+            .or_else(|| {
+                aur_model.find_with_equal_func(|obj| {
+                    obj.downcast_ref::<PkgObject>()
+                        .is_some_and(|pkg| pkg.provides().iter().any(|s| s == &pkg_link))
+                })
+                .and_then(|index| pkg_model.item(index).and_downcast::<PkgObject>())
             });
 
         // If link package found
