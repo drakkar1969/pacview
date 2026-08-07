@@ -13,7 +13,8 @@ use crate::{
     info_files_tab::InfoFilesTab,
     history_list::HistoryList,
     pkg_object::PkgObject,
-    text_widget::TextWidget
+    text_widget::TextWidget,
+    utils::ListStoreFind
 };
 
 //------------------------------------------------------------------------------
@@ -213,18 +214,9 @@ impl InfoPane {
         let aur_model = self.package_view().aur_model();
 
         let new_pkg = PkgObject::find_satisfier(&pkg_link, &pkg_model)
+            .or_else(|| aur_model.find_with(|pkg: &PkgObject| pkg.name() == pkg_name))
             .or_else(|| {
-                aur_model.find_with_equal_func(|obj| {
-                    obj.downcast_ref::<PkgObject>().is_some_and(|pkg| pkg.name() == pkg_name)
-                })
-                .and_then(|index| pkg_model.item(index).and_downcast::<PkgObject>())
-            })
-            .or_else(|| {
-                aur_model.find_with_equal_func(|obj| {
-                    obj.downcast_ref::<PkgObject>()
-                        .is_some_and(|pkg| pkg.provides().iter().any(|s| s == &pkg_link))
-                })
-                .and_then(|index| pkg_model.item(index).and_downcast::<PkgObject>())
+                aur_model.find_with(|pkg: &PkgObject| pkg.provides().iter().any(|s| s == &pkg_link))
             });
 
         // If link package found

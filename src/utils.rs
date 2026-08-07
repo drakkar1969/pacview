@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 use gtk::{gio, glib};
 use gio::{AppInfo, AppLaunchContext};
-use gtk::prelude::AppInfoExtManual;
+use gtk::prelude::{AppInfoExtManual, ListModelExt, Cast, CastNone, IsA};
 use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use walkdir::WalkDir;
@@ -586,5 +586,29 @@ impl StyleSchemes {
         scheme.id() == id
             || Self::variant_id(&scheme.id())
                 .is_some_and(|variant_id| variant_id == id)
+    }
+}
+
+//------------------------------------------------------------------------------
+// TRAIT: ListStoreFind
+//------------------------------------------------------------------------------
+pub trait ListStoreFind {
+    fn find_with<F, T>(&self, func: F) -> Option<T>
+    where F: FnMut(&T) -> bool + Clone, T: IsA<glib::Object>;
+}
+
+impl ListStoreFind for gio::ListStore {
+    //-----------------------------------
+    // Find with function
+    //-----------------------------------
+    fn find_with<F, T>(&self, func: F) -> Option<T>
+    where
+        F: FnMut(&T) -> bool + Clone, T: IsA<glib::Object>
+    {
+        let index = self.find_with_equal_func(|obj| {
+            obj.downcast_ref::<T>().is_some_and(func.clone())
+        });
+
+        index.and_then(|index| self.item(index).and_downcast::<T>())
     }
 }
