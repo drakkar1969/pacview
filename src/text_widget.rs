@@ -376,11 +376,11 @@ mod imp {
                         let comment_len = INSTALLED_LABEL.len();
 
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
-                            .filter_map(|(i, _)| {
-                                Some(CommentTag {
+                            .map(|(i, _)| {
+                                CommentTag {
                                     start: i,
                                     end: i + comment_len
-                                })
+                                }
                             })
                         );
                     }

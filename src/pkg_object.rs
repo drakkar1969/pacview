@@ -485,7 +485,7 @@ impl PkgObject {
             let db_pkg = handle.localdb().pkgs().find_satisfier(search_term)
                 .or_else(|| handle.syncdbs().find_satisfier(search_term))?;
 
-            pkg_model.find_with(|pkg: &PkgObject| pkg.name() == db_pkg.name())
+            pkg_model.find_with(|pkg: &Self| pkg.name() == db_pkg.name())
         })
     }
 }
