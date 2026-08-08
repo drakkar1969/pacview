@@ -105,24 +105,16 @@ mod imp {
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Previous action
             klass.install_action("info.previous", None, |pane, _, _| {
-                let history = pane.imp().pkg_history.borrow();
+                pane.imp().pkg_history.borrow().select_previous();
 
-                if history.peek_previous() {
-                    history.select_previous();
-
-                    pane.update_display();
-                }
+                pane.update_display();
             });
 
             // Next action
             klass.install_action("info.next", None, |pane, _, _| {
-                let history = pane.imp().pkg_history.borrow();
+                pane.imp().pkg_history.borrow().select_next();
 
-                if history.peek_next() {
-                    history.select_next();
-
-                    pane.update_display();
-                }
+                pane.update_display();
             });
 
             // Info row handle pkg link action
@@ -145,11 +137,9 @@ mod imp {
 
                 // If link package found and is different from current package
                 if let Some(pkg) = new_pkg.filter(|pkg| pane.pkg().as_ref() != Some(pkg)) {
-                    let history = pane.imp().pkg_history.borrow();
-
                     // If link package is in history, select it
                     // Otherwise append it after selected history package
-                    history.select_or_append(pkg);
+                    pane.imp().pkg_history.borrow().select_or_append(pkg);
 
                     // Display link package
                     pane.update_display();
