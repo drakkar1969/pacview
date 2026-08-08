@@ -6,7 +6,7 @@ use std::fmt::Write as _;
 use gtk::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
-use glib::{clone, RustClosure};
+use glib::clone;
 
 use crate::{
     pkg_object::PkgObject,
@@ -166,7 +166,7 @@ impl InfoDetailsTab {
     //---------------------------------------
     // Public add info rows function
     //---------------------------------------
-    pub fn add_info_rows(&self, pkg_link_handler: &RustClosure) {
+    pub fn add_info_rows(&self) {
         // Add info rows
         for (id, ptype) in [
             (PropID::Popularity, PropType::Text),
@@ -193,11 +193,7 @@ impl InfoDetailsTab {
         ] {
             let imp = self.imp();
 
-            let handler = [PropType::Link, PropType::LinkList, PropType::Packager]
-                .contains(&ptype)
-                .then_some(pkg_link_handler.clone());
-
-            let row = InfoRow::new(id, ptype, handler);
+            let row = InfoRow::new(id, ptype);
 
             row.connect_has_selection_notify(clone!(
                 #[weak] imp,

@@ -1,12 +1,11 @@
 use std::cell::{Cell, RefCell, OnceCell};
 use std::marker::PhantomData;
-use std::sync::{OnceLock, LazyLock};
+use std::sync::LazyLock;
 
 use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, GString};
-use glib::subclass::Signal;
 use pango::{Layout, AttrList, Attribute, AttrColor, AttrFloat, AttrInt, Underline, Weight, WrapMode};
 
 use regex::Regex;
@@ -123,23 +122,6 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for TextWidget {
-        //---------------------------------------
-        // Signals
-        //---------------------------------------
-        fn signals() -> &'static [Signal] {
-            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
-                vec![
-                    Signal::builder("package-link")
-                        .param_types([
-                            String::static_type(),
-                            String::static_type()
-                        ])
-                        .build(),
-                ]
-            })
-        }
-
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -804,14 +786,13 @@ impl TextWidget {
             }
     }
 
-    pub fn handle_link(&self, link: Option<LinkTag>) {
-        if let Some(link) = link && let Ok(url) = Url::parse(&link.link) {
+    pub fn handle_focused_link(&self) {
+        if let Some(link) = self.focused_link() && let Ok(url) = Url::parse(&link.link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
-                    self.emit_by_name::<()>(
-                        "package-link",
-                        &[&pkg_name, &link.version.unwrap_or_default()]
-                    );
+                    let args = (pkg_name, link.version.unwrap_or_default()).to_variant();
+
+                    self.activate_action("inforow.handle-pkg-link", Some(&args)).unwrap();
                 }
             } else {
                 glib::spawn_future_local(async move {
@@ -1010,15 +991,12 @@ impl TextWidget {
                 imp.is_clicked.set(false);
 
                 // Launch link if any
-                let link = imp.pressed_link_index.take()
-                    .filter(|&index| widget.link_index_at_xy(x, y) == Some(index))
-                    .and_then(|index| {
-                        let link_list = imp.link_list.borrow();
+                if let Some(index) = imp.pressed_link_index.take()
+                    .filter(|&index| widget.link_index_at_xy(x, y) == Some(index)) {
+                        imp.focused_link_index.set(Some(index));
+                    }
 
-                        link_list.get(index).cloned()
-                    });
-
-                widget.handle_link(link);
+                widget.handle_focused_link();
             }
         ));
 

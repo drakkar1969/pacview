@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, GString, RustClosure};
+use glib::{clone, GString};
 use gdk::{Key, ModifierType};
 
 use strum::AsRefStr;
@@ -212,9 +212,7 @@ mod imp {
             });
 
             klass.install_action("text.activate-link", None, |row, _, _| {
-                let value_widget = &row.imp().value_widget;
-
-                value_widget.handle_link(value_widget.focused_link());
+                row.imp().value_widget.handle_focused_link();
             });
         }
 
@@ -275,17 +273,13 @@ impl InfoRow {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(id: PropID, ptype: PropType, pkg_link_handler: Option<RustClosure>) -> Self {
+    pub fn new(id: PropID, ptype: PropType) -> Self {
         let obj: Self = glib::Object::builder().build();
 
         let imp = obj.imp();
 
         imp.prop_label.set_label(id.as_ref());
         imp.value_widget.set_ptype(ptype);
-
-        if let Some(handler) = pkg_link_handler {
-            imp.value_widget.connect_closure("package-link", false, handler);
-        }
 
         obj
     }
