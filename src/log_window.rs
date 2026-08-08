@@ -314,7 +314,7 @@ impl LogWindow {
                         return false;
                     };
 
-                    if !(prefix == "installed" || prefix == "removed" || prefix == "upgraded" || prefix == "downgraded") {
+                    if !(prefix == "installed" || prefix == "reinstalled" || prefix == "removed" || prefix == "upgraded" || prefix == "downgraded") {
                         return false;
                     }
 
