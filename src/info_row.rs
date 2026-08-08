@@ -86,9 +86,9 @@ pub enum ValueType<'a> {
     Str(&'a str),
     StrOpt(Option<&'a str>),
     StrOptNum(&'a str, i64),
-    Vec(&'a [String]),
-    VecOpt(&'a [String]),
-    VecOptJoin(&'a [String])
+    Links(&'a [String]),
+    LinksOpt(&'a [String]),
+    StrJoinVec(&'a [String])
 }
 
 //------------------------------------------------------------------------------
@@ -291,10 +291,10 @@ impl InfoRow {
         let imp = self.imp();
 
         let visible = match value {
-            ValueType::Str(_) | ValueType::Vec(_) => true,
+            ValueType::Str(_) | ValueType::Links(_) => true,
             ValueType::StrOpt(s) => s.is_some(),
             ValueType::StrOptNum(_, i) => i != 0,
-            ValueType::VecOpt(v) | ValueType::VecOptJoin(v) => !v.is_empty(),
+            ValueType::LinksOpt(v) | ValueType::StrJoinVec(v) => !v.is_empty(),
         };
 
         self.set_visible(visible);
@@ -307,10 +307,10 @@ impl InfoRow {
                 ValueType::StrOpt(s) => {
                     imp.value_widget.set_text(s.unwrap_or_default());
                 }
-                ValueType::Vec(v) | ValueType::VecOpt(v) => {
+                ValueType::Links(v) | ValueType::LinksOpt(v) => {
                     imp.value_widget.set_text(v.join(LINK_SPACER));
                 }
-                ValueType::VecOptJoin(v) => {
+                ValueType::StrJoinVec(v) => {
                     imp.value_widget.set_text(v.join(" | "));
                 }
             }

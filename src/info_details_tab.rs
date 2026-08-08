@@ -267,37 +267,37 @@ impl InfoDetailsTab {
         self.set_info_row(PropID::Url, ValueType::StrOpt(pkg.url()));
 
         // Groups
-        self.set_info_row(PropID::Groups, ValueType::VecOptJoin(pkg.groups()));
+        self.set_info_row(PropID::Groups, ValueType::StrJoinVec(pkg.groups()));
 
         // Provides
-        self.set_info_row(PropID::Provides, ValueType::VecOpt(pkg.provides()));
+        self.set_info_row(PropID::Provides, ValueType::LinksOpt(pkg.provides()));
 
         // Depends
-        self.set_info_row(PropID::Dependencies, ValueType::Vec(pkg.depends()));
+        self.set_info_row(PropID::Dependencies, ValueType::Links(pkg.depends()));
 
         // Optdepends
-        self.set_info_row(PropID::Optional, ValueType::VecOpt(&Self::installed_optdeps(pkg)));
+        self.set_info_row(PropID::Optional, ValueType::LinksOpt(&Self::installed_optdeps(pkg)));
 
         // Makedepends
-        self.set_info_row(PropID::Make, ValueType::VecOpt(pkg.makedepends()));
+        self.set_info_row(PropID::Make, ValueType::LinksOpt(pkg.makedepends()));
 
         // Required by
-        self.set_info_row(PropID::RequiredBy, ValueType::Vec(pkg.required_by()));
+        self.set_info_row(PropID::RequiredBy, ValueType::LinksOpt(pkg.required_by()));
 
         // Optional for
-        self.set_info_row(PropID::OptionalFor, ValueType::VecOpt(pkg.optional_for()));
+        self.set_info_row(PropID::OptionalFor, ValueType::LinksOpt(pkg.optional_for()));
 
         // Conflicts
-        self.set_info_row(PropID::ConflictsWith, ValueType::VecOpt(pkg.conflicts()));
+        self.set_info_row(PropID::ConflictsWith, ValueType::LinksOpt(pkg.conflicts()));
 
         // Replaces
-        self.set_info_row(PropID::Replaces, ValueType::VecOpt(pkg.replaces()));
+        self.set_info_row(PropID::Replaces, ValueType::LinksOpt(pkg.replaces()));
 
         // Architecture
         self.set_info_row(PropID::Architecture, ValueType::StrOpt(pkg.architecture()));
 
         // Licenses
-        self.set_info_row(PropID::Licenses, ValueType::VecOptJoin(pkg.licenses()));
+        self.set_info_row(PropID::Licenses, ValueType::StrJoinVec(pkg.licenses()));
 
         // Packager
         self.set_info_row(PropID::Packager, ValueType::StrOpt(pkg.packager()));
