@@ -9,7 +9,7 @@ mod package_item;
 mod info_pane;
 mod info_details_tab;
 mod info_files_tab;
-mod hash_window;
+mod hash_dialog;
 mod info_row;
 mod history_list;
 mod text_widget;

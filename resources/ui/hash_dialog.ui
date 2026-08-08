@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// HashWindow template //-->
-  <template class="HashWindow" parent="AdwWindow">
-    <property name="default-width">700</property>
-    <property name="modal">true</property>
-    <property name="content">
+  <!--// HashDialog template //-->
+  <template class="HashDialog" parent="AdwDialog">
+    <property name="content-width">550</property>
+    <property name="child">
       <object class="AdwToolbarView">
-        <property name="top-bar-style">raised</property>
         <child type="top">
           <object class="AdwHeaderBar"/>
         </child>
         <property name="content">
           <object class="GtkListBox">
+            <property name="margin-start">16</property>
+            <property name="margin-end">16</property>
+            <property name="margin-bottom">24</property>
             <property name="selection-mode">none</property>
             <child>
               <object class="AdwActionRow" id="base64_row">

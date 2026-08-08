@@ -4,7 +4,7 @@ use std::borrow::Cow;
 use std::fmt::Write as _;
 
 use gtk::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 use gtk::glib;
 use glib::{clone, RustClosure};
 
@@ -13,7 +13,7 @@ use crate::{
     info_row::{PropID, PropType, ValueType, InfoRow},
     text_widget::{INSTALLED_LABEL, LINK_SPACER},
     source_window::SourceWindow,
-    hash_window::HashWindow,
+    hash_dialog::HashDialog,
     utils::Paths,
 };
 
@@ -144,13 +144,9 @@ mod imp {
             // Show hashes action
             klass.install_action("info.show-hashes", None, |tab, _, _| {
                 if let Some(pkg) = tab.pkg() && pkg.validation().is_valid() {
-                    let parent = tab.root()
-                        .and_downcast::<gtk::Window>()
-                        .expect("Failed to downcast to 'GtkWindow'");
+                    let dialog = HashDialog::new(&pkg);
 
-                    let hash_window = HashWindow::new(&parent, &pkg);
-
-                    hash_window.present();
+                    dialog.present(Some(tab));
                 }
             });
         }
