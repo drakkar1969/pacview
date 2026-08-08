@@ -219,8 +219,8 @@ impl InfoPane {
                 aur_model.find_with(|pkg: &PkgObject| pkg.provides().iter().any(|s| s == &pkg_link))
             });
 
-        // If link package found
-        if let Some(pkg) = new_pkg {
+        // If link package found and is different from current package
+        if let Some(pkg) = new_pkg.filter(|pkg| self.pkg().as_ref() != Some(pkg)) {
             let history = self.imp().pkg_history.borrow();
 
             // If link package is in history, select it
