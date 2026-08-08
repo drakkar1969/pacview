@@ -1,7 +1,7 @@
 use gtk::subclass::prelude::*;
 use gtk::prelude::{GObjectPropertyExpressionExt, WidgetExt};
 use gtk::glib;
-use glib::closure;
+use glib::closure_local;
 
 use crate::pkg_object::PkgObject;
 
@@ -73,20 +73,18 @@ impl PackageItem {
         let update_expr = item.property_expression("item")
             .chain_property::<PkgObject>("update-version");
 
-        update_expr
-            .chain_closure::<bool>(closure!(|_: Option<glib::Object>, update: Option<String>| {
-                update.is_none()
-            }))
-            .bind(&imp.version_label.get(), "visible", gtk::Widget::NONE);
+        let has_update_expr = update_expr.chain_closure::<bool>(closure_local!(
+            |_: Option<glib::Object>, update: Option<String>| update.is_some()
+        ));
 
-        update_expr
-            .chain_closure::<bool>(closure!(|_: Option<glib::Object>, update: Option<String>| {
-                update.is_some()
-            }))
-            .bind(&imp.update_label.get(), "visible", gtk::Widget::NONE);
+        let no_update_expr = has_update_expr.chain_closure::<bool>(closure_local!(
+            |_: Option<glib::Object>, has_update: bool| !has_update
+        ));
 
-        update_expr
-            .bind(&imp.update_label.get(), "label", gtk::Widget::NONE);
+        no_update_expr.bind(&imp.version_label.get(), "visible", glib::Object::NONE);
+        has_update_expr.bind(&imp.update_label.get(), "visible", glib::Object::NONE);
+
+        update_expr.bind(&imp.update_label.get(), "label", glib::Object::NONE);
     }
 
     //---------------------------------------
