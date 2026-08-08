@@ -11,18 +11,13 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: StatusItemState
 //------------------------------------------------------------------------------
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Default, Debug, PartialEq, Eq)]
 #[repr(u32)]
 pub enum StatusItemState {
-    Updates(usize, Option<String>),
+    #[default]
     Reset,
     Checking,
-}
-
-impl Default for StatusItemState {
-    fn default() -> Self {
-        Self::Updates(0, None)
-    }
+    Updates(usize, Option<String>),
 }
 
 //------------------------------------------------------------------------------
