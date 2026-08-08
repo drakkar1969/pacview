@@ -707,11 +707,12 @@ impl TextWidget {
     // Selection helper functions
     //---------------------------------------
     pub fn selected_text(&self) -> Option<GString> {
-        let (sel_start, sel_end) = self.selection_indices();
+        let (start, end) = self.selection_indices();
 
-        let (start, end) = sel_start.zip(sel_end)?;
+        let (min, max) = start.zip(end)
+            .map(|(start, end)| (start.min(end), start.max(end)))?;
 
-        self.text().get(start.min(end)..start.max(end)).map(GString::from)
+        self.text().get(min..max).map(GString::from)
     }
 
     fn selection_indices(&self) -> (Option<usize>, Option<usize>) {
