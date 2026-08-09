@@ -67,6 +67,14 @@
                         <property name="action-name">info.next</property>
                       </object>
                     </child>
+                    <child type="end">
+                      <object class="GtkToggleButton" id="show_button">
+                        <property name="visible">false</property>
+                        <property name="icon-name">sidebar-show-right-symbolic</property>
+                        <property name="tooltip-text">Show Info Pane</property>
+                        <property name="action-name">win.show-infopane</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <property name="content">

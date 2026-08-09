@@ -83,10 +83,10 @@ mod imp {
         pub(super) search_bar: TemplateChild<SearchBar>,
         #[property(get)]
         #[template_child]
-        pub(super) sidebar_button: TemplateChild<gtk::Button>,
+        pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
         #[property(get)]
         #[template_child]
-        pub(super) infopane_button: TemplateChild<gtk::Button>,
+        pub(super) infopane_button: TemplateChild<gtk::ToggleButton>,
         #[property(get)]
         #[template_child]
         pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,

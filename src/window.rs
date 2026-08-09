@@ -48,7 +48,8 @@ mod imp {
     //---------------------------------------
     // Private structure
     //---------------------------------------
-    #[derive(Default, gtk::CompositeTemplate)]
+    #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
+    #[properties(wrapper_type = super::PacViewWindow)]
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
@@ -62,6 +63,8 @@ mod imp {
         pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
         pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
+        #[template_child]
+        pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
         pub(super) repo_sidebar: TemplateChild<adw::Sidebar>,
@@ -78,6 +81,11 @@ mod imp {
         pub(super) package_view: TemplateChild<PackageView>,
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
+
+        #[property(get, set)]
+        show_sidebar: Cell<bool>,
+        #[property(get, set)]
+        show_infopane: Cell<bool>,
 
         pub(super) repo_names: RefCell<Vec<String>>,
 
@@ -125,6 +133,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for PacViewWindow {
         //---------------------------------------
         // Constructor
@@ -289,15 +298,11 @@ mod imp {
                  window.imp().package_view.copy_list();
             });
 
-            // Show sidebar action
-            klass.install_action("win.show-sidebar", None, |window, _, _| {
-                window.imp().sidebar_split_view.set_show_sidebar(true);
-            });
+            // Show sidebar property action
+            klass.install_property_action("win.show-sidebar", "show-sidebar");
 
-            // Show infopane action
-            klass.install_action("win.show-infopane", None, |window, _, _| {
-                window.imp().main_split_view.set_show_sidebar(true);
-            });
+            // Show infopane property action
+            klass.install_property_action("win.show-infopane", "show-infopane");
 
             // Show window/dialog actions
             klass.install_action("win.show-backup-files", None, |window, _, _| {
@@ -512,6 +517,24 @@ impl PacViewWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
+        // Show sidebar property notify signal
+        self.connect_show_sidebar_notify(|window| {
+            let imp = window.imp();
+
+            if imp.sidebar_split_view.is_collapsed() {
+                imp.sidebar_split_view.set_show_sidebar(!imp.sidebar_split_view.shows_sidebar());
+            }
+        });
+
+        // Show infopane property notify signal
+        self.connect_show_infopane_notify(|window| {
+            let imp = window.imp();
+
+            if imp.main_split_view.is_collapsed() {
+                imp.main_split_view.set_show_sidebar(!imp.main_split_view.shows_sidebar());
+            }
+        });
+
         // Repo sidebar activated signal
         imp.repo_sidebar.connect_activated(clone!(
             #[weak] imp,
@@ -632,7 +655,9 @@ impl PacViewWindow {
             (&imp.sidebar_split_view.get().upcast(), "collapsed", true),
             (&imp.main_menu_button.get().upcast(), "visible", false),
             (&imp.package_view.main_menu_button().upcast(), "visible", true),
+            (&imp.sidebar_button.get().upcast(), "visible", true),
             (&imp.package_view.sidebar_button().upcast(), "visible", true),
+            (&imp.info_pane.show_button().upcast(), "visible", true),
             (&imp.package_view.infopane_button().upcast(), "visible", true)
         ]);
 

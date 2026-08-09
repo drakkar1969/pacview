@@ -17,7 +17,7 @@
                   </object>
                 </property>
                 <child>
-                  <object class="GtkButton" id="sidebar_button">
+                  <object class="GtkToggleButton" id="sidebar_button">
                     <property name="visible">false</property>
                     <property name="icon-name">sidebar-show-symbolic</property>
                     <property name="tooltip-text">Show Sidebar</property>
@@ -32,19 +32,19 @@
                   </object>
                 </child>
                 <child type="end">
+                  <object class="GtkToggleButton" id="infopane_button">
+                    <property name="visible">false</property>
+                    <property name="icon-name">sidebar-show-right-symbolic</property>
+                    <property name="tooltip-text">Show Info Pane</property>
+                    <property name="action-name">win.show-infopane</property>
+                  </object>
+                </child>
+                <child type="end">
                   <object class="GtkMenuButton" id="main_menu_button">
                     <property name="visible">false</property>
                     <property name="icon-name">open-menu-symbolic</property>
                     <property name="primary">true</property>
                     <property name="tooltip-text">Main Menu</property>
-                  </object>
-                </child>
-                <child type="end">
-                  <object class="GtkButton" id="infopane_button">
-                    <property name="visible">false</property>
-                    <property name="icon-name">sidebar-show-right-symbolic</property>
-                    <property name="tooltip-text">Show Info Pane</property>
-                    <property name="action-name">win.show-infopane</property>
                   </object>
                 </child>
                 <child type="end">

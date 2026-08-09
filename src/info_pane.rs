@@ -35,6 +35,9 @@ mod imp {
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) next_button: TemplateChild<gtk::Button>,
+        #[property(get)]
+        #[template_child]
+        pub(super) show_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
         pub(super) main_stack: TemplateChild<gtk::Stack>,
