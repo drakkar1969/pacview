@@ -12,7 +12,7 @@ use glib::{clone, closure_local};
 use tokio::sync::Mutex as TokioMutex;
 use tokio_util::sync::CancellationToken;
 use raur::Raur;
-use futures::future;
+use futures::future::join_all;
 
 use crate::{
     package_item::PackageItem,
@@ -526,26 +526,32 @@ impl PackageView {
         // Search for AUR packages
         let handle = raur::Handle::new();
 
-        let search_results = future::join_all(tokens.iter()
-            .map(|t| handle.search_by(t, search_by))
-        )
-        .await;
+        let search_results = join_all(tokens.iter().map(|t| handle.search_by(t, search_by)))
+            .await
+            .into_iter()
+            .collect::<Result<Vec<Vec<raur::Package>>, raur::Error>>()?;
 
-        let mut search_names: HashSet<String> = HashSet::new();
+        // Get list of package names that match all search terms
+        let search_names = search_results.split_first().map(|(first, rem)| {
+            let sets: Vec<HashSet<&str>> = rem.iter()
+                .map(|v| v.iter().map(|pkg| pkg.name.as_str()).collect())
+                .collect();
 
-        for result in search_results {
-            search_names.extend(result?.into_iter().map(|pkg| pkg.name));
-        }
+            let search_names: Vec<&str> = first.iter()
+                .map(|pkg| pkg.name.as_str())
+                .filter(|&name| sets.iter().all(|set| set.contains(name)))
+                .collect();
+
+            search_names
+        })
+        .ok_or_else(|| raur::Error::Aur("failed to parse search results".into()))?;
 
         // Get AUR package info using cache
-        let pkg_data = handle.cache_info(
-            &mut *AUR_CACHE.lock().await,
-            &search_names.iter().map(String::as_str).collect::<Vec<&str>>()
-        )
-        .await?
-        .iter()
-        .map(|pkg| PkgData::from_aur(pkg))
-        .collect();
+        let pkg_data = handle.cache_info(&mut *AUR_CACHE.lock().await, &search_names)
+            .await?
+            .iter()
+            .map(|pkg| PkgData::from_aur(pkg))
+            .collect();
 
         Ok(pkg_data)
     }
