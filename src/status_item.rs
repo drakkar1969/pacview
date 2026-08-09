@@ -67,12 +67,14 @@ impl StatusItem {
     // New function
     //---------------------------------------
     pub fn new(icon: &str, title: &str, id: PkgFlags) -> Self {
-        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/status_item/indicator.ui");
+        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/sidebar/indicator.ui");
 
-        // Create status item
+        // Create indicator
         let indicator = builder.object::<gtk::Box>("indicator")
             .expect("Failed to get object from builder");
+        indicator.add_css_class("accent");
 
+        // Create status item
         let obj: Self = glib::Object::builder()
             .property("icon-name", icon)
             .property("title", title)
@@ -86,6 +88,7 @@ impl StatusItem {
 
         let spinner = builder.object::<adw::Spinner>("spinner")
             .expect("Failed to get object from builder");
+        spinner.add_css_class("accent");
 
         let count_label = builder.object::<gtk::Label>("count_label")
             .expect("Failed to get object from builder");

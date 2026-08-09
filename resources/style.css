@@ -37,19 +37,23 @@ searchtag label {
 	margin: 3px 10px;
 }
 
-/* Sidebar status row spinner */
-.status-row-indicator image.spinner {
+/* Sidebar row spinner */
+.sidebar-indicator image.spinner {
 	min-height: 1.4em;
 	min-width: 1.4em;
 }
 
-/* Sidebar status row count indicator */
-.status-row-indicator > label {
-	background: var(--accent-bg-color);
-	color: var(--accent-fg-color);
+/* Sidebar row count indicator */
+.sidebar-indicator > label {
+	background: color-mix(in srgb, currentColor 25%, transparent);
 	border-radius: 9999px;
 	min-height: 1.6em;
 	padding: 0 0.5em;
+}
+
+.sidebar-indicator.accent > label {
+	background: var(--accent-bg-color);
+	color: var(--accent-fg-color);
 }
 
 /* Package view labels */

@@ -2,16 +2,13 @@
 <interface>
   <object class="GtkBox" id="indicator">
     <style>
-      <class name="status-row-indicator"/>
+      <class name="sidebar-indicator"/>
     </style>
     <property name="valign">center</property>
     <property name="spacing">6</property>
     <child>
       <object class="AdwSpinner" id="spinner">
         <property name="visible">false</property>
-        <style>
-          <class name="accent"/>
-        </style>
       </object>
     </child>
     <child>

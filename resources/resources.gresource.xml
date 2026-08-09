@@ -33,12 +33,12 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/message_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/main_menu/menu.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/header.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/sidebar/indicator.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/repository_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/packages_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/explicit_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/status_item/indicator.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/cache_window.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/config_dialog.ui</file>

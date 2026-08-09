@@ -87,11 +87,6 @@ mod imp {
         #[property(get, set)]
         default_exact: Cell<bool>,
 
-        #[property(get, set)]
-        searching: Cell<bool>,
-
-        pub(super) spinner: RefCell<Option<adw::SpinnerPaintable>>,
-
         pub(super) search_delay_id: RefCell<Option<glib::SourceId>>,
     }
 
@@ -283,17 +278,6 @@ impl SearchBar {
             }
         });
 
-        // Searching property notify signal
-        self.connect_searching_notify(|bar| {
-            let imp = bar.imp();
-
-            if bar.searching() {
-                imp.search_image.set_paintable(imp.spinner.borrow().as_ref());
-            } else {
-                imp.search_image.set_icon_name(Some("edit-find-symbolic"));
-            }
-        });
-
         // Search prop property notify signal
         self.connect_prop_notify(|bar| {
             let imp = bar.imp();
@@ -380,8 +364,6 @@ impl SearchBar {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
-
-        imp.spinner.replace(Some(adw::SpinnerPaintable::new(Some(&imp.search_image.get()))));
 
         // Bind exact property to button state
         self.bind_property("exact", &imp.exact_button.get(), "active")

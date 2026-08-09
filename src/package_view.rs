@@ -18,6 +18,7 @@ use crate::{
     package_item::PackageItem,
     pkg_data::{PkgFlags, PkgData},
     pkg_object::PkgObject,
+    repo_item::{RepoItem, RepoItemState},
     search_bar::{SearchBar, SearchProp},
     info_pane::InfoPane,
     utils::{TokioUtils, TaskTracker, ListStoreFind},
@@ -144,6 +145,8 @@ mod imp {
         #[property(get, set, default = false, construct)]
         grouping: Cell<bool>,
 
+        #[property(get, set)]
+        aur_repo_item: RefCell<RepoItem>,
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
 
@@ -565,6 +568,8 @@ impl PackageView {
         if let Some(id) = self.imp().search_cancel_id.take() {
             TaskTracker::cancel_token(id);
         }
+
+        self.aur_repo_item().set_state(RepoItemState::Reset);
     }
 
     //---------------------------------------
@@ -586,7 +591,7 @@ impl PackageView {
         }
 
         // Show search spinner
-        search_bar.set_searching(true);
+        self.aur_repo_item().set_state(RepoItemState::Searching);
 
         // Create and store search cancel token
         let cancel_token = CancellationToken::new();
@@ -598,9 +603,11 @@ impl PackageView {
 
         // Search AUR
         glib::spawn_future_local(clone!(
-            #[weak] imp,
+            #[weak(rename_to = view)] self,
             #[weak] search_bar,
             async move {
+                let imp = view.imp();
+
                 // Spawn tokio task to search AUR
                 let result = TokioUtils::runtime().spawn(
                     async move {
@@ -624,10 +631,17 @@ impl PackageView {
                             imp.aur_model.splice(0, imp.aur_model.n_items(), &pkg_list);
                         }
 
+                        // Hide search spinner
+                        view.aur_repo_item()
+                            .set_state(RepoItemState::AurResults(imp.aur_model.n_items()));
+
                         search_bar.set_aur_status(Ok(()));
                     },
                     Err(error) => {
                         search_bar.set_aur_status(Err(error.to_string()));
+
+                        // Hide search spinner
+                        view.aur_repo_item().set_state(RepoItemState::Reset);
                     }
                 }
 
@@ -635,9 +649,6 @@ impl PackageView {
                 if let Some(id) = imp.search_cancel_id.take() {
                     TaskTracker::remove_token(id);
                 }
-
-                // Hide search spinner
-                search_bar.set_searching(false);
             }
         ));
     }

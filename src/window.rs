@@ -550,7 +550,7 @@ impl PacViewWindow {
             }
         ));
 
-        // Package view n_items property notify signal
+        // Package view items changed signal
         imp.package_view.selection().connect_items_changed(clone!(
             #[weak(rename_to = window)] self,
             move |selection, _, _, _| {
@@ -818,6 +818,10 @@ impl PacViewWindow {
 
             if saved_repo_id.as_ref() == Some(repo) {
                 item.activate();
+            }
+
+            if repo == "aur" {
+                imp.package_view.set_aur_repo_item(item);
             }
         }
 
