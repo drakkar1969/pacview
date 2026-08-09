@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use gtk::glib;
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 use glib::clone;
 
 use crate::{
@@ -13,6 +13,8 @@ use crate::{
     info_files_tab::InfoFilesTab,
     history_list::HistoryList,
     pkg_object::PkgObject,
+    source_window::SourceWindow,
+    hash_dialog::HashDialog,
     utils::ListStoreFind
 };
 
@@ -41,7 +43,6 @@ mod imp {
         #[template_child]
         pub(super) tab_stack: TemplateChild<adw::ViewStack>,
 
-        #[property(get)]
         #[template_child]
         pub(super) info_tab: TemplateChild<InfoDetailsTab>,
         #[template_child]
@@ -117,6 +118,27 @@ mod imp {
                 pane.update_display();
             });
 
+            // Show PKGBUILD action
+            klass.install_action("info.show-pkgbuild", None, |pane, _, _| {
+                if let Some(pkg) = pane.pkg() {
+                    let parent = pane.root()
+                        .and_downcast::<gtk::Window>()
+                        .expect("Failed to downcast to 'GtkWindow'");
+
+                    let source_window = SourceWindow::new(&parent, &pkg);
+
+                    source_window.present();
+                }
+            });
+
+            // Show hashes action
+            klass.install_action("info.show-hashes", None, |pane, _, _| {
+                if let Some(pkg) = pane.pkg() && pkg.validation().is_valid() {
+                    let dialog = HashDialog::new(&pkg);
+
+                    dialog.present(Some(pane));
+                }
+            });
             // Info row handle pkg link action
             klass.install_action("inforow.handle-pkg-link", None, |pane, _, param| {
                 let (pkg_name, pkg_version) = param

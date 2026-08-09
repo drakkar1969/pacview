@@ -12,8 +12,6 @@ use crate::{
     pkg_object::PkgObject,
     info_row::{PropID, PropType, ValueType, InfoRow},
     text_widget::{INSTALLED_LABEL, LINK_SPACER},
-    source_window::SourceWindow,
-    hash_dialog::HashDialog,
     utils::Paths,
 };
 
@@ -125,28 +123,6 @@ mod imp {
                     }
 
                     tab.clipboard().set_text(&output);
-                }
-            });
-
-            // Show PKGBUILD action
-            klass.install_action("info.show-pkgbuild", None, |tab, _, _| {
-                if let Some(pkg) = tab.pkg() {
-                    let parent = tab.root()
-                        .and_downcast::<gtk::Window>()
-                        .expect("Failed to downcast to 'GtkWindow'");
-
-                    let source_window = SourceWindow::new(&parent, &pkg);
-
-                    source_window.present();
-                }
-            });
-
-            // Show hashes action
-            klass.install_action("info.show-hashes", None, |tab, _, _| {
-                if let Some(pkg) = tab.pkg() && pkg.validation().is_valid() {
-                    let dialog = HashDialog::new(&pkg);
-
-                    dialog.present(Some(tab));
                 }
             });
         }

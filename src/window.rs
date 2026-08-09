@@ -472,13 +472,13 @@ mod imp {
 
             // Infopane PKGBUILD/hashes key bindings
             klass.add_binding(Key::P, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.info_tab().activate_action("info.show-pkgbuild", None).unwrap();
+                window.imp().info_pane.activate_action("info.show-pkgbuild", None).unwrap();
 
                 Propagation::Stop
             });
 
             klass.add_binding(Key::H, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.info_tab().activate_action("info.show-hashes", None).unwrap();
+                window.imp().info_pane.activate_action("info.show-hashes", None).unwrap();
 
                 Propagation::Stop
             });
