@@ -32,17 +32,6 @@ pub struct Paths;
 
 impl Paths {
     //---------------------------------------
-    // Paru path function
-    //---------------------------------------
-    pub fn paru() -> &'static which::Result<PathBuf> {
-        static PARU_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| {
-            which_global("paru")
-        });
-
-        &PARU_PATH
-    }
-
-    //---------------------------------------
     // Paccat path function
     //---------------------------------------
     pub fn paccat() -> &'static which::Result<PathBuf> {
@@ -136,6 +125,17 @@ impl Pacman {
 pub struct Paru;
 
 impl Paru {
+    //---------------------------------------
+    // Bin path function
+    //---------------------------------------
+    pub fn bin_path() -> &'static which::Result<PathBuf> {
+        static BIN_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| {
+            which_global("paru")
+        });
+
+        &BIN_PATH
+    }
+
     //---------------------------------------
     // Config file function
     //---------------------------------------

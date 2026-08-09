@@ -9,10 +9,10 @@ use gtk::glib;
 use glib::clone;
 
 use crate::{
+    info_row::{InfoRow, PropID, PropType, ValueType},
     pkg_object::PkgObject,
-    info_row::{PropID, PropType, ValueType, InfoRow},
     text_widget::{INSTALLED_LABEL, LINK_SPACER},
-    utils::Paths,
+    utils::Paru,
 };
 
 //------------------------------------------------------------------------------
@@ -322,7 +322,7 @@ impl InfoDetailsTab {
         }
 
         // Update button states
-        imp.pkgbuild_button.set_visible(Paths::paru().is_ok());
+        imp.pkgbuild_button.set_visible(Paru::bin_path().is_ok());
 
         imp.hashes_button.set_visible(pkg.validation().is_valid());
     }

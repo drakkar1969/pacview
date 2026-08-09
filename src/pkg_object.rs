@@ -12,7 +12,7 @@ use size::Size;
 use walkdir::WalkDir;
 
 use crate::{
-    utils::{Paths, Pacman, Paru, ListStoreFind},
+    utils::{Pacman, Paru, ListStoreFind},
     pkg_data::{PkgData, PkgFlags, PkgValidation}
 };
 
@@ -187,7 +187,7 @@ impl PkgObject {
                 None
             }
             _ => {
-                Paths::paru().as_ref().ok().and_then(|_| {
+                Paru::bin_path().as_ref().ok().and_then(|_| {
                     let repo_dir = Paru::pkgbuild_repo_dir().join(repo);
 
                     let key = format!("{name}/PKGBUILD");

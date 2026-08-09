@@ -36,7 +36,7 @@ use crate::{
     config_dialog::ConfigDialog,
     rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Paths, Pacman, Paru, AurDBFile, TokioUtils, TaskTracker}
+    utils::{Pacman, Paru, AurDBFile, TokioUtils, TaskTracker}
 };
 
 //------------------------------------------------------------------------------
@@ -1103,7 +1103,7 @@ impl PacViewWindow {
             }
         );
 
-        let (alpm_result, paru_result) = if let Ok(paru_path) = Paths::paru()
+        let (alpm_result, paru_result) = if let Ok(paru_path) = Paru::bin_path()
             && Pacman::is_default_root_dir() {
                 // Check for paru updates
                 let paru_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_token, true);
