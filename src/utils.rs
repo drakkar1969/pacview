@@ -1,5 +1,4 @@
 use std::sync::{LazyLock, RwLock};
-use std::rc::Rc;
 use std::path::{PathBuf, Path};
 use std::ffi::{OsStr, OsString};
 use std::fs;
@@ -120,6 +119,15 @@ impl Pacman {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: PkgbuildRepo
+//------------------------------------------------------------------------------
+#[derive(Debug)]
+pub struct PkgbuildRepo {
+    pub repo: String,
+    pub path: PathBuf
+}
+
+//------------------------------------------------------------------------------
 // STRUCT: Paru
 //------------------------------------------------------------------------------
 pub struct Paru;
@@ -166,7 +174,7 @@ impl Paru {
     //---------------------------------------
     pub fn pkgbuild_repo_dir() -> &'static Path {
         static INI: LazyLock<PathBuf> = LazyLock::new(|| {
-            glib::user_cache_dir().join(format!("paru/clone/repo"))
+            glib::user_cache_dir().join("paru/clone/repo")
         });
 
         &INI
@@ -175,40 +183,54 @@ impl Paru {
     //---------------------------------------
     // Pkgbuild repo names functions
     //---------------------------------------
-    pub fn pkgbuild_repo_names() -> Vec<String> {
-        Self::config_file().as_ref()
-            .map(|ini| {
-                ini.sections()
-                    .into_iter()
-                    .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
-                    .collect()
-            })
-            .unwrap_or_default()
+    pub fn pkgbuild_repo_names() -> &'static Vec<String> {
+        static LIST: LazyLock<Vec<String>> = LazyLock::new(|| {
+            Paru::config_file().as_ref()
+                .map(|ini| {
+                    ini.sections()
+                        .into_iter()
+                        .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
+                        .collect()
+                })
+                .unwrap_or_default()
+        });
+
+        &LIST
     }
 
     //---------------------------------------
     // Pkgbuild pkg map functions
     //---------------------------------------
-    pub fn pkgbuild_pkg_map() -> HashMap<String, Rc<String>> {
-        Self::pkgbuild_repo_names().into_iter()
-            .flat_map(|repo| {
-                let path = Self::pkgbuild_repo_dir().join(&repo);
-                let repo_rc = Rc::new(repo);
+    pub fn pkgbuild_pkg_map() -> &'static HashMap<String, PkgbuildRepo> {
+        static MAP: LazyLock<HashMap<String, PkgbuildRepo>> = LazyLock::new(|| {
+            Paru::pkgbuild_repo_names().iter()
+                .flat_map(|repo| {
+                    let path = Paru::pkgbuild_repo_dir().join(repo);
 
-                WalkDir::new(path)
-                    .min_depth(1)
-                    .max_depth(1)
-                    .into_iter()
-                    .filter_entry(|entry| {
-                        entry.file_type().is_dir() && entry.file_name() != ".git"
-                    })
-                    .flatten()
-                    .map(move |entry| {
-                        (entry.file_name().to_string_lossy().into_owned(), Rc::clone(&repo_rc))
-                    })
+                    WalkDir::new(path)
+                        .min_depth(1)
+                        .into_iter()
+                        .filter_entry(|entry| {
+                            entry.file_type().is_dir() && entry.file_name() != ".git"
+                        })
+                        .flatten()
+                        .filter(|entry| {
+                            entry.path().join(".SRCINFO").try_exists().is_ok_and(|res| res)
+                        })
+                        .map(|entry| {
+                            (
+                                entry.file_name().to_string_lossy().into_owned(),
+                                PkgbuildRepo {
+                                    repo: repo.to_owned(),
+                                    path: entry.into_path()
+                                }
+                            )
+                        })
+                })
+                .collect()
+        });
 
-            })
-            .collect()
+        &MAP
     }
 }
 

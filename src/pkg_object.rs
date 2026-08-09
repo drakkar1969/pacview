@@ -9,7 +9,6 @@ use glib::GString;
 use alpm::{Alpm, Package};
 use alpm_utils::DbListExt;
 use size::Size;
-use walkdir::WalkDir;
 
 use crate::{
     utils::{Pacman, Paru, ListStoreFind},
@@ -187,22 +186,8 @@ impl PkgObject {
                 None
             }
             _ => {
-                Paru::bin_path().as_ref().ok().and_then(|_| {
-                    let repo_dir = Paru::pkgbuild_repo_dir().join(repo);
-
-                    let key = format!("{name}/PKGBUILD");
-
-                    WalkDir::new(repo_dir)
-                        .min_depth(1)
-                        .into_iter()
-                        .flatten()
-                        .filter(|entry| entry.file_name() == "PKGBUILD")
-                        .find_map(|entry| {
-                            entry.path().ends_with(&key).then(|| {
-                                format!("file://{}", entry.path().display())
-                            })
-                        })
-                })
+                Paru::pkgbuild_pkg_map().get(name)
+                    .map(|repo| format!("file://{}", repo.path.join("PKGBUILD").display()))
             }
         }
     }

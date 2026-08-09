@@ -775,9 +775,10 @@ impl PacViewWindow {
 
         // Create repo names list
         let repo_names: Vec<String> = Pacman::config().read().unwrap().repos.iter()
-            .map(|r| r.name.clone())
-            .chain(Paru::pkgbuild_repo_names())
-            .chain(["aur", "local"].map(ToOwned::to_owned))
+            .map(|r| r.name.as_str())
+            .chain(Paru::pkgbuild_repo_names().iter().map(String::as_str))
+            .chain(["aur", "local"])
+            .map(ToOwned::to_owned)
             .collect();
 
         // Populate sidebar
@@ -912,7 +913,7 @@ impl PacViewWindow {
             let local_data: Vec<PkgData> = localdb.pkgs().iter()
                 .map(|pkg| {
                     let repository = if let Some(repo) = paru_map.get(pkg.name()) {
-                        repo.as_str()
+                        repo.repo.as_str()
                     } else if aur_names.contains(pkg.name()) {
                         "aur"
                     } else {
