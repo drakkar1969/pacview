@@ -162,9 +162,9 @@ impl ParuConf {
     }
 
     //---------------------------------------
-    // Custom repo dir function
+    // Pkgbuild repo dir function
     //---------------------------------------
-    pub fn custom_repo_dir() -> &'static Path {
+    pub fn pkgbuild_repo_dir() -> &'static Path {
         static INI: LazyLock<PathBuf> = LazyLock::new(|| {
             glib::user_cache_dir().join(format!("paru/clone/repo"))
         });
@@ -173,9 +173,9 @@ impl ParuConf {
     }
 
     //---------------------------------------
-    // Repo names functions
+    // Pkgbuild repo names functions
     //---------------------------------------
-    pub fn repo_names() -> Vec<String> {
+    pub fn pkgbuild_repo_names() -> Vec<String> {
         Self::config_file().as_ref()
             .map(|ini| {
                 ini.sections()
@@ -187,12 +187,12 @@ impl ParuConf {
     }
 
     //---------------------------------------
-    // Local pkg map functions
+    // Pkgbuild pkg map functions
     //---------------------------------------
-    pub fn local_pkg_map() -> HashMap<String, Rc<String>> {
-        Self::repo_names().into_iter()
+    pub fn pkgbuild_pkg_map() -> HashMap<String, Rc<String>> {
+        Self::pkgbuild_repo_names().into_iter()
             .flat_map(|repo| {
-                let path = Self::custom_repo_dir().join(&repo);
+                let path = Self::pkgbuild_repo_dir().join(&repo);
                 let repo_rc = Rc::new(repo);
 
                 WalkDir::new(path)

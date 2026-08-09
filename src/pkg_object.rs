@@ -188,7 +188,7 @@ impl PkgObject {
             }
             _ => {
                 Paths::paru().as_ref().ok().and_then(|_| {
-                    let repo_dir = ParuConf::custom_repo_dir().join(repo);
+                    let repo_dir = ParuConf::pkgbuild_repo_dir().join(repo);
 
                     let key = format!("{name}/PKGBUILD");
 
