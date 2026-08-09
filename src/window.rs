@@ -1030,9 +1030,11 @@ impl PacViewWindow {
             let pacman_config = Pacman::config().read().unwrap();
 
             // Create temp alpm handle for cached database sync
+            let cache_dir = glib::user_cache_dir().join("pacview");
+
             let mut alpm_sync = alpm::Alpm::new(
                 pacman_config.root_dir.clone(),
-                glib::user_cache_dir().join("pacview").display().to_string()
+                cache_dir.display().to_string()
             )?;
 
             alpm_utils::configure_alpm(&mut alpm_sync, &pacman_config)?;
@@ -1044,7 +1046,7 @@ impl PacViewWindow {
             drop(pacman_config);
 
             // Remove alpm database lock file
-            let _ = fs::remove_file(glib::user_cache_dir().join("pacview/db.lck"));
+            let _ = fs::remove_file(cache_dir.join("db.lck"));
 
             // Update alpm sync databases
             let sync_dbs_mut = alpm_sync.syncdbs_mut();
