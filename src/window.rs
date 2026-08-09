@@ -36,7 +36,7 @@ use crate::{
     config_dialog::ConfigDialog,
     rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Paths, Pacman, ParuConf, AurDBFile, TokioUtils, TaskTracker}
+    utils::{Paths, Pacman, Paru, AurDBFile, TokioUtils, TaskTracker}
 };
 
 //------------------------------------------------------------------------------
@@ -776,7 +776,7 @@ impl PacViewWindow {
         // Create repo names list
         let repo_names: Vec<String> = Pacman::config().read().unwrap().repos.iter()
             .map(|r| r.name.clone())
-            .chain(ParuConf::pkgbuild_repo_names())
+            .chain(Paru::pkgbuild_repo_names())
             .chain(["aur", "local"].map(ToOwned::to_owned))
             .collect();
 
@@ -903,7 +903,7 @@ impl PacViewWindow {
             aur_names.extend(aur_file.lines());
 
             // Get paru repo package map
-            let paru_map = ParuConf::pkgbuild_pkg_map();
+            let paru_map = Paru::pkgbuild_pkg_map();
 
             let syncdbs = alpm_handle.syncdbs();
             let localdb = alpm_handle.localdb();
