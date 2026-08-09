@@ -12,7 +12,7 @@ use size::Size;
 use walkdir::WalkDir;
 
 use crate::{
-    utils::{Paths, Pacman, ListStoreFind},
+    utils::{Paths, Pacman, ParuConf, ListStoreFind},
     pkg_data::{PkgData, PkgFlags, PkgValidation}
 };
 
@@ -188,8 +188,7 @@ impl PkgObject {
             }
             _ => {
                 Paths::paru().as_ref().ok().and_then(|_| {
-                    let repo_dir = glib::user_cache_dir()
-                        .join(format!("paru/clone/repo/{repo}"));
+                    let repo_dir = ParuConf::custom_repo_dir().join(repo);
 
                     let key = format!("{name}/PKGBUILD");
 
