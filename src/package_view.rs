@@ -27,9 +27,8 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: PackageViewState
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[derive(Default, Debug)]
 #[repr(u32)]
-#[enum_type(name = "PackageViewState")]
 pub enum PackageViewState {
     #[default]
     Normal,
