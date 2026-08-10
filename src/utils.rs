@@ -119,10 +119,10 @@ impl Pacman {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: PkgbuildRepo
+// STRUCT: PkgbuildPkg
 //------------------------------------------------------------------------------
 #[derive(Debug)]
-pub struct PkgbuildRepo {
+pub struct PkgbuildPkg {
     pub repo: String,
     pub path: PathBuf
 }
@@ -201,8 +201,8 @@ impl Paru {
     //---------------------------------------
     // Pkgbuild pkg map functions
     //---------------------------------------
-    pub fn pkgbuild_pkg_map() -> &'static HashMap<String, PkgbuildRepo> {
-        static MAP: LazyLock<HashMap<String, PkgbuildRepo>> = LazyLock::new(|| {
+    pub fn pkgbuild_pkg_map() -> &'static HashMap<String, PkgbuildPkg> {
+        static MAP: LazyLock<HashMap<String, PkgbuildPkg>> = LazyLock::new(|| {
             Paru::pkgbuild_repo_names().iter()
                 .flat_map(|repo| {
                     let path = Paru::pkgbuild_repo_dir().join(repo);
@@ -220,7 +220,7 @@ impl Paru {
                         .map(|entry| {
                             (
                                 entry.file_name().to_string_lossy().into_owned(),
-                                PkgbuildRepo {
+                                PkgbuildPkg {
                                     repo: repo.to_owned(),
                                     path: entry.into_path()
                                 }

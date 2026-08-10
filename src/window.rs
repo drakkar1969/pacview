@@ -943,6 +943,15 @@ impl PacViewWindow {
                     .expect("Failed to send through channel");
             }
 
+            // Load non-installed packages from paru pkgbuild repos
+            let pkgbuild_data: Vec<PkgData> = paru_map.iter()
+                .filter(|&(name, _)| localdb.pkg(name.as_str()).is_err())
+                .filter_map(|(name, pkg)| PkgData::from_pkgbuild(name, pkg))
+                .collect();
+
+            sender.send_blocking((pkgbuild_data, false))
+                .expect("Failed to send through channel");
+
             Ok(())
         });
 

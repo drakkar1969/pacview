@@ -4,6 +4,9 @@ use gtk::glib;
 
 use itertools::Itertools;
 use alpm::PackageReason;
+use srcinfo::{ArchVecs, Srcinfo};
+
+use crate::utils::PkgbuildPkg;
 
 //------------------------------------------------------------------------------
 // FLAGS: PkgFlags
@@ -202,5 +205,53 @@ impl PkgData {
             has_script: None,
             validation: PkgValidation::NONE,
         }
+    }
+
+    //---------------------------------------
+    // PKGBUILD constructor
+    //---------------------------------------
+    pub fn from_pkgbuild(pkg_name: &str, paru_pkg: &PkgbuildPkg) -> Option<Self> {
+        // Helper functions
+        #[inline]
+        fn sorted_vec(slice: &[String]) -> Vec<String> {
+            slice.iter().map(String::from).sorted_unstable().collect()
+        }
+
+        #[inline]
+        fn archvecs_to_vec(arch_vec: &ArchVecs) -> Vec<String> {
+            arch_vec.any().map(ToOwned::to_owned).sorted_unstable().collect()
+        }
+
+        Srcinfo::from_path(paru_pkg.path.join(".SRCINFO")).ok()
+            .map(|srcinfo| {
+                Self {
+                    flags: PkgFlags::NONE,
+                    is_installed: false,
+                    base: Some(srcinfo.pkgbase().to_owned()),
+                    name: pkg_name.to_owned(),
+                    version: srcinfo.version(),
+                    description: srcinfo.pkgdesc().map(ToOwned::to_owned),
+                    popularity: None,
+                    out_of_date: None,
+                    url: srcinfo.url().map(ToOwned::to_owned),
+                    licenses: sorted_vec(srcinfo.license()),
+                    repository: paru_pkg.repo.clone(),
+                    groups: sorted_vec(srcinfo.groups()),
+                    depends: archvecs_to_vec(srcinfo.depends()),
+                    optdepends: archvecs_to_vec(srcinfo.optdepends()),
+                    makedepends: archvecs_to_vec(srcinfo.makedepends()),
+                    provides: archvecs_to_vec(srcinfo.provides()),
+                    conflicts: archvecs_to_vec(srcinfo.conflicts()),
+                    replaces: archvecs_to_vec(srcinfo.replaces()),
+                    architecture: srcinfo.arch().first().map(ToOwned::to_owned),
+                    packager: None,
+                    build_date: 0,
+                    install_date: None,
+                    download_size: 0,
+                    install_size: 0,
+                    has_script: srcinfo.install().map(ToOwned::to_owned),
+                    validation: PkgValidation::NONE,
+                }
+            })
     }
 }
