@@ -287,19 +287,6 @@ impl BackupWindow {
     fn setup_signals(&self) {
         let imp = self.imp();
 
-        // Is loaded property notify signal
-        self.connect_is_loaded_notify(|window| {
-            let imp = window.imp();
-
-            imp.stack.set_visible_child_name(
-                if window.is_loaded() {
-                    if imp.section_sort_model.n_items() == 0 { "empty" } else { "view" }
-                } else {
-                    "loading"
-                }
-            );
-        });
-
         // Search bar search mode enabled signal
         imp.search_bar.connect_search_mode_enabled_notify(clone!(
             #[weak] imp,
@@ -607,7 +594,15 @@ impl BackupWindow {
             #[weak] pkg_model,
             move || {
                 if !window.is_loaded() {
+                    let imp = window.imp();
+
+                    imp.stack.set_visible_child_name("loading");
+
                     window.populate(&pkg_model);
+
+                    if imp.model.n_items() == 0 {
+                        imp.stack.set_visible_child_name("empty");
+                    }
 
                     window.set_is_loaded(true);
                 }
