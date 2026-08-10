@@ -193,7 +193,7 @@
                 <property name="child">
                   <object class="AdwStatusPage" id="empty_status">
                     <property name="icon-name">edit-find-symbolic</property>
-                    <property name="title">No Backup Files Found</property>
+                    <property name="title">No Results Found</property>
                     <style>
                       <class name="compact"/>
                     </style>
