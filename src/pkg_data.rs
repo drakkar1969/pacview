@@ -219,7 +219,7 @@ impl PkgData {
 
         #[inline]
         fn archvecs_to_vec(arch_vec: &ArchVecs) -> Vec<String> {
-            arch_vec.any().map(ToOwned::to_owned).sorted_unstable().collect()
+            arch_vec.arch("x86_64").map(ToOwned::to_owned).sorted_unstable().collect()
         }
 
         Srcinfo::from_path(paru_pkg.path.join(".SRCINFO")).ok()
