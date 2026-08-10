@@ -150,10 +150,38 @@
           </object>
         </property>
         <child type="overlay">
-          <object class="AdwSpinner" id="spinner">
+          <object class="AdwStatusPage" id="loading_status">
             <property name="visible">false</property>
+            <property name="title">Waiting…</property>
+            <property name="description">File list display paused during scroll</property>
+            <property name="paintable">
+              <object class="AdwSpinnerPaintable">
+                <property name="widget">loading_status</property>
+              </object>
+            </property>
             <style>
-              <class name="dimmed"/>
+              <class name="compact"/>
+            </style>
+          </object>
+        </child>
+        <child type="overlay">
+          <object class="AdwStatusPage" id="empty_status">
+            <property name="visible">false</property>
+            <property name="icon-name">edit-find-symbolic</property>
+            <property name="title">No Files Found</property>
+            <style>
+              <class name="compact"/>
+            </style>
+          </object>
+        </child>
+        <child type="overlay">
+          <object class="AdwStatusPage" id="remote_status">
+            <property name="visible">false</property>
+            <property name="icon-name">status-none-symbolic</property>
+            <property name="title">Remote Package</property>
+            <property name="description">File list not available for remote packages</property>
+            <style>
+              <class name="compact"/>
             </style>
           </object>
         </child>

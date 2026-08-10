@@ -12,6 +12,19 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
+// ENUM: TabState
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "TabState")]
+pub enum TabState {
+    #[default]
+    Loading,
+    Installed,
+    Remote,
+}
+
+//------------------------------------------------------------------------------
 // MODULE: InfoFilesTab
 //------------------------------------------------------------------------------
 mod imp {
@@ -48,10 +61,16 @@ mod imp {
         #[template_child]
         pub(super) folder_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
-        pub(super) spinner: TemplateChild<adw::Spinner>,
+        pub(super) loading_status: TemplateChild<adw::StatusPage>,
+        #[template_child]
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
+        #[template_child]
+        pub(super) remote_status: TemplateChild<adw::StatusPage>,
 
         #[property(get, set)]
         pkg_name: RefCell<String>,
+        #[property(get, set = Self::set_state, builder(TabState::default()))]
+        state: Cell<TabState>,
         #[property(get, set)]
         show_folders: Cell<bool>,
     }
@@ -95,6 +114,37 @@ mod imp {
     impl BoxImpl for InfoFilesTab {}
 
     impl InfoFilesTab {
+        //---------------------------------------
+        // Property setter
+        //---------------------------------------
+        fn set_state(&self, state: TabState) {
+            match state {
+                TabState::Loading => {
+                    self.search_button.set_sensitive(false);
+
+                    self.loading_status.set_visible(true);
+                    self.remote_status.set_visible(false);
+                    self.empty_status.set_visible(false);
+                }
+                TabState::Installed => {
+                    self.search_button.set_sensitive(true);
+
+                    self.loading_status.set_visible(false);
+                    self.remote_status.set_visible(false);
+                }
+                TabState::Remote => {
+                    self.search_button.set_sensitive(false);
+                    self.search_bar.set_search_mode(false);
+
+                    self.loading_status.set_visible(false);
+                    self.remote_status.set_visible(true);
+                    self.empty_status.set_visible(false);
+                }
+            }
+
+            self.state.set(state);
+        }
+
         //---------------------------------------
         // Install actions
         //---------------------------------------
@@ -193,6 +243,8 @@ impl InfoFilesTab {
 
                 imp.count_label.set_label(&n_items.to_string());
 
+                imp.empty_status.set_visible(tab.state() == TabState::Installed && n_items == 0);
+
                 tab.action_set_enabled("info.files-show-folders", n_items > 0);
                 tab.action_set_enabled("info.files-open", n_items > 0);
                 tab.action_set_enabled("info.files-copy", n_items > 0);
@@ -239,7 +291,8 @@ impl InfoFilesTab {
     pub fn pause_view(&self) {
         let imp = self.imp();
 
-        imp.spinner.set_visible(true);
+        self.set_state(TabState::Loading);
+
         imp.model.remove_all();
     }
 
@@ -249,20 +302,30 @@ impl InfoFilesTab {
     pub fn update_view(&self, pkg: &PkgObject) {
         let imp = self.imp();
 
-        imp.spinner.set_visible(false);
+        if pkg.is_installed() {
+            self.set_state(TabState::Installed);
 
-        glib::spawn_future_local(clone!(
-            #[weak] imp,
-            #[weak] pkg,
-            async move {
-                // Populate view
-                let files_list: Vec<gtk::StringObject> = pkg.files().iter()
-                    .map(|file| gtk::StringObject::new(file))
-                    .collect();
+            glib::spawn_future_local(clone!(
+                #[weak] imp,
+                #[weak] pkg,
+                async move {
+                    // Populate view
+                    let files_list: Vec<gtk::StringObject> = pkg.files().iter()
+                        .map(|file| gtk::StringObject::new(file))
+                        .collect();
 
-                imp.model.splice(0, imp.model.n_items(), &files_list);
-            }
-        ));
+                    imp.model.splice(0, imp.model.n_items(), &files_list);
+
+                    if imp.selection.n_items() == 0 {
+                        imp.empty_status.set_visible(true);
+                    }
+                }
+            ));
+        } else {
+            self.set_state(TabState::Remote);
+
+            imp.model.remove_all();
+        }
 
         self.set_pkg_name(pkg.name());
     }
