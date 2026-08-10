@@ -525,10 +525,10 @@ impl BackupWindow {
         // Set comparing property
         self.set_comparing(true);
 
-        let meld = Paths::meld().as_ref()
+        let meld = Paths::meld()
             .map_err(|_| io::Error::other("Meld not found"))?;
 
-        let paccat = Paths::paccat().as_ref()
+        let paccat = Paths::paccat()
             .map_err(|_| io::Error::other("Paccat not found"))?;
 
         let path = Pacman::config().read().unwrap().root_dir.clone() + &backup.path();

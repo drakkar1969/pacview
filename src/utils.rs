@@ -33,23 +33,15 @@ impl Paths {
     //---------------------------------------
     // Paccat path function
     //---------------------------------------
-    pub fn paccat() -> &'static which::Result<PathBuf> {
-        static PACCAT_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| {
-            which_global("paccat")
-        });
-
-        &PACCAT_PATH
+    pub fn paccat() -> which::Result<PathBuf> {
+        which_global("paccat")
     }
 
     //---------------------------------------
     // Meld path function
     //---------------------------------------
-    pub fn meld() -> &'static which::Result<PathBuf> {
-        static MELD_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| {
-            which_global("meld")
-        });
-
-        &MELD_PATH
+    pub fn meld() -> which::Result<PathBuf> {
+        which_global("meld")
     }
 }
 
@@ -136,12 +128,8 @@ impl Paru {
     //---------------------------------------
     // Bin path function
     //---------------------------------------
-    pub fn bin_path() -> &'static which::Result<PathBuf> {
-        static BIN_PATH: LazyLock<which::Result<PathBuf>> = LazyLock::new(|| {
-            which_global("paru")
-        });
-
-        &BIN_PATH
+    pub fn bin_path() -> which::Result<PathBuf> {
+        which_global("paru")
     }
 
     //---------------------------------------
@@ -164,17 +152,6 @@ impl Paru {
             }
 
             Err(String::from("Failed to load paru.conf"))
-        });
-
-        &INI
-    }
-
-    //---------------------------------------
-    // Pkgbuild repo dir function
-    //---------------------------------------
-    pub fn pkgbuild_repo_dir() -> &'static Path {
-        static INI: LazyLock<PathBuf> = LazyLock::new(|| {
-            glib::user_cache_dir().join("paru/clone/repo")
         });
 
         &INI
@@ -205,7 +182,7 @@ impl Paru {
         static MAP: LazyLock<HashMap<String, PkgbuildPkg>> = LazyLock::new(|| {
             Paru::pkgbuild_repo_names().iter()
                 .flat_map(|repo| {
-                    let path = Paru::pkgbuild_repo_dir().join(repo);
+                    let path = glib::user_cache_dir().join("paru/clone/repo").join(repo);
 
                     WalkDir::new(path)
                         .min_depth(1)
