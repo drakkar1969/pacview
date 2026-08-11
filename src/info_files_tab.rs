@@ -289,11 +289,9 @@ impl InfoFilesTab {
     // Pause view function
     //---------------------------------------
     pub fn pause_view(&self) {
-        let imp = self.imp();
-
         self.set_state(TabState::Loading);
 
-        imp.model.remove_all();
+        self.imp().model.remove_all();
     }
 
     //---------------------------------------

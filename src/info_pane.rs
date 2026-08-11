@@ -10,7 +10,7 @@ use glib::clone;
 use crate::{
     package_view::PackageView,
     info_details_tab::InfoDetailsTab,
-    info_files_tab::InfoFilesTab,
+    info_files_tab::{InfoFilesTab, TabState},
     history_list::HistoryList,
     pkg_object::PkgObject,
     source_window::SourceWindow,
@@ -263,7 +263,9 @@ impl InfoPane {
                 delay_id.remove();
 
                 // Clear files tab
-                imp.files_tab.pause_view();
+                if imp.files_tab.state() != TabState::Loading {
+                    imp.files_tab.pause_view();
+                }
             }
 
             // Start delay timer
