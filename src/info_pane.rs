@@ -95,7 +95,6 @@ mod imp {
 
             let obj = self.obj();
 
-            obj.setup_signals();
             obj.setup_widgets();
         }
     }
@@ -181,6 +180,10 @@ mod imp {
         }
 
         fn set_pkg(&self, pkg: Option<PkgObject>) {
+            self.main_stack.set_visible_child_name(
+                if pkg.is_some() { "properties" } else { "empty" }
+            );
+
             self.pkg_history.borrow().init(pkg);
 
             self.obj().update_display();
@@ -198,24 +201,6 @@ glib::wrapper! {
 }
 
 impl InfoPane {
-    //---------------------------------------
-    // Setup signals
-    //---------------------------------------
-    fn setup_signals(&self) {
-        // Pkg property notify signal
-        self.connect_pkg_notify(|pane| {
-            let imp = pane.imp();
-
-            let pkg_is_some = pane.pkg().is_some();
-
-            imp.main_stack.set_visible_child_name(
-                if pkg_is_some { "properties" } else { "empty" }
-            );
-
-            imp.tab_switcher.set_sensitive(pkg_is_some);
-        });
-    }
-
     //---------------------------------------
     // Setup widgets
     //---------------------------------------
