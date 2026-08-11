@@ -85,7 +85,19 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for InfoDetailsTab {}
+    impl ObjectImpl for InfoDetailsTab {
+        //---------------------------------------
+        // Constructor
+        //---------------------------------------
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            let obj = self.obj();
+
+            obj.setup_widgets();
+        }
+    }
+
     impl WidgetImpl for InfoDetailsTab {}
     impl BoxImpl for InfoDetailsTab {}
 
@@ -140,9 +152,9 @@ glib::wrapper! {
 
 impl InfoDetailsTab {
     //---------------------------------------
-    // Public add info rows function
+    // Setup widgets
     //---------------------------------------
-    pub fn add_info_rows(&self) {
+    fn setup_widgets(&self) {
         // Add info rows
         for (id, ptype) in [
             (PropID::Popularity, PropType::Text),
@@ -227,9 +239,9 @@ impl InfoDetailsTab {
     }
 
     //---------------------------------------
-    // Update listbox function
+    // Update info rows function
     //---------------------------------------
-    fn update_listbox(&self, pkg: &PkgObject) {
+    fn update_info_rows(&self, pkg: &PkgObject) {
         // Popularity
         self.set_info_row(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
@@ -331,8 +343,8 @@ impl InfoDetailsTab {
     // Public update function
     //---------------------------------------
     pub fn update(&self, pkg: &PkgObject, count_label: &str) {
-        self.update_listbox(pkg);
         self.update_details(pkg, count_label);
+        self.update_info_rows(pkg);
 
         self.set_pkg(Some(pkg));
     }

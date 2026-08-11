@@ -142,6 +142,7 @@ mod imp {
                     dialog.present(Some(pane));
                 }
             });
+
             // Info row handle pkg link action
             klass.install_action("inforow.handle-pkg-link", None, |pane, _, param| {
                 let (pkg_name, pkg_version) = param
@@ -236,9 +237,6 @@ impl InfoPane {
         self.bind_property("active-tab", &imp.tab_stack.get(), "visible-child-name")
             .sync_create()
             .build();
-
-        // Setup info tab details listbox
-        imp.info_tab.add_info_rows();
     }
 
     //---------------------------------------
