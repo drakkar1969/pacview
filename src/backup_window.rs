@@ -486,7 +486,7 @@ impl BackupWindow {
         ));
 
         // Set backup compare button visibility
-        self.set_can_compare(Paths::paccat().is_ok() && Paths::meld().is_ok());
+        self.set_can_compare(Paths::paccat_bin().is_ok() && Paths::meld_bin().is_ok());
 
         // Set initial focus on view
         imp.view.grab_focus();
@@ -511,8 +511,8 @@ impl BackupWindow {
         // Set comparing property
         self.set_comparing(true);
 
-        let meld = Paths::meld().map_err(io::Error::other)?;
-        let paccat = Paths::paccat().map_err(io::Error::other)?;
+        let meld = Paths::meld_bin().map_err(io::Error::other)?;
+        let paccat = Paths::paccat_bin().map_err(io::Error::other)?;
 
         let path = Pacman::config().read().unwrap().root_dir.clone() + &backup.path();
 

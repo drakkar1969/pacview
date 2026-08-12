@@ -33,25 +33,21 @@ impl Paths {
     //---------------------------------------
     // Cache dir function
     //---------------------------------------
-    pub fn cache_dir() -> &'static PathBuf {
-        static DIR: LazyLock<PathBuf> = LazyLock::new(|| {
-            glib::user_cache_dir().join(env!("CARGO_PKG_NAME"))
-        });
-
-        &DIR
+    pub fn cache_dir() -> PathBuf {
+        glib::user_cache_dir().join(env!("CARGO_PKG_NAME"))
     }
 
     //---------------------------------------
-    // Paccat path function
+    // Paccat bin path function
     //---------------------------------------
-    pub fn paccat() -> which::Result<PathBuf> {
+    pub fn paccat_bin() -> which::Result<PathBuf> {
         which_global("paccat")
     }
 
     //---------------------------------------
-    // Meld path function
+    // Meld bin path function
     //---------------------------------------
-    pub fn meld() -> which::Result<PathBuf> {
+    pub fn meld_bin() -> which::Result<PathBuf> {
         which_global("meld")
     }
 }
