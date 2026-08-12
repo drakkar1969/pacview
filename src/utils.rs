@@ -262,7 +262,7 @@ impl AurDBFile {
         // Spawn tokio task to download AUR file
         TokioUtils::runtime().spawn(
             async move {
-                let mut out_file = File::create(AurDBFile::path()).await?;
+                let mut out_file = File::create(Self::path()).await?;
 
                 let response = reqwest::Client::new()
                     .get("https://aur.archlinux.org/packages.gz")

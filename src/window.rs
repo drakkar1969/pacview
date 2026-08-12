@@ -1087,19 +1087,19 @@ impl PacViewWindow {
     //---------------------------------------
     async fn get_paru_updates(token: CancellationToken)-> io::Result<HashMap<String, String>> {
         if let Ok(paru_path) = Paru::bin_path() && Pacman::is_default_root_dir() {
-            // Get paru updates
-            let (code, stdout) = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], token, true)
-                .await?;
-
-            // Return empty map if exit code is non-zero
-            if code != Some(0) { return Ok(HashMap::new()) };
-
-            // Return update map (package name, update version)
             static EXPR: LazyLock<Regex> = LazyLock::new(|| {
                 Regex::new(r"([a-z0-9@._+-]+)[\s]+[a-zA-Z0-9._+-:]+[\s]+->[ \t]+([a-zA-Z0-9._+-:]+)")
                     .expect("Failed to compile Regex")
             });
 
+            // Get paru updates
+            let (code, stdout) = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], token, true)
+                .await?;
+
+            // Return empty map if exit code is non-zero
+            if code != Some(0) { return Ok(HashMap::new()); }
+
+            // Return update map (package name, update version)
             Ok(EXPR.captures_iter(&stdout)
                 .map(|caps| {
                     let (_, [name, version]): (&str, [&str; 2]) = caps.extract();
