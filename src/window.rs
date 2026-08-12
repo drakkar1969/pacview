@@ -1103,27 +1103,25 @@ impl PacViewWindow {
         let mut update_map: HashMap<String, String> = HashMap::new();
         let mut error_msg: Option<String> = None;
 
-        // Check for pacman updates
-        let alpm_task = TokioUtils::runtime().spawn(
-            async move {
-                tokio::select! {
-                    () = alpm_token.cancelled() => Ok(HashMap::new()),
-                    alpm_map = Self::get_alpm_updates() => alpm_map
-                }
+        // Spawn task to check for pacman updates
+        let alpm_task = async move {
+            tokio::select! {
+                () = alpm_token.cancelled() => Ok(HashMap::new()),
+                alpm_map = Self::get_alpm_updates() => alpm_map
             }
-        );
+        };
 
-        let (alpm_result, paru_result) = if let Ok(paru_path) = Paru::bin_path()
-            && Pacman::is_default_root_dir() {
-                // Check for paru updates
-                let paru_task = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_token, true);
-
-                join!(alpm_task, paru_task)
+        // Spawn task to check for paru updates
+        let paru_task = async move {
+            if let Ok(paru_path) = Paru::bin_path() && Pacman::is_default_root_dir() {
+                TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_token, true).await
             } else {
-                (alpm_task.await, Ok((None, String::new())))
-            };
+                Ok((None, String::new()))
+            }
+        };
 
-        let alpm_result = alpm_result.expect("Failed to complete tokio task");
+        // Await update tasks
+        let (alpm_result, paru_result) = join!(alpm_task, paru_task);
 
         // Remove stored update cancel token
         if let Some(id) = imp.update_cancel_id.take() {
