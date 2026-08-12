@@ -133,9 +133,9 @@ impl Paru {
     }
 
     //---------------------------------------
-    // Config file function
+    // Config function
     //---------------------------------------
-    fn config_file() -> &'static Result<Ini, String> {
+    fn config() -> &'static Result<Ini, String> {
         static INI: LazyLock<Result<Ini, String>> = LazyLock::new(|| {
             let paths = [
                 env::var_os("PARU_CONF").map(Into::into),
@@ -162,7 +162,7 @@ impl Paru {
     //---------------------------------------
     pub fn pkgbuild_repo_names() -> &'static Vec<String> {
         static LIST: LazyLock<Vec<String>> = LazyLock::new(|| {
-            Paru::config_file().as_ref()
+            Paru::config().as_ref()
                 .map(|ini| {
                     ini.sections()
                         .into_iter()
