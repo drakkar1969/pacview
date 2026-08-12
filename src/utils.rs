@@ -262,11 +262,13 @@ impl AurDBFile {
         // Spawn tokio task to download AUR file
         TokioUtils::runtime().spawn(
             async move {
-                let mut out_file = File::create(Self::path()).await?;
-
-                let response = reqwest::Client::new()
-                    .get("https://aur.archlinux.org/packages.gz")
+                let client = reqwest::Client::builder()
                     .timeout(Duration::from_secs(5))
+                    .build()
+                    .map_err(io::Error::other)?;
+
+                let response = client
+                    .get("https://aur.archlinux.org/packages.gz")
                     .send()
                     .await
                     .map_err(io::Error::other)?;
@@ -277,6 +279,8 @@ impl AurDBFile {
 
                 let stream_reader = StreamReader::new(stream);
                 let mut decoder = GzipDecoder::new(stream_reader);
+
+                let mut out_file = File::create(Self::path()).await?;
 
                 tokio::io::copy(&mut decoder, &mut out_file).await?;
 
