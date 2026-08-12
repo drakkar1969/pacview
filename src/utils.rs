@@ -31,6 +31,17 @@ pub struct Paths;
 
 impl Paths {
     //---------------------------------------
+    // Cache dir function
+    //---------------------------------------
+    pub fn cache_dir() -> &'static PathBuf {
+        static DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+            glib::user_cache_dir().join(env!("CARGO_PKG_NAME"))
+        });
+
+        &DIR
+    }
+
+    //---------------------------------------
     // Paccat path function
     //---------------------------------------
     pub fn paccat() -> which::Result<PathBuf> {
@@ -221,7 +232,7 @@ impl AurDBFile {
     // Path function
     //---------------------------------------
     fn path() -> PathBuf {
-        glib::user_cache_dir().join("pacview/aur_packages")
+        Paths::cache_dir().join("aur_packages")
     }
 
     //---------------------------------------

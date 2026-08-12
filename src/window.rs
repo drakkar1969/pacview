@@ -35,7 +35,7 @@ use crate::{
     config_dialog::ConfigDialog,
     rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Pacman, Paru, AurDBFile, TokioUtils, TaskTracker}
+    utils::{Paths, Pacman, Paru, AurDBFile, TokioUtils, TaskTracker}
 };
 
 //------------------------------------------------------------------------------
@@ -641,9 +641,7 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Create app cache dir
-        let cache_dir = glib::user_cache_dir().join("pacview");
-
-        let _ = fs::create_dir_all(cache_dir);
+        let _ = fs::create_dir_all(Paths::cache_dir());
 
         // Add main breakpoint setters
         imp.main_breakpoint.add_setters(&[
@@ -1044,7 +1042,7 @@ impl PacViewWindow {
                 let pacman_config = Pacman::config().read().unwrap();
 
                 // Create temp alpm handle for cached database sync
-                let cache_dir = glib::user_cache_dir().join("pacview");
+                let cache_dir = Paths::cache_dir();
 
                 let mut alpm_sync = alpm::Alpm::new(
                     pacman_config.root_dir.clone(),
