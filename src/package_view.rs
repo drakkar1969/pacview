@@ -10,7 +10,6 @@ use gtk::prelude::*;
 use glib::{clone, closure_local};
 
 use tokio::sync::Mutex as TokioMutex;
-use tokio_util::sync::CancellationToken;
 use raur::Raur;
 use futures::future::join_all;
 
@@ -598,13 +597,10 @@ impl PackageView {
         // Show search spinner
         self.aur_repo_item().set_state(RepoItemState::Searching);
 
-        // Create and store search cancel token
-        let cancel_token = CancellationToken::new();
-        let cancel_token_clone = cancel_token.clone();
+        // Create and store cancel token
+        let (id, cancel_token) = TaskTracker::add_token();
 
-        let cancel_id = TaskTracker::add_token(cancel_token);
-
-        imp.search_cancel_id.set(Some(cancel_id));
+        imp.search_cancel_id.set(Some(id));
 
         // Search AUR
         glib::spawn_future_local(clone!(
@@ -617,7 +613,7 @@ impl PackageView {
                 let result = TokioUtils::runtime().spawn(
                     async move {
                         tokio::select! {
-                            () = cancel_token_clone.cancelled() => Ok(vec![]),
+                            () = cancel_token.cancelled() => Ok(vec![]),
                             pkg_data = Self::do_search(&term, &tokens, prop) => pkg_data
                         }
                     }
@@ -650,7 +646,7 @@ impl PackageView {
                     }
                 }
 
-                // Remove stored search cancel token
+                // Remove stored cancel token
                 if let Some(id) = imp.search_cancel_id.take() {
                     TaskTracker::remove_token(id);
                 }

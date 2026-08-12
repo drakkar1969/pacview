@@ -17,7 +17,6 @@ use heck::ToTitleCase;
 use regex::Regex;
 use futures::join;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
-use tokio_util::sync::CancellationToken;
 
 use crate::{
     APP_ID,
@@ -1090,14 +1089,12 @@ impl PacViewWindow {
         // Reset sidebar update count
         imp.update_item.borrow().set_state(StatusItemState::Checking);
 
-        // Create and store update cancel token
-        let cancel_token = CancellationToken::new();
-        let alpm_token = cancel_token.clone();
-        let paru_token = cancel_token.clone();
+        // Create and store cancel token
+        let (id, alpm_token) = TaskTracker::add_token();
 
-        let cancel_id = TaskTracker::add_token(cancel_token);
+        let paru_token = alpm_token.clone();
 
-        imp.update_cancel_id.set(Some(cancel_id));
+        imp.update_cancel_id.set(Some(id));
 
         // Check for updates
         let mut update_map: HashMap<String, String> = HashMap::new();
@@ -1123,7 +1120,7 @@ impl PacViewWindow {
         // Await update tasks
         let (alpm_result, paru_result) = join!(alpm_task, paru_task);
 
-        // Remove stored update cancel token
+        // Remove stored cancel token
         if let Some(id) = imp.update_cancel_id.take() {
             TaskTracker::remove_token(id);
         }

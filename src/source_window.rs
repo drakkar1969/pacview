@@ -11,7 +11,6 @@ use gdk::{Key, ModifierType};
 use pango::{FontDescription, FontMask, Weight};
 
 use sourceview5::prelude::*;
-use tokio_util::sync::CancellationToken;
 
 use crate::utils::Paru;
 use crate::{
@@ -301,16 +300,13 @@ impl SourceWindow {
         self.set_downloading(true);
 
         // Create and store cancel token
-        let cancel_token = CancellationToken::new();
-        let cancel_token_clone = cancel_token.clone();
+        let (id, cancel_token) = TaskTracker::add_token();
 
-        let cancel_id = TaskTracker::add_token(cancel_token);
-
-        imp.cancel_id.set(Some(cancel_id));
+        imp.cancel_id.set(Some(id));
 
         // Download PKGBUILD with paru
         let result = if let Ok(paru_path) = Paru::bin_path() {
-            TokioUtils::run(paru_path, &["-Gp", &self.pkg_name()], cancel_token_clone, false).await
+            TokioUtils::run(paru_path, &["-Gp", &self.pkg_name()], cancel_token, false).await
         } else {
             Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
         };

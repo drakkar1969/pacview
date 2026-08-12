@@ -327,15 +327,17 @@ impl TaskTracker {
     //---------------------------------------
     // Add token function
     //---------------------------------------
-    pub fn add_token(token: CancellationToken) -> u64 {
+    pub fn add_token() -> (u64, CancellationToken) {
         let mut tracker = Self::tracker().write().unwrap();
+
+        let token = CancellationToken::new();
 
         let id = tracker.next_id;
         tracker.next_id += 1;
 
-        tracker.map.insert(id, token);
+        tracker.map.insert(id, token.clone());
 
-        id
+        (id, token)
     }
 
     //---------------------------------------

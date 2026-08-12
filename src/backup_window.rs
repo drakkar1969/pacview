@@ -9,7 +9,6 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use strum::{EnumIter, IntoEnumIterator, AsRefStr};
-use tokio_util::sync::CancellationToken;
 
 use crate::{
     pkg_object::PkgObject,
@@ -520,16 +519,13 @@ impl BackupWindow {
 
         let path = Pacman::config().read().unwrap().root_dir.clone() + &backup.path();
 
-        // Create and store compare cancel token
-        let cancel_token = CancellationToken::new();
-        let cancel_token_clone = cancel_token.clone();
+        // Create and store cancel token
+        let (id, cancel_token) = TaskTracker::add_token();
 
-        let cancel_id = TaskTracker::add_token(cancel_token);
-
-        imp.compare_cancel_id.set(Some(cancel_id));
+        imp.compare_cancel_id.set(Some(id));
 
         // Download original file content with paccat
-        let (status, content) = TokioUtils::run(paccat, &[&backup.package(), "--", &path], cancel_token_clone, false)
+        let (status, content) = TokioUtils::run(paccat, &[&backup.package(), "--", &path], cancel_token, false)
             .await?;
 
         if status != Some(0) {
@@ -540,7 +536,7 @@ impl BackupWindow {
         TokioUtils::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content)
             .await?;
 
-        // Remove stored compare cancel token
+        // Remove stored cancel token
         if let Some(id) = imp.compare_cancel_id.take() {
             TaskTracker::remove_token(id);
         }
