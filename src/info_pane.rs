@@ -145,7 +145,7 @@ mod imp {
             // Info row handle pkg link action
             klass.install_action("inforow.handle-pkg-link", None, |pane, _, param| {
                 let (pkg_name, pkg_version) = param
-                    .and_then(|param| param.get::<(String, String)>())
+                    .and_then(glib::Variant::get::<(String, String)>)
                     .expect("Failed to get tuple from variant");
 
                 // Find link package in pacman databases or AUR search results

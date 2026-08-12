@@ -8,7 +8,7 @@ use gtk::prelude::*;
 //------------------------------------------------------------------------------
 // ENUM: RepoItemState
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, PartialEq, Eq)]
+#[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[repr(u32)]
 pub enum RepoItemState {
     #[default]
