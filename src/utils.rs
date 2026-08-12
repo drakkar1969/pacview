@@ -220,34 +220,23 @@ impl AurDBFile {
     //---------------------------------------
     // Path function
     //---------------------------------------
-    pub fn path() -> Option<&'static PathBuf> {
-        static AUR_FILE: LazyLock<Option<PathBuf>> = LazyLock::new(|| {
-            let cache_dir = glib::user_cache_dir().join("pacview");
-
-            fs::create_dir_all(&cache_dir).ok()?;
-
-            Some(cache_dir.join("aur_packages"))
-        });
-
-        AUR_FILE.as_ref()
+    fn path() -> PathBuf {
+        glib::user_cache_dir().join("pacview/aur_packages")
     }
 
     //---------------------------------------
-    // Not found function
+    // Exists function
     //---------------------------------------
-    pub fn not_found() -> bool {
-        Self::path()
-            .is_some_and(|aur_file| fs::metadata(aur_file).is_err())
+    pub fn exists() -> bool {
+        Self::path().try_exists().is_ok_and(|result| result)
     }
 
     //---------------------------------------
     // Load function
     //--------------------------------------
     pub fn load() -> String {
-        Self::path()
-            .and_then(|aur_file| fs::read_to_string(aur_file).ok())
+        fs::read_to_string(Self::path())
             .unwrap_or_default()
-
     }
 
     //---------------------------------------
@@ -255,11 +244,9 @@ impl AurDBFile {
     //---------------------------------------
     pub fn out_of_date(max_age: u64) -> bool {
         // Get AUR package names file age
-        let file_age = Self::path()
-            .and_then(|aur_file| {
-                let metadata = fs::metadata(aur_file).ok()?;
-                let file_time = metadata.modified().ok()?;
-
+        let file_age = fs::metadata(Self::path()).ok()
+            .and_then(|metadata| metadata.modified().ok())
+            .and_then(|file_time| {
                 let now = std::time::SystemTime::now();
 
                 now.duration_since(file_time).ok()
@@ -272,12 +259,11 @@ impl AurDBFile {
     // Download async function
     //---------------------------------------
     pub async fn download() -> Result<(), io::Error> {
-        let aur_file = Self::path()
-            .ok_or_else(|| io::Error::other("Failed to retrieve AUR database path"))?;
-
         // Spawn tokio task to download AUR file
         TokioUtils::runtime().spawn(
             async move {
+                let mut out_file = File::create(AurDBFile::path()).await?;
+
                 let response = reqwest::Client::new()
                     .get("https://aur.archlinux.org/packages.gz")
                     .timeout(Duration::from_secs(5))
@@ -291,8 +277,6 @@ impl AurDBFile {
 
                 let stream_reader = StreamReader::new(stream);
                 let mut decoder = GzipDecoder::new(stream_reader);
-
-                let mut out_file = File::create(aur_file).await?;
 
                 tokio::io::copy(&mut decoder, &mut out_file).await?;
 

@@ -187,21 +187,19 @@ mod imp {
             klass.install_action_async("win.update-aur-database", None, async |window, _, _| {
                 let imp = window.imp();
 
-                if AurDBFile::path().is_some() {
-                    imp.update_item.borrow().set_state(StatusItemState::Reset);
-                    imp.package_view.set_state(PackageViewState::AURDownload);
-                    imp.info_pane.set_pkg(None::<PkgObject>);
-                    imp.package_view.count_label().set_label("");
+                imp.update_item.borrow().set_state(StatusItemState::Reset);
+                imp.package_view.set_state(PackageViewState::AURDownload);
+                imp.info_pane.set_pkg(None::<PkgObject>);
+                imp.package_view.count_label().set_label("");
 
-                    window.cancel_package_updates();
+                window.cancel_package_updates();
 
-                    // Spawn tokio task to download AUR package names file
-                    let _ = AurDBFile::download().await;
+                // Spawn tokio task to download AUR package names file
+                let _ = AurDBFile::download().await;
 
-                    // Refresh packages
-                    gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                        .unwrap();
-                }
+                // Refresh packages
+                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                    .unwrap();
             });
 
             // Mount root dir action
@@ -642,6 +640,11 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
+        // Create app cache dir
+        let cache_dir = glib::user_cache_dir().join("pacview");
+
+        let _ = fs::create_dir_all(cache_dir);
+
         // Add main breakpoint setters
         imp.main_breakpoint.add_setters(&[
             (&imp.main_split_view.get().upcast::<glib::Object>(), "collapsed", true),
@@ -796,7 +799,7 @@ impl PacViewWindow {
         // If AUR database download is enabled and AUR file does not exist, download it
         let aur_download = imp.prefs_dialog.borrow().aur_database_download();
 
-        if aur_download && AurDBFile::not_found() {
+        if aur_download && !AurDBFile::exists() {
             imp.package_view.set_state(PackageViewState::AURDownload);
             imp.info_pane.set_pkg(None::<PkgObject>);
 
