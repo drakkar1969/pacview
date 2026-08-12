@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-use std::fs;
+use std::{fs, io};
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -11,11 +11,11 @@ use adw::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
-use itertools::Itertools;
 use alpm_utils::DbListExt;
 use heck::ToTitleCase;
 use regex::Regex;
 use futures::join;
+use tokio_util::sync::CancellationToken;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 
 use crate::{
@@ -1033,49 +1033,80 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: get alpm updates helper
     //---------------------------------------
-    async fn get_alpm_updates() -> alpm::Result<HashMap<String, String>> {
-        TokioUtils::runtime().spawn_blocking(move || {
-            // Get pacman config
-            let pacman_config = Pacman::config().read().unwrap();
+    async fn get_alpm_updates(token: CancellationToken) -> alpm::Result<HashMap<String, String>> {
+        tokio::select! {
+            () = token.cancelled() => Ok(HashMap::new()),
+            result = TokioUtils::runtime().spawn_blocking(move || {
+                // Get pacman config
+                let pacman_config = Pacman::config().read().unwrap();
 
-            // Create temp alpm handle for cached database sync
-            let cache_dir = glib::user_cache_dir().join("pacview");
+                // Create temp alpm handle for cached database sync
+                let cache_dir = glib::user_cache_dir().join("pacview");
 
-            let mut alpm_sync = alpm::Alpm::new(
-                pacman_config.root_dir.clone(),
-                cache_dir.display().to_string()
-            )?;
+                let mut alpm_sync = alpm::Alpm::new(
+                    pacman_config.root_dir.clone(),
+                    cache_dir.display().to_string()
+                )?;
 
-            alpm_utils::configure_alpm(&mut alpm_sync, &pacman_config)?;
+                alpm_utils::configure_alpm(&mut alpm_sync, &pacman_config)?;
 
-            // Create local alpm handle
-            let alpm_local = alpm_utils::alpm_with_conf(&pacman_config)?;
+                // Create local alpm handle
+                let alpm_local = alpm_utils::alpm_with_conf(&pacman_config)?;
 
-            // Drop pacman config
-            drop(pacman_config);
+                // Drop pacman config
+                drop(pacman_config);
 
-            // Remove alpm database lock file
-            let _ = fs::remove_file(cache_dir.join("db.lck"));
+                // Remove alpm database lock file
+                let _ = fs::remove_file(cache_dir.join("db.lck"));
 
-            // Update alpm sync databases
-            let sync_dbs_mut = alpm_sync.syncdbs_mut();
-            sync_dbs_mut.update(false)?;
+                // Update alpm sync databases
+                let sync_dbs_mut = alpm_sync.syncdbs_mut();
+                sync_dbs_mut.update(false)?;
 
-            // Get alpm local/sync databases
-            let sync_dbs = alpm_sync.syncdbs();
-            let local_db = alpm_local.localdb();
+                // Get alpm local/sync databases
+                let sync_dbs = alpm_sync.syncdbs();
+                let local_db = alpm_local.localdb();
+
+                // Return update map (package name, update version)
+                Ok(local_db.pkgs().iter()
+                    .filter_map(|pkg| {
+                        sync_dbs.pkg(pkg.name()).ok()
+                            .filter(|sync_pkg| sync_pkg.version().vercmp(pkg.version()).is_gt())
+                            .map(|sync_pkg| (pkg.name().to_owned(), sync_pkg.version().to_string()))
+                    })
+                    .collect())
+            }) => result.expect("Failed to complete tokio task")
+        }
+    }
+
+    //---------------------------------------
+    // Setup alpm: get paru updates helper
+    //---------------------------------------
+    async fn get_paru_updates(token: CancellationToken)-> io::Result<HashMap<String, String>> {
+        if let Ok(paru_path) = Paru::bin_path() && Pacman::is_default_root_dir() {
+            // Get paru updates
+            let (code, stdout) = TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], token, true)
+                .await?;
+
+            // Return empty map if exit code is non-zero
+            if code != Some(0) { return Ok(HashMap::new()) };
 
             // Return update map (package name, update version)
-            Ok(local_db.pkgs().iter()
-                .filter_map(|pkg| {
-                    sync_dbs.pkg(pkg.name()).ok()
-                        .filter(|sync_pkg| sync_pkg.version().vercmp(pkg.version()).is_gt())
-                        .map(|sync_pkg| (pkg.name().to_owned(), sync_pkg.version().to_string()))
+            static EXPR: LazyLock<Regex> = LazyLock::new(|| {
+                Regex::new(r"([a-z0-9@._+-]+)[\s]+[a-zA-Z0-9._+-:]+[\s]+->[ \t]+([a-zA-Z0-9._+-:]+)")
+                    .expect("Failed to compile Regex")
+            });
+
+            Ok(EXPR.captures_iter(&stdout)
+                .map(|caps| {
+                    let (_, [name, version]): (&str, [&str; 2]) = caps.extract();
+
+                    (name.to_owned(), version.to_owned())
                 })
                 .collect())
-        })
-        .await
-        .expect("Failed to complete tokio task")
+        } else {
+            Ok(HashMap::new())
+        }
     }
 
     //---------------------------------------
@@ -1096,29 +1127,14 @@ impl PacViewWindow {
 
         imp.update_cancel_id.set(Some(id));
 
-        // Check for updates
+        // Spawn tasks to check for pacman/paru updates
         let mut update_map: HashMap<String, String> = HashMap::new();
         let mut error_msg: Option<String> = None;
 
-        // Spawn task to check for pacman updates
-        let alpm_task = async move {
-            tokio::select! {
-                () = alpm_token.cancelled() => Ok(HashMap::new()),
-                alpm_map = Self::get_alpm_updates() => alpm_map
-            }
-        };
-
-        // Spawn task to check for paru updates
-        let paru_task = async move {
-            if let Ok(paru_path) = Paru::bin_path() && Pacman::is_default_root_dir() {
-                TokioUtils::run(paru_path, &["-Qu", "--mode=ap"], paru_token, true).await
-            } else {
-                Ok((None, String::new()))
-            }
-        };
-
-        // Await update tasks
-        let (alpm_result, paru_result) = join!(alpm_task, paru_task);
+        let (alpm_result, paru_result) = join!(
+            Self::get_alpm_updates(alpm_token),
+            Self::get_paru_updates(paru_token)
+        );
 
         // Remove stored cancel token
         if let Some(id) = imp.update_cancel_id.take() {
@@ -1138,29 +1154,14 @@ impl PacViewWindow {
 
         // Get paru update results
         match paru_result {
-            Ok((Some(0), stdout)) => {
-                static EXPR: LazyLock<Regex> = LazyLock::new(|| {
-                    Regex::new(r"([a-z0-9@._+-]+)[\s]+[a-zA-Z0-9._+-:]+[\s]+->[ \t]+([a-zA-Z0-9._+-:]+)")
-                        .expect("Failed to compile Regex")
-                });
-
-                update_map.extend(EXPR.captures_iter(&stdout)
-                    .map(|caps| {
-                        let (_, item): (&str, [&str; 2]) = caps.extract();
-
-                        item.into_iter()
-                            .map(ToOwned::to_owned)
-                            .collect_tuple()
-                            .expect("Failed to unwrap update array into tuple")
-                    }
-                ));
+            Ok(paru_map) => {
+                update_map.extend(paru_map);
             }
 
-            Err(error) if error_msg.is_none() => {
-                error_msg = Some(format!("Failed to retrieve AUR updates: {error}"));
+            Err(error) => {
+                error_msg
+                    .get_or_insert_with(|| format!("Failed to retrieve AUR updates: {error}"));
             }
-
-            _ => {}
         }
 
         // Update status of packages with updates
@@ -1178,7 +1179,7 @@ impl PacViewWindow {
 
         update_item.set_state(StatusItemState::Updates(update_map.len(), error_msg));
 
-        // If update item is selected, refresh package status filter
+        // If sidebar update item is selected, refresh package status filter
         if imp.status_sidebar.selected() == update_item.index() {
             imp.package_view.status_filter_changed(update_item.id());
         }
