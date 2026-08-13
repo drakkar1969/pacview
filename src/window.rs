@@ -775,12 +775,14 @@ impl PacViewWindow {
         let imp = self.imp();
 
         // Create repo names list
-        let repo_names: Vec<String> = Pacman::config().read().unwrap().repos.iter()
-            .map(|r| r.name.as_str())
-            .chain(Paru::pkgbuild_repo_names().iter().map(String::as_str))
-            .chain(["aur", "local"])
-            .map(ToOwned::to_owned)
+        let mut repo_names: Vec<String> = Pacman::config().read().unwrap().repos
+            .iter()
+            .map(|r| r.name.clone())
             .collect();
+
+        repo_names.push("aur".into());
+        repo_names.extend(Paru::pkgbuild_repo_names().iter().map(ToOwned::to_owned));
+        repo_names.push("local".into());
 
         // Populate sidebar
         self.alpm_populate_sidebar(&repo_names, first_load);
