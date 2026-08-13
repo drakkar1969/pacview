@@ -90,11 +90,7 @@ mod imp {
 
                 if let Ok(Some(path)) = folder_dialog.select_folder_future(parent.as_ref()).await
                     .map(|folder| folder.path()) {
-                        let imp = dialog.imp();
-
                         let root_dir = path.display().to_string();
-
-                        imp.rootdir_reset_box.set_sensitive(root_dir != "/");
 
                         dialog.set_root_dir(root_dir.as_str());
 
@@ -112,7 +108,6 @@ mod imp {
 
                 dialog.set_root_dir("/");
 
-                imp.rootdir_reset_box.set_sensitive(false);
                 imp.rootdir_row.grab_focus();
 
                 if dialog.default_config() {
@@ -163,17 +158,24 @@ impl RootDirDialog {
     pub fn new(root_dir: &str, config_path: &str) -> Self {
         let default_config_path = Pacman::default_config_path_for_root(root_dir);
 
-        glib::Object::builder()
+        let obj: Self = glib::Object::builder()
             .property("root-dir", root_dir)
             .property("default-config", config_path == default_config_path)
             .property("config-path", config_path)
-            .build()
+            .build();
+
+        obj
     }
 
     //---------------------------------------
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
+        // Root dir property notify signal
+        self.connect_root_dir_notify(|dialog| {
+            dialog.imp().rootdir_reset_box.set_sensitive(dialog.root_dir() != "/");
+        });
+
         // Default config property notify signal
         self.connect_default_config_notify(|dialog| {
             let imp = dialog.imp();

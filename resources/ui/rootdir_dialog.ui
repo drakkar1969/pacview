@@ -52,6 +52,7 @@
                           <object class="GtkButton" id="rootdir_reset_button">
                             <property name="icon-name">edit-undo-symbolic</property>
                             <property name="action-name">dialog.reset-rootdir</property>
+                            <property name="tooltip-text">Reset Root Directory to Default Value</property>
                             <style>
                               <class name="flat"/>
                             </style>
