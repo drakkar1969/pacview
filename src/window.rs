@@ -218,6 +218,7 @@ mod imp {
                             let is_default_root_dir = Pacman::is_default_root_dir();
 
                             window.action_set_enabled("win.update-aur-database", is_default_root_dir);
+                            window.action_set_enabled("win.reset-root-dir", !is_default_root_dir);
 
                             // Set root dir visual indicator
                             window.imp().package_view.set_root_dir_indicator(
@@ -262,6 +263,7 @@ mod imp {
                         Ok(()) => {
                             // Set action states
                             window.action_set_enabled("win.update-aur-database", true);
+                            window.action_set_enabled("win.reset-root-dir", false);
 
                             // Hide root dir visual indicator
                             window.imp().package_view.set_root_dir_indicator(None);
@@ -685,6 +687,9 @@ impl PacViewWindow {
         prefs_dialog.bind_property("search-exact", &search_bar, "default-exact")
             .sync_create()
             .build();
+
+        // Disable reset root dir action
+        self.action_set_enabled("win.reset-root-dir", false);
     }
 
     //---------------------------------------
