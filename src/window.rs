@@ -220,9 +220,9 @@ mod imp {
                             window.action_set_enabled("win.update-aur-database", is_default_root_dir);
 
                             // Set root dir visual indicator
-                            if !is_default_root_dir {
-                                window.imp().package_view.set_root_dir_indicator(Some(&root_dir));
-                            }
+                            window.imp().package_view.set_root_dir_indicator(
+                                (!is_default_root_dir).then_some(&root_dir)
+                            );
 
                             // Refresh packages
                             gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
@@ -263,7 +263,7 @@ mod imp {
                             // Set action states
                             window.action_set_enabled("win.update-aur-database", true);
 
-                            // Set root dir visual indicator
+                            // Hide root dir visual indicator
                             window.imp().package_view.set_root_dir_indicator(None);
 
                             // Refresh packages
