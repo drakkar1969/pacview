@@ -851,7 +851,7 @@ impl PacViewWindow {
             }
 
             if repo == "aur" {
-                imp.package_view.set_aur_repo_item(item);
+                imp.package_view.set_aur_sidebar_item(item);
             }
         }
 

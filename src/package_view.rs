@@ -133,6 +133,8 @@ mod imp {
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
+        #[property(get, set)]
+        aur_sidebar_item: RefCell<RepoItem>,
         #[property(get, set, construct)]
         info_pane: RefCell<InfoPane>,
 
@@ -143,8 +145,6 @@ mod imp {
         #[property(get, set, default = false, construct)]
         grouping: Cell<bool>,
 
-        #[property(get, set)]
-        aur_repo_item: RefCell<RepoItem>,
         #[property(get, set)]
         status_id: Cell<PkgFlags>,
 
@@ -573,7 +573,7 @@ impl PackageView {
             TaskTracker::cancel_token(id);
         }
 
-        self.aur_repo_item().set_state(RepoItemState::Reset);
+        self.aur_sidebar_item().set_state(RepoItemState::Reset);
     }
 
     //---------------------------------------
@@ -595,7 +595,7 @@ impl PackageView {
         }
 
         // Show search spinner
-        self.aur_repo_item().set_state(RepoItemState::Searching);
+        self.aur_sidebar_item().set_state(RepoItemState::Searching);
 
         // Create and store cancel token
         let (id, cancel_token) = TaskTracker::add_token();
@@ -633,7 +633,7 @@ impl PackageView {
                         }
 
                         // Hide search spinner
-                        view.aur_repo_item()
+                        view.aur_sidebar_item()
                             .set_state(RepoItemState::AurResults(imp.aur_model.n_items()));
 
                         search_bar.set_aur_status(Ok(()));
@@ -642,7 +642,7 @@ impl PackageView {
                         search_bar.set_aur_status(Err(error.to_string()));
 
                         // Hide search spinner
-                        view.aur_repo_item().set_state(RepoItemState::Reset);
+                        view.aur_sidebar_item().set_state(RepoItemState::Reset);
                     }
                 }
 
