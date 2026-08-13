@@ -214,10 +214,9 @@ mod imp {
 
                     match Pacman::set_root_dir(&root_dir, Some(&dialog.config_path())) {
                         Ok(()) => {
-                            // Set action states
                             let is_default_root_dir = Pacman::is_default_root_dir();
 
-                            window.action_set_enabled("win.update-aur-database", is_default_root_dir);
+                            // Set action states
                             window.action_set_enabled("win.reset-root-dir", !is_default_root_dir);
 
                             // Set root dir visual indicator
@@ -262,7 +261,6 @@ mod imp {
                     match Pacman::set_root_dir("/", None) {
                         Ok(()) => {
                             // Set action states
-                            window.action_set_enabled("win.update-aur-database", true);
                             window.action_set_enabled("win.reset-root-dir", false);
 
                             // Hide root dir visual indicator
