@@ -644,7 +644,8 @@ impl PacViewWindow {
         // Add main breakpoint setters
         imp.main_breakpoint.add_setters(&[
             (&imp.main_split_view.get().upcast::<glib::Object>(), "collapsed", true),
-            (&imp.package_view.infopane_button().upcast(), "visible", true)
+            (&imp.package_view.infopane_button().upcast(), "visible", true),
+            (&imp.info_pane.show_button().upcast(), "visible", true)
         ]);
 
         // Add sidebar breakpoint setters
