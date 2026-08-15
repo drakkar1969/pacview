@@ -11,23 +11,6 @@
         <attribute name="label">Check for Updates</attribute>
         <attribute name="action">win.check-updates</attribute>
       </item>
-      <item>
-        <attribute name="label">Update AUR Database</attribute>
-        <attribute name="action">win.update-aur-database</attribute>
-      </item>
-    </section>
-    <section>
-      <submenu>
-        <attribute name="label">Root Directory</attribute>
-        <item>
-          <attribute name="label">Mount Root Directory…</attribute>
-          <attribute name="action">win.mount-root-dir</attribute>
-        </item>
-        <item>
-          <attribute name="label">Reset to Default</attribute>
-          <attribute name="action">win.reset-root-dir</attribute>
-        </item>
-      </submenu>
     </section>
     <section>
       <item>
@@ -61,6 +44,32 @@
         <item>
           <attribute name="label">Pacman Config</attribute>
           <attribute name="action">win.show-pacman-config</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <submenu>
+        <attribute name="label">Remote Sources</attribute>
+        <item>
+          <attribute name="label">Update AUR Database</attribute>
+          <attribute name="action">win.update-aur-database</attribute>
+        </item>
+        <item>
+          <attribute name="label">Fetch PKGBUILD Repositories</attribute>
+          <attribute name="action">win.fetch-pkgbuild-repos</attribute>
+        </item>
+      </submenu>
+    </section>
+    <section>
+      <submenu>
+        <attribute name="label">Root Directory</attribute>
+        <item>
+          <attribute name="label">Mount Root Directory…</attribute>
+          <attribute name="action">win.mount-root-dir</attribute>
+        </item>
+        <item>
+          <attribute name="label">Reset to Default</attribute>
+          <attribute name="action">win.reset-root-dir</attribute>
         </item>
       </submenu>
     </section>

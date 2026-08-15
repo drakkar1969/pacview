@@ -201,6 +201,29 @@ mod imp {
                     .unwrap();
             });
 
+            // Fetch PKGBUILD repos action
+            klass.install_action_async("win.fetch-pkgbuild-repos", None, async |window, _, _| {
+                let imp = window.imp();
+
+                imp.update_item.borrow().set_state(StatusItemState::Reset);
+                imp.package_view.set_state(PackageViewState::PkgbuildRepoFetch);
+                imp.info_pane.set_pkg(None::<PkgObject>);
+                imp.package_view.count_label().set_label("");
+
+                window.cancel_package_updates();
+
+                // Spawn tokio task to fetch PKGBUILD repos
+                TokioUtils::runtime().spawn_blocking(move || {
+                    PkgbuildRepos::fetch_remote();
+                })
+                .await
+                .expect("Failed to complete tokio task");
+
+                // Refresh packages
+                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
+                    .unwrap();
+            });
+
             // Mount root dir action
             klass.install_action_async("win.mount-root-dir", None, async |window, _, _| {
                 let dialog = RootDirDialog::new(
@@ -385,6 +408,9 @@ mod imp {
 
             // View update AUR database key binding
             klass.add_binding_action(Key::F7, ModifierType::NO_MODIFIER_MASK, "win.update-aur-database");
+
+            // View fetch PKGBUILD repos key binding
+            klass.add_binding_action(Key::F8, ModifierType::NO_MODIFIER_MASK, "win.fetch-pkgbuild-repos");
 
             // Mount root dir key binding
             klass.add_binding_action(Key::M, ModifierType::ALT_MASK | ModifierType::SHIFT_MASK, "win.mount-root-dir");
