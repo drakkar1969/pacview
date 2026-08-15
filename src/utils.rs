@@ -15,7 +15,7 @@ use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use walkdir::WalkDir;
 use which::which_global;
-use tokio::runtime::Runtime;
+use tokio::runtime::{Runtime, Builder as RuntimeBuilder};
 use tokio::fs::File;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use tokio_util::io::StreamReader;
@@ -379,6 +379,20 @@ impl TokioUtils {
     pub fn runtime() -> &'static Runtime {
         static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
             Runtime::new().expect("Failed to set up tokio runtime")
+        });
+
+        &RUNTIME
+    }
+
+    //---------------------------------------
+    // Runtime current thread function
+    //---------------------------------------
+    pub fn runtime_current_thread() -> &'static Runtime {
+        static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
+            RuntimeBuilder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("Failed to set up tokio runtime")
         });
 
         &RUNTIME
