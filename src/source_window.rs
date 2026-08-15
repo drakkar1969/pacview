@@ -12,11 +12,10 @@ use pango::{FontDescription, FontMask, Weight};
 
 use sourceview5::prelude::*;
 
-use crate::utils::Paru;
 use crate::{
     APP_ID,
     pkg_object::PkgObject,
-    utils::{StyleSchemes, TokioUtils, TaskTracker}
+    utils::{Paths, StyleSchemes, TokioUtils, TaskTracker}
 };
 
 //------------------------------------------------------------------------------
@@ -305,7 +304,7 @@ impl SourceWindow {
         imp.cancel_id.set(Some(id));
 
         // Download PKGBUILD with paru
-        let result = if let Ok(paru_path) = Paru::bin_path() {
+        let result = if let Ok(paru_path) = Paths::paru_bin() {
             TokioUtils::run(paru_path, &["-Gp", &self.pkg_name()], cancel_token, false).await
         } else {
             Err(io::Error::other("Failed to download PKGBUILD: paru not found"))

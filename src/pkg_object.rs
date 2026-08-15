@@ -11,7 +11,7 @@ use alpm_utils::DbListExt;
 use size::Size;
 
 use crate::{
-    utils::{Pacman, Paru, ListStoreFind},
+    utils::{Pacman, PkgbuildRepos, ListStoreFind},
     pkg_data::{PkgData, PkgFlags, PkgValidation}
 };
 
@@ -186,7 +186,7 @@ impl PkgObject {
                 None
             }
             _ => {
-                Paru::pkgbuild_pkg_map().get(name)
+                PkgbuildRepos::local_pkg_map().get(name)
                     .map(|repo| format!("file://{}", repo.path.join("PKGBUILD").display()))
             }
         }

@@ -33,6 +33,7 @@ pub enum PackageViewState {
     Normal,
     PackageLoad,
     AURDownload,
+    PkgbuildRepoFetch
 }
 
 //------------------------------------------------------------------------------
@@ -663,13 +664,17 @@ impl PackageView {
         match state {
             PackageViewState::Normal => {
                 imp.stack.set_visible_child_name("view");
-            },
+            }
             PackageViewState::PackageLoad => {
                 imp.loading_status.set_title("Loading Pacman Databases");
                 imp.stack.set_visible_child_name("spinner");
-            },
+            }
             PackageViewState::AURDownload => {
-                imp.loading_status.set_title("Updating AUR Database");
+                imp.loading_status.set_title("Downloading AUR Database");
+                imp.stack.set_visible_child_name("spinner");
+            }
+            PackageViewState::PkgbuildRepoFetch => {
+                imp.loading_status.set_title("Fetching PKGBUILD Repositories");
                 imp.stack.set_visible_child_name("spinner");
             }
         }

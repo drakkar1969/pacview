@@ -23,6 +23,8 @@ use tokio_util::sync::CancellationToken;
 use futures_util::TryStreamExt;
 use async_compression::tokio::bufread::GzipDecoder;
 use configparser::ini::Ini;
+use url::Url;
+use srcinfo::Srcinfo;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -35,6 +37,13 @@ impl Paths {
     //---------------------------------------
     pub fn cache_dir() -> PathBuf {
         glib::user_cache_dir().join(env!("CARGO_PKG_NAME"))
+    }
+
+    //---------------------------------------
+    // Paru bin path function
+    //---------------------------------------
+    pub fn paru_bin() -> which::Result<PathBuf> {
+        which_global("paru")
     }
 
     //---------------------------------------
@@ -118,7 +127,7 @@ impl Pacman {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: PkgbuildPkg
+// STRUCT: PkgbuildRepos
 //------------------------------------------------------------------------------
 #[derive(Debug)]
 pub struct PkgbuildPkg {
@@ -126,23 +135,13 @@ pub struct PkgbuildPkg {
     pub path: PathBuf
 }
 
-//------------------------------------------------------------------------------
-// STRUCT: Paru
-//------------------------------------------------------------------------------
-pub struct Paru;
+pub struct PkgbuildRepos;
 
-impl Paru {
+impl PkgbuildRepos {
     //---------------------------------------
-    // Bin path function
+    // Paru config helper function
     //---------------------------------------
-    pub fn bin_path() -> which::Result<PathBuf> {
-        which_global("paru")
-    }
-
-    //---------------------------------------
-    // Config function
-    //---------------------------------------
-    fn config() -> &'static Result<Ini, String> {
+    fn paru_config() -> &'static Result<Ini, String> {
         static INI: LazyLock<Result<Ini, String>> = LazyLock::new(|| {
             let paths = [
                 env::var_os("PARU_CONF").map(Into::into),
@@ -165,31 +164,44 @@ impl Paru {
     }
 
     //---------------------------------------
-    // Pkgbuild repo names functions
+    // Clone dir function
     //---------------------------------------
-    pub fn pkgbuild_repo_names() -> &'static Vec<String> {
-        static LIST: LazyLock<Vec<String>> = LazyLock::new(|| {
-            Paru::config().as_ref()
-                .map(|ini| {
-                    ini.sections()
-                        .into_iter()
-                        .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
-                        .collect()
+    pub fn clone_dir() -> PathBuf {
+        Paths::cache_dir().join("clone")
+    }
+
+    //---------------------------------------
+    // Repos function
+    //---------------------------------------
+    pub fn repos() -> &'static Vec<aur_fetch::Repo> {
+        static LIST: LazyLock<Vec<aur_fetch::Repo>> = LazyLock::new(|| {
+            let Ok(paru_config) = PkgbuildRepos::paru_config().as_ref() else { return vec![]; };
+
+            paru_config.sections()
+                .into_iter()
+                .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
+                .filter_map(|section| {
+                    paru_config.get(&section, "url")
+                        .and_then(|url| Url::parse(&url).ok())
+                        .map(|url| aur_fetch::Repo { url, name: section })
                 })
-                .unwrap_or_default()
+                .collect()
         });
 
         &LIST
     }
 
     //---------------------------------------
-    // Pkgbuild pkg map functions
+    // Local pkg map function
     //---------------------------------------
-    pub fn pkgbuild_pkg_map() -> &'static HashMap<String, PkgbuildPkg> {
+    pub fn local_pkg_map() -> &'static HashMap<String, PkgbuildPkg> {
         static MAP: LazyLock<HashMap<String, PkgbuildPkg>> = LazyLock::new(|| {
-            Paru::pkgbuild_repo_names().iter()
+            let clone_dir = PkgbuildRepos::clone_dir();
+
+            PkgbuildRepos::repos().iter()
+                .map(|repo| repo.name.as_str())
                 .flat_map(|repo| {
-                    let path = glib::user_cache_dir().join("paru/clone/repo").join(repo);
+                    let path = clone_dir.join(repo);
 
                     WalkDir::new(path)
                         .min_depth(1)
@@ -216,6 +228,37 @@ impl Paru {
 
         &MAP
     }
+
+    //---------------------------------------
+    // Fetch remote function
+    //---------------------------------------
+    pub fn fetch_remote() -> Vec<(String, Vec<Srcinfo>)> {
+        let cache_dir = Paths::cache_dir();
+        let clone_dir = Self::clone_dir();
+
+        let fetch = aur_fetch::Fetch::with_cache_dir(cache_dir);
+
+        fetch
+            .download_repos_cb(Self::repos(), |_| {})
+            .map(|repo_names| {
+                repo_names.into_iter()
+                    .map(|name| {
+                        let path = clone_dir.join(&name);
+
+                        let pkgs: Vec<Srcinfo> = WalkDir::new(path)
+                            .min_depth(1)
+                            .into_iter()
+                            .flatten()
+                            .filter(|entry| entry.file_name() == ".SRCINFO")
+                            .filter_map(|entry| Srcinfo::from_path(entry.path()).ok())
+                            .collect();
+
+                        (name, pkgs)
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+        }
 }
 
 //------------------------------------------------------------------------------

@@ -12,7 +12,7 @@ use crate::{
     info_row::{InfoRow, PropID, PropType, ValueType},
     pkg_object::PkgObject,
     text_widget::{INSTALLED_LABEL, LINK_SPACER},
-    utils::Paru,
+    utils::Paths,
 };
 
 //------------------------------------------------------------------------------
@@ -334,7 +334,7 @@ impl InfoDetailsTab {
         }
 
         // Update button states
-        imp.pkgbuild_button.set_visible(Paru::bin_path().is_ok());
+        imp.pkgbuild_button.set_visible(Paths::paru_bin().is_ok());
 
         imp.hashes_button.set_visible(pkg.validation().is_valid());
     }

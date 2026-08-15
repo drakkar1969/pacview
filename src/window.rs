@@ -34,7 +34,7 @@ use crate::{
     config_dialog::ConfigDialog,
     rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Paths, Pacman, Paru, AurDBFile, TokioUtils, TaskTracker}
+    utils::{Paths, Pacman, PkgbuildRepos, AurDBFile, TokioUtils, TaskTracker}
 };
 
 //------------------------------------------------------------------------------
@@ -781,7 +781,7 @@ impl PacViewWindow {
             .collect();
 
         repo_names.push("aur".into());
-        repo_names.extend(Paru::pkgbuild_repo_names().iter().map(ToOwned::to_owned));
+        repo_names.extend(PkgbuildRepos::repos().iter().map(|repo| repo.name.clone()));
         repo_names.push("local".into());
 
         // Populate sidebar
@@ -798,22 +798,39 @@ impl PacViewWindow {
         imp.stats_window.borrow().set_is_loaded(false);
 
         // If AUR database download is enabled and AUR file does not exist, download it
-        let aur_download = imp.prefs_dialog.borrow().aur_database_download();
+        let aur_download = imp.prefs_dialog.borrow().aur_database_download()
+            && !AurDBFile::exists();
+        let pkgbuild_fetch = !PkgbuildRepos::clone_dir().try_exists().is_ok_and(|res| res);
 
-        if aur_download && !AurDBFile::exists() {
-            imp.package_view.set_state(PackageViewState::AURDownload);
-            imp.info_pane.set_pkg(None::<PkgObject>);
-
+        if aur_download || pkgbuild_fetch {
             glib::spawn_future_local(clone!(
                 #[weak(rename_to = window)] self,
                 async move {
-                    let _ = AurDBFile::download().await;
+                    let imp = window.imp();
 
-                    window.alpm_load_packages(aur_download);
+                    if aur_download {
+                        imp.package_view.set_state(PackageViewState::AURDownload);
+                        imp.info_pane.set_pkg(None::<PkgObject>);
+
+                        let _ = AurDBFile::download().await;
+                    }
+
+                    if pkgbuild_fetch {
+                        imp.package_view.set_state(PackageViewState::PkgbuildRepoFetch);
+                        imp.info_pane.set_pkg(None::<PkgObject>);
+
+                        TokioUtils::runtime().spawn_blocking(move || {
+                            PkgbuildRepos::fetch_remote();
+                        })
+                        .await
+                        .expect("Failed to complete tokio task");
+                    }
+
+                    window.alpm_load_packages();
                 }
             ));
         } else {
-            self.alpm_load_packages(aur_download);
+            self.alpm_load_packages();
         }
     }
 
@@ -887,9 +904,11 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: load alpm packages
     //---------------------------------------
-    fn alpm_load_packages(&self, aur_download: bool) {
+    fn alpm_load_packages(&self) {
         // Create task to load package data
         let (sender, receiver) = async_channel::bounded(1);
+
+        let aur_download = self.imp().prefs_dialog.borrow().aur_database_download();
 
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
@@ -906,8 +925,8 @@ impl PacViewWindow {
             let mut aur_names: HashSet<&str> = HashSet::with_capacity(n_lines);
             aur_names.extend(aur_file.lines());
 
-            // Get paru repo package map
-            let paru_map = Paru::pkgbuild_pkg_map();
+            // Get PKGBUILD repo package map
+            let pkgbuild_map = PkgbuildRepos::local_pkg_map();
 
             let syncdbs = alpm_handle.syncdbs();
             let localdb = alpm_handle.localdb();
@@ -915,7 +934,7 @@ impl PacViewWindow {
             // Load pacman local packages
             let local_data: Vec<PkgData> = localdb.pkgs().iter()
                 .map(|pkg| {
-                    let repository = if let Some(repo) = paru_map.get(pkg.name()) {
+                    let repository = if let Some(repo) = pkgbuild_map.get(pkg.name()) {
                         repo.repo.as_str()
                     } else if aur_names.contains(pkg.name()) {
                         "aur"
@@ -947,7 +966,7 @@ impl PacViewWindow {
             }
 
             // Load non-installed packages from paru pkgbuild repos
-            let pkgbuild_data: Vec<PkgData> = paru_map.iter()
+            let pkgbuild_data: Vec<PkgData> = pkgbuild_map.iter()
                 .filter(|&(name, _)| localdb.pkg(name.as_str()).is_err())
                 .filter_map(|(name, pkg)| PkgData::from_pkgbuild(name, pkg))
                 .collect();
@@ -1095,7 +1114,10 @@ impl PacViewWindow {
             let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap())?;
             let raur_handle = raur::Handle::new();
 
-            // Spawn on task on current thread to get updates
+            // Fetch remote PKGBUILD repos
+            let pkgbuild_repos = PkgbuildRepos::fetch_remote();
+
+            // Spawn task on current thread to get updates
             TokioUtils::runtime_current_thread().block_on(async {
                 let mut cache = AUR_CACHE.lock().await;
 
@@ -1103,15 +1125,28 @@ impl PacViewWindow {
                     &alpm_handle,
                     &mut cache,
                     &raur_handle,
-                    aur_depends::Flags::AUR
+                    aur_depends::Flags::AUR | aur_depends::Flags::PKGBUILDS
+                )
+                .pkgbuild_repos(pkgbuild_repos.iter()
+                    .map(|(name, pkgs)| aur_depends::PkgbuildRepo {
+                        name,
+                        pkgs: pkgs.iter().collect()
+                    })
+                    .collect()
                 );
 
                 let updates = resolver.updates(None).await?;
 
                 // Return update map (package name, update version)
-                Ok(updates.aur_updates.iter()
-                    .map(|update| (update.remote.name.clone(), update.remote.version.clone()))
-                    .collect())
+                let mut update_map: HashMap<String, String> = updates.aur_updates.iter()
+                    .map(|update| (update.local.name().to_owned(), update.remote.version.clone()))
+                    .collect();
+
+                update_map.extend(updates.pkgbuild_updates.iter()
+                    .map(|update| (update.local.name().to_owned(), update.remote_srcinfo.version()))
+                );
+
+                Ok(update_map)
             })
         })
         .await
