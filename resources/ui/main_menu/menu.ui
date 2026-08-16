@@ -55,7 +55,7 @@
           <attribute name="action">win.update-aur-database</attribute>
         </item>
         <item>
-          <attribute name="label">Fetch PKGBUILD Repositories</attribute>
+          <attribute name="label">Force Fetch PKGBUILD Repositories</attribute>
           <attribute name="action">win.fetch-pkgbuild-repos</attribute>
         </item>
       </submenu>

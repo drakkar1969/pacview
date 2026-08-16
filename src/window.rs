@@ -219,6 +219,9 @@ mod imp {
 
                 window.cancel_package_updates();
 
+                // Remove clone dir from cache_dir
+                let _ = fs::remove_dir_all(PkgbuildRepos::clone_dir());
+
                 // Spawn tokio task to fetch PKGBUILD repos
                 TokioUtils::runtime().spawn_blocking(move || {
                     PkgbuildRepos::fetch_remote();

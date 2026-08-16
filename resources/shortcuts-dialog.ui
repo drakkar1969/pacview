@@ -110,7 +110,7 @@
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">F8</property>
-            <property name="title">Fetch PKGBUILD Repositories</property>
+            <property name="title">Force Fetch PKGBUILD Repositories</property>
           </object>
         </child>
       </object>
