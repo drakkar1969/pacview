@@ -292,7 +292,7 @@ impl PkgbuildRepos {
 
         repo_names.iter()
             .map(|name| {
-                let path = clone_dir.join(&name);
+                let path = clone_dir.join(name);
 
                 let pkgs: Vec<Srcinfo> = WalkDir::new(path)
                     .min_depth(1)
