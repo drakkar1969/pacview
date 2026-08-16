@@ -1210,7 +1210,9 @@ impl PacViewWindow {
                 let raur_handle = raur::Handle::new();
 
                 // Fetch remote PKGBUILD repos
-                let repo_names = PkgbuildRepos::fetch_remote().unwrap_or_default();
+                let Ok(repo_names) = PkgbuildRepos::fetch_remote() else {
+                    return Ok(UpdateMap::new());
+                };
 
                 let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&repo_names);
 

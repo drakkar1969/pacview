@@ -260,7 +260,7 @@ impl PkgbuildRepos {
 
         fetch.merge(&repo_names)?;
 
-        // Copy local repos
+        // Copy local repos to clone dir
         let clone_dir = Self::clone_dir();
 
         if fs::create_dir_all(&clone_dir).is_ok() {
@@ -291,6 +291,7 @@ impl PkgbuildRepos {
     pub fn repo_srcinfo_list(repo_names: &[String]) -> Vec<(String, Vec<Srcinfo>)> {
         let clone_dir = Self::clone_dir();
 
+        // Get list of package srcinfo per repo
         repo_names.iter()
             .map(|name| {
                 let path = clone_dir.join(name);
