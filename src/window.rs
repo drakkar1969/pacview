@@ -38,6 +38,11 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
+// TYPE aliases
+//------------------------------------------------------------------------------
+type UpdateMap = HashMap<String, String>;
+
+//------------------------------------------------------------------------------
 // MODULE: PacViewWindow
 //------------------------------------------------------------------------------
 mod imp {
@@ -1113,7 +1118,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: get alpm updates helper
     //---------------------------------------
-    async fn get_alpm_updates() -> alpm::Result<HashMap<String, String>> {
+    async fn get_alpm_updates() -> alpm::Result<UpdateMap> {
         TokioUtils::runtime().spawn_blocking(move || {
             // Get pacman config
             let pacman_config = Pacman::config().read().unwrap();
@@ -1161,7 +1166,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: get paru updates helper
     //---------------------------------------
-    async fn get_paru_updates(pkgbuild_fetch: bool)-> Result<HashMap<String, String>, aur_depends::Error> {
+    async fn get_paru_updates(pkgbuild_fetch: bool)-> Result<UpdateMap, aur_depends::Error> {
         TokioUtils::runtime().spawn_blocking(move || {
             static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
                 TokioMutex::new(raur::Cache::default())
@@ -1201,7 +1206,7 @@ impl PacViewWindow {
                 let updates = resolver.updates(None).await?;
 
                 // Return update map (package name, update version)
-                let mut update_map: HashMap<String, String> = updates.aur_updates.iter()
+                let mut update_map: UpdateMap = updates.aur_updates.iter()
                     .map(|update| (update.local.name().to_owned(), update.remote.version.clone()))
                     .collect();
 
@@ -1237,7 +1242,7 @@ impl PacViewWindow {
         imp.update_cancel_id.set(Some(id));
 
         // Spawn tasks to check for pacman/paru updates
-        let mut update_map: HashMap<String, String> = HashMap::new();
+        let mut update_map: UpdateMap = HashMap::new();
         let mut error_msg: Option<String> = None;
 
         let (alpm_result, paru_result) = tokio::select! {
