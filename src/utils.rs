@@ -232,33 +232,35 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Fetch remote function
     //---------------------------------------
-    pub fn fetch_remote() -> Vec<(String, Vec<Srcinfo>)> {
-        let cache_dir = Paths::cache_dir();
+    pub fn fetch_remote() -> Vec<String> {
+        let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
+
+        fetch.download_repos_cb(Self::repos(), |_| {})
+            .unwrap_or_default()
+    }
+
+    //---------------------------------------
+    // Repo srccinfo list function
+    //---------------------------------------
+    pub fn repo_srcinfo_list(repo_names: &[String]) -> Vec<(String, Vec<Srcinfo>)> {
         let clone_dir = Self::clone_dir();
 
-        let fetch = aur_fetch::Fetch::with_cache_dir(cache_dir);
+        repo_names.iter()
+            .map(|name| {
+                let path = clone_dir.join(&name);
 
-        fetch
-            .download_repos_cb(Self::repos(), |_| {})
-            .map(|repo_names| {
-                repo_names.into_iter()
-                    .map(|name| {
-                        let path = clone_dir.join(&name);
+                let pkgs: Vec<Srcinfo> = WalkDir::new(path)
+                    .min_depth(1)
+                    .into_iter()
+                    .flatten()
+                    .filter(|entry| entry.file_name() == ".SRCINFO")
+                    .filter_map(|entry| Srcinfo::from_path(entry.path()).ok())
+                    .collect();
 
-                        let pkgs: Vec<Srcinfo> = WalkDir::new(path)
-                            .min_depth(1)
-                            .into_iter()
-                            .flatten()
-                            .filter(|entry| entry.file_name() == ".SRCINFO")
-                            .filter_map(|entry| Srcinfo::from_path(entry.path()).ok())
-                            .collect();
-
-                        (name, pkgs)
-                    })
-                    .collect()
+                (name.to_owned(), pkgs)
             })
-            .unwrap_or_default()
-        }
+            .collect()
+    }
 }
 
 //------------------------------------------------------------------------------

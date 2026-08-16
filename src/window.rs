@@ -1173,7 +1173,9 @@ impl PacViewWindow {
 
             // Fetch remote PKGBUILD repos
             let pkgbuild_repos = if pkgbuild_fetch {
-                PkgbuildRepos::fetch_remote()
+                let repo_names = PkgbuildRepos::fetch_remote();
+
+                PkgbuildRepos::repo_srcinfo_list(&repo_names)
             } else {
                 vec![]
             };
