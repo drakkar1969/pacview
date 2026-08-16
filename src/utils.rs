@@ -244,7 +244,7 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Fetch remote function
     //---------------------------------------
-    pub fn fetch_remote() -> Vec<String> {
+    pub fn fetch_remote() -> aur_fetch::Result<Vec<String>> {
         let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
             .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
             .collect();
@@ -253,18 +253,16 @@ impl PkgbuildRepos {
             .extract_if(.., |repo| repo.url.scheme() == "file")
             .collect();
 
-        // Remove clone dir from cache_dir
-        let clone_dir = Self::clone_dir();
-
-        let _ = fs::remove_dir_all(&clone_dir);
-
         // Fetch remote repos
         let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
 
-        let mut repo_names = fetch.download_repos_cb(&remote_repos, |_| {})
-            .unwrap_or_default();
+        let mut repo_names = fetch.download_repos_cb(&remote_repos, |_| {})?;
+
+        fetch.merge(&repo_names)?;
 
         // Copy local repos
+        let clone_dir = Self::clone_dir();
+
         if fs::create_dir_all(&clone_dir).is_ok() {
             for repo in local_repos {
                 let dest_path = Path::new(&clone_dir).join(&repo.name);
@@ -284,7 +282,7 @@ impl PkgbuildRepos {
             }
         }
 
-        repo_names
+        Ok(repo_names)
     }
 
     //---------------------------------------

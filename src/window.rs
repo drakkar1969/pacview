@@ -221,7 +221,7 @@ mod imp {
 
                 // Spawn tokio task to fetch PKGBUILD repos
                 TokioUtils::runtime().spawn_blocking(move || {
-                    PkgbuildRepos::fetch_remote();
+                    let _ = PkgbuildRepos::fetch_remote();
                 })
                 .await
                 .expect("Failed to complete tokio task");
@@ -873,7 +873,7 @@ impl PacViewWindow {
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
                         TokioUtils::runtime().spawn_blocking(move || {
-                            PkgbuildRepos::fetch_remote();
+                            let _ = PkgbuildRepos::fetch_remote();
                         })
                         .await
                         .expect("Failed to complete tokio task");
@@ -1210,7 +1210,7 @@ impl PacViewWindow {
                 let raur_handle = raur::Handle::new();
 
                 // Fetch remote PKGBUILD repos
-                let repo_names = PkgbuildRepos::fetch_remote();
+                let repo_names = PkgbuildRepos::fetch_remote().unwrap_or_default();
 
                 let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&repo_names);
 
