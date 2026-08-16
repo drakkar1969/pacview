@@ -66,34 +66,16 @@
               </object>
             </child>
             <child>
-              <object class="GtkRevealer" id="rootdir_revealer">
-                <property name="transition-duration">150</property>
-                <property name="child">
-                  <object class="GtkBox">
-                    <property name="halign">center</property>
-                    <property name="margin-bottom">10</property>
-                    <property name="spacing">8</property>
-                    <style>
-                      <class name="warning"/>
-                    </style>
-                    <child>
-                      <object class="GtkImage">
-                        <property name="icon-name">folder-open-symbolic</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="rootdir_label">
-                        <style>
-                          <class name="caption-heading"/>
-                        </style>
-                      </object>
-                    </child>
-                  </object>
-                </property>
-              </object>
+              <object class="SearchBar" id="search_bar"/>
             </child>
             <child>
-              <object class="SearchBar" id="search_bar"/>
+              <object class="AdwBanner" id="rootdir_banner">
+                <property name="button-label">_Reset</property>
+                <property name="action-name">win.reset-root-dir</property>
+                <style>
+                  <class name="warning"/>
+                </style>
+              </object>
             </child>
           </object>
         </child>

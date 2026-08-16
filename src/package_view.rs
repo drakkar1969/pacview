@@ -73,9 +73,7 @@ mod imp {
         pub(super) sort_button: TemplateChild<adw::SplitButton>,
 
         #[template_child]
-        pub(super) rootdir_revealer: TemplateChild<gtk::Revealer>,
-        #[template_child]
-        pub(super) rootdir_label: TemplateChild<gtk::Label>,
+        pub(super) rootdir_banner: TemplateChild<adw::Banner>,
 
         #[property(get)]
         #[template_child]
@@ -733,9 +731,8 @@ impl PackageView {
     pub fn set_root_dir_indicator(&self, root_dir: Option<&str>) {
         let imp = self.imp();
 
-        imp.rootdir_label.set_label(root_dir.unwrap_or_default());
-
-        imp.rootdir_revealer.set_reveal_child(root_dir.is_some());
+        imp.rootdir_banner.set_title(root_dir.unwrap_or_default());
+        imp.rootdir_banner.set_revealed(root_dir.is_some());
     }
 }
 
