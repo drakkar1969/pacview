@@ -264,7 +264,7 @@
             </child>
             <child>
               <object class="AdwButtonRow" id="clear_cache_button">
-                <property name="title">Clear Pac_View Cache</property>
+                <property name="title">_Clear PacView Cache</property>
                 <property name="use-underline">true</property>
                 <style>
                   <class name="destructive-action"/>
