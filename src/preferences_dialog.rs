@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::fs;
 
 use gtk::{gio, glib, pango};
 use adw::subclass::prelude::*;
@@ -11,7 +12,7 @@ use crate::{
     APP_ID,
     window::PacViewWindow,
     search_bar::SearchProp,
-    utils::StyleSchemes,
+    utils::{Paths, StyleSchemes},
 };
 
 //------------------------------------------------------------------------------
@@ -78,6 +79,8 @@ mod imp {
         pub(super) pkgbuild_custom_font_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
+        #[template_child]
+        pub(super) clear_cache_button: TemplateChild<adw::ButtonRow>,
 
         #[property(get, set, builder(ColorScheme::default()))]
         color_scheme: Cell<ColorScheme>,
@@ -262,6 +265,31 @@ impl PreferencesDialog {
                             settings.reset("pkgbuild-style-scheme");
                             settings.reset("pkgbuild-use-system-font");
                             settings.reset("pkgbuild-custom-font");
+                        }
+                    }
+                );
+            }
+        ));
+
+        // Clear cache button clicked signal
+        imp.clear_cache_button.connect_activated(clone!(
+            #[weak(rename_to = dialog)] self,
+            move |_| {
+                let clear_dialog = adw::AlertDialog::builder()
+                    .heading("Clear PacView Cache?")
+                    .body("Delete all files in the PacView cache folder.")
+                    .default_response("clear")
+                    .build();
+
+                clear_dialog.add_responses(&[("cancel", "_Cancel"), ("clear", "Clea_r")]);
+                clear_dialog.set_response_appearance("clear", adw::ResponseAppearance::Destructive);
+
+                clear_dialog.choose(
+                    Some(&dialog),
+                    None::<&gio::Cancellable>,
+                    move |response| {
+                        if response == "clear" {
+                            let _ = fs::remove_dir_all(Paths::cache_dir());
                         }
                     }
                 );

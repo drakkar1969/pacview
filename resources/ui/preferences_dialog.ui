@@ -243,12 +243,28 @@
             </child>
           </object>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="title">Danger Zone</property>
+        <property name="icon-name">dialog-error-symbolic</property>
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title">Danger Zone</property>
+            <property name="separate-rows">true</property>
             <child>
               <object class="AdwButtonRow" id="reset_button">
                 <property name="title">_Reset Preferences</property>
+                <property name="use-underline">true</property>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
+              </object>
+            </child>
+            <child>
+              <object class="AdwButtonRow" id="clear_cache_button">
+                <property name="title">Clear Pac_View Cache</property>
                 <property name="use-underline">true</property>
                 <style>
                   <class name="destructive-action"/>
