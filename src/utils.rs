@@ -182,6 +182,18 @@ impl PkgbuildRepos {
                 .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
                 .filter_map(|section| {
                     paru_config.get(&section, "url")
+                        .map(|mut url| {
+                            if let Some(path) = paru_config.get(&section, "path") {
+                                if !url.ends_with('/') && !path.starts_with('/') {
+                                    url.push('/');
+                                }
+
+                                url.push_str(&path);
+                            }
+
+                            url
+                        })
+                        .or_else(|| paru_config.get(&section, "path"))
                         .and_then(|url| Url::parse(&url).ok())
                         .map(|url| aur_fetch::Repo { url, name: section })
                 })
@@ -233,10 +245,43 @@ impl PkgbuildRepos {
     // Fetch remote function
     //---------------------------------------
     pub fn fetch_remote() -> Vec<String> {
+        let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
+            .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
+            .collect();
+
+        let local_repos: Vec<aur_fetch::Repo> = remote_repos
+            .extract_if(.., |repo| repo.url.scheme() == "file")
+            .collect();
+
+        // Fetch remote repos
         let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
 
-        fetch.download_repos_cb(Self::repos(), |_| {})
-            .unwrap_or_default()
+        let mut repo_names = fetch.download_repos_cb(&remote_repos, |_| {})
+            .unwrap_or_default();
+
+        // Copy local repos
+        let clone_dir = Self::clone_dir();
+
+        if fs::create_dir_all(&clone_dir).is_ok() {
+            for repo in local_repos {
+                let dest_path = Path::new(&clone_dir).join(&repo.name);
+
+                if dest_path.try_exists().is_ok_and(|res| res) {
+                    let _ = fs::remove_dir_all(&dest_path);
+                }
+
+                let copy_options = fs_extra::dir::CopyOptions {
+                    copy_inside: true,
+                    .. fs_extra::dir::CopyOptions::default()
+                };
+
+                if fs_extra::copy_items(&[repo.url.path()], &dest_path, &copy_options).is_ok() {
+                    repo_names.push(repo.name);
+                }
+            }
+        }
+
+        repo_names
     }
 
     //---------------------------------------

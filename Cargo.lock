@@ -1611,6 +1611,7 @@ dependencies = [
  "aur-depends",
  "aur-fetch",
  "configparser",
+ "fs_extra",
  "futures",
  "futures-util",
  "gio",
