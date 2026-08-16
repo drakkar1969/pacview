@@ -19,6 +19,9 @@
       </choices>
       <default>'default'</default>
     </key>
+    <key name="enable-pkgbuild-repos" type="b">
+      <default>false</default>
+    </key>
     <key name="grouping" type="b">
       <default>false</default>
     </key>

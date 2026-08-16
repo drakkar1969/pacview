@@ -655,6 +655,17 @@ impl PacViewWindow {
                 );
             }
         ));
+
+        // Preferences enable PKGBUILD repos property notify
+        prefs_dialog.connect_enable_pkgbuild_repos_notify(clone!(
+            #[weak(rename_to = window)] self,
+            move |prefs_dialog| {
+                window.action_set_enabled(
+                    "win.fetch-pkgbuild-repos",
+                    prefs_dialog.enable_pkgbuild_repos()
+                );
+            }
+        ));
     }
 
     //---------------------------------------
@@ -747,6 +758,7 @@ impl PacViewWindow {
         settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
         settings.bind("aur-database-download", prefs_dialog, "aur-database-download").build();
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
+        settings.bind("enable-pkgbuild-repos", prefs_dialog, "enable-pkgbuild-repos").build();
         settings.bind("auto-refresh", prefs_dialog, "auto-refresh").build();
         settings.bind("remember-sort", prefs_dialog, "remember-sort").build();
         settings.bind("remember-grouping", prefs_dialog, "remember-grouping").build();
@@ -807,7 +819,11 @@ impl PacViewWindow {
             .collect();
 
         repo_names.push("aur".into());
-        repo_names.extend(PkgbuildRepos::repos().iter().map(|repo| repo.name.clone()));
+
+        if imp.prefs_dialog.borrow().enable_pkgbuild_repos() {
+            repo_names.extend(PkgbuildRepos::repos().iter().map(|repo| repo.name.clone()));
+        }
+
         repo_names.push("local".into());
 
         // Populate sidebar
@@ -824,9 +840,13 @@ impl PacViewWindow {
         imp.stats_window.borrow().set_is_loaded(false);
 
         // If AUR database download is enabled and AUR file does not exist, download it
-        let aur_download = imp.prefs_dialog.borrow().aur_database_download()
-            && !AurDBFile::exists();
-        let pkgbuild_fetch = !PkgbuildRepos::clone_dir().try_exists().is_ok_and(|res| res);
+        let prefs_dialog = imp.prefs_dialog.borrow();
+
+        let aur_download = prefs_dialog.aur_database_download() && !AurDBFile::exists();
+
+        // If PKGBUILD repos are enabled and clone dir does not exist, fetch repos
+        let pkgbuild_fetch = prefs_dialog.enable_pkgbuild_repos()
+            && !PkgbuildRepos::clone_dir().try_exists().is_ok_and(|res| res);
 
         if aur_download || pkgbuild_fetch {
             glib::spawn_future_local(clone!(
@@ -931,10 +951,15 @@ impl PacViewWindow {
     // Setup alpm: load alpm packages
     //---------------------------------------
     fn alpm_load_packages(&self) {
+        let imp = self.imp();
+
         // Create task to load package data
         let (sender, receiver) = async_channel::bounded(1);
 
-        let aur_download = self.imp().prefs_dialog.borrow().aur_database_download();
+        let prefs_dialog = imp.prefs_dialog.borrow();
+
+        let aur_download = prefs_dialog.aur_database_download();
+        let pkgbuild_fetch = prefs_dialog.enable_pkgbuild_repos();
 
         let alpm_future = gio::spawn_blocking(move || {
             // Get alpm handle
@@ -952,7 +977,11 @@ impl PacViewWindow {
             aur_names.extend(aur_file.lines());
 
             // Get PKGBUILD repo package map
-            let pkgbuild_map = PkgbuildRepos::local_pkg_map();
+            let pkgbuild_map = if pkgbuild_fetch {
+                PkgbuildRepos::local_pkg_map()
+            } else {
+                &HashMap::new()
+            };
 
             let syncdbs = alpm_handle.syncdbs();
             let localdb = alpm_handle.localdb();
@@ -992,13 +1021,15 @@ impl PacViewWindow {
             }
 
             // Load non-installed packages from paru pkgbuild repos
-            let pkgbuild_data: Vec<PkgData> = pkgbuild_map.iter()
-                .filter(|&(name, _)| localdb.pkg(name.as_str()).is_err())
-                .filter_map(|(name, pkg)| PkgData::from_pkgbuild(name, pkg))
-                .collect();
+            if pkgbuild_fetch {
+                let pkgbuild_data: Vec<PkgData> = pkgbuild_map.iter()
+                    .filter(|&(name, _)| localdb.pkg(name.as_str()).is_err())
+                    .filter_map(|(name, pkg)| PkgData::from_pkgbuild(name, pkg))
+                    .collect();
 
-            sender.send_blocking((pkgbuild_data, false))
-                .expect("Failed to send through channel");
+                sender.send_blocking((pkgbuild_data, false))
+                    .expect("Failed to send through channel");
+            }
 
             Ok(())
         });
@@ -1130,7 +1161,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: get paru updates helper
     //---------------------------------------
-    async fn get_paru_updates()-> Result<HashMap<String, String>, aur_depends::Error> {
+    async fn get_paru_updates(pkgbuild_fetch: bool)-> Result<HashMap<String, String>, aur_depends::Error> {
         TokioUtils::runtime().spawn_blocking(move || {
             static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
                 TokioMutex::new(raur::Cache::default())
@@ -1141,7 +1172,11 @@ impl PacViewWindow {
             let raur_handle = raur::Handle::new();
 
             // Fetch remote PKGBUILD repos
-            let pkgbuild_repos = PkgbuildRepos::fetch_remote();
+            let pkgbuild_repos = if pkgbuild_fetch {
+                PkgbuildRepos::fetch_remote()
+            } else {
+                vec![]
+            };
 
             // Spawn task on current thread to get updates
             TokioUtils::runtime_current_thread().block_on(async {
@@ -1168,9 +1203,11 @@ impl PacViewWindow {
                     .map(|update| (update.local.name().to_owned(), update.remote.version.clone()))
                     .collect();
 
-                update_map.extend(updates.pkgbuild_updates.iter()
-                    .map(|update| (update.local.name().to_owned(), update.remote_srcinfo.version()))
-                );
+                if pkgbuild_fetch {
+                    update_map.extend(updates.pkgbuild_updates.iter()
+                        .map(|update| (update.local.name().to_owned(), update.remote_srcinfo.version()))
+                    );
+                }
 
                 Ok(update_map)
             })
@@ -1186,6 +1223,8 @@ impl PacViewWindow {
     #[allow(clippy::items_after_statements)]
     async fn get_package_updates(&self) {
         let imp = self.imp();
+
+        let pkgbuild_fetch = imp.prefs_dialog.borrow().enable_pkgbuild_repos();
 
         // Reset sidebar update count
         imp.update_item.borrow().set_state(StatusItemState::Checking);
@@ -1204,7 +1243,7 @@ impl PacViewWindow {
             result = async {
                 join!(
                     Self::get_alpm_updates(),
-                    Self::get_paru_updates()
+                    Self::get_paru_updates(pkgbuild_fetch)
                 )
             } => result
         };

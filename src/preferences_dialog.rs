@@ -51,6 +51,8 @@ mod imp {
         #[template_child]
         pub(super) aur_database_age_row: TemplateChild<adw::SpinRow>,
         #[template_child]
+        pub(super) enable_pkgbuild_repos_row: TemplateChild<adw::SwitchRow>,
+        #[template_child]
         pub(super) auto_refresh_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
         pub(super) remember_sort_row: TemplateChild<adw::SwitchRow>,
@@ -85,6 +87,8 @@ mod imp {
         aur_database_download: Cell<bool>,
         #[property(get, set)]
         aur_database_age: Cell<f64>,
+        #[property(get, set)]
+        enable_pkgbuild_repos: Cell<bool>,
         #[property(get, set)]
         auto_refresh: Cell<bool>,
         #[property(get, set)]
@@ -246,6 +250,7 @@ impl PreferencesDialog {
                             settings.reset("infopane-width");
                             settings.reset("aur-database-download");
                             settings.reset("aur-database-age");
+                            settings.reset("enable-pkgbuild-repos");
                             settings.reset("auto-refresh");
                             settings.reset("remember-sort");
                             settings.reset("remember-grouping");
@@ -297,6 +302,11 @@ impl PreferencesDialog {
             .build();
 
         self.bind_property("aur-database-age", &imp.aur_database_age_row.get(), "value")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("enable-pkgbuild-repos", &imp.enable_pkgbuild_repos_row.get(), "active")
             .sync_create()
             .bidirectional()
             .build();

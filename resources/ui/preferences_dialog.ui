@@ -105,14 +105,12 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">Danger Zone</property>
+            <property name="title">PKGBUILD Repositories</property>
             <child>
-              <object class="AdwButtonRow" id="reset_button">
-                <property name="title">_Reset Preferences</property>
+              <object class="AdwSwitchRow" id="enable_pkgbuild_repos_row">
+                <property name="title">Enable P_KGBUILD Repositories</property>
+                <property name="subtitle">Enable custom PKGBUILD respositories (requires paru AUR helper)</property>
                 <property name="use-underline">true</property>
-                <style>
-                  <class name="destructive-action"/>
-                </style>
               </object>
             </child>
           </object>
@@ -241,6 +239,20 @@
                     </child>
                   </object>
                 </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title">Danger Zone</property>
+            <child>
+              <object class="AdwButtonRow" id="reset_button">
+                <property name="title">_Reset Preferences</property>
+                <property name="use-underline">true</property>
+                <style>
+                  <class name="destructive-action"/>
+                </style>
               </object>
             </child>
           </object>
