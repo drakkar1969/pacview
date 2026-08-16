@@ -253,6 +253,11 @@ impl PkgbuildRepos {
             .extract_if(.., |repo| repo.url.scheme() == "file")
             .collect();
 
+        // Remove clone dir from cache_dir
+        let clone_dir = Self::clone_dir();
+
+        let _ = fs::remove_dir_all(&clone_dir);
+
         // Fetch remote repos
         let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
 
@@ -260,8 +265,6 @@ impl PkgbuildRepos {
             .unwrap_or_default();
 
         // Copy local repos
-        let clone_dir = Self::clone_dir();
-
         if fs::create_dir_all(&clone_dir).is_ok() {
             for repo in local_repos {
                 let dest_path = Path::new(&clone_dir).join(&repo.name);
