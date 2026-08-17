@@ -493,7 +493,7 @@ impl PackageView {
     //---------------------------------------
     // Do search helper function
     //---------------------------------------
-    async fn do_search(term: &str, tokens: &[String], prop: SearchProp) -> Result<Vec<PkgData>, raur::Error> {
+    async fn do_search(term: String, tokens: Vec<String>, prop: SearchProp) -> Result<Vec<PkgData>, raur::Error> {
         // Static AUR cache variable
         static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
             TokioMutex::new(raur::Cache::default())
@@ -509,48 +509,55 @@ impl PackageView {
             return Err(raur::Error::Aur(String::from("Cannot search by files.")))
         }
 
-        // Set search mode
-        let search_by = match prop {
-            SearchProp::Name => raur::SearchBy::Name,
-            SearchProp::NameDesc => raur::SearchBy::NameDesc,
-            SearchProp::Groups => raur::SearchBy::Groups,
-            SearchProp::Deps => raur::SearchBy::Depends,
-            SearchProp::Optdeps => raur::SearchBy::OptDepends,
-            SearchProp::Provides => raur::SearchBy::Provides,
-            SearchProp::Files => unreachable!(),
-        };
+        // Spawn tokio task to search AUR
+        TokioUtils::runtime().spawn(
+            async move {
+                // Set search mode
+                let search_by = match prop {
+                    SearchProp::Name => raur::SearchBy::Name,
+                    SearchProp::NameDesc => raur::SearchBy::NameDesc,
+                    SearchProp::Groups => raur::SearchBy::Groups,
+                    SearchProp::Deps => raur::SearchBy::Depends,
+                    SearchProp::Optdeps => raur::SearchBy::OptDepends,
+                    SearchProp::Provides => raur::SearchBy::Provides,
+                    SearchProp::Files => unreachable!(),
+                };
 
-        // Search for AUR packages
-        let handle = raur::Handle::new();
+                // Search for AUR packages
+                let handle = raur::Handle::new();
 
-        let search_results = join_all(tokens.iter().map(|t| handle.search_by(t, search_by)))
-            .await
-            .into_iter()
-            .collect::<Result<Vec<Vec<raur::Package>>, raur::Error>>()?;
+                let search_results = join_all(tokens.iter().map(|t| handle.search_by(t, search_by)))
+                    .await
+                    .into_iter()
+                    .collect::<Result<Vec<Vec<raur::Package>>, raur::Error>>()?;
 
-        // Get list of package names that match all search terms
-        let search_names = search_results.split_first().map(|(first, rem)| {
-            let sets: Vec<HashSet<&str>> = rem.iter()
-                .map(|v| v.iter().map(|pkg| pkg.name.as_str()).collect())
-                .collect();
+                // Get list of package names that match all search terms
+                let search_names = search_results.split_first().map(|(first, rem)| {
+                    let sets: Vec<HashSet<&str>> = rem.iter()
+                        .map(|v| v.iter().map(|pkg| pkg.name.as_str()).collect())
+                        .collect();
 
-            let search_names: Vec<&str> = first.iter()
-                .map(|pkg| pkg.name.as_str())
-                .filter(|&name| sets.iter().all(|set| set.contains(name)))
-                .collect();
+                    let search_names: Vec<&str> = first.iter()
+                        .map(|pkg| pkg.name.as_str())
+                        .filter(|&name| sets.iter().all(|set| set.contains(name)))
+                        .collect();
 
-            search_names
-        })
-        .ok_or_else(|| raur::Error::Aur("failed to parse search results".into()))?;
+                    search_names
+                })
+                .ok_or_else(|| raur::Error::Aur("failed to parse search results".into()))?;
 
-        // Get AUR package info using cache
-        let pkg_data = handle.cache_info(&mut *AUR_CACHE.lock().await, &search_names)
-            .await?
-            .iter()
-            .map(|pkg| PkgData::from_aur(pkg))
-            .collect();
+                // Get AUR package info using cache
+                let pkg_data = handle.cache_info(&mut *AUR_CACHE.lock().await, &search_names)
+                    .await?
+                    .iter()
+                    .map(|pkg| PkgData::from_aur(pkg))
+                    .collect();
 
-        Ok(pkg_data)
+                Ok(pkg_data)
+            }
+        )
+        .await
+        .expect("Failed to complete tokio task")
     }
 
     //---------------------------------------
@@ -609,16 +616,10 @@ impl PackageView {
                 let imp = view.imp();
 
                 // Spawn tokio task to search AUR
-                let result = TokioUtils::runtime().spawn(
-                    async move {
-                        tokio::select! {
-                            () = cancel_token.cancelled() => Ok(vec![]),
-                            pkg_data = Self::do_search(&term, &tokens, prop) => pkg_data
-                        }
-                    }
-                )
-                .await
-                .expect("Failed to complete tokio task");
+                let result = tokio::select! {
+                    () = cancel_token.cancelled() => Ok(vec![]),
+                    pkg_data = Self::do_search(term, tokens, prop) => pkg_data
+                };
 
                 // Get AUR search results
                 match result {

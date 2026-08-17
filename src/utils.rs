@@ -15,7 +15,7 @@ use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use walkdir::WalkDir;
 use which::which_global;
-use tokio::runtime::{Runtime, Builder as RuntimeBuilder};
+use tokio::runtime::Runtime;
 use tokio::fs::File;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use tokio_util::io::StreamReader;
@@ -244,45 +244,49 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Fetch remote function
     //---------------------------------------
-    pub fn fetch_remote() -> aur_fetch::Result<Vec<String>> {
-        let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
-            .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
-            .collect();
+    pub async fn fetch_remote() -> aur_fetch::Result<Vec<String>> {
+        TokioUtils::runtime().spawn_blocking(move || {
+            let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
+                .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
+                .collect();
 
-        let local_repos: Vec<aur_fetch::Repo> = remote_repos
-            .extract_if(.., |repo| repo.url.scheme() == "file")
-            .collect();
+            let local_repos: Vec<aur_fetch::Repo> = remote_repos
+                .extract_if(.., |repo| repo.url.scheme() == "file")
+                .collect();
 
-        // Fetch remote repos
-        let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
+            // Fetch remote repos
+            let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
 
-        let mut repo_names = fetch.download_repos_cb(&remote_repos, |_| {})?;
+            let mut repo_names = fetch.download_repos_cb(&remote_repos, |_| {})?;
 
-        fetch.merge(&repo_names)?;
+            fetch.merge(&repo_names)?;
 
-        // Copy local repos to clone dir
-        let clone_dir = Self::clone_dir();
+            // Copy local repos to clone dir
+            let clone_dir = Self::clone_dir();
 
-        if fs::create_dir_all(&clone_dir).is_ok() {
-            for repo in local_repos {
-                let dest_path = Path::new(&clone_dir).join(&repo.name);
+            if fs::create_dir_all(&clone_dir).is_ok() {
+                for repo in local_repos {
+                    let dest_path = Path::new(&clone_dir).join(&repo.name);
 
-                if dest_path.try_exists().is_ok_and(|res| res) {
-                    let _ = fs::remove_dir_all(&dest_path);
-                }
+                    if dest_path.try_exists().is_ok_and(|res| res) {
+                        let _ = fs::remove_dir_all(&dest_path);
+                    }
 
-                let copy_options = fs_extra::dir::CopyOptions {
-                    copy_inside: true,
-                    .. fs_extra::dir::CopyOptions::default()
-                };
+                    let copy_options = fs_extra::dir::CopyOptions {
+                        copy_inside: true,
+                        .. fs_extra::dir::CopyOptions::default()
+                    };
 
-                if fs_extra::copy_items(&[repo.url.path()], &dest_path, &copy_options).is_ok() {
-                    repo_names.push(repo.name);
+                    if fs_extra::copy_items(&[repo.url.path()], &dest_path, &copy_options).is_ok() {
+                        repo_names.push(repo.name);
+                    }
                 }
             }
-        }
 
-        Ok(repo_names)
+            Ok(repo_names)
+        })
+        .await
+        .expect("Failed to complete tokio task")
     }
 
     //---------------------------------------
@@ -471,20 +475,6 @@ impl TokioUtils {
     pub fn runtime() -> &'static Runtime {
         static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
             Runtime::new().expect("Failed to set up tokio runtime")
-        });
-
-        &RUNTIME
-    }
-
-    //---------------------------------------
-    // Runtime current thread function
-    //---------------------------------------
-    pub fn runtime_current_thread() -> &'static Runtime {
-        static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
-            RuntimeBuilder::new_current_thread()
-                .enable_all()
-                .build()
-                .expect("Failed to set up tokio runtime")
         });
 
         &RUNTIME
