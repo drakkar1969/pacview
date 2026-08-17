@@ -36,6 +36,7 @@ use gtk::{gio, glib};
 use gtk::prelude::*;
 
 use app::PacViewApplication;
+use utils::TaskTracker;
 
 const APP_ID: &str = "com.github.PacView";
 
@@ -46,6 +47,11 @@ fn main() -> glib::ExitCode {
 
     // Run app
     let app = PacViewApplication::new(APP_ID, gio::ApplicationFlags::default());
+
+    // Cancel all pending tasks
+    app.connect_shutdown(|_| {
+        TaskTracker::cancel_all();
+    });
 
     app.run()
 }

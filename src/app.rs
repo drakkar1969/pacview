@@ -3,10 +3,7 @@ use gtk::prelude::*;
 use adw::subclass::prelude::*;
 use adw::prelude::AdwDialogExt;
 
-use crate::{
-    window::PacViewWindow,
-    utils::TaskTracker
-};
+use crate::window::PacViewWindow;
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewApplication
@@ -53,13 +50,6 @@ mod imp {
                 PacViewWindow::new(&application).upcast()
             });
 
-            // Cancel all pending tasks on close
-            window.connect_close_request(|_| {
-                TaskTracker::cancel_all();
-
-                glib::Propagation::Proceed
-            });
-
             // Show main window
             window.present();
         }
@@ -95,11 +85,7 @@ impl PacViewApplication {
     fn setup_actions(&self) {
         // Quit action
         let quit_action = gio::ActionEntry::builder("quit-app")
-            .activate(move |app: &Self, _, _| {
-                TaskTracker::cancel_all();
-
-                app.quit();
-            })
+            .activate(move |app: &Self, _, _| app.quit())
             .build();
 
         // Show about dialog action
