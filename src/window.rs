@@ -1230,13 +1230,13 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: do pkgbuild updates helper
     //---------------------------------------
-    fn do_pkgbuild_updates(pkgbuild_fetch: bool, token: CancellationToken)
+    fn do_pkgbuild_updates(do_fetch: bool, token: CancellationToken)
     -> Result<UpdateMap, aur_depends::Error> {
         static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
             TokioMutex::new(raur::Cache::default())
         });
 
-        if !pkgbuild_fetch || token.is_cancelled() {
+        if !do_fetch || token.is_cancelled() {
             return Ok(UpdateMap::new());
         }
 
