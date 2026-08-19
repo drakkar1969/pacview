@@ -9,11 +9,13 @@ use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
 use strum::{EnumIter, IntoEnumIterator, AsRefStr};
+use tokio_util::sync::CancellationToken;
 
 use crate::{
     pkg_object::PkgObject,
     backup_object::{BackupObject, BackupStatus},
-    utils::{Paths, Pacman, AppInfoExt, TokioUtils, TaskTracker}
+    tokio_manager::TokioManager,
+    utils::{Paths, Pacman, AppInfoExt, TokioUtils}
 };
 
 //------------------------------------------------------------------------------
@@ -88,7 +90,7 @@ mod imp {
 
         pub(super) search_term: RefCell<String>,
 
-        pub(super) compare_cancel_id: Cell<Option<u64>>
+        pub(super) compare_cancel_token: RefCell<Option<CancellationToken>>
     }
 
     //---------------------------------------
@@ -174,7 +176,11 @@ mod imp {
 
                     if let Some(file) = backup_file
                         .and_downcast::<BackupObject>() {
+                            window.set_comparing(true);
+
                             let _ = window.compare_with_original(&file).await;
+
+                            window.set_comparing(false);
                         }
                 }
             });
@@ -496,8 +502,8 @@ impl BackupWindow {
     // Cancel compare function
     //---------------------------------------
     fn cancel_compare(&self) {
-        if let Some(id) = self.imp().compare_cancel_id.take() {
-            TaskTracker::cancel_token(id);
+        if let Some(token) = self.imp().compare_cancel_token.take() {
+            token.cancel();
         }
     }
 
@@ -508,40 +514,43 @@ impl BackupWindow {
     pub async fn compare_with_original(&self, backup: &BackupObject) -> io::Result<()> {
         let imp = self.imp();
 
-        // Set comparing property
-        self.set_comparing(true);
-
+        // Get external command paths
         let meld = Paths::meld_bin().map_err(io::Error::other)?;
         let paccat = Paths::paccat_bin().map_err(io::Error::other)?;
 
+        // Spawn tokio task to download original file content with paccat
         let path = Pacman::config().read().unwrap().root_dir.clone() + &backup.path();
+        let path_clone = path.clone();
+        let package = backup.package();
 
-        // Create and store cancel token
-        let (id, cancel_token) = TaskTracker::add_token();
+        let paccat_task = TokioManager::spawn(async move |token| {
+            TokioUtils::run(paccat, &[&package, "--", &path_clone], token, false).await
+        });
 
-        imp.compare_cancel_id.set(Some(id));
+        // Store cancel token
+        imp.compare_cancel_token.replace(Some(paccat_task.cancel_token));
 
-        // Download original file content with paccat
-        let (status, content) = TokioUtils::run(paccat, &[&backup.package(), "--", &path], cancel_token, false)
-            .await?;
+        // Await task
+        let result = paccat_task.join_handle.await
+            .expect("Failed to complete tokio task")?;
+
+        // Remove stored cancel token
+        imp.compare_cancel_token.replace(None);
+
+        // Return if error
+        let (status, content) = result?;
 
         if status != Some(0) {
             return Err(io::Error::other("Paccat error"))
         }
 
-        // Compare backup file with original content
-        TokioUtils::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content)
-            .await?;
-
-        // Remove stored cancel token
-        if let Some(id) = imp.compare_cancel_id.take() {
-            TaskTracker::remove_token(id);
-        }
-
-        // Set comparing property
-        self.set_comparing(false);
-
-        Ok(())
+        // Spawn tokio task to compare backup file with original content
+        TokioManager::spawn(async move |_| {
+            TokioUtils::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content).await
+        })
+        .join_handle
+        .await
+        .expect("Failed to complete tokio task")?
     }
 
     //---------------------------------------

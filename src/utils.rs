@@ -15,7 +15,6 @@ use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use walkdir::WalkDir;
 use which::which_global;
-use tokio::runtime::Runtime;
 use tokio::fs::File;
 use tokio::io::{AsyncWriteExt, AsyncReadExt};
 use tokio_util::io::StreamReader;
@@ -244,49 +243,60 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Fetch remote function
     //---------------------------------------
-    pub async fn fetch_remote() -> aur_fetch::Result<Vec<String>> {
-        TokioUtils::runtime().spawn_blocking(move || {
-            let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
-                .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
-                .collect();
+    pub fn fetch_remote(token: CancellationToken) -> aur_fetch::Result<Vec<String>> {
+        let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
+            .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
+            .collect();
 
-            let local_repos: Vec<aur_fetch::Repo> = remote_repos
-                .extract_if(.., |repo| repo.url.scheme() == "file")
-                .collect();
+        let local_repos: Vec<aur_fetch::Repo> = remote_repos
+            .extract_if(.., |repo| repo.url.scheme() == "file")
+            .collect();
 
-            // Fetch remote repos
-            let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
+        // Create fetcher
+        let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
 
-            let mut repo_names = fetch.download_repos_cb(&remote_repos, |_| {})?;
+        // Fetch remote repos
+        if token.is_cancelled() {
+            return Err(aur_fetch::Error::Io(io::Error::other("Cancelled by user")));
+        }
 
-            fetch.merge(&repo_names)?;
+        let mut repo_names = fetch.download_repos_cb(&remote_repos, |_| {})?;
 
-            // Copy local repos to clone dir
-            let clone_dir = Self::clone_dir();
+        // Merge remote repos
+        if token.is_cancelled() {
+            return Err(aur_fetch::Error::Io(io::Error::other("Cancelled by user")));
+        }
 
-            if fs::create_dir_all(&clone_dir).is_ok() {
-                for repo in local_repos {
-                    let dest_path = Path::new(&clone_dir).join(&repo.name);
+        fetch.merge(&repo_names)?;
 
-                    if dest_path.try_exists().is_ok_and(|res| res) {
-                        let _ = fs::remove_dir_all(&dest_path);
-                    }
+        // Copy local repos to clone dir
+        let clone_dir = Self::clone_dir();
 
-                    let copy_options = fs_extra::dir::CopyOptions {
-                        copy_inside: true,
-                        .. fs_extra::dir::CopyOptions::default()
-                    };
+        let copy_options = fs_extra::dir::CopyOptions {
+            copy_inside: true,
+            .. fs_extra::dir::CopyOptions::default()
+        };
 
-                    if fs_extra::copy_items(&[repo.url.path()], &dest_path, &copy_options).is_ok() {
-                        repo_names.push(repo.name);
-                    }
+        if fs::create_dir_all(&clone_dir).is_ok() {
+            for repo in local_repos {
+                let dest_path = clone_dir.join(&repo.name);
+
+                // Copy local repo
+                if token.is_cancelled() {
+                    return Err(aur_fetch::Error::Io(io::Error::other("Cancelled by user")));
+                }
+
+                if dest_path.try_exists().is_ok_and(|res| res) {
+                    let _ = fs::remove_dir_all(&dest_path);
+                }
+
+                if fs_extra::copy_items(&[repo.url.path()], &dest_path, &copy_options).is_ok() {
+                    repo_names.push(repo.name);
                 }
             }
+        }
 
-            Ok(repo_names)
-        })
-        .await
-        .expect("Failed to complete tokio task")
+        Ok(repo_names)
     }
 
     //---------------------------------------
@@ -363,103 +373,27 @@ impl AurDBFile {
     //---------------------------------------
     pub async fn download() -> Result<(), io::Error> {
         // Spawn tokio task to download AUR file
-        TokioUtils::runtime().spawn(
-            async move {
-                let client = reqwest::Client::builder()
-                    .timeout(Duration::from_secs(5))
-                    .build()
-                    .map_err(io::Error::other)?;
+        let client = reqwest::Client::builder()
+            .timeout(Duration::from_secs(5))
+            .build()
+            .map_err(io::Error::other)?;
 
-                let response = client
-                    .get("https://aur.archlinux.org/packages.gz")
-                    .send()
-                    .await
-                    .map_err(io::Error::other)?;
+        // Get response
+        let response = client
+            .get("https://aur.archlinux.org/packages.gz")
+            .send()
+            .await
+            .map_err(io::Error::other)?;
 
-                let stream = response
-                    .bytes_stream()
-                    .map_err(io::Error::other);
+        // Write response to file
+        let stream = response.bytes_stream().map_err(io::Error::other);
+        let stream_reader = StreamReader::new(stream);
+        let mut decoder = GzipDecoder::new(stream_reader);
+        let mut out_file = File::create(Self::path()).await?;
 
-                let stream_reader = StreamReader::new(stream);
-                let mut decoder = GzipDecoder::new(stream_reader);
+        tokio::io::copy(&mut decoder, &mut out_file).await?;
 
-                let mut out_file = File::create(Self::path()).await?;
-
-                tokio::io::copy(&mut decoder, &mut out_file).await?;
-
-                Ok(())
-            }
-        )
-        .await
-        .expect("Failed to complete tokio task")
-    }
-}
-
-//------------------------------------------------------------------------------
-// STRUCT: TaskTracker
-//------------------------------------------------------------------------------
-pub struct TaskTracker {
-    map: HashMap<u64, CancellationToken>,
-    next_id: u64
-}
-
-impl TaskTracker {
-    //---------------------------------------
-    // Tracker function
-    //---------------------------------------
-    fn tracker() -> &'static RwLock<Self> {
-        static TRACKER: LazyLock<RwLock<TaskTracker>> = LazyLock::new(|| {
-            RwLock::new(TaskTracker { map: HashMap::new(), next_id: 0 })
-        });
-
-        &TRACKER
-    }
-
-    //---------------------------------------
-    // Add token function
-    //---------------------------------------
-    pub fn add_token() -> (u64, CancellationToken) {
-        let mut tracker = Self::tracker().write().unwrap();
-
-        let token = CancellationToken::new();
-
-        let id = tracker.next_id;
-        tracker.next_id += 1;
-
-        tracker.map.insert(id, token.clone());
-
-        (id, token)
-    }
-
-    //---------------------------------------
-    // Remove token function
-    //---------------------------------------
-    pub fn remove_token(id: u64) {
-        let mut tracker = Self::tracker().write().unwrap();
-
-        tracker.map.remove(&id);
-    }
-
-    //---------------------------------------
-    // Cancel token function
-    //---------------------------------------
-    pub fn cancel_token(id: u64) {
-        let mut tracker = Self::tracker().write().unwrap();
-
-        if let Some(token) = tracker.map.remove(&id) {
-            token.cancel();
-        }
-    }
-
-    //---------------------------------------
-    // Cancel all function
-    //---------------------------------------
-    pub fn cancel_all() {
-        let mut tracker = Self::tracker().write().unwrap();
-
-        for (_, token) in tracker.map.drain() {
-            token.cancel();
-        }
+        Ok(())
     }
 }
 
@@ -469,17 +403,6 @@ impl TaskTracker {
 pub struct TokioUtils;
 
 impl TokioUtils {
-    //---------------------------------------
-    // Runtime function
-    //---------------------------------------
-    pub fn runtime() -> &'static Runtime {
-        static RUNTIME: LazyLock<Runtime> = LazyLock::new(|| {
-            Runtime::new().expect("Failed to set up tokio runtime")
-        });
-
-        &RUNTIME
-    }
-
     //---------------------------------------
     // Run function
     //---------------------------------------
@@ -492,67 +415,61 @@ impl TokioUtils {
             .map(|s| s.as_ref().to_os_string())
             .collect();
 
-        Self::runtime().spawn(
-            async move {
-                // Spawn process
-                let mut child = tokio::process::Command::new(cmd_owned)
-                    .args(args_owned)
-                    .stdout(Stdio::piped())
-                    .spawn()?;
+        // Spawn process
+        let mut child = tokio::process::Command::new(cmd_owned)
+            .args(args_owned)
+            .stdout(Stdio::piped())
+            .spawn()?;
 
-                // Get stdout pipe
-                let mut stdout_pipe = child.stdout.take().unwrap();
+        // Get stdout pipe
+        let mut stdout_pipe = child.stdout.take().unwrap();
 
-                // Loop: read stdout or wait for process or check for cancellation
-                let mut exit_status = None;
-                let mut buffer = vec![];
+        // Loop: read stdout or wait for process or check for cancellation
+        let mut exit_status = None;
+        let mut buffer = vec![];
 
-                while exit_status.is_none() {
-                    tokio::select! {
-                        read = stdout_pipe.read_buf(&mut buffer) => {
-                            // EOF
-                            if read? == 0 {
-                                break;
-                            }
-                        }
-                        status = child.wait() => {
-                            exit_status = Some(status?);
-                        }
-                        () = token.cancelled() => {
-                            // Kill the process immediately
-                            child.kill().await?;
-
-                            // Re-reap the process handle to prevent zombie processes
-                            let _ = child.wait().await;
-
-                            return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Cancelled by user"));
-                        }
+        while exit_status.is_none() {
+            tokio::select! {
+                read = stdout_pipe.read_buf(&mut buffer) => {
+                    // EOF
+                    if read? == 0 {
+                        break;
                     }
                 }
-
-                // Get status code
-                let code = match exit_status {
-                    Some(status) => status,
-                    None => child.wait().await?
+                status = child.wait() => {
+                    exit_status = Some(status?);
                 }
-                .code();
+                () = token.cancelled() => {
+                    // Kill the process immediately
+                    child.kill().await?;
 
-                // Finish reading stdout
-                stdout_pipe.read_to_end(&mut buffer).await?;
+                    // Re-reap the process handle to prevent zombie processes
+                    let _ = child.wait().await;
 
-                // Strip ANSI codes from stdout
-                let stdout = if strip_ansi {
-                    String::from_utf8(strip_ansi_escapes::strip(buffer))
-                } else {
-                    String::from_utf8(buffer)
+                    return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Cancelled by user"));
                 }
-                .map_err(io::Error::other)?;
-
-                Ok((code, stdout))
             }
-        )
-        .await
-        .expect("Failed to complete tokio task")
+        }
+
+        // Get status code
+        let code = match exit_status {
+            Some(status) => status,
+            None => child.wait().await?
+        }
+        .code();
+
+        // Finish reading stdout
+        stdout_pipe.read_to_end(&mut buffer).await?;
+
+        // Strip ANSI codes from stdout
+        let stdout = if strip_ansi {
+            String::from_utf8(strip_ansi_escapes::strip(buffer))
+        } else {
+            String::from_utf8(buffer)
+        }
+        .map_err(io::Error::other)?;
+
+        Ok((code, stdout))
     }
 
     //---------------------------------------
@@ -568,22 +485,16 @@ impl TokioUtils {
 
         let input_owned = input.to_owned();
 
-        Self::runtime().spawn(
-            async move {
-                let mut child = tokio::process::Command::new(cmd_owned)
-                    .args(args_owned)
-                    .stdin(Stdio::piped())
-                    .spawn()?;
+        let mut child = tokio::process::Command::new(cmd_owned)
+            .args(args_owned)
+            .stdin(Stdio::piped())
+            .spawn()?;
 
-                if let Some(mut stdin) = child.stdin.take() {
-                    stdin.write_all(input_owned.as_bytes()).await?;
-                }
+        if let Some(mut stdin) = child.stdin.take() {
+            stdin.write_all(input_owned.as_bytes()).await?;
+        }
 
-                Ok(())
-            }
-        )
-        .await
-        .expect("Failed to complete tokio task")
+        Ok(())
     }
 }
 

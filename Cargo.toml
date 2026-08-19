@@ -33,7 +33,7 @@ srcinfo = "2.1"
 strip-ansi-escapes = "0.2"
 strum = { version = "0.28", features = ["derive"] }
 tokio = { version = "1", features = ["rt-multi-thread", "process", "macros"] }
-tokio-util = "0.7"
+tokio-util = { version = "0.7", features = ["rt"] }
 url = "2"
 walkdir = "2.5"
 which = "8"

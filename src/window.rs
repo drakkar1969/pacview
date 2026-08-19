@@ -36,7 +36,8 @@ use crate::{
     config_dialog::ConfigDialog,
     rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
-    utils::{Paths, Pacman, PkgbuildRepos, AurDBFile, TokioUtils, TaskTracker}
+    tokio_manager::TokioManager,
+    utils::{Paths, Pacman, PkgbuildRepos, AurDBFile, TokioUtils}
 };
 
 //------------------------------------------------------------------------------
@@ -101,7 +102,7 @@ mod imp {
         pub(super) installed_item: RefCell<StatusItem>,
         pub(super) update_item: RefCell<StatusItem>,
 
-        pub(super) update_cancel_id: Cell<Option<u64>>,
+        pub(super) update_cancel_tokens: RefCell<Option<Vec<CancellationToken>>>,
 
         pub(super) notify_debouncer: RefCell<Option<Debouncer<INotifyWatcher, NoCache>>>,
 
@@ -156,7 +157,15 @@ mod imp {
     }
 
     impl WidgetImpl for PacViewWindow {}
-    impl WindowImpl for PacViewWindow {}
+
+    impl WindowImpl for PacViewWindow {
+        fn close_request(&self) -> glib::Propagation {
+            self.obj().cancel_package_updates();
+
+            Propagation::Proceed
+        }
+    }
+
     impl ApplicationWindowImpl for PacViewWindow {}
     impl AdwApplicationWindowImpl for PacViewWindow {}
 
@@ -201,7 +210,10 @@ mod imp {
                 window.cancel_package_updates();
 
                 // Spawn tokio task to download AUR package names file
-                let _ = AurDBFile::download().await;
+                let _ = TokioManager::spawn(async move |_| AurDBFile::download().await)
+                    .join_handle
+                    .await
+                    .expect("Failed to complete tokio task");
 
                 // Refresh packages
                 gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
@@ -220,7 +232,10 @@ mod imp {
                 window.cancel_package_updates();
 
                 // Spawn tokio task to fetch PKGBUILD repos
-                let _ = PkgbuildRepos::fetch_remote().await;
+                let _ = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote)
+                    .join_handle
+                    .await
+                    .expect("Failed to complete tokio task");
 
                 // Refresh packages
                 gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
@@ -861,14 +876,20 @@ impl PacViewWindow {
                         imp.package_view.set_state(PackageViewState::AURDownload);
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
-                        let _ = AurDBFile::download().await;
+                        let _ = TokioManager::spawn(async move |_| AurDBFile::download().await)
+                            .join_handle
+                            .await
+                            .expect("Failed to complete tokio task");
                     }
 
                     if pkgbuild_fetch {
                         imp.package_view.set_state(PackageViewState::PkgbuildRepoFetch);
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
-                        let _ = PkgbuildRepos::fetch_remote().await;
+                        let _ = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote)
+                            .join_handle
+                            .await
+                            .expect("Failed to complete tokio task");
                     }
 
                     window.alpm_load_packages();
@@ -1081,7 +1102,10 @@ impl PacViewWindow {
                         let max_age = imp.prefs_dialog.borrow().aur_database_age() as u64;
 
                         if aur_download && AurDBFile::out_of_date(max_age) {
-                            let _ = AurDBFile::download().await;
+                            let _ = TokioManager::spawn(async move |_| AurDBFile::download().await)
+                                .join_handle
+                                .await
+                                .expect("Failed to complete tokio task");
                         }
                     },
                     Err(error) => {
@@ -1104,62 +1128,72 @@ impl PacViewWindow {
     // Cancel package updates
     //---------------------------------------
     fn cancel_package_updates(&self) {
-        if let Some(id) = self.imp().update_cancel_id.take() {
-            TaskTracker::cancel_token(id);
+        if let Some(tokens) = self.imp().update_cancel_tokens.take() {
+            for token in tokens {
+                token.cancel();
+            }
         }
     }
 
     //---------------------------------------
     // Setup alpm: do alpm updates helper
     //---------------------------------------
-    async fn do_alpm_updates() -> alpm::Result<UpdateMap> {
-        TokioUtils::runtime().spawn_blocking(move || {
-            // Get pacman config
-            let pacman_config = Pacman::config().read().unwrap();
+    fn do_alpm_updates(token: CancellationToken) -> alpm::Result<UpdateMap> {
+        if token.is_cancelled() {
+            return Ok(UpdateMap::new());
+        }
 
-            // Create temp alpm handle for cached database sync
-            let cache_dir = Paths::cache_dir();
+        // Get pacman config
+        let pacman_config = Pacman::config().read().unwrap();
 
-            let mut alpm_temp_handle = alpm::Alpm::new(
-                pacman_config.root_dir.clone(),
-                cache_dir.display().to_string()
-            )?;
+        // Create temp alpm handle for cached database sync
+        let cache_dir = Paths::cache_dir();
 
-            alpm_utils::configure_alpm(&mut alpm_temp_handle, &pacman_config)?;
+        let mut alpm_temp_handle = alpm::Alpm::new(
+            pacman_config.root_dir.clone(),
+            cache_dir.display().to_string()
+        )?;
 
-            // Create local alpm handle
-            let alpm_local_handle = alpm_utils::alpm_with_conf(&pacman_config)?;
+        alpm_utils::configure_alpm(&mut alpm_temp_handle, &pacman_config)?;
 
-            // Drop pacman config
-            drop(pacman_config);
+        // Create local alpm handle
+        let alpm_local_handle = alpm_utils::alpm_with_conf(&pacman_config)?;
 
-            // Remove alpm database lock file
-            let _ = fs::remove_file(cache_dir.join("db.lck"));
+        // Drop pacman config
+        drop(pacman_config);
 
-            // Update alpm sync databases
-            alpm_temp_handle.syncdbs_mut().update(false)?;
+        // Remove alpm database lock file
+        let _ = fs::remove_file(cache_dir.join("db.lck"));
 
-            // Get alpm local/sync databases
-            let sync_dbs = alpm_temp_handle.syncdbs();
-            let local_db = alpm_local_handle.localdb();
+        // Update alpm sync databases
+        if token.is_cancelled() {
+            return Ok(UpdateMap::new());
+        }
 
-            // Return update map (package name, update version)
-            Ok(local_db.pkgs().iter()
-                .filter_map(|pkg| {
-                    sync_dbs.pkg(pkg.name()).ok()
-                        .filter(|sync_pkg| sync_pkg.version().vercmp(pkg.version()).is_gt())
-                        .map(|sync_pkg| (pkg.name().to_owned(), sync_pkg.version().to_string()))
-                })
-                .collect())
-        })
-        .await
-        .expect("Failed to complete tokio task")
+        alpm_temp_handle.syncdbs_mut().update(false)?;
+
+        // Get alpm local/sync databases
+        if token.is_cancelled() {
+            return Ok(UpdateMap::new());
+        }
+
+        let sync_dbs = alpm_temp_handle.syncdbs();
+        let local_db = alpm_local_handle.localdb();
+
+        // Return update map (package name, update version)
+        Ok(local_db.pkgs().iter()
+            .filter_map(|pkg| {
+                sync_dbs.pkg(pkg.name()).ok()
+                    .filter(|sync_pkg| sync_pkg.version().vercmp(pkg.version()).is_gt())
+                    .map(|sync_pkg| (pkg.name().to_owned(), sync_pkg.version().to_string()))
+            })
+            .collect())
     }
 
     //---------------------------------------
-    // Setup alpm: do paru updates helper
+    // Setup alpm: do aur updates helper
     //---------------------------------------
-    async fn do_paru_updates(token: CancellationToken)-> io::Result<UpdateMap> {
+    async fn do_aur_updates(token: CancellationToken)-> io::Result<UpdateMap> {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"([a-z0-9@._+-]+)[\s]+[a-zA-Z0-9._+-:]+[\s]+->[ \t]+([a-zA-Z0-9._+-:]+)")
                 .expect("Failed to compile Regex")
@@ -1171,6 +1205,10 @@ impl PacViewWindow {
         };
 
         // Get paru updates
+        if token.is_cancelled() {
+            return Ok(UpdateMap::new());
+        }
+
         let (code, stdout) = TokioUtils::run(paru_path, &["-Qu", "--mode=a"], token, true)
             .await?;
 
@@ -1192,61 +1230,71 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: do pkgbuild updates helper
     //---------------------------------------
-    async fn do_pkgbuild_updates(pkgbuild_fetch: bool)-> Result<UpdateMap, aur_depends::Error> {
+    fn do_pkgbuild_updates(pkgbuild_fetch: bool, token: CancellationToken)
+    -> Result<UpdateMap, aur_depends::Error> {
         static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
             TokioMutex::new(raur::Cache::default())
         });
 
-        if !pkgbuild_fetch {
+        if !pkgbuild_fetch || token.is_cancelled() {
             return Ok(UpdateMap::new());
         }
 
-        TokioUtils::runtime().spawn_blocking(move || {
-            // Spawn task on current thread (required by alpm/raur) to get updates
-            let local_runtime = tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .expect("Failed to set up tokio runtime");
+        // Spawn task on current thread (required by alpm/raur) to get updates
+        let local_runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .expect("Failed to set up tokio runtime");
 
-            local_runtime.block_on(async {
-                // Create alpm/raur handles
-                let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap())?;
-                let raur_handle = raur::Handle::new();
+        local_runtime.block_on(async {
+            // Create alpm/raur handles
+            let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap())?;
+            let raur_handle = raur::Handle::new();
 
-                // Fetch remote PKGBUILD repos (return empty map on failure)
-                let Ok(repo_names) = PkgbuildRepos::fetch_remote().await else {
-                    return Ok(UpdateMap::new());
-                };
+            // Fetch remote PKGBUILD repos (return empty map on failure)
+            if token.is_cancelled() {
+                return Ok(UpdateMap::new());
+            }
 
-                let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&repo_names);
-
-                let pkgbuild_repos = pkgbuild_repos.iter()
-                    .map(|(name, pkgs)| aur_depends::PkgbuildRepo {
-                        name,
-                        pkgs: pkgs.iter().collect()
-                    })
-                    .collect();
-
-                let mut cache = AUR_CACHE.lock().await;
-
-                let mut resolver = aur_depends::Resolver::new(
-                    &alpm_handle,
-                    &mut cache,
-                    &raur_handle,
-                    aur_depends::Flags::PKGBUILDS
-                )
-                .pkgbuild_repos(pkgbuild_repos);
-
-                let updates = resolver.updates(None).await?;
-
-                // Return update map (package name, update version)
-                Ok(updates.pkgbuild_updates.iter()
-                    .map(|update| (update.local.name().to_owned(), update.remote_srcinfo.version()))
-                    .collect())
+            let repo_names = TokioManager::spawn_blocking(move |token| {
+                PkgbuildRepos::fetch_remote(token)
             })
+            .join_handle
+            .await
+            .expect("Failed to complete tokio task")
+            .unwrap_or_else(|e| Err(aur_fetch::Error::Io(e)))
+            .map_err(|e| aur_depends::Error::Raur(Box::new(e)))?;
+
+            let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&repo_names);
+
+            let pkgbuild_repos = pkgbuild_repos.iter()
+                .map(|(name, pkgs)| aur_depends::PkgbuildRepo {
+                    name,
+                    pkgs: pkgs.iter().collect()
+                })
+                .collect();
+
+            let mut cache = AUR_CACHE.lock().await;
+
+            // Get PKGBUILD updates
+            let mut resolver = aur_depends::Resolver::new(
+                &alpm_handle,
+                &mut cache,
+                &raur_handle,
+                aur_depends::Flags::PKGBUILDS
+            )
+            .pkgbuild_repos(pkgbuild_repos);
+
+            let updates = tokio::select! {
+                () = token.cancelled() => return Ok(UpdateMap::new()),
+                result = resolver.updates(None) => result?
+            };
+
+            // Return update map (package name, update version)
+            Ok(updates.pkgbuild_updates.iter()
+                .map(|update| (update.local.name().to_owned(), update.remote_srcinfo.version()))
+                .collect())
         })
-        .await
-        .expect("Failed to complete tokio task")
     }
 
     //---------------------------------------
@@ -1260,56 +1308,60 @@ impl PacViewWindow {
         // Reset sidebar update count
         imp.update_item.borrow().set_state(StatusItemState::Checking);
 
-        // Create and store cancel token
-        let (id, cancel_token) = TaskTracker::add_token();
-
-        let alpm_token = cancel_token.clone();
-
-        imp.update_cancel_id.set(Some(id));
-
         // Spawn tasks to check for pacman/paru updates
         let pkgbuild_fetch = imp.prefs_dialog.borrow().enable_pkgbuild_repos();
 
-        let (alpm_result, paru_result, pkgbuild_result) = tokio::select! {
-            () = cancel_token.cancelled() => {
-                (Ok(UpdateMap::new()), Ok(UpdateMap::new()), Ok(UpdateMap::new()))
-            },
-            result = async {
-                join!(
-                    Self::do_alpm_updates(),
-                    Self::do_paru_updates(alpm_token),
-                    Self::do_pkgbuild_updates(pkgbuild_fetch)
-                )
-            } => result
-        };
+        let alpm_task = TokioManager::spawn_blocking(move |token| {
+            Self::do_alpm_updates(token)
+        });
 
-        // Remove stored cancel token
-        if let Some(id) = imp.update_cancel_id.take() {
-            TaskTracker::remove_token(id);
-        }
+        let aur_task = TokioManager::spawn(async move |token| {
+            Self::do_aur_updates(token).await
+        });
+
+        let pkgbuild_task = TokioManager::spawn_blocking(move |token| {
+            Self::do_pkgbuild_updates(pkgbuild_fetch, token)
+        });
+
+        // Store cancel tokens
+        imp.update_cancel_tokens.replace(
+            Some(vec![alpm_task.cancel_token, aur_task.cancel_token, pkgbuild_task.cancel_token])
+        );
+
+        // Await tasks
+        let (alpm_result, aur_result, pkgbuild_result) = join!(
+            alpm_task.join_handle, aur_task.join_handle, pkgbuild_task.join_handle
+        );
+
+        // Remove stored cancel tokens
+        imp.update_cancel_tokens.replace(None);
 
         // Get update results
         let mut update_map: UpdateMap = UpdateMap::new();
         let mut error_msg: Option<String> = None;
 
-        match alpm_result {
-            Ok(alpm_map) => update_map.extend(alpm_map),
-            Err(error) => error_msg = Some(format!("Failed to retrieve pacman updates: {error}"))
-        }
+        let results = [
+            ("pacman", alpm_result
+                .expect("Failed to complete tokio task")
+                .unwrap_or_else(|_| Ok(UpdateMap::new()))
+                .map_err(|e| e.to_string())),
+            ("AUR", aur_result
+                .expect("Failed to complete tokio task")
+                .unwrap_or_else(|_| Ok(UpdateMap::new()))
+                .map_err(|e| e.to_string())),
+            ("PKGBUILD", pkgbuild_result
+                .expect("Failed to complete tokio task")
+                .unwrap_or_else(|_| Ok(UpdateMap::new()))
+                .map_err(|e| e.to_string())),
+        ];
 
-        match paru_result {
-            Ok(paru_map) => update_map.extend(paru_map),
-            Err(error) => {
-                error_msg
-                    .get_or_insert_with(|| format!("Failed to retrieve AUR updates: {error}"));
-            }
-        }
-
-        match pkgbuild_result {
-            Ok(pkgbuild_map) => update_map.extend(pkgbuild_map),
-            Err(error) => {
-                error_msg
-                    .get_or_insert_with(|| format!("Failed to retrieve PKGBUILD updates: {error}"));
+        for (id, result) in results {
+            match result {
+                Ok(map) => update_map.extend(map),
+                Err(error) if error_msg.is_none() => {
+                    error_msg = Some(format!("Failed to retrieve {id} updates: {error}"));
+                }
+                Err(_) => {}
             }
         }
 

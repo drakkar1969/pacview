@@ -30,13 +30,13 @@ mod backup_object;
 mod log_object;
 mod cache_object;
 mod groups_object;
+mod tokio_manager;
 mod utils;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;
 
 use app::PacViewApplication;
-use utils::TaskTracker;
 
 const APP_ID: &str = "com.github.PacView";
 
@@ -50,7 +50,7 @@ fn main() -> glib::ExitCode {
 
     // Cancel all pending tasks
     app.connect_shutdown(|_| {
-        TaskTracker::cancel_all();
+        tokio_manager::TokioManager::shutdown();
     });
 
     app.run()

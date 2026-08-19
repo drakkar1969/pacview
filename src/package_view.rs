@@ -10,6 +10,7 @@ use gtk::prelude::*;
 use glib::{clone, closure_local};
 
 use tokio::sync::Mutex as TokioMutex;
+use tokio_util::sync::CancellationToken;
 use raur::Raur;
 use futures::future::join_all;
 
@@ -20,7 +21,8 @@ use crate::{
     repo_item::{RepoItem, RepoItemState},
     search_bar::{SearchBar, SearchProp},
     info_pane::InfoPane,
-    utils::{TokioUtils, TaskTracker, ListStoreFind},
+    tokio_manager::TokioManager,
+    utils::ListStoreFind,
 };
 
 //------------------------------------------------------------------------------
@@ -150,7 +152,7 @@ mod imp {
         pub(super) search_term: RefCell<String>,
         pub(super) search_tokens: RefCell<Vec<String>>,
 
-        pub(super) search_cancel_id: Cell<Option<u64>>
+        pub(super) cancel_token: RefCell<Option<CancellationToken>>
     }
 
     //---------------------------------------
@@ -509,55 +511,48 @@ impl PackageView {
             return Err(raur::Error::Aur(String::from("Cannot search by files.")))
         }
 
-        // Spawn tokio task to search AUR
-        TokioUtils::runtime().spawn(
-            async move {
-                // Set search mode
-                let search_by = match prop {
-                    SearchProp::Name => raur::SearchBy::Name,
-                    SearchProp::NameDesc => raur::SearchBy::NameDesc,
-                    SearchProp::Groups => raur::SearchBy::Groups,
-                    SearchProp::Deps => raur::SearchBy::Depends,
-                    SearchProp::Optdeps => raur::SearchBy::OptDepends,
-                    SearchProp::Provides => raur::SearchBy::Provides,
-                    SearchProp::Files => unreachable!(),
-                };
+        // Set search mode
+        let search_by = match prop {
+            SearchProp::Name => raur::SearchBy::Name,
+            SearchProp::NameDesc => raur::SearchBy::NameDesc,
+            SearchProp::Groups => raur::SearchBy::Groups,
+            SearchProp::Deps => raur::SearchBy::Depends,
+            SearchProp::Optdeps => raur::SearchBy::OptDepends,
+            SearchProp::Provides => raur::SearchBy::Provides,
+            SearchProp::Files => unreachable!(),
+        };
 
-                // Search for AUR packages
-                let handle = raur::Handle::new();
+        // Search for AUR packages
+        let handle = raur::Handle::new();
 
-                let search_results = join_all(tokens.iter().map(|t| handle.search_by(t, search_by)))
-                    .await
-                    .into_iter()
-                    .collect::<Result<Vec<Vec<raur::Package>>, raur::Error>>()?;
+        let search_results = join_all(tokens.iter().map(|t| handle.search_by(t, search_by)))
+            .await
+            .into_iter()
+            .collect::<Result<Vec<Vec<raur::Package>>, raur::Error>>()?;
 
-                // Get list of package names that match all search terms
-                let search_names = search_results.split_first().map(|(first, rem)| {
-                    let sets: Vec<HashSet<&str>> = rem.iter()
-                        .map(|v| v.iter().map(|pkg| pkg.name.as_str()).collect())
-                        .collect();
+        // Get list of package names that match all search terms
+        let search_names = search_results.split_first().map(|(first, rem)| {
+            let sets: Vec<HashSet<&str>> = rem.iter()
+                .map(|v| v.iter().map(|pkg| pkg.name.as_str()).collect())
+                .collect();
 
-                    let search_names: Vec<&str> = first.iter()
-                        .map(|pkg| pkg.name.as_str())
-                        .filter(|&name| sets.iter().all(|set| set.contains(name)))
-                        .collect();
+            let search_names: Vec<&str> = first.iter()
+                .map(|pkg| pkg.name.as_str())
+                .filter(|&name| sets.iter().all(|set| set.contains(name)))
+                .collect();
 
-                    search_names
-                })
-                .ok_or_else(|| raur::Error::Aur("failed to parse search results".into()))?;
+            search_names
+        })
+        .ok_or_else(|| raur::Error::Aur("failed to parse search results".into()))?;
 
-                // Get AUR package info using cache
-                let pkg_data = handle.cache_info(&mut *AUR_CACHE.lock().await, &search_names)
-                    .await?
-                    .iter()
-                    .map(|pkg| PkgData::from_aur(pkg))
-                    .collect();
+        // Get AUR package info using cache
+        let pkg_data = handle.cache_info(&mut *AUR_CACHE.lock().await, &search_names)
+            .await?
+            .iter()
+            .map(|pkg| PkgData::from_aur(pkg))
+            .collect();
 
-                Ok(pkg_data)
-            }
-        )
-        .await
-        .expect("Failed to complete tokio task")
+        Ok(pkg_data)
     }
 
     //---------------------------------------
@@ -575,8 +570,8 @@ impl PackageView {
     // Cancel AUR search function
     //---------------------------------------
     fn cancel_aur_search(&self) {
-        if let Some(id) = self.imp().search_cancel_id.take() {
-            TaskTracker::cancel_token(id);
+        if let Some(token) = self.imp().cancel_token.take() {
+            token.cancel();
         }
 
         self.aur_sidebar_item().set_state(RepoItemState::Reset);
@@ -603,11 +598,6 @@ impl PackageView {
         // Show search spinner
         self.aur_sidebar_item().set_state(RepoItemState::Searching);
 
-        // Create and store cancel token
-        let (id, cancel_token) = TaskTracker::add_token();
-
-        imp.search_cancel_id.set(Some(id));
-
         // Search AUR
         glib::spawn_future_local(clone!(
             #[weak(rename_to = view)] self,
@@ -616,10 +606,20 @@ impl PackageView {
                 let imp = view.imp();
 
                 // Spawn tokio task to search AUR
-                let result = tokio::select! {
-                    () = cancel_token.cancelled() => Ok(vec![]),
-                    pkg_data = Self::do_search(term, tokens, prop) => pkg_data
-                };
+                let task = TokioManager::spawn(async move |_| {
+                    Self::do_search(term, tokens, prop).await
+                });
+
+                // Store cancel token
+                imp.cancel_token.replace(Some(task.cancel_token));
+
+                // Await tasks
+                let result = task.join_handle.await
+                    .expect("Failed to complete tokio task")
+                    .unwrap_or(Ok(vec![]));
+
+                // Remove stored cancel token
+                imp.cancel_token.replace(None);
 
                 // Get AUR search results
                 match result {
@@ -644,11 +644,6 @@ impl PackageView {
                         // Hide search spinner
                         view.aur_sidebar_item().set_state(RepoItemState::Reset);
                     }
-                }
-
-                // Remove stored cancel token
-                if let Some(id) = imp.search_cancel_id.take() {
-                    TaskTracker::remove_token(id);
                 }
             }
         ));

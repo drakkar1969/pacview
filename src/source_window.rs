@@ -2,7 +2,6 @@ use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::fmt::Write as _;
 
-use futures::io;
 use gtk::{gio, glib, gdk, pango};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
@@ -10,12 +9,15 @@ use glib::clone;
 use gdk::{Key, ModifierType};
 use pango::{FontDescription, FontMask, Weight};
 
+use futures::io;
+use tokio_util::sync::CancellationToken;
 use sourceview5::prelude::*;
 
 use crate::{
     APP_ID,
     pkg_object::PkgObject,
-    utils::{Paths, StyleSchemes, TokioUtils, TaskTracker}
+    tokio_manager::TokioManager,
+    utils::{Paths, StyleSchemes, TokioUtils}
 };
 
 //------------------------------------------------------------------------------
@@ -49,7 +51,7 @@ mod imp {
         #[property(get, set)]
         downloading: Cell<bool>,
 
-        pub(super) cancel_id: Cell<Option<u64>>,
+        pub(super) cancel_token: RefCell<Option<CancellationToken>>,
     }
 
     //---------------------------------------
@@ -280,8 +282,8 @@ impl SourceWindow {
     // Cancel download function
     //---------------------------------------
     fn cancel_download(&self) {
-        if let Some(id) = self.imp().cancel_id.take() {
-            TaskTracker::cancel_token(id);
+        if let Some(token) = self.imp().cancel_token.take() {
+            token.cancel();
         }
     }
 
@@ -298,16 +300,29 @@ impl SourceWindow {
         // Set downloading property
         self.set_downloading(true);
 
-        // Create and store cancel token
-        let (id, cancel_token) = TaskTracker::add_token();
+        // Spawn tokio task to download PKGBUILD with paru
+        let pkg_name = self.pkg_name();
 
-        imp.cancel_id.set(Some(id));
-
-        // Download PKGBUILD with paru
         let result = if let Ok(paru_path) = Paths::paru_bin() {
-            TokioUtils::run(paru_path, &["-Gp", &self.pkg_name()], cancel_token, false).await
+            // Spawn tokio task
+            let task = TokioManager::spawn(async move |token| {
+                TokioUtils::run(paru_path, &["-Gp", &pkg_name], token, false).await
+            });
+
+            // Store cancel token
+            imp.cancel_token.replace(Some(task.cancel_token));
+
+            // Await task
+            let result = task.join_handle.await
+                .expect("Failed to complete tokio task")
+                .unwrap_or_else(Err);
+
+            // Remove stored cancel token
+            imp.cancel_token.replace(None);
+
+            result
         } else {
-            Err(io::Error::other("Failed to download PKGBUILD: paru not found"))
+            Err(io::Error::other("paru not found"))
         };
 
         match result {
@@ -335,11 +350,6 @@ impl SourceWindow {
                 imp.stack.set_visible_child_name("error");
             }
             _ => {}
-        }
-
-        // Remove stored cancel token
-        if let Some(id) = imp.cancel_id.take() {
-            TaskTracker::remove_token(id);
         }
 
         // Set downloading property
