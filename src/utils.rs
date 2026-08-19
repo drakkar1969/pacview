@@ -371,7 +371,7 @@ impl AurDBFile {
     //---------------------------------------
     // Download async function
     //---------------------------------------
-    pub async fn download() -> Result<(), io::Error> {
+    pub async fn download(token: CancellationToken) -> Result<(), io::Error> {
         // Spawn tokio task to download AUR file
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(5))
@@ -379,11 +379,12 @@ impl AurDBFile {
             .map_err(io::Error::other)?;
 
         // Get response
-        let response = client
-            .get("https://aur.archlinux.org/packages.gz")
-            .send()
-            .await
-            .map_err(io::Error::other)?;
+        let url = "https://aur.archlinux.org/packages.gz";
+
+        let response = tokio::select! {
+            () = token.cancelled() => Err(io::Error::other("Cancelled by user")),
+            result = client.get(url).send() => result.map_err(io::Error::other)
+        }?;
 
         // Write response to file
         let stream = response.bytes_stream().map_err(io::Error::other);
@@ -391,7 +392,14 @@ impl AurDBFile {
         let mut decoder = GzipDecoder::new(stream_reader);
         let mut out_file = File::create(Self::path()).await?;
 
-        tokio::io::copy(&mut decoder, &mut out_file).await?;
+        tokio::select! {
+            () = token.cancelled() => {
+                let _ = tokio::fs::remove_file(Self::path()).await;
+
+                Err(io::Error::other("Cancelled by user"))
+            }
+            result = tokio::io::copy(&mut decoder, &mut out_file) => result
+        }?;
 
         Ok(())
     }

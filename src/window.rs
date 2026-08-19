@@ -210,7 +210,7 @@ mod imp {
                 window.cancel_package_updates();
 
                 // Spawn tokio task to download AUR package names file
-                let _ = TokioManager::spawn(async move |_| AurDBFile::download().await)
+                let _ = TokioManager::spawn(async move |token| AurDBFile::download(token).await)
                     .join_handle
                     .await
                     .expect("Failed to complete tokio task");
@@ -876,7 +876,7 @@ impl PacViewWindow {
                         imp.package_view.set_state(PackageViewState::AURDownload);
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
-                        let _ = TokioManager::spawn(async move |_| AurDBFile::download().await)
+                        let _ = TokioManager::spawn(async move |token| AurDBFile::download(token).await)
                             .join_handle
                             .await
                             .expect("Failed to complete tokio task");
@@ -1102,7 +1102,7 @@ impl PacViewWindow {
                         let max_age = imp.prefs_dialog.borrow().aur_database_age() as u64;
 
                         if aur_download && AurDBFile::out_of_date(max_age) {
-                            let _ = TokioManager::spawn(async move |_| AurDBFile::download().await)
+                            let _ = TokioManager::spawn(async move |token| AurDBFile::download(token).await)
                                 .join_handle
                                 .await
                                 .expect("Failed to complete tokio task");
