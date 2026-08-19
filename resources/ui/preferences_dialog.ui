@@ -229,6 +229,7 @@
                     <property name="title">Custom _Font</property>
                     <property name="use-underline">true</property>
                     <property name="activatable">true</property>
+                    <property name="action-name">prefs.pkgbuild-custom-font</property>
                     <style>
                       <class name="property"/>
                     </style>
@@ -257,6 +258,7 @@
               <object class="AdwButtonRow" id="open_cache_button">
                 <property name="title">_Open Cache Folder</property>
                 <property name="use-underline">true</property>
+                <property name="action-name">prefs.open-cache</property>
               </object>
             </child>
           </object>
@@ -266,18 +268,20 @@
             <property name="title">Danger Zone</property>
             <property name="separate-rows">true</property>
             <child>
-              <object class="AdwButtonRow" id="reset_button">
-                <property name="title">_Reset Preferences</property>
+              <object class="AdwButtonRow" id="clear_cache_button">
+                <property name="title">_Clear Cache Folder</property>
                 <property name="use-underline">true</property>
+                <property name="action-name">prefs.clear-cache</property>
                 <style>
                   <class name="destructive-action"/>
                 </style>
               </object>
             </child>
             <child>
-              <object class="AdwButtonRow" id="clear_cache_button">
-                <property name="title">_Clear Cache Folder</property>
+              <object class="AdwButtonRow" id="reset_button">
+                <property name="title">_Reset Preferences</property>
                 <property name="use-underline">true</property>
+                <property name="action-name">prefs.reset-preferences</property>
                 <style>
                   <class name="destructive-action"/>
                 </style>

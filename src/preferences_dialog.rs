@@ -129,6 +129,9 @@ mod imp {
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
+
+            // Install actions
+            Self::install_actions(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -154,6 +157,102 @@ mod imp {
     impl WidgetImpl for PreferencesDialog {}
     impl AdwDialogImpl for PreferencesDialog {}
     impl PreferencesDialogImpl for PreferencesDialog {}
+
+    impl PreferencesDialog {
+        //---------------------------------------
+        // Install actions
+        //---------------------------------------
+        fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
+            klass.install_action("prefs.pkgbuild-custom-font", None, |dialog, _, _| {
+                let font_dialog = gtk::FontDialog::builder()
+                    .modal(true)
+                    .title("Select Font")
+                    .build();
+
+                font_dialog.choose_font(
+                    dialog.root().and_downcast_ref::<PacViewWindow>(),
+                    Some(&pango::FontDescription::from_string(&dialog.pkgbuild_custom_font())),
+                    None::<&gio::Cancellable>,
+                    clone!(
+                        #[weak] dialog,
+                        move |response| {
+                            if let Ok(font_desc) = response {
+                                dialog.set_pkgbuild_custom_font(font_desc.to_string());
+                            }
+                        }
+                    )
+                );
+            });
+
+            // Open cache action
+            klass.install_action_async("prefs.open-cache", None, async |_, _, _| {
+                let path = Paths::cache_dir().display().to_string();
+
+                AppInfoExt::open_with_default_app(&path).await;
+            });
+
+            // Clear cache action
+            klass.install_action("prefs.clear-cache", None, |dialog, _, _| {
+                let clear_dialog = adw::AlertDialog::builder()
+                    .heading("Clear PacView Cache?")
+                    .body("Delete all files in the PacView cache folder.")
+                    .default_response("clear")
+                    .build();
+
+                clear_dialog.add_responses(&[("cancel", "_Cancel"), ("clear", "Clea_r")]);
+                clear_dialog.set_response_appearance("clear", adw::ResponseAppearance::Destructive);
+
+                clear_dialog.choose(
+                    Some(dialog),
+                    None::<&gio::Cancellable>,
+                    move |response| {
+                        if response == "clear" {
+                            let _ = fs::remove_dir_all(Paths::cache_dir());
+                        }
+                    }
+                );
+            });
+
+            // Reset preferences action
+            klass.install_action("prefs.reset-preferences", None, |dialog, _, _| {
+                let reset_dialog = adw::AlertDialog::builder()
+                    .heading("Reset Preferences?")
+                    .body("Reset all preferences to their default values.")
+                    .default_response("reset")
+                    .build();
+
+                reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
+                reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
+
+                reset_dialog.choose(
+                    Some(dialog),
+                    None::<&gio::Cancellable>,
+                    move |response| {
+                        if response == "reset" {
+                            let settings = gio::Settings::new(APP_ID);
+
+                            settings.reset("color-scheme");
+                            settings.reset("infopane-width");
+                            settings.reset("aur-database-download");
+                            settings.reset("aur-database-age");
+                            settings.reset("enable-pkgbuild-repos");
+                            settings.reset("auto-refresh");
+                            settings.reset("remember-sort");
+                            settings.reset("remember-grouping");
+                            settings.reset("search-prop");
+                            settings.reset("search-exact");
+                            settings.reset("property-max-lines");
+                            settings.reset("property-line-spacing");
+                            settings.reset("underline-links");
+                            settings.reset("pkgbuild-style-scheme");
+                            settings.reset("pkgbuild-use-system-font");
+                            settings.reset("pkgbuild-custom-font");
+                        }
+                    }
+                );
+            });
+        }
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -184,8 +283,6 @@ impl PreferencesDialog {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
-        let imp = self.imp();
-
         // System color scheme signal
         let style_manager = adw::StyleManager::for_display(&self.display());
 
@@ -208,104 +305,6 @@ impl PreferencesDialog {
 
             style_manager.set_color_scheme(color_scheme);
         });
-
-        // PKGBUILD custom font row activated signal
-        imp.pkgbuild_custom_font_row.connect_activated(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |_| {
-                let font_dialog = gtk::FontDialog::builder()
-                    .modal(true)
-                    .title("Select Font")
-                    .build();
-
-                font_dialog.choose_font(
-                    dialog.root().and_downcast_ref::<PacViewWindow>(),
-                    Some(&pango::FontDescription::from_string(&dialog.pkgbuild_custom_font())),
-                    None::<&gio::Cancellable>,
-                    clone!(move |response| {
-                        if let Ok(font_desc) = response {
-                            dialog.set_pkgbuild_custom_font(font_desc.to_string());
-                        }
-                    })
-                );
-            }
-        ));
-
-        // Cache open button clicked signal
-        imp.open_cache_button.connect_activated(|_| {
-            glib::spawn_future_local(async {
-                let path = Paths::cache_dir().display().to_string();
-
-                AppInfoExt::open_with_default_app(&path).await;
-            });
-        });
-
-        // Preferences reset button clicked signal
-        imp.reset_button.connect_activated(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |_| {
-                let reset_dialog = adw::AlertDialog::builder()
-                    .heading("Reset Preferences?")
-                    .body("Reset all preferences to their default values.")
-                    .default_response("reset")
-                    .build();
-
-                reset_dialog.add_responses(&[("cancel", "_Cancel"), ("reset", "_Reset")]);
-                reset_dialog.set_response_appearance("reset", adw::ResponseAppearance::Destructive);
-
-                reset_dialog.choose(
-                    Some(&dialog),
-                    None::<&gio::Cancellable>,
-                    move |response| {
-                        if response == "reset" {
-                            let settings = gio::Settings::new(APP_ID);
-
-                            settings.reset("color-scheme");
-                            settings.reset("infopane-width");
-                            settings.reset("aur-database-download");
-                            settings.reset("aur-database-age");
-                            settings.reset("enable-pkgbuild-repos");
-                            settings.reset("auto-refresh");
-                            settings.reset("remember-sort");
-                            settings.reset("remember-grouping");
-                            settings.reset("search-prop");
-                            settings.reset("search-exact");
-                            settings.reset("property-max-lines");
-                            settings.reset("property-line-spacing");
-                            settings.reset("underline-links");
-                            settings.reset("pkgbuild-style-scheme");
-                            settings.reset("pkgbuild-use-system-font");
-                            settings.reset("pkgbuild-custom-font");
-                        }
-                    }
-                );
-            }
-        ));
-
-        // Clear cache button clicked signal
-        imp.clear_cache_button.connect_activated(clone!(
-            #[weak(rename_to = dialog)] self,
-            move |_| {
-                let clear_dialog = adw::AlertDialog::builder()
-                    .heading("Clear PacView Cache?")
-                    .body("Delete all files in the PacView cache folder.")
-                    .default_response("clear")
-                    .build();
-
-                clear_dialog.add_responses(&[("cancel", "_Cancel"), ("clear", "Clea_r")]);
-                clear_dialog.set_response_appearance("clear", adw::ResponseAppearance::Destructive);
-
-                clear_dialog.choose(
-                    Some(&dialog),
-                    None::<&gio::Cancellable>,
-                    move |response| {
-                        if response == "clear" {
-                            let _ = fs::remove_dir_all(Paths::cache_dir());
-                        }
-                    }
-                );
-            }
-        ));
     }
 
     //---------------------------------------
