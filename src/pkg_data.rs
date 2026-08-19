@@ -6,7 +6,7 @@ use itertools::Itertools;
 use alpm::PackageReason;
 use srcinfo::{ArchVecs, Srcinfo};
 
-use crate::utils::PkgbuildPkg;
+use crate::utils::PkgbuildPkgInfo;
 
 //------------------------------------------------------------------------------
 // FLAGS: PkgFlags
@@ -210,7 +210,7 @@ impl PkgData {
     //---------------------------------------
     // PKGBUILD constructor
     //---------------------------------------
-    pub fn from_pkgbuild(pkg_name: &str, paru_pkg: &PkgbuildPkg) -> Option<Self> {
+    pub fn from_pkgbuild(pkg_name: &str, paru_pkg: &PkgbuildPkgInfo) -> Option<Self> {
         // Helper functions
         #[inline]
         fn sorted_vec(slice: &[String]) -> Vec<String> {
