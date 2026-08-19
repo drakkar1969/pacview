@@ -864,7 +864,7 @@ impl PacViewWindow {
 
         // If PKGBUILD repos are enabled and clone dir does not exist, fetch repos
         let pkgbuild_fetch = prefs_dialog.enable_pkgbuild_repos()
-            && !PkgbuildRepos::clone_dir().try_exists().is_ok_and(|res| res);
+            && !PkgbuildRepos::clone_dir_exists();
 
         if aur_download || pkgbuild_fetch {
             glib::spawn_future_local(clone!(

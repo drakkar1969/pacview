@@ -170,6 +170,13 @@ impl PkgbuildRepos {
     }
 
     //---------------------------------------
+    // Clone dir exists function
+    //---------------------------------------
+    pub fn clone_dir_exists() -> bool {
+        Self::clone_dir().try_exists().is_ok_and(|res| res)
+    }
+
+    //---------------------------------------
     // Repos function
     //---------------------------------------
     pub fn repos() -> &'static Vec<aur_fetch::Repo> {
