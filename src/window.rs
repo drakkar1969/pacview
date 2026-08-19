@@ -37,7 +37,7 @@ use crate::{
     rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
     tokio_manager::TokioManager,
-    utils::{Paths, Pacman, PkgbuildRepos, AurDBFile, TokioUtils}
+    utils::{Paths, Pacman, PkgbuildRepos, AurDBFile, TokioCommand}
 };
 
 //------------------------------------------------------------------------------
@@ -1209,7 +1209,7 @@ impl PacViewWindow {
             return Ok(UpdateMap::new());
         }
 
-        let (code, stdout) = TokioUtils::run(paru_path, &["-Qu", "--mode=a"], token, true)
+        let (code, stdout) = TokioCommand::output(paru_path, &["-Qu", "--mode=a"], token, true)
             .await?;
 
         // Return empty map if exit code is non-zero

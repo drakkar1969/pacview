@@ -15,7 +15,7 @@ use crate::{
     pkg_object::PkgObject,
     backup_object::{BackupObject, BackupStatus},
     tokio_manager::TokioManager,
-    utils::{Paths, Pacman, AppInfoExt, TokioUtils}
+    utils::{Paths, Pacman, AppInfoExt, TokioCommand}
 };
 
 //------------------------------------------------------------------------------
@@ -524,7 +524,7 @@ impl BackupWindow {
         let package = backup.package();
 
         let paccat_task = TokioManager::spawn(async move |token| {
-            TokioUtils::run(paccat, &[&package, "--", &path_clone], token, false).await
+            TokioCommand::output(paccat, &[&package, "--", &path_clone], token, false).await
         });
 
         // Store cancel token
@@ -546,7 +546,7 @@ impl BackupWindow {
 
         // Spawn tokio task to compare backup file with original content
         TokioManager::spawn(async move |_| {
-            TokioUtils::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content).await
+            TokioCommand::spawn_pipe_stdin(meld, &["/dev/stdin", &path], &content).await
         })
         .join_handle
         .await

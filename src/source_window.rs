@@ -17,7 +17,7 @@ use crate::{
     APP_ID,
     pkg_object::PkgObject,
     tokio_manager::TokioManager,
-    utils::{Paths, StyleSchemes, TokioUtils}
+    utils::{Paths, StyleSchemes, TokioCommand}
 };
 
 //------------------------------------------------------------------------------
@@ -306,7 +306,7 @@ impl SourceWindow {
         let result = if let Ok(paru_path) = Paths::paru_bin() {
             // Spawn tokio task
             let task = TokioManager::spawn(async move |token| {
-                TokioUtils::run(paru_path, &["-Gp", &pkg_name], token, false).await
+                TokioCommand::output(paru_path, &["-Gp", &pkg_name], token, false).await
             });
 
             // Store cancel token

@@ -355,8 +355,7 @@ impl AurDBFile {
     // Load function
     //--------------------------------------
     pub fn load() -> String {
-        fs::read_to_string(Self::path())
-            .unwrap_or_default()
+        fs::read_to_string(Self::path()).unwrap_or_default()
     }
 
     //---------------------------------------
@@ -413,15 +412,15 @@ impl AurDBFile {
 }
 
 //------------------------------------------------------------------------------
-// STRUCT: TokioUtils
+// STRUCT: TokioCommand
 //------------------------------------------------------------------------------
-pub struct TokioUtils;
+pub struct TokioCommand;
 
-impl TokioUtils {
+impl TokioCommand {
     //---------------------------------------
-    // Run function
+    // Output function
     //---------------------------------------
-    pub async fn run<I, S1, S2>(cmd: S1, args: I, token: CancellationToken, strip_ansi: bool)
+    pub async fn output<I, S1, S2>(cmd: S1, args: I, token: CancellationToken, strip_ansi: bool)
     -> io::Result<(Option<i32>, String)>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         let cmd_owned = cmd.as_ref().to_os_string();
