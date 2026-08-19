@@ -397,6 +397,7 @@ impl PreferencesDialog {
                     .iter::<sourceview5::StyleScheme>()
                     .flatten()
                     .position(|scheme| StyleSchemes::scheme_matches_id(&scheme, &id))
+                    .or(Some(0))
                     .map(|index| index as u32)
             })
             .transform_from(|binding, _: u32| {
