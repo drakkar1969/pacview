@@ -12,7 +12,7 @@ use crate::{
     APP_ID,
     window::PacViewWindow,
     search_bar::SearchProp,
-    utils::{Paths, StyleSchemes},
+    utils::{Paths, StyleSchemes, AppInfoExt},
 };
 
 //------------------------------------------------------------------------------
@@ -77,6 +77,8 @@ mod imp {
         pub(super) pkgbuild_use_system_font_switch: TemplateChild<gtk::Switch>,
         #[template_child]
         pub(super) pkgbuild_custom_font_row: TemplateChild<adw::ActionRow>,
+        #[template_child]
+        pub(super) open_cache_button: TemplateChild<adw::ButtonRow>,
         #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
         #[template_child]
@@ -228,6 +230,15 @@ impl PreferencesDialog {
                 );
             }
         ));
+
+        // Cache open button clicked signal
+        imp.open_cache_button.connect_activated(|_| {
+            glib::spawn_future_local(async {
+                let path = Paths::cache_dir().display().to_string();
+
+                AppInfoExt::open_with_default_app(&path).await;
+            });
+        });
 
         // Preferences reset button clicked signal
         imp.reset_button.connect_activated(clone!(
