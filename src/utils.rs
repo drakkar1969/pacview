@@ -1,6 +1,6 @@
 use std::sync::{LazyLock, RwLock};
 use std::path::{PathBuf, Path};
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsStr;
 use std::fs;
 use std::io;
 use std::process::Stdio;
@@ -140,8 +140,8 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Paru config helper function
     //---------------------------------------
-    fn paru_config() -> &'static Result<Ini, String> {
-        static INI: LazyLock<Result<Ini, String>> = LazyLock::new(|| {
+    fn paru_config() -> &'static Option<Ini> {
+        static INI: LazyLock<Option<Ini>> = LazyLock::new(|| {
             let paths = [
                 env::var_os("PARU_CONF").map(Into::into),
                 Some(glib::user_config_dir().join("paru/paru.conf")),
@@ -152,11 +152,11 @@ impl PkgbuildRepos {
                 let mut ini = Ini::new();
 
                 if ini.load(path).is_ok() {
-                    return Ok(ini);
+                    return Some(ini);
                 }
             }
 
-            Err(String::from("Failed to load paru.conf"))
+            None
         });
 
         &INI
@@ -181,7 +181,9 @@ impl PkgbuildRepos {
     //---------------------------------------
     pub fn repos() -> &'static Vec<aur_fetch::Repo> {
         static LIST: LazyLock<Vec<aur_fetch::Repo>> = LazyLock::new(|| {
-            let Ok(paru_config) = PkgbuildRepos::paru_config().as_ref() else { return vec![]; };
+            let Some(paru_config) = PkgbuildRepos::paru_config().as_ref() else {
+                return vec![];
+            };
 
             paru_config.sections()
                 .into_iter()
@@ -218,8 +220,8 @@ impl PkgbuildRepos {
 
             PkgbuildRepos::repos().iter()
                 .map(|repo| repo.name.as_str())
-                .flat_map(|repo| {
-                    let path = clone_dir.join(repo);
+                .flat_map(|repo_name| {
+                    let path = clone_dir.join(repo_name);
 
                     WalkDir::new(path)
                         .min_depth(1)
@@ -235,7 +237,7 @@ impl PkgbuildRepos {
                             (
                                 entry.file_name().to_string_lossy().into_owned(),
                                 PkgbuildPkgInfo {
-                                    repo: repo.to_owned(),
+                                    repo: repo_name.to_owned(),
                                     path: entry.into_path()
                                 }
                             )
@@ -423,15 +425,9 @@ impl TokioCommand {
     pub async fn output<I, S1, S2>(cmd: S1, args: I, token: CancellationToken, strip_ansi: bool)
     -> io::Result<(Option<i32>, String)>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
-        let cmd_owned = cmd.as_ref().to_os_string();
-
-        let args_owned: Vec<OsString> = args.into_iter()
-            .map(|s| s.as_ref().to_os_string())
-            .collect();
-
         // Spawn process
-        let mut child = tokio::process::Command::new(cmd_owned)
-            .args(args_owned)
+        let mut child = tokio::process::Command::new(cmd)
+            .args(args)
             .stdout(Stdio::piped())
             .spawn()?;
 
@@ -460,7 +456,7 @@ impl TokioCommand {
                     // Re-reap the process handle to prevent zombie processes
                     let _ = child.wait().await;
 
-                    return Err(std::io::Error::new(std::io::ErrorKind::Interrupted, "Cancelled by user"));
+                    return Err(io::Error::other("Cancelled by user"));
                 }
             }
         }
@@ -491,21 +487,13 @@ impl TokioCommand {
     //---------------------------------------
     pub async fn spawn_pipe_stdin<I, S1, S2>(cmd: S1, args: I, input: &str) -> io::Result<()>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
-        let cmd_owned = cmd.as_ref().to_os_string();
-
-        let args_owned: Vec<OsString> = args.into_iter()
-            .map(|s| s.as_ref().to_os_string())
-            .collect();
-
-        let input_owned = input.to_owned();
-
-        let mut child = tokio::process::Command::new(cmd_owned)
-            .args(args_owned)
+        let mut child = tokio::process::Command::new(cmd)
+            .args(args)
             .stdin(Stdio::piped())
             .spawn()?;
 
         if let Some(mut stdin) = child.stdin.take() {
-            stdin.write_all(input_owned.as_bytes()).await?;
+            stdin.write_all(input.as_bytes()).await?;
         }
 
         Ok(())
