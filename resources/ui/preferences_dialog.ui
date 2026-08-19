@@ -268,16 +268,6 @@
             <property name="title">Danger Zone</property>
             <property name="separate-rows">true</property>
             <child>
-              <object class="AdwButtonRow" id="clear_cache_button">
-                <property name="title">_Clear Cache Folder</property>
-                <property name="use-underline">true</property>
-                <property name="action-name">prefs.clear-cache</property>
-                <style>
-                  <class name="destructive-action"/>
-                </style>
-              </object>
-            </child>
-            <child>
               <object class="AdwButtonRow" id="reset_button">
                 <property name="title">_Reset Preferences</property>
                 <property name="use-underline">true</property>
