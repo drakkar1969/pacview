@@ -210,7 +210,7 @@ impl PkgData {
     //---------------------------------------
     // PKGBUILD constructor
     //---------------------------------------
-    pub fn from_pkgbuild(pkg_name: &str, paru_pkg: &PkgbuildPkgInfo) -> Option<Self> {
+    pub fn from_pkgbuild(pkg_name: &str, pkg_info: &PkgbuildPkgInfo) -> Option<Self> {
         // Helper functions
         #[inline]
         fn sorted_vec(slice: &[String]) -> Vec<String> {
@@ -222,7 +222,7 @@ impl PkgData {
             arch_vec.arch("x86_64").map(ToOwned::to_owned).sorted_unstable().collect()
         }
 
-        Srcinfo::from_path(paru_pkg.path.join(".SRCINFO")).ok()
+        Srcinfo::from_path(pkg_info.path.join(".SRCINFO")).ok()
             .map(|srcinfo| {
                 Self {
                     flags: PkgFlags::NONE,
@@ -235,7 +235,7 @@ impl PkgData {
                     out_of_date: None,
                     url: srcinfo.url().map(ToOwned::to_owned),
                     licenses: sorted_vec(srcinfo.license()),
-                    repository: paru_pkg.repo.clone(),
+                    repository: pkg_info.repo.clone(),
                     groups: sorted_vec(srcinfo.groups()),
                     depends: archvecs_to_vec(srcinfo.depends()),
                     optdepends: archvecs_to_vec(srcinfo.optdepends()),

@@ -186,8 +186,8 @@ impl PkgObject {
                 None
             }
             _ => {
-                PkgbuildRepos::local_pkg_map().get(name)
-                    .map(|repo| format!("file://{}", repo.path.join("PKGBUILD").display()))
+                PkgbuildRepos::fetched_pkg_map().get(name)
+                    .map(|info| format!("file://{}", info.path.join("PKGBUILD").display()))
             }
         }
     }

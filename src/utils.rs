@@ -212,9 +212,9 @@ impl PkgbuildRepos {
     }
 
     //---------------------------------------
-    // Local pkg map function
+    // Fetched pkg map function
     //---------------------------------------
-    pub fn local_pkg_map() -> &'static HashMap<String, PkgbuildPkgInfo> {
+    pub fn fetched_pkg_map() -> &'static HashMap<String, PkgbuildPkgInfo> {
         static MAP: LazyLock<HashMap<String, PkgbuildPkgInfo>> = LazyLock::new(|| {
             let clone_dir = PkgbuildRepos::clone_dir();
 
@@ -309,26 +309,21 @@ impl PkgbuildRepos {
     }
 
     //---------------------------------------
-    // Repo srccinfo list function
+    // Repo srcinfo list function
     //---------------------------------------
     pub fn repo_srcinfo_list(repo_names: &[String]) -> Vec<(String, Vec<Srcinfo>)> {
-        let clone_dir = Self::clone_dir();
+        // Get list of package srcinfo for each repo in repo_names
+        Self::fetched_pkg_map()
+            .iter()
+            .filter(|(_, info)| repo_names.contains(&info.repo))
+            .fold(HashMap::<String, Vec<Srcinfo>>::new(), |mut map, (_, info)| {
+                if let Ok(srcinfo) = Srcinfo::from_path(info.path.join(".SRCINFO")) {
+                    map.entry(info.repo.clone()).or_default().push(srcinfo);
+                }
 
-        // Get list of package srcinfo per repo
-        repo_names.iter()
-            .map(|name| {
-                let path = clone_dir.join(name);
-
-                let pkgs: Vec<Srcinfo> = WalkDir::new(path)
-                    .min_depth(1)
-                    .into_iter()
-                    .flatten()
-                    .filter(|entry| entry.file_name() == ".SRCINFO")
-                    .filter_map(|entry| Srcinfo::from_path(entry.path()).ok())
-                    .collect();
-
-                (name.to_owned(), pkgs)
+                map
             })
+            .into_iter()
             .collect()
     }
 }

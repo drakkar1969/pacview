@@ -998,7 +998,7 @@ impl PacViewWindow {
 
             // Get PKGBUILD repo package map
             let pkgbuild_map = if pkgbuild_fetch {
-                PkgbuildRepos::local_pkg_map()
+                PkgbuildRepos::fetched_pkg_map()
             } else {
                 &HashMap::new()
             };
@@ -1044,7 +1044,7 @@ impl PacViewWindow {
             if pkgbuild_fetch {
                 let pkgbuild_data: Vec<PkgData> = pkgbuild_map.iter()
                     .filter(|&(name, _)| localdb.pkg(name.as_str()).is_err())
-                    .filter_map(|(name, pkg)| PkgData::from_pkgbuild(name, pkg))
+                    .filter_map(|(name, info)| PkgData::from_pkgbuild(name, info))
                     .collect();
 
                 sender.send_blocking((pkgbuild_data, false))
@@ -1256,16 +1256,14 @@ impl PacViewWindow {
                 return Ok(UpdateMap::new());
             }
 
-            let repo_names = TokioManager::spawn_blocking(move |token| {
-                PkgbuildRepos::fetch_remote(token)
-            })
-            .join_handle
-            .await
-            .expect("Failed to complete tokio task")
-            .unwrap_or_else(|e| Err(aur_fetch::Error::Io(e)))
-            .map_err(|e| aur_depends::Error::Raur(Box::new(e)))?;
+            let fetched_repo_names = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote)
+                .join_handle
+                .await
+                .expect("Failed to complete tokio task")
+                .unwrap_or_else(|e| Err(aur_fetch::Error::Io(e)))
+                .map_err(|e| aur_depends::Error::Raur(Box::new(e)))?;
 
-            let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&repo_names);
+            let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&fetched_repo_names);
 
             let pkgbuild_repos = pkgbuild_repos.iter()
                 .map(|(name, pkgs)| aur_depends::PkgbuildRepo {
