@@ -1010,15 +1010,13 @@ impl PacViewWindow {
             // Load pacman local packages
             let local_data: Vec<PkgData> = localdb.pkgs().iter()
                 .map(|pkg| {
-                    let repository = if let Some(repo) = pkgbuild_map.get(pkg.name()) {
-                        repo.repo.as_str()
-                    } else if aur_names.contains(pkg.name()) {
-                        "aur"
-                    } else {
-                        syncdbs.pkg(pkg.name()).ok()
-                            .and_then(|sync_pkg| sync_pkg.db())
-                            .map_or("local", alpm::Db::name)
-                    };
+                    let repository = syncdbs.pkg(pkg.name()).ok().map_or_else(|| {
+                        if aur_names.contains(pkg.name()) {
+                            "aur"
+                        } else {
+                            pkgbuild_map.get(pkg.name()).map_or("local", |info| &info.repo)
+                        }
+                    }, |sync_pkg| sync_pkg.db().map_or("local", alpm::Db::name));
 
                     PkgData::from_alpm(pkg, true, repository)
                 })
