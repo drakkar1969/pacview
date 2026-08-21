@@ -3,7 +3,7 @@ use std::sync::LazyLock;
 use std::path::Path;
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
-use std::{fs, io};
+use std::fs;
 
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
@@ -13,7 +13,7 @@ use gdk::{Key, ModifierType};
 
 use alpm_utils::DbListExt;
 use heck::ToTitleCase;
-use futures::join;
+use futures::future::join_all;
 use tokio::sync::Mutex as TokioMutex;
 use tokio_util::sync::CancellationToken;
 use regex::Regex;
@@ -44,6 +44,7 @@ use crate::{
 // TYPE aliases
 //------------------------------------------------------------------------------
 type UpdateMap = HashMap<String, String>;
+type UpdateResult = anyhow::Result<HashMap<String, String>>;
 
 //------------------------------------------------------------------------------
 // MODULE: PacViewWindow
@@ -1138,7 +1139,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: do alpm updates helper
     //---------------------------------------
-    fn do_alpm_updates(token: CancellationToken) -> alpm::Result<UpdateMap> {
+    fn do_alpm_updates(token: CancellationToken) -> UpdateResult {
         if token.is_cancelled() {
             return Ok(UpdateMap::new());
         }
@@ -1193,7 +1194,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: do aur updates helper
     //---------------------------------------
-    async fn do_aur_updates(token: CancellationToken)-> io::Result<UpdateMap> {
+    async fn do_aur_updates(token: CancellationToken)-> UpdateResult {
         static EXPR: LazyLock<Regex> = LazyLock::new(|| {
             Regex::new(r"([a-z0-9@._+-]+)[\s]+[a-zA-Z0-9._+-:]+[\s]+->[ \t]+([a-zA-Z0-9._+-:]+)")
                 .expect("Failed to compile Regex")
@@ -1214,7 +1215,7 @@ impl PacViewWindow {
 
         // Return empty map if exit code is non-zero
         if code != Some(0) {
-            return Ok(UpdateMap::new());
+            return Err(anyhow::Error::msg("paru error"));
         }
 
         // Return update map (package name, update version)
@@ -1230,8 +1231,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: do pkgbuild updates helper
     //---------------------------------------
-    fn do_pkgbuild_updates(do_fetch: bool, token: CancellationToken)
-    -> Result<UpdateMap, aur_depends::Error> {
+    fn do_pkgbuild_updates(do_fetch: bool, token: CancellationToken) -> UpdateResult {
         static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
             TokioMutex::new(raur::Cache::default())
         });
@@ -1259,9 +1259,7 @@ impl PacViewWindow {
             let fetched_repo_names = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote)
                 .join_handle
                 .await
-                .expect("Failed to complete tokio task")
-                .unwrap_or_else(|e| Err(aur_fetch::Error::Io(e)))
-                .map_err(|e| aur_depends::Error::Raur(Box::new(e)))?;
+                .expect("Failed to complete tokio task")??;
 
             let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&fetched_repo_names);
 
@@ -1309,55 +1307,50 @@ impl PacViewWindow {
         // Spawn tasks to check for pacman/paru updates
         let pkgbuild_fetch = imp.prefs_dialog.borrow().enable_pkgbuild_repos();
 
-        let alpm_task = TokioManager::spawn_blocking(move |token| {
-            Self::do_alpm_updates(token)
-        });
-
-        let aur_task = TokioManager::spawn(async move |token| {
-            Self::do_aur_updates(token).await
-        });
-
-        let pkgbuild_task = TokioManager::spawn_blocking(move |token| {
-            Self::do_pkgbuild_updates(pkgbuild_fetch, token)
-        });
+        let tasks = [
+            TokioManager::spawn_blocking(move |token| {
+                Self::do_alpm_updates(token)
+            }),
+            TokioManager::spawn(async move |token| {
+                Self::do_aur_updates(token).await
+            }),
+            TokioManager::spawn_blocking(move |token| {
+                Self::do_pkgbuild_updates(pkgbuild_fetch, token)
+            })
+        ];
 
         // Store cancel tokens
-        imp.update_cancel_tokens.replace(
-            Some(vec![alpm_task.cancel_token, aur_task.cancel_token, pkgbuild_task.cancel_token])
-        );
+        imp.update_cancel_tokens.replace(Some(
+            tasks.iter().map(|task| task.cancel_token.clone()).collect()
+        ));
 
         // Await tasks
-        let (alpm_result, aur_result, pkgbuild_result) = join!(
-            alpm_task.join_handle, aur_task.join_handle, pkgbuild_task.join_handle
-        );
+        let results: Vec<UpdateResult> = join_all(tasks.into_iter().map(|task| task.join_handle))
+            .await
+            .into_iter()
+            .map(|result| {
+                result
+                    .expect("Failed to complete tokio task")
+                    .unwrap_or_else(|_| Ok(UpdateMap::new()))
+            })
+            .collect();
 
         // Remove stored cancel tokens
         imp.update_cancel_tokens.replace(None);
 
         // Get update results
+        let ids = ["Pacman", "AUR", "PKGBUILD"];
+
         let mut update_map: UpdateMap = UpdateMap::new();
         let mut error_msg: Option<String> = None;
 
-        let results = [
-            ("pacman", alpm_result
-                .expect("Failed to complete tokio task")
-                .unwrap_or_else(|_| Ok(UpdateMap::new()))
-                .map_err(|e| e.to_string())),
-            ("AUR", aur_result
-                .expect("Failed to complete tokio task")
-                .unwrap_or_else(|_| Ok(UpdateMap::new()))
-                .map_err(|e| e.to_string())),
-            ("PKGBUILD", pkgbuild_result
-                .expect("Failed to complete tokio task")
-                .unwrap_or_else(|_| Ok(UpdateMap::new()))
-                .map_err(|e| e.to_string())),
-        ];
-
-        for (id, result) in results {
+        for (i, result) in results.into_iter().enumerate() {
             match result {
                 Ok(map) => update_map.extend(map),
                 Err(error) if error_msg.is_none() => {
-                    error_msg = Some(format!("Failed to retrieve {id} updates: {error}"));
+                    let id = ids.get(i).unwrap_or(&"Unknown");
+
+                    error_msg = Some(format!("{id} update error: {error}"));
                 }
                 Err(_) => {}
             }
