@@ -1001,7 +1001,7 @@ impl PacViewWindow {
             let pkgbuild_map = if pkgbuild_fetch {
                 PkgbuildRepos::fetched_pkg_map()
             } else {
-                &HashMap::new()
+                HashMap::new()
             };
 
             let syncdbs = alpm_handle.syncdbs();

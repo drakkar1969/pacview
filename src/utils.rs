@@ -179,92 +179,80 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Repos function
     //---------------------------------------
-    pub fn repos() -> &'static Vec<aur_fetch::Repo> {
-        static LIST: LazyLock<Vec<aur_fetch::Repo>> = LazyLock::new(|| {
-            let Some(paru_config) = PkgbuildRepos::paru_config().as_ref() else {
-                return vec![];
-            };
+    pub fn repos() -> Vec<aur_fetch::Repo> {
+        let Some(paru_config) = Self::paru_config().as_ref() else {
+            return vec![];
+        };
 
-            paru_config.sections()
-                .into_iter()
-                .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
-                .filter_map(|section| {
-                    paru_config.get(&section, "url")
-                        .map(|mut url| {
-                            if let Some(path) = paru_config.get(&section, "path") {
-                                if !url.ends_with('/') && !path.starts_with('/') {
-                                    url.push('/');
-                                }
-
-                                url.push_str(&path);
+        paru_config.sections()
+            .into_iter()
+            .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
+            .filter_map(|section| {
+                paru_config.get(&section, "url")
+                    .map(|mut url| {
+                        if let Some(path) = paru_config.get(&section, "path") {
+                            if !url.ends_with('/') && !path.starts_with('/') {
+                                url.push('/');
                             }
 
-                            url
-                        })
-                        .or_else(|| paru_config.get(&section, "path"))
-                        .and_then(|url| Url::parse(&url).ok())
-                        .map(|url| aur_fetch::Repo { url, name: section })
-                })
-                .collect()
-        });
+                            url.push_str(&path);
+                        }
 
-        &LIST
+                        url
+                    })
+                    .or_else(|| paru_config.get(&section, "path"))
+                    .and_then(|url| Url::parse(&url).ok())
+                    .map(|url| aur_fetch::Repo { url, name: section })
+            })
+            .collect()
     }
 
     //---------------------------------------
     // Fetched pkg map function
     //---------------------------------------
-    pub fn fetched_pkg_map() -> &'static HashMap<String, PkgbuildPkgInfo> {
-        static MAP: LazyLock<HashMap<String, PkgbuildPkgInfo>> = LazyLock::new(|| {
-            let clone_dir = PkgbuildRepos::clone_dir();
+    pub fn fetched_pkg_map() -> HashMap<String, PkgbuildPkgInfo> {
+        let clone_dir = Self::clone_dir();
 
-            PkgbuildRepos::repos().iter()
-                .map(|repo| repo.name.as_str())
-                .flat_map(|repo_name| {
-                    let path = clone_dir.join(repo_name);
+        Self::repos().iter()
+            .map(|repo| repo.name.as_str())
+            .flat_map(|repo_name| {
+                let path = clone_dir.join(repo_name);
 
-                    WalkDir::new(path)
-                        .min_depth(1)
-                        .into_iter()
-                        .filter_entry(|entry| {
-                            entry.file_type().is_dir() && entry.file_name() != ".git"
-                        })
-                        .flatten()
-                        .filter(|entry| {
-                            entry.path().join(".SRCINFO").try_exists().is_ok_and(|res| res)
-                        })
-                        .map(|entry| {
-                            (
-                                entry.file_name().to_string_lossy().into_owned(),
-                                PkgbuildPkgInfo {
-                                    repo: repo_name.to_owned(),
-                                    path: entry.into_path()
-                                }
-                            )
-                        })
-                })
-                .collect()
-        });
-
-        &MAP
+                WalkDir::new(path)
+                    .min_depth(1)
+                    .into_iter()
+                    .filter_entry(|entry| {
+                        entry.file_type().is_dir() && entry.file_name() != ".git"
+                    })
+                    .flatten()
+                    .filter(|entry| {
+                        entry.path().join(".SRCINFO").try_exists().is_ok_and(|res| res)
+                    })
+                    .map(|entry| {
+                        (
+                            entry.file_name().to_string_lossy().into_owned(),
+                            PkgbuildPkgInfo {
+                                repo: repo_name.to_owned(),
+                                path: entry.into_path()
+                            }
+                        )
+                    })
+            })
+            .collect()
     }
 
     //---------------------------------------
     // Fetch remote function
     //---------------------------------------
     pub fn fetch_remote(token: CancellationToken) -> aur_fetch::Result<Vec<String>> {
-        let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
-            .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
-            .collect();
-
-        let local_repos: Vec<aur_fetch::Repo> = remote_repos
-            .extract_if(.., |repo| repo.url.scheme() == "file")
-            .collect();
-
-        // Create fetcher
-        let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
+        // Partition repos into local and remote
+        let (local_repos, remote_repos): (Vec<_>, Vec<_>) = Self::repos()
+            .into_iter()
+            .partition(|repo| repo.url.scheme() == "file");
 
         // Fetch remote repos
+        let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
+
         if token.is_cancelled() {
             return Err(aur_fetch::Error::Io(io::Error::other("Cancelled by user")));
         }
