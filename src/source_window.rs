@@ -6,8 +6,9 @@ use gtk::{gio, glib, gdk, pango};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::clone;
+use glib::translate::IntoGlib;
 use gdk::{Key, ModifierType};
-use pango::{FontDescription, FontMask, Weight};
+use pango::{FontDescription, FontMask};
 
 use futures::io;
 use tokio_util::sync::CancellationToken;
@@ -231,19 +232,7 @@ impl SourceWindow {
         }
 
         if mask.contains(FontMask::WEIGHT) {
-            let weight = match font_desc.weight() {
-                Weight::Normal => "normal",
-                Weight::Bold => "bold",
-                Weight::Thin => "100",
-                Weight::Ultralight => "200",
-                Weight::Light | Weight::Semilight => "300",
-                Weight::Book => "400",
-                Weight::Medium => "500",
-                Weight::Semibold => "600",
-                Weight::Ultrabold => "800",
-                Weight::Heavy | Weight::Ultraheavy => "900",
-                _ => unreachable!()
-            };
+            let weight = font_desc.weight().into_glib();
 
             write!(css, "font-weight: {weight}; ").unwrap();
         }
