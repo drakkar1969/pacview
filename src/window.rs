@@ -1106,7 +1106,8 @@ impl PacViewWindow {
                                 .await
                                 .expect("Failed to complete tokio task");
                         }
-                    },
+                    }
+
                     Err(error) => {
                         let warning_dialog = adw::AlertDialog::builder()
                             .heading("Alpm Error")

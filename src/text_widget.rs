@@ -318,7 +318,7 @@ mod imp {
                         start: 0,
                         end: text.len()
                     });
-                },
+                }
                 PropType::Packager => {
                     // Parse email address
                     static EXPR: LazyLock<Regex> = LazyLock::new(|| {
@@ -334,7 +334,7 @@ mod imp {
                             end: m.end()
                         });
                     }
-                },
+                }
                 PropType::LinkList => {
                     if text.is_empty() {
                         text = "None";
@@ -366,7 +366,7 @@ mod imp {
                             })
                         );
                     }
-                },
+                }
                 _ => {}
             }
 

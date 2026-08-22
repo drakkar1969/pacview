@@ -461,13 +461,13 @@ impl BackupWindow {
                 match window.search_mode() {
                     BackupSearchMode::All => {
                         is_match(&obj.path()) || is_match(&obj.package())
-                    },
+                    }
                     BackupSearchMode::Packages => {
                         is_match(&obj.package())
-                    },
+                    }
                     BackupSearchMode::Files => {
                         is_match(&obj.path())
-                    },
+                    }
                 }
             }
         ));

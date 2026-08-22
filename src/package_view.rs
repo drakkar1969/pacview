@@ -404,12 +404,12 @@ impl PackageView {
                     .expect("Failed to downcast to 'PkgObject'");
 
                 let sort = match view.sort_prop() {
-                    SortProp::Name => { pkg_a.name().partial_cmp(&pkg_b.name()) },
-                    SortProp::Repository => { pkg_a.repository().partial_cmp(&pkg_b.repository()) },
-                    SortProp::Status => { pkg_a.status().partial_cmp(pkg_b.status()) },
-                    SortProp::InstallDate => { pkg_a.install_date().partial_cmp(&pkg_b.install_date()) },
-                    SortProp::InstalledSize => { pkg_a.install_size().partial_cmp(&pkg_b.install_size()) },
-                    SortProp::Groups => { pkg_a.groups().partial_cmp(pkg_b.groups()) },
+                    SortProp::Name => pkg_a.name().partial_cmp(&pkg_b.name()),
+                    SortProp::Repository => pkg_a.repository().partial_cmp(&pkg_b.repository()),
+                    SortProp::Status => pkg_a.status().partial_cmp(pkg_b.status()),
+                    SortProp::InstallDate => pkg_a.install_date().partial_cmp(&pkg_b.install_date()),
+                    SortProp::InstalledSize => pkg_a.install_size().partial_cmp(&pkg_b.install_size()),
+                    SortProp::Groups => pkg_a.groups().partial_cmp(pkg_b.groups()),
                 }.unwrap_or(Ordering::Equal);
 
                 if view.sort_ascending() {
@@ -637,7 +637,7 @@ impl PackageView {
                             .set_state(RepoItemState::AurResults(imp.aur_model.n_items()));
 
                         search_bar.set_aur_status(Ok(()));
-                    },
+                    }
                     Err(error) => {
                         search_bar.set_aur_status(Err(error.to_string()));
 

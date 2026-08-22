@@ -340,13 +340,13 @@ impl GroupsWindow {
                 match window.search_mode() {
                     GroupsSearchMode::All => {
                         is_match(&obj.package()) || is_match(&obj.groups())
-                    },
+                    }
                     GroupsSearchMode::Groups => {
                         is_match(&obj.groups())
-                    },
+                    }
                     GroupsSearchMode::Packages => {
                         is_match(&obj.package())
-                    },
+                    }
                 }
             }
         ));
