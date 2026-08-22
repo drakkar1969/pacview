@@ -468,6 +468,7 @@ impl TextWidget {
         });
 
         // Line spacing property notify signal
+        #[allow(clippy::float_cmp)]
         self.connect_line_spacing_notify(|widget| {
             let imp = widget.imp();
 

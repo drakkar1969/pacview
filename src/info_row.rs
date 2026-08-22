@@ -219,7 +219,7 @@ mod imp {
         //---------------------------------------
         // Bind shortcuts
         //---------------------------------------
-        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn bind_shortcuts(klass: &<Self as ObjectSubclass>::Class) {
             // Select all/none key bindings
             klass.add_binding_action(Key::A, ModifierType::CONTROL_MASK, "text.select-all");
 

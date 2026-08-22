@@ -44,13 +44,13 @@ glib-build-tools = "0.22"
 
 [lints.clippy]
 # NURSERY
-# nursery = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
 
 # future_not_send = "allow"
 missing_const_for_fn = "allow"
 
 # PEDANTIC
-# pedantic = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
 
 wildcard_imports = "allow"
 cast_sign_loss = "allow"

@@ -112,7 +112,7 @@ mod imp {
         //---------------------------------------
         // Bind shortcuts
         //---------------------------------------
-        fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
+        fn bind_shortcuts(klass: &<Self as ObjectSubclass>::Class) {
             // Close window binding
             klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
 

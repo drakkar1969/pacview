@@ -140,6 +140,7 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Paru config helper function
     //---------------------------------------
+    #[allow(clippy::ref_option)]
     fn paru_config() -> &'static Option<Ini> {
         static INI: LazyLock<Option<Ini>> = LazyLock::new(|| {
             let paths = [
@@ -244,6 +245,7 @@ impl PkgbuildRepos {
     //---------------------------------------
     // Fetch remote function
     //---------------------------------------
+    #[allow(clippy::needless_pass_by_value)]
     pub fn fetch_remote(token: CancellationToken) -> aur_fetch::Result<Vec<String>> {
         // Partition repos into local and remote
         let (local_repos, remote_repos): (Vec<_>, Vec<_>) = Self::repos()

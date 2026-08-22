@@ -1138,6 +1138,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: do alpm updates helper
     //---------------------------------------
+    #[allow(clippy::needless_pass_by_value)]
     fn do_alpm_updates(token: CancellationToken) -> UpdateResult {
         if token.is_cancelled() {
             return Ok(UpdateMap::new());
@@ -1225,6 +1226,7 @@ impl PacViewWindow {
     //---------------------------------------
     // Setup alpm: do pkgbuild updates helper
     //---------------------------------------
+    #[allow(clippy::needless_pass_by_value)]
     fn do_pkgbuild_updates(do_fetch: bool, token: CancellationToken) -> UpdateResult {
         static AUR_CACHE: LazyLock<TokioMutex<raur::Cache>> = LazyLock::new(|| {
             TokioMutex::new(raur::Cache::default())
@@ -1240,6 +1242,7 @@ impl PacViewWindow {
             .build()
             .expect("Failed to set up tokio runtime");
 
+        #[allow(clippy::significant_drop_tightening)]
         local_runtime.block_on(async {
             // Create alpm/raur handles
             let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap())?;
