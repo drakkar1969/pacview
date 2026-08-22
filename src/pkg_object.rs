@@ -186,7 +186,7 @@ impl PkgObject {
                 None
             }
             _ => {
-                PkgbuildRepos::fetched_pkg_map().get(name)
+                PkgbuildRepos::fetched_pkg_map().read().unwrap().get(name)
                     .map(|info| format!("file://{}", info.path.join("PKGBUILD").display()))
             }
         }

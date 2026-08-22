@@ -1000,9 +1000,9 @@ impl PacViewWindow {
 
             // Get PKGBUILD repo package map
             let pkgbuild_map = if pkgbuild_fetch {
-                PkgbuildRepos::fetched_pkg_map()
+                &PkgbuildRepos::fetched_pkg_map().read().unwrap()
             } else {
-                HashMap::new()
+                &HashMap::new()
             };
 
             let syncdbs = alpm_handle.syncdbs();
@@ -1265,7 +1265,21 @@ impl PacViewWindow {
                 .await
                 .expect("Failed to complete tokio task")??;
 
-            let pkgbuild_repos = PkgbuildRepos::repo_srcinfo_list(&fetched_repo_names);
+            // Get list of package srcinfo for each fetched repo
+            let pkgbuild_repos: Vec<(String, Vec<Srcinfo>)> = PkgbuildRepos::fetched_pkg_map()
+                .read()
+                .unwrap()
+                .iter()
+                .filter(|(_, info)| fetched_repo_names.contains(&info.repo))
+                .fold(HashMap::<String, Vec<Srcinfo>>::new(), |mut map, (_, info)| {
+                    if let Ok(srcinfo) = Srcinfo::from_path(info.path.join(".SRCINFO")) {
+                        map.entry(info.repo.clone()).or_default().push(srcinfo);
+                    }
+
+                    map
+                })
+                .into_iter()
+                .collect();
 
             let pkgbuild_repos = pkgbuild_repos.iter()
                 .map(|(name, pkgs)| aur_depends::PkgbuildRepo {

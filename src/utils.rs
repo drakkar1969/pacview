@@ -23,7 +23,6 @@ use futures_util::TryStreamExt;
 use async_compression::tokio::bufread::GzipDecoder;
 use configparser::ini::Ini;
 use url::Url;
-use srcinfo::Srcinfo;
 
 //------------------------------------------------------------------------------
 // STRUCT: Paths
@@ -164,55 +163,63 @@ impl PkgbuildRepos {
     }
 
     //---------------------------------------
-    // Clone dir function
+    // Fetcher helper function
     //---------------------------------------
-    pub fn clone_dir() -> PathBuf {
-        Paths::cache_dir().join("clone")
+    fn fetcher() -> &'static aur_fetch::Fetch {
+        static FETCHER: LazyLock<aur_fetch::Fetch> = LazyLock::new(|| {
+            aur_fetch::Fetch::with_cache_dir(Paths::cache_dir())
+        });
+
+        &FETCHER
     }
 
     //---------------------------------------
     // Clone dir exists function
     //---------------------------------------
     pub fn clone_dir_exists() -> bool {
-        Self::clone_dir().try_exists().is_ok_and(|res| res)
+        Self::fetcher().clone_dir.try_exists().is_ok_and(|res| res)
     }
 
     //---------------------------------------
     // Repos function
     //---------------------------------------
-    pub fn repos() -> Vec<aur_fetch::Repo> {
-        let Some(paru_config) = Self::paru_config().as_ref() else {
-            return vec![];
-        };
+    pub fn repos() -> &'static Vec<aur_fetch::Repo> {
+        static REPOS: LazyLock<Vec<aur_fetch::Repo>> = LazyLock::new(|| {
+            let Some(paru_config) = PkgbuildRepos::paru_config().as_ref() else {
+                return vec![];
+            };
 
-        paru_config.sections()
-            .into_iter()
-            .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
-            .filter_map(|section| {
-                paru_config.get(&section, "url")
-                    .map(|mut url| {
-                        if let Some(path) = paru_config.get(&section, "path") {
-                            if !url.ends_with('/') && !path.starts_with('/') {
-                                url.push('/');
+            paru_config.sections()
+                .into_iter()
+                .filter(|section| !["options", "bin", "env"].contains(&section.as_str()))
+                .filter_map(|section| {
+                    paru_config.get(&section, "url")
+                        .map(|mut url| {
+                            if let Some(path) = paru_config.get(&section, "path") {
+                                if !url.ends_with('/') && !path.starts_with('/') {
+                                    url.push('/');
+                                }
+
+                                url.push_str(&path);
                             }
 
-                            url.push_str(&path);
-                        }
+                            url
+                        })
+                        .or_else(|| paru_config.get(&section, "path"))
+                        .and_then(|url| Url::parse(&url).ok())
+                        .map(|url| aur_fetch::Repo { url, name: section })
+                })
+                .collect()
+        });
 
-                        url
-                    })
-                    .or_else(|| paru_config.get(&section, "path"))
-                    .and_then(|url| Url::parse(&url).ok())
-                    .map(|url| aur_fetch::Repo { url, name: section })
-            })
-            .collect()
+        &REPOS
     }
 
     //---------------------------------------
-    // Fetched pkg map function
+    // Init pkg map helper function
     //---------------------------------------
-    pub fn fetched_pkg_map() -> HashMap<String, PkgbuildPkgInfo> {
-        let clone_dir = Self::clone_dir();
+    fn init_pkg_map() -> HashMap<String, PkgbuildPkgInfo> {
+        let clone_dir = Self::fetcher().clone_dir.as_path();
 
         Self::repos().iter()
             .map(|repo| repo.name.as_str())
@@ -243,17 +250,32 @@ impl PkgbuildRepos {
     }
 
     //---------------------------------------
+    // Fetched pkg map function
+    //---------------------------------------
+    pub fn fetched_pkg_map() -> &'static RwLock<HashMap<String, PkgbuildPkgInfo>> {
+        static MAP: LazyLock<RwLock<HashMap<String, PkgbuildPkgInfo>>> = LazyLock::new(|| {
+            RwLock::new(PkgbuildRepos::init_pkg_map())
+        });
+
+        &MAP
+    }
+
+    //---------------------------------------
     // Fetch remote function
     //---------------------------------------
     #[allow(clippy::needless_pass_by_value)]
     pub fn fetch_remote(token: CancellationToken) -> aur_fetch::Result<Vec<String>> {
         // Partition repos into local and remote
-        let (local_repos, remote_repos): (Vec<_>, Vec<_>) = Self::repos()
-            .into_iter()
-            .partition(|repo| repo.url.scheme() == "file");
+        let mut remote_repos: Vec<aur_fetch::Repo> = Self::repos().iter()
+            .map(|repo| aur_fetch::Repo { url: repo.url.clone(), name: repo.name.clone() })
+            .collect();
+
+        let local_repos: Vec<aur_fetch::Repo> = remote_repos
+            .extract_if(.., |repo| repo.url.scheme() == "file")
+            .collect();
 
         // Fetch remote repos
-        let fetch = aur_fetch::Fetch::with_cache_dir(Paths::cache_dir());
+        let fetch = Self::fetcher();
 
         if token.is_cancelled() {
             return Err(aur_fetch::Error::Io(io::Error::other("Cancelled by user")));
@@ -269,14 +291,14 @@ impl PkgbuildRepos {
         fetch.merge(&repo_names)?;
 
         // Copy local repos to clone dir
-        let clone_dir = Self::clone_dir();
+        let clone_dir = fetch.clone_dir.as_path();
 
         let copy_options = fs_extra::dir::CopyOptions {
             copy_inside: true,
             .. fs_extra::dir::CopyOptions::default()
         };
 
-        if fs::create_dir_all(&clone_dir).is_ok() {
+        if fs::create_dir_all(clone_dir).is_ok() {
             for repo in local_repos {
                 let dest_path = clone_dir.join(&repo.name);
 
@@ -295,26 +317,10 @@ impl PkgbuildRepos {
             }
         }
 
+        // Re-init fetched pkg map
+        *Self::fetched_pkg_map().write().unwrap() = Self::init_pkg_map();
+
         Ok(repo_names)
-    }
-
-    //---------------------------------------
-    // Repo srcinfo list function
-    //---------------------------------------
-    pub fn repo_srcinfo_list(repo_names: &[String]) -> Vec<(String, Vec<Srcinfo>)> {
-        // Get list of package srcinfo for each repo in repo_names
-        Self::fetched_pkg_map()
-            .iter()
-            .filter(|(_, info)| repo_names.contains(&info.repo))
-            .fold(HashMap::<String, Vec<Srcinfo>>::new(), |mut map, (_, info)| {
-                if let Ok(srcinfo) = Srcinfo::from_path(info.path.join(".SRCINFO")) {
-                    map.entry(info.repo.clone()).or_default().push(srcinfo);
-                }
-
-                map
-            })
-            .into_iter()
-            .collect()
     }
 }
 
