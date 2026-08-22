@@ -314,7 +314,7 @@ impl SourceWindow {
         };
 
         match result {
-            Ok((Some(0), pkgbuild)) => {
+            Ok(pkgbuild) => {
                 let buffer = self.buffer();
 
                 buffer.set_text(&pkgbuild);
@@ -325,19 +325,13 @@ impl SourceWindow {
                 imp.stack.set_visible_child_name("text");
                 self.action_set_enabled("source.save", true);
             }
-            Ok((Some(1), _)) => {
-                let error = "Failed to download PKGBUILD: paru error";
 
-                imp.error_status.set_description(Some(error));
-                imp.stack.set_visible_child_name("error");
-            }
             Err(error) => {
                 let error = format!("Failed to download PKGBUILD: {error}");
 
                 imp.error_status.set_description(Some(&error));
                 imp.stack.set_visible_child_name("error");
             }
-            _ => {}
         }
 
         // Set downloading property

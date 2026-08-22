@@ -538,11 +538,7 @@ impl BackupWindow {
         imp.compare_cancel_token.replace(None);
 
         // Return if error
-        let (status, content) = result?;
-
-        if status != Some(0) {
-            return Err(io::Error::other("Paccat error"))
-        }
+        let content = result?;
 
         // Spawn tokio task to compare backup file with original content
         TokioManager::spawn(async move |_| {

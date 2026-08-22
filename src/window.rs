@@ -1209,13 +1209,8 @@ impl PacViewWindow {
             return Ok(UpdateMap::new());
         }
 
-        let (code, stdout) = TokioCommand::output(paru_path, &["-Qu", "--mode=a"], token, true)
+        let stdout = TokioCommand::output(paru_path, &["-Qu", "--mode=a"], token, true)
             .await?;
-
-        // Return empty map if exit code is non-zero
-        if code != Some(0) {
-            return Err(anyhow::Error::msg("paru error"));
-        }
 
         // Return update map (package name, update version)
         Ok(EXPR.captures_iter(&stdout)

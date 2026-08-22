@@ -406,24 +406,26 @@ impl TokioCommand {
     // Output function
     //---------------------------------------
     pub async fn output<I, S1, S2>(cmd: S1, args: I, token: CancellationToken, strip_ansi: bool)
-    -> io::Result<(Option<i32>, String)>
+    -> io::Result<String>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         // Spawn process
         let mut child = tokio::process::Command::new(cmd)
             .args(args)
             .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
             .spawn()?;
 
-        // Get stdout pipe
+        // Get stdout/stderr pipes
         let mut stdout_pipe = child.stdout.take().unwrap();
+        let mut stderr_pipe = child.stderr.take().unwrap();
 
         // Loop: read stdout or wait for process or check for cancellation
         let mut exit_status = None;
-        let mut buffer = vec![];
+        let mut stdout_buffer = vec![];
 
         while exit_status.is_none() {
             tokio::select! {
-                read = stdout_pipe.read_buf(&mut buffer) => {
+                read = stdout_pipe.read_buf(&mut stdout_buffer) => {
                     // EOF
                     if read? == 0 {
                         break;
@@ -444,25 +446,34 @@ impl TokioCommand {
             }
         }
 
-        // Get status code
-        let code = match exit_status {
+        // Get exit code
+        let success = match exit_status {
             Some(status) => status,
             None => child.wait().await?
         }
-        .code();
+        .success();
+
+        // Return error if non-zero exit code
+        if !success {
+            let mut stderr = String::new();
+
+            stderr_pipe.read_to_string(&mut stderr).await?;
+
+            return Err(io::Error::other(stderr));
+        }
 
         // Finish reading stdout
-        stdout_pipe.read_to_end(&mut buffer).await?;
+        stdout_pipe.read_to_end(&mut stdout_buffer).await?;
 
         // Strip ANSI codes from stdout
         let stdout = if strip_ansi {
-            String::from_utf8(strip_ansi_escapes::strip(buffer))
+            String::from_utf8(strip_ansi_escapes::strip(stdout_buffer))
         } else {
-            String::from_utf8(buffer)
+            String::from_utf8(stdout_buffer)
         }
         .map_err(io::Error::other)?;
 
-        Ok((code, stdout))
+        Ok(stdout)
     }
 
     //---------------------------------------
