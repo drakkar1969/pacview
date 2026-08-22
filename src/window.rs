@@ -17,6 +17,7 @@ use futures::future::join_all;
 use tokio::sync::Mutex as TokioMutex;
 use tokio_util::sync::CancellationToken;
 use regex::Regex;
+use srcinfo::Srcinfo;
 use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debouncer, Debouncer, DebounceEventResult, NoCache};
 
 use crate::{
@@ -1041,9 +1042,15 @@ impl PacViewWindow {
 
             // Load non-installed packages from paru pkgbuild repos
             if pkgbuild_fetch {
-                let pkgbuild_data: Vec<PkgData> = pkgbuild_map.iter()
-                    .filter(|&(name, _)| localdb.pkg(name.as_str()).is_err())
-                    .filter_map(|(name, info)| PkgData::from_pkgbuild(name, info))
+                let pkgbuild_data: Vec<PkgData> = pkgbuild_map.values()
+                    .filter_map(|info| {
+                        Srcinfo::from_path(info.path.join(".SRCINFO")).ok()
+                            .filter(|srcinfo| {
+                                srcinfo.pkgnames().any(|name| localdb.pkg(name).is_err())
+                            })
+                            .zip(Some(info.repo.clone()))
+                    })
+                    .flat_map(|(srcinfo, repo)| PkgData::from_srcinfo(&srcinfo, &repo))
                     .collect();
 
                 sender.send_blocking((pkgbuild_data, false))

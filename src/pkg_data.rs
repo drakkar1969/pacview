@@ -6,8 +6,6 @@ use itertools::Itertools;
 use alpm::PackageReason;
 use srcinfo::{ArchVecs, Srcinfo};
 
-use crate::utils::PkgbuildPkgInfo;
-
 //------------------------------------------------------------------------------
 // FLAGS: PkgFlags
 //------------------------------------------------------------------------------
@@ -208,9 +206,9 @@ impl PkgData {
     }
 
     //---------------------------------------
-    // PKGBUILD constructor
+    // SRCINFO constructor
     //---------------------------------------
-    pub fn from_pkgbuild(pkg_name: &str, pkg_info: &PkgbuildPkgInfo) -> Option<Self> {
+    pub fn from_srcinfo(srcinfo: &Srcinfo, repo: &str) -> Vec<Self> {
         // Helper functions
         #[inline]
         fn sorted_vec(slice: &[String]) -> Vec<String> {
@@ -222,36 +220,37 @@ impl PkgData {
             arch_vec.arch("x86_64").map(ToOwned::to_owned).sorted_unstable().collect()
         }
 
-        Srcinfo::from_path(pkg_info.path.join(".SRCINFO")).ok()
-            .map(|srcinfo| {
+        srcinfo.pkgs().iter()
+            .map(|pkg| {
                 Self {
                     flags: PkgFlags::NONE,
                     is_installed: false,
                     base: Some(srcinfo.pkgbase().to_owned()),
-                    name: pkg_name.to_owned(),
+                    name: pkg.pkgname().to_owned(),
                     version: srcinfo.version(),
-                    description: srcinfo.pkgdesc().map(ToOwned::to_owned),
+                    description: pkg.pkgdesc().map(ToOwned::to_owned),
                     popularity: None,
                     out_of_date: None,
-                    url: srcinfo.url().map(ToOwned::to_owned),
-                    licenses: sorted_vec(srcinfo.license()),
-                    repository: pkg_info.repo.clone(),
-                    groups: sorted_vec(srcinfo.groups()),
-                    depends: archvecs_to_vec(srcinfo.depends()),
-                    optdepends: archvecs_to_vec(srcinfo.optdepends()),
+                    url: pkg.url().map(ToOwned::to_owned),
+                    licenses: sorted_vec(pkg.license()),
+                    repository: repo.to_owned(),
+                    groups: sorted_vec(pkg.groups()),
+                    depends: archvecs_to_vec(pkg.depends()),
+                    optdepends: archvecs_to_vec(pkg.optdepends()),
                     makedepends: archvecs_to_vec(srcinfo.makedepends()),
-                    provides: archvecs_to_vec(srcinfo.provides()),
-                    conflicts: archvecs_to_vec(srcinfo.conflicts()),
-                    replaces: archvecs_to_vec(srcinfo.replaces()),
-                    architecture: srcinfo.arch().first().map(ToOwned::to_owned),
+                    provides: archvecs_to_vec(pkg.provides()),
+                    conflicts: archvecs_to_vec(pkg.conflicts()),
+                    replaces: archvecs_to_vec(pkg.replaces()),
+                    architecture: pkg.arch().first().map(ToOwned::to_owned),
                     packager: None,
                     build_date: 0,
                     install_date: None,
                     download_size: 0,
                     install_size: 0,
-                    has_script: srcinfo.install().map(ToOwned::to_owned),
+                    has_script: pkg.install().map(ToOwned::to_owned),
                     validation: PkgValidation::NONE,
                 }
             })
+            .collect()
     }
 }
