@@ -238,8 +238,7 @@ impl SourceWindow {
         }
 
         if mask.contains(FontMask::STYLE)
-            && let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style()
-                .to_value()) {
+            && let Some((_, value)) = glib::EnumValue::from_value(&font_desc.style().to_value()) {
                 write!(css, "font-style: {}; ", value.nick()).unwrap();
             }
 
@@ -387,11 +386,8 @@ impl SourceWindow {
         self.action_set_enabled("source.url", self.pkgbuild_url().is_some());
 
         // Set syntax highlighting language
-        let buffer = self.buffer();
-
-        buffer.set_language(
-            sourceview5::LanguageManager::default().language("pkgbuild").as_ref()
-        );
+        self.buffer()
+            .set_language(sourceview5::LanguageManager::default().language("pkgbuild").as_ref());
 
         // Get window display and style manager
         let display = gtk::prelude::WidgetExt::display(self);
