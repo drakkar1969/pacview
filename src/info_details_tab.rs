@@ -47,6 +47,8 @@ mod imp {
         pub(super) version_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) update_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) outofdate_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) pkgbuild_button: TemplateChild<gtk::Button>,
@@ -158,7 +160,6 @@ impl InfoDetailsTab {
         // Add info rows
         for (id, ptype) in [
             (PropID::Popularity, PropType::Text),
-            (PropID::OutOfDate, PropType::Error),
             (PropID::PackageUrl, PropType::Link),
             (PropID::Url, PropType::Link),
             (PropID::Groups, PropType::Text),
@@ -245,9 +246,6 @@ impl InfoDetailsTab {
         // Popularity
         self.set_info_row(PropID::Popularity, ValueType::StrOpt(pkg.popularity()));
 
-        // Out of Date
-        self.set_info_row(PropID::OutOfDate, ValueType::StrOpt(pkg.out_of_date_string().as_deref()));
-
         // Package URL
         self.set_info_row(PropID::PackageUrl, ValueType::StrOpt(pkg.package_url().as_deref()));
 
@@ -332,6 +330,8 @@ impl InfoDetailsTab {
         } else {
             imp.update_label.set_visible(false);
         }
+
+        imp.outofdate_label.set_visible(pkg.out_of_date().is_some());
 
         // Update button states
         imp.pkgbuild_button.set_visible(Paths::paru_bin().is_ok());

@@ -21,8 +21,6 @@ pub enum PropID {
     #[default]
     #[strum(serialize = "Popularity")]
     Popularity,
-    #[strum(serialize = "Out of Date")]
-    OutOfDate,
     #[strum(serialize = "Package URL")]
     PackageUrl,
     #[strum(serialize = "URL")]
@@ -75,7 +73,6 @@ pub enum PropType {
     Link,
     Packager,
     LinkList,
-    Error,
 }
 
 //------------------------------------------------------------------------------

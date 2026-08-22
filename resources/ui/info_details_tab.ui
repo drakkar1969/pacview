@@ -78,6 +78,7 @@
                   <object class="GtkBox">
                     <property name="orientation">vertical</property>
                     <property name="hexpand">true</property>
+                    <property name="margin-end">16</property>
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkLabel" id="name_label">
@@ -144,15 +145,29 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="update_label">
+                  <object class="GtkBox">
                     <property name="hexpand">true</property>
                     <property name="halign">end</property>
-                    <property name="xalign">0</property>
-                    <property name="ellipsize">end</property>
-                    <style>
-                      <class name="tag"/>
-                      <class name="warning"/>
-                    </style>
+                    <child>
+                      <object class="GtkLabel" id="update_label">
+                        <property name="xalign">0</property>
+                        <property name="ellipsize">end</property>
+                        <style>
+                          <class name="tag"/>
+                          <class name="warning"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="outofdate_label">
+                        <property name="xalign">0</property>
+                        <property name="label">out of date</property>
+                        <style>
+                          <class name="tag"/>
+                          <class name="error"/>
+                        </style>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>

@@ -87,8 +87,6 @@ mod imp {
         pub(super) sel_bg_color: Cell<(u16, u16, u16, u16)>,
         pub(super) sel_focus_bg_color: Cell<(u16, u16, u16, u16)>,
 
-        pub(super) cairo_error_color: Cell<(f64, f64, f64, f64)>,
-
         pub(super) link_list: RefCell<Vec<LinkTag>>,
         pub(super) comment_list: RefCell<Vec<CommentTag>>,
 
@@ -426,18 +424,6 @@ impl TextWidget {
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
 
-    fn cairo_color_from_style(style: &str) -> (f64, f64, f64, f64) {
-        let color = Self::color_from_style(style);
-
-        // Return f64 colors (range 0.0-1.0)
-        (
-            f64::from(color.red()),
-            f64::from(color.green()),
-            f64::from(color.blue()),
-            f64::from(color.alpha())
-        )
-    }
-
     fn update_colors(&self) {
         let imp = self.imp();
 
@@ -446,9 +432,6 @@ impl TextWidget {
         imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
         imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
         imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
-
-        // Update cairo colors
-        imp.cairo_error_color.set(Self::cairo_color_from_style("error"));
     }
 
     //---------------------------------------
@@ -662,20 +645,14 @@ impl TextWidget {
                 layout.set_attributes(Some(&attr_list));
 
                 // Show pango layout
-                let (red, green, blue, alpha) = if widget.ptype() == PropType::Error {
-                    imp.cairo_error_color.get()
-                } else {
-                    let color = widget.color();
+                let color = widget.color();
 
-                    (
-                        f64::from(color.red()),
-                        f64::from(color.green()),
-                        f64::from(color.blue()),
-                        f64::from(color.alpha())
-                    )
-                };
-
-                context.set_source_rgba(red, green, blue, alpha);
+                context.set_source_rgba(
+                    f64::from(color.red()),
+                    f64::from(color.green()),
+                    f64::from(color.blue()),
+                    f64::from(color.alpha())
+                );
                 context.move_to(0.0, 0.0);
 
                 pangocairo::functions::show_layout(context, &layout);
