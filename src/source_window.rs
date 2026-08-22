@@ -262,7 +262,7 @@ impl SourceWindow {
         let css = Self::font_str_to_css(&custom_font);
 
         let css_provider = gtk::CssProvider::new();
-        css_provider.load_from_string(&format!("textview.card-list {{ {css} }}"));
+        css_provider.load_from_string(&format!("textview.pkgbuild {{ {css} }}"));
 
         gtk::style_context_add_provider_for_display(display, &css_provider, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
     }

@@ -100,7 +100,7 @@
                           </object>
                         </property>
                         <style>
-                          <class name="card-list"/>
+                          <class name="pkgbuild"/>
                         </style>
                       </object>
                     </property>

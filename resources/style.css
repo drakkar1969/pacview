@@ -94,6 +94,12 @@ box.property.active image {
 	-gtk-icon-transform: rotate(0turn);
 }
 
+/* Info pane listview */
+listview.infopane {
+	border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
+	border-radius: 4px;
+}
+
 /* Text widget colors */
 texttag.link {
 	color: var(--accent-color);
@@ -115,13 +121,8 @@ texttag.error {
 	color: var(--error-color);
 }
 
-/* Card lists/views */
-listview.card-list {
-	border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
-	border-radius: 4px;
-}
-
-textview.card-list border {
+/* Source window text view */
+textview.pkgbuild border {
 	background-color: transparent;
 }
 

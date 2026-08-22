@@ -110,7 +110,7 @@
             <property name="child">
               <object class="GtkListView" id="view">
                 <style>
-                  <class name="card-list"/>
+                  <class name="infopane"/>
                 </style>
                 <property name="tab-behavior">item</property>
                 <property name="model">
