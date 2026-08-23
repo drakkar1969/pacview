@@ -467,6 +467,10 @@ impl TokioCommand {
 
             stderr_pipe.read_to_string(&mut stderr).await?;
 
+            if stderr.is_empty() {
+                stderr = "unknown error".into();
+            }
+
             return Err(io::Error::other(stderr));
         }
 
