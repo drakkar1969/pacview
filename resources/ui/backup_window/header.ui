@@ -7,7 +7,16 @@
         <property name="spacing">8</property>
         <child>
           <object class="GtkBox">
-            <property name="margin-start">12</property>
+            <property name="margin-start">6</property>
+            <child>
+              <object class="GtkImage">
+                <property name="margin-end">6</property>
+                <property name="icon-name">package-x-generic-symbolic</property>
+                <style>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </child>
             <child>
               <object class="GtkLabel">
                 <style>

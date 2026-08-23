@@ -3,7 +3,7 @@
   <template class="GtkListItem">
     <property name="child">
       <object class="GtkBox">
-        <property name="margin-start">6</property>
+        <property name="margin-start">12</property>
         <property name="margin-end">12</property>
         <property name="spacing">6</property>
         <child>
