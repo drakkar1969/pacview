@@ -250,7 +250,7 @@ mod imp {
             // Package name
             let pkg_len = input.bytes()
                 .take_while(|&byte| {
-                    matches!(byte as char, 'a'..='z' | '0'..='9' | '@' | '.' | '_' | '+' | '-')
+                    matches!(byte as char, 'a'..='z' | 'A'..='Z' | '0'..='9' | '@' | '.' | '_' | '+' | '-')
                 })
                 .count();
 
