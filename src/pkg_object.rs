@@ -57,6 +57,7 @@ mod imp {
         #[property(name = "name", get, type = String, member = name)]
         #[property(name = "version", get, type = String, member = version)]
         #[property(name = "repository", get, type = String, member = repository)]
+        #[property(name = "repo-display", get, type = String, member = repo_display)]
         pub(super) data: OnceCell<PkgData>,
 
         // Read only fields

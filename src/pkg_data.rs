@@ -86,6 +86,7 @@ pub struct PkgData {
     pub url: Option<String>,
     pub licenses: Vec<String>,
     pub repository: String,
+    pub repo_display: String,
     pub groups: Vec<String>,
     pub depends: Vec<String>,
     pub optdepends: Vec<String>,
@@ -146,6 +147,7 @@ impl PkgData {
             url: pkg.url().map(ToOwned::to_owned),
             licenses: list_to_vec(pkg.licenses()),
             repository: repository.to_owned(),
+            repo_display: repository.to_owned(),
             groups: list_to_vec(pkg.groups()),
             depends: deplist_to_vec(pkg.depends()),
             optdepends: deplist_to_vec(pkg.optdepends()),
@@ -187,6 +189,7 @@ impl PkgData {
             url: pkg.url.clone(),
             licenses: sorted_vec(&pkg.license),
             repository: "aur".into(),
+            repo_display: "aur-remote".into(),
             groups: sorted_vec(&pkg.groups),
             depends: sorted_vec(&pkg.depends),
             optdepends: sorted_vec(&pkg.opt_depends),
@@ -208,7 +211,7 @@ impl PkgData {
     //---------------------------------------
     // SRCINFO constructor
     //---------------------------------------
-    pub fn from_srcinfo(srcinfo: &Srcinfo, repo: &str) -> Vec<Self> {
+    pub fn from_srcinfo(srcinfo: &Srcinfo, repository: &str) -> Vec<Self> {
         // Helper functions
         #[inline]
         fn sorted_vec(slice: &[String]) -> Vec<String> {
@@ -233,7 +236,8 @@ impl PkgData {
                     out_of_date: None,
                     url: pkg.url().map(ToOwned::to_owned),
                     licenses: sorted_vec(pkg.license()),
-                    repository: repo.to_owned(),
+                    repository: repository.to_owned(),
+                    repo_display: repository.to_owned(),
                     groups: sorted_vec(pkg.groups()),
                     depends: archvecs_to_vec(pkg.depends()),
                     optdepends: archvecs_to_vec(pkg.optdepends()),

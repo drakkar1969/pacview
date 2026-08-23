@@ -95,7 +95,7 @@ impl PackageItem {
 
         imp.name_label.set_label(&pkg.name());
 
-        imp.repository_label.set_label(&pkg.repository());
+        imp.repository_label.set_label(&pkg.repo_display());
         imp.version_label.set_label(&pkg.version());
 
         imp.status_label.set_visible(pkg.is_installed());

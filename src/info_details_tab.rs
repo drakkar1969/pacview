@@ -320,7 +320,7 @@ impl InfoDetailsTab {
         imp.status_label.set_css_classes(&pkg.status_css_classes());
         imp.status_label.set_label(pkg.status());
 
-        imp.repo_label.set_label(&pkg.repository());
+        imp.repo_label.set_label(&pkg.repo_display());
         imp.version_label.set_label(&pkg.version());
         imp.size_label.set_label(&pkg.install_size_string());
 
