@@ -18,8 +18,8 @@ use crate::{
 #[repr(u32)]
 #[enum_type(name = "TabState")]
 pub enum TabState {
-    #[default]
     Loading,
+    #[default]
     Installed,
     Remote,
 }

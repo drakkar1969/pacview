@@ -14,11 +14,10 @@ use crate::text_widget::{TextWidget, LINK_SPACER};
 //------------------------------------------------------------------------------
 // ENUM: PropID
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum, AsRefStr)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy, Hash, glib::Enum, AsRefStr)]
 #[repr(u32)]
 #[enum_type(name = "PropID")]
 pub enum PropID {
-    #[default]
     #[strum(serialize = "Popularity")]
     Popularity,
     #[strum(serialize = "Package URL")]
