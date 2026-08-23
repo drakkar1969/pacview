@@ -393,13 +393,15 @@ mod imp {
             klass.add_binding(Key::Escape, ModifierType::NO_MODIFIER_MASK, |window| {
                 let imp = window.imp();
 
-                if (imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar()) || (imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar()) {
-                    Propagation::Proceed
+                if imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar() {
+                    window.set_show_sidebar(!window.show_sidebar());
+                } else if imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar() {
+                    window.set_show_infopane(!window.show_infopane());
                 } else {
                     window.imp().package_view.search_bar().set_enabled(false);
-
-                    Propagation::Stop
                 }
+
+                Propagation::Stop
             });
 
             // Show sidebar key binding
