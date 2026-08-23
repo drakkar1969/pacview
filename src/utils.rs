@@ -462,7 +462,9 @@ impl TokioCommand {
         .code();
 
         // Read stderr if non-zero exit code
-        let stderr = if code != Some(0) {
+        let stderr = if code == Some(0) {
+            None
+        } else {
             let mut stderr = String::new();
 
             stderr_pipe.read_to_string(&mut stderr).await?;
@@ -472,8 +474,6 @@ impl TokioCommand {
             }
 
             Some(stderr)
-        } else {
-            None
         };
 
         // Finish reading stdout

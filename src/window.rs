@@ -1235,7 +1235,7 @@ impl PacViewWindow {
                     .collect())
             }
 
-            (Some(1) | Some(256), _, _) => {
+            (Some(1 | 256), _, _) => {
                 // No updates found, return empty map
                 Ok(UpdateMap::new())
             }
