@@ -365,7 +365,7 @@ mod imp {
                         );
                     }
                 }
-                _ => {}
+                PropType::Text => {}
             }
 
             // Set focused link index
