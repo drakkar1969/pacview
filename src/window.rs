@@ -1246,6 +1246,14 @@ impl PacViewWindow {
             return Ok(UpdateMap::new());
         }
 
+        // Create alpm/raur handles
+        let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap())?;
+        let raur_handle = raur::Handle::new();
+
+        if token.is_cancelled() {
+            return Ok(UpdateMap::new());
+        }
+
         // Spawn task on current thread (required by alpm/raur) to get updates
         let local_runtime = tokio::runtime::Builder::new_current_thread()
             .enable_all()
@@ -1254,15 +1262,7 @@ impl PacViewWindow {
 
         #[allow(clippy::significant_drop_tightening)]
         local_runtime.block_on(async {
-            // Create alpm/raur handles
-            let alpm_handle = alpm_utils::alpm_with_conf(&Pacman::config().read().unwrap())?;
-            let raur_handle = raur::Handle::new();
-
             // Fetch remote PKGBUILD repos (return empty map on failure)
-            if token.is_cancelled() {
-                return Ok(UpdateMap::new());
-            }
-
             let fetched_repo_names = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote)
                 .join_handle
                 .await
@@ -1291,9 +1291,9 @@ impl PacViewWindow {
                 })
                 .collect();
 
+            // Get PKGBUILD updates
             let mut cache = AUR_CACHE.lock().await;
 
-            // Get PKGBUILD updates
             let mut resolver = aur_depends::Resolver::new(
                 &alpm_handle,
                 &mut cache,
