@@ -1220,17 +1220,30 @@ impl PacViewWindow {
             return Ok(UpdateMap::new());
         }
 
-        let stdout = TokioCommand::output(paru_path, &["-Qu", "--mode=a"], token, true)
+        let result = TokioCommand::output(paru_path, &["-Qu", "--mode=a"], token, true)
             .await?;
 
-        // Return update map (package name, update version)
-        Ok(EXPR.captures_iter(&stdout)
-            .map(|caps| {
-                let (_, [name, version]): (&str, [&str; 2]) = caps.extract();
+        match result {
+            (Some(0), stdout, _) => {
+                // Return update map (package name, update version)
+                Ok(EXPR.captures_iter(&stdout)
+                    .map(|caps| {
+                        let (_, [name, version]): (&str, [&str; 2]) = caps.extract();
 
-                (name.to_owned(), version.to_owned())
-            })
-            .collect())
+                        (name.to_owned(), version.to_owned())
+                    })
+                    .collect())
+            }
+
+            (Some(1) | Some(256), _, _) => {
+                // No updates found, return empty map
+                Ok(UpdateMap::new())
+            }
+
+            (_, _, stderr) => {
+                Err(anyhow::Error::msg(stderr.unwrap_or_else(|| "unknown error".into())))
+            }
+        }
     }
 
     //---------------------------------------

@@ -414,7 +414,7 @@ impl TokioCommand {
     // Output function
     //---------------------------------------
     pub async fn output<I, S1, S2>(cmd: S1, args: I, token: CancellationToken, strip_ansi: bool)
-    -> io::Result<String>
+    -> io::Result<(Option<i32>, String, Option<String>)>
     where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
         // Spawn process
         let mut child = tokio::process::Command::new(cmd)
@@ -455,14 +455,14 @@ impl TokioCommand {
         }
 
         // Get exit code
-        let success = match exit_status {
+        let code = match exit_status {
             Some(status) => status,
             None => child.wait().await?
         }
-        .success();
+        .code();
 
-        // Return error if non-zero exit code
-        if !success {
+        // Read stderr if non-zero exit code
+        let stderr = if code != Some(0) {
             let mut stderr = String::new();
 
             stderr_pipe.read_to_string(&mut stderr).await?;
@@ -471,8 +471,10 @@ impl TokioCommand {
                 stderr = "unknown error".into();
             }
 
-            return Err(io::Error::other(stderr));
-        }
+            Some(stderr)
+        } else {
+            None
+        };
 
         // Finish reading stdout
         stdout_pipe.read_to_end(&mut stdout_buffer).await?;
@@ -485,7 +487,7 @@ impl TokioCommand {
         }
         .map_err(io::Error::other)?;
 
-        Ok(stdout)
+        Ok((code, stdout, stderr))
     }
 
     //---------------------------------------

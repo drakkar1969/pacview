@@ -314,7 +314,7 @@ impl SourceWindow {
         };
 
         match result {
-            Ok(pkgbuild) => {
+            Ok((Some(0), pkgbuild, _)) => {
                 let buffer = self.buffer();
 
                 buffer.set_text(&pkgbuild);
@@ -324,6 +324,15 @@ impl SourceWindow {
 
                 imp.stack.set_visible_child_name("text");
                 self.action_set_enabled("source.save", true);
+            }
+
+            Ok((_, _, stderr)) => {
+                let error = format!("Failed to download PKGBUILD: {}",
+                    stderr.unwrap_or_else(|| "unknown error".into())
+                );
+
+                imp.error_status.set_description(Some(&error));
+                imp.stack.set_visible_child_name("error");
             }
 
             Err(error) => {
