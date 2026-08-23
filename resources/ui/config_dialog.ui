@@ -11,10 +11,15 @@
           <object class="AdwHeaderBar" id="header_bar">
             <child>
               <object class="GtkButton" id="config_button">
-                <property name="label">_Open</property>
-                <property name="tooltip-text">Open Pacman Config</property>
-                <property name="use-underline">true</property>
                 <property name="action-name">conf.config</property>
+                <property name="child">
+                  <object class="AdwButtonContent">
+                    <property name="icon-name">document-open-symbolic</property>
+                    <property name="label">_Open</property>
+                    <property name="tooltip-text">Open Pacman Config</property>
+                    <property name="use-underline">true</property>
+                  </object>
+                </property>
               </object>
             </child>
           </object>
