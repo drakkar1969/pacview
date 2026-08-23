@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::collections::HashSet;
 use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
@@ -280,12 +281,20 @@ impl GroupsWindow {
                     }
                 }
 
+                let set: HashSet<String> = sort_model.iter::<glib::Object>()
+                    .flatten()
+                    .filter_map(|obj| obj.downcast::<GroupsObject>().map(|group| group.package()).ok())
+                    .collect();
+
+                let n_unique = set.len();
+
                 imp.stack.set_visible_child_name(
                     if n_items == 0 { "empty" } else { "view" }
                 );
 
-                imp.count_label.set_label(&format!("{n_items} package{} in {n_sections} group{}",
-                    if n_items == 1 { "" } else { "s" },
+                imp.count_label.set_label(&format!(
+                    "{n_unique} unique package{} in {n_sections} group{}",
+                    if n_unique == 1 { "" } else { "s" },
                     if n_sections == 1 { "" } else { "s" }
                 ));
 
