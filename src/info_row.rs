@@ -81,7 +81,6 @@ pub enum PropType {
 pub enum ValueType<'a> {
     Str(&'a str),
     StrOpt(Option<&'a str>),
-    StrOptNum(&'a str, i64),
     Links(&'a [String]),
     LinksOpt(&'a [String]),
     StrJoinVec(&'a [String])
@@ -289,7 +288,6 @@ impl InfoRow {
         let visible = match value {
             ValueType::Str(_) | ValueType::Links(_) => true,
             ValueType::StrOpt(s) => s.is_some(),
-            ValueType::StrOptNum(_, i) => i != 0,
             ValueType::LinksOpt(v) | ValueType::StrJoinVec(v) => !v.is_empty(),
         };
 
@@ -297,7 +295,7 @@ impl InfoRow {
 
         if visible {
             match value {
-                ValueType::Str(s) | ValueType::StrOptNum(s, _) => {
+                ValueType::Str(s) => {
                     imp.value_widget.set_text(s);
                 }
                 ValueType::StrOpt(s) => {

@@ -295,7 +295,7 @@ impl InfoDetailsTab {
         self.set_info_row(PropID::InstallDate, ValueType::StrOpt(pkg.install_date_string().as_deref()));
 
         // Download size
-        self.set_info_row(PropID::DownloadSize, ValueType::StrOptNum(&pkg.download_size_string(), pkg.download_size()));
+        self.set_info_row(PropID::DownloadSize, ValueType::StrOpt(pkg.download_size_string().as_deref()));
 
         // Has script
         self.set_info_row(PropID::InstallScript, ValueType::StrOpt(pkg.has_script()));

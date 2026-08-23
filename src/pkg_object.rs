@@ -267,12 +267,17 @@ impl PkgObject {
         Self::date_to_string(self.data().install_date)
     }
 
-    pub fn download_size(&self) -> i64 {
+    pub fn download_size(&self) -> Option<i64> {
         self.data().download_size
     }
 
-    pub fn download_size_string(&self) -> String {
-        Size::from_bytes(self.data().download_size).to_string()
+    pub fn download_size_string(&self) -> Option<String> {
+        let data = self.data();
+
+        (!data.is_installed).then(|| {
+            data.download_size
+                .map_or_else(|| String::from("Unknown"), |size| Size::from_bytes(size).to_string())
+        })
     }
 
     pub fn install_size(&self) -> i64 {
