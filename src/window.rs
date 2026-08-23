@@ -8,6 +8,7 @@ use std::fs;
 use gtk::{gio, glib, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
+use gtk::prelude::WidgetExt;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
@@ -218,8 +219,7 @@ mod imp {
                     .expect("Failed to complete tokio task");
 
                 // Refresh packages
-                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                    .unwrap();
+                WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
             });
 
             // Fetch PKGBUILD repos action
@@ -240,8 +240,7 @@ mod imp {
                     .expect("Failed to complete tokio task");
 
                 // Refresh packages
-                gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                    .unwrap();
+                WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
             });
 
             // Mount root dir action
@@ -267,8 +266,7 @@ mod imp {
                             );
 
                             // Refresh packages
-                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                                .unwrap();
+                            WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
                         }
 
                         Err(error) => {
@@ -309,8 +307,7 @@ mod imp {
                             window.imp().package_view.set_root_dir_indicator(None);
 
                             // Refresh packages
-                            gtk::prelude::WidgetExt::activate_action(&window, "win.refresh", None)
-                                .unwrap();
+                            WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
                         }
 
                         Err(error) => {
@@ -393,22 +390,33 @@ mod imp {
             klass.add_binding(Key::Escape, ModifierType::NO_MODIFIER_MASK, |window| {
                 let imp = window.imp();
 
-                if imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar() {
-                    window.set_show_sidebar(!window.show_sidebar());
-                } else if imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar() {
-                    window.set_show_infopane(!window.show_infopane());
-                } else {
-                    window.imp().package_view.search_bar().set_enabled(false);
+                if (imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar())
+                    || (imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar()) {
+                        Propagation::Proceed
+                    } else {
+                        window.imp().package_view.search_bar().set_enabled(false);
+
+                        Propagation::Stop
+                    }
+            });
+
+            // Show sidebar key binding
+            klass.add_binding(Key::B, ModifierType::CONTROL_MASK, |window| {
+                if window.imp().sidebar_split_view.is_collapsed() {
+                    WidgetExt::activate_action(window, "win.show-sidebar", None).unwrap();
                 }
 
                 Propagation::Stop
             });
 
-            // Show sidebar key binding
-            klass.add_binding_action(Key::B, ModifierType::CONTROL_MASK, "win.show-sidebar");
-
             // Show infopane key binding
-            klass.add_binding_action(Key::I, ModifierType::CONTROL_MASK, "win.show-infopane");
+            klass.add_binding(Key::I, ModifierType::CONTROL_MASK, |window| {
+                if window.imp().main_split_view.is_collapsed() {
+                    WidgetExt::activate_action(window, "win.show-infopane", None).unwrap();
+                }
+
+                Propagation::Stop
+            });
 
             // Package view grouping key binding
             klass.add_binding(Key::G, ModifierType::ALT_MASK, |window| {
@@ -558,24 +566,6 @@ impl PacViewWindow {
     //---------------------------------------
     fn setup_signals(&self) {
         let imp = self.imp();
-
-        // Show sidebar property notify signal
-        self.connect_show_sidebar_notify(|window| {
-            let imp = window.imp();
-
-            if imp.sidebar_split_view.is_collapsed() {
-                imp.sidebar_split_view.set_show_sidebar(!imp.sidebar_split_view.shows_sidebar());
-            }
-        });
-
-        // Show infopane property notify signal
-        self.connect_show_infopane_notify(|window| {
-            let imp = window.imp();
-
-            if imp.main_split_view.is_collapsed() {
-                imp.main_split_view.set_show_sidebar(!imp.main_split_view.shows_sidebar());
-            }
-        });
 
         // Repo sidebar activated signal
         imp.repo_sidebar.connect_activated(clone!(
@@ -732,6 +722,17 @@ impl PacViewWindow {
         imp.groups_window.borrow().set_transient_for(Some(self));
         imp.log_window.borrow().set_transient_for(Some(self));
         imp.stats_window.borrow().set_transient_for(Some(self));
+
+        // Bind sidebar/infopane visibility to properties
+        imp.sidebar_split_view.bind_property("show-sidebar", self, "show-sidebar")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        imp.main_split_view.bind_property("show-sidebar", self, "show-infopane")
+            .sync_create()
+            .bidirectional()
+            .build();
 
         // Bind preferences dialog properties to search bar
         let prefs_dialog = imp.prefs_dialog.borrow();
@@ -1434,11 +1435,7 @@ impl PacViewWindow {
                         #[weak(rename_to = window)] self,
                         async move {
                             while receiver.recv().await == Ok(()) {
-                                gtk::prelude::WidgetExt::activate_action(
-                                    &window,
-                                    "win.refresh",
-                                    None
-                                ).unwrap();
+                                WidgetExt::activate_action(&window,"win.refresh",None).unwrap();
                             }
                         }
                     ));
