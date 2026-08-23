@@ -276,7 +276,7 @@ impl PkgObject {
 
         (!data.is_installed).then(|| {
             data.download_size
-                .map_or_else(|| String::from("Unknown"), |size| Size::from_bytes(size).to_string())
+                .map_or_else(|| "Unknown".into(), |size| Size::from_bytes(size).to_string())
         })
     }
 

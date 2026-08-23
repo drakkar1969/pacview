@@ -81,7 +81,7 @@ impl Pacman {
     //---------------------------------------
     pub fn config_path() -> &'static RwLock<String> {
         static CONFIG_PATH: LazyLock<RwLock<String>> = LazyLock::new(|| {
-            RwLock::new(String::from("/etc/pacman.conf"))
+            RwLock::new("/etc/pacman.conf".into())
         });
 
         &CONFIG_PATH

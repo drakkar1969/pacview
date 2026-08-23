@@ -503,12 +503,12 @@ impl PackageView {
 
         // Return if query arg too small
         if term.len() < 2 {
-            return Err(raur::Error::Aur(String::from("Query arg too small.")))
+            return Err(raur::Error::Aur("Query arg too small.".into()))
         }
 
         // Return if attempting to search by files
         if prop == SearchProp::Files {
-            return Err(raur::Error::Aur(String::from("Cannot search by files.")))
+            return Err(raur::Error::Aur("Cannot search by files.".into()))
         }
 
         // Set search mode

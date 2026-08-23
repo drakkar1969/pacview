@@ -113,7 +113,7 @@ impl ConfigDialog {
             ("XferCommand", &config.xfer_command, None),
             ("ParallelDownloads", &config.parallel_downloads.to_string(), None),
             ("DisableDownloadTimeout", &config.disable_download_timeout.to_string(), None),
-            ("DownloadUser", &config.download_user.clone().unwrap_or_else(|| String::from("None")), None),
+            ("DownloadUser", &config.download_user.clone().unwrap_or_else(|| "None".into()), None),
             ("Architecture", &config.architecture.join(" | "), None)
         ]);
 
