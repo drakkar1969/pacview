@@ -116,6 +116,16 @@ texttag.error {
 	color: var(--error-color);
 }
 
+/* Stats window progress bars */
+progressbar.stats trough {
+	min-height: 12px;
+}
+
+progressbar.stats progress {
+	min-height: 12px;
+}
+
+
 /* Source window text view */
 textview.pkgbuild border {
 	background-color: transparent;

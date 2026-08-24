@@ -8,91 +8,49 @@
     <property name="title">Package Statistics</property>
     <property name="content">
       <object class="AdwToolbarView" id="toolbar_view">
-        <property name="top-bar-style">raised</property>
-        <property name="bottom-bar-style">raised</property>
         <child type="top">
-          <object class="AdwHeaderBar" id="header_bar">
-            <child type="end">
-              <object class="GtkBox" id="control_box">
-                <property name="valign">center</property>
-                <property name="margin-end">6</property>
-                <property name="spacing">6</property>
+          <object class="AdwHeaderBar"/>
+        </child>
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">24</property>
+            <property name="spacing">24</property>
+            <child>
+              <object class="GtkBox">
+                <style>
+                  <class name="card"/>
+                </style>
                 <child>
-                  <object class="GtkButton" id="copy_button">
-                    <property name="icon-name">edit-copy-symbolic</property>
-                    <property name="tooltip-text">Copy Package Statistics</property>
-                    <property name="action-name">stats.copy</property>
-                    <style>
-                      <class name="flat"/>
-                    </style>
+                  <object class="GtkGrid" id="repo_grid">
+                    <property name="margin-start">20</property>
+                    <property name="margin-end">20</property>
+                    <property name="margin-top">20</property>
+                    <property name="margin-bottom">20</property>
+                    <property name="column-spacing">10</property>
+                    <property name="row-spacing">24</property>
                   </object>
                 </child>
               </object>
             </child>
-          </object>
-        </child>
-        <property name="content">
-          <object class="GtkColumnView" id="view">
-            <property name="hexpand">true</property>
-            <property name="tab-behavior">item</property>
-            <property name="model">
-              <object class="GtkNoSelection" id="selection">
-                <property name="model">
-                  <object class="GListStore" id="model">
-                    <property name="item-type">StatsObject</property>
-                  </object>
-                </property>
-              </object>
-            </property>
             <child>
-              <object class="GtkColumnViewColumn" id="repository_column">
-                <property name="title">Repository</property>
-                <property name="expand">true</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/repository_item.ui</property>
+              <object class="GtkBox">
+                <style>
+                  <class name="card"/>
+                </style>
+                <child>
+                  <object class="GtkGrid" id="total_grid">
+                    <property name="margin-start">20</property>
+                    <property name="margin-end">20</property>
+                    <property name="margin-top">20</property>
+                    <property name="margin-bottom">20</property>
+                    <property name="column-spacing">10</property>
+                    <property name="row-spacing">24</property>
                   </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="packages_column">
-                <property name="title">Packages</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/packages_item.ui</property>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="installed_column">
-                <property name="title">Installed</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/installed_item.ui</property>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="explicit_column">
-                <property name="title">Explicit</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/explicit_item.ui</property>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkColumnViewColumn" id="size_column">
-                <property name="title">Installed Size</property>
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/com/github/PacView/ui/stats_window/size_item.ui</property>
-                  </object>
-                </property>
+                </child>
               </object>
             </child>
           </object>
