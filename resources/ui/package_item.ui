@@ -43,6 +43,12 @@
                     <property name="ellipsize">true</property>
                   </object>
                 </child>
+                <child>
+                  <object class="TagLabel" id="update_tag">
+                    <property name="tag-type">warning</property>
+                    <property name="ellipsize">true</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

@@ -5,7 +5,7 @@ use glib::closure_local;
 
 use crate::{
     pkg_object::PkgObject,
-    tag_label::{TagLabel, TagType}
+    tag_label::TagLabel
 };
 
 //------------------------------------------------------------------------------
@@ -26,6 +26,8 @@ mod imp {
         pub(super) repository_tag: TemplateChild<TagLabel>,
         #[template_child]
         pub(super) version_tag: TemplateChild<TagLabel>,
+        #[template_child]
+        pub(super) update_tag: TemplateChild<TagLabel>,
         #[template_child]
         pub(super) groups_tag: TemplateChild<TagLabel>,
         #[template_child]
@@ -71,30 +73,29 @@ impl PackageItem {
     pub fn setup(&self, item: &gtk::ListItem) {
         let imp = self.imp();
 
+        // Get expressions for update version
         let update_expr = item.property_expression("item")
-            .chain_property::<PkgObject>("update-version");
+            .chain_property::<PkgObject>("update-version")
+            .chain_closure::<String>(closure_local!(
+                |_: Option<glib::Object>, update: Option<String>| update.unwrap_or_default()
+            ));
 
-        // Bind update version to version label tag style
-        let update_type_expr = update_expr.chain_closure::<TagType>(closure_local!(
-            |_: Option<glib::Object>, update_version: Option<String>| {
-                if update_version.is_some() {
-                    TagType::Warning
-                } else {
-                    TagType::Accent
-                }
-            }
+        // Bind update version to update tag text
+        update_expr.bind(&imp.update_tag.get(), "text", glib::Object::NONE);
+
+        // Bind update version to update tag visibility
+        let has_update_expr = update_expr.chain_closure::<bool>(closure_local!(
+            |_: Option<glib::Object>, update: String| !update.is_empty()
         ));
 
-        update_type_expr.bind(&imp.version_tag.get(), "tag-type", glib::Object::NONE);
+        has_update_expr.bind(&imp.update_tag.get(), "visible", glib::Object::NONE);
 
-        // Bind update version to version label text
-        let update_text_expr = update_expr.chain_closure::<String>(closure_local!(
-            |_: Option<glib::Object>, update_version: Option<String>| {
-                update_version.unwrap_or_default()
-            }
+        // Bind update version to version tag visibility
+        let no_update_expr = has_update_expr.chain_closure::<bool>(closure_local!(
+            |_: Option<glib::Object>, has_update: bool| !has_update
         ));
 
-        update_text_expr.bind(&imp.version_tag.get(), "text", glib::Object::NONE);
+        no_update_expr.bind(&imp.version_tag.get(), "visible", glib::Object::NONE);
     }
 
     //---------------------------------------
@@ -108,12 +109,12 @@ impl PackageItem {
         imp.repository_tag.set_text(pkg.repo_display());
         imp.version_tag.set_text(pkg.version());
 
+        imp.groups_tag.set_visible(!pkg.groups().is_empty());
+        imp.groups_tag.set_text(pkg.groups().join(" | "));
+
         imp.status_tag.set_visible(pkg.is_installed());
         imp.status_tag.set_tag_type(pkg.status_tag_type());
         imp.status_tag.set_text(pkg.status());
-
-        imp.groups_tag.set_visible(!pkg.groups().is_empty());
-        imp.groups_tag.set_text(pkg.groups().join(" | "));
     }
 }
 
