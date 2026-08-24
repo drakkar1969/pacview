@@ -9,11 +9,11 @@
           <object class="AdwHeaderBar"/>
         </child>
         <property name="content">
-          <object class="GtkListBox">
-            <property name="margin-start">16</property>
-            <property name="margin-end">16</property>
+          <object class="AdwPreferencesGroup">
+            <property name="margin-start">24</property>
+            <property name="margin-end">24</property>
+            <property name="margin-top">12</property>
             <property name="margin-bottom">24</property>
-            <property name="selection-mode">none</property>
             <child>
               <object class="AdwActionRow" id="base64_row">
                 <property name="title">Base64 Signature</property>
