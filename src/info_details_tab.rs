@@ -9,6 +9,7 @@ use gtk::glib;
 use glib::clone;
 
 use crate::{
+    tag_label::TagLabel,
     info_row::{InfoRow, PropID, PropType, ValueType},
     pkg_object::PkgObject,
     text_widget::{INSTALLED_LABEL, LINK_SPACER},
@@ -38,17 +39,17 @@ mod imp {
         #[template_child]
         pub(super) desc_label: TemplateChild<gtk::Label>,
         #[template_child]
-        pub(super) status_label: TemplateChild<gtk::Label>,
+        pub(super) status_tag: TemplateChild<TagLabel>,
         #[template_child]
-        pub(super) repo_label: TemplateChild<gtk::Label>,
+        pub(super) repo_tag: TemplateChild<TagLabel>,
         #[template_child]
-        pub(super) size_label: TemplateChild<gtk::Label>,
+        pub(super) size_tag: TemplateChild<TagLabel>,
         #[template_child]
-        pub(super) version_label: TemplateChild<gtk::Label>,
+        pub(super) version_tag: TemplateChild<TagLabel>,
         #[template_child]
-        pub(super) update_label: TemplateChild<gtk::Label>,
+        pub(super) update_tag: TemplateChild<TagLabel>,
         #[template_child]
-        pub(super) outofdate_label: TemplateChild<gtk::Label>,
+        pub(super) outofdate_tag: TemplateChild<TagLabel>,
 
         #[template_child]
         pub(super) pkgbuild_button: TemplateChild<gtk::Button>,
@@ -317,21 +318,21 @@ impl InfoDetailsTab {
         imp.name_label.set_label(&pkg.name());
         imp.desc_label.set_label(pkg.description().unwrap_or_default());
 
-        imp.status_label.set_css_classes(&pkg.status_css_classes());
-        imp.status_label.set_label(pkg.status());
+        imp.status_tag.set_tag_type(pkg.status_tag_type());
+        imp.status_tag.set_text(pkg.status());
 
-        imp.repo_label.set_label(&pkg.repo_display());
-        imp.version_label.set_label(&pkg.version());
-        imp.size_label.set_label(&pkg.install_size_string());
+        imp.repo_tag.set_text(pkg.repo_display());
+        imp.size_tag.set_text(pkg.install_size_string());
+        imp.version_tag.set_text(pkg.version());
 
         if let Some(update) = pkg.update_version() {
-            imp.update_label.set_visible(true);
-            imp.update_label.set_label(&update);
+            imp.update_tag.set_visible(true);
+            imp.update_tag.set_text(update);
         } else {
-            imp.update_label.set_visible(false);
+            imp.update_tag.set_visible(false);
         }
 
-        imp.outofdate_label.set_visible(pkg.out_of_date().is_some());
+        imp.outofdate_tag.set_visible(pkg.out_of_date().is_some());
 
         // Update button states
         imp.pkgbuild_button.set_visible(Paths::paru_bin().is_ok());

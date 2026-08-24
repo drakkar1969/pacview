@@ -6,6 +6,7 @@ mod repo_item;
 mod status_item;
 mod package_view;
 mod package_item;
+mod tag_label;
 mod info_pane;
 mod info_details_tab;
 mod info_files_tab;

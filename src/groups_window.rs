@@ -398,7 +398,7 @@ impl GroupsWindow {
                     .flat_map(|pkg| {
                         pkg.groups().iter()
                             .map(|group| {
-                                GroupsObject::new(&pkg.name(), pkg.status(), &pkg.status_css_classes(), group)
+                                GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_tag_type(), group)
                             })
                             .collect::<Vec<GroupsObject>>()
                     })

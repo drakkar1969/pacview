@@ -54,6 +54,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/preferences_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_row.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/rootdir_dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/tag_label.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/text_widget.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_bar.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/search_tag.ui</file>

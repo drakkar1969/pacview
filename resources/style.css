@@ -52,7 +52,7 @@ searchtag label {
 }
 
 /* Package view labels */
-label.tag {
+taglabel.tag {
 	border-radius: 6px;
 	background: color-mix(in srgb, currentColor 20%, transparent);
 	padding: 4px 10px;

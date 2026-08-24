@@ -9,6 +9,7 @@ use strum::{FromRepr, AsRefStr};
 
 use crate::{
     pkg_object::PkgBackup,
+    tag_label::TagType,
     utils::Pacman
 };
 
@@ -53,8 +54,8 @@ mod imp {
         #[property(get = Self::status, builder(BackupStatus::default()))]
         status: OnceCell<BackupStatus>,
 
-        #[property(get = Self::status_css_classes)]
-        status_css_classes: PhantomData<Vec<String>>,
+        #[property(get = Self::status_tag_type, builder(TagType::default()))]
+        status_tag_type: PhantomData<TagType>,
         #[property(get = Self::status_text)]
         status_text: PhantomData<String>,
     }
@@ -91,15 +92,12 @@ mod imp {
             })
         }
 
-        fn status_css_classes(&self) -> Vec<String> {
+        fn status_tag_type(&self) -> TagType {
             match self.status() {
-                BackupStatus::Modified => vec!["tag", "warning"],
-                BackupStatus::Locked => vec!["tag", "error"],
-                _ => vec![]
+                BackupStatus::Modified => TagType::Warning,
+                BackupStatus::Locked => TagType::Error,
+                _ => TagType::None
             }
-            .into_iter()
-            .map(ToOwned::to_owned)
-            .collect()
         }
 
         fn status_text(&self) -> String {

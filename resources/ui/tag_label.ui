@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <!--// TagLabel template //-->
+  <template class="TagLabel" parent="AdwBin">
+    <property name="child">
+      <object class="GtkLabel" id="label">
+        <property name="xalign">0</property>
+      </object>
+    </property>
+  </template>
+</interface>

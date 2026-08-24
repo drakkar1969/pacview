@@ -1,8 +1,10 @@
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
+
+use crate::tag_label::TagType;
 
 //------------------------------------------------------------------------------
 // MODULE: GroupsObject
@@ -20,8 +22,8 @@ mod imp {
         package: RefCell<String>,
         #[property(get, set, construct_only)]
         status: RefCell<String>,
-        #[property(get, set, construct_only)]
-        status_css_classes: RefCell<Vec<String>>,
+        #[property(get, set, construct_only, builder(TagType::default()))]
+        status_tag_type: Cell<TagType>,
         #[property(get, set, construct_only)]
         groups: RefCell<String>,
     }
@@ -50,12 +52,12 @@ impl GroupsObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(package: &str, status: &str, status_css_classes: &[&str], groups: &str) -> Self {
+    pub fn new(package: &str, status: &str, type_: TagType, groups: &str) -> Self {
         // Build GroupsObject
         glib::Object::builder()
             .property("package", package)
             .property("status", status)
-            .property("status-css-classes", status_css_classes)
+            .property("status-tag-type", type_)
             .property("groups", groups)
             .build()
     }

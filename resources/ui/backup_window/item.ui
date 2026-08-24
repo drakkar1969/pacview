@@ -19,17 +19,17 @@
           </object>
         </child>
         <child>
-          <object class="GtkLabel">
+          <object class="TagLabel">
             <property name="hexpand">true</property>
             <property name="halign">end</property>
             <property name="valign">center</property>
-            <binding name="label">
+            <binding name="text">
               <lookup name="status-text" type="BackupObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
-            <binding name="css-classes">
-              <lookup name="status-css-classes" type="BackupObject">
+            <binding name="tag-type">
+              <lookup name="status-tag-type" type="BackupObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>

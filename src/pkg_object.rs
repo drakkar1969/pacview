@@ -11,8 +11,9 @@ use alpm_utils::DbListExt;
 use size::Size;
 
 use crate::{
-    utils::{Pacman, PkgbuildRepos, ListStoreFind},
-    pkg_data::{PkgData, PkgFlags, PkgValidation}
+    pkg_data::{PkgData, PkgFlags, PkgValidation},
+    tag_label::TagType,
+    utils::{Pacman, PkgbuildRepos, ListStoreFind}
 };
 
 //------------------------------------------------------------------------------
@@ -203,11 +204,11 @@ impl PkgObject {
         }
     }
 
-    pub fn status_css_classes(&self) -> Vec<&str> {
+    pub fn status_tag_type(&self) -> TagType {
         match self.data().flags {
-            PkgFlags::ORPHAN => vec!["tag", "warning"],
-            PkgFlags::EXPLICIT | PkgFlags::DEPENDENCY | PkgFlags::OPTIONAL => vec!["tag", "success"],
-            _ => vec![]
+            PkgFlags::ORPHAN => TagType::Warning,
+            PkgFlags::EXPLICIT | PkgFlags::DEPENDENCY | PkgFlags::OPTIONAL => TagType::Success,
+            _ => TagType::None
         }
     }
 

@@ -106,9 +106,8 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="status_label">
+                  <object class="TagLabel" id="status_tag">
                     <property name="valign">start</property>
-                    <property name="xalign">0</property>
                   </object>
                 </child>
               </object>
@@ -117,31 +116,19 @@
               <object class="GtkBox">
                 <property name="spacing">6</property>
                 <child>
-                  <object class="GtkLabel" id="repo_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="tag"/>
-                      <class name="accent"/>
-                    </style>
+                  <object class="TagLabel" id="repo_tag">
+                    <property name="tag-type">accent</property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="size_label">
-                    <property name="xalign">0</property>
-                    <style>
-                      <class name="tag"/>
-                      <class name="accent"/>
-                    </style>
+                  <object class="TagLabel" id="size_tag">
+                    <property name="tag-type">accent</property>
                   </object>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="version_label">
-                    <property name="xalign">0</property>
-                    <property name="ellipsize">end</property>
-                    <style>
-                      <class name="tag"/>
-                      <class name="accent"/>
-                    </style>
+                  <object class="TagLabel" id="version_tag">
+                    <property name="tag-type">accent</property>
+                    <property name="ellipsize">true</property>
                   </object>
                 </child>
                 <child>
@@ -149,23 +136,15 @@
                     <property name="hexpand">true</property>
                     <property name="halign">end</property>
                     <child>
-                      <object class="GtkLabel" id="update_label">
-                        <property name="xalign">0</property>
-                        <property name="ellipsize">end</property>
-                        <style>
-                          <class name="tag"/>
-                          <class name="warning"/>
-                        </style>
+                      <object class="TagLabel" id="update_tag">
+                        <property name="tag-type">warning</property>
+                        <property name="ellipsize">true</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkLabel" id="outofdate_label">
-                        <property name="xalign">0</property>
-                        <property name="label">out of date</property>
-                        <style>
-                          <class name="tag"/>
-                          <class name="error"/>
-                        </style>
+                      <object class="TagLabel" id="outofdate_tag">
+                        <property name="tag-type">error</property>
+                        <property name="text">out of date</property>
                       </object>
                     </child>
                   </object>
