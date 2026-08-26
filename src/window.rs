@@ -64,12 +64,12 @@ mod imp {
         #[template_child]
         pub(super) sidebar_breakpoint: TemplateChild<adw::Breakpoint>,
         #[template_child]
-        pub(super) main_breakpoint: TemplateChild<adw::Breakpoint>,
+        pub(super) info_breakpoint: TemplateChild<adw::Breakpoint>,
 
         #[template_child]
-        pub(super) sidebar_split_view: TemplateChild<adw::OverlaySplitView>,
+        pub(super) sidebar_splitview: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
-        pub(super) main_split_view: TemplateChild<adw::OverlaySplitView>,
+        pub(super) info_splitview: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
         pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
         #[template_child]
@@ -390,8 +390,8 @@ mod imp {
             klass.add_binding(Key::Escape, ModifierType::NO_MODIFIER_MASK, |window| {
                 let imp = window.imp();
 
-                if (imp.sidebar_split_view.is_collapsed() && imp.sidebar_split_view.shows_sidebar())
-                    || (imp.main_split_view.is_collapsed() && imp.main_split_view.shows_sidebar()) {
+                if (imp.sidebar_splitview.is_collapsed() && imp.sidebar_splitview.shows_sidebar())
+                    || (imp.info_splitview.is_collapsed() && imp.info_splitview.shows_sidebar()) {
                         Propagation::Proceed
                     } else {
                         window.imp().package_view.search_bar().set_enabled(false);
@@ -402,7 +402,7 @@ mod imp {
 
             // Show sidebar key binding
             klass.add_binding(Key::B, ModifierType::CONTROL_MASK, |window| {
-                if window.imp().sidebar_split_view.is_collapsed() {
+                if window.imp().sidebar_splitview.is_collapsed() {
                     WidgetExt::activate_action(window, "win.show-sidebar", None).unwrap();
                 }
 
@@ -411,7 +411,7 @@ mod imp {
 
             // Show infopane key binding
             klass.add_binding(Key::I, ModifierType::CONTROL_MASK, |window| {
-                if window.imp().main_split_view.is_collapsed() {
+                if window.imp().info_splitview.is_collapsed() {
                     WidgetExt::activate_action(window, "win.show-infopane", None).unwrap();
                 }
 
@@ -578,8 +578,8 @@ impl PacViewWindow {
 
                 imp.package_view.repo_filter_changed(id.as_deref());
 
-                if imp.sidebar_split_view.is_collapsed() {
-                    imp.sidebar_split_view.set_show_sidebar(false);
+                if imp.sidebar_splitview.is_collapsed() {
+                    imp.sidebar_splitview.set_show_sidebar(false);
                 }
 
                 imp.package_view.view().grab_focus();
@@ -597,8 +597,8 @@ impl PacViewWindow {
 
                 imp.package_view.status_filter_changed(id);
 
-                if imp.sidebar_split_view.is_collapsed() {
-                    imp.sidebar_split_view.set_show_sidebar(false);
+                if imp.sidebar_splitview.is_collapsed() {
+                    imp.sidebar_splitview.set_show_sidebar(false);
                 }
 
                 imp.package_view.view().grab_focus();
@@ -622,12 +622,12 @@ impl PacViewWindow {
                 let imp = window.imp();
 
                 let infopane_width = prefs_dialog.infopane_width();
-                let sidebar_width = imp.sidebar_split_view.min_sidebar_width();
+                let sidebar_width = imp.sidebar_splitview.min_sidebar_width();
                 let min_packageview_width = 400.0;
 
-                let unit = imp.main_split_view.sidebar_width_unit();
+                let unit = imp.info_splitview.sidebar_width_unit();
 
-                let main_condition = adw::BreakpointCondition::new_length(
+                let info_condition = adw::BreakpointCondition::new_length(
                     adw::BreakpointConditionLengthType::MaxWidth,
                     sidebar_width + infopane_width + min_packageview_width,
                     adw::LengthUnit::Sp
@@ -641,10 +641,10 @@ impl PacViewWindow {
 
                 window.set_width_request(unit.to_px(infopane_width, None) as i32);
 
-                imp.main_split_view.set_min_sidebar_width(infopane_width);
-                imp.main_split_view.set_max_sidebar_width(infopane_width*2.0);
+                imp.info_splitview.set_min_sidebar_width(infopane_width);
+                imp.info_splitview.set_max_sidebar_width(infopane_width*2.0);
 
-                imp.main_breakpoint.set_condition(Some(&main_condition));
+                imp.info_breakpoint.set_condition(Some(&info_condition));
                 imp.sidebar_breakpoint.set_condition(Some(&sidebar_condition));
             }
         ));
@@ -690,16 +690,16 @@ impl PacViewWindow {
         let _ = fs::create_dir_all(Paths::cache_dir());
 
         // Add main breakpoint setters
-        imp.main_breakpoint.add_setters(&[
-            (&imp.main_split_view.get().upcast::<glib::Object>(), "collapsed", true),
+        imp.info_breakpoint.add_setters(&[
+            (&imp.info_splitview.get().upcast::<glib::Object>(), "collapsed", true),
             (&imp.package_view.infopane_button().upcast(), "visible", true),
             (&imp.info_pane.show_button().upcast(), "visible", true)
         ]);
 
         // Add sidebar breakpoint setters
         imp.sidebar_breakpoint.add_setters(&[
-            (&imp.main_split_view.get().upcast::<glib::Object>(), "collapsed", true),
-            (&imp.sidebar_split_view.get().upcast(), "collapsed", true),
+            (&imp.info_splitview.get().upcast::<glib::Object>(), "collapsed", true),
+            (&imp.sidebar_splitview.get().upcast(), "collapsed", true),
             (&imp.main_menu_button.get().upcast(), "visible", false),
             (&imp.package_view.main_menu_button().upcast(), "visible", true),
             (&imp.sidebar_button.get().upcast(), "visible", true),
@@ -724,12 +724,12 @@ impl PacViewWindow {
         imp.stats_window.borrow().set_transient_for(Some(self));
 
         // Bind sidebar/infopane visibility to properties
-        imp.sidebar_split_view.bind_property("show-sidebar", self, "show-sidebar")
+        imp.sidebar_splitview.bind_property("show-sidebar", self, "show-sidebar")
             .sync_create()
             .bidirectional()
             .build();
 
-        imp.main_split_view.bind_property("show-sidebar", self, "show-infopane")
+        imp.info_splitview.bind_property("show-sidebar", self, "show-infopane")
             .sync_create()
             .bidirectional()
             .build();
