@@ -39,16 +39,9 @@
                 <child type="top">
                   <object class="AdwHeaderBar" id="header_bar">
                     <property name="title-widget">
-                      <object class="AdwInlineViewSwitcher" id="tab_switcher">
-                        <property name="hexpand">true</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-end">12</property>
+                      <object class="AdwViewSwitcher" id="tab_switcher">
                         <property name="stack">tab_stack</property>
-                        <property name="display-mode">both</property>
-                        <property name="homogeneous">true</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
+                        <property name="policy">wide</property>
                       </object>
                     </property>
                     <child>

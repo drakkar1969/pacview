@@ -53,8 +53,6 @@ mod imp {
         #[template_child]
         pub(super) main_stack: TemplateChild<gtk::Stack>,
         #[template_child]
-        pub(super) tab_switcher: TemplateChild<adw::InlineViewSwitcher>,
-        #[template_child]
         pub(super) tab_stack: TemplateChild<adw::ViewStack>,
 
         #[template_child]
