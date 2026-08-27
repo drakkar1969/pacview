@@ -6,10 +6,21 @@
     <property name="default-height">840</property>
     <property name="title">PacView</property>
     <child>
-      <object class="AdwBreakpoint" id="info_breakpoint"/>
+      <object class="AdwBreakpoint" id="info_breakpoint">
+        <setter object="info_splitview" property="collapsed">true</setter>
+        <setter object="package_view" property="display-mode">no-infopane</setter>
+        <setter object="info_pane" property="display-mode">collapsed</setter>
+      </object>
     </child>
     <child>
-      <object class="AdwBreakpoint" id="sidebar_breakpoint"/>
+      <object class="AdwBreakpoint" id="sidebar_breakpoint">
+        <setter object="info_splitview" property="collapsed">true</setter>
+        <setter object="sidebar_splitview" property="collapsed">true</setter>
+        <setter object="sidebar_button" property="visible">true</setter>
+        <setter object="main_menu_button" property="visible">false</setter>
+        <setter object="package_view" property="display-mode">no-sidebar</setter>
+        <setter object="info_pane" property="display-mode">collapsed</setter>
+      </object>
     </child>
     <property name="content">
       <object class="AdwOverlaySplitView" id="sidebar_splitview">

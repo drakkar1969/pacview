@@ -1,4 +1,4 @@
-use std::cell::{RefCell, OnceCell};
+use std::cell::{Cell, RefCell, OnceCell};
 use std::marker::PhantomData;
 use std::time::Duration;
 
@@ -19,6 +19,18 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
+// ENUM: InfoPaneDisplayMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "InfoPaneDisplayMode")]
+pub enum InfoPaneDisplayMode {
+    #[default]
+    Normal,
+    Collapsed
+}
+
+//------------------------------------------------------------------------------
 // MODULE: InfoPane
 //------------------------------------------------------------------------------
 mod imp {
@@ -35,7 +47,6 @@ mod imp {
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) next_button: TemplateChild<gtk::Button>,
-        #[property(get)]
         #[template_child]
         pub(super) show_button: TemplateChild<gtk::ToggleButton>,
 
@@ -51,6 +62,8 @@ mod imp {
         #[template_child]
         pub(super) files_tab: TemplateChild<InfoFilesTab>,
 
+        #[property(get, set, builder(InfoPaneDisplayMode::default()))]
+        display_mode: Cell<InfoPaneDisplayMode>,
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         pkg: PhantomData<Option<PkgObject>>,
         #[property(get, set, default = "info", construct)]
@@ -95,6 +108,7 @@ mod imp {
 
             let obj = self.obj();
 
+            obj.setup_signals();
             obj.setup_widgets();
         }
     }
@@ -201,6 +215,16 @@ glib::wrapper! {
 }
 
 impl InfoPane {
+    //---------------------------------------
+    // Setup signals
+    //---------------------------------------
+    fn setup_signals(&self) {
+        // Display mode property notify signal
+        self.connect_display_mode_notify(|pane| {
+            pane.imp().show_button.set_visible(pane.display_mode() == InfoPaneDisplayMode::Collapsed);
+        });
+    }
+
     //---------------------------------------
     // Setup widgets
     //---------------------------------------

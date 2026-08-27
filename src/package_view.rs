@@ -39,6 +39,19 @@ pub enum PackageViewState {
 }
 
 //------------------------------------------------------------------------------
+// ENUM: PackageViewDisplayMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "PackageViewDisplayMode")]
+pub enum PackageViewDisplayMode {
+    #[default]
+    Normal,
+    NoInfopane,
+    NoSidebar
+}
+
+//------------------------------------------------------------------------------
 // ENUM: SortProp
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
@@ -80,13 +93,10 @@ mod imp {
         #[property(get)]
         #[template_child]
         pub(super) search_bar: TemplateChild<SearchBar>,
-        #[property(get)]
         #[template_child]
         pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
-        #[property(get)]
         #[template_child]
         pub(super) infopane_button: TemplateChild<gtk::ToggleButton>,
-        #[property(get)]
         #[template_child]
         pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
 
@@ -139,6 +149,8 @@ mod imp {
         #[property(get, set, construct)]
         info_pane: RefCell<InfoPane>,
 
+        #[property(get, set, builder(PackageViewDisplayMode::default()))]
+        display_mode: Cell<PackageViewDisplayMode>,
         #[property(get, set, builder(SortProp::default()))]
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
@@ -263,6 +275,17 @@ impl PackageView {
             package_item.bind(&pkg);
         });
 
+        // Display mode property notify signal
+        self.connect_display_mode_notify(|view| {
+            let imp = view.imp();
+
+            let mode = view.display_mode();
+
+            imp.main_menu_button.set_visible(mode == PackageViewDisplayMode::NoSidebar);
+            imp.sidebar_button.set_visible(mode == PackageViewDisplayMode::NoSidebar);
+            imp.infopane_button.set_visible(mode != PackageViewDisplayMode::Normal);
+        });
+
         // List view selection items changed signal
         imp.selection.connect_items_changed(clone!(
             #[weak(rename_to = view)] self,
@@ -383,6 +406,13 @@ impl PackageView {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
+
+        // Setup main menu
+        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/main_menu/menu.ui");
+
+        let menu = builder.object::<gio::MenuModel>("main_menu");
+
+        imp.main_menu_button.set_menu_model(menu.as_ref());
 
         // Bind search button state to search bar enabled state
         imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")

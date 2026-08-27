@@ -689,32 +689,12 @@ impl PacViewWindow {
         // Create app cache dir
         let _ = fs::create_dir_all(Paths::cache_dir());
 
-        // Add main breakpoint setters
-        imp.info_breakpoint.add_setters(&[
-            (&imp.info_splitview.get().upcast::<glib::Object>(), "collapsed", true),
-            (&imp.package_view.infopane_button().upcast(), "visible", true),
-            (&imp.info_pane.show_button().upcast(), "visible", true)
-        ]);
-
-        // Add sidebar breakpoint setters
-        imp.sidebar_breakpoint.add_setters(&[
-            (&imp.info_splitview.get().upcast::<glib::Object>(), "collapsed", true),
-            (&imp.sidebar_splitview.get().upcast(), "collapsed", true),
-            (&imp.main_menu_button.get().upcast(), "visible", false),
-            (&imp.package_view.main_menu_button().upcast(), "visible", true),
-            (&imp.sidebar_button.get().upcast(), "visible", true),
-            (&imp.package_view.sidebar_button().upcast(), "visible", true),
-            (&imp.info_pane.show_button().upcast(), "visible", true),
-            (&imp.package_view.infopane_button().upcast(), "visible", true)
-        ]);
-
         // Setup main menu
         let builder = gtk::Builder::from_resource("/com/github/PacView/ui/main_menu/menu.ui");
 
         let menu = builder.object::<gio::MenuModel>("main_menu");
 
         imp.main_menu_button.set_menu_model(menu.as_ref());
-        imp.package_view.main_menu_button().set_menu_model(menu.as_ref());
 
         // Set window parents
         imp.backup_window.borrow().set_transient_for(Some(self));
