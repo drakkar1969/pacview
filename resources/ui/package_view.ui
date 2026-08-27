@@ -2,7 +2,7 @@
 <interface>
   <!--// PackageView template //-->
   <template class="PackageView" parent="AdwBin">
-    <child>
+    <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <property name="top-bar-style">raised</property>
         <property name="bottom-bar-style">raised</property>
@@ -208,7 +208,7 @@
           </object>
         </child>
       </object>
-    </child>
+    </property>
   </template>
 
   <!--// Package sort menu //-->

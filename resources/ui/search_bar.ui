@@ -2,7 +2,7 @@
 <interface>
   <!--// SearchBar template //-->
   <template class="SearchBar" parent="AdwBin">
-    <child>
+    <property name="child">
       <object class="GtkRevealer" id="revealer">
         <property name="child">
           <object class="GtkBox" id="search_box">
@@ -68,7 +68,7 @@
           </object>
         </property>
       </object>
-    </child>
+    </property>
   </template>
 
   <!--// Search menu //-->
