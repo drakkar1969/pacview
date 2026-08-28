@@ -2,6 +2,10 @@
 <interface>
   <!--// RootDirDialog template //-->
   <template class="RootDirDialog" parent="AdwAlertDialog">
+    <property name="presentation-mode">auto</property>
+    <property name="follows-content-size">false</property>
+    <property name="content-width">480</property>
+    <property name="content-height">640</property>
     <property name="heading">Mount Root Directory</property>
     <property name="body-use-markup">true</property>
     <property name="default-response">cancel</property>
@@ -11,7 +15,6 @@
     </responses>
     <property name="extra-child">
       <object class="GtkBox">
-        <property name="width-request">500</property>
         <property name="orientation">vertical</property>
         <property name="margin-bottom">20</property>
         <property name="spacing">24</property>
@@ -72,7 +75,6 @@
             <child>
               <object class="AdwSwitchRow" id="defaultconfig_row">
                 <property name="title">Use default path for pacman config</property>
-                <property name="subtitle">Defaults to “ROOTDIR/etc/pacman.conf”</property>
                 <property name="active">true</property>
               </object>
             </child>
