@@ -40,13 +40,13 @@
                 <child>
                   <object class="TagLabel" id="version_tag">
                     <property name="tag-type">accent</property>
-                    <property name="ellipsize">true</property>
+                    <property name="ellipsize">middle</property>
                   </object>
                 </child>
                 <child>
                   <object class="TagLabel" id="update_tag">
                     <property name="tag-type">warning</property>
-                    <property name="ellipsize">true</property>
+                    <property name="ellipsize">middle</property>
                   </object>
                 </child>
               </object>
@@ -54,7 +54,7 @@
             <child>
               <object class="TagLabel" id="groups_tag">
                 <property name="tag-type">normal</property>
-                <property name="ellipsize">true</property>
+                <property name="ellipsize">end</property>
               </object>
             </child>
           </object>

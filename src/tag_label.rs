@@ -25,6 +25,20 @@ pub enum TagType {
 }
 
 //------------------------------------------------------------------------------
+// ENUM: TagEllipsizeMode
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
+#[repr(u32)]
+#[enum_type(name = "TagEllipsizeMode")]
+pub enum TagEllipsizeMode {
+    #[default]
+    None,
+    Start,
+    Middle,
+    End
+}
+
+//------------------------------------------------------------------------------
 // MODULE: TagLabel
 //------------------------------------------------------------------------------
 mod imp {
@@ -44,8 +58,8 @@ mod imp {
         tag_type: PhantomData<TagType>,
         #[property(get, set)]
         text: RefCell<String>,
-        #[property(set = Self::set_ellipsize)]
-        ellipsize: PhantomData<bool>,
+        #[property(set = Self::set_ellipsize, builder(TagEllipsizeMode::default()))]
+        ellipsize: PhantomData<TagEllipsizeMode>,
     }
 
     //---------------------------------------
@@ -98,12 +112,15 @@ mod imp {
             }
         }
 
-        fn set_ellipsize(&self, ellipsize: bool) {
-            if ellipsize {
-                self.label.set_ellipsize(pango::EllipsizeMode::End);
-            } else {
-                self.label.set_ellipsize(pango::EllipsizeMode::None);
-            }
+        fn set_ellipsize(&self, mode: TagEllipsizeMode) {
+            let pango_mode = match mode {
+                TagEllipsizeMode::None => pango::EllipsizeMode::None,
+                TagEllipsizeMode::Start => pango::EllipsizeMode::Start,
+                TagEllipsizeMode::Middle => pango::EllipsizeMode::Middle,
+                TagEllipsizeMode::End => pango::EllipsizeMode::End,
+            };
+
+            self.label.set_ellipsize(pango_mode);
         }
     }
 }

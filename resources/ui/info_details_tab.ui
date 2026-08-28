@@ -128,7 +128,7 @@
                 <child>
                   <object class="TagLabel" id="version_tag">
                     <property name="tag-type">accent</property>
-                    <property name="ellipsize">true</property>
+                    <property name="ellipsize">middle</property>
                   </object>
                 </child>
                 <child>
@@ -138,7 +138,7 @@
                     <child>
                       <object class="TagLabel" id="update_tag">
                         <property name="tag-type">warning</property>
-                        <property name="ellipsize">true</property>
+                        <property name="ellipsize">middle</property>
                       </object>
                     </child>
                     <child>
