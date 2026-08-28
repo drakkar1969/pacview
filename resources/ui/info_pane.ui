@@ -95,6 +95,11 @@
                     </child>
                   </object>
                 </property>
+                <child type="bottom">
+                  <object class="AdwViewSwitcherBar" id="tab_switcher_bar">
+                    <property name="stack">tab_stack</property>
+                  </object>
+                </child>
               </object>
             </property>
           </object>

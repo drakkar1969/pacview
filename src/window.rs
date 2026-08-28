@@ -62,11 +62,6 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/window.ui")]
     pub struct PacViewWindow {
         #[template_child]
-        pub(super) sidebar_breakpoint: TemplateChild<adw::Breakpoint>,
-        #[template_child]
-        pub(super) info_breakpoint: TemplateChild<adw::Breakpoint>,
-
-        #[template_child]
         pub(super) sidebar_splitview: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
         pub(super) info_splitview: TemplateChild<adw::OverlaySplitView>,
@@ -616,39 +611,6 @@ impl PacViewWindow {
         // Preferences infopane width property notify signal
         let prefs_dialog = imp.prefs_dialog.borrow();
 
-        prefs_dialog.connect_infopane_width_notify(clone!(
-            #[weak(rename_to = window)] self,
-            move |prefs_dialog| {
-                let imp = window.imp();
-
-                let infopane_width = prefs_dialog.infopane_width();
-                let sidebar_width = imp.sidebar_splitview.min_sidebar_width();
-                let min_packageview_width = 400.0;
-
-                let unit = imp.info_splitview.sidebar_width_unit();
-
-                let info_condition = adw::BreakpointCondition::new_length(
-                    adw::BreakpointConditionLengthType::MaxWidth,
-                    sidebar_width + infopane_width + min_packageview_width,
-                    adw::LengthUnit::Sp
-                );
-
-                let sidebar_condition = adw::BreakpointCondition::new_length(
-                    adw::BreakpointConditionLengthType::MaxWidth,
-                    sidebar_width + infopane_width,
-                    adw::LengthUnit::Sp
-                );
-
-                window.set_width_request(unit.to_px(infopane_width, None) as i32);
-
-                imp.info_splitview.set_min_sidebar_width(infopane_width);
-                imp.info_splitview.set_max_sidebar_width(infopane_width*2.0);
-
-                imp.info_breakpoint.set_condition(Some(&info_condition));
-                imp.sidebar_breakpoint.set_condition(Some(&sidebar_condition));
-            }
-        ));
-
         // Preferences auto refresh property notify
         prefs_dialog.connect_auto_refresh_notify(clone!(
             #[weak(rename_to = window)] self,
@@ -758,7 +720,6 @@ impl PacViewWindow {
         let prefs_dialog = &*imp.prefs_dialog.borrow();
 
         settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
-        settings.bind("infopane-width", prefs_dialog, "infopane-width").build();
         settings.bind("aur-database-download", prefs_dialog, "aur-database-download").build();
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
         settings.bind("enable-pkgbuild-repos", prefs_dialog, "enable-pkgbuild-repos").build();

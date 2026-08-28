@@ -25,10 +25,6 @@
     <key name="grouping" type="b">
       <default>false</default>
     </key>
-    <key name="infopane-width" type="d">
-      <range min="400" max="1000"/>
-      <default>560</default>
-    </key>
     <key name="pkgbuild-custom-font" type="s">
       <default>'Adwaita Mono 11'</default>
     </key>

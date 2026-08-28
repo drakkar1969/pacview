@@ -48,7 +48,8 @@ pub enum PackageViewDisplayMode {
     #[default]
     Normal,
     NoInfopane,
-    NoSidebar
+    NoSidebar,
+    Narrow
 }
 
 //------------------------------------------------------------------------------
@@ -140,6 +141,10 @@ mod imp {
         #[property(get)]
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
+        #[template_child]
+        pub(super) grouping_button_bottom: TemplateChild<gtk::ToggleButton>,
+        #[template_child]
+        pub(super) sort_button_bottom: TemplateChild<adw::SplitButton>,
 
         #[template_child]
         pub(super) empty_status: TemplateChild<adw::StatusPage>,
@@ -281,9 +286,14 @@ impl PackageView {
 
             let mode = view.display_mode();
 
-            imp.main_menu_button.set_visible(mode == PackageViewDisplayMode::NoSidebar);
-            imp.sidebar_button.set_visible(mode == PackageViewDisplayMode::NoSidebar);
+            imp.main_menu_button.set_visible(mode == PackageViewDisplayMode::NoSidebar || mode == PackageViewDisplayMode::Narrow);
+            imp.sidebar_button.set_visible(mode == PackageViewDisplayMode::NoSidebar || mode == PackageViewDisplayMode::Narrow);
             imp.infopane_button.set_visible(mode != PackageViewDisplayMode::Normal);
+
+            imp.grouping_button.set_visible(mode != PackageViewDisplayMode::Narrow);
+            imp.sort_button.set_visible(mode != PackageViewDisplayMode::Narrow);
+            imp.grouping_button_bottom.set_visible(mode == PackageViewDisplayMode::Narrow);
+            imp.sort_button_bottom.set_visible(mode == PackageViewDisplayMode::Narrow);
         });
 
         // List view selection items changed signal
@@ -335,17 +345,23 @@ impl PackageView {
 
             let sort_asc = view.sort_ascending();
 
-            imp.sort_button.set_icon_name(
-                if sort_asc {
-                    "view-sort-ascending-symbolic"
-                } else {
-                    "view-sort-descending-symbolic"
-                }
-            );
+            let icon_name = if sort_asc {
+                "view-sort-ascending-symbolic"
+            } else {
+                "view-sort-descending-symbolic"
+            };
 
-            imp.sort_button.set_tooltip_text(
-                Some(if sort_asc { "Sort Descending" } else { "Sort Ascending" })
-            );
+            imp.sort_button.set_icon_name(icon_name);
+            imp.sort_button_bottom.set_icon_name(icon_name);
+
+            let tooltip = if sort_asc {
+                "Sort Descending"
+            } else {
+                "Sort Ascending"
+            };
+
+            imp.sort_button.set_tooltip_text(Some(tooltip));
+            imp.sort_button_bottom.set_tooltip_text(Some(tooltip));
 
             imp.sorter.changed(gtk::SorterChange::Inverted);
         });

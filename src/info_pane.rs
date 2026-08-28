@@ -27,7 +27,8 @@ use crate::{
 pub enum InfoPaneDisplayMode {
     #[default]
     Normal,
-    Collapsed
+    Collapsed,
+    Narrow
 }
 
 //------------------------------------------------------------------------------
@@ -44,6 +45,8 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
+        pub(super) tab_switcher: TemplateChild<adw::ViewSwitcher>,
+        #[template_child]
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
         pub(super) next_button: TemplateChild<gtk::Button>,
@@ -59,6 +62,9 @@ mod imp {
         pub(super) info_tab: TemplateChild<InfoDetailsTab>,
         #[template_child]
         pub(super) files_tab: TemplateChild<InfoFilesTab>,
+
+        #[template_child]
+        pub(super) tab_switcher_bar: TemplateChild<adw::ViewSwitcherBar>,
 
         #[property(get, set, builder(InfoPaneDisplayMode::default()))]
         display_mode: Cell<InfoPaneDisplayMode>,
@@ -219,7 +225,12 @@ impl InfoPane {
     fn setup_signals(&self) {
         // Display mode property notify signal
         self.connect_display_mode_notify(|pane| {
-            pane.imp().show_button.set_visible(pane.display_mode() == InfoPaneDisplayMode::Collapsed);
+            let imp = pane.imp();
+
+            imp.show_button.set_visible(pane.display_mode() != InfoPaneDisplayMode::Normal);
+
+            imp.tab_switcher.set_visible(pane.display_mode() != InfoPaneDisplayMode::Narrow);
+            imp.tab_switcher_bar.set_reveal(pane.display_mode() == InfoPaneDisplayMode::Narrow);
         });
     }
 

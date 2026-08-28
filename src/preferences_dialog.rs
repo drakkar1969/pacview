@@ -45,8 +45,6 @@ mod imp {
         #[template_child]
         pub(super) color_scheme_row: TemplateChild<adw::ComboRow>,
         #[template_child]
-        pub(super) infopane_width_row: TemplateChild<adw::SpinRow>,
-        #[template_child]
         pub(super) aur_database_download_row: TemplateChild<adw::ExpanderRow>,
         #[template_child]
         pub(super) aur_database_download_switch: TemplateChild<gtk::Switch>,
@@ -87,8 +85,6 @@ mod imp {
 
         #[property(get, set, builder(ColorScheme::default()))]
         color_scheme: Cell<ColorScheme>,
-        #[property(get, set)]
-        infopane_width: Cell<f64>,
         #[property(get, set)]
         aur_database_download: Cell<bool>,
         #[property(get, set)]
@@ -246,7 +242,6 @@ mod imp {
                             let settings = gio::Settings::new(APP_ID);
 
                             settings.reset("color-scheme");
-                            settings.reset("infopane-width");
                             settings.reset("aur-database-download");
                             settings.reset("aur-database-age");
                             settings.reset("enable-pkgbuild-repos");
@@ -334,11 +329,6 @@ impl PreferencesDialog {
 
         // Bind properties to widgets
         self.bind_property("color-scheme", &imp.color_scheme_row.get(), "selected")
-            .sync_create()
-            .bidirectional()
-            .build();
-
-        self.bind_property("infopane-width", &imp.infopane_width_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();

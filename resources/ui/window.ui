@@ -4,9 +4,13 @@
   <template class="PacViewWindow" parent="AdwApplicationWindow">
     <property name="default-width">1350</property>
     <property name="default-height">840</property>
+    <property name="width-request">360</property>
+    <property name="height-request">400</property>
     <property name="title">PacView</property>
     <child>
       <object class="AdwBreakpoint" id="info_breakpoint">
+        <!-- Min sidebar width in sidebar split view (in sp) + 2 * 450sp -->
+        <condition>max-width: 1130sp</condition>
         <setter object="info_splitview" property="collapsed">true</setter>
         <setter object="package_view" property="display-mode">no-infopane</setter>
         <setter object="info_pane" property="display-mode">collapsed</setter>
@@ -14,12 +18,25 @@
     </child>
     <child>
       <object class="AdwBreakpoint" id="sidebar_breakpoint">
+        <!-- Min sidebar width in sidebar split view (in sp) + 450sp -->
+        <condition>max-width: 680sp</condition>
         <setter object="info_splitview" property="collapsed">true</setter>
         <setter object="sidebar_splitview" property="collapsed">true</setter>
         <setter object="sidebar_button" property="visible">true</setter>
         <setter object="main_menu_button" property="visible">false</setter>
         <setter object="package_view" property="display-mode">no-sidebar</setter>
         <setter object="info_pane" property="display-mode">collapsed</setter>
+      </object>
+    </child>
+    <child>
+      <object class="AdwBreakpoint" id="ui_breakpoint">
+        <condition>max-width: 450sp</condition>
+        <setter object="info_splitview" property="collapsed">true</setter>
+        <setter object="sidebar_splitview" property="collapsed">true</setter>
+        <setter object="sidebar_button" property="visible">true</setter>
+        <setter object="main_menu_button" property="visible">false</setter>
+        <setter object="package_view" property="display-mode">narrow</setter>
+        <setter object="info_pane" property="display-mode">narrow</setter>
       </object>
     </child>
     <property name="content">
@@ -83,6 +100,9 @@
         <property name="content">
           <object class="AdwOverlaySplitView" id="info_splitview">
             <property name="sidebar-position">end</property>
+            <property name="sidebar-width-unit">px</property>
+            <property name="min-sidebar-width">360</property>
+            <property name="max-sidebar-width">1200</property>
             <property name="sidebar-width-fraction">0.5</property>
             <property name="sidebar">
               <object class="InfoPane" id="info_pane">

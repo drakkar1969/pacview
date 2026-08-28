@@ -198,13 +198,45 @@
           </object>
         </property>
         <child type="bottom">
-          <object class="GtkLabel" id="count_label">
-            <property name="margin-top">10</property>
-            <property name="margin-bottom">8</property>
-            <style>
-              <class name="heading"/>
-              <class name="dimmed"/>
-            </style>
+          <object class="GtkCenterBox">
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+            <property name="margin-top">6</property>
+            <property name="margin-bottom">6</property>
+            <property name="start-widget">
+              <object class="GtkToggleButton" id="grouping_button_bottom">
+                <property name="visible">false</property>
+                <property name="icon-name">repository-symbolic</property>
+                <property name="tooltip-text">Group by Repository</property>
+                <property name="action-name">view.set-grouping</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </property>
+            <property name="center-widget">
+              <object class="GtkLabel" id="count_label">
+                <property name="margin-top">3</property>
+                <property name="margin-bottom">3</property>
+                <style>
+                  <class name="heading"/>
+                  <class name="dimmed"/>
+                </style>
+              </object>
+            </property>
+            <property name="end-widget">
+              <object class="AdwSplitButton" id="sort_button_bottom">
+                <property name="visible">false</property>
+                <property name="icon-name">view-sort-ascending-symbolic</property>
+                <property name="menu-model">sort_menu</property>
+                <property name="tooltip-text">Sort Descending</property>
+                <property name="dropdown-tooltip">Sort Options</property>
+                <property name="action-name">view.set-sort-ascending</property>
+                <style>
+                  <class name="flat"/>
+                </style>
+              </object>
+            </property>
           </object>
         </child>
       </object>
