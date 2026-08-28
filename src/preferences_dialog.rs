@@ -1,4 +1,5 @@
 use std::cell::{Cell, RefCell};
+use std::fs;
 
 use gtk::{gio, glib, pango};
 use adw::subclass::prelude::*;
@@ -6,6 +7,7 @@ use adw::prelude::*;
 use glib::clone;
 
 use strum::FromRepr;
+use walkdir::WalkDir;
 
 use crate::{
     APP_ID,
@@ -78,6 +80,8 @@ mod imp {
         pub(super) pkgbuild_custom_font_row: TemplateChild<adw::ActionRow>,
         #[template_child]
         pub(super) open_cache_button: TemplateChild<adw::ButtonRow>,
+        #[template_child]
+        pub(super) clear_cache_button: TemplateChild<adw::ButtonRow>,
         #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
@@ -186,6 +190,41 @@ mod imp {
                 let path = Paths::cache_dir().display().to_string();
 
                 AppInfoExt::open_with_default_app(&path).await;
+            });
+
+            // Clear cache action
+            klass.install_action("prefs.clear-cache", None, |dialog, _, _| {
+                let clear_dialog = adw::AlertDialog::builder()
+                    .heading("Clear Cache Folder?")
+                    .body("Delete all files and folders in the PacView cache folder.")
+                    .default_response("clear")
+                    .build();
+
+                clear_dialog.add_responses(&[("cancel", "_Cancel"), ("clear", "Clea_r")]);
+                clear_dialog.set_response_appearance("clear", adw::ResponseAppearance::Destructive);
+
+                clear_dialog.choose(
+                    Some(dialog),
+                    None::<&gio::Cancellable>,
+                    move |response| {
+                        if response == "clear" {
+                            for path in WalkDir::new(Paths::cache_dir())
+                                .min_depth(1)
+                                .max_depth(1)
+                                .into_iter()
+                                .flatten()
+                                .map(|entry| entry.into_path()) {
+                                    if let Ok(metadata) = path.metadata() {
+                                        let _ = if metadata.file_type().is_dir() {
+                                            fs::remove_dir_all(path)
+                                        } else {
+                                            fs::remove_file(path)
+                                        };
+                                    }
+                                }
+                        }
+                    }
+                );
             });
 
             // Reset preferences action
