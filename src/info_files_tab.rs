@@ -205,13 +205,6 @@ impl InfoFilesTab {
             }
         ));
 
-        // Search entry search started signal
-        imp.search_entry.connect_search_started(|entry| {
-            if !entry.has_focus() {
-                entry.grab_focus();
-            }
-        });
-
         // Search entry search changed signal
         imp.search_entry.connect_search_changed(clone!(
             #[weak] imp,
