@@ -47,6 +47,8 @@ mod imp {
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+        #[template_child]
+        pub(super) search_mode_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
@@ -67,8 +69,6 @@ mod imp {
 
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) mode_label: TemplateChild<gtk::Label>,
 
         #[property(get, set)]
         is_loaded: Cell<bool>,
@@ -249,9 +249,7 @@ impl GroupsWindow {
         self.connect_search_mode_notify(|window| {
             let imp = window.imp();
 
-            let search_mode = window.search_mode();
-
-            imp.mode_label.set_label(&format!("Search Mode: {}", search_mode.as_ref()));
+            imp.search_mode_label.set_label(window.search_mode().as_ref());
 
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
@@ -317,11 +315,6 @@ impl GroupsWindow {
         // Bind search button state to search bar visibility
         imp.search_button.bind_property("active", &imp.search_bar.get(), "search-mode-enabled")
             .bidirectional()
-            .sync_create()
-            .build();
-
-        // Bind search bar visibility to mode label visibility
-        imp.search_button.bind_property("active", &imp.mode_label.get(), "visible")
             .sync_create()
             .build();
 

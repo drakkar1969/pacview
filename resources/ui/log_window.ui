@@ -51,14 +51,21 @@
                     </style>
                     <child>
                       <object class="GtkSearchEntry" id="search_entry">
-                        <property name="width-request">350</property>
+                        <property name="hexpand">true</property>
                         <property name="placeholder-text">Search</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkMenuButton" id="search_menu_button">
-                        <property name="icon-name">view-more-symbolic</property>
+                        <property name="always-show-arrow">true</property>
                         <property name="menu-model">search_menu</property>
+                        <property name="child">
+                          <object class="GtkLabel" id="search_mode_label">
+                            <property name="xalign">0</property>
+                            <property name="width-chars">8</property>
+                            <property name="label">Messages</property>
+                          </object>
+                        </property>
                       </object>
                     </child>
                   </object>
@@ -173,18 +180,6 @@
                 </style>
               </object>
             </child>
-            <child type="center">
-              <object class="GtkLabel" id="mode_label">
-                <property name="margin-start">36</property>
-                <property name="margin-end">36</property>
-                <property name="xalign">0</property>
-                <property name="label">Search Mode: All</property>
-                <style>
-                  <class name="caption-heading"/>
-                  <class name="dimmed"/>
-                </style>
-              </object>
-            </child>
             <child type="end">
               <object class="GtkLabel" id="size_label">
                 <property name="xalign">1</property>
@@ -207,7 +202,7 @@
       <item>
         <attribute name="label">All Messages</attribute>
         <attribute name="action">search.set-mode</attribute>
-        <attribute name="target">all</attribute>
+        <attribute name="target">messages</attribute>
       </item>
       <item>
         <attribute name="label">Packages</attribute>

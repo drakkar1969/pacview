@@ -29,7 +29,7 @@ use crate::{
 #[enum_type(name = "LogSearchMode")]
 pub enum LogSearchMode {
     #[default]
-    All,
+    Messages,
     Packages,
     Exact,
 }
@@ -53,6 +53,8 @@ mod imp {
         pub(super) search_bar: TemplateChild<gtk::SearchBar>,
         #[template_child]
         pub(super) search_entry: TemplateChild<gtk::SearchEntry>,
+        #[template_child]
+        pub(super) search_mode_label: TemplateChild<gtk::Label>,
 
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
@@ -69,8 +71,6 @@ mod imp {
 
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) mode_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) size_label: TemplateChild<gtk::Label>,
 
@@ -238,9 +238,7 @@ impl LogWindow {
         self.connect_search_mode_notify(|window| {
             let imp = window.imp();
 
-            let mode = window.search_mode();
-
-            imp.mode_label.set_label(&format!("Search Mode: {}", mode.as_ref()));
+            imp.search_mode_label.set_label(window.search_mode().as_ref());
 
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
@@ -280,11 +278,6 @@ impl LogWindow {
             .sync_create()
             .build();
 
-        // Bind search bar visibility to mode label visibility
-        imp.search_button.bind_property("active", &imp.mode_label.get(), "visible")
-            .sync_create()
-            .build();
-
         // Set search filter function
         imp.search_filter.set_filter_func(clone!(
             #[weak(rename_to = window)] self,
@@ -307,7 +300,7 @@ impl LogWindow {
                         .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
                 };
 
-                if window.search_mode() == LogSearchMode::All {
+                if window.search_mode() == LogSearchMode::Messages {
                     is_match(&msg)
                 } else {
                     let Some((prefix, package, _)) = msg.splitn(3, ' ').collect_tuple() else {
