@@ -45,7 +45,11 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
+        pub(super) tab_header_bar: TemplateChild<adw::HeaderBar>,
+        #[template_child]
         pub(super) tab_switcher: TemplateChild<adw::ViewSwitcher>,
+        #[template_child]
+        pub(super) tab_header_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -229,7 +233,12 @@ impl InfoPane {
 
             imp.show_button.set_visible(pane.display_mode() != InfoPaneDisplayMode::Normal);
 
-            imp.tab_switcher.set_visible(pane.display_mode() != InfoPaneDisplayMode::Narrow);
+            if pane.display_mode() == InfoPaneDisplayMode::Narrow {
+                imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_label.get()));
+            } else {
+                imp.tab_header_bar.set_title_widget(Some(&imp.tab_switcher.get()));
+            };
+
             imp.tab_switcher_bar.set_reveal(pane.display_mode() == InfoPaneDisplayMode::Narrow);
         });
     }
