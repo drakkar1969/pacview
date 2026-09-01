@@ -100,6 +100,8 @@ mod imp {
         pub(super) installed_item: RefCell<StatusItem>,
         pub(super) update_item: RefCell<StatusItem>,
 
+        pub(super) aur_database_cancel_token: RefCell<Option<CancellationToken>>,
+        pub(super) pkgbuild_fetch_cancel_token: RefCell<Option<CancellationToken>>,
         pub(super) update_cancel_tokens: RefCell<Option<Vec<CancellationToken>>>,
 
         pub(super) notify_debouncer: RefCell<Option<Debouncer<INotifyWatcher, NoCache>>>,
@@ -200,42 +202,78 @@ mod imp {
             klass.install_action_async("win.update-aur-database", None, async |window, _, _| {
                 let imp = window.imp();
 
-                imp.update_item.borrow().set_state(StatusItemState::Reset);
                 imp.package_view.set_state(PackageViewState::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
                 imp.package_view.count_label().set_label("");
 
+                window.cancel_aur_database_download();
+                window.cancel_pkgbuild_fetch();
                 window.cancel_package_updates();
 
                 // Spawn tokio task to download AUR package names file
-                let _ = TokioManager::spawn(async move |token| AurDBFile::download(token).await)
-                    .join_handle
-                    .await
-                    .expect("Failed to complete tokio task");
+                let task = TokioManager::spawn(async move |token| AurDBFile::download(token).await);
 
-                // Refresh packages
-                WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
+                imp.aur_database_cancel_token.replace(Some(task.cancel_token));
+
+                if task.join_handle.await.expect("Failed to complete tokio task").is_ok() {
+                    // Refresh packages
+                    WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
+                } else {
+                    // Reset widgets
+                    imp.package_view.set_state(PackageViewState::Normal);
+                    imp.package_view.selection().items_changed(0, 0, 0);
+
+                    let pkg = imp.package_view.selection().selected_item()
+                        .and_downcast::<PkgObject>();
+
+                    imp.info_pane.set_pkg(pkg);
+                }
+
+                imp.aur_database_cancel_token.replace(None);
+            });
+
+            // Cancel aur download action
+            klass.install_action("win.cancel-aur-download", None, |window, _, _| {
+                window.cancel_aur_database_download();
             });
 
             // Fetch PKGBUILD repos action
             klass.install_action_async("win.fetch-pkgbuild-repos", None, async |window, _, _| {
                 let imp = window.imp();
 
-                imp.update_item.borrow().set_state(StatusItemState::Reset);
                 imp.package_view.set_state(PackageViewState::PkgbuildRepoFetch);
                 imp.info_pane.set_pkg(None::<PkgObject>);
                 imp.package_view.count_label().set_label("");
 
+                window.cancel_aur_database_download();
+                window.cancel_pkgbuild_fetch();
                 window.cancel_package_updates();
 
                 // Spawn tokio task to fetch PKGBUILD repos
-                let _ = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote)
-                    .join_handle
-                    .await
-                    .expect("Failed to complete tokio task");
+                let task = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote);
 
-                // Refresh packages
-                WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
+                imp.pkgbuild_fetch_cancel_token.replace(Some(task.cancel_token));
+
+                if task.join_handle.await.expect("Failed to complete tokio task").is_ok() {
+                    // Refresh packages
+                    WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
+                } else {
+                    // Reset widgets
+                    imp.package_view.set_state(PackageViewState::Normal);
+                    imp.package_view.selection().items_changed(0, 0, 0);
+
+                    let pkg = imp.package_view.selection().selected_item()
+                        .and_downcast::<PkgObject>();
+
+                    imp.info_pane.set_pkg(pkg);
+                }
+
+                imp.pkgbuild_fetch_cancel_token.replace(None);
+            });
+
+            // Cancel PKGBUILD fetch action
+            klass.install_action("win.cancel-pkgbuild-fetch", None, |window, _, _| {
+                window.cancel_pkgbuild_fetch();
             });
 
             // Mount root dir action
@@ -770,6 +808,21 @@ impl PacViewWindow {
     }
 
     //---------------------------------------
+    // Cancel helper functions
+    //---------------------------------------
+    fn cancel_aur_database_download(&self) {
+        if let Some(token) = self.imp().aur_database_cancel_token.take() {
+            token.cancel();
+        }
+    }
+
+    fn cancel_pkgbuild_fetch(&self) {
+        if let Some(token) = self.imp().pkgbuild_fetch_cancel_token.take() {
+            token.cancel();
+        }
+    }
+
+    //---------------------------------------
     // Setup alpm
     //---------------------------------------
     #[allow(clippy::items_after_statements)]
@@ -822,20 +875,28 @@ impl PacViewWindow {
                         imp.package_view.set_state(PackageViewState::AURDownload);
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
-                        let _ = TokioManager::spawn(async move |token| AurDBFile::download(token).await)
-                            .join_handle
-                            .await
-                            .expect("Failed to complete tokio task");
+                        let task = TokioManager::spawn(async move |token| {
+                            AurDBFile::download(token).await
+                        });
+
+                        imp.aur_database_cancel_token.replace(Some(task.cancel_token));
+
+                        let _ = task.join_handle.await.expect("Failed to complete tokio task");
+
+                        imp.aur_database_cancel_token.replace(None);
                     }
 
                     if pkgbuild_fetch {
                         imp.package_view.set_state(PackageViewState::PkgbuildRepoFetch);
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
-                        let _ = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote)
-                            .join_handle
-                            .await
-                            .expect("Failed to complete tokio task");
+                        let task = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote);
+
+                        imp.pkgbuild_fetch_cancel_token.replace(Some(task.cancel_token));
+
+                        let _ = task.join_handle.await.expect("Failed to complete tokio task");
+
+                        imp.pkgbuild_fetch_cancel_token.replace(None);
                     }
 
                     window.alpm_load_packages();

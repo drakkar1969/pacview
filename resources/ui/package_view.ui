@@ -188,6 +188,16 @@
                         <property name="widget">loading_status</property>
                       </object>
                     </property>
+                    <property name="child">
+                      <object class="GtkButton" id="cancel_button">
+                        <property name="halign">center</property>
+                        <property name="label">_Cancel</property>
+                        <property name="use-underline">true</property>
+                        <style>
+                          <class name="pill"/>
+                        </style>
+                      </object>
+                    </property>
                     <style>
                       <class name="compact"/>
                     </style>

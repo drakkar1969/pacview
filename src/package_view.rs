@@ -105,6 +105,10 @@ mod imp {
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) loading_status: TemplateChild<adw::StatusPage>,
+        #[template_child]
+        pub(super) empty_status: TemplateChild<adw::StatusPage>,
+        #[template_child]
+        pub(super) cancel_button: TemplateChild<gtk::Button>,
 
         #[property(get)]
         #[template_child]
@@ -145,9 +149,6 @@ mod imp {
         pub(super) grouping_button_bottom: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) sort_button_bottom: TemplateChild<adw::SplitButton>,
-
-        #[template_child]
-        pub(super) empty_status: TemplateChild<adw::StatusPage>,
 
         #[property(get, set)]
         aur_sidebar_item: RefCell<RepoItem>,
@@ -708,14 +709,20 @@ impl PackageView {
             PackageViewState::PackageLoad => {
                 imp.loading_status.set_title("Loading Pacman Databases");
                 imp.stack.set_visible_child_name("spinner");
+                imp.cancel_button.set_visible(false);
+                imp.cancel_button.set_action_name(None);
             }
             PackageViewState::AURDownload => {
                 imp.loading_status.set_title("Downloading AUR Database");
                 imp.stack.set_visible_child_name("spinner");
+                imp.cancel_button.set_visible(true);
+                imp.cancel_button.set_action_name(Some("win.cancel-aur-download"));
             }
             PackageViewState::PkgbuildRepoFetch => {
                 imp.loading_status.set_title("Fetching PKGBUILD Repositories");
                 imp.stack.set_visible_child_name("spinner");
+                imp.cancel_button.set_visible(true);
+                imp.cancel_button.set_action_name(Some("win.cancel-pkgbuild-fetch"));
             }
         }
     }
