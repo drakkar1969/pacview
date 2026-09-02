@@ -237,7 +237,7 @@ impl InfoPane {
                 imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_label.get()));
             } else {
                 imp.tab_header_bar.set_title_widget(Some(&imp.tab_switcher.get()));
-            };
+            }
 
             imp.tab_switcher_bar.set_reveal(pane.display_mode() == InfoPaneDisplayMode::Narrow);
         });

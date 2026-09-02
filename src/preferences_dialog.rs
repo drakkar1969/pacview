@@ -209,7 +209,7 @@ mod imp {
                                 .max_depth(1)
                                 .into_iter()
                                 .flatten()
-                                .map(|entry| entry.into_path()) {
+                                .map(walkdir::DirEntry::into_path) {
                                     if let Ok(metadata) = path.metadata() {
                                         let _ = if metadata.file_type().is_dir() {
                                             fs::remove_dir_all(path)
