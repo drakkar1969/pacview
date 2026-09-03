@@ -2,7 +2,7 @@
 <interface>
   <!--// LogDialog template //-->
   <template class="LogDialog" parent="AdwDialog">
-    <property name="content-width">800</property>
+    <property name="content-width">900</property>
     <property name="content-height">600</property>
     <property name="title">Pacman Log</property>
     <child>

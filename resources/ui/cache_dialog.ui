@@ -2,7 +2,7 @@
 <interface>
   <!--// CacheDialog template //-->
   <template class="CacheDialog" parent="AdwDialog">
-    <property name="content-width">800</property>
+    <property name="content-width">900</property>
     <property name="content-height">600</property>
     <property name="title">Pacman Cache</property>
     <child>

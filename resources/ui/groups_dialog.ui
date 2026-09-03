@@ -2,7 +2,7 @@
 <interface>
   <!--// GroupsDialog template //-->
   <template class="GroupsDialog" parent="AdwDialog">
-    <property name="content-width">800</property>
+    <property name="content-width">700</property>
     <property name="content-height">600</property>
     <property name="title">Pacman Groups</property>
     <child>
