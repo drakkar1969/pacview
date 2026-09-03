@@ -135,6 +135,25 @@
           <object class="AdwPreferencesGroup">
             <property name="title">Info Pane</property>
             <child>
+              <object class="AdwSpinRow" id="infopane_width_fraction_row">
+                <property name="title">_Width Fraction</property>
+                <property name="subtitle">Fraction of width occupied by info pane</property>
+                <property name="use-underline">true</property>
+                <property name="numeric">true</property>
+                <property name="digits">2</property>
+                <property name="snap-to-ticks">true</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0.33</property>
+                    <property name="page-increment">0.05</property>
+                    <property name="step-increment">0.01</property>
+                    <property name="upper">0.66</property>
+                    <property name="value">0.53</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
               <object class="AdwSpinRow" id="property_max_lines_row">
                 <property name="title">Ma_ximum Lines</property>
                 <property name="subtitle">Maximum number of text lines for collapsed properties</property>

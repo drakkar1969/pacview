@@ -726,6 +726,11 @@ impl PacViewWindow {
             .sync_create()
             .build();
 
+        // Bind preferences dialog property to info splitview
+        prefs_dialog.bind_property("infopane-width-fraction", &imp.info_splitview.get(), "sidebar-width-fraction")
+            .sync_create()
+            .build();
+
         // Disable reset root dir action
         self.action_set_enabled("win.reset-root-dir", false);
     }
@@ -766,6 +771,7 @@ impl PacViewWindow {
         settings.bind("remember-grouping", prefs_dialog, "remember-grouping").build();
         settings.bind("search-prop", prefs_dialog, "search-prop").build();
         settings.bind("search-exact", prefs_dialog, "search-exact").build();
+        settings.bind("infopane-width-fraction", prefs_dialog, "infopane-width-fraction").build();
         settings.bind("property-max-lines", prefs_dialog, "property-max-lines").build();
         settings.bind("property-line-spacing", prefs_dialog, "property-line-spacing").build();
         settings.bind("underline-links", prefs_dialog, "underline-links").build();

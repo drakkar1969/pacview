@@ -63,6 +63,8 @@ mod imp {
         #[template_child]
         pub(super) search_exact_row: TemplateChild<adw::SwitchRow>,
         #[template_child]
+        pub(super) infopane_width_fraction_row: TemplateChild<adw::SpinRow>,
+        #[template_child]
         pub(super) property_max_lines_row: TemplateChild<adw::SpinRow>,
         #[template_child]
         pub(super) property_line_spacing_row: TemplateChild<adw::SpinRow>,
@@ -103,6 +105,8 @@ mod imp {
         search_exact: Cell<bool>,
         #[property(get, set)]
         property_line_spacing: Cell<f64>,
+        #[property(get, set)]
+        infopane_width_fraction: Cell<f64>,
         #[property(get, set)]
         property_max_lines: Cell<f64>,
         #[property(get, set)]
@@ -251,6 +255,7 @@ mod imp {
                             settings.reset("remember-grouping");
                             settings.reset("search-prop");
                             settings.reset("search-exact");
+                            settings.reset("infopane-width-fraction");
                             settings.reset("property-max-lines");
                             settings.reset("property-line-spacing");
                             settings.reset("underline-links");
@@ -379,12 +384,17 @@ impl PreferencesDialog {
             .bidirectional()
             .build();
 
-        self.bind_property("property-line_spacing", &imp.property_line_spacing_row.get(), "value")
+        self.bind_property("infopane-width-fraction", &imp.infopane_width_fraction_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();
 
         self.bind_property("property-max-lines", &imp.property_max_lines_row.get(), "value")
+            .sync_create()
+            .bidirectional()
+            .build();
+
+        self.bind_property("property-line_spacing", &imp.property_line_spacing_row.get(), "value")
             .sync_create()
             .bidirectional()
             .build();
