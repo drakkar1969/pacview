@@ -4,7 +4,7 @@ use std::io;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
@@ -32,7 +32,7 @@ pub enum BackupSearchMode {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: BackupWindow
+// MODULE: BackupDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -41,13 +41,11 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::BackupWindow)]
-    #[template(resource = "/com/github/PacView/ui/backup_window.ui")]
-    pub struct BackupWindow {
+    #[properties(wrapper_type = super::BackupDialog)]
+    #[template(resource = "/com/github/PacView/ui/backup_dialog.ui")]
+    pub struct BackupDialog {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
-        #[template_child]
-        pub(super) status_dropdown: TemplateChild<gtk::DropDown>,
         #[template_child]
         pub(super) compare_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -83,6 +81,8 @@ mod imp {
         is_loaded: Cell<bool>,
         #[property(get, set, builder(BackupSearchMode::default()))]
         search_mode: Cell<BackupSearchMode>,
+        #[property(get, set, construct, builder(BackupStatus::All))]
+        filter: Cell<BackupStatus>,
         #[property(get, set)]
         can_compare: Cell<bool>,
         #[property(get, set)]
@@ -97,10 +97,10 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for BackupWindow {
-        const NAME: &'static str = "BackupWindow";
-        type Type = super::BackupWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for BackupDialog {
+        const NAME: &'static str = "BackupDialog";
+        type Type = super::BackupDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             BackupStatus::ensure_type();
@@ -121,7 +121,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for BackupWindow {
+    impl ObjectImpl for BackupDialog {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -135,11 +135,10 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for BackupWindow {}
-    impl WindowImpl for BackupWindow {}
-    impl AdwWindowImpl for BackupWindow {}
+    impl WidgetImpl for BackupDialog {}
+    impl AdwDialogImpl for BackupDialog {}
 
-    impl BackupWindow {
+    impl BackupDialog {
         //---------------------------------------
         // Install actions
         //---------------------------------------
@@ -148,46 +147,49 @@ mod imp {
             klass.install_property_action("search.set-mode", "search-mode");
 
             // Cycle search mode action
-            klass.install_action("search.cycle-mode", None, |window, _, _| {
+            klass.install_action("search.cycle-mode", None, |dialog, _, _| {
                 let new_mode = BackupSearchMode::iter().cycle()
-                    .skip_while(|&mode| mode != window.search_mode())
+                    .skip_while(|&mode| mode != dialog.search_mode())
                     .nth(1)
                     .expect("Failed to get 'BackupSearchMode'");
 
-                window.set_search_mode(new_mode);
+                dialog.set_search_mode(new_mode);
             });
 
             // Reverse cycle search mode action
-            klass.install_action("search.reverse-cycle-mode", None, |window, _, _| {
+            klass.install_action("search.reverse-cycle-mode", None, |dialog, _, _| {
                 let new_mode = BackupSearchMode::iter().rev().cycle()
-                    .skip_while(|&mode| mode != window.search_mode())
+                    .skip_while(|&mode| mode != dialog.search_mode())
                     .nth(1)
                     .expect("Failed to get 'BackupSearchMode'");
 
-                window.set_search_mode(new_mode);
+                dialog.set_search_mode(new_mode);
             });
 
-            // Compare action
-            klass.install_action_async("backup.compare", None, async |window, _, _| {
-                window.cancel_compare();
+            // Filter property action
+            klass.install_property_action("backup.filter", "filter");
 
-                if !window.comparing() {
-                    let backup_file = window.imp().selection.selected_item();
+            // Compare action
+            klass.install_action_async("backup.compare", None, async |dialog, _, _| {
+                dialog.cancel_compare();
+
+                if !dialog.comparing() {
+                    let backup_file = dialog.imp().selection.selected_item();
 
                     if let Some(file) = backup_file
                         .and_downcast::<BackupObject>() {
-                            window.set_comparing(true);
+                            dialog.set_comparing(true);
 
-                            let _ = window.compare_with_original(&file).await;
+                            let _ = dialog.compare_with_original(&file).await;
 
-                            window.set_comparing(false);
+                            dialog.set_comparing(false);
                         }
                 }
             });
 
             // Open action
-            klass.install_action_async("backup.open", None, async |window, _, _| {
-                if let Some(backup_file) = window.imp().selection.selected_item()
+            klass.install_action_async("backup.open", None, async |dialog, _, _| {
+                if let Some(backup_file) = dialog.imp().selection.selected_item()
                     .and_downcast::<BackupObject>() {
                         let path = Pacman::config().read().unwrap().root_dir.clone() +
                             &backup_file.path();
@@ -197,11 +199,11 @@ mod imp {
             });
 
             // Copy action
-            klass.install_action("backup.copy", None, |window, _, _| {
+            klass.install_action("backup.copy", None, |dialog, _, _| {
                 let mut package = String::new();
                 let mut output = String::from("## Backup Files\n|Filename|Status|\n|---|---|\n");
 
-                for backup in window.imp().selection.iter::<glib::Object>()
+                for backup in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<BackupObject>()) {
                         let backup_package = backup.package();
 
@@ -217,7 +219,7 @@ mod imp {
                         ).unwrap();
                     }
 
-                window.clipboard().set_text(&output);
+                dialog.clipboard().set_text(&output);
             });
         }
 
@@ -225,12 +227,9 @@ mod imp {
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Close window binding
-            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
-
             // Find key binding
-            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
-                window.imp().search_bar.set_search_mode(true);
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |dialog| {
+                dialog.imp().search_bar.set_search_mode(true);
 
                 Propagation::Stop
             });
@@ -249,26 +248,26 @@ mod imp {
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "backup.copy");
 
             // Status key bindings
-            klass.add_binding(Key::A, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::All as u32);
+            klass.add_binding(Key::A, ModifierType::ALT_MASK, |dialog| {
+                dialog.set_filter(BackupStatus::All);
 
                 Propagation::Stop
             });
 
-            klass.add_binding(Key::M, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Modified as u32);
+            klass.add_binding(Key::M, ModifierType::ALT_MASK, |dialog| {
+                dialog.set_filter(BackupStatus::Modified);
 
                 Propagation::Stop
             });
 
-            klass.add_binding(Key::U, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Unmodified as u32);
+            klass.add_binding(Key::U, ModifierType::ALT_MASK, |dialog| {
+                dialog.set_filter(BackupStatus::Unmodified);
 
                 Propagation::Stop
             });
 
-            klass.add_binding(Key::L, ModifierType::ALT_MASK, |window| {
-                window.imp().status_dropdown.set_selected(BackupStatus::Locked as u32);
+            klass.add_binding(Key::L, ModifierType::ALT_MASK, |dialog| {
+                dialog.set_filter(BackupStatus::Locked);
 
                 Propagation::Stop
             });
@@ -277,15 +276,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: BackupWindow
+// IMPLEMENTATION: BackupDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct BackupWindow(ObjectSubclass<imp::BackupWindow>)
-        @extends adw::Window, gtk::Window, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct BackupDialog(ObjectSubclass<imp::BackupDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl BackupWindow {
+impl BackupDialog {
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -313,29 +312,24 @@ impl BackupWindow {
         ));
 
         // Search mode property notify signal
-        self.connect_search_mode_notify(|window| {
-            let imp = window.imp();
+        self.connect_search_mode_notify(|dialog| {
+            let imp = dialog.imp();
 
-            imp.search_mode_label.set_label(window.search_mode().as_ref());
+            imp.search_mode_label.set_label(dialog.search_mode().as_ref());
 
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
 
-        // Status dropdown selected property notify signal
-        imp.status_dropdown.connect_selected_item_notify(clone!(
-            #[weak] imp,
-            move |_| {
-                imp.status_filter.changed(gtk::FilterChange::Different);
-
-                imp.view.grab_focus();
-            }
-        ));
+        // Filter property notify signal
+        self.connect_filter_notify(|dialog| {
+            dialog.imp().status_filter.changed(gtk::FilterChange::Different);
+        });
 
         // Section sort model items changed signal
         imp.section_sort_model.connect_items_changed(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |sort_model, _, _, _| {
-                let imp = window.imp();
+                let imp = dialog.imp();
 
                 let n_items = sort_model.n_items();
                 let mut n_sections = 0;
@@ -352,7 +346,7 @@ impl BackupWindow {
                 }
 
                 imp.stack.set_visible_child_name(
-                    if window.is_loaded() {
+                    if dialog.is_loaded() {
                         if n_items == 0 { "empty" } else { "view" }
                     } else {
                         "loading"
@@ -368,38 +362,38 @@ impl BackupWindow {
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::Locked, |backup| backup.status());
 
-                window.action_set_enabled("backup.compare", window.can_compare() && status == BackupStatus::Modified);
-                window.action_set_enabled("backup.open", status != BackupStatus::Locked);
-                window.action_set_enabled("backup.copy", n_items > 0);
+                dialog.action_set_enabled("backup.compare", dialog.can_compare() && status == BackupStatus::Modified);
+                dialog.action_set_enabled("backup.open", status != BackupStatus::Locked);
+                dialog.action_set_enabled("backup.copy", n_items > 0);
             }
         ));
 
         // Selection selected item property notify signal
         imp.selection.connect_selected_item_notify(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |selection| {
                 let status = selection.selected_item()
                     .and_downcast::<BackupObject>()
                     .map_or(BackupStatus::Locked, |backup| backup.status());
 
-                window.action_set_enabled("backup.compare", window.can_compare() && status == BackupStatus::Modified);
-                window.action_set_enabled("backup.open", status != BackupStatus::Locked);
+                dialog.action_set_enabled("backup.compare", dialog.can_compare() && status == BackupStatus::Modified);
+                dialog.action_set_enabled("backup.open", status != BackupStatus::Locked);
             }
         ));
 
         // Column view activate signal
         imp.view.connect_activate(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |_, _| {
-                window.activate_action("backup.open", None).unwrap();
+                dialog.activate_action("backup.open", None).unwrap();
             }
         ));
 
         // Comparing property notify signal
-        self.connect_comparing_notify(|window| {
-            let imp = window.imp();
+        self.connect_comparing_notify(|dialog| {
+            let imp = dialog.imp();
 
-            if window.comparing() {
+            if dialog.comparing() {
                 imp.compare_button.set_icon_name("process-stop-symbolic");
                 imp.compare_button.set_tooltip_text(Some("Cancel Comparison"));
             } else {
@@ -432,10 +426,10 @@ impl BackupWindow {
 
         // Set search filter function
         imp.search_filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[upgrade_or] false,
             move |item| {
-                let search_term = window.imp().search_term.borrow();
+                let search_term = dialog.imp().search_term.borrow();
 
                 if search_term.is_empty() {
                     return true;
@@ -451,7 +445,7 @@ impl BackupWindow {
                         .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
                 };
 
-                match window.search_mode() {
+                match dialog.search_mode() {
                     BackupSearchMode::All => {
                         is_match(&obj.path()) || is_match(&obj.package())
                     }
@@ -466,20 +460,19 @@ impl BackupWindow {
         ));
 
         imp.status_filter.set_filter_func(clone!(
-            #[weak] imp,
+            #[weak(rename_to = dialog)] self,
             #[upgrade_or] false,
             move |item| {
-                let status = BackupStatus::from_repr(imp.status_dropdown.selected())
-                    .unwrap_or_default();
+                let filter = dialog.filter();
 
-                if status == BackupStatus::All {
+                if filter == BackupStatus::All {
                     true
                 } else {
                     let obj = item
                         .downcast_ref::<BackupObject>()
                         .expect("Failed to downcast to 'BackupObject'");
 
-                    obj.status() == status
+                    obj.status() == filter
                 }
             }
         ));
@@ -547,7 +540,7 @@ impl BackupWindow {
     }
 
     //---------------------------------------
-    // Populate window
+    // Populate dialog
     //---------------------------------------
     fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
@@ -571,42 +564,39 @@ impl BackupWindow {
 
                 // Populate column view
                 imp.model.splice(0, imp.model.n_items(), &backup_list);
-
-                // Set status dropdown selected item
-                imp.status_dropdown.set_selected(0);
             }
         ));
     }
 
     //---------------------------------------
-    // Show window
+    // Show dialog
     //---------------------------------------
-    pub fn show(&self, pkg_model: &gio::ListStore) {
-        self.present();
+    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>, pkg_model: &gio::ListStore) {
+        self.present(parent);
 
         glib::idle_add_local_once(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[weak] pkg_model,
             move || {
-                if !window.is_loaded() {
-                    let imp = window.imp();
+                if !dialog.is_loaded() {
+                    let imp = dialog.imp();
 
                     imp.stack.set_visible_child_name("loading");
 
-                    window.populate(&pkg_model);
+                    dialog.populate(&pkg_model);
 
                     if imp.model.n_items() == 0 {
                         imp.stack.set_visible_child_name("empty");
                     }
 
-                    window.set_is_loaded(true);
+                    dialog.set_is_loaded(true);
                 }
             }
         ));
     }
 }
 
-impl Default for BackupWindow {
+impl Default for BackupDialog {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

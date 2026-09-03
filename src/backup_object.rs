@@ -24,7 +24,6 @@ pub enum BackupStatus {
     All,
     Modified,
     #[strum(serialize = "access denied")]
-    #[enum_value(name = "Access Denied")]
     Locked,
     #[default]
     Unmodified,

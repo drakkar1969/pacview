@@ -11,7 +11,7 @@
             <child>
               <object class="GtkImage">
                 <property name="margin-end">6</property>
-                <property name="icon-name">package-x-generic-symbolic</property>
+                <property name="icon-name">view-grid-symbolic</property>
                 <style>
                   <class name="dimmed"/>
                 </style>
@@ -24,12 +24,13 @@
                   <class name="dimmed"/>
                 </style>
                 <binding name="label">
-                  <lookup name="package" type="BackupObject">
+                  <lookup name="groups" type="GroupsObject">
                     <lookup name="item">GtkListHeader</lookup>
                   </lookup>
                 </binding>
                 <property name="xalign">0</property>
                 <property name="valign">baseline-fill</property>
+                <property name="ellipsize">end</property>
               </object>
             </child>
             <child>

@@ -2,6 +2,7 @@
 <gresources>
   <gresource prefix="/com/github/PacView/icons/scalable/actions/">
     <file alias="backup-compare-symbolic.svg">icons/backup-compare-symbolic.svg</file>
+    <file alias="backup-filter-symbolic.svg">icons/backup-filter-symbolic.svg</file>
     <file alias="cache-pkg-symbolic.svg">icons/cache-pkg-symbolic.svg</file>
     <file alias="expander-symbolic.svg">icons/expander-symbolic.svg</file>
     <file alias="filter-symbolic.svg">icons/filter-symbolic.svg</file>
@@ -21,11 +22,11 @@
   <gresource prefix="/com/github/PacView/">
     <file compressed="true">style.css</file>
     <file compressed="true" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window/header.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/cache_window/item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window/header.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog/header.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/cache_dialog/item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_dialog/item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_dialog/header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/file_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/time_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/log_window/date_item.ui</file>
@@ -39,11 +40,11 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/installed_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/explicit_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/stats_window/size_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/backup_window.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/cache_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/backup_dialog.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/cache_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/config_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/config_row.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/groups_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/groups_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/hash_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_details_tab.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_files_tab.ui</file>

@@ -31,10 +31,10 @@ use crate::{
     repo_item::RepoItem,
     status_item::{StatusItem, StatusItemState},
     stats_window::StatsWindow,
-    backup_window::BackupWindow,
-    groups_window::GroupsWindow,
+    backup_dialog::BackupDialog,
+    groups_dialog::GroupsDialog,
     log_window::LogWindow,
-    cache_window::CacheWindow,
+    cache_dialog::CacheDialog,
     config_dialog::ConfigDialog,
     rootdir_dialog::RootDirDialog,
     preferences_dialog::PreferencesDialog,
@@ -108,9 +108,9 @@ mod imp {
 
         pub(super) prefs_dialog: RefCell<PreferencesDialog>,
 
-        pub(super) backup_window: RefCell<BackupWindow>,
-        pub(super) cache_window: RefCell<CacheWindow>,
-        pub(super) groups_window: RefCell<GroupsWindow>,
+        pub(super) backup_dialog: RefCell<BackupDialog>,
+        pub(super) cache_dialog: RefCell<CacheDialog>,
+        pub(super) groups_dialog: RefCell<GroupsDialog>,
         pub(super) log_window: RefCell<LogWindow>,
         pub(super) stats_window: RefCell<StatsWindow>,
      }
@@ -375,17 +375,17 @@ mod imp {
             klass.install_action("win.show-backup-files", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.backup_window.borrow().show(&imp.package_view.pkg_model());
+                imp.backup_dialog.borrow().show(Some(window), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
-                window.imp().cache_window.borrow().show();
+                window.imp().cache_dialog.borrow().show(Some(window));
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.groups_window.borrow().show(&imp.package_view.pkg_model());
+                imp.groups_dialog.borrow().show(Some(window), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
@@ -697,9 +697,6 @@ impl PacViewWindow {
         imp.main_menu_button.set_menu_model(menu.as_ref());
 
         // Set window parents
-        imp.backup_window.borrow().set_transient_for(Some(self));
-        imp.cache_window.borrow().set_transient_for(Some(self));
-        imp.groups_window.borrow().set_transient_for(Some(self));
         imp.log_window.borrow().set_transient_for(Some(self));
         imp.stats_window.borrow().set_transient_for(Some(self));
 
@@ -856,9 +853,9 @@ impl PacViewWindow {
         imp.repo_names.replace(repo_names);
 
         // Reset windows
-        imp.backup_window.borrow().set_is_loaded(false);
-        imp.cache_window.borrow().set_is_loaded(false);
-        imp.groups_window.borrow().set_is_loaded(false);
+        imp.backup_dialog.borrow().set_is_loaded(false);
+        imp.cache_dialog.borrow().set_is_loaded(false);
+        imp.groups_dialog.borrow().set_is_loaded(false);
         imp.log_window.borrow().set_is_loaded(false);
         imp.stats_window.borrow().set_is_loaded(false);
 

@@ -4,7 +4,7 @@ use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
@@ -29,7 +29,7 @@ pub enum GroupsSearchMode {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: GroupsWindow
+// MODULE: GroupsDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -38,9 +38,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::GroupsWindow)]
-    #[template(resource = "/com/github/PacView/ui/groups_window.ui")]
-    pub struct GroupsWindow {
+    #[properties(wrapper_type = super::GroupsDialog)]
+    #[template(resource = "/com/github/PacView/ui/groups_dialog.ui")]
+    pub struct GroupsDialog {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
@@ -84,10 +84,10 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for GroupsWindow {
-        const NAME: &'static str = "GroupsWindow";
-        type Type = super::GroupsWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for GroupsDialog {
+        const NAME: &'static str = "GroupsDialog";
+        type Type = super::GroupsDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             GroupsObject::ensure_type();
@@ -107,7 +107,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for GroupsWindow {
+    impl ObjectImpl for GroupsDialog {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -121,11 +121,10 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for GroupsWindow {}
-    impl WindowImpl for GroupsWindow {}
-    impl AdwWindowImpl for GroupsWindow {}
+    impl WidgetImpl for GroupsDialog {}
+    impl AdwDialogImpl for GroupsDialog {}
 
-    impl GroupsWindow {
+    impl GroupsDialog {
         //---------------------------------------
         // Install actions
         //---------------------------------------
@@ -134,34 +133,34 @@ mod imp {
             klass.install_property_action("search.set-mode", "search-mode");
 
             // Cycle search mode action
-            klass.install_action("search.cycle-mode", None, |window, _, _| {
+            klass.install_action("search.cycle-mode", None, |dialog, _, _| {
                 let new_mode = GroupsSearchMode::iter().cycle()
-                    .skip_while(|&mode| mode != window.search_mode())
+                    .skip_while(|&mode| mode != dialog.search_mode())
                     .nth(1)
                     .expect("Failed to get 'GroupsSearchMode'");
 
-                window.set_search_mode(new_mode);
+                dialog.set_search_mode(new_mode);
             });
 
             // Reverse cycle search mode action
-            klass.install_action("search.reverse-cycle-mode", None, |window, _, _| {
+            klass.install_action("search.reverse-cycle-mode", None, |dialog, _, _| {
                 let new_mode = GroupsSearchMode::iter().rev().cycle()
-                    .skip_while(|&mode| mode != window.search_mode())
+                    .skip_while(|&mode| mode != dialog.search_mode())
                     .nth(1)
                     .expect("Failed to get 'GroupsSearchMode'");
 
-                window.set_search_mode(new_mode);
+                dialog.set_search_mode(new_mode);
             });
 
             // Installed only property action
             klass.install_property_action("groups.installed-only", "installed-only");
 
             // Copy action
-            klass.install_action("groups.copy", None, |window, _, _| {
+            klass.install_action("groups.copy", None, |dialog, _, _| {
                 let mut groups = String::new();
                 let mut output = String::from("## Pacman Groups\n|Package Name|Status|\n|---|---|\n");
 
-                for pkg in window.imp().selection.iter::<glib::Object>()
+                for pkg in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<GroupsObject>()) {
                         let pkg_groups = pkg.groups();
 
@@ -178,7 +177,7 @@ mod imp {
                         .unwrap();
                     }
 
-                window.clipboard().set_text(&output);
+                dialog.clipboard().set_text(&output);
             });
         }
 
@@ -186,12 +185,9 @@ mod imp {
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Close window binding
-            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
-
             // Find key binding
-            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
-                window.imp().search_bar.set_search_mode(true);
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |dialog| {
+                dialog.imp().search_bar.set_search_mode(true);
 
                 Propagation::Stop
             });
@@ -210,15 +206,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: GroupsWindow
+// IMPLEMENTATION: GroupsDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct GroupsWindow(ObjectSubclass<imp::GroupsWindow>)
-        @extends adw::Window, gtk::Window, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct GroupsDialog(ObjectSubclass<imp::GroupsDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl GroupsWindow {
+impl GroupsDialog {
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -246,24 +242,24 @@ impl GroupsWindow {
         ));
 
         // Search mode property notify signal
-        self.connect_search_mode_notify(|window| {
-            let imp = window.imp();
+        self.connect_search_mode_notify(|dialog| {
+            let imp = dialog.imp();
 
-            imp.search_mode_label.set_label(window.search_mode().as_ref());
+            imp.search_mode_label.set_label(dialog.search_mode().as_ref());
 
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
 
         // Installed only property notify signal
-        self.connect_installed_only_notify(|window| {
-            window.imp().installed_filter.changed(gtk::FilterChange::Different);
+        self.connect_installed_only_notify(|dialog| {
+            dialog.imp().installed_filter.changed(gtk::FilterChange::Different);
         });
 
         // Section sort model items changed signal
         imp.section_sort_model.connect_items_changed(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |sort_model, _, _, _| {
-                let imp = window.imp();
+                let imp = dialog.imp();
 
                 let n_items = sort_model.n_items();
                 let mut n_sections = 0;
@@ -296,8 +292,8 @@ impl GroupsWindow {
                     if n_sections == 1 { "" } else { "s" }
                 ));
 
-                window.action_set_enabled("groups.copy", n_items > 0);
-                window.action_set_enabled("groups.installed-only", n_items > 0);
+                dialog.action_set_enabled("groups.copy", n_items > 0);
+                dialog.action_set_enabled("groups.installed-only", n_items > 0);
             }
         ));
     }
@@ -320,10 +316,10 @@ impl GroupsWindow {
 
         // Set search filter function
         imp.search_filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[upgrade_or] false,
             move |item| {
-                let search_term = window.imp().search_term.borrow();
+                let search_term = dialog.imp().search_term.borrow();
 
                 if search_term.is_empty() {
                     return true;
@@ -339,7 +335,7 @@ impl GroupsWindow {
                         .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
                 };
 
-                match window.search_mode() {
+                match dialog.search_mode() {
                     GroupsSearchMode::All => {
                         is_match(&obj.package()) || is_match(&obj.groups())
                     }
@@ -355,10 +351,10 @@ impl GroupsWindow {
 
         // Set installed filter function
         imp.installed_filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[upgrade_or] false,
             move |item| {
-                if window.installed_only() {
+                if dialog.installed_only() {
                     let status = item
                         .downcast_ref::<GroupsObject>()
                         .expect("Failed to downcast to 'GroupsObject'")
@@ -376,7 +372,7 @@ impl GroupsWindow {
     }
 
     //---------------------------------------
-    // Populate window
+    // Populate dialog
     //---------------------------------------
     fn populate(&self, pkg_model: &gio::ListStore) {
         let imp = self.imp();
@@ -404,26 +400,26 @@ impl GroupsWindow {
     }
 
     //---------------------------------------
-    // Show window
+    // Show dialog
     //---------------------------------------
-    pub fn show(&self, pkg_model: &gio::ListStore) {
-        self.present();
+    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>, pkg_model: &gio::ListStore) {
+        self.present(parent);
 
         glib::idle_add_local_once(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[weak] pkg_model,
             move || {
-                if !window.is_loaded() {
-                    window.populate(&pkg_model);
+                if !dialog.is_loaded() {
+                    dialog.populate(&pkg_model);
 
-                    window.set_is_loaded(true);
+                    dialog.set_is_loaded(true);
                 }
             }
         ));
     }
 }
 
-impl Default for GroupsWindow {
+impl Default for GroupsDialog {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

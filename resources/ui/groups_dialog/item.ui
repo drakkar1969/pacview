@@ -7,15 +7,21 @@
         <property name="margin-end">12</property>
         <property name="spacing">6</property>
         <child>
+          <object class="GtkImage">
+            <property name="icon-name">package-x-generic-symbolic</property>
+          </object>
+        </child>
+        <child>
           <object class="GtkLabel">
             <property name="margin-top">6</property>
             <property name="margin-bottom">6</property>
             <binding name="label">
-              <lookup name="path" type="BackupObject">
+              <lookup name="package" type="GroupsObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
             <property name="xalign">0</property>
+            <property name="ellipsize">end</property>
           </object>
         </child>
         <child>
@@ -24,12 +30,12 @@
             <property name="halign">end</property>
             <property name="valign">center</property>
             <binding name="text">
-              <lookup name="status-text" type="BackupObject">
+              <lookup name="status" type="GroupsObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>
             <binding name="tag-type">
-              <lookup name="status-tag-type" type="BackupObject">
+              <lookup name="status-tag-type" type="GroupsObject">
                 <lookup name="item">GtkListItem</lookup>
               </lookup>
             </binding>

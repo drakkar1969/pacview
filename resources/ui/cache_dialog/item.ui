@@ -21,6 +21,7 @@
               </lookup>
             </binding>
             <property name="xalign">0</property>
+            <property name="ellipsize">start</property>
           </object>
         </child>
       </object>

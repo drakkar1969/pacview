@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// GroupsWindow template //-->
-  <template class="GroupsWindow" parent="AdwWindow">
-    <property name="default-width">750</property>
-    <property name="default-height">640</property>
-    <property name="modal">true</property>
-    <property name="hide-on-close">true</property>
-    <property name="title">Pacman Groups</property>
-    <property name="content">
+  <!--// BackupDialog template //-->
+  <template class="BackupDialog" parent="AdwDialog">
+    <property name="content-width">800</property>
+    <property name="content-height">600</property>
+    <property name="title">Backup Files</property>
+    <child>
       <object class="AdwToolbarView" id="toolbar_view">
         <property name="top-bar-style">raised</property>
         <property name="bottom-bar-style">raised</property>
@@ -17,10 +15,16 @@
             <child>
               <object class="AdwHeaderBar" id="header_bar">
                 <child>
-                  <object class="GtkToggleButton" id="search_button">
-                    <property name="active">false</property>
-                    <property name="icon-name">edit-find-symbolic</property>
-                    <property name="tooltip-text">Search</property>
+                  <object class="GtkBox">
+                    <property name="valign">center</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkToggleButton" id="search_button">
+                        <property name="active">false</property>
+                        <property name="icon-name">edit-find-symbolic</property>
+                        <property name="tooltip-text">Search</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child type="end">
@@ -29,23 +33,31 @@
                     <property name="margin-end">6</property>
                     <property name="spacing">6</property>
                     <child>
-                      <object class="GtkToggleButton" id="installed_button">
-                        <property name="icon-name">status-installed-symbolic</property>
-                        <property name="tooltip-text">Filter Installed Packages</property>
-                        <property name="action-name">groups.installed-only</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
+                      <object class="GtkMenuButton" id="filter_button">
+                        <property name="icon-name">backup-filter-symbolic</property>
+                        <property name="tooltip-text">Filter by Status</property>
+                        <property name="menu-model">filter_menu</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="compare_button">
+                        <property name="icon-name">backup-compare-symbolic</property>
+                        <property name="tooltip-text">Compare with Original</property>
+                        <property name="action-name">backup.compare</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="open_button">
+                        <property name="icon-name">document-open-symbolic</property>
+                        <property name="tooltip-text">Open</property>
+                        <property name="action-name">backup.open</property>
                       </object>
                     </child>
                     <child>
                       <object class="GtkButton" id="copy_button">
                         <property name="icon-name">edit-copy-symbolic</property>
-                        <property name="tooltip-text">Copy Package List</property>
-                        <property name="action-name">groups.copy</property>
-                        <style>
-                          <class name="flat"/>
-                        </style>
+                        <property name="tooltip-text">Copy Backup List</property>
+                        <property name="action-name">backup.copy</property>
                       </object>
                     </child>
                   </object>
@@ -88,6 +100,24 @@
           <object class="GtkStack" id="stack">
             <child>
               <object class="GtkStackPage">
+                <property name="name">loading</property>
+                <property name="child">
+                  <object class="AdwStatusPage" id="loading_status">
+                    <property name="title">Loading Backup Files</property>
+                    <property name="paintable">
+                      <object class="AdwSpinnerPaintable">
+                        <property name="widget">loading_status</property>
+                      </object>
+                    </property>
+                    <style>
+                      <class name="compact"/>
+                    </style>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
                 <property name="name">view</property>
                 <property name="child">
                   <object class="GtkScrolledWindow">
@@ -101,17 +131,10 @@
                           <object class="GtkSingleSelection" id="selection">
                             <property name="model">
                               <object class="GtkSortListModel" id="section_sort_model">
-                                <property name="sorter">
-                                  <object class="GtkStringSorter" id="sorter">
-                                    <property name="expression">
-                                      <lookup name="package" type="GroupsObject"/>
-                                    </property>
-                                  </object>
-                                </property>
                                 <property name="section-sorter">
                                   <object class="GtkStringSorter" id="section_sorter">
                                     <property name="expression">
-                                      <lookup name="groups" type="GroupsObject"/>
+                                      <lookup name="package" type="BackupObject"/>
                                     </property>
                                   </object>
                                 </property>
@@ -123,13 +146,13 @@
                                           <object class="GtkCustomFilter" id="search_filter"/>
                                         </child>
                                         <child>
-                                          <object class="GtkCustomFilter" id="installed_filter"/>
+                                          <object class="GtkCustomFilter" id="status_filter"/>
                                         </child>
                                       </object>
                                     </property>
                                     <property name="model">
                                       <object class="GListStore" id="model">
-                                        <property name="item-type">GroupsObject</property>
+                                        <property name="item-type">BackupObject</property>
                                       </object>
                                     </property>
                                   </object>
@@ -140,12 +163,12 @@
                         </property>
                         <property name="header-factory">
                           <object class="GtkBuilderListItemFactory" id="section_factory">
-                            <property name="resource">/com/github/PacView/ui/groups_window/header.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_dialog/header.ui</property>
                           </object>
                         </property>
                         <property name="factory">
                           <object class="GtkBuilderListItemFactory">
-                            <property name="resource">/com/github/PacView/ui/groups_window/item.ui</property>
+                            <property name="resource">/com/github/PacView/ui/backup_dialog/item.ui</property>
                           </object>
                         </property>
                       </object>
@@ -188,7 +211,7 @@
           </object>
         </child>
       </object>
-    </property>
+    </child>
   </template>
 
   <!--// Search menu //-->
@@ -201,14 +224,41 @@
         <attribute name="target">all</attribute>
       </item>
       <item>
-        <attribute name="label">Groups</attribute>
-        <attribute name="action">search.set-mode</attribute>
-        <attribute name="target">groups</attribute>
-      </item>
-      <item>
         <attribute name="label">Packages</attribute>
         <attribute name="action">search.set-mode</attribute>
         <attribute name="target">packages</attribute>
+      </item>
+      <item>
+        <attribute name="label">Files</attribute>
+        <attribute name="action">search.set-mode</attribute>
+        <attribute name="target">files</attribute>
+      </item>
+    </section>
+  </menu>
+
+  <!--// Filter menu //-->
+  <menu id="filter_menu">
+    <section>
+      <attribute name="label">Filter by Status</attribute>
+      <item>
+        <attribute name="label">All</attribute>
+        <attribute name="action">backup.filter</attribute>
+        <attribute name="target">all</attribute>
+      </item>
+      <item>
+        <attribute name="label">Modified</attribute>
+        <attribute name="action">backup.filter</attribute>
+        <attribute name="target">modified</attribute>
+      </item>
+      <item>
+        <attribute name="label">Access Denied</attribute>
+        <attribute name="action">backup.filter</attribute>
+        <attribute name="target">locked</attribute>
+      </item>
+      <item>
+        <attribute name="label">Unmodified</attribute>
+        <attribute name="action">backup.filter</attribute>
+        <attribute name="target">unmodified</attribute>
       </item>
     </section>
   </menu>

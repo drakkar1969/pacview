@@ -4,7 +4,7 @@ use std::os::unix::fs::MetadataExt;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
@@ -17,7 +17,7 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
-// MODULE: CacheWindow
+// MODULE: CacheDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -26,9 +26,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::CacheWindow)]
-    #[template(resource = "/com/github/PacView/ui/cache_window.ui")]
-    pub struct CacheWindow {
+    #[properties(wrapper_type = super::CacheDialog)]
+    #[template(resource = "/com/github/PacView/ui/cache_dialog.ui")]
+    pub struct CacheDialog {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
@@ -62,10 +62,10 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for CacheWindow {
-        const NAME: &'static str = "CacheWindow";
-        type Type = super::CacheWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for CacheDialog {
+        const NAME: &'static str = "CacheDialog";
+        type Type = super::CacheDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             CacheObject::ensure_type();
@@ -85,7 +85,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for CacheWindow {
+    impl ObjectImpl for CacheDialog {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -99,33 +99,32 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for CacheWindow {}
-    impl WindowImpl for CacheWindow {}
-    impl AdwWindowImpl for CacheWindow {}
+    impl WidgetImpl for CacheDialog {}
+    impl AdwDialogImpl for CacheDialog {}
 
-    impl CacheWindow {
+    impl CacheDialog {
         //---------------------------------------
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Open action
-            klass.install_action_async("cache.open", None, async |window, _, _| {
-                if let Some(cache_file) = window.imp().selection.selected_item()
+            klass.install_action_async("cache.open", None, async |dialog, _, _| {
+                if let Some(cache_file) = dialog.imp().selection.selected_item()
                     .and_downcast::<CacheObject>() {
                         AppInfoExt::open_containing_folder(&cache_file.path()).await;
                     }
             });
 
             // Copy action
-            klass.install_action("cache.copy", None, |window, _, _| {
+            klass.install_action("cache.copy", None, |dialog, _, _| {
                 let mut output = String::from("## Cache Files\n|File|\n|---|\n");
 
-                for cache in window.imp().selection.iter::<glib::Object>()
+                for cache in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<CacheObject>()) {
                         writeln!(output, "|{}|", cache.path()).unwrap();
                     }
 
-                window.clipboard().set_text(&output);
+                dialog.clipboard().set_text(&output);
             });
         }
 
@@ -133,12 +132,9 @@ mod imp {
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Close window binding
-            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
-
             // Find key binding
-            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
-                window.imp().search_bar.set_search_mode(true);
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |dialog| {
+                dialog.imp().search_bar.set_search_mode(true);
 
                 Propagation::Stop
             });
@@ -153,15 +149,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: CacheWindow
+// IMPLEMENTATION: CacheDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct CacheWindow(ObjectSubclass<imp::CacheWindow>)
-    @extends adw::Window, gtk::Window, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct CacheDialog(ObjectSubclass<imp::CacheDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl CacheWindow {
+impl CacheDialog {
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -190,9 +186,9 @@ impl CacheWindow {
 
         // Selection items changed signal
         imp.selection.connect_items_changed(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |selection, _, _, _| {
-                let imp = window.imp();
+                let imp = dialog.imp();
 
                 let n_items = selection.n_items();
 
@@ -202,16 +198,16 @@ impl CacheWindow {
 
                 imp.footer_label.set_label(&format!("{n_items} file{}", if n_items == 1 { "" } else { "s" }));
 
-                window.action_set_enabled("cache.open", n_items > 0);
-                window.action_set_enabled("cache.copy", n_items > 0);
+                dialog.action_set_enabled("cache.open", n_items > 0);
+                dialog.action_set_enabled("cache.copy", n_items > 0);
             }
         ));
 
         // Column view activate signal
         imp.view.connect_activate(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |_, _| {
-                window.activate_action("cache.open", None).unwrap();
+                dialog.activate_action("cache.open", None).unwrap();
             }
         ));
     }
@@ -233,10 +229,10 @@ impl CacheWindow {
 
         // Set search filter function
         imp.search_filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[upgrade_or] false,
             move |item| {
-                let search_term = window.imp().search_term.borrow();
+                let search_term = dialog.imp().search_term.borrow();
 
                 if search_term.is_empty() {
                     return true;
@@ -256,7 +252,7 @@ impl CacheWindow {
     }
 
     //---------------------------------------
-    // Populate window
+    // Populate dialog
     //---------------------------------------
     fn populate(&self) {
         let imp = self.imp();
@@ -294,25 +290,25 @@ impl CacheWindow {
     }
 
     //---------------------------------------
-    // Show window
+    // Show dialog
     //---------------------------------------
-    pub fn show(&self) {
-        self.present();
+    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>) {
+        self.present(parent);
 
         glib::idle_add_local_once(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move || {
-                if !window.is_loaded() {
-                    window.populate();
+                if !dialog.is_loaded() {
+                    dialog.populate();
 
-                    window.set_is_loaded(true);
+                    dialog.set_is_loaded(true);
                 }
             }
         ));
     }
 }
 
-impl Default for CacheWindow {
+impl Default for CacheDialog {
     //---------------------------------------
     // Default constructor
     //---------------------------------------
