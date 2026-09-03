@@ -27,6 +27,13 @@
                     <property name="margin-end">6</property>
                     <property name="spacing">6</property>
                     <child>
+                      <object class="GtkButton" id="open_button">
+                        <property name="icon-name">document-open-symbolic</property>
+                        <property name="tooltip-text">Open Log File</property>
+                        <property name="action-name">log.open</property>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkButton" id="copy_button">
                         <property name="icon-name">edit-copy-symbolic</property>
                         <property name="tooltip-text">Copy Log Messages</property>

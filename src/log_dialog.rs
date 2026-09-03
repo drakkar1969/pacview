@@ -17,7 +17,7 @@ use regex::Regex;
 use size::Size;
 
 use crate::{
-    utils::Pacman,
+    utils::{Pacman, AppInfoExt},
     log_object::{LogLine, LogObject}
 };
 
@@ -154,6 +154,13 @@ mod imp {
                 dialog.set_search_mode(new_mode);
             });
 
+            // Open action
+            klass.install_action_async("log.open", None, async |_, _, _| {
+                let log_file = &Pacman::config().read().unwrap().log_file;
+
+                AppInfoExt::open_with_default_app(log_file).await;
+            });
+
             // Copy action
             klass.install_action("log.copy", None, |dialog, _, _| {
                 let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
@@ -186,6 +193,9 @@ mod imp {
             // Cycle search mode key bindings
             klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK, "search.cycle-mode");
             klass.add_binding_action(Key::M, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "search.reverse-cycle-mode");
+
+            // Open key binding
+            klass.add_binding_action(Key::O, ModifierType::CONTROL_MASK, "log.open");
 
             // Copy key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "log.copy");
