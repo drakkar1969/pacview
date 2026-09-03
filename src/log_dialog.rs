@@ -7,7 +7,7 @@ use std::fmt::Write as _;
 
 use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::prelude::*;
 use glib::{clone, Propagation};
 use gdk::{Key, ModifierType};
 
@@ -35,7 +35,7 @@ pub enum LogSearchMode {
 }
 
 //------------------------------------------------------------------------------
-// MODULE: LogWindow
+// MODULE: LogDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -44,9 +44,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::LogWindow)]
-    #[template(resource = "/com/github/PacView/ui/log_window.ui")]
-    pub struct LogWindow {
+    #[properties(wrapper_type = super::LogDialog)]
+    #[template(resource = "/com/github/PacView/ui/log_dialog.ui")]
+    pub struct LogDialog {
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
@@ -86,10 +86,10 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for LogWindow {
-        const NAME: &'static str = "LogWindow";
-        type Type = super::LogWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for LogDialog {
+        const NAME: &'static str = "LogDialog";
+        type Type = super::LogDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             LogObject::ensure_type();
@@ -109,7 +109,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for LogWindow {
+    impl ObjectImpl for LogDialog {
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -123,11 +123,10 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for LogWindow {}
-    impl WindowImpl for LogWindow {}
-    impl AdwWindowImpl for LogWindow {}
+    impl WidgetImpl for LogDialog {}
+    impl AdwDialogImpl for LogDialog {}
 
-    impl LogWindow {
+    impl LogDialog {
         //---------------------------------------
         // Install actions
         //---------------------------------------
@@ -136,41 +135,40 @@ mod imp {
             klass.install_property_action("search.set-mode", "search-mode");
 
             // Cycle search mode action
-            klass.install_action("search.cycle-mode", None, |window, _, _| {
+            klass.install_action("search.cycle-mode", None, |dialog, _, _| {
                 let new_mode = LogSearchMode::iter().cycle()
-                    .skip_while(|&mode| mode != window.search_mode())
+                    .skip_while(|&mode| mode != dialog.search_mode())
                     .nth(1)
                     .expect("Failed to get 'LogSearchMode'");
 
-                window.set_search_mode(new_mode);
+                dialog.set_search_mode(new_mode);
             });
 
             // Reverse cycle search mode action
-            klass.install_action("search.reverse-cycle-mode", None, |window, _, _| {
+            klass.install_action("search.reverse-cycle-mode", None, |dialog, _, _| {
                 let new_mode = LogSearchMode::iter().rev().cycle()
-                    .skip_while(|&mode| mode != window.search_mode())
+                    .skip_while(|&mode| mode != dialog.search_mode())
                     .nth(1)
                     .expect("Failed to get 'LogSearchMode'");
 
-                window.set_search_mode(new_mode);
+                dialog.set_search_mode(new_mode);
             });
 
             // Copy action
-            klass.install_action("log.copy", None, |window, _, _| {
+            klass.install_action("log.copy", None, |dialog, _, _| {
                 let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
 
-                for log in window.imp().selection.iter::<glib::Object>()
+                for log in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<LogObject>()) {
-                        writeln!(output, "|{date}|{time}|{category}|{message}|",
+                        writeln!(output, "|{date}|{time}|{message}|",
                             date=log.date(),
                             time=log.time(),
-                            category=log.category(),
                             message=log.message()
                         )
                         .unwrap();
                     }
 
-                window.clipboard().set_text(&output);
+                dialog.clipboard().set_text(&output);
             });
         }
 
@@ -178,12 +176,9 @@ mod imp {
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
-            // Close window binding
-            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
-
             // Find key binding
-            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |window| {
-                window.imp().search_bar.set_search_mode(true);
+            klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |dialog| {
+                dialog.imp().search_bar.set_search_mode(true);
 
                 Propagation::Stop
             });
@@ -199,15 +194,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: LogWindow
+// IMPLEMENTATION: LogDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct LogWindow(ObjectSubclass<imp::LogWindow>)
-    @extends adw::Window, gtk::Window, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct LogDialog(ObjectSubclass<imp::LogDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl LogWindow {
+impl LogDialog {
     //---------------------------------------
     // Setup signals
     //---------------------------------------
@@ -235,19 +230,19 @@ impl LogWindow {
         ));
 
         // Search mode property notify signal
-        self.connect_search_mode_notify(|window| {
-            let imp = window.imp();
+        self.connect_search_mode_notify(|dialog| {
+            let imp = dialog.imp();
 
-            imp.search_mode_label.set_label(window.search_mode().as_ref());
+            imp.search_mode_label.set_label(dialog.search_mode().as_ref());
 
             imp.search_filter.changed(gtk::FilterChange::Different);
         });
 
         // Selection items changed signal
         imp.selection.connect_items_changed(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |selection, _, _, _| {
-                let imp = window.imp();
+                let imp = dialog.imp();
 
                 let n_items = selection.n_items();
 
@@ -257,7 +252,7 @@ impl LogWindow {
 
                 imp.count_label.set_label(&format!("{n_items} line{}", if n_items == 1 { "" } else { "s" }));
 
-                window.action_set_enabled("log.copy", n_items > 0);
+                dialog.action_set_enabled("log.copy", n_items > 0);
             }
         ));
     }
@@ -280,10 +275,10 @@ impl LogWindow {
 
         // Set search filter function
         imp.search_filter.set_filter_func(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[upgrade_or] false,
             move |item| {
-                let search_term = window.imp().search_term.borrow();
+                let search_term = dialog.imp().search_term.borrow();
 
                 if search_term.is_empty() {
                     return true;
@@ -300,7 +295,7 @@ impl LogWindow {
                         .any(|window| window.eq_ignore_ascii_case(search_term.as_bytes()))
                 };
 
-                if window.search_mode() == LogSearchMode::Messages {
+                if dialog.search_mode() == LogSearchMode::Messages {
                     is_match(&msg)
                 } else {
                     let Some((prefix, package, _)) = msg.splitn(3, ' ').collect_tuple() else {
@@ -311,7 +306,7 @@ impl LogWindow {
                         return false;
                     }
 
-                    if window.search_mode() == LogSearchMode::Packages {
+                    if dialog.search_mode() == LogSearchMode::Packages {
                         is_match(package)
                     } else {
                         package.eq_ignore_ascii_case(&search_term)
@@ -325,7 +320,7 @@ impl LogWindow {
     }
 
     //---------------------------------------
-    // Populate window
+    // Populate dialog
     //---------------------------------------
     fn populate(&self) {
         let imp = self.imp();
@@ -375,9 +370,9 @@ impl LogWindow {
 
         // Attach log task receiver
         glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             async move {
-                let imp = window.imp();
+                let imp = dialog.imp();
 
                 // Populate column view
                 while let Ok(log_lines) = receiver.recv().await {
@@ -398,25 +393,25 @@ impl LogWindow {
     }
 
     //---------------------------------------
-    // Show window
+    // Show dialog
     //---------------------------------------
-    pub fn show(&self) {
-        self.present();
+    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>) {
+        self.present(parent);
 
         glib::idle_add_local_once(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move || {
-                if !window.is_loaded() {
-                    window.populate();
+                if !dialog.is_loaded() {
+                    dialog.populate();
 
-                    window.set_is_loaded(true);
+                    dialog.set_is_loaded(true);
                 }
             }
         ));
     }
 }
 
-impl Default for LogWindow {
+impl Default for LogDialog {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// LogWindow template //-->
-  <template class="LogWindow" parent="AdwWindow">
-    <property name="default-width">1000</property>
-    <property name="default-height">640</property>
-    <property name="modal">true</property>
-    <property name="hide-on-close">true</property>
+  <!--// LogDialog template //-->
+  <template class="LogDialog" parent="AdwDialog">
+    <property name="content-width">800</property>
+    <property name="content-height">600</property>
     <property name="title">Pacman Log</property>
-    <property name="content">
+    <child>
       <object class="AdwToolbarView" id="toolbar_view">
         <property name="top-bar-style">raised</property>
         <property name="bottom-bar-style">raised</property>
@@ -83,6 +81,7 @@
                   <object class="GtkScrolledWindow">
                     <property name="hexpand">true</property>
                     <property name="vexpand">true</property>
+                    <property name="hscrollbar-policy">never</property>
                     <property name="child">
                       <object class="GtkColumnView" id="view">
                         <property name="tab-behavior">item</property>
@@ -107,7 +106,7 @@
                             <property name="title">Date</property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/log_window/date_item.ui</property>
+                                <property name="resource">/com/github/PacView/ui/log_dialog/date_item.ui</property>
                               </object>
                             </property>
                           </object>
@@ -117,17 +116,7 @@
                             <property name="title">Time</property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/log_window/time_item.ui</property>
-                              </object>
-                            </property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkColumnViewColumn">
-                            <property name="title">Category</property>
-                            <property name="factory">
-                              <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/log_window/category_item.ui</property>
+                                <property name="resource">/com/github/PacView/ui/log_dialog/time_item.ui</property>
                               </object>
                             </property>
                           </object>
@@ -138,7 +127,7 @@
                             <property name="expand">true</property>
                             <property name="factory">
                               <object class="GtkBuilderListItemFactory">
-                                <property name="resource">/com/github/PacView/ui/log_window/message_item.ui</property>
+                                <property name="resource">/com/github/PacView/ui/log_dialog/message_item.ui</property>
                               </object>
                             </property>
                           </object>
@@ -192,7 +181,7 @@
           </object>
         </child>
       </object>
-    </property>
+    </child>
   </template>
 
   <!--// Search menu //-->

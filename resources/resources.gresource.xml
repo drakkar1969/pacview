@@ -28,10 +28,9 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_dialog/item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/groups_dialog/header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane/file_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/log_window/time_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/log_window/date_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/log_window/category_item.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/log_window/message_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/log_dialog/time_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/log_dialog/date_item.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/log_dialog/message_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/main_menu/menu.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view/header.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/sidebar/indicator.ui</file>
@@ -49,7 +48,7 @@
     <file compressed="true" preprocess="xml-stripblanks">ui/info_details_tab.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_files_tab.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/info_pane.ui</file>
-    <file compressed="true" preprocess="xml-stripblanks">ui/log_window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">ui/log_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_item.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/package_view.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">ui/preferences_dialog.ui</file>

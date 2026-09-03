@@ -17,7 +17,7 @@ mod text_widget;
 mod preferences_dialog;
 mod stats_window;
 mod backup_dialog;
-mod log_window;
+mod log_dialog;
 mod cache_dialog;
 mod groups_dialog;
 mod config_dialog;

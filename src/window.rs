@@ -33,7 +33,7 @@ use crate::{
     stats_window::StatsWindow,
     backup_dialog::BackupDialog,
     groups_dialog::GroupsDialog,
-    log_window::LogWindow,
+    log_dialog::LogDialog,
     cache_dialog::CacheDialog,
     config_dialog::ConfigDialog,
     rootdir_dialog::RootDirDialog,
@@ -111,7 +111,7 @@ mod imp {
         pub(super) backup_dialog: RefCell<BackupDialog>,
         pub(super) cache_dialog: RefCell<CacheDialog>,
         pub(super) groups_dialog: RefCell<GroupsDialog>,
-        pub(super) log_window: RefCell<LogWindow>,
+        pub(super) log_dialog: RefCell<LogDialog>,
         pub(super) stats_window: RefCell<StatsWindow>,
      }
 
@@ -389,7 +389,7 @@ mod imp {
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
-                window.imp().log_window.borrow().show();
+                window.imp().log_dialog.borrow().show(Some(window));
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
@@ -697,7 +697,6 @@ impl PacViewWindow {
         imp.main_menu_button.set_menu_model(menu.as_ref());
 
         // Set window parents
-        imp.log_window.borrow().set_transient_for(Some(self));
         imp.stats_window.borrow().set_transient_for(Some(self));
 
         // Bind sidebar/infopane visibility to properties
@@ -856,7 +855,7 @@ impl PacViewWindow {
         imp.backup_dialog.borrow().set_is_loaded(false);
         imp.cache_dialog.borrow().set_is_loaded(false);
         imp.groups_dialog.borrow().set_is_loaded(false);
-        imp.log_window.borrow().set_is_loaded(false);
+        imp.log_dialog.borrow().set_is_loaded(false);
         imp.stats_window.borrow().set_is_loaded(false);
 
         // If AUR database download is enabled and AUR file does not exist, download it

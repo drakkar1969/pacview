@@ -10,7 +10,6 @@ use gtk::prelude::ObjectExt;
 pub struct LogLine {
     pub date: String,
     pub time: String,
-    pub category: String,
     pub message: String
 }
 
@@ -28,13 +27,12 @@ impl LogLine {
         let (time, _) = time_with_tz.split_once('+')?;
 
         // Extract category and message
-        let (category, message) = rest.strip_prefix('[')?
+        let (_, message) = rest.strip_prefix('[')?
             .split_once("] ")?;
 
         Some(Self {
             date: date.to_owned(),
             time: time.to_owned(),
-            category: category.to_owned(),
             message: message.to_owned()
         })
     }
@@ -56,8 +54,6 @@ mod imp {
         date: RefCell<String>,
         #[property(get, set, construct_only)]
         time: RefCell<String>,
-        #[property(get, set, construct_only)]
-        category: RefCell<String>,
         #[property(get, set, construct_only)]
         message: RefCell<String>,
     }
@@ -91,7 +87,6 @@ impl LogObject {
         glib::Object::builder()
             .property("date", &line.date)
             .property("time", &line.time)
-            .property("category", &line.category)
             .property("message", &line.message)
             .build()
     }
