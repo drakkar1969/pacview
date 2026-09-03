@@ -2,6 +2,7 @@
 <interface>
   <!--// PreferencesDialog template //-->
   <template class="PreferencesDialog" parent="AdwPreferencesDialog">
+    <property name="search-enabled">true</property>
     <child>
       <object class="AdwPreferencesPage">
         <property name="title">General</property>
