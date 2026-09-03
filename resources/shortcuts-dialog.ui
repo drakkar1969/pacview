@@ -318,7 +318,7 @@
     </child>
     <child>
       <object class="AdwShortcutsSection">
-        <property name="title">Backup Files Window</property>
+        <property name="title">Backup Files Dialog</property>
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;F</property>
@@ -381,7 +381,7 @@
     </child>
     <child>
       <object class="AdwShortcutsSection">
-        <property name="title">Groups Window</property>
+        <property name="title">Groups Dialog</property>
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;F</property>
@@ -410,7 +410,7 @@
     </child>
     <child>
       <object class="AdwShortcutsSection">
-        <property name="title">Pacman Cache Window</property>
+        <property name="title">Pacman Cache Dialog</property>
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;F</property>
@@ -433,7 +433,7 @@
     </child>
     <child>
       <object class="AdwShortcutsSection">
-        <property name="title">Pacman Log Window</property>
+        <property name="title">Pacman Log Dialog</property>
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;F</property>
@@ -444,6 +444,12 @@
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;M</property>
             <property name="title">Cycle Search Mode</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
+            <property name="accelerator">&lt;ctrl&gt;O</property>
+            <property name="title">Open Log File</property>
           </object>
         </child>
         <child>
