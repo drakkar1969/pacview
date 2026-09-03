@@ -204,12 +204,13 @@ mod imp {
                     None::<&gio::Cancellable>,
                     move |response| {
                         if response == "clear" {
-                            for path in WalkDir::new(Paths::cache_dir())
+                            for entry in WalkDir::new(Paths::cache_dir())
                                 .min_depth(1)
                                 .max_depth(1)
                                 .into_iter()
-                                .flatten()
-                                .map(walkdir::DirEntry::into_path) {
+                                .flatten() {
+                                    let path = entry.path();
+
                                     if let Ok(metadata) = path.metadata() {
                                         let _ = if metadata.file_type().is_dir() {
                                             fs::remove_dir_all(path)
@@ -410,6 +411,7 @@ impl PreferencesDialog {
                     .selected_item()
                     .and_downcast::<sourceview5::StyleScheme>()
                     .map(|scheme| scheme.id())
+                    .or_else(|| Some("".into()))
             })
             .sync_create()
             .bidirectional()
