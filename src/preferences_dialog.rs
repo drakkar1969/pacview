@@ -11,7 +11,6 @@ use walkdir::WalkDir;
 
 use crate::{
     APP_ID,
-    window::PacViewWindow,
     search_bar::SearchProp,
     utils::{Paths, StyleSchemes, AppInfoExt},
 };
@@ -171,7 +170,7 @@ mod imp {
                     .build();
 
                 font_dialog.choose_font(
-                    dialog.root().and_downcast_ref::<PacViewWindow>(),
+                    dialog.root().and_downcast_ref::<gtk::Window>(),
                     Some(&pango::FontDescription::from_string(&dialog.pkgbuild_custom_font())),
                     None::<&gio::Cancellable>,
                     clone!(

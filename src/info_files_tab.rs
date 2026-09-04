@@ -214,8 +214,8 @@ impl InfoFilesTab {
         ));
 
         // Show folders property notify signal
-        self.connect_show_folders_notify(|window| {
-            window.imp().folder_filter.changed(gtk::FilterChange::Different);
+        self.connect_show_folders_notify(|tab| {
+            tab.imp().folder_filter.changed(gtk::FilterChange::Different);
         });
 
         // View activate signal

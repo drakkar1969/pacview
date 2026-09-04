@@ -17,6 +17,7 @@
                     <property name="icon-name">document-save-symbolic</property>
                     <property name="use-underline">true</property>
                     <property name="action-name">source.save</property>
+                    <property name="tooltip-text">Save PKGBUILD</property>
                   </object>
                 </child>
                 <child>

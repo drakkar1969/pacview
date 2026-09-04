@@ -192,8 +192,8 @@ mod imp {
         //---------------------------------------
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Show search options popup key binding
-            klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |window| {
-                window.imp().filter_button.popup();
+            klass.add_binding(Key::O, ModifierType::CONTROL_MASK, |bar| {
+                bar.imp().filter_button.popup();
 
                 Propagation::Stop
             });

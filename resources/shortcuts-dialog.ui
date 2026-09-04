@@ -462,7 +462,7 @@
     </child>
     <child>
       <object class="AdwShortcutsSection">
-        <property name="title">Statistics Window</property>
+        <property name="title">Statistics Dialog</property>
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">&lt;ctrl&gt;&lt;shift&gt;C</property>
@@ -473,7 +473,7 @@
     </child>
     <child>
       <object class="AdwShortcutsSection">
-        <property name="title">PKGBUILD Window</property>
+        <property name="title">PKGBUILD Dialog</property>
         <child>
           <object class="AdwShortcutsItem">
             <property name="accelerator">F5</property>

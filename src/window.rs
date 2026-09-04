@@ -371,7 +371,7 @@ mod imp {
             // Show infopane property action
             klass.install_property_action("win.show-infopane", "show-infopane");
 
-            // Show window/dialog actions
+            // Show dialog actions
             klass.install_action("win.show-backup-files", None, |window, _, _| {
                 let imp = window.imp();
 
@@ -514,19 +514,19 @@ mod imp {
                 Propagation::Stop
             });
 
-            // Stats window key binding
+            // Stats dialog key binding
             klass.add_binding_action(Key::S, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-stats");
 
-            // Backup files window key binding
+            // Backup files dialog key binding
             klass.add_binding_action(Key::B, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-backup-files");
 
-            // Pacman log window key binding
+            // Pacman log dialog key binding
             klass.add_binding_action(Key::L, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-pacman-log");
 
-            // Pacman cache window key binding
+            // Pacman cache dialog key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-pacman-cache");
 
-            // Pacman groups window key binding
+            // Pacman groups dialog key binding
             klass.add_binding_action(Key::G, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "win.show-pacman-groups");
 
             // Pacman config dialog key binding

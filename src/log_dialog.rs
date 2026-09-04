@@ -156,9 +156,9 @@ mod imp {
 
             // Open action
             klass.install_action_async("log.open", None, async |_, _, _| {
-                let log_file = &Pacman::config().read().unwrap().log_file;
+                let log_file = Pacman::config().read().unwrap().log_file.clone();
 
-                AppInfoExt::open_with_default_app(log_file).await;
+                AppInfoExt::open_with_default_app(&log_file).await;
             });
 
             // Copy action
