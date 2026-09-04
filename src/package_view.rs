@@ -26,11 +26,11 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
-// ENUM: PackageViewState
+// ENUM: ViewState
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone, Copy)]
 #[repr(u32)]
-pub enum PackageViewState {
+pub enum ViewState {
     #[default]
     Normal,
     PackageLoad,
@@ -39,12 +39,12 @@ pub enum PackageViewState {
 }
 
 //------------------------------------------------------------------------------
-// ENUM: PackageViewDisplayMode
+// ENUM: ViewDisplayMode
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
-#[enum_type(name = "PackageViewDisplayMode")]
-pub enum PackageViewDisplayMode {
+#[enum_type(name = "ViewDisplayMode")]
+pub enum ViewDisplayMode {
     #[default]
     Normal,
     NoInfopane,
@@ -155,8 +155,8 @@ mod imp {
         #[property(get, set, construct)]
         info_pane: RefCell<InfoPane>,
 
-        #[property(get, set, builder(PackageViewDisplayMode::default()))]
-        display_mode: Cell<PackageViewDisplayMode>,
+        #[property(get, set, builder(ViewDisplayMode::default()))]
+        display_mode: Cell<ViewDisplayMode>,
         #[property(get, set, builder(SortProp::default()))]
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
@@ -287,14 +287,14 @@ impl PackageView {
 
             let mode = view.display_mode();
 
-            imp.main_menu_button.set_visible(mode == PackageViewDisplayMode::NoSidebar || mode == PackageViewDisplayMode::Narrow);
-            imp.sidebar_button.set_visible(mode == PackageViewDisplayMode::NoSidebar || mode == PackageViewDisplayMode::Narrow);
-            imp.infopane_button.set_visible(mode != PackageViewDisplayMode::Normal);
+            imp.main_menu_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
+            imp.sidebar_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
+            imp.infopane_button.set_visible(mode != ViewDisplayMode::Normal);
 
-            imp.grouping_button.set_visible(mode != PackageViewDisplayMode::Narrow);
-            imp.sort_button.set_visible(mode != PackageViewDisplayMode::Narrow);
-            imp.grouping_button_bottom.set_visible(mode == PackageViewDisplayMode::Narrow);
-            imp.sort_button_bottom.set_visible(mode == PackageViewDisplayMode::Narrow);
+            imp.grouping_button.set_visible(mode != ViewDisplayMode::Narrow);
+            imp.sort_button.set_visible(mode != ViewDisplayMode::Narrow);
+            imp.grouping_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
+            imp.sort_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
         });
 
         // List view selection items changed signal
@@ -699,26 +699,26 @@ impl PackageView {
     //---------------------------------------
     // Public set state functions
     //---------------------------------------
-    pub fn set_state(&self, state: PackageViewState) {
+    pub fn set_state(&self, state: ViewState) {
         let imp = self.imp();
 
         match state {
-            PackageViewState::Normal => {
+            ViewState::Normal => {
                 imp.stack.set_visible_child_name("view");
             }
-            PackageViewState::PackageLoad => {
+            ViewState::PackageLoad => {
                 imp.loading_status.set_title("Loading Pacman Databases");
                 imp.stack.set_visible_child_name("spinner");
                 imp.cancel_button.set_visible(false);
                 imp.cancel_button.set_action_name(None);
             }
-            PackageViewState::AURDownload => {
+            ViewState::AURDownload => {
                 imp.loading_status.set_title("Downloading AUR Database");
                 imp.stack.set_visible_child_name("spinner");
                 imp.cancel_button.set_visible(true);
                 imp.cancel_button.set_action_name(Some("win.cancel-aur-download"));
             }
-            PackageViewState::PkgbuildRepoFetch => {
+            ViewState::PkgbuildRepoFetch => {
                 imp.loading_status.set_title("Fetching PKGBUILD Repositories");
                 imp.stack.set_visible_child_name("spinner");
                 imp.cancel_button.set_visible(true);

@@ -19,12 +19,12 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
-// ENUM: InfoPaneDisplayMode
+// ENUM: PaneDisplayMode
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum)]
 #[repr(u32)]
-#[enum_type(name = "InfoPaneDisplayMode")]
-pub enum InfoPaneDisplayMode {
+#[enum_type(name = "PaneDisplayMode")]
+pub enum PaneDisplayMode {
     #[default]
     Normal,
     Collapsed,
@@ -70,8 +70,8 @@ mod imp {
         #[template_child]
         pub(super) tab_switcher_bar: TemplateChild<adw::ViewSwitcherBar>,
 
-        #[property(get, set, builder(InfoPaneDisplayMode::default()))]
-        display_mode: Cell<InfoPaneDisplayMode>,
+        #[property(get, set, builder(PaneDisplayMode::default()))]
+        display_mode: Cell<PaneDisplayMode>,
         #[property(get = Self::pkg, set = Self::set_pkg, nullable)]
         pkg: PhantomData<Option<PkgObject>>,
         #[property(get, set, default = "info", construct)]
@@ -231,15 +231,17 @@ impl InfoPane {
         self.connect_display_mode_notify(|pane| {
             let imp = pane.imp();
 
-            imp.show_button.set_visible(pane.display_mode() != InfoPaneDisplayMode::Normal);
+            let mode = pane.display_mode();
 
-            if pane.display_mode() == InfoPaneDisplayMode::Narrow {
+            imp.show_button.set_visible(mode != PaneDisplayMode::Normal);
+
+            if mode == PaneDisplayMode::Narrow {
                 imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_label.get()));
             } else {
                 imp.tab_header_bar.set_title_widget(Some(&imp.tab_switcher.get()));
             }
 
-            imp.tab_switcher_bar.set_reveal(pane.display_mode() == InfoPaneDisplayMode::Narrow);
+            imp.tab_switcher_bar.set_reveal(mode == PaneDisplayMode::Narrow);
         });
     }
 

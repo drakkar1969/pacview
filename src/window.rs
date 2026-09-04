@@ -26,7 +26,7 @@ use crate::{
     PacViewApplication,
     pkg_data::{PkgFlags, PkgData},
     pkg_object::PkgObject,
-    package_view::{PackageView, PackageViewState},
+    package_view::{PackageView, ViewState},
     info_pane::InfoPane,
     repo_item::RepoItem,
     status_item::{StatusItem, StatusItemState},
@@ -202,7 +202,7 @@ mod imp {
             klass.install_action_async("win.update-aur-database", None, async |window, _, _| {
                 let imp = window.imp();
 
-                imp.package_view.set_state(PackageViewState::AURDownload);
+                imp.package_view.set_state(ViewState::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
                 imp.package_view.count_label().set_label("");
 
@@ -220,7 +220,7 @@ mod imp {
                     WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
                 } else {
                     // Reset widgets
-                    imp.package_view.set_state(PackageViewState::Normal);
+                    imp.package_view.set_state(ViewState::Normal);
                     imp.package_view.selection().items_changed(0, 0, 0);
 
                     let pkg = imp.package_view.selection().selected_item()
@@ -241,7 +241,7 @@ mod imp {
             klass.install_action_async("win.fetch-pkgbuild-repos", None, async |window, _, _| {
                 let imp = window.imp();
 
-                imp.package_view.set_state(PackageViewState::PkgbuildRepoFetch);
+                imp.package_view.set_state(ViewState::PkgbuildRepoFetch);
                 imp.info_pane.set_pkg(None::<PkgObject>);
                 imp.package_view.count_label().set_label("");
 
@@ -259,7 +259,7 @@ mod imp {
                     WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
                 } else {
                     // Reset widgets
-                    imp.package_view.set_state(PackageViewState::Normal);
+                    imp.package_view.set_state(ViewState::Normal);
                     imp.package_view.selection().items_changed(0, 0, 0);
 
                     let pkg = imp.package_view.selection().selected_item()
@@ -871,7 +871,7 @@ impl PacViewWindow {
                     let imp = window.imp();
 
                     if aur_download {
-                        imp.package_view.set_state(PackageViewState::AURDownload);
+                        imp.package_view.set_state(ViewState::AURDownload);
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
                         let task = TokioManager::spawn(async move |token| {
@@ -886,7 +886,7 @@ impl PacViewWindow {
                     }
 
                     if pkgbuild_fetch {
-                        imp.package_view.set_state(PackageViewState::PkgbuildRepoFetch);
+                        imp.package_view.set_state(ViewState::PkgbuildRepoFetch);
                         imp.info_pane.set_pkg(None::<PkgObject>);
 
                         let task = TokioManager::spawn_blocking(PkgbuildRepos::fetch_remote);
@@ -1074,7 +1074,7 @@ impl PacViewWindow {
                 imp.update_item.borrow().set_state(StatusItemState::Reset);
 
                 // Show package view loading spinner
-                imp.package_view.set_state(PackageViewState::PackageLoad);
+                imp.package_view.set_state(ViewState::PackageLoad);
 
                 // Clear info pane package
                 imp.info_pane.set_pkg(None::<PkgObject>);
@@ -1093,7 +1093,7 @@ impl PacViewWindow {
 
                     // Hide loading spinner and focus package view
                     if is_local_data {
-                        imp.package_view.set_state(PackageViewState::Normal);
+                        imp.package_view.set_state(ViewState::Normal);
 
                         imp.package_view.view().grab_focus();
                     }
