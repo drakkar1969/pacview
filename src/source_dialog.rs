@@ -22,7 +22,7 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
-// MODULE: SourceWindow
+// MODULE: SourceDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -31,9 +31,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::SourceWindow)]
-    #[template(resource = "/com/github/PacView/ui/source_window.ui")]
-    pub struct SourceWindow {
+    #[properties(wrapper_type = super::SourceDialog)]
+    #[template(resource = "/com/github/PacView/ui/source_dialog.ui")]
+    pub struct SourceDialog {
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
         #[template_child]
@@ -43,6 +43,8 @@ mod imp {
         #[template_child]
         pub(super) error_status: TemplateChild<adw::StatusPage>,
 
+        #[property(get, set)]
+        parent_window: RefCell<gtk::Window>,
         #[property(get = Self::buffer)]
         buffer: PhantomData<sourceview5::Buffer>,
         #[property(get, set, construct_only)]
@@ -59,10 +61,10 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for SourceWindow {
-        const NAME: &'static str = "SourceWindow";
-        type Type = super::SourceWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for SourceDialog {
+        const NAME: &'static str = "SourceDialog";
+        type Type = super::SourceDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -80,7 +82,7 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for SourceWindow {
+    impl ObjectImpl for SourceDialog {
         fn constructed(&self) {
             self.parent_constructed();
 
@@ -91,31 +93,30 @@ mod imp {
         }
     }
 
-    impl WidgetImpl for SourceWindow {}
-    impl WindowImpl for SourceWindow {}
-    impl AdwWindowImpl for SourceWindow {}
+    impl WidgetImpl for SourceDialog {}
+    impl AdwDialogImpl for SourceDialog {}
 
-    impl SourceWindow {
+    impl SourceDialog {
         //---------------------------------------
         // Install actions
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Save action
-            klass.install_action_async("source.save", None, async |window, _, _| {
+            klass.install_action_async("source.save", None, async |dialog, _, _| {
                 let file_dialog = gtk::FileDialog::builder()
                     .modal(true)
                     .title("Save PKGBUILD")
                     .initial_name("PKGBUILD")
                     .build();
 
-                let response = file_dialog.save_future(Some(&window)).await;
+                let response = file_dialog.save_future(Some(&dialog.parent_window())).await;
 
                 if let Ok(file) = response {
                     let source_file = sourceview5::File::new();
                     source_file.set_location(Some(&file));
 
                     let file_saver = sourceview5::FileSaver::builder()
-                        .buffer(&window.buffer())
+                        .buffer(&dialog.buffer())
                         .file(&source_file)
                         .build();
 
@@ -126,8 +127,8 @@ mod imp {
             });
 
             // Url action
-            klass.install_action_async("source.url", None, async |window, _, _| {
-                if let Some(url) = window.pkgbuild_url() {
+            klass.install_action_async("source.url", None, async |dialog, _, _| {
+                if let Some(url) = dialog.pkgbuild_url() {
                     let _ = gio::AppInfo::launch_default_for_uri_future(
                         &url,
                         None::<&gio::AppLaunchContext>
@@ -137,11 +138,11 @@ mod imp {
             });
 
             // Refresh action
-            klass.install_action_async("source.refresh", None, async |window, _, _| {
-                window.cancel_download();
+            klass.install_action_async("source.refresh", None, async |dialog, _, _| {
+                dialog.cancel_download();
 
-                if !window.downloading() {
-                    window.download_pkgbuild().await;
+                if !dialog.downloading() {
+                    dialog.download_pkgbuild().await;
                 }
             });
         }
@@ -150,9 +151,6 @@ mod imp {
         // Bind shortcuts
         //---------------------------------------
         fn bind_shortcuts(klass: &<Self as ObjectSubclass>::Class) {
-            // Close window binding
-            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
-
             // Save binding
             klass.add_binding_action(Key::S, ModifierType::CONTROL_MASK, "source.save");
 
@@ -175,15 +173,15 @@ mod imp {
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: SourceWindow
+// IMPLEMENTATION: SourceDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct SourceWindow(ObjectSubclass<imp::SourceWindow>)
-        @extends adw::Window, gtk::Window, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct SourceDialog(ObjectSubclass<imp::SourceDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl SourceWindow {
+impl SourceDialog {
     //---------------------------------------
     // New function
     //---------------------------------------
@@ -191,7 +189,7 @@ impl SourceWindow {
         let pkg_name = pkg.name();
 
         glib::Object::builder()
-            .property("transient-for", parent)
+            .property("parent-window", parent)
             .property("title", format!("{}  \u{2022}  PKGBUILD", &pkg_name))
             .property("pkg-name", pkg_name)
             .property("pkgbuild-url", pkg.pkgbuild_url())
@@ -356,9 +354,9 @@ impl SourceWindow {
         let style_manager = adw::StyleManager::for_display(&display);
 
         style_manager.connect_dark_notify(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             move |style_manager| {
-                window.set_style_scheme(style_manager);
+                dialog.set_style_scheme(style_manager);
             }
         ));
 
@@ -368,10 +366,10 @@ impl SourceWindow {
         });
 
         // Downloading property notify signal
-        self.connect_downloading_notify(|window| {
-            let imp = window.imp();
+        self.connect_downloading_notify(|dialog| {
+            let imp = dialog.imp();
 
-            if window.downloading() {
+            if dialog.downloading() {
                 imp.refresh_button.set_icon_name("process-stop-symbolic");
                 imp.refresh_button.set_tooltip_text(Some("Cancel Download"));
             } else {
@@ -392,7 +390,7 @@ impl SourceWindow {
         self.buffer()
             .set_language(sourceview5::LanguageManager::default().language("pkgbuild").as_ref());
 
-        // Get window display and style manager
+        // Get dialog display and style manager
         let display = gtk::prelude::WidgetExt::display(self);
         let style_manager = adw::StyleManager::for_display(&display);
 
@@ -404,9 +402,9 @@ impl SourceWindow {
 
         // Download PKGBUILD
         glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             async move {
-                window.download_pkgbuild().await;
+                dialog.download_pkgbuild().await;
             }
         ));
     }

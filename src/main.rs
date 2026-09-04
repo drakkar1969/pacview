@@ -23,7 +23,7 @@ mod groups_dialog;
 mod config_dialog;
 mod rootdir_dialog;
 mod config_row;
-mod source_window;
+mod source_dialog;
 mod pkg_data;
 mod pkg_object;
 mod stats_object;

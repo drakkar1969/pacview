@@ -13,7 +13,7 @@ use crate::{
     info_files_tab::{InfoFilesTab, TabState},
     history_list::HistoryList,
     pkg_object::PkgObject,
-    source_window::SourceWindow,
+    source_dialog::SourceDialog,
     hash_dialog::HashDialog,
     utils::ListStoreFind
 };
@@ -149,9 +149,9 @@ mod imp {
                         .and_downcast::<gtk::Window>()
                         .expect("Failed to downcast to 'GtkWindow'");
 
-                    let source_window = SourceWindow::new(&parent, &pkg);
+                    let source_dialog = SourceDialog::new(&parent, &pkg);
 
-                    source_window.present();
+                    source_dialog.present(Some(pane));
                 }
             });
 

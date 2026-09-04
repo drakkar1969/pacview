@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <!--// SourceWindow template //-->
-  <template class="SourceWindow" parent="AdwWindow">
-    <property name="default-width">1000</property>
-    <property name="default-height">640</property>
-    <property name="modal">true</property>
-    <property name="content">
+  <!--// SourceDialog template //-->
+  <template class="SourceDialog" parent="AdwDialog">
+    <property name="content-width">1000</property>
+    <property name="content-height">600</property>
+    <child>
       <object class="AdwToolbarView">
         <property name="top-bar-style">raised</property>
         <child type="top">
@@ -15,14 +14,9 @@
                 <property name="spacing">6</property>
                 <child>
                   <object class="GtkButton" id="save_button">
+                    <property name="icon-name">document-save-symbolic</property>
+                    <property name="use-underline">true</property>
                     <property name="action-name">source.save</property>
-                    <property name="child">
-                      <object class="AdwButtonContent">
-                        <property name="icon-name">document-save-symbolic</property>
-                        <property name="label">_Save</property>
-                        <property name="use-underline">true</property>
-                      </object>
-                    </property>
                   </object>
                 </child>
                 <child>
@@ -126,6 +120,6 @@
           </object>
         </property>
       </object>
-    </property>
+    </child>
   </template>
 </interface>
