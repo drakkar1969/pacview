@@ -179,8 +179,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct SourceWindow(ObjectSubclass<imp::SourceWindow>)
-    @extends adw::Window, gtk::Window, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+        @extends adw::Window, gtk::Window, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
 }
 
 impl SourceWindow {

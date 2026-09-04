@@ -48,8 +48,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ConfigRow(ObjectSubclass<imp::ConfigRow>)
-    @extends adw::ActionRow, adw::PreferencesRow, gtk::ListBoxRow, gtk::Widget,
-    @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
+        @extends adw::ActionRow, adw::PreferencesRow, gtk::ListBoxRow, gtk::Widget,
+        @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl ConfigRow {

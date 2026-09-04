@@ -260,8 +260,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct InfoRow(ObjectSubclass<imp::InfoRow>)
-    @extends gtk::ListBoxRow, gtk::Widget,
-    @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
+        @extends gtk::ListBoxRow, gtk::Widget,
+        @implements gtk::Accessible, gtk::Actionable, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl InfoRow {

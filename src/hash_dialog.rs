@@ -51,8 +51,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct HashDialog(ObjectSubclass<imp::HashDialog>)
-    @extends adw::Dialog, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
 impl HashDialog {

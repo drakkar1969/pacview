@@ -147,8 +147,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct RootDirDialog(ObjectSubclass<imp::RootDirDialog>)
-    @extends adw::AlertDialog, adw::Dialog, gtk::Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
+        @extends adw::AlertDialog, adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
 impl RootDirDialog {
