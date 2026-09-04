@@ -1,9 +1,8 @@
 use std::cell::Cell;
 
-use gtk::{glib, gio, gdk};
+use gtk::{glib, gio, pango};
 use adw::subclass::prelude::*;
-use gtk::prelude::*;
-use gdk::{Key, ModifierType};
+use adw::prelude::*;
 use glib::clone;
 
 use itertools::Itertools;
@@ -16,7 +15,7 @@ use crate::{
 };
 
 //------------------------------------------------------------------------------
-// MODULE: StatsWindow
+// MODULE: StatsDialog
 //------------------------------------------------------------------------------
 mod imp {
     use super::*;
@@ -25,9 +24,9 @@ mod imp {
     // Private structure
     //---------------------------------------
     #[derive(Default, gtk::CompositeTemplate, glib::Properties)]
-    #[properties(wrapper_type = super::StatsWindow)]
-    #[template(resource = "/com/github/PacView/ui/stats_window.ui")]
-    pub struct StatsWindow {
+    #[properties(wrapper_type = super::StatsDialog)]
+    #[template(resource = "/com/github/PacView/ui/stats_dialog.ui")]
+    pub struct StatsDialog {
         #[template_child]
         pub(super) repo_grid: TemplateChild<gtk::Grid>,
         #[template_child]
@@ -41,18 +40,15 @@ mod imp {
     // Subclass
     //---------------------------------------
     #[glib::object_subclass]
-    impl ObjectSubclass for StatsWindow {
-        const NAME: &'static str = "StatsWindow";
-        type Type = super::StatsWindow;
-        type ParentType = adw::Window;
+    impl ObjectSubclass for StatsDialog {
+        const NAME: &'static str = "StatsDialog";
+        type Type = super::StatsDialog;
+        type ParentType = adw::Dialog;
 
         fn class_init(klass: &mut Self::Class) {
             StatsObject::ensure_type();
 
             klass.bind_template();
-
-            // Add key bindings
-            Self::bind_shortcuts(klass);
         }
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
@@ -61,32 +57,21 @@ mod imp {
     }
 
     #[glib::derived_properties]
-    impl ObjectImpl for StatsWindow {}
-    impl WidgetImpl for StatsWindow {}
-    impl WindowImpl for StatsWindow {}
-    impl AdwWindowImpl for StatsWindow {}
-
-    impl StatsWindow {
-        //---------------------------------------
-        // Bind shortcuts
-        //---------------------------------------
-        fn bind_shortcuts(klass: &<Self as ObjectSubclass>::Class) {
-            // Close window binding
-            klass.add_binding_action(Key::Escape, ModifierType::NO_MODIFIER_MASK, "window.close");
-        }
-    }
+    impl ObjectImpl for StatsDialog {}
+    impl WidgetImpl for StatsDialog {}
+    impl AdwDialogImpl for StatsDialog {}
 }
 
 //------------------------------------------------------------------------------
-// IMPLEMENTATION: StatsWindow
+// IMPLEMENTATION: StatsDialog
 //------------------------------------------------------------------------------
 glib::wrapper! {
-    pub struct StatsWindow(ObjectSubclass<imp::StatsWindow>)
-        @extends adw::Window, gtk::Window, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Native, gtk::Root, gtk::ShortcutManager;
+    pub struct StatsDialog(ObjectSubclass<imp::StatsDialog>)
+        @extends adw::Dialog, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
-impl StatsWindow {
+impl StatsDialog {
     //---------------------------------------
     // Grid row helper function
     //---------------------------------------
@@ -147,6 +132,7 @@ impl StatsWindow {
 
         let inst_label = gtk::Label::builder()
             .xalign(0.0)
+            .ellipsize(pango::EllipsizeMode::End)
             .label(format!("{inst} installed"))
             .css_classes(["caption-heading", "dimmed"])
             .build();
@@ -154,6 +140,7 @@ impl StatsWindow {
         let pkgs_label = gtk::Label::builder()
             .hexpand(true)
             .xalign(1.0)
+            .ellipsize(pango::EllipsizeMode::End)
             .label(format!("{pkgs} packages"))
             .css_classes(["caption-heading", "dimmed"])
             .build();
@@ -169,14 +156,14 @@ impl StatsWindow {
     }
 
     //---------------------------------------
-    // Populate window
+    // Populate dialog
     //---------------------------------------
     fn populate(&self, repos: Vec<String>, pkg_model: &gio::ListStore) {
         glib::spawn_future_local(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[weak] pkg_model,
             async move {
-                let imp = window.imp();
+                let imp = dialog.imp();
 
                 let mut pkgs_total = 0;
                 let mut inst_total = 0;
@@ -231,28 +218,30 @@ impl StatsWindow {
     }
 
     //---------------------------------------
-    // Show window
+    // Show dialog
     //---------------------------------------
-    pub fn show(&self, repos: &[String], pkg_model: &gio::ListStore) {
+    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>, repos: &[String], pkg_model: &gio::ListStore) {
         let repos = repos.to_owned();
 
+        let parent = parent.map(|widget| widget.clone().upcast());
+
         glib::idle_add_local_once(clone!(
-            #[weak(rename_to = window)] self,
+            #[weak(rename_to = dialog)] self,
             #[weak] pkg_model,
             move || {
-                if !window.is_loaded() {
-                    window.populate(repos, &pkg_model);
+                if !dialog.is_loaded() {
+                    dialog.populate(repos, &pkg_model);
 
-                    window.set_is_loaded(true);
+                    dialog.set_is_loaded(true);
                 }
 
-                window.present();
+                dialog.present(parent.as_ref());
             }
         ));
     }
 }
 
-impl Default for StatsWindow {
+impl Default for StatsDialog {
     //---------------------------------------
     // Default constructor
     //---------------------------------------

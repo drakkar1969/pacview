@@ -30,7 +30,7 @@ use crate::{
     info_pane::InfoPane,
     repo_item::RepoItem,
     status_item::{StatusItem, StatusItemState},
-    stats_window::StatsWindow,
+    stats_dialog::StatsDialog,
     backup_dialog::BackupDialog,
     groups_dialog::GroupsDialog,
     log_dialog::LogDialog,
@@ -112,7 +112,7 @@ mod imp {
         pub(super) cache_dialog: RefCell<CacheDialog>,
         pub(super) groups_dialog: RefCell<GroupsDialog>,
         pub(super) log_dialog: RefCell<LogDialog>,
-        pub(super) stats_window: RefCell<StatsWindow>,
+        pub(super) stats_dialog: RefCell<StatsDialog>,
      }
 
     //---------------------------------------
@@ -395,7 +395,7 @@ mod imp {
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_window.borrow().show(&imp.repo_names.borrow(), &imp.package_view.pkg_model());
+                imp.stats_dialog.borrow().show(Some(window), &imp.repo_names.borrow(), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {
@@ -696,9 +696,6 @@ impl PacViewWindow {
 
         imp.main_menu_button.set_menu_model(menu.as_ref());
 
-        // Set window parents
-        imp.stats_window.borrow().set_transient_for(Some(self));
-
         // Bind sidebar/infopane visibility to properties
         imp.sidebar_splitview.bind_property("show-sidebar", self, "show-sidebar")
             .sync_create()
@@ -851,12 +848,12 @@ impl PacViewWindow {
         // Store repo names
         imp.repo_names.replace(repo_names);
 
-        // Reset windows
+        // Reset dialogs
         imp.backup_dialog.borrow().set_is_loaded(false);
         imp.cache_dialog.borrow().set_is_loaded(false);
         imp.groups_dialog.borrow().set_is_loaded(false);
         imp.log_dialog.borrow().set_is_loaded(false);
-        imp.stats_window.borrow().set_is_loaded(false);
+        imp.stats_dialog.borrow().set_is_loaded(false);
 
         // If AUR database download is enabled and AUR file does not exist, download it
         let prefs_dialog = imp.prefs_dialog.borrow();

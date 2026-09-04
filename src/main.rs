@@ -15,7 +15,7 @@ mod info_row;
 mod history_list;
 mod text_widget;
 mod preferences_dialog;
-mod stats_window;
+mod stats_dialog;
 mod backup_dialog;
 mod log_dialog;
 mod cache_dialog;
