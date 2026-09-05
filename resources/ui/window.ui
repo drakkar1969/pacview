@@ -9,7 +9,7 @@
     <property name="title">PacView</property>
     <child>
       <object class="AdwBreakpoint" id="info_breakpoint">
-        <!-- Min sidebar width in sidebar split view + 2 * ui breakpoint max width (sp) -->
+        <!-- Min sidebar width (230sp) + 2 * ui breakpoint max width (470sp) -->
         <condition>max-width: 1170sp</condition>
         <setter object="info_splitview" property="collapsed">true</setter>
         <setter object="package_view" property="display-mode">no-infopane</setter>
@@ -18,7 +18,7 @@
     </child>
     <child>
       <object class="AdwBreakpoint" id="sidebar_breakpoint">
-        <!-- Min sidebar width in sidebar split view + ui breakpoint max width (sp) -->
+        <!-- Min sidebar width (230sp) + ui breakpoint max width (470sp) -->
         <condition>max-width: 700sp</condition>
         <setter object="info_splitview" property="collapsed">true</setter>
         <setter object="sidebar_splitview" property="collapsed">true</setter>
