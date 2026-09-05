@@ -4,7 +4,7 @@
   <template class="SourceDialog" parent="AdwDialog">
     <property name="content-width">1000</property>
     <property name="content-height">600</property>
-    <child>
+    <property name="child">
       <object class="AdwToolbarView">
         <property name="top-bar-style">raised</property>
         <child type="top">
@@ -121,6 +121,6 @@
           </object>
         </property>
       </object>
-    </child>
+    </property>
   </template>
 </interface>

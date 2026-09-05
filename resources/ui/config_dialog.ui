@@ -5,7 +5,7 @@
     <property name="content-width">550</property>
     <property name="content-height">600</property>
     <property name="title">Pacman Config</property>
-    <child>
+    <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar" id="header_bar">
@@ -28,6 +28,6 @@
           <object class="AdwPreferencesPage" id="options_page"/>
         </property>
       </object>
-    </child>
+    </property>
   </template>
 </interface>

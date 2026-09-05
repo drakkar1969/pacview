@@ -5,7 +5,7 @@
     <property name="content-width">580</property>
     <property name="content-height">520</property>
     <property name="title">Package Statistics</property>
-    <child>
+    <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <child type="top">
           <object class="AdwHeaderBar"/>
@@ -57,6 +57,6 @@
           </object>
         </property>
       </object>
-    </child>
+    </property>
   </template>
 </interface>

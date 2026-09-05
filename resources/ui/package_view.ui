@@ -91,7 +91,7 @@
                       <object class="GtkScrolledWindow">
                         <property name="hexpand">true</property>
                         <property name="vexpand">true</property>
-                        <child>
+                        <property name="child">
                           <object class="GtkListView" id="view">
                             <property name="tab-behavior">item</property>
                             <property name="model">
@@ -161,7 +161,7 @@
                               </object>
                             </property>
                           </object>
-                        </child>
+                        </property>
                       </object>
                     </property>
                     <child type="overlay">
