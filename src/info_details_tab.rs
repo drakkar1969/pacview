@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::borrow::Cow;
 use std::fmt::Write as _;
 
-use gtk::subclass::prelude::*;
+use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
 use glib::clone;
@@ -73,7 +73,7 @@ mod imp {
     impl ObjectSubclass for InfoDetailsTab {
         const NAME: &'static str = "InfoDetailsTab";
         type Type = super::InfoDetailsTab;
-        type ParentType = gtk::Box;
+        type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -102,7 +102,7 @@ mod imp {
     }
 
     impl WidgetImpl for InfoDetailsTab {}
-    impl BoxImpl for InfoDetailsTab {}
+    impl BinImpl for InfoDetailsTab {}
 
     impl InfoDetailsTab {
         //---------------------------------------
@@ -149,8 +149,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct InfoDetailsTab(ObjectSubclass<imp::InfoDetailsTab>)
-        @extends gtk::Box, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl InfoDetailsTab {

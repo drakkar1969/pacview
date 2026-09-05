@@ -1,8 +1,8 @@
 use std::cell::{Cell, RefCell};
 use std::fmt::Write as _;
 
-use gtk::subclass::prelude::*;
-use gtk::prelude::*;
+use adw::subclass::prelude::*;
+use adw::prelude::*;
 use gtk::{glib, gio};
 use glib::clone;
 
@@ -82,7 +82,7 @@ mod imp {
     impl ObjectSubclass for InfoFilesTab {
         const NAME: &'static str = "InfoFilesTab";
         type Type = super::InfoFilesTab;
-        type ParentType = gtk::Box;
+        type ParentType = adw::Bin;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -111,7 +111,7 @@ mod imp {
         }
     }
     impl WidgetImpl for InfoFilesTab {}
-    impl BoxImpl for InfoFilesTab {}
+    impl BinImpl for InfoFilesTab {}
 
     impl InfoFilesTab {
         //---------------------------------------
@@ -184,8 +184,8 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct InfoFilesTab(ObjectSubclass<imp::InfoFilesTab>)
-        @extends gtk::Box, gtk::Widget,
-        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+        @extends adw::Bin, gtk::Widget,
+        @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 
 impl InfoFilesTab {
