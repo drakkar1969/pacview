@@ -73,7 +73,7 @@ mod imp {
     impl ObjectSubclass for InfoDetailsTab {
         const NAME: &'static str = "InfoDetailsTab";
         type Type = super::InfoDetailsTab;
-        type ParentType = adw::Bin;
+        type ParentType = adw::BreakpointBin;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -102,7 +102,7 @@ mod imp {
     }
 
     impl WidgetImpl for InfoDetailsTab {}
-    impl BinImpl for InfoDetailsTab {}
+    impl BreakpointBinImpl for InfoDetailsTab {}
 
     impl InfoDetailsTab {
         //---------------------------------------
@@ -149,7 +149,7 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct InfoDetailsTab(ObjectSubclass<imp::InfoDetailsTab>)
-        @extends adw::Bin, gtk::Widget,
+        @extends adw::BreakpointBin, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget;
 }
 

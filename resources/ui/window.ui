@@ -5,7 +5,7 @@
     <property name="default-width">1350</property>
     <property name="default-height">840</property>
     <property name="width-request">360</property>
-    <property name="height-request">400</property>
+    <property name="height-request">360</property>
     <property name="title">PacView</property>
     <child>
       <object class="AdwBreakpoint" id="info_breakpoint">
