@@ -202,7 +202,7 @@
         </child>
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">PKGBUILD Dialogindow</property>
+            <property name="title">PKGBUILD Dialog</property>
             <child>
               <object class="AdwComboRow" id="pkgbuild_style_scheme_row">
                 <property name="title">Style Sc_heme</property>
