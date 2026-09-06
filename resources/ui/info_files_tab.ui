@@ -65,6 +65,13 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkSeparator">
+                        <style>
+                          <class name="spacer"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkButton" id="open_button">
                         <property name="icon-name">document-open-symbolic</property>
                         <property name="tooltip-text">Open</property>
