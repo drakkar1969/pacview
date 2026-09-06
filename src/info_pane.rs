@@ -254,6 +254,16 @@ impl InfoPane {
         // Bind history list properties to widgets
         let history = imp.pkg_history.borrow();
 
+        history.bind_property("len", &imp.prev_button.get(), "visible")
+            .transform_to(|_, len: u32| Some(len > 1))
+            .sync_create()
+            .build();
+
+        history.bind_property("len", &imp.next_button.get(), "visible")
+            .transform_to(|_, len: u32| Some(len > 1))
+            .sync_create()
+            .build();
+
         history.bind_property("peek-previous", &imp.prev_button.get(), "sensitive")
             .sync_create()
             .build();
