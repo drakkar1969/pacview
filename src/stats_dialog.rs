@@ -218,7 +218,7 @@ impl StatsDialog {
             size_total += size;
 
             if pkgs > 0 {
-                self.add_row(false, &repo, size, inst, pkgs);
+                self.add_row(false, repo, size, inst, pkgs);
             }
         }
 
@@ -232,7 +232,7 @@ impl StatsDialog {
         let parent = parent.map(|widget| widget.clone().upcast());
 
         if !self.is_loaded() {
-            self.populate(repos, &pkg_model);
+            self.populate(repos, pkg_model);
 
             self.set_is_loaded(true);
         }

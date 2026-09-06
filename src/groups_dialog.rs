@@ -411,7 +411,7 @@ impl GroupsDialog {
         self.present(parent);
 
         if !self.is_loaded() {
-            self.populate(&pkg_model);
+            self.populate(pkg_model);
         }
     }
 }

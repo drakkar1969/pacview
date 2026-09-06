@@ -262,7 +262,7 @@ impl CacheDialog {
                 let imp = dialog.imp();
 
                 // Spawn future to get cache files and cache size
-                let (files, size): (Vec<CacheObject>, u64) = GioFuture::new(&(), |_, _, result| {
+                let (files, size): (Vec<CacheObject>, u64) = GioFuture::new(&(), |(), _, result| {
                     let mut size = 0;
 
                     let files: Vec<CacheObject> = Pacman::config().read().unwrap().cache_dir
