@@ -6,6 +6,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::{clone, Propagation};
+use gio::GioFuture;
 use gdk::{Key, ModifierType};
 
 use size::Size;
@@ -255,36 +256,43 @@ impl CacheDialog {
     // Populate dialog
     //---------------------------------------
     fn populate(&self) {
-        let imp = self.imp();
-
         glib::spawn_future_local(clone!(
-            #[weak] imp,
+            #[weak(rename_to = dialog)] self,
             async move {
-                // Get cache files and cache size
-                let mut cache_size = 0;
+                let imp = dialog.imp();
 
-                let cache_files: Vec<CacheObject> = Pacman::config().read().unwrap().cache_dir
-                    .iter()
-                    .flat_map(|dir| {
-                        WalkDir::new(dir)
-                            .min_depth(1)
-                            .sort_by_file_name()
-                            .into_iter()
-                    })
-                    .flatten()
-                    .filter_map(|entry| {
-                        cache_size += entry.metadata().ok()?.blocks();
+                // Spawn future to get cache files and cache size
+                let (files, size): (Vec<CacheObject>, u64) = GioFuture::new(&(), |_, _, result| {
+                    let mut size = 0;
 
-                        entry.path().extension().is_some_and(|ext| ext == "zst")
-                            .then(|| CacheObject::new(&entry.path().display().to_string()))
-                    })
-                    .collect();
+                    let files: Vec<CacheObject> = Pacman::config().read().unwrap().cache_dir
+                        .iter()
+                        .flat_map(|dir| {
+                            WalkDir::new(dir)
+                                .min_depth(1)
+                                .sort_by_file_name()
+                                .into_iter()
+                        })
+                        .flatten()
+                        .filter_map(|entry| {
+                            size += entry.metadata().ok()?.blocks();
 
-                imp.model.splice(0, imp.model.n_items(), &cache_files);
+                            entry.path().extension().is_some_and(|ext| ext == "zst")
+                                .then(|| CacheObject::new(&entry.path().display().to_string()))
+                        })
+                        .collect();
+
+                    result.resolve((files, size));
+                })
+                .await;
+
+                imp.model.splice(0, imp.model.n_items(), &files);
 
                 imp.size_label.set_label(
-                    &format!("Cache size on disk: {}", Size::from_bytes(cache_size * 512))
+                    &format!("Cache size on disk: {}", Size::from_bytes(size * 512))
                 );
+
+                dialog.set_is_loaded(true);
             }
         ));
     }
@@ -295,16 +303,9 @@ impl CacheDialog {
     pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>) {
         self.present(parent);
 
-        glib::idle_add_local_once(clone!(
-            #[weak(rename_to = dialog)] self,
-            move || {
-                if !dialog.is_loaded() {
-                    dialog.populate();
-
-                    dialog.set_is_loaded(true);
-                }
-            }
-        ));
+        if !self.is_loaded() {
+            self.populate();
+        }
     }
 }
 

@@ -396,6 +396,8 @@ impl LogDialog {
                     .unwrap_or_default();
 
                 imp.size_label.set_label(&format!("Log file size: {}", Size::from_bytes(size)));
+
+                dialog.set_is_loaded(true);
             }
         ));
     }
@@ -406,16 +408,9 @@ impl LogDialog {
     pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>) {
         self.present(parent);
 
-        glib::idle_add_local_once(clone!(
-            #[weak(rename_to = dialog)] self,
-            move || {
-                if !dialog.is_loaded() {
-                    dialog.populate();
-
-                    dialog.set_is_loaded(true);
-                }
-            }
-        ));
+        if !self.is_loaded() {
+            self.populate();
+        }
     }
 }
 

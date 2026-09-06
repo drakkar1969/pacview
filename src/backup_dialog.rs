@@ -6,6 +6,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::{clone, Propagation};
+use gio::GioFuture;
 use gdk::{Key, ModifierType};
 
 use strum::{EnumIter, IntoEnumIterator, AsRefStr};
@@ -535,27 +536,34 @@ impl BackupDialog {
     // Populate dialog
     //---------------------------------------
     fn populate(&self, pkg_model: &gio::ListStore) {
-        let imp = self.imp();
-
         // Get backup list
         glib::spawn_future_local(clone!(
-            #[weak] imp,
+            #[weak(rename_to = dialog)] self,
             #[weak] pkg_model,
             async move {
-                let backup_list: Vec<BackupObject> = pkg_model.iter::<PkgObject>()
-                    .flatten()
-                    .filter(PkgObject::is_installed)
-                    .flat_map(|pkg| {
-                        let pkg_name = pkg.name();
+                let imp = dialog.imp();
 
-                        pkg.backup().iter()
-                            .map(|backup| BackupObject::new(backup, &pkg_name))
-                            .collect::<Vec<BackupObject>>()
-                    })
-                    .collect();
+                // Spawn future to get backup files
+                let files: Vec<BackupObject> = GioFuture::new(&pkg_model, |model, _, result| {
+                    let files = model.iter::<PkgObject>()
+                        .flatten()
+                        .filter(PkgObject::is_installed)
+                        .flat_map(|pkg| {
+                            let pkg_name = pkg.name();
 
-                // Populate column view
-                imp.model.splice(0, imp.model.n_items(), &backup_list);
+                            pkg.backup().iter()
+                                .map(|backup| BackupObject::new(backup, &pkg_name))
+                                .collect::<Vec<BackupObject>>()
+                        })
+                        .collect();
+
+                    result.resolve(files);
+                })
+                .await;
+
+                imp.model.splice(0, imp.model.n_items(), &files);
+
+                dialog.set_is_loaded(true);
             }
         ));
     }
@@ -566,17 +574,9 @@ impl BackupDialog {
     pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>, pkg_model: &gio::ListStore) {
         self.present(parent);
 
-        glib::idle_add_local_once(clone!(
-            #[weak(rename_to = dialog)] self,
-            #[weak] pkg_model,
-            move || {
-                if !dialog.is_loaded() {
-                    dialog.populate(&pkg_model);
-
-                    dialog.set_is_loaded(true);
-                }
-            }
-        ));
+        if !self.is_loaded() {
+            self.populate(&pkg_model);
+        }
     }
 }
 

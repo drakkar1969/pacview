@@ -6,6 +6,7 @@ use gtk::{glib, gio, gdk};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::{clone, Propagation};
+use gio::GioFuture;
 use gdk::{Key, ModifierType};
 
 use strum::{EnumIter, IntoEnumIterator, AsRefStr};
@@ -373,26 +374,32 @@ impl GroupsDialog {
     // Populate dialog
     //---------------------------------------
     fn populate(&self, pkg_model: &gio::ListStore) {
-        let imp = self.imp();
-
         glib::spawn_future_local(clone!(
-            #[weak] imp,
+            #[weak(rename_to = dialog)] self,
             #[weak] pkg_model,
             async move {
-                // Get list of packages with groups
-                let pkg_list: Vec<GroupsObject> = pkg_model.iter::<PkgObject>()
-                    .flatten()
-                    .flat_map(|pkg| {
-                        pkg.groups().iter()
-                            .map(|group| {
-                                GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_tag_type(), group)
-                            })
-                            .collect::<Vec<GroupsObject>>()
-                    })
-                    .collect();
+                let imp = dialog.imp();
 
-                // Populate column view
-                imp.model.splice(0, imp.model.n_items(), &pkg_list);
+                // Spawn future to get packages with groups
+                let packages: Vec<GroupsObject> = GioFuture::new(&pkg_model, |model, _, result| {
+                    let packages = model.iter::<PkgObject>()
+                        .flatten()
+                        .flat_map(|pkg| {
+                            pkg.groups().iter()
+                                .map(|group| {
+                                    GroupsObject::new(&pkg.name(), pkg.status(), pkg.status_tag_type(), group)
+                                })
+                                .collect::<Vec<GroupsObject>>()
+                        })
+                        .collect();
+
+                    result.resolve(packages);
+                })
+                .await;
+
+                imp.model.splice(0, imp.model.n_items(), &packages);
+
+                dialog.set_is_loaded(true);
             }
         ));
     }
@@ -403,17 +410,9 @@ impl GroupsDialog {
     pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>, pkg_model: &gio::ListStore) {
         self.present(parent);
 
-        glib::idle_add_local_once(clone!(
-            #[weak(rename_to = dialog)] self,
-            #[weak] pkg_model,
-            move || {
-                if !dialog.is_loaded() {
-                    dialog.populate(&pkg_model);
-
-                    dialog.set_is_loaded(true);
-                }
-            }
-        ));
+        if !self.is_loaded() {
+            self.populate(&pkg_model);
+        }
     }
 }
 
