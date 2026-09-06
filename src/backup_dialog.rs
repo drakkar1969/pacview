@@ -342,11 +342,7 @@ impl BackupDialog {
                 }
 
                 imp.stack.set_visible_child_name(
-                    if dialog.is_loaded() {
-                        if n_items == 0 { "empty" } else { "view" }
-                    } else {
-                        "loading"
-                    }
+                    if n_items == 0 { "empty" } else { "view" }
                 );
 
                 imp.count_label.set_label(&format!("{n_items} file{} in {n_sections} package{}",
@@ -575,15 +571,7 @@ impl BackupDialog {
             #[weak] pkg_model,
             move || {
                 if !dialog.is_loaded() {
-                    let imp = dialog.imp();
-
-                    imp.stack.set_visible_child_name("loading");
-
                     dialog.populate(&pkg_model);
-
-                    if imp.model.n_items() == 0 {
-                        imp.stack.set_visible_child_name("empty");
-                    }
 
                     dialog.set_is_loaded(true);
                 }
