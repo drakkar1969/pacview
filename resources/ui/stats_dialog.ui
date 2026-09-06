@@ -1,62 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// StatsDialog template //-->
-  <template class="StatsDialog" parent="AdwDialog">
-    <property name="content-width">580</property>
-    <property name="content-height">520</property>
-    <property name="title">Package Statistics</property>
-    <property name="child">
-      <object class="AdwToolbarView" id="toolbar_view">
-        <child type="top">
-          <object class="AdwHeaderBar"/>
+  <template class="StatsDialog" parent="AdwPreferencesDialog">
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="title">Package Statistics</property>
+        <child>
+          <object class="AdwPreferencesGroup" id="repo_group"/>
         </child>
-        <property name="content">
-          <object class="AdwPreferencesPage">
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="GtkBox">
-                    <style>
-                      <class name="card"/>
-                    </style>
-                    <child>
-                      <object class="GtkGrid" id="repo_grid">
-                        <property name="margin-start">20</property>
-                        <property name="margin-end">20</property>
-                        <property name="margin-top">20</property>
-                        <property name="margin-bottom">20</property>
-                        <property name="column-spacing">10</property>
-                        <property name="row-spacing">24</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-            <child>
-              <object class="AdwPreferencesGroup">
-                <child>
-                  <object class="GtkBox">
-                    <style>
-                      <class name="card"/>
-                    </style>
-                    <child>
-                      <object class="GtkGrid" id="total_grid">
-                        <property name="margin-start">20</property>
-                        <property name="margin-end">20</property>
-                        <property name="margin-top">20</property>
-                        <property name="margin-bottom">20</property>
-                        <property name="column-spacing">10</property>
-                        <property name="row-spacing">24</property>
-                      </object>
-                    </child>
-                  </object>
-                </child>
-              </object>
-            </child>
-          </object>
-        </property>
+        <child>
+          <object class="AdwPreferencesGroup" id="total_group"/>
+        </child>
       </object>
-    </property>
+    </child>
   </template>
 </interface>
