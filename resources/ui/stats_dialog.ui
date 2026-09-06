@@ -2,9 +2,9 @@
 <interface>
   <!--// StatsDialog template //-->
   <template class="StatsDialog" parent="AdwPreferencesDialog">
+    <property name="title">Package Statistics</property>
     <child>
       <object class="AdwPreferencesPage">
-        <property name="title">Package Statistics</property>
         <child>
           <object class="AdwPreferencesGroup" id="repo_group"/>
         </child>
