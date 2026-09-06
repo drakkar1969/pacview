@@ -21,9 +21,6 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/config_dialog.ui")]
     pub struct ConfigDialog {
         #[template_child]
-        pub(super) config_button: TemplateChild<gtk::Button>,
-
-        #[template_child]
         pub(super) options_page: TemplateChild<adw::PreferencesPage>,
     }
 

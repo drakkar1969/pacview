@@ -31,8 +31,6 @@ mod imp {
     pub struct InfoDetailsTab {
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
-        #[template_child]
-        pub(super) copy_button: TemplateChild<gtk::Button>,
 
         #[template_child]
         pub(super) name_label: TemplateChild<gtk::Label>,

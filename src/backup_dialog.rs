@@ -62,8 +62,6 @@ mod imp {
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
         pub(super) section_sort_model: TemplateChild<gtk::SortListModel>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
@@ -71,8 +69,6 @@ mod imp {
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::CustomFilter>,
-        #[template_child]
-        pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
 
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,

@@ -56,9 +56,6 @@ mod imp {
         pub(super) revealer: TemplateChild<gtk::Revealer>,
 
         #[template_child]
-        pub(super) search_image: TemplateChild<gtk::Image>,
-
-        #[template_child]
         pub(super) prop_tag: TemplateChild<SearchTag>,
 
         #[template_child]
@@ -70,8 +67,6 @@ mod imp {
         pub(super) exact_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
         pub(super) filter_button: TemplateChild<gtk::MenuButton>,
-
-        pub(super) has_capture_widget: Cell<bool>,
 
         #[property(get, set)]
         enabled: Cell<bool>,
@@ -86,6 +81,8 @@ mod imp {
         default_prop: Cell<SearchProp>,
         #[property(get, set)]
         default_exact: Cell<bool>,
+
+        pub(super) has_capture_widget: Cell<bool>,
 
         pub(super) search_delay_id: RefCell<Option<glib::SourceId>>,
     }

@@ -38,8 +38,6 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_files_tab.ui")]
     pub struct InfoFilesTab {
         #[template_child]
-        pub(super) header_label: TemplateChild<gtk::Label>,
-        #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
         #[template_child]
         pub(super) search_button: TemplateChild<gtk::ToggleButton>,
@@ -52,8 +50,6 @@ mod imp {
         pub(super) view: TemplateChild<gtk::ListView>,
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
-        #[template_child]
-        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
         #[template_child]
         pub(super) selection: TemplateChild<gtk::SingleSelection>,
         #[template_child]

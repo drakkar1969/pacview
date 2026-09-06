@@ -63,8 +63,6 @@ mod imp {
         #[template_child]
         pub(super) model: TemplateChild<gio::ListStore>,
         #[template_child]
-        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
         pub(super) selection: TemplateChild<gtk::NoSelection>,
         #[template_child]
         pub(super) search_filter: TemplateChild<gtk::CustomFilter>,

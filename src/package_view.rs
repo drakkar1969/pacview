@@ -126,8 +126,6 @@ mod imp {
         #[template_child]
         pub(super) sort_model: TemplateChild<gtk::SortListModel>,
         #[template_child]
-        pub(super) filter_model: TemplateChild<gtk::FilterListModel>,
-        #[template_child]
         pub(super) repo_filter: TemplateChild<gtk::StringFilter>,
         #[template_child]
         pub(super) status_filter: TemplateChild<gtk::CustomFilter>,

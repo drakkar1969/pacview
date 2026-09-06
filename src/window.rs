@@ -67,8 +67,6 @@ mod imp {
         pub(super) info_splitview: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
         pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
-        #[template_child]
-        pub(super) sidebar_button: TemplateChild<gtk::ToggleButton>,
 
         #[template_child]
         pub(super) repo_sidebar: TemplateChild<adw::Sidebar>,
