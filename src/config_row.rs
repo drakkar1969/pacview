@@ -60,16 +60,14 @@ impl ConfigRow {
         let obj: Self = glib::Object::builder()
             .property("title", label)
             .property("subtitle", property)
-            .property("action-name", action_name)
             .build();
-
-        let imp = obj.imp();
 
         if action_name.is_some() && !property.is_empty() {
             obj.set_activatable(true);
+            obj.set_action_name(action_name);
             obj.set_action_target(Some(&property.to_variant()));
 
-            imp.suffix_image.set_icon_name(Some("go-next-symbolic"));
+            obj.imp().suffix_image.set_icon_name(Some("go-next-symbolic"));
         }
 
         obj

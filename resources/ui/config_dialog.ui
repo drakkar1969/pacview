@@ -1,33 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!--// ConfigDialog template //-->
-  <template class="ConfigDialog" parent="AdwDialog">
-    <property name="content-width">550</property>
+  <template class="ConfigDialog" parent="AdwPreferencesDialog">
     <property name="content-height">600</property>
     <property name="title">Pacman Config</property>
-    <property name="child">
-      <object class="AdwToolbarView" id="toolbar_view">
-        <child type="top">
-          <object class="AdwHeaderBar" id="header_bar">
+    <child>
+      <object class="AdwPreferencesPage" id="options_page">
+        <child>
+          <object class="AdwPreferencesGroup">
             <child>
-              <object class="GtkButton" id="config_button">
+              <object class="AdwButtonRow" id="config_button">
+                <property name="start-icon-name">document-open-symbolic</property>
+                <property name="title">_Open Pacman Config</property>
                 <property name="action-name">conf.config</property>
-                <property name="child">
-                  <object class="AdwButtonContent">
-                    <property name="icon-name">document-open-symbolic</property>
-                    <property name="label">_Open</property>
-                    <property name="tooltip-text">Open Pacman Config</property>
-                    <property name="use-underline">true</property>
-                  </object>
-                </property>
+                <property name="use-underline">true</property>
               </object>
             </child>
           </object>
         </child>
-        <property name="content">
-          <object class="AdwPreferencesPage" id="options_page"/>
-        </property>
       </object>
-    </property>
+    </child>
   </template>
 </interface>

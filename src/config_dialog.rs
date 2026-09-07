@@ -31,7 +31,7 @@ mod imp {
     impl ObjectSubclass for ConfigDialog {
         const NAME: &'static str = "ConfigDialog";
         type Type = super::ConfigDialog;
-        type ParentType = adw::Dialog;
+        type ParentType = adw::PreferencesDialog;
 
         fn class_init(klass: &mut Self::Class) {
             klass.bind_template();
@@ -46,9 +46,9 @@ mod imp {
     }
 
     impl ObjectImpl for ConfigDialog {}
-
     impl WidgetImpl for ConfigDialog {}
     impl AdwDialogImpl for ConfigDialog {}
+    impl PreferencesDialogImpl for ConfigDialog {}
 
     impl ConfigDialog {
         //---------------------------------------
@@ -83,7 +83,7 @@ mod imp {
 //------------------------------------------------------------------------------
 glib::wrapper! {
     pub struct ConfigDialog(ObjectSubclass<imp::ConfigDialog>)
-        @extends adw::Dialog, gtk::Widget,
+        @extends adw::PreferencesDialog, adw::Dialog, gtk::Widget,
         @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::ShortcutManager;
 }
 
