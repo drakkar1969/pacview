@@ -1621,7 +1621,6 @@ dependencies = [
  "fs_extra",
  "futures",
  "futures-util",
- "gio",
  "glib-build-tools",
  "gtk4",
  "heck",

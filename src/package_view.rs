@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::cmp::Ordering;
 use std::fmt::Write as _;
 
-use gtk::glib;
+use gtk::{gio, glib};
 use adw::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, closure_local};
