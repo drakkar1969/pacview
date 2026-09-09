@@ -627,7 +627,7 @@ impl StyleSchemes {
 pub trait ListStoreFind {
     fn find_with<F, T>(&self, func: F) -> Option<T>
     where
-        F: FnMut(&T) -> bool + Clone,
+        F: FnMut(&T) -> bool,
         T: IsA<glib::Object>;
 }
 
@@ -637,7 +637,7 @@ impl ListStoreFind for gio::ListStore {
     //-----------------------------------
     fn find_with<F, T>(&self, mut func: F) -> Option<T>
     where
-        F: FnMut(&T) -> bool + Clone,
+        F: FnMut(&T) -> bool,
         T: IsA<glib::Object>
     {
         let index = self.find_with_equal_func(|obj| {
