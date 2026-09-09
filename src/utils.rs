@@ -10,7 +10,7 @@ use std::collections::HashMap;
 
 use gtk::{gio, glib};
 use gio::{AppInfo, AppLaunchContext};
-use gtk::prelude::{AppInfoExtManual, ListModelExt, Cast, CastNone, IsA};
+use gtk::prelude::{AppInfoExtManual, ListModelExt, Cast, CastNone, IsA, ObjectExt};
 use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use walkdir::WalkDir;
@@ -618,19 +618,25 @@ impl StyleSchemes {
 //------------------------------------------------------------------------------
 pub trait ListStoreFind {
     fn find_with<F, T>(&self, func: F) -> Option<T>
-    where F: FnMut(&T) -> bool + Clone, T: IsA<glib::Object>;
+    where
+        F: FnMut(&T) -> bool + Clone,
+        T: IsA<glib::Object>;
 }
 
 impl ListStoreFind for gio::ListStore {
     //-----------------------------------
     // Find with function
     //-----------------------------------
-    fn find_with<F, T>(&self, func: F) -> Option<T>
+    fn find_with<F, T>(&self, mut func: F) -> Option<T>
     where
-        F: FnMut(&T) -> bool + Clone, T: IsA<glib::Object>
+        F: FnMut(&T) -> bool + Clone,
+        T: IsA<glib::Object>
     {
         let index = self.find_with_equal_func(|obj| {
-            obj.downcast_ref::<T>().is_some_and(func.clone())
+            let type_obj = obj.downcast_ref::<T>()
+                .expect(&format!("Failed to downcast to '{}'", obj.type_()));
+
+            func(type_obj)
         });
 
         index.and_then(|index| self.item(index).and_downcast::<T>())
