@@ -415,7 +415,11 @@ impl TokioCommand {
     //---------------------------------------
     pub async fn output<I, S1, S2>(cmd: S1, args: I, token: CancellationToken, strip_ansi: bool)
     -> io::Result<(Option<i32>, String, Option<String>)>
-    where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
+    where
+        S1: AsRef<OsStr>,
+        S2: AsRef<OsStr>,
+        I: IntoIterator<Item = S2>
+    {
         // Spawn process
         let mut child = tokio::process::Command::new(cmd)
             .args(args)
@@ -494,7 +498,11 @@ impl TokioCommand {
     // Spawn pipe stdin function
     //---------------------------------------
     pub async fn spawn_pipe_stdin<I, S1, S2>(cmd: S1, args: I, input: &str) -> io::Result<()>
-    where S1: AsRef<OsStr>, I: IntoIterator<Item = S2>, S2: AsRef<OsStr> {
+    where
+        S1: AsRef<OsStr>,
+        S2: AsRef<OsStr>,
+        I: IntoIterator<Item = S2>
+    {
         let mut child = tokio::process::Command::new(cmd)
             .args(args)
             .stdin(Stdio::piped())
