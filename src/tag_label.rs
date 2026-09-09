@@ -102,13 +102,13 @@ mod imp {
         //---------------------------------------
         // Property setters
         //---------------------------------------
-        fn set_tag_type(&self, type_: TagType) {
+        fn set_tag_type(&self, tag_type: TagType) {
             let obj = self.obj();
 
-            match type_ {
+            match tag_type {
                 TagType::None => { obj.set_css_classes(&[]); },
                 TagType::Normal => { obj.set_css_classes(&["tag"]); },
-                _ => { obj.set_css_classes(&["tag", type_.as_ref()]); }
+                _ => { obj.set_css_classes(&["tag", tag_type.as_ref()]); }
             }
         }
 

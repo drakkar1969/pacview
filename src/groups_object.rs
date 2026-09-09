@@ -52,12 +52,12 @@ impl GroupsObject {
     //---------------------------------------
     // New function
     //---------------------------------------
-    pub fn new(package: &str, status: &str, type_: TagType, groups: &str) -> Self {
+    pub fn new(package: &str, status: &str, tag_type: TagType, groups: &str) -> Self {
         // Build GroupsObject
         glib::Object::builder()
             .property("package", package)
             .property("status", status)
-            .property("status-tag-type", type_)
+            .property("status-tag-type", tag_type)
             .property("groups", groups)
             .build()
     }
