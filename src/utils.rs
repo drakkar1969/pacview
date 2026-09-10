@@ -642,7 +642,7 @@ impl ListStoreFind for gio::ListStore {
     {
         let index = self.find_with_equal_func(|obj| {
             let type_obj = obj.downcast_ref::<T>()
-                .expect(&format!("Failed to downcast to '{}'", obj.type_()));
+                .unwrap_or_else(|| panic!("Failed to downcast to '{}'", obj.type_()));
 
             func(type_obj)
         });
