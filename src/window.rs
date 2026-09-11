@@ -373,27 +373,27 @@ mod imp {
             klass.install_action("win.show-backup-files", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.backup_dialog.borrow().show(Some(window), &imp.package_view.pkg_model());
+                imp.backup_dialog.borrow().present(Some(window), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-cache", None, |window, _, _| {
-                window.imp().cache_dialog.borrow().show(Some(window));
+                window.imp().cache_dialog.borrow().present(Some(window));
             });
 
             klass.install_action("win.show-pacman-groups", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.groups_dialog.borrow().show(Some(window), &imp.package_view.pkg_model());
+                imp.groups_dialog.borrow().present(Some(window), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-log", None, |window, _, _| {
-                window.imp().log_dialog.borrow().show(Some(window));
+                window.imp().log_dialog.borrow().present(Some(window));
             });
 
             klass.install_action("win.show-stats", None, |window, _, _| {
                 let imp = window.imp();
 
-                imp.stats_dialog.borrow().show(Some(window), &imp.repo_names.borrow(), &imp.package_view.pkg_model());
+                imp.stats_dialog.borrow().present(Some(window), &imp.repo_names.borrow(), &imp.package_view.pkg_model());
             });
 
             klass.install_action("win.show-pacman-config", None, |window, _, _| {

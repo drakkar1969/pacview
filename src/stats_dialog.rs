@@ -226,9 +226,9 @@ impl StatsDialog {
     }
 
     //---------------------------------------
-    // Show dialog
+    // Present dialog
     //---------------------------------------
-    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>, repos: &[String], pkg_model: &gio::ListStore) {
+    pub fn present(&self, parent: Option<&impl IsA<gtk::Widget>>, repos: &[String], pkg_model: &gio::ListStore) {
         let parent = parent.map(|widget| widget.clone().upcast());
 
         if !self.is_loaded() {
@@ -237,7 +237,7 @@ impl StatsDialog {
             self.set_is_loaded(true);
         }
 
-        self.present(parent.as_ref());
+        adw::Dialog::present(self.upcast_ref::<adw::Dialog>(), parent.as_ref());
     }
 }
 

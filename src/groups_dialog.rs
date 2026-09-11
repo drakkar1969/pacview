@@ -405,10 +405,10 @@ impl GroupsDialog {
     }
 
     //---------------------------------------
-    // Show dialog
+    // Present dialog
     //---------------------------------------
-    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>, pkg_model: &gio::ListStore) {
-        self.present(parent);
+    pub fn present(&self, parent: Option<&impl IsA<gtk::Widget>>, pkg_model: &gio::ListStore) {
+        adw::Dialog::present(self.upcast_ref::<adw::Dialog>(), parent);
 
         if !self.is_loaded() {
             self.populate(pkg_model);

@@ -403,10 +403,10 @@ impl LogDialog {
     }
 
     //---------------------------------------
-    // Show dialog
+    // Present dialog
     //---------------------------------------
-    pub fn show(&self, parent: Option<&impl IsA<gtk::Widget>>) {
-        self.present(parent);
+    pub fn present(&self, parent: Option<&impl IsA<gtk::Widget>>) {
+        adw::Dialog::present(self.upcast_ref::<adw::Dialog>(), parent);
 
         if !self.is_loaded() {
             self.populate();
