@@ -140,7 +140,6 @@ mod imp {
         #[template_child]
         pub(super) section_sorter: TemplateChild<gtk::StringSorter>,
 
-        #[property(get)]
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
         #[template_child]
@@ -303,9 +302,7 @@ impl PackageView {
 
                 let n_items = selection.n_items();
 
-                imp.count_label.set_label(&format!(
-                    "{n_items} matching package{}", if n_items == 1 { "" } else { "s" }
-                ));
+                view.show_package_count(Some(n_items));
 
                 imp.empty_status.set_visible(n_items == 0);
             }
@@ -748,6 +745,17 @@ impl PackageView {
                 pkg.set_update_version(Some(version.to_owned()));
             }
         }
+    }
+
+    //---------------------------------------
+    // Public show package count function
+    //---------------------------------------
+    pub fn show_package_count(&self, n_items: Option<u32>) {
+        let label = n_items
+            .map(|n_items| format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" }))
+            .unwrap_or_default();
+
+        self.imp().count_label.set_label(&label);
     }
 
     //---------------------------------------
