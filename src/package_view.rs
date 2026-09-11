@@ -156,7 +156,7 @@ mod imp {
 
         #[property(set = Self::set_state, builder(ViewState::default()))]
         state: PhantomData<ViewState>,
-        #[property(get, set, builder(ViewDisplayMode::default()))]
+        #[property(get, set = Self::set_display_mode, builder(ViewDisplayMode::default()))]
         display_mode: Cell<ViewDisplayMode>,
         #[property(get, set, builder(SortProp::default()))]
         sort_prop: Cell<SortProp>,
@@ -262,6 +262,22 @@ mod imp {
                 }
             }
         }
+
+        //---------------------------------------
+        // Display mode property setter
+        //---------------------------------------
+        fn set_display_mode(&self, mode: ViewDisplayMode) {
+            self.main_menu_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
+            self.sidebar_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
+            self.infopane_button.set_visible(mode != ViewDisplayMode::Normal);
+
+            self.grouping_button.set_visible(mode != ViewDisplayMode::Narrow);
+            self.sort_button.set_visible(mode != ViewDisplayMode::Narrow);
+            self.grouping_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
+            self.sort_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
+
+            self.display_mode.set(mode);
+        }
     }
 }
 
@@ -309,22 +325,6 @@ impl PackageView {
                 .expect("Failed to downcast to 'PkgObject'");
 
             package_item.bind(&pkg);
-        });
-
-        // Display mode property notify signal
-        self.connect_display_mode_notify(|view| {
-            let imp = view.imp();
-
-            let mode = view.display_mode();
-
-            imp.main_menu_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
-            imp.sidebar_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
-            imp.infopane_button.set_visible(mode != ViewDisplayMode::Normal);
-
-            imp.grouping_button.set_visible(mode != ViewDisplayMode::Narrow);
-            imp.sort_button.set_visible(mode != ViewDisplayMode::Narrow);
-            imp.grouping_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
-            imp.sort_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
         });
 
         // List view selection items changed signal
