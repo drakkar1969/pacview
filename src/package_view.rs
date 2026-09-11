@@ -158,6 +158,8 @@ mod imp {
         state: PhantomData<ViewState>,
         #[property(get, set = Self::set_display_mode, builder(ViewDisplayMode::default()))]
         display_mode: Cell<ViewDisplayMode>,
+        #[property(set = Self::set_package_count)]
+        package_count: PhantomData<u32>,
         #[property(set = Self::set_root_dir, nullable)]
         root_dir: PhantomData<Option<String>>,
         #[property(get, set, builder(SortProp::default()))]
@@ -282,6 +284,19 @@ mod imp {
         }
 
         //---------------------------------------
+        // Package count property setter
+        //---------------------------------------
+        fn set_package_count(&self, n_items: u32) {
+            let label = if n_items == gtk::INVALID_LIST_POSITION {
+                "".into()
+            } else {
+                format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })
+            };
+
+            self.count_label.set_label(&label);
+        }
+
+        //---------------------------------------
         // Root dir property setter
         //---------------------------------------
         fn set_root_dir(&self, root_dir: Option<&str>) {
@@ -345,7 +360,7 @@ impl PackageView {
 
                 let n_items = selection.n_items();
 
-                view.show_package_count(Some(n_items));
+                view.set_package_count(n_items);
 
                 imp.empty_status.set_visible(n_items == 0);
             }
@@ -757,17 +772,6 @@ impl PackageView {
                 pkg.set_update_version(Some(version.to_owned()));
             }
         }
-    }
-
-    //---------------------------------------
-    // Public show package count function
-    //---------------------------------------
-    pub fn show_package_count(&self, n_items: Option<u32>) {
-        let label = n_items
-            .map(|n_items| format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" }))
-            .unwrap_or_default();
-
-        self.imp().count_label.set_label(&label);
     }
 
     //---------------------------------------

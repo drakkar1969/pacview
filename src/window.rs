@@ -182,7 +182,7 @@ mod imp {
 
                 imp.saved_repo_id.replace(repo_id);
 
-                imp.package_view.show_package_count(None);
+                imp.package_view.set_package_count(gtk::INVALID_LIST_POSITION);
 
                 window.cancel_package_updates();
 
@@ -202,7 +202,7 @@ mod imp {
 
                 imp.package_view.set_state(ViewState::AURDownload);
                 imp.info_pane.set_pkg(None::<PkgObject>);
-                imp.package_view.show_package_count(None);
+                imp.package_view.set_package_count(gtk::INVALID_LIST_POSITION);
 
                 window.cancel_aur_database_download();
                 window.cancel_pkgbuild_fetch();
@@ -241,7 +241,7 @@ mod imp {
 
                 imp.package_view.set_state(ViewState::PkgbuildRepoFetch);
                 imp.info_pane.set_pkg(None::<PkgObject>);
-                imp.package_view.show_package_count(None);
+                imp.package_view.set_package_count(gtk::INVALID_LIST_POSITION);
 
                 window.cancel_aur_database_download();
                 window.cancel_pkgbuild_fetch();
