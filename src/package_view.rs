@@ -158,6 +158,8 @@ mod imp {
         state: PhantomData<ViewState>,
         #[property(get, set = Self::set_display_mode, builder(ViewDisplayMode::default()))]
         display_mode: Cell<ViewDisplayMode>,
+        #[property(set = Self::set_root_dir, nullable)]
+        root_dir: PhantomData<Option<String>>,
         #[property(get, set, builder(SortProp::default()))]
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
@@ -277,6 +279,14 @@ mod imp {
             self.sort_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
 
             self.display_mode.set(mode);
+        }
+
+        //---------------------------------------
+        // Root dir property setter
+        //---------------------------------------
+        fn set_root_dir(&self, root_dir: Option<&str>) {
+            self.rootdir_banner.set_title(root_dir.unwrap_or_default());
+            self.rootdir_banner.set_revealed(root_dir.is_some());
         }
     }
 }
@@ -780,16 +790,6 @@ impl PackageView {
             }
 
         self.clipboard().set_text(&output);
-    }
-
-    //---------------------------------------
-    // Public set root dir indicator function
-    //---------------------------------------
-    pub fn set_root_dir_indicator(&self, root_dir: Option<&str>) {
-        let imp = self.imp();
-
-        imp.rootdir_banner.set_title(root_dir.unwrap_or_default());
-        imp.rootdir_banner.set_revealed(root_dir.is_some());
     }
 }
 

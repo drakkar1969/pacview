@@ -292,8 +292,8 @@ mod imp {
                             window.action_set_enabled("win.reset-root-dir", !is_default_root_dir);
 
                             // Set root dir visual indicator
-                            window.imp().package_view.set_root_dir_indicator(
-                                (!is_default_root_dir).then_some(&root_dir)
+                            window.imp().package_view.set_root_dir(
+                                (!is_default_root_dir).then_some(root_dir.as_str())
                             );
 
                             // Refresh packages
@@ -335,7 +335,7 @@ mod imp {
                             window.action_set_enabled("win.reset-root-dir", false);
 
                             // Hide root dir visual indicator
-                            window.imp().package_view.set_root_dir_indicator(None);
+                            window.imp().package_view.set_root_dir(None::<&str>);
 
                             // Refresh packages
                             WidgetExt::activate_action(&window, "win.refresh", None).unwrap();
