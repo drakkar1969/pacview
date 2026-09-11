@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::sync::LazyLock;
+use std::marker::PhantomData;
 use std::collections::{HashMap, HashSet};
 use std::cmp::Ordering;
 use std::fmt::Write as _;
@@ -28,8 +29,9 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: ViewState
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Clone, Copy)]
+#[derive(Default, Debug, Clone, Copy, glib::Enum)]
 #[repr(u32)]
+#[enum_type(name = "ViewState")]
 pub enum ViewState {
     #[default]
     Normal,
@@ -152,6 +154,8 @@ mod imp {
         #[property(get, set, construct)]
         info_pane: RefCell<InfoPane>,
 
+        #[property(set = Self::set_state, builder(ViewState::default()))]
+        state: PhantomData<ViewState>,
         #[property(get, set, builder(ViewDisplayMode::default()))]
         display_mode: Cell<ViewDisplayMode>,
         #[property(get, set, builder(SortProp::default()))]
@@ -228,6 +232,35 @@ mod imp {
 
             // Grouping property action
             klass.install_property_action("view.set-grouping", "grouping");
+        }
+
+        //---------------------------------------
+        // State property setter
+        //---------------------------------------
+        fn set_state(&self, state: ViewState) {
+            match state {
+                ViewState::Normal => {
+                    self.stack.set_visible_child_name("view");
+                }
+                ViewState::PackageLoad => {
+                    self.loading_status.set_title("Loading Pacman Databases");
+                    self.stack.set_visible_child_name("spinner");
+                    self.cancel_button.set_visible(false);
+                    self.cancel_button.set_action_name(None);
+                }
+                ViewState::AURDownload => {
+                    self.loading_status.set_title("Downloading AUR Database");
+                    self.stack.set_visible_child_name("spinner");
+                    self.cancel_button.set_visible(true);
+                    self.cancel_button.set_action_name(Some("win.cancel-aur-download"));
+                }
+                ViewState::PkgbuildRepoFetch => {
+                    self.loading_status.set_title("Fetching PKGBUILD Repositories");
+                    self.stack.set_visible_child_name("spinner");
+                    self.cancel_button.set_visible(true);
+                    self.cancel_button.set_action_name(Some("win.cancel-pkgbuild-fetch"));
+                }
+            }
         }
     }
 }
@@ -689,37 +722,6 @@ impl PackageView {
                 }
             }
         ));
-    }
-
-    //---------------------------------------
-    // Public set state functions
-    //---------------------------------------
-    pub fn set_state(&self, state: ViewState) {
-        let imp = self.imp();
-
-        match state {
-            ViewState::Normal => {
-                imp.stack.set_visible_child_name("view");
-            }
-            ViewState::PackageLoad => {
-                imp.loading_status.set_title("Loading Pacman Databases");
-                imp.stack.set_visible_child_name("spinner");
-                imp.cancel_button.set_visible(false);
-                imp.cancel_button.set_action_name(None);
-            }
-            ViewState::AURDownload => {
-                imp.loading_status.set_title("Downloading AUR Database");
-                imp.stack.set_visible_child_name("spinner");
-                imp.cancel_button.set_visible(true);
-                imp.cancel_button.set_action_name(Some("win.cancel-aur-download"));
-            }
-            ViewState::PkgbuildRepoFetch => {
-                imp.loading_status.set_title("Fetching PKGBUILD Repositories");
-                imp.stack.set_visible_child_name("spinner");
-                imp.cancel_button.set_visible(true);
-                imp.cancel_button.set_action_name(Some("win.cancel-pkgbuild-fetch"));
-            }
-        }
     }
 
     //---------------------------------------
