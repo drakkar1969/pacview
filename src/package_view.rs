@@ -371,12 +371,12 @@ impl PackageView {
             let count = view.package_count();
 
             let label = if count == gtk::INVALID_LIST_POSITION {
-                "".into()
+                ""
             } else {
-                format!("{count} matching package{}", if count == 1 { "" } else { "s" })
+                &format!("{count} matching package{}", if count == 1 { "" } else { "s" })
             };
 
-            view.imp().count_label.set_label(&label);
+            view.imp().count_label.set_label(label);
         });
 
         // Root dir property notify signal
