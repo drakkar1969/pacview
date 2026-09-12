@@ -252,13 +252,11 @@ mod imp {
                 let key = status.as_ref().chars().next()
                     .expect("Failed to extract char from str");
 
-                let trigger = gtk::ShortcutTrigger::parse_string(&format!("<alt>{key}"));
-                let action = gtk::NamedAction::new("backup.filter");
-                let args = status.as_ref().to_variant();
-
-                let shortcut = gtk::Shortcut::with_arguments(trigger, Some(action), &args);
-
-                klass.add_shortcut(&shortcut);
+                klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                    gtk::ShortcutTrigger::parse_string(&format!("<alt>{key}")),
+                    Some(gtk::NamedAction::new("backup.filter")),
+                    &status.as_ref().to_variant()
+                ));
             }
         }
     }

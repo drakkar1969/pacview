@@ -202,13 +202,11 @@ mod imp {
 
             // Search prop numbered key bindings
             for (i, prop) in SearchProp::iter().enumerate() {
-                let trigger = gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1));
-                let action = gtk::NamedAction::new("search.set-prop");
-                let args = prop.as_ref().to_variant();
-
-                let shortcut = gtk::Shortcut::with_arguments(trigger, Some(action), &args);
-
-                klass.add_shortcut(&shortcut);
+                klass.add_shortcut(&gtk::Shortcut::with_arguments(
+                    gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1)),
+                    Some(gtk::NamedAction::new("search.set-prop")),
+                    &prop.as_ref().to_variant()
+                ));
             }
 
             // Search exact key binding
