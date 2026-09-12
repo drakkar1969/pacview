@@ -204,10 +204,9 @@ mod imp {
             for (i, prop) in SearchProp::iter().enumerate() {
                 let trigger = gtk::ShortcutTrigger::parse_string(&format!("<ctrl>{}", i+1));
                 let action = gtk::NamedAction::new("search.set-prop");
-                let args = Some(&prop.as_ref().to_variant());
+                let args = prop.as_ref().to_variant();
 
-                let shortcut = gtk::Shortcut::new(trigger, Some(action));
-                shortcut.set_arguments(args);
+                let shortcut = gtk::Shortcut::with_arguments(trigger, Some(action), &args);
 
                 klass.add_shortcut(&shortcut);
             }
