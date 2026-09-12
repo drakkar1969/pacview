@@ -74,6 +74,9 @@ mod imp {
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
 
+        #[template_child]
+        pub(super) loading_status: TemplateChild<adw::StatusPage>,
+
         #[property(get, set)]
         is_loaded: Cell<bool>,
         #[property(get, set, builder(BackupSearchMode::default()))]
@@ -543,6 +546,8 @@ impl BackupDialog {
             async move {
                 let imp = dialog.imp();
 
+                imp.loading_status.set_visible(true);
+
                 // Spawn future to get backup files
                 let files: Vec<BackupObject> = GioFuture::new(&pkg_model, |model, _, result| {
                     let files = model.iter::<PkgObject>()
@@ -562,6 +567,8 @@ impl BackupDialog {
                 .await;
 
                 imp.model.splice(0, imp.model.n_items(), &files);
+
+                imp.loading_status.set_visible(false);
 
                 dialog.set_is_loaded(true);
             }

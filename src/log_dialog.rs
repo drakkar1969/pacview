@@ -72,6 +72,9 @@ mod imp {
         #[template_child]
         pub(super) size_label: TemplateChild<gtk::Label>,
 
+        #[template_child]
+        pub(super) loading_status: TemplateChild<adw::StatusPage>,
+
         #[property(get, set)]
         is_loaded: Cell<bool>,
         #[property(get, set, builder(LogSearchMode::default()))]
@@ -333,6 +336,8 @@ impl LogDialog {
     fn populate(&self) {
         let imp = self.imp();
 
+        imp.loading_status.set_visible(true);
+
         // Clear view
         imp.model.remove_all();
 
@@ -389,6 +394,8 @@ impl LogDialog {
                         .collect::<Vec<LogObject>>()
                     );
                 }
+
+                imp.loading_status.set_visible(false);
 
                 // Get log file size
                 let size = fs::metadata(&Pacman::config().read().unwrap().log_file)

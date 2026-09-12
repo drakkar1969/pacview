@@ -69,6 +69,9 @@ mod imp {
         #[template_child]
         pub(super) count_label: TemplateChild<gtk::Label>,
 
+        #[template_child]
+        pub(super) loading_status: TemplateChild<adw::StatusPage>,
+
         #[property(get, set)]
         is_loaded: Cell<bool>,
         #[property(get, set, builder(GroupsSearchMode::default()))]
@@ -380,6 +383,8 @@ impl GroupsDialog {
             async move {
                 let imp = dialog.imp();
 
+                imp.loading_status.set_visible(true);
+
                 // Spawn future to get packages with groups
                 let packages: Vec<GroupsObject> = GioFuture::new(&pkg_model, |model, _, result| {
                     let packages = model.iter::<PkgObject>()
@@ -398,6 +403,8 @@ impl GroupsDialog {
                 .await;
 
                 imp.model.splice(0, imp.model.n_items(), &packages);
+
+                imp.loading_status.set_visible(false);
 
                 dialog.set_is_loaded(true);
             }

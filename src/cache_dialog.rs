@@ -53,6 +53,9 @@ mod imp {
         #[template_child]
         pub(super) size_label: TemplateChild<gtk::Label>,
 
+        #[template_child]
+        pub(super) loading_status: TemplateChild<adw::StatusPage>,
+
         #[property(get, set)]
         is_loaded: Cell<bool>,
 
@@ -261,6 +264,8 @@ impl CacheDialog {
             async move {
                 let imp = dialog.imp();
 
+                imp.loading_status.set_visible(true);
+
                 // Spawn future to get cache files and cache size
                 let (files, size): (Vec<CacheObject>, u64) = GioFuture::new(&(), |(), _, result| {
                     let mut size = 0;
@@ -287,6 +292,8 @@ impl CacheDialog {
                 .await;
 
                 imp.model.splice(0, imp.model.n_items(), &files);
+
+                imp.loading_status.set_visible(false);
 
                 imp.size_label.set_label(
                     &format!("Cache size on disk: {}", Size::from_bytes(size * 512))
