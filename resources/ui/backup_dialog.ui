@@ -238,14 +238,14 @@
         <attribute name="target">modified</attribute>
       </item>
       <item>
-        <attribute name="label">Access Denied</attribute>
-        <attribute name="action">backup.filter</attribute>
-        <attribute name="target">locked</attribute>
-      </item>
-      <item>
         <attribute name="label">Unmodified</attribute>
         <attribute name="action">backup.filter</attribute>
         <attribute name="target">unmodified</attribute>
+      </item>
+      <item>
+        <attribute name="label">Access Denied</attribute>
+        <attribute name="action">backup.filter</attribute>
+        <attribute name="target">locked</attribute>
       </item>
     </section>
   </menu>

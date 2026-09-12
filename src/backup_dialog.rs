@@ -247,30 +247,19 @@ mod imp {
             // Copy key binding
             klass.add_binding_action(Key::C, ModifierType::CONTROL_MASK | ModifierType::SHIFT_MASK, "backup.copy");
 
-            // Status key bindings
-            klass.add_binding(Key::A, ModifierType::ALT_MASK, |dialog| {
-                dialog.set_filter(BackupStatus::All);
+            // Status filter key bindings
+            for status in BackupStatus::iter() {
+                let key = status.as_ref().chars().next()
+                    .expect("Failed to extract char from str");
 
-                Propagation::Stop
-            });
+                let trigger = gtk::ShortcutTrigger::parse_string(&format!("<alt>{key}"));
+                let action = gtk::NamedAction::new("backup.filter");
+                let args = status.as_ref().to_variant();
 
-            klass.add_binding(Key::M, ModifierType::ALT_MASK, |dialog| {
-                dialog.set_filter(BackupStatus::Modified);
+                let shortcut = gtk::Shortcut::with_arguments(trigger, Some(action), &args);
 
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::U, ModifierType::ALT_MASK, |dialog| {
-                dialog.set_filter(BackupStatus::Unmodified);
-
-                Propagation::Stop
-            });
-
-            klass.add_binding(Key::L, ModifierType::ALT_MASK, |dialog| {
-                dialog.set_filter(BackupStatus::Locked);
-
-                Propagation::Stop
-            });
+                klass.add_shortcut(&shortcut);
+            }
         }
     }
 }

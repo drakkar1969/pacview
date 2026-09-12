@@ -5,7 +5,7 @@ use gtk::glib;
 use gtk::subclass::prelude::*;
 use gtk::prelude::ObjectExt;
 
-use strum::{FromRepr, AsRefStr};
+use strum::{FromRepr, EnumIter, AsRefStr};
 
 use crate::{
     pkg_object::PkgBackup,
@@ -16,14 +16,13 @@ use crate::{
 //------------------------------------------------------------------------------
 // ENUM: BackupStatus
 //------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, AsRefStr)]
+#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr, EnumIter, AsRefStr)]
 #[strum(serialize_all = "lowercase")]
 #[repr(u32)]
 #[enum_type(name = "BackupStatus")]
 pub enum BackupStatus {
     All,
     Modified,
-    #[strum(serialize = "access denied")]
     Locked,
     #[default]
     Unmodified,
