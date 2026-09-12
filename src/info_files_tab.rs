@@ -131,7 +131,7 @@ mod imp {
             klass.install_action("info.files-copy", None, |tab, _, _| {
                 let mut output = String::new();
 
-                writeln!(output, "## {}\n|Files|\n|---|", tab.pkg_name()).unwrap();
+                writeln!(output, "### {}\n|Files|\n|---|", tab.pkg_name()).unwrap();
 
                 for obj in tab.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<gtk::StringObject>()) {

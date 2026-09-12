@@ -164,7 +164,7 @@ mod imp {
 
             // Copy action
             klass.install_action("log.copy", None, |dialog, _, _| {
-                let mut output = String::from("## Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
+                let mut output = String::from("### Log Messages\n|Date|Time|Category|Message|\n|---|---|---|---|\n");
 
                 for log in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<LogObject>()) {

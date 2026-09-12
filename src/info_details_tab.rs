@@ -110,7 +110,7 @@ mod imp {
             // Copy info action
             klass.install_action("info.details-copy", None, |tab, _, _| {
                 if let Some(pkg) = tab.pkg() {
-                    let mut output = String::from("## Package Information\n");
+                    let mut output = String::from("### Package Information\n");
 
                     writeln!(output, "- **Name** : {}", pkg.name()).unwrap();
                     writeln!(output, "- **Version** : {}", pkg.version()).unwrap();

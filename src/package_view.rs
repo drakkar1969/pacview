@@ -779,7 +779,7 @@ impl PackageView {
     // Public copy list function
     //---------------------------------------
     pub fn copy_list(&self) {
-        let mut output = String::from("## Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n");
+        let mut output = String::from("### Package List\n|Package Name|Version|Repository|Status|Installed Size|Groups|\n|---|---|---|---|---:|---|\n");
 
         for pkg in self.imp().selection.iter::<glib::Object>()
             .filter_map(|item| item.ok().and_downcast::<PkgObject>()) {

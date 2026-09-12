@@ -121,7 +121,7 @@ mod imp {
 
             // Copy action
             klass.install_action("cache.copy", None, |dialog, _, _| {
-                let mut output = String::from("## Cache Files\n|File|\n|---|\n");
+                let mut output = String::from("### Cache Files\n|File|\n|---|\n");
 
                 for cache in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<CacheObject>()) {

@@ -160,7 +160,7 @@ mod imp {
             // Copy action
             klass.install_action("groups.copy", None, |dialog, _, _| {
                 let mut groups = String::new();
-                let mut output = String::from("## Pacman Groups\n|Package Name|Status|\n|---|---|\n");
+                let mut output = String::from("### Pacman Groups\n|Package Name|Status|\n|---|---|\n");
 
                 for pkg in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<GroupsObject>()) {

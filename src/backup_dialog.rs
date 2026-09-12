@@ -201,7 +201,7 @@ mod imp {
             // Copy action
             klass.install_action("backup.copy", None, |dialog, _, _| {
                 let mut package = String::new();
-                let mut output = String::from("## Backup Files\n|Filename|Status|\n|---|---|\n");
+                let mut output = String::from("### Backup Files\n|Filename|Status|\n|---|---|\n");
 
                 for backup in dialog.imp().selection.iter::<glib::Object>()
                     .filter_map(|item| item.ok().and_downcast::<BackupObject>()) {
