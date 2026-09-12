@@ -910,7 +910,7 @@ impl PacViewWindow {
     fn alpm_populate_sidebar(&self, repo_names: &[String], first_load: bool) {
         let imp = self.imp();
 
-        // Add repository items (enumerate pacman repositories)
+        // Add all repos item
         imp.repo_section.remove_all();
 
         let saved_repo_id = imp.saved_repo_id.take();
@@ -925,6 +925,7 @@ impl PacViewWindow {
 
         imp.all_repo_item.replace(all_item);
 
+        // Add repository items (enumerate repositories)
         for repo in repo_names {
             let label = if repo == "aur" { repo.to_uppercase() } else { repo.to_title_case() };
 
@@ -941,7 +942,7 @@ impl PacViewWindow {
             }
         }
 
-        // If first load, add package status items (enumerate PkgStatusFlags)
+        // If first load, add package status items (enumerate PkgFlags)
         if first_load {
             let flags = glib::FlagsClass::new::<PkgFlags>();
 
