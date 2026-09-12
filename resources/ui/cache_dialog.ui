@@ -22,24 +22,17 @@
                   </object>
                 </child>
                 <child type="end">
-                  <object class="GtkBox" id="control_box">
-                    <property name="valign">center</property>
-                    <property name="margin-end">6</property>
-                    <property name="spacing">6</property>
-                    <child>
-                      <object class="GtkButton" id="open_button">
-                        <property name="icon-name">folder-open-symbolic</property>
-                        <property name="tooltip-text">Open Cache Folder</property>
-                        <property name="action-name">cache.open</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkButton" id="copy_button">
-                        <property name="icon-name">edit-copy-symbolic</property>
-                        <property name="tooltip-text">Copy File List</property>
-                        <property name="action-name">cache.copy</property>
-                      </object>
-                    </child>
+                  <object class="GtkButton" id="copy_button">
+                    <property name="icon-name">edit-copy-symbolic</property>
+                    <property name="tooltip-text">Copy File List</property>
+                    <property name="action-name">cache.copy</property>
+                  </object>
+                </child>
+                <child type="end">
+                  <object class="GtkButton" id="open_button">
+                    <property name="icon-name">folder-open-symbolic</property>
+                    <property name="tooltip-text">Open Cache Folder</property>
+                    <property name="action-name">cache.open</property>
                   </object>
                 </child>
               </object>
