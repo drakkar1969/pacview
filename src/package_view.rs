@@ -1,6 +1,5 @@
 use std::cell::{Cell, RefCell};
 use std::sync::LazyLock;
-use std::marker::PhantomData;
 use std::collections::{HashMap, HashSet};
 use std::cmp::Ordering;
 use std::fmt::Write as _;
@@ -154,14 +153,14 @@ mod imp {
         #[property(get, set, construct)]
         info_pane: RefCell<InfoPane>,
 
-        #[property(set = Self::set_state, builder(ViewState::default()))]
-        state: PhantomData<ViewState>,
-        #[property(get, set = Self::set_display_mode, builder(ViewDisplayMode::default()))]
+        #[property(get, set, builder(ViewState::default()))]
+        state: Cell<ViewState>,
+        #[property(get, set, builder(ViewDisplayMode::default()))]
         display_mode: Cell<ViewDisplayMode>,
-        #[property(set = Self::set_package_count)]
-        package_count: PhantomData<u32>,
-        #[property(set = Self::set_root_dir, nullable)]
-        root_dir: PhantomData<Option<String>>,
+        #[property(get, set)]
+        package_count: Cell<u32>,
+        #[property(get, set, nullable)]
+        root_dir: RefCell<Option<String>>,
         #[property(get, set, builder(SortProp::default()))]
         sort_prop: Cell<SortProp>,
         #[property(get, set, default = true, construct)]
@@ -236,72 +235,6 @@ mod imp {
 
             // Grouping property action
             klass.install_property_action("view.set-grouping", "grouping");
-        }
-
-        //---------------------------------------
-        // State property setter
-        //---------------------------------------
-        fn set_state(&self, state: ViewState) {
-            match state {
-                ViewState::Normal => {
-                    self.stack.set_visible_child_name("view");
-                }
-                ViewState::PackageLoad => {
-                    self.loading_status.set_title("Loading Pacman Databases");
-                    self.stack.set_visible_child_name("spinner");
-                    self.cancel_button.set_visible(false);
-                    self.cancel_button.set_action_name(None);
-                }
-                ViewState::AURDownload => {
-                    self.loading_status.set_title("Downloading AUR Database");
-                    self.stack.set_visible_child_name("spinner");
-                    self.cancel_button.set_visible(true);
-                    self.cancel_button.set_action_name(Some("win.cancel-aur-download"));
-                }
-                ViewState::PkgbuildRepoFetch => {
-                    self.loading_status.set_title("Fetching PKGBUILD Repositories");
-                    self.stack.set_visible_child_name("spinner");
-                    self.cancel_button.set_visible(true);
-                    self.cancel_button.set_action_name(Some("win.cancel-pkgbuild-fetch"));
-                }
-            }
-        }
-
-        //---------------------------------------
-        // Display mode property setter
-        //---------------------------------------
-        fn set_display_mode(&self, mode: ViewDisplayMode) {
-            self.main_menu_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
-            self.sidebar_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
-            self.infopane_button.set_visible(mode != ViewDisplayMode::Normal);
-
-            self.grouping_button.set_visible(mode != ViewDisplayMode::Narrow);
-            self.sort_button.set_visible(mode != ViewDisplayMode::Narrow);
-            self.grouping_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
-            self.sort_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
-
-            self.display_mode.set(mode);
-        }
-
-        //---------------------------------------
-        // Package count property setter
-        //---------------------------------------
-        fn set_package_count(&self, n_items: u32) {
-            let label = if n_items == gtk::INVALID_LIST_POSITION {
-                "".into()
-            } else {
-                format!("{n_items} matching package{}", if n_items == 1 { "" } else { "s" })
-            };
-
-            self.count_label.set_label(&label);
-        }
-
-        //---------------------------------------
-        // Root dir property setter
-        //---------------------------------------
-        fn set_root_dir(&self, root_dir: Option<&str>) {
-            self.rootdir_banner.set_title(root_dir.unwrap_or_default());
-            self.rootdir_banner.set_revealed(root_dir.is_some());
         }
     }
 }
@@ -387,6 +320,74 @@ impl PackageView {
                 view.info_pane().set_pkg(pkg);
             }
         ));
+
+        // State property notify signal
+        self.connect_state_notify(|view| {
+            let imp = view.imp();
+
+            match view.state() {
+                ViewState::Normal => {
+                    imp.stack.set_visible_child_name("view");
+                }
+                ViewState::PackageLoad => {
+                    imp.loading_status.set_title("Loading Pacman Databases");
+                    imp.stack.set_visible_child_name("spinner");
+                    imp.cancel_button.set_visible(false);
+                    imp.cancel_button.set_action_name(None);
+                }
+                ViewState::AURDownload => {
+                    imp.loading_status.set_title("Downloading AUR Database");
+                    imp.stack.set_visible_child_name("spinner");
+                    imp.cancel_button.set_visible(true);
+                    imp.cancel_button.set_action_name(Some("win.cancel-aur-download"));
+                }
+                ViewState::PkgbuildRepoFetch => {
+                    imp.loading_status.set_title("Fetching PKGBUILD Repositories");
+                    imp.stack.set_visible_child_name("spinner");
+                    imp.cancel_button.set_visible(true);
+                    imp.cancel_button.set_action_name(Some("win.cancel-pkgbuild-fetch"));
+                }
+            }
+        });
+
+        // Display mode property notify signal
+        self.connect_display_mode_notify(|view| {
+            let imp = view.imp();
+
+            let mode = view.display_mode();
+
+            imp.main_menu_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
+            imp.sidebar_button.set_visible(mode == ViewDisplayMode::NoSidebar || mode == ViewDisplayMode::Narrow);
+            imp.infopane_button.set_visible(mode != ViewDisplayMode::Normal);
+
+            imp.grouping_button.set_visible(mode != ViewDisplayMode::Narrow);
+            imp.sort_button.set_visible(mode != ViewDisplayMode::Narrow);
+            imp.grouping_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
+            imp.sort_button_bottom.set_visible(mode == ViewDisplayMode::Narrow);
+        });
+
+        // Package count property notify signal
+        self.connect_package_count_notify(|view| {
+            let count = view.package_count();
+
+            let label = if count == gtk::INVALID_LIST_POSITION {
+                "".into()
+            } else {
+                format!("{count} matching package{}", if count == 1 { "" } else { "s" })
+            };
+
+            view.imp().count_label.set_label(&label);
+        });
+
+        // Root dir property notify signal
+        self.connect_root_dir_notify(|view| {
+            let imp = view.imp();
+
+            let root_dir = view.root_dir();
+
+            imp.rootdir_banner.set_title(root_dir.as_deref().unwrap_or_default());
+            imp.rootdir_banner.set_revealed(root_dir.is_some());
+        });
 
         // Sort prop property notify signal
         self.connect_sort_prop_notify(|view| {
