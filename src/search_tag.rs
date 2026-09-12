@@ -1,5 +1,5 @@
 use std::marker::PhantomData;
-use std::sync::OnceLock;
+use std::sync::LazyLock;
 
 use gtk::{gdk, glib};
 use adw::subclass::prelude::*;
@@ -52,14 +52,16 @@ mod imp {
         // Signals
         //---------------------------------------
         fn signals() -> &'static [Signal] {
-            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
+            static SIGNALS: LazyLock<Vec<Signal>> = LazyLock::new(|| {
                 vec![
                     Signal::builder("clicked")
                         .param_types([bool::static_type()])
                         .build(),
                 ]
-            })
+
+            });
+
+            &SIGNALS
         }
 
         //---------------------------------------

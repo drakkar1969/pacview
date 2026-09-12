@@ -1,6 +1,6 @@
 use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
-use std::sync::OnceLock;
+use std::sync::LazyLock;
 use core::time::Duration;
 
 use gtk::{glib, gdk};
@@ -118,15 +118,16 @@ mod imp {
         // Signals
         //---------------------------------------
         fn signals() -> &'static [Signal] {
-            static SIGNALS: OnceLock<Vec<Signal>> = OnceLock::new();
-            SIGNALS.get_or_init(|| {
+            static SIGNALS: LazyLock<Vec<Signal>> = LazyLock::new(|| {
                 vec![
                     Signal::builder("changed")
                         .build(),
                     Signal::builder("aur-search")
                         .build(),
                 ]
-            })
+            });
+
+            &SIGNALS
         }
 
         //---------------------------------------
