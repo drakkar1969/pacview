@@ -65,7 +65,7 @@ mod imp {
 
         #[property(get, set)]
         pkg_name: RefCell<String>,
-        #[property(get, set = Self::set_state, builder(TabState::default()))]
+        #[property(get, set, builder(TabState::default()))]
         state: Cell<TabState>,
         #[property(get, set)]
         show_folders: Cell<bool>,
@@ -110,37 +110,6 @@ mod imp {
     impl BinImpl for InfoFilesTab {}
 
     impl InfoFilesTab {
-        //---------------------------------------
-        // Property setter
-        //---------------------------------------
-        fn set_state(&self, state: TabState) {
-            match state {
-                TabState::Loading => {
-                    self.search_button.set_sensitive(false);
-
-                    self.loading_status.set_visible(true);
-                    self.remote_status.set_visible(false);
-                    self.empty_status.set_visible(false);
-                }
-                TabState::Installed => {
-                    self.search_button.set_sensitive(true);
-
-                    self.loading_status.set_visible(false);
-                    self.remote_status.set_visible(false);
-                }
-                TabState::Remote => {
-                    self.search_button.set_sensitive(false);
-                    self.search_bar.set_search_mode(false);
-
-                    self.loading_status.set_visible(false);
-                    self.remote_status.set_visible(true);
-                    self.empty_status.set_visible(false);
-                }
-            }
-
-            self.state.set(state);
-        }
-
         //---------------------------------------
         // Install actions
         //---------------------------------------
@@ -208,6 +177,35 @@ impl InfoFilesTab {
                 imp.search_filter.set_search(Some(&entry.text()));
             }
         ));
+
+        // State property notify signal
+        self.connect_state_notify(|tab| {
+            let imp = tab.imp();
+
+            match tab.state() {
+                TabState::Loading => {
+                    imp.search_button.set_sensitive(false);
+
+                    imp.loading_status.set_visible(true);
+                    imp.remote_status.set_visible(false);
+                    imp.empty_status.set_visible(false);
+                }
+                TabState::Installed => {
+                    imp.search_button.set_sensitive(true);
+
+                    imp.loading_status.set_visible(false);
+                    imp.remote_status.set_visible(false);
+                }
+                TabState::Remote => {
+                    imp.search_button.set_sensitive(false);
+                    imp.search_bar.set_search_mode(false);
+
+                    imp.loading_status.set_visible(false);
+                    imp.remote_status.set_visible(true);
+                    imp.empty_status.set_visible(false);
+                }
+            }
+        });
 
         // Show folders property notify signal
         self.connect_show_folders_notify(|tab| {
