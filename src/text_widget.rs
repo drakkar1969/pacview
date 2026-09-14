@@ -43,6 +43,30 @@ pub struct CommentTag {
 }
 
 //------------------------------------------------------------------------------
+// STRUCT: PangoColor
+//------------------------------------------------------------------------------
+#[derive(Default, Debug, Clone, Copy)]
+pub struct PangoColor(u16, u16, u16, u16);
+
+impl PangoColor {
+    pub fn from_css_style(style: &str) -> Self {
+        // RGBA color (f32, range: 0.0 to 1.0)
+        let color = gtk::Label::builder()
+            .css_name("texttag")
+            .css_classes([style])
+            .build()
+            .color();
+
+        // Return u16 colors (range 0-255)
+        let f = |color: f32| -> u16 {
+            (color * f32::from(u16::MAX)).round() as u16
+        };
+
+        Self(f(color.red()), f(color.green()), f(color.blue()), f(color.alpha()))
+    }
+}
+
+//------------------------------------------------------------------------------
 // MODULE: TextWidget
 //------------------------------------------------------------------------------
 mod imp {
@@ -82,10 +106,10 @@ mod imp {
         pub(super) layout_attributes: RefCell<AttrList>,
         pub(super) layout_max_index: Cell<usize>,
 
-        pub(super) link_fg_color: Cell<(u16, u16, u16, u16)>,
-        pub(super) comment_fg_color: Cell<(u16, u16, u16, u16)>,
-        pub(super) sel_bg_color: Cell<(u16, u16, u16, u16)>,
-        pub(super) sel_focus_bg_color: Cell<(u16, u16, u16, u16)>,
+        pub(super) link_fg_color: Cell<PangoColor>,
+        pub(super) comment_fg_color: Cell<PangoColor>,
+        pub(super) sel_bg_color: Cell<PangoColor>,
+        pub(super) sel_focus_bg_color: Cell<PangoColor>,
 
         pub(super) link_list: RefCell<Vec<LinkTag>>,
         pub(super) comment_list: RefCell<Vec<CommentTag>>,
@@ -402,32 +426,16 @@ glib::wrapper! {
 
 impl TextWidget {
     //---------------------------------------
-    // Color helper functions
+    // Update colors function
     //---------------------------------------
-    fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
-        // RGBA color (f32, range: 0.0 to 1.0)
-        let color = gtk::Label::builder()
-            .css_name("texttag")
-            .css_classes([style])
-            .build()
-            .color();
-
-        // Return u16 colors (range 0-255)
-        let fc = |color: f32| -> u16 {
-            (color * f32::from(u16::MAX)).round() as u16
-        };
-
-        (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
-    }
-
     fn update_colors(&self) {
         let imp = self.imp();
 
         // Update pango colors
-        imp.link_fg_color.set(Self::pango_color_from_style("link"));
-        imp.comment_fg_color.set(Self::pango_color_from_style("comment"));
-        imp.sel_bg_color.set(Self::pango_color_from_style("selection"));
-        imp.sel_focus_bg_color.set(Self::pango_color_from_style("selection-focus"));
+        imp.link_fg_color.set(PangoColor::from_css_style("link"));
+        imp.comment_fg_color.set(PangoColor::from_css_style("comment"));
+        imp.sel_bg_color.set(PangoColor::from_css_style("selection"));
+        imp.sel_focus_bg_color.set(PangoColor::from_css_style("selection-focus"));
     }
 
     //---------------------------------------
@@ -549,13 +557,13 @@ impl TextWidget {
             let min = start.min(end);
             let max = start.max(end);
 
-            let (red, green, blue, alpha) = if self.focused() {
+            let PangoColor(r, g, b, alpha) = if self.focused() {
                 imp.sel_focus_bg_color.get()
             } else {
                 imp.sel_bg_color.get()
             };
 
-            attr_list.insert(Self::attr(AttrColor::new_background(red, green, blue), min, max));
+            attr_list.insert(Self::attr(AttrColor::new_background(r, g, b), min, max));
             attr_list.insert(Self::attr(AttrInt::new_background_alpha(alpha), min, max));
         }
     }
@@ -583,10 +591,10 @@ impl TextWidget {
         let attr_list = AttrList::new();
 
         // Add link attributes
-        let (red, green, blue, alpha) = imp.link_fg_color.get();
+        let PangoColor(r, g, b, alpha) = imp.link_fg_color.get();
 
         for link in link_list.as_slice() {
-            attr_list.insert(Self::attr(AttrColor::new_foreground(red, green, blue), link.start, link.end));
+            attr_list.insert(Self::attr(AttrColor::new_foreground(r, g, b), link.start, link.end));
             attr_list.insert(Self::attr(AttrInt::new_foreground_alpha(alpha), link.start, link.end));
 
             if self.underline_links() {
@@ -595,11 +603,11 @@ impl TextWidget {
         }
 
         // Add comment attributes
-        let (red, green, blue, alpha) = imp.comment_fg_color.get();
+        let PangoColor(r, g, b, alpha) = imp.comment_fg_color.get();
 
         for comment in comment_list.as_slice() {
             attr_list.insert(Self::attr(AttrInt::new_weight(Weight::Semibold), comment.start, comment.end));
-            attr_list.insert(Self::attr(AttrColor::new_foreground(red, green, blue), comment.start, comment.end));
+            attr_list.insert(Self::attr(AttrColor::new_foreground(r, g, b), comment.start, comment.end));
             attr_list.insert(Self::attr(AttrInt::new_foreground_alpha(alpha), comment.start, comment.end));
             attr_list.insert(Self::attr(AttrFloat::new_scale(0.75), comment.start, comment.end));
         }
