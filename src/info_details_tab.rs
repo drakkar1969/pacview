@@ -267,7 +267,7 @@ impl InfoDetailsTab {
         self.set_info_row(PropID::Make, ValueType::LinksOpt(pkg.makedepends()));
 
         // Required by
-        self.set_info_row(PropID::RequiredBy, ValueType::LinksOpt(pkg.required_by()));
+        self.set_info_row(PropID::RequiredBy, ValueType::Links(pkg.required_by()));
 
         // Optional for
         self.set_info_row(PropID::OptionalFor, ValueType::LinksOpt(pkg.optional_for()));
