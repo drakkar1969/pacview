@@ -404,23 +404,19 @@ impl TextWidget {
     //---------------------------------------
     // Color helper functions
     //---------------------------------------
-    fn color_from_style(style: &str) -> gdk::RGBA {
-        // Return RGBA colors (f32, range: 0.0 to 1.0)
-        gtk::Label::builder()
+    fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
+        // RGBA color (f32, range: 0.0 to 1.0)
+        let color = gtk::Label::builder()
             .css_name("texttag")
             .css_classes([style])
             .build()
-            .color()
-    }
+            .color();
 
-    fn pango_color_from_style(style: &str) -> (u16, u16, u16, u16) {
+        // Return u16 colors (range 0-255)
         let fc = |color: f32| -> u16 {
             (color * f32::from(u16::MAX)).round() as u16
         };
 
-        let color = Self::color_from_style(style);
-
-        // Return u16 colors (range 0-255)
         (fc(color.red()), fc(color.green()), fc(color.blue()), fc(color.alpha()))
     }
 
