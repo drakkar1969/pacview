@@ -6,7 +6,7 @@ use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, GString};
-use pango::{Layout, AttrList, Attribute, AttrColor, AttrFloat, AttrInt, Underline, Weight, WrapMode};
+use pango::{Layout, AttrList, Attribute, AttrColor, AttrFloat, AttrInt, Rectangle, Underline, Weight, WrapMode};
 
 use regex::Regex;
 use url::Url;
@@ -211,9 +211,7 @@ mod imp {
                     layout.pixel_size().1
                 } else {
                     let mut rect = layout.line_readonly(0)
-                        .map_or_else(|| pango::Rectangle::new(0, 0, 0, 0), |line| {
-                            line.extents().1
-                        });
+                        .map_or_else(|| Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
 
                     let n_lines = total_lines.min(max_lines);
 
