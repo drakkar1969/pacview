@@ -936,20 +936,16 @@ impl TextWidget {
                         let (first, last) = text.split_at_checked(index).unzip();
 
                         let start = first
-                            .and_then(|s| {
-                                s.as_bytes().iter().rposition(|&ch| {
-                                    ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
-                                })
-                            })
+                            .and_then(|s| s.as_bytes().iter().rposition(|&ch| {
+                                ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                            }))
                             .and_then(|start| start.checked_add(1))
                             .unwrap_or(0);
 
                         let end = last
-                            .and_then(|s| {
-                                s.as_bytes().iter().position(|&ch| {
-                                    ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
-                                })
-                            })
+                            .and_then(|s| s.as_bytes().iter().position(|&ch| {
+                                ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                            }))
                             .and_then(|end| end.checked_add(index))
                             .unwrap_or(text.len());
 
