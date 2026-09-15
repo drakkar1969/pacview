@@ -976,9 +976,9 @@ impl TextWidget {
                 if let Some(index) = imp.pressed_link_index.take()
                     .filter(|&index| widget.link_index_at_xy(x, y) == Some(index)) {
                         imp.focused_link_index.set(Some(index));
-                    }
 
-                widget.handle_focused_link();
+                        widget.handle_focused_link();
+                    }
             }
         ));
 
