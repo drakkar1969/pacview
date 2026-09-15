@@ -770,7 +770,13 @@ impl TextWidget {
     }
 
     pub fn handle_focused_link(&self) {
-        if let Some(link) = self.focused_link() && let Ok(url) = Url::parse(&link.link) {
+        if let Some(link) = self.focused_link() {
+            self.handle_link(link);
+        }
+    }
+
+    fn handle_link(&self, link: LinkTag) {
+        if let Ok(url) = Url::parse(&link.link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     let args = (pkg_name, link.version.unwrap_or_default()).to_variant();
@@ -978,7 +984,11 @@ impl TextWidget {
                 let link_index = imp.pressed_link_index.take();
 
                 if link_index.is_some() && widget.link_index_at_xy(x, y) == link_index {
-                    widget.handle_focused_link();
+                    if let Some(link) = link_index.and_then(|index| {
+                        imp.link_list.borrow().get(index).cloned()
+                    }) {
+                        widget.handle_link(link);
+                    }
                 }
             }
         ));
