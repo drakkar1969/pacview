@@ -100,12 +100,16 @@ pub struct PangoColor(u16, u16, u16, u16);
 
 impl PangoColor {
     pub fn from_css_style(style: &str) -> Self {
+        thread_local! {
+            static LABEL: gtk::Label = gtk::Label::builder().css_name("texttag").build();
+        }
+
         // RGBA color (f32, range: 0.0 to 1.0)
-        let color = gtk::Label::builder()
-            .css_name("texttag")
-            .css_classes([style])
-            .build()
-            .color();
+        let color = LABEL.with(|label| {
+            label.set_css_classes(&[style]);
+
+            label.color()
+        });
 
         // Return u16 colors (range 0-255)
         let f = |color: f32| -> u16 {
