@@ -929,12 +929,7 @@ impl TextWidget {
 
                 let link_index = widget.link_index_at_xy(x, y);
 
-                if link_index.is_some() {
-                    imp.focused_link_index.set(link_index);
-
-                    // Cancel selection (triggers redraw)
-                    widget.select_none();
-                } else {
+                if link_index.is_none() {
                     if n == 2 {
                         // Double click: select word under cursor
                         imp.is_clicked.set(true);
@@ -965,6 +960,11 @@ impl TextWidget {
 
                         widget.select_all();
                     }
+                } else {
+                    imp.focused_link_index.set(link_index);
+
+                    // Cancel selection (triggers redraw)
+                    widget.select_none();
                 }
 
                 imp.pressed_link_index.set(link_index);
