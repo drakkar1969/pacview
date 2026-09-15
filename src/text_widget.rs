@@ -769,11 +769,7 @@ impl TextWidget {
             }
     }
 
-    pub fn handle_focused_link(&self) {
-        self.handle_link(self.focused_link());
-    }
-
-    fn handle_link(&self, handle_link: Option<LinkTag>) {
+    pub fn handle_link(&self, handle_link: Option<LinkTag>) {
         if let Some(link) = handle_link && let Ok(url) = Url::parse(&link.link) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
