@@ -199,12 +199,12 @@ impl SourceDialog {
     //---------------------------------------
     // Set style scheme function
     //---------------------------------------
-    fn set_style_scheme(&self, style_manager: &adw::StyleManager) {
+    fn set_style_scheme(&self, is_dark: bool) {
         let settings = gio::Settings::new(APP_ID);
 
         let id = settings.string("pkgbuild-style-scheme");
 
-        let scheme = StyleSchemes::scheme(&id, style_manager.is_dark());
+        let scheme = StyleSchemes::scheme(&id, is_dark);
 
         self.buffer().set_style_scheme(scheme.as_ref());
     }
@@ -356,7 +356,7 @@ impl SourceDialog {
         style_manager.connect_dark_notify(clone!(
             #[weak(rename_to = dialog)] self,
             move |style_manager| {
-                dialog.set_style_scheme(style_manager);
+                dialog.set_style_scheme(style_manager.is_dark());
             }
         ));
 
@@ -395,7 +395,7 @@ impl SourceDialog {
         let style_manager = adw::StyleManager::for_display(&display);
 
         // Set style scheme
-        self.set_style_scheme(&style_manager);
+        self.set_style_scheme(style_manager.is_dark());
 
         // Set font
         Self::set_font(&style_manager, &display);
