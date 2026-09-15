@@ -33,6 +33,56 @@ pub struct LinkTag {
     end: usize,
 }
 
+impl LinkTag {
+    fn parse(text: &str, index: usize) -> Option<Self> {
+        let input = text.get(index..)?;
+
+        // Package name
+        let pkg_len = input.bytes()
+            .take_while(|&byte| {
+                matches!(byte as char, 'a'..='z' | 'A'..='Z' | '0'..='9' | '@' | '.' | '_' | '+' | '-')
+            })
+            .count();
+
+        let pkg_name = input.get(..pkg_len).filter(|_| pkg_len != 0)?;
+
+        // Optional version or comment
+        let remainder = input.get(pkg_len..)?;
+
+        let ops_len = remainder.bytes()
+            .take_while(|&byte| matches!(byte as char, '>' | '<' | '='))
+            .count();
+
+        let ver_len = remainder.get(ops_len..)?.bytes()
+            .take_while(|&byte| {
+                matches!(byte as char, 'a'..='z' | 'A'..='Z' | '0'..='9' | '.' | '_' | '+' | '-')
+            })
+            .count();
+
+        let version_len = ops_len + ver_len;
+
+        let version = remainder.get(..version_len)
+            .filter(|_| version_len != 0)
+            .map(ToOwned::to_owned);
+
+        // Look-ahead check
+        let after = remainder.get(version_len..)?;
+
+        let after_valid = after.is_empty()
+            || after.starts_with(':')
+            || (!LINK_SPACER.is_empty() && after.starts_with(LINK_SPACER));
+
+        after_valid.then(|| {
+            Self {
+                link: format!("pkg://{pkg_name}"),
+                version,
+                start: index,
+                end: index + pkg_len,
+            }
+        })
+    }
+}
+
 //------------------------------------------------------------------------------
 // STRUCT: CommentTag
 //------------------------------------------------------------------------------
@@ -264,57 +314,6 @@ mod imp {
 
     impl TextWidget {
         //---------------------------------------
-        // Parse link tag helper function
-        //---------------------------------------
-        fn parse_link_tag(text: &str, index: usize) -> Option<LinkTag> {
-            let input = text.get(index..)?;
-
-            // Package name
-            let pkg_len = input.bytes()
-                .take_while(|&byte| {
-                    matches!(byte as char, 'a'..='z' | 'A'..='Z' | '0'..='9' | '@' | '.' | '_' | '+' | '-')
-                })
-                .count();
-
-            let pkg_name = input.get(..pkg_len).filter(|_| pkg_len != 0)?;
-
-            // Optional version or comment
-            let remainder = input.get(pkg_len..)?;
-
-            let ops_len = remainder.bytes()
-                .take_while(|&byte| matches!(byte as char, '>' | '<' | '='))
-                .count();
-
-            let ver_len = remainder.get(ops_len..)?.bytes()
-                .take_while(|&byte| {
-                    matches!(byte as char, 'a'..='z' | 'A'..='Z' | '0'..='9' | '.' | '_' | '+' | '-')
-                })
-                .count();
-
-            let version_len = ops_len + ver_len;
-
-            let version = remainder.get(..version_len)
-                .filter(|_| version_len != 0)
-                .map(ToOwned::to_owned);
-
-            // Look-ahead check
-            let after = remainder.get(version_len..)?;
-
-            let after_valid = after.is_empty()
-                || after.starts_with(':')
-                || (!LINK_SPACER.is_empty() && after.starts_with(LINK_SPACER));
-
-            after_valid.then(|| {
-                LinkTag {
-                    link: format!("pkg://{pkg_name}"),
-                    version,
-                    start: index,
-                    end: index + pkg_len,
-                }
-            })
-        }
-
-        //---------------------------------------
         // Text property getter/setter
         //---------------------------------------
         fn text(&self) -> GString {
@@ -371,7 +370,7 @@ mod imp {
                         );
 
                         link_list.extend(
-                            link_indices.filter_map(|index| Self::parse_link_tag(text, index))
+                            link_indices.filter_map(|index| LinkTag::parse(text, index))
                         );
 
                         // Parse optdeps installed comments
