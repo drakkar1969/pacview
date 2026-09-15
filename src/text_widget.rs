@@ -970,12 +970,13 @@ impl TextWidget {
                 imp.is_clicked.set(false);
 
                 // Launch link if any
-                if let Some(index) = imp.pressed_link_index.take()
-                    .filter(|&index| widget.link_index_at_xy(x, y) == Some(index)) {
-                        imp.focused_link_index.set(Some(index));
+                let link_index = imp.pressed_link_index.take();
 
-                        widget.handle_focused_link();
-                    }
+                if link_index.is_some() && widget.link_index_at_xy(x, y) == link_index {
+                    imp.focused_link_index.set(link_index);
+
+                    widget.handle_focused_link();
+                }
             }
         ));
 
