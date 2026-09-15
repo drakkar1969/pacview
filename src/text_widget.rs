@@ -929,17 +929,25 @@ impl TextWidget {
                         let (_, index) = widget.index_at_xy(x, y);
 
                         let text = widget.text();
+                        let (first, last) = text.split_at_checked(index).unzip();
 
-                        let (start, end) = text
-                            .match_indices(|ch: char| {
-                                ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                        let start = first
+                            .and_then(|s| {
+                                s.as_bytes().iter().rposition(|&ch| {
+                                    ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                                })
                             })
-                            .fold((0, text.len()), |(min, max), (i, _)| {
-                                let start = if i < index && i > min { i + 1 } else { min };
-                                let end = if i > index && i < max { i } else { max };
+                            .and_then(|start| start.checked_add(1))
+                            .unwrap_or(0);
 
-                                (start, end)
-                            });
+                        let end = last
+                            .and_then(|s| {
+                                s.as_bytes().iter().position(|&ch| {
+                                    ch.is_ascii_whitespace() || ch.is_ascii_punctuation()
+                                })
+                            })
+                            .and_then(|end| end.checked_add(index))
+                            .unwrap_or(text.len());
 
                         widget.select_range(Some(start), Some(end), true);
                     } else if n == 3 {
