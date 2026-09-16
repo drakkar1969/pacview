@@ -570,14 +570,21 @@ impl TextWidget {
     }
 
     fn add_focused_link_attrs(&self, attr_list: &AttrList) {
-        if let Some(link) = self.focused_link() {
+        let imp = self.imp();
+
+        let focused_link_indices = imp.focused_link_index.get()
+            .and_then(|index| {
+                imp.link_list.borrow().get(index).map(|link| (link.start, link.end))
+            });
+
+        if let Some((start, end)) = focused_link_indices {
             let underline = if self.underline_links() {
                 Underline::Double
             } else {
                 Underline::Single
             };
 
-            attr_list.insert(Self::attr(AttrInt::new_underline(underline), link.start, link.end));
+            attr_list.insert(Self::attr(AttrInt::new_underline(underline), start, end));
         }
     }
 
@@ -738,15 +745,6 @@ impl TextWidget {
     //---------------------------------------
     // Link helper functions
     //---------------------------------------
-    pub fn focused_link(&self) -> Option<LinkTag> {
-        let imp = self.imp();
-
-        let link_list = imp.link_list.borrow();
-        let link_index = imp.focused_link_index.get()?;
-
-        link_list.get(link_index).cloned()
-    }
-
     pub fn focus_previous_link(&self) {
         let imp = self.imp();
 
