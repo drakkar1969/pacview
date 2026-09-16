@@ -174,7 +174,7 @@ mod imp {
         pub(super) selection_end: Cell<Option<usize>>,
 
         pub(super) is_selecting: Cell<bool>,
-        pub(super) is_clicked: Cell<bool>,
+        pub(super) suppress_drag: Cell<bool>,
         pub(super) pressed_link_index: Cell<Option<usize>>,
     }
 
@@ -892,7 +892,7 @@ impl TextWidget {
                 let imp = widget.imp();
 
                 if widget.link_index_at_xy(x, y).is_none() {
-                    if !imp.is_clicked.get() {
+                    if !imp.suppress_drag.get() {
                         let (_, index) = widget.index_at_xy(x, y);
 
                         // Mark selection start without redrawing
@@ -949,7 +949,7 @@ impl TextWidget {
                 if link_index.is_none() {
                     if n == 2 {
                         // Double click: select word under cursor
-                        imp.is_clicked.set(true);
+                        imp.suppress_drag.set(true);
 
                         let (_, index) = widget.index_at_xy(x, y);
 
@@ -973,7 +973,7 @@ impl TextWidget {
                         widget.select_range(Some(start), Some(end));
                     } else if n == 3 {
                         // Triple click: select all text
-                        imp.is_clicked.set(true);
+                        imp.suppress_drag.set(true);
 
                         widget.select_all();
                     }
@@ -993,7 +993,7 @@ impl TextWidget {
             move |_, _, x, y| {
                 let imp = widget.imp();
 
-                imp.is_clicked.set(false);
+                imp.suppress_drag.set(false);
 
                 // Launch link if any
                 let link_index = imp.pressed_link_index.take();
