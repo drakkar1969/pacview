@@ -229,7 +229,10 @@ mod imp {
         fn bind_shortcuts(klass: &mut <Self as ObjectSubclass>::Class) {
             // Find key binding
             klass.add_binding(Key::F, ModifierType::CONTROL_MASK, |dialog| {
-                dialog.imp().search_bar.set_search_mode(true);
+                let imp = dialog.imp();
+
+                imp.search_bar.set_search_mode(true);
+                imp.search_entry.grab_focus();
 
                 Propagation::Stop
             });
