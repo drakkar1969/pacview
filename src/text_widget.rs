@@ -700,7 +700,10 @@ impl TextWidget {
         imp.selection_start.set(Some(0));
         imp.selection_end.set(Some(self.text().len()));
 
-        self.set_has_selection(true);
+        if !self.has_selection() {
+            self.set_has_selection(true);
+        }
+
         imp.draw_area.queue_draw();
     }
 
@@ -710,7 +713,10 @@ impl TextWidget {
         imp.selection_start.set(None);
         imp.selection_end.set(None);
 
-        self.set_has_selection(false);
+        if self.has_selection() {
+            self.set_has_selection(false);
+        }
+
         imp.draw_area.queue_draw();
     }
 
@@ -720,7 +726,10 @@ impl TextWidget {
         imp.selection_start.set(start);
         imp.selection_end.set(end);
 
-        self.set_has_selection(true);
+        if !self.has_selection() {
+            self.set_has_selection(true);
+        }
+
         imp.draw_area.queue_draw();
     }
 
