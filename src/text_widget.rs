@@ -706,19 +706,24 @@ impl TextWidget {
         imp.draw_area.queue_draw();
     }
 
-    fn select_range(&self, start: Option<usize>, end: Option<usize>, redraw: bool) {
+    fn select_range(&self, start: Option<usize>, end: Option<usize>) {
         let imp = self.imp();
 
         imp.selection_start.set(start);
         imp.selection_end.set(end);
 
-        if redraw {
-            self.set_has_selection(true);
-            imp.draw_area.queue_draw();
-        }
+        self.set_has_selection(true);
+        imp.draw_area.queue_draw();
     }
 
-    fn mark_selection_end(&self, end: Option<usize>) {
+    fn mark_selection_start(&self, start: Option<usize>) {
+        let imp = self.imp();
+
+        imp.selection_start.set(start);
+        imp.selection_end.set(None);
+    }
+
+    fn set_selection_end(&self, end: Option<usize>) {
         let imp = self.imp();
 
         imp.selection_end.set(end);
@@ -874,8 +879,8 @@ impl TextWidget {
                     if !imp.is_clicked.get() {
                         let (_, index) = widget.index_at_xy(x, y);
 
-                        // Set selection start without redrawing
-                        widget.select_range(Some(index), None, false);
+                        // Mark selection start without redrawing
+                        widget.mark_selection_start(Some(index));
                     }
 
                     imp.is_selecting.set(true);
@@ -889,8 +894,8 @@ impl TextWidget {
                 if let Some((start_x, start_y)) = controller.start_point() {
                     let (_, index) = widget.index_at_xy(start_x + x, start_y + y);
 
-                    // Update selection end
-                    widget.mark_selection_end(Some(index));
+                    // Update selection end and redraw
+                    widget.set_selection_end(Some(index));
                 }
             }
         ));
@@ -949,7 +954,7 @@ impl TextWidget {
                             .and_then(|end| end.checked_add(index))
                             .unwrap_or(text.len());
 
-                        widget.select_range(Some(start), Some(end), true);
+                        widget.select_range(Some(start), Some(end));
                     } else if n == 3 {
                         // Triple click: select all text
                         imp.is_clicked.set(true);
