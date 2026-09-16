@@ -5,6 +5,7 @@
     <property name="content-width">700</property>
     <property name="content-height">600</property>
     <property name="title">Pacman Groups</property>
+    <property name="focus-widget">view</property>
     <property name="child">
       <object class="AdwToolbarView" id="toolbar_view">
         <property name="top-bar-style">raised</property>
