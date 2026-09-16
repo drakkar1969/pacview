@@ -593,12 +593,11 @@ impl TextWidget {
 
         let layout = imp.layout.get().unwrap();
 
-        let link_list = imp.link_list.borrow();
-        let comment_list = imp.comment_list.borrow();
-
         let attr_list = AttrList::new();
 
         // Add link attributes
+        let link_list = imp.link_list.borrow();
+
         let PangoColor(r, g, b, alpha) = imp.link_fg_color.get();
 
         for link in link_list.as_slice() {
@@ -611,6 +610,8 @@ impl TextWidget {
         }
 
         // Add comment attributes
+        let comment_list = imp.comment_list.borrow();
+
         let PangoColor(r, g, b, alpha) = imp.comment_fg_color.get();
 
         for comment in comment_list.as_slice() {
