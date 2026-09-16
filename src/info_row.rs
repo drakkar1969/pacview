@@ -209,7 +209,7 @@ mod imp {
             klass.install_action("text.activate-link", None, |row, _, _| {
                 let widget = &row.imp().value_widget;
 
-                widget.handle_link(widget.focused_link());
+                widget.handle_focused_link();
             });
         }
 
