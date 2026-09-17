@@ -246,37 +246,39 @@ mod imp {
 
                 (width, width, -1, -1)
             } else {
-                if for_size == -1 {
+                let height = if for_size == -1 {
                     // Calculate minimum height
                     layout.set_width(-1);
+
+                    layout.pixel_size().1
                 } else {
                     // Calculate natural height
                     layout.set_width(for_size * pango::SCALE);
-                }
 
-                let max_lines = self.max_lines.get();
-                let total_lines = layout.line_count();
+                    let max_lines = self.max_lines.get();
+                    let total_lines = layout.line_count();
 
-                // Set widget can expand property
-                self.obj().set_can_expand(max_lines < total_lines);
+                    // Set widget can expand property
+                    self.obj().set_can_expand(max_lines < total_lines);
 
-                // Calculate pango layout height
-                let height = if self.expanded.get() {
-                    layout.pixel_size().1
-                } else {
-                    let mut rect = layout.line_readonly(0)
-                        .map_or_else(|| Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
+                    // Calculate pango layout height
+                    if self.expanded.get() {
+                        layout.pixel_size().1
+                    } else {
+                        let mut rect = layout.line_readonly(0)
+                            .map_or_else(|| Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
 
-                    let n_lines = total_lines.min(max_lines);
+                        let n_lines = total_lines.min(max_lines);
 
-                    let line_spacing = (rect.height() as f32 * layout.line_spacing())
-                        .round() as i32;
+                        let line_spacing = (rect.height() as f32 * layout.line_spacing())
+                            .round() as i32;
 
-                    rect.set_height(0.max(n_lines - 1) * line_spacing + rect.height());
+                        rect.set_height(0.max(n_lines - 1) * line_spacing + rect.height());
 
-                    pango::extents_to_pixels(Some(&mut rect), None);
+                        pango::extents_to_pixels(Some(&mut rect), None);
 
-                    rect.height()
+                        rect.height()
+                    }
                 };
 
                 layout.set_width(original_width);
