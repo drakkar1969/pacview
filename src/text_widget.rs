@@ -261,7 +261,7 @@ mod imp {
                 self.obj().set_can_expand(max_lines < total_lines);
 
                 // Calculate pango layout height
-                let layout_height = if self.expanded.get() {
+                let height = if self.expanded.get() {
                     layout.pixel_size().1
                 } else {
                     let mut rect = layout.line_readonly(0)
@@ -282,7 +282,7 @@ mod imp {
                 layout.set_width(original_width);
 
                 // Note: add 2 to ensure double underline visible on last line
-                let final_height = layout_height + 2;
+                let final_height = height + 2;
 
                 (final_height, final_height, -1, -1)
             }
