@@ -184,7 +184,7 @@ impl PkgData {
             name: pkg.name.clone(),
             version: pkg.version.clone(),
             description: pkg.description.clone(),
-            popularity: Some(format!("{:.2?} ({} vote{})", pkg.popularity, pkg.num_votes, if pkg.num_votes == 1 { "" } else { "s" })),
+            popularity: Some(format!("{:.2?} | {} vote{}", pkg.popularity, pkg.num_votes, if pkg.num_votes == 1 { "" } else { "s" })),
             out_of_date: pkg.out_of_date,
             url: pkg.url.clone(),
             licenses: sorted_vec(&pkg.license),
