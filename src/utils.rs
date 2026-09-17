@@ -8,9 +8,10 @@ use std::time::Duration;
 use std::env;
 use std::collections::HashMap;
 
-use gtk::{gio, glib};
-use gio::{AppInfo, AppLaunchContext};
+use gtk::{gio, glib, pango};
 use gtk::prelude::{AppInfoExtManual, ListModelExt, Cast, CastNone, IsA, ObjectExt};
+use gio::{AppInfo, AppLaunchContext};
+use pango::{AttrList, Attribute};
 use sourceview5::{StyleScheme, StyleSchemeManager};
 
 use walkdir::WalkDir;
@@ -648,5 +649,31 @@ impl ListStoreFind for gio::ListStore {
         });
 
         index.and_then(|index| self.item(index).and_downcast::<T>())
+    }
+}
+
+//------------------------------------------------------------------------------
+// TRAIT: AttrListExt
+//------------------------------------------------------------------------------
+pub trait AttrListExt {
+    fn add<T>(&self, attr: T, start: usize, end: usize)
+    where
+        T: Into<Attribute>;
+}
+
+impl AttrListExt for AttrList {
+    //-----------------------------------
+    // Add function
+    //-----------------------------------
+    fn add<T>(&self, attr: T, start: usize, end: usize)
+    where
+        T: Into<Attribute>
+    {
+        let mut base_attr: Attribute = attr.into();
+
+        base_attr.set_start_index(start as u32);
+        base_attr.set_end_index(end as u32);
+
+        self.insert(base_attr);
     }
 }

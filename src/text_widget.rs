@@ -6,14 +6,15 @@ use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, GString};
-use pango::{Layout, AttrList, Attribute, AttrColor, AttrFloat, AttrInt, Rectangle, Underline, Weight, WrapMode};
+use pango::{Layout, AttrList, AttrColor, AttrFloat, AttrInt, Rectangle, Underline, Weight, WrapMode};
 
 use regex::Regex;
 use url::Url;
 
 use crate::{
     APP_ID,
-    info_row::PropType
+    info_row::PropType,
+    utils::AttrListExt
 };
 
 //------------------------------------------------------------------------------
@@ -558,15 +559,6 @@ impl TextWidget {
     //---------------------------------------
     // Layout format helper functions
     //---------------------------------------
-    fn attr<T: IsAttribute>(attr: T, start: usize, end: usize) -> Attribute {
-        let mut base_attr: Attribute = attr.upcast();
-
-        base_attr.set_start_index(start as u32);
-        base_attr.set_end_index(end as u32);
-
-        base_attr
-    }
-
     fn add_selection_attrs(&self, attr_list: &AttrList) {
         if let (Some(start), Some(end)) = self.selection_indices() && start != end {
             let imp = self.imp();
@@ -580,8 +572,8 @@ impl TextWidget {
                 imp.sel_bg_color.get()
             };
 
-            attr_list.insert(Self::attr(AttrColor::new_background(r, g, b), min, max));
-            attr_list.insert(Self::attr(AttrInt::new_background_alpha(alpha), min, max));
+            attr_list.add(AttrColor::new_background(r, g, b), min, max);
+            attr_list.add(AttrInt::new_background_alpha(alpha), min, max);
         }
     }
 
@@ -600,7 +592,7 @@ impl TextWidget {
                 Underline::Single
             };
 
-            attr_list.insert(Self::attr(AttrInt::new_underline(underline), start, end));
+            attr_list.add(AttrInt::new_underline(underline), start, end);
         }
     }
 
@@ -617,11 +609,11 @@ impl TextWidget {
         let PangoColor(r, g, b, alpha) = imp.link_fg_color.get();
 
         for link in link_list.as_slice() {
-            attr_list.insert(Self::attr(AttrColor::new_foreground(r, g, b), link.start, link.end));
-            attr_list.insert(Self::attr(AttrInt::new_foreground_alpha(alpha), link.start, link.end));
+            attr_list.add(AttrColor::new_foreground(r, g, b), link.start, link.end);
+            attr_list.add(AttrInt::new_foreground_alpha(alpha), link.start, link.end);
 
             if self.underline_links() {
-                attr_list.insert(Self::attr(AttrInt::new_underline(Underline::Single), link.start, link.end));
+                attr_list.add(AttrInt::new_underline(Underline::Single), link.start, link.end);
             }
         }
 
@@ -631,10 +623,10 @@ impl TextWidget {
         let PangoColor(r, g, b, alpha) = imp.comment_fg_color.get();
 
         for comment in comment_list.as_slice() {
-            attr_list.insert(Self::attr(AttrInt::new_weight(Weight::Semibold), comment.start, comment.end));
-            attr_list.insert(Self::attr(AttrColor::new_foreground(r, g, b), comment.start, comment.end));
-            attr_list.insert(Self::attr(AttrInt::new_foreground_alpha(alpha), comment.start, comment.end));
-            attr_list.insert(Self::attr(AttrFloat::new_scale(0.75), comment.start, comment.end));
+            attr_list.add(AttrInt::new_weight(Weight::Semibold), comment.start, comment.end);
+            attr_list.add(AttrColor::new_foreground(r, g, b), comment.start, comment.end);
+            attr_list.add(AttrInt::new_foreground_alpha(alpha), comment.start, comment.end);
+            attr_list.add(AttrFloat::new_scale(0.75), comment.start, comment.end);
         }
 
         layout.set_attributes(Some(&attr_list));
