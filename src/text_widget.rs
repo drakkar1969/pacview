@@ -14,7 +14,7 @@ use url::Url;
 use crate::{
     APP_ID,
     info_row::PropType,
-    utils::AttrListExt
+    traits::AttrListExt
 };
 
 //------------------------------------------------------------------------------

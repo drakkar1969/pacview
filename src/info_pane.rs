@@ -15,7 +15,7 @@ use crate::{
     pkg_object::PkgObject,
     source_dialog::SourceDialog,
     hash_dialog::HashDialog,
-    utils::ListStoreFind
+    traits::ListStoreFind
 };
 
 //------------------------------------------------------------------------------

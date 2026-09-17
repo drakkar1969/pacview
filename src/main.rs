@@ -33,6 +33,7 @@ mod cache_object;
 mod groups_object;
 mod tokio_manager;
 mod utils;
+mod traits;
 
 use gtk::{gio, glib};
 use gtk::prelude::*;

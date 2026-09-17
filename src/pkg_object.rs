@@ -13,7 +13,8 @@ use size::Size;
 use crate::{
     pkg_data::{PkgData, PkgFlags, PkgValidation},
     tag_label::TagType,
-    utils::{Pacman, PkgbuildRepos, ListStoreFind}
+    utils::{Pacman, PkgbuildRepos},
+    traits::ListStoreFind
 };
 
 //------------------------------------------------------------------------------

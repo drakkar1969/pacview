@@ -22,7 +22,7 @@ use crate::{
     search_bar::{SearchBar, SearchProp},
     info_pane::InfoPane,
     tokio_manager::TokioManager,
-    utils::ListStoreFind,
+    traits::ListStoreFind,
 };
 
 //------------------------------------------------------------------------------
