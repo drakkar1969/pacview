@@ -27,7 +27,7 @@ pub const LINK_SPACER: &str = "   ";
 // STRUCT: LinkTag
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub struct LinkTag {
+struct LinkTag {
     link: String,
     version: Option<String>,
     start: usize,
@@ -88,7 +88,7 @@ impl LinkTag {
 // STRUCT: CommentTag
 //------------------------------------------------------------------------------
 #[derive(Debug)]
-pub struct CommentTag {
+struct CommentTag {
     start: usize,
     end: usize,
 }
@@ -97,7 +97,7 @@ pub struct CommentTag {
 // STRUCT: PangoColor
 //------------------------------------------------------------------------------
 #[derive(Default, Debug, Clone, Copy)]
-pub struct PangoColor(u16, u16, u16, u16);
+struct PangoColor(u16, u16, u16, u16);
 
 impl PangoColor {
     pub fn from_css_style(style: &str) -> Self {

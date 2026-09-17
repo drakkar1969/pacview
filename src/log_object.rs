@@ -8,9 +8,9 @@ use gtk::prelude::ObjectExt;
 // STRUCT: LogLine
 //------------------------------------------------------------------------------
 pub struct LogLine {
-    pub date: String,
-    pub time: String,
-    pub message: String
+    date: String,
+    time: String,
+    message: String
 }
 
 impl LogLine {
