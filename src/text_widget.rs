@@ -258,14 +258,15 @@ mod imp {
                     let max_lines = self.max_lines.get();
                     let total_lines = layout.line_count();
 
-                    // Set widget can expand property
-                    self.obj().set_can_expand(max_lines < total_lines);
+                    // Set widget can expand field
+                    self.can_expand.set(max_lines < total_lines);
 
                     // Calculate pango layout height
                     if self.expanded.get() {
                         layout.pixel_size().1
                     } else {
-                        let mut rect = layout.line_readonly(0)
+                        let mut rect = layout
+                            .line_readonly(0)
                             .map_or_else(|| Rectangle::new(0, 0, 0, 0), |line| line.extents().1);
 
                         let n_lines = total_lines.min(max_lines);
@@ -295,26 +296,26 @@ mod imp {
         //---------------------------------------
         fn size_allocate(&self, width: i32, height: i32, baseline: i32) {
             let layout = self.layout.get().unwrap();
-            let layout_text_len = layout.text().len();
+            let text_len = layout.text().len();
 
-            // Set layout max index
-            if self.can_expand.get() {
-                let max_lines = self.max_lines.get();
-
-                let max_index = layout.line_readonly(0.max(max_lines - 1))
-                    .map_or(layout_text_len, |line| {
-                        (line.start_index() + line.length()) as usize
-                    });
-
-                self.max_link_index.set(max_index);
+            // Set max link index
+            let max_index = if self.can_expand.get() {
+                layout
+                    .line_readonly(0.max(self.max_lines.get() - 1))
+                    .map_or(text_len, |line| (line.start_index() + line.length()) as usize)
             } else {
-                self.max_link_index.set(layout_text_len);
-            }
+                text_len
+            };
+
+            self.max_link_index.set(max_index);
 
             // Set layout width
             layout.set_width(width * pango::SCALE);
 
             self.draw_area.allocate(width, height, baseline, None);
+
+            // Notify can expand property change
+            self.obj().notify_can_expand();
         }
     }
 
@@ -365,11 +366,9 @@ mod imp {
                         text = "None";
                     } else {
                         // Parse package links
-                        let spacer_len = LINK_SPACER.len();
-
                         let link_indices = std::iter::once(0).chain(
                             (!LINK_SPACER.is_empty()).then(|| {
-                                text.match_indices(LINK_SPACER).map(|(i, _)| i + spacer_len)
+                                text.match_indices(LINK_SPACER).map(|(i, _)| i + LINK_SPACER.len())
                             })
                             .into_iter()
                             .flatten()
@@ -380,13 +379,11 @@ mod imp {
                         );
 
                         // Parse optdeps installed comments
-                        let comment_len = INSTALLED_LABEL.len();
-
                         comment_list.extend(text.match_indices(INSTALLED_LABEL)
                             .map(|(i, _)| {
                                 CommentTag {
                                     start: i,
-                                    end: i + comment_len
+                                    end: i + INSTALLED_LABEL.len()
                                 }
                             })
                         );
@@ -450,14 +447,14 @@ impl TextWidget {
             let imp = widget.imp();
 
             let link_list = imp.link_list.borrow();
-            let max_link_index = imp.max_link_index.get();
+            let max_index = imp.max_link_index.get();
 
             // If widget is contracted, update focused link to ensure it is visible
             if widget.can_expand() && !widget.expanded() && let Some(index) = imp.focused_link_index.get()
-                && link_list.get(index).is_some_and(|link| link.end > max_link_index)
+                && link_list.get(index).is_some_and(|link| link.end > max_index)
             {
                 let new_index = link_list.get(..index)
-                    .and_then(|link_list| link_list.iter().rposition(|link| link.end <= max_link_index));
+                    .and_then(|link_list| link_list.iter().rposition(|link| link.end <= max_index));
 
                 if new_index.is_some() {
                     imp.focused_link_index.set(new_index);
