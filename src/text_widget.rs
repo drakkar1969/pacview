@@ -158,7 +158,6 @@ mod imp {
 
         pub(super) layout: OnceCell<Layout>,
         pub(super) layout_attributes: RefCell<AttrList>,
-        pub(super) layout_max_index: Cell<usize>,
 
         pub(super) link_fg_color: Cell<PangoColor>,
         pub(super) comment_fg_color: Cell<PangoColor>,
@@ -168,6 +167,7 @@ mod imp {
         pub(super) link_list: RefCell<Vec<LinkTag>>,
         pub(super) comment_list: RefCell<Vec<CommentTag>>,
 
+        pub(super) max_link_index: Cell<usize>,
         pub(super) focused_link_index: Cell<Option<usize>>,
 
         pub(super) selection_start: Cell<Option<usize>>,
@@ -296,9 +296,7 @@ mod imp {
             let layout_text_len = layout.text().len();
 
             // Set layout max index
-            if self.expanded.get() {
-                self.layout_max_index.set(layout_text_len);
-            } else {
+            if self.can_expand.get() {
                 let max_lines = self.max_lines.get();
 
                 let max_index = layout.line_readonly(0.max(max_lines - 1))
@@ -306,7 +304,9 @@ mod imp {
                         (line.start_index() + line.length()) as usize
                     });
 
-                self.layout_max_index.set(max_index);
+                self.max_link_index.set(max_index);
+            } else {
+                self.max_link_index.set(layout_text_len);
             }
 
             // Set layout width
@@ -445,6 +445,23 @@ impl TextWidget {
     fn setup_signals(&self) {
         // Expanded property notify signal
         self.connect_expanded_notify(|widget| {
+            let imp = widget.imp();
+
+            let link_list = imp.link_list.borrow();
+            let max_link_index = imp.max_link_index.get();
+
+            // If widget is contracted, update focused link to ensure it is visible
+            if widget.can_expand() && !widget.expanded() && let Some(index) = imp.focused_link_index.get()
+                && link_list.get(index).is_some_and(|link| link.end > max_link_index)
+            {
+                let new_index = link_list.get(..index)
+                    .and_then(|link_list| link_list.iter().rposition(|link| link.end <= max_link_index));
+
+                if new_index.is_some() {
+                    imp.focused_link_index.set(new_index);
+                }
+            }
+
             widget.imp().draw_area.queue_resize();
         });
 
@@ -760,25 +777,35 @@ impl TextWidget {
 
         if let Some(new_index) = imp.focused_link_index.get()
             .and_then(|i| i.checked_sub(1)) {
-                imp.focused_link_index.set(Some(new_index));
+                let link_list = imp.link_list.borrow();
 
-                imp.draw_area.queue_draw();
+                if new_index < link_list.len() {
+                    imp.focused_link_index.set(Some(new_index));
+
+                    imp.draw_area.queue_draw();
+                }
             }
     }
 
     pub fn focus_next_link(&self) {
         let imp = self.imp();
 
-        let link_list = imp.link_list.borrow();
-
         if let Some(new_index) = imp.focused_link_index.get()
-            .and_then(|i| i.checked_add(1))
-            .filter(|&i| link_list.get(i)
-                .is_some_and(|link| link.end <= imp.layout_max_index.get())
-            ) {
-                imp.focused_link_index.set(Some(new_index));
+            .and_then(|i| i.checked_add(1)) {
+                let link_list = imp.link_list.borrow();
 
-                imp.draw_area.queue_draw();
+                if new_index < link_list.len() {
+                    imp.focused_link_index.set(Some(new_index));
+
+                    imp.draw_area.queue_draw();
+                }
+
+                // Expand widget if focus link is not visible
+                if self.can_expand() && !self.expanded()
+                    && link_list.get(new_index).is_some_and(|link| link.end > imp.max_link_index.get())
+                {
+                    self.set_expanded(true);
+                }
             }
     }
 
