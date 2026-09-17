@@ -46,7 +46,7 @@
                 <child>
                   <object class="TagLabel" id="update_tag">
                     <property name="tag-type">warning</property>
-                    <property name="ellipsize">middle</property>
+                    <property name="text">update</property>
                   </object>
                 </child>
               </object>

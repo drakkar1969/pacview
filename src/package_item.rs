@@ -73,29 +73,13 @@ impl PackageItem {
     pub fn setup(&self, item: &gtk::ListItem) {
         let imp = self.imp();
 
-        // Get expressions for update version
-        let update_expr = item.property_expression("item")
-            .chain_property::<PkgObject>("update-version")
-            .chain_closure::<String>(closure_local!(
-                |_: Option<glib::Object>, update: Option<String>| update.unwrap_or_default()
-            ));
-
-        // Bind update version to update tag text
-        update_expr.bind(&imp.update_tag.get(), "text", glib::Object::NONE);
-
         // Bind update version to update tag visibility
-        let has_update_expr = update_expr.chain_closure::<bool>(closure_local!(
-            |_: Option<glib::Object>, update: String| !update.is_empty()
-        ));
-
-        has_update_expr.bind(&imp.update_tag.get(), "visible", glib::Object::NONE);
-
-        // Bind update version to version tag visibility
-        let no_update_expr = has_update_expr.chain_closure::<bool>(closure_local!(
-            |_: Option<glib::Object>, has_update: bool| !has_update
-        ));
-
-        no_update_expr.bind(&imp.version_tag.get(), "visible", glib::Object::NONE);
+        item.property_expression("item")
+            .chain_property::<PkgObject>("update-version")
+            .chain_closure::<bool>(closure_local!(
+                |_: Option<glib::Object>, update: Option<String>| update.is_some()
+            ))
+            .bind(&imp.update_tag.get(), "visible", glib::Object::NONE);
     }
 
     //---------------------------------------
