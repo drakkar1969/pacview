@@ -12,7 +12,7 @@
               <object class="AdwButtonRow" id="config_button">
                 <property name="start-icon-name">document-open-symbolic</property>
                 <property name="title">_Open Pacman Config</property>
-                <property name="action-name">conf.config</property>
+                <property name="action-name">dialog.open-config</property>
                 <property name="use-underline">true</property>
               </object>
             </child>

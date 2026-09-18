@@ -56,14 +56,14 @@ mod imp {
         //---------------------------------------
         fn install_actions(klass: &mut <Self as ObjectSubclass>::Class) {
             // Open config action
-            klass.install_action_async("conf.config", None, async |_, _, _| {
+            klass.install_action_async("dialog.open-config", None, async |_, _, _| {
                 let config_path = Pacman::config_path().read().unwrap().clone();
 
                 AppInfoExt::open_with_default_app(&config_path).await;
             });
 
             // Open path action
-            klass.install_action_async("conf.path", Some(VariantTy::STRING),
+            klass.install_action_async("dialog.open-path", Some(VariantTy::STRING),
                 async |_, _, param| {
                     let paths = param
                         .and_then(|param| param.get::<String>())
@@ -98,12 +98,12 @@ impl ConfigDialog {
         let config = Pacman::config().read().unwrap();
 
         dialog.add_group("Paths", &[
-            ("RootDir", &config.root_dir, Some("conf.path")),
-            ("DBPath", &config.db_path, Some("conf.path")),
-            ("CacheDir", &config.cache_dir.join("\n"), Some("conf.path")),
-            ("LogFile", &config.log_file, Some("conf.path")),
-            ("GPGDir", &config.gpg_dir, Some("conf.path")),
-            ("HookDir", &config.hook_dir.join("\n"), Some("conf.path"))
+            ("RootDir", &config.root_dir, Some("dialog.open-path")),
+            ("DBPath", &config.db_path, Some("dialog.open-path")),
+            ("CacheDir", &config.cache_dir.join("\n"), Some("dialog.open-path")),
+            ("LogFile", &config.log_file, Some("dialog.open-path")),
+            ("GPGDir", &config.gpg_dir, Some("dialog.open-path")),
+            ("HookDir", &config.hook_dir.join("\n"), Some("dialog.open-path"))
         ]);
 
         dialog.add_group("Download", &[
