@@ -818,7 +818,7 @@ impl TextWidget {
                 if let Some(pkg_name) = url.domain() {
                     let args = (pkg_name, link.version.unwrap_or_default()).to_variant();
 
-                    self.activate_action("inforow.handle-pkg-link", Some(&args)).unwrap();
+                    self.activate_action("info.handle-pkg-link", Some(&args)).unwrap();
                 }
             } else {
                 glib::spawn_future_local(async move {

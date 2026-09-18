@@ -165,7 +165,7 @@ mod imp {
             });
 
             // Info row handle pkg link action
-            klass.install_action("inforow.handle-pkg-link", None, |pane, _, param| {
+            klass.install_action("info.handle-pkg-link", Some(glib::VariantTy::TUPLE), |pane, _, param| {
                 let (pkg_name, pkg_version) = param
                     .and_then(glib::Variant::get::<(String, String)>)
                     .expect("Failed to get tuple from variant");
