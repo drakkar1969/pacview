@@ -167,11 +167,15 @@ mod imp {
             // Info row handle pkg link action
             klass.install_action("info.handle-pkg-link", Some(glib::VariantTy::TUPLE), |pane, _, param| {
                 let (pkg_name, pkg_version) = param
-                    .and_then(glib::Variant::get::<(String, String)>)
+                    .and_then(glib::Variant::get::<(String, Option<String>)>)
                     .expect("Failed to get tuple from variant");
 
                 // Find link package in pacman databases or AUR search results
-                let pkg_link = pkg_name.clone() + &pkg_version;
+                let mut pkg_link = pkg_name.clone();
+                
+                if let Some(version) = pkg_version {
+                   pkg_link += &version;
+                }
 
                 let pkg_model = pane.package_view().pkg_model();
                 let aur_model = pane.package_view().aur_model();

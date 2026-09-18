@@ -816,7 +816,7 @@ impl TextWidget {
         if let Some(link) = handle_link && let Ok(url) = Url::parse(&link.url) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
-                    let args = (pkg_name, link.version.unwrap_or_default()).to_variant();
+                    let args = (pkg_name, link.version).to_variant();
 
                     self.activate_action("info.handle-pkg-link", Some(&args)).unwrap();
                 }
