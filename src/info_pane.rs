@@ -5,7 +5,7 @@ use std::time::Duration;
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::clone;
+use glib::{clone, Variant, VariantTy};
 
 use crate::{
     package_view::PackageView,
@@ -165,9 +165,9 @@ mod imp {
             });
 
             // Info row handle pkg link action
-            klass.install_action("info.handle-pkg-link", Some(glib::VariantTy::TUPLE), |pane, _, param| {
+            klass.install_action("info.handle-pkg-link", Some(VariantTy::TUPLE), |pane, _, param| {
                 let (pkg_name, pkg_version) = param
-                    .and_then(glib::Variant::get::<(String, Option<String>)>)
+                    .and_then(Variant::get::<(String, Option<String>)>)
                     .expect("Failed to get tuple from variant");
 
                 // Find link package in pacman databases or AUR search results
