@@ -451,11 +451,14 @@ impl TextWidget {
             let max_index = imp.max_link_index.get();
 
             // If widget is contracted, update focused link to ensure it is visible
-            if widget.can_expand() && !widget.expanded() && let Some(index) = imp.focused_link_index.get()
+            if widget.can_expand() && !widget.expanded()
+                && let Some(index) = imp.focused_link_index.get()
                 && link_list.get(index).is_some_and(|link| link.end > max_index)
             {
                 let new_index = link_list.get(..index)
-                    .and_then(|link_list| link_list.iter().rposition(|link| link.end <= max_index));
+                    .and_then(|link_list| {
+                        link_list.iter().rposition(|link| link.end <= max_index)
+                    });
 
                 if new_index.is_some() {
                     imp.focused_link_index.set(new_index);
@@ -491,6 +494,7 @@ impl TextWidget {
         // Underline links property notify signal
         self.connect_underline_links_notify(|widget| {
             widget.init_layout_attributes();
+
             widget.imp().draw_area.queue_draw();
         });
 
