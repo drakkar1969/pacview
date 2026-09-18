@@ -28,7 +28,7 @@ pub const LINK_SPACER: &str = "   ";
 //------------------------------------------------------------------------------
 #[derive(Debug, Eq, PartialEq, Clone)]
 struct LinkTag {
-    link: String,
+    url: String,
     version: Option<String>,
     start: usize,
     end: usize,
@@ -75,7 +75,7 @@ impl LinkTag {
 
         after_valid.then(|| {
             Self {
-                link: format!("pkg://{pkg_name}"),
+                url: format!("pkg://{pkg_name}"),
                 version,
                 start: index,
                 end: index + pkg_len,
@@ -340,7 +340,7 @@ mod imp {
             match obj.ptype() {
                 PropType::Link => {
                     link_list.push(LinkTag {
-                        link: text.to_owned(),
+                        url: text.to_owned(),
                         version: None,
                         start: 0,
                         end: text.len()
@@ -355,7 +355,7 @@ mod imp {
 
                     if let Some(m) = EXPR.find(text) {
                         link_list.push(LinkTag {
-                            link: format!("mailto:{}", m.as_str()),
+                            url: format!("mailto:{}", m.as_str()),
                             version: None,
                             start: m.start(),
                             end: m.end()
@@ -813,7 +813,7 @@ impl TextWidget {
     fn handle_link(&self, link_index: usize) {
         let handle_link = self.imp().link_list.borrow().get(link_index).cloned();
 
-        if let Some(link) = handle_link && let Ok(url) = Url::parse(&link.link) {
+        if let Some(link) = handle_link && let Ok(url) = Url::parse(&link.url) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
                     let args = (pkg_name, link.version.unwrap_or_default()).to_variant();
@@ -823,7 +823,7 @@ impl TextWidget {
             } else {
                 glib::spawn_future_local(async move {
                     let _ = gio::AppInfo::launch_default_for_uri_future(
-                        &link.link,
+                        &link.url,
                         None::<&gio::AppLaunchContext>
                     )
                     .await;
