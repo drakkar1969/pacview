@@ -11,7 +11,7 @@
               <object class="AdwToolbarView">
                 <child type="top">
                   <object class="AdwHeaderBar">
-                    <property name="title-widget">tab_header_label
+                    <property name="title-widget">
                       <object class="AdwWindowTitle">
                         <property name="title">Info Pane</property>
                       </object>
@@ -38,7 +38,7 @@
               <object class="AdwToolbarView" id="toolbar_view">
                 <child type="top">
                   <object class="AdwHeaderBar" id="tab_header_bar">
-                    <property name="title-widget">tab_switcher</property>
+                    <property name="title-widget">tab_header_switcher</property>
                     <child>
                       <object class="GtkButton" id="prev_button">
                         <property name="sensitive">false</property>
@@ -103,13 +103,13 @@
     </property>
 
     <!--// Title widgets //-->
-    <object class="AdwViewSwitcher" id="tab_switcher">
+    <object class="AdwViewSwitcher" id="tab_header_switcher">
       <property name="stack">tab_stack</property>
       <property name="policy">wide</property>
     </object>
 
-    <object class="GtkLabel" id="tab_header_label">
-      <property name="label">Info Pane</property>
+    <object class="AdwWindowTitle" id="tab_header_title">
+      <property name="title">Info Pane</property>
     </object>
   </template>
 </interface>

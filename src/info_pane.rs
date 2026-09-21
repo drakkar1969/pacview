@@ -48,9 +48,9 @@ mod imp {
         #[template_child]
         pub(super) tab_header_bar: TemplateChild<adw::HeaderBar>,
         #[template_child]
-        pub(super) tab_switcher: TemplateChild<adw::ViewSwitcher>,
+        pub(super) tab_header_switcher: TemplateChild<adw::ViewSwitcher>,
         #[template_child]
-        pub(super) tab_header_label: TemplateChild<gtk::Label>,
+        pub(super) tab_header_title: TemplateChild<adw::WindowTitle>,
         #[template_child]
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -242,9 +242,9 @@ impl InfoPane {
             imp.show_button.set_visible(mode != PaneDisplayMode::Normal);
 
             if mode == PaneDisplayMode::Narrow {
-                imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_label.get()));
+                imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_title.get()));
             } else {
-                imp.tab_header_bar.set_title_widget(Some(&imp.tab_switcher.get()));
+                imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_switcher.get()));
             }
 
             imp.tab_switcher_bar.set_reveal(mode == PaneDisplayMode::Narrow);
