@@ -1,5 +1,6 @@
 use std::cell::{Cell, RefCell, OnceCell};
 use std::marker::PhantomData;
+use std::rc::Rc;
 use std::time::Duration;
 
 use gtk::glib;
@@ -118,6 +119,7 @@ mod imp {
 
             obj.setup_signals();
             obj.setup_widgets();
+            obj.setup_controllers();
         }
     }
 
@@ -280,6 +282,66 @@ impl InfoPane {
         self.bind_property("active-tab", &imp.tab_stack.get(), "visible-child-name")
             .sync_create()
             .build();
+    }
+
+    //---------------------------------------
+    // Setup controllers
+    //---------------------------------------
+    fn setup_controllers(&self) {
+        // Add scroll gesture (two-finger previous/next swipe)
+        let scroll_gesture = gtk::EventControllerScroll::builder()
+            .flags(gtk::EventControllerScrollFlags::HORIZONTAL)
+            .build();
+
+        let threshold = 100;
+
+        let is_swipe_prev = Rc::new(Cell::new(None));
+        let is_swipe_prev_clone = Rc::clone(&is_swipe_prev);
+
+        let delta = Rc::new(Cell::new(0));
+        let delta_clone = Rc::clone(&delta);
+
+        scroll_gesture.connect_scroll(clone!(
+            #[weak(rename_to = pane)] self,
+            #[upgrade_or] glib::Propagation::Stop,
+            move |_, dx, _| {
+                let history = pane.imp().pkg_history.borrow();
+
+                if history.peek_previous() || history.peek_next() {
+                    if dx != 0.0 && is_swipe_prev_clone.get().is_none() {
+                        is_swipe_prev_clone.set(Some(dx < 0.0));
+                    }
+
+                    if history.peek_previous() && is_swipe_prev_clone.get() == Some(true) {
+                        let new_delta = (delta_clone.get() - dx.round() as i32).min(threshold).max(0);
+
+                        delta_clone.set(new_delta);
+                    } else if history.peek_next() && is_swipe_prev_clone.get() == Some(false) {
+                        let new_delta = (delta_clone.get() + dx.round() as i32).min(threshold).max(0);
+
+                        delta_clone.set(new_delta);
+                    }
+                }
+
+                glib::Propagation::Stop
+            }
+        ));
+
+        scroll_gesture.connect_scroll_end(clone!(
+            #[weak(rename_to = pane)] self,
+            move |_| {
+                if is_swipe_prev.get() == Some(true) && delta.get() >= threshold {
+                    pane.activate_action("info.previous", None).unwrap();
+                } else if is_swipe_prev.get() == Some(false) && delta.get() >= threshold {
+                    pane.activate_action("info.next", None).unwrap();
+                }
+
+                delta.set(0);
+                is_swipe_prev.set(None);
+            }
+        ));
+
+        self.add_controller(scroll_gesture);
     }
 
     //---------------------------------------
