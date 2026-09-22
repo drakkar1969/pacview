@@ -532,13 +532,21 @@ mod imp {
 
             // Infopane set tab shortcuts
             klass.add_binding(Key::I, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_active_tab("info");
+                let imp = window.imp();
+
+                if imp.info_pane.pkg().is_some() {
+                    imp.info_pane.set_active_tab("info");
+                }
 
                 Propagation::Stop
             });
 
             klass.add_binding(Key::F, ModifierType::ALT_MASK, |window| {
-                window.imp().info_pane.set_active_tab("files");
+                let imp = window.imp();
+
+                if imp.info_pane.pkg().is_some() {
+                    imp.info_pane.set_active_tab("files");
+                }
 
                 Propagation::Stop
             });
