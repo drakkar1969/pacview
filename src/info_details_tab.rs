@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::sync::LazyLock;
 use std::collections::HashMap;
 use std::borrow::Cow;
 use std::fmt::Write as _;
@@ -6,7 +7,8 @@ use std::fmt::Write as _;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use gtk::glib;
-use glib::clone;
+use glib::{clone, closure_local};
+use glib::subclass::Signal;
 
 use crate::{
     tag_label::TagLabel,
@@ -87,6 +89,21 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for InfoDetailsTab {
+        //---------------------------------------
+        // Signals
+        //---------------------------------------
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: LazyLock<Vec<Signal>> = LazyLock::new(|| {
+                vec![
+                    Signal::builder("activate-pkg-link")
+                        .param_types([String::static_type(), Option::<String>::static_type()])
+                        .build(),
+                ]
+            });
+
+            &SIGNALS
+        }
+
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -197,6 +214,13 @@ impl InfoDetailsTab {
                     } else if imp.selection_row.borrow().as_ref() == Some(row) {
                         imp.selection_row.replace(None);
                     }
+                }
+            ));
+
+            row.connect_closure("activate-pkg-link", false, closure_local!(
+                #[weak(rename_to = tab)] self,
+                move |_: InfoRow, pkg_name: String, pkg_version: Option<String>| {
+                    tab.emit_by_name::<()>("activate-pkg-link", &[&pkg_name, &pkg_version]);
                 }
             ));
 

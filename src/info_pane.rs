@@ -6,7 +6,7 @@ use std::time::Duration;
 use gtk::glib;
 use adw::subclass::prelude::*;
 use adw::prelude::*;
-use glib::{clone, Variant, VariantTy};
+use glib::{clone, closure_local};
 
 use crate::{
     package_view::PackageView,
@@ -161,39 +161,6 @@ mod imp {
                     dialog.present(Some(pane));
                 }
             });
-
-            // Info row handle pkg link action
-            klass.install_action("info.handle-pkg-link", Some(VariantTy::TUPLE), |pane, _, param| {
-                let (pkg_name, pkg_version) = param
-                    .and_then(Variant::get::<(String, Option<String>)>)
-                    .expect("Failed to get tuple from variant");
-
-                // Find link package in pacman databases or AUR search results
-                let mut pkg_link = pkg_name.clone();
-                
-                if let Some(version) = pkg_version {
-                   pkg_link += &version;
-                }
-
-                let pkg_model = pane.package_view().pkg_model();
-                let aur_model = pane.package_view().aur_model();
-
-                let new_pkg = PkgObject::find_satisfier(&pkg_link, &pkg_model)
-                    .or_else(|| aur_model.find_with(|pkg: &PkgObject| pkg.name() == pkg_name))
-                    .or_else(|| aur_model.find_with(|pkg: &PkgObject| {
-                        pkg.provides().iter().any(|s| s == &pkg_link)
-                    }));
-
-                // If link package found and is different from current package
-                if let Some(pkg) = new_pkg.filter(|pkg| pane.pkg().as_ref() != Some(pkg)) {
-                    // If link package is in history, select it
-                    // Otherwise append it after selected history package
-                    pane.imp().pkg_history.borrow().select_or_append(pkg);
-
-                    // Display link package
-                    pane.update_display();
-                }
-            });
         }
 
         //---------------------------------------
@@ -243,6 +210,8 @@ impl InfoPane {
     // Setup signals
     //---------------------------------------
     fn setup_signals(&self) {
+        let imp = self.imp();
+
         // Display mode property notify signal
         self.connect_display_mode_notify(|pane| {
             let imp = pane.imp();
@@ -263,6 +232,38 @@ impl InfoPane {
 
             imp.tab_switcher_bar.set_reveal(mode == PaneDisplayMode::Narrow && pkg.is_some());
         });
+
+        // Pkg link signal handler
+        imp.info_tab.connect_closure("activate-pkg-link", false, closure_local!(
+            #[weak(rename_to = pane)] self,
+            move |_: InfoDetailsTab, pkg_name: String, pkg_version: Option<String>| {
+                // Find link package in pacman databases or AUR search results
+                let mut pkg_link = pkg_name.clone();
+                
+                if let Some(version) = pkg_version {
+                   pkg_link += &version;
+                }
+
+                let pkg_model = pane.package_view().pkg_model();
+                let aur_model = pane.package_view().aur_model();
+
+                let new_pkg = PkgObject::find_satisfier(&pkg_link, &pkg_model)
+                    .or_else(|| aur_model.find_with(|pkg: &PkgObject| pkg.name() == pkg_name))
+                    .or_else(|| aur_model.find_with(|pkg: &PkgObject| {
+                        pkg.provides().iter().any(|s| s == &pkg_link)
+                    }));
+
+                // If link package found and is different from current package
+                if let Some(pkg) = new_pkg.filter(|pkg| pane.pkg().as_ref() != Some(pkg)) {
+                    // If link package is in history, select it
+                    // Otherwise append it after selected history package
+                    pane.imp().pkg_history.borrow().select_or_append(pkg);
+
+                    // Display link package
+                    pane.update_display();
+                }
+            }
+        ));
     }
 
     //---------------------------------------

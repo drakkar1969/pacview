@@ -6,6 +6,7 @@ use gtk::{gio, glib, gdk, pango};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
 use glib::{clone, GString};
+use glib::subclass::Signal;
 use pango::{Layout, AttrList, AttrColor, AttrFloat, AttrInt, Rectangle, Underline, Weight, WrapMode};
 
 use regex::Regex;
@@ -199,6 +200,21 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for TextWidget {
+        //---------------------------------------
+        // Signals
+        //---------------------------------------
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: LazyLock<Vec<Signal>> = LazyLock::new(|| {
+                vec![
+                    Signal::builder("activate-pkg-link")
+                        .param_types([String::static_type(), Option::<String>::static_type()])
+                        .build(),
+                ]
+            });
+
+            &SIGNALS
+        }
+
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -816,9 +832,7 @@ impl TextWidget {
         if let Some(link) = handle_link && let Ok(url) = Url::parse(&link.url) {
             if url.scheme() == "pkg" {
                 if let Some(pkg_name) = url.domain() {
-                    let args = (pkg_name, link.version).to_variant();
-
-                    self.activate_action("info.handle-pkg-link", Some(&args)).unwrap();
+                    self.emit_by_name::<()>("activate-pkg-link", &[&pkg_name, &link.version]);
                 }
             } else {
                 glib::spawn_future_local(async move {

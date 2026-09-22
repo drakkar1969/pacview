@@ -1,10 +1,12 @@
 use std::cell::Cell;
+use std::sync::LazyLock;
 use std::marker::PhantomData;
 
 use gtk::{glib, gdk};
 use gtk::subclass::prelude::*;
 use gtk::prelude::*;
-use glib::{clone, GString};
+use glib::{clone, closure_local, GString};
+use glib::subclass::Signal;
 use gdk::{Key, ModifierType};
 
 use strum::AsRefStr;
@@ -142,6 +144,21 @@ mod imp {
 
     #[glib::derived_properties]
     impl ObjectImpl for InfoRow {
+        //---------------------------------------
+        // Signals
+        //---------------------------------------
+        fn signals() -> &'static [Signal] {
+            static SIGNALS: LazyLock<Vec<Signal>> = LazyLock::new(|| {
+                vec![
+                    Signal::builder("activate-pkg-link")
+                        .param_types([String::static_type(), Option::<String>::static_type()])
+                        .build(),
+                ]
+            });
+
+            &SIGNALS
+        }
+
         //---------------------------------------
         // Constructor
         //---------------------------------------
@@ -335,6 +352,14 @@ impl InfoRow {
         self.connect_has_selection_notify(|row| {
             row.action_set_enabled("text.copy", row.has_selection());
         });
+
+        // Value widget link activated signal handler
+        imp.value_widget.connect_closure("activate-pkg-link", false, closure_local!(
+            #[weak(rename_to = row)] self,
+            move |_: TextWidget, pkg_name: String, pkg_version: Option<String>| {
+                row.emit_by_name::<()>("activate-pkg-link", &[&pkg_name, &pkg_version]);
+            }
+        ));
     }
 
     //---------------------------------------
