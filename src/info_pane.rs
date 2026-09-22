@@ -206,17 +206,21 @@ mod imp {
         fn set_pkg(&self, pkg: Option<PkgObject>) {
             let obj = self.obj();
 
+            let mode = obj.display_mode();
+
             self.main_stack.set_visible_child_name(
                 if pkg.is_some() { "properties" } else { "empty" }
             );
 
-            let title = if obj.display_mode() != PaneDisplayMode::Narrow && pkg.is_some() {
+            let title = if mode != PaneDisplayMode::Narrow && pkg.is_some() {
                 "switcher"
             } else {
                 "title"
             };
 
             self.title_stack.set_visible_child_name(title);
+
+            self.tab_switcher_bar.set_reveal(mode == PaneDisplayMode::Narrow && pkg.is_some());
 
             self.pkg_history.borrow().init(pkg);
 
@@ -245,9 +249,11 @@ impl InfoPane {
 
             let mode = pane.display_mode();
 
+            let pkg = pane.pkg();
+
             imp.show_button.set_visible(mode != PaneDisplayMode::Normal);
 
-            let title = if mode != PaneDisplayMode::Narrow && pane.pkg().is_some() {
+            let title = if mode != PaneDisplayMode::Narrow && pkg.is_some() {
                 "switcher"
             } else {
                 "title"
@@ -255,7 +261,7 @@ impl InfoPane {
 
             imp.title_stack.set_visible_child_name(title);
 
-            imp.tab_switcher_bar.set_reveal(mode == PaneDisplayMode::Narrow);
+            imp.tab_switcher_bar.set_reveal(mode == PaneDisplayMode::Narrow && pkg.is_some());
         });
     }
 
