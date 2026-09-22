@@ -3,7 +3,7 @@ use std::marker::PhantomData;
 use std::rc::Rc;
 use std::time::Duration;
 
-use gtk::glib;
+use gtk::{glib, pango};
 use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::{clone, closure_local};
@@ -45,6 +45,9 @@ mod imp {
     #[properties(wrapper_type = super::InfoPane)]
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
+        #[template_child]
+        pub(super) toast_overlay: TemplateChild<adw::ToastOverlay>,
+
         #[template_child]
         pub(super) title_stack: TemplateChild<gtk::Stack>,
         #[template_child]
@@ -237,6 +240,8 @@ impl InfoPane {
         imp.info_tab.connect_closure("activate-pkg-link", false, closure_local!(
             #[weak(rename_to = pane)] self,
             move |_: InfoDetailsTab, pkg_name: String, pkg_version: Option<String>| {
+                let imp = pane.imp();
+
                 // Find link package in pacman databases or AUR search results
                 let mut pkg_link = pkg_name.clone();
                 
@@ -254,13 +259,30 @@ impl InfoPane {
                     }));
 
                 // If link package found and is different from current package
-                if let Some(pkg) = new_pkg.filter(|pkg| pane.pkg().as_ref() != Some(pkg)) {
-                    // If link package is in history, select it
-                    // Otherwise append it after selected history package
-                    pane.imp().pkg_history.borrow().select_or_append(pkg);
+                if let Some(pkg) = new_pkg {
+                    if pane.pkg().is_some_and(|pane_pkg| pane_pkg != pkg) {
+                        // If link package is in history, select it
+                        // Otherwise append it after selected history package
+                        imp.pkg_history.borrow().select_or_append(pkg);
 
-                    // Display link package
-                    pane.update_display();
+                        // Display link package
+                        pane.update_display();
+                    }
+                } else {
+                    // Display warning toast
+                    let label = gtk::Label::builder()
+                        .label(format!("<b><u>{pkg_link}</u> not found in package databases</b>"))
+                        .use_markup(true)
+                        .ellipsize(pango::EllipsizeMode::End)
+                        .css_classes(["warning"])
+                        .build();
+
+                    let toast = adw::Toast::builder()
+                        .custom_title(&label)
+                        .timeout(3)
+                        .build();
+
+                    imp.toast_overlay.add_toast(toast);
                 }
             }
         ));
