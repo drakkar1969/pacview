@@ -46,11 +46,7 @@ mod imp {
     #[template(resource = "/com/github/PacView/ui/info_pane.ui")]
     pub struct InfoPane {
         #[template_child]
-        pub(super) tab_header_bar: TemplateChild<adw::HeaderBar>,
-        #[template_child]
-        pub(super) tab_header_switcher: TemplateChild<adw::ViewSwitcher>,
-        #[template_child]
-        pub(super) tab_header_title: TemplateChild<adw::WindowTitle>,
+        pub(super) title_stack: TemplateChild<gtk::Stack>,
         #[template_child]
         pub(super) prev_button: TemplateChild<gtk::Button>,
         #[template_child]
@@ -208,13 +204,23 @@ mod imp {
         }
 
         fn set_pkg(&self, pkg: Option<PkgObject>) {
+            let obj = self.obj();
+
             self.main_stack.set_visible_child_name(
                 if pkg.is_some() { "properties" } else { "empty" }
             );
 
+            let title = if obj.display_mode() != PaneDisplayMode::Narrow && pkg.is_some() {
+                "switcher"
+            } else {
+                "title"
+            };
+
+            self.title_stack.set_visible_child_name(title);
+
             self.pkg_history.borrow().init(pkg);
 
-            self.obj().update_display();
+            obj.update_display();
         }
     }
 }
@@ -241,11 +247,13 @@ impl InfoPane {
 
             imp.show_button.set_visible(mode != PaneDisplayMode::Normal);
 
-            if mode == PaneDisplayMode::Narrow {
-                imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_title.get()));
+            let title = if mode != PaneDisplayMode::Narrow && pane.pkg().is_some() {
+                "switcher"
             } else {
-                imp.tab_header_bar.set_title_widget(Some(&imp.tab_header_switcher.get()));
-            }
+                "title"
+            };
+
+            imp.title_stack.set_visible_child_name(title);
 
             imp.tab_switcher_bar.set_reveal(mode == PaneDisplayMode::Narrow);
         });
