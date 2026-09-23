@@ -24,6 +24,7 @@ use notify_debouncer_full::{notify::{INotifyWatcher, RecursiveMode}, new_debounc
 use crate::{
     APP_ID,
     PacViewApplication,
+    main_menu_button::MainMenuButton,
     pkg_data::{PkgFlags, PkgData},
     pkg_object::PkgObject,
     package_view::{PackageView, ViewState},
@@ -66,7 +67,7 @@ mod imp {
         #[template_child]
         pub(super) info_splitview: TemplateChild<adw::OverlaySplitView>,
         #[template_child]
-        pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
+        pub(super) main_menu_button: TemplateChild<MainMenuButton>,
 
         #[template_child]
         pub(super) repo_sidebar: TemplateChild<adw::Sidebar>,
@@ -84,6 +85,8 @@ mod imp {
         #[template_child]
         pub(super) info_pane: TemplateChild<InfoPane>,
 
+        #[property(get, set)]
+        color_scheme: RefCell<String>,
         #[property(get, set)]
         show_sidebar: Cell<bool>,
         #[property(get, set)]
@@ -151,6 +154,10 @@ mod imp {
             obj.setup_widgets();
             obj.bind_gsettings();
             obj.setup_alpm(true);
+        }
+
+        fn dispose(&self) {
+            libpanel::finalize();
         }
     }
 
@@ -692,15 +699,49 @@ impl PacViewWindow {
     fn setup_widgets(&self) {
         let imp = self.imp();
 
+        // Initialize libpanel
+        libpanel::init();
+
         // Create app cache dir
         let _ = fs::create_dir_all(Paths::cache_dir());
 
-        // Setup main menu
-        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/main_menu/menu.ui");
+        // Create stateful color scheme action
+        let action = gio::SimpleAction::new_stateful(
+            "set-color-scheme",
+            Some(glib::VariantTy::STRING),
+            &String::from("default").to_variant()
+        );
 
-        let menu = builder.object::<gio::MenuModel>("main_menu");
+        self.add_action(&action);
 
-        imp.main_menu_button.set_menu_model(menu.as_ref());
+        // Connect color scheme action activate signal
+        action.connect_activate(clone!(
+            #[weak(rename_to = window)] self,
+            move |action, state| {
+                if let Some(state) = state && let Some(variant) = state.get::<String>() {
+                    let style_manager = adw::StyleManager::for_display(
+                        &gtk::prelude::WidgetExt::display(&window)
+                    );
+
+                    match variant.as_str() {
+                        "default" => { style_manager.set_color_scheme(adw::ColorScheme::Default) },
+                        "light" => { style_manager.set_color_scheme(adw::ColorScheme::ForceLight) },
+                        "dark" => { style_manager.set_color_scheme(adw::ColorScheme::ForceDark) },
+                        _ => {}
+                    }
+
+                    action.set_state(state);
+                }
+            }
+        ));
+
+        // Bind color scheme property to color scheme action state
+        self.bind_property("color-scheme", &action, "state")
+            .transform_to(|_, scheme: String| Some(scheme.to_variant()))
+            .transform_from(|_, scheme: glib::Variant| scheme.get::<String>())
+            .sync_create()
+            .bidirectional()
+            .build();
 
         // Bind sidebar/infopane visibility to properties
         imp.sidebar_splitview.bind_property("show-sidebar", self, "show-sidebar")
@@ -747,6 +788,17 @@ impl PacViewWindow {
         settings.bind("window-height", self, "default-height").build();
         settings.bind("window-maximized", self, "maximized").build();
 
+        // Bind color scheme
+        settings.bind("color-scheme", self, "color-scheme").build();
+
+        let scheme = settings.string("color-scheme");
+
+        gtk::prelude::WidgetExt::activate_action(
+            self,
+            "win.set-color-scheme",
+            Some(&scheme.to_variant())
+        ).unwrap();
+
         // Load initial search bar settings
         settings.bind("search-prop", &imp.package_view.search_bar(), "prop")
             .get()
@@ -761,7 +813,6 @@ impl PacViewWindow {
         // Bind preferences
         let prefs_dialog = &*imp.prefs_dialog.borrow();
 
-        settings.bind("color-scheme", prefs_dialog, "color-scheme").build();
         settings.bind("aur-database-download", prefs_dialog, "aur-database-download").build();
         settings.bind("aur-database-age", prefs_dialog, "aur-database-age").build();
         settings.bind("enable-pkgbuild-repos", prefs_dialog, "enable-pkgbuild-repos").build();

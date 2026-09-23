@@ -15,6 +15,7 @@ use raur::Raur;
 use futures::future::join_all;
 
 use crate::{
+    main_menu_button::MainMenuButton,
     package_item::PackageItem,
     pkg_data::{PkgFlags, PkgData},
     pkg_object::PkgObject,
@@ -100,7 +101,7 @@ mod imp {
         #[template_child]
         pub(super) infopane_button: TemplateChild<gtk::ToggleButton>,
         #[template_child]
-        pub(super) main_menu_button: TemplateChild<gtk::MenuButton>,
+        pub(super) main_menu_button: TemplateChild<MainMenuButton>,
 
         #[template_child]
         pub(super) stack: TemplateChild<gtk::Stack>,
@@ -477,13 +478,6 @@ impl PackageView {
     //---------------------------------------
     fn setup_widgets(&self) {
         let imp = self.imp();
-
-        // Setup main menu
-        let builder = gtk::Builder::from_resource("/com/github/PacView/ui/main_menu/menu.ui");
-
-        let menu = builder.object::<gio::MenuModel>("main_menu");
-
-        imp.main_menu_button.set_menu_model(menu.as_ref());
 
         // Bind search button state to search bar enabled state
         imp.search_button.bind_property("active", &imp.search_bar.get(), "enabled")

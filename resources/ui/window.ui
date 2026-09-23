@@ -56,11 +56,7 @@
                   </object>
                 </child>
                 <child type="end">
-                  <object class="GtkMenuButton" id="main_menu_button">
-                    <property name="icon-name">open-menu-symbolic</property>
-                    <property name="primary">true</property>
-                    <property name="tooltip-text">Main Menu</property>
-                  </object>
+                  <object class="MainMenuButton" id="main_menu_button"/>
                 </child>
               </object>
             </child>

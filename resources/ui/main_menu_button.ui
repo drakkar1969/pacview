@@ -1,7 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
+  <!--// MainMenuButton template //-->
+  <template class="MainMenuButton" parent="AdwBin">
+    <property name="child">
+      <object class="GtkMenuButton" id="button">
+        <property name="icon-name">open-menu-symbolic</property>
+        <property name="primary">true</property>
+        <property name="tooltip-text">Main Menu</property>
+        <property name="popover">
+          <object class="GtkPopoverMenu" id="popover">
+            <property name="menu_model">main_menu</property>
+          </object>
+        </property>
+      </object>
+    </property>
+  </template>
+
   <!--// Main menu //-->
   <menu id="main_menu">
+    <section>
+      <item>
+        <attribute name="custom">theme_selector</attribute>
+      </item>
+    </section>
     <section>
       <item>
         <attribute name="label">Refresh</attribute>

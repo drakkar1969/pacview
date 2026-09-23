@@ -9,25 +9,6 @@
         <property name="icon-name">org.gnome.Settings-symbolic</property>
         <child>
           <object class="AdwPreferencesGroup">
-            <property name="title">Application</property>
-            <child>
-              <object class="AdwComboRow" id="color_scheme_row">
-                <property name="title">_Color Scheme</property>
-                <property name="use-underline">true</property>
-                <property name="model">
-                  <object class="AdwEnumListModel">
-                    <property name="enum-type">ColorScheme</property>
-                  </object>
-                </property>
-                <property name="expression">
-                  <lookup type="AdwEnumListItem" name="name"/>
-                </property>
-              </object>
-            </child>
-          </object>
-        </child>
-        <child>
-          <object class="AdwPreferencesGroup">
             <property name="title">Package List</property>
             <child>
               <object class="AdwSwitchRow" id="auto_refresh_row">

@@ -1,5 +1,6 @@
 mod app;
 mod window;
+mod main_menu_button;
 mod search_bar;
 mod search_tag;
 mod repo_item;

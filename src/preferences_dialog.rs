@@ -6,7 +6,6 @@ use adw::subclass::prelude::*;
 use adw::prelude::*;
 use glib::clone;
 
-use strum::FromRepr;
 use walkdir::WalkDir;
 
 use crate::{
@@ -14,19 +13,6 @@ use crate::{
     search_bar::SearchProp,
     utils::{Paths, StyleSchemes, AppInfoExt},
 };
-
-//------------------------------------------------------------------------------
-// ENUM: ColorScheme
-//------------------------------------------------------------------------------
-#[derive(Default, Debug, Eq, PartialEq, Clone, Copy, glib::Enum, FromRepr)]
-#[repr(u32)]
-#[enum_type(name = "ColorScheme")]
-pub enum ColorScheme {
-    #[default]
-    Default,
-    Light,
-    Dark,
-}
 
 //------------------------------------------------------------------------------
 // MODULE: PreferencesDialog
@@ -41,8 +27,6 @@ mod imp {
     #[properties(wrapper_type = super::PreferencesDialog)]
     #[template(resource = "/com/github/PacView/ui/preferences_dialog.ui")]
     pub struct PreferencesDialog {
-        #[template_child]
-        pub(super) color_scheme_row: TemplateChild<adw::ComboRow>,
         #[template_child]
         pub(super) aur_database_download_row: TemplateChild<adw::ExpanderRow>,
         #[template_child]
@@ -84,8 +68,6 @@ mod imp {
         #[template_child]
         pub(super) reset_button: TemplateChild<adw::ButtonRow>,
 
-        #[property(get, set, builder(ColorScheme::default()))]
-        color_scheme: Cell<ColorScheme>,
         #[property(get, set)]
         aur_database_download: Cell<bool>,
         #[property(get, set)]
@@ -245,7 +227,6 @@ mod imp {
                         if response == "reset" {
                             let settings = gio::Settings::new(APP_ID);
 
-                            settings.reset("color-scheme");
                             settings.reset("aur-database-download");
                             settings.reset("aur-database-age");
                             settings.reset("enable-pkgbuild-repos");
@@ -306,19 +287,6 @@ impl PreferencesDialog {
                 dialog.populate_style_schemes(style_manager);
             }
         ));
-
-        // Color scheme property notify signal
-        self.connect_color_scheme_notify(|dialog| {
-            let color_scheme = match dialog.color_scheme() {
-                ColorScheme::Default => adw::ColorScheme::Default,
-                ColorScheme::Light => adw::ColorScheme::ForceLight,
-                ColorScheme::Dark => adw::ColorScheme::ForceDark
-            };
-
-            let style_manager = adw::StyleManager::for_display(&dialog.display());
-
-            style_manager.set_color_scheme(color_scheme);
-        });
     }
 
     //---------------------------------------
@@ -333,11 +301,6 @@ impl PreferencesDialog {
         self.populate_style_schemes(&style_manager);
 
         // Bind properties to widgets
-        self.bind_property("color-scheme", &imp.color_scheme_row.get(), "selected")
-            .sync_create()
-            .bidirectional()
-            .build();
-
         self.bind_property("aur-database-download", &imp.aur_database_download_row.get(), "expanded")
             .sync_create()
             .bidirectional()
