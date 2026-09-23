@@ -25,14 +25,14 @@
                 <child>
                   <object class="GtkMenuButton" id="filter_button">
                     <property name="icon-name">backup-filter-symbolic</property>
-                    <property name="tooltip-text">Filter Backup Files by Status</property>
+                    <property name="tooltip-text">Filter by Status</property>
                     <property name="menu-model">filter_menu</property>
                   </object>
                 </child>
                 <child type="end">
                   <object class="GtkButton" id="copy_button">
                     <property name="icon-name">edit-copy-symbolic</property>
-                    <property name="tooltip-text">Copy Backup List</property>
+                    <property name="tooltip-text">Copy List</property>
                     <property name="action-name">backup.copy</property>
                   </object>
                 </child>

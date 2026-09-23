@@ -25,7 +25,7 @@
                 <child type="end">
                   <object class="GtkButton" id="copy_button">
                     <property name="icon-name">edit-copy-symbolic</property>
-                    <property name="tooltip-text">Copy Log Messages</property>
+                    <property name="tooltip-text">Copy Messages</property>
                     <property name="action-name">log.copy</property>
                   </object>
                 </child>
